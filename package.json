@@ -1,0 +1,47 @@
+{
+  "name": "plumeria",
+  "version": "0.0.1",
+  "description": "Near zero-runtime semantic CSS-in-JS library",
+  "keywords": [
+    "css",
+    "css-in-js",
+    "pulmeria",
+    "react",
+    "styling"
+  ],
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "author": "Refirst",
+  "repository": "github:elterjs/elter",
+  "homepage": "https://elter.vercel.app",
+  "license": "MIT",
+  "main": "dist/core/index.js",
+  "typings": "dist/core/index.d.ts",
+  "scripts": {
+    "build": "npx tsc && cp -r src/core/styles dist/core",
+    "test": "jest",
+    "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.11",
+    "@playwright/test": "^1.48.2",
+    "@swc/core": "^1.7.42",
+    "@swc/jest": "^0.2.37",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.8.5",
+    "@types/react": "^18.3.12",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
+    "eslint": "8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-object-css": "^0.1.1",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "next": "^15.0.2",
+    "typescript": "^5.6.3"
+  }
+}

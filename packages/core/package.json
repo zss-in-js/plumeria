@@ -1,0 +1,32 @@
+{
+  "name": "@plumeria/core",
+  "version": "0.1.0",
+  "description": "Near zero-runtime semantic CSS-in-JS library",
+  "keywords": [
+    "react",
+    "css",
+    "css-in-js",
+    "plumeria",
+    "styling"
+  ],
+  "private": true,
+  "author": "Refirst",
+  "repository": "github:zss-in-js/plumeria",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npx tsc && cp -r src/core/styles dist/core",
+    "test": "jest",
+    "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
+    "test:e2e": "playwright test"
+  },
+  "bin": {
+    "css": "./bin/css.mjs"
+  },
+  "dependencies": {
+    "@plumeria/collection": "^0.1.1",
+    "@plumeria/compiler": "^0.1.0",
+    "zss-engine": "^0.1.2"
+  }
+}

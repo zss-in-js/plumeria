@@ -1,0 +1,13 @@
+node_modules
+dist
+*.log
+*.tgz
+.env
+.next
+.DS_Store
+.idea
+.vscode
+package-lock.json
+coverage
+test-results
+playwright-report

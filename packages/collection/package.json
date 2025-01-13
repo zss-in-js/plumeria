@@ -1,0 +1,18 @@
+{
+  "name": "@plumeria/collection",
+  "version": "0.1.0",
+  "description": "Collection of media, pseudo, and other items for Plumeria",
+  "keywords": [
+    "react",
+    "css",
+    "css-in-js",
+    "plumeria",
+    "styling"
+  ],
+  "private": true,
+  "author": "Refirst",
+  "repository": "github:zss-in-js/plumeria",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "types/index.d.ts"
+}

@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "lib": ["ESNext", "dom"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noImplicitReturns": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "./dist",
+    "strict": true,
+    "target": "ES2022",
+    "noEmitOnError": true,
+    "skipLibCheck": true,
+    "removeComments": true
+  },
+  "include": ["./packages/core/src/"],
+  "exclude": ["test-e2e/**", "packages/**/dist/**", "node_modules", "packages/compiler/**"]
+}
