@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Near zero-runtime semantic CSS-in-JS library",
   "keywords": [
     "react",
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@plumeria/collection": "^0.1.1",
-    "@plumeria/compiler": "^0.1.0",
+    "@plumeria/compiler": "^1.0.0",
     "zss-engine": "^0.1.2"
   }
 }
