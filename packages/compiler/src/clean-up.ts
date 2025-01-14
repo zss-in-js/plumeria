@@ -1,9 +1,13 @@
 import { writeFileSync } from 'fs';
-import { join } from 'path';
+import path from 'path';
 
 export const cleanUp = async () => {
-  const createFilePath = join(__dirname, '../../core/dist/styles/create.css');
-  const globalFilePath = join(__dirname, '../../core/dist/styles/global.css');
+  const projectRoot = process.cwd().split('node_modules')[0];
+  const directPath = path.join(projectRoot, 'node_modules/@plumeria/core');
+
+  const createFilePath = directPath + '/dist/styles/create.css';
+  const globalFilePath = directPath + '/dist/styles/global.css';
+
   try {
     writeFileSync(createFilePath, '', 'utf-8');
     writeFileSync(globalFilePath, '', 'utf-8');

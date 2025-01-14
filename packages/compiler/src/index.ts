@@ -3,8 +3,8 @@ import * as fs from 'fs';
 import ts from 'typescript';
 import { globby } from 'globby';
 import { cleanUp } from './clean-up';
-import { buildCreate } from '../../core/dist/method/create-build-helper.js';
-import { buildGlobal } from '../../core/dist/method/global-build-helper.js';
+import { buildCreate } from '@plumeria/core/dist/method/create-build-helper.js';
+import { buildGlobal } from '@plumeria/core/dist/method/global-build-helper.js';
 import postcss from 'postcss';
 import combineSelectors from 'postcss-combine-duplicated-selectors';
 
@@ -30,7 +30,8 @@ async function getAppRoot(): Promise<string> {
 }
 
 async function optimizeCSS() {
-  const cssPath = path.join(__dirname, '../../core/dist/styles/global.css');
+  const corePath = path.dirname(require.resolve('@plumeria/core/package.json'));
+  const cssPath = path.join(corePath, 'dist/styles/global.css');
   const cssContent = fs.readFileSync(cssPath, 'utf8');
   const result = postcss([combineSelectors({ removeDuplicatedProperties: true })]).process(cssContent, { from: cssPath, to: cssPath });
   fs.writeFileSync(cssPath, result.css);
@@ -40,7 +41,7 @@ async function optimizeCSS() {
   await cleanUp();
   const appRoot = await getAppRoot();
   const files = await globby([path.join(appRoot, '**/*.{js,jsx,ts,tsx}')], {
-    ignore: ['**/main.{js,ts}/**', '**/.next/**', '**/node_modules/**'],
+    ignore: ['**/main.{js,ts}/**', '**/dist/**', '**/.next/**', '**/node_modules/**'],
   });
   const styleFiles = files.filter(isCSS);
   const importPromises = styleFiles.map(styleFile => import(path.resolve(styleFile)));
