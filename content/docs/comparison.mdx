@@ -1,0 +1,31 @@
+---
+title: ♻️ Comparison
+description: Components
+---
+
+## Stylex
+
+Plumeria is highly inspired by Stylex. For example, the API's. That is why
+`css.keyframes` also exists in Plumeria.
+
+Plumeria also performs optimization during compilation.
+If global selectors conflict, they are automatically merged to eliminate unnecessary CSS.
+Styles are thinned out by tree shaking, so only CSS files are included in production.
+
+For example, Plumeria is ideal if you want to pass class names directly without merging them, or if you want fine-grained control over CSS by following semantic CSS Syntax.
+
+### Feature Table
+
+| Feature         | Plumeria      | vanilla-extract | Stylex | Tailwind CSS  |
+| --------------- | ------------- | --------------- | ------ | ------------- |
+| method          | Object        | Object          | Object | Utility class |
+| Static          | Yes           | Yes             | Yes    | Yes           |
+| Dynamic         | No            | No              | Yes    | No            |
+| Zero-runtime    | Yes           | Yes             | Yes    | Yes           |
+| Compile         | Yes           | Yes             | Yes    | Yes           |
+| Semantic/Atomic | Semantic      | Semantic        | Atomic | Atomic        |
+| Bundle Size     | Small         | Medium          | Medium | Bigger        |
+| RSC             | Yes           | No              | Yes    | Yes           |
+| React Component | Yes           | No              | Yes    | Yes           |
+| Linting         | Yes           | Yes             | Yes    | N/A           |
+| Ecosystem       | TSX & Node.js | TSX & Babel     | Babel  | PostCSS       |

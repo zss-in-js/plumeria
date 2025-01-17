@@ -1,0 +1,25 @@
+---
+title: ServerCSS
+description: For Next.js ServerComponent only
+---
+
+## Headless component
+
+A headless component for facilitating server-side js for Next.js only.
+
+```tsx title="layout.tsx"
+import { ServerCSS } from '@plumeria/core'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <head>
+        <ServerCSS />
+      </head>
+      <body>
+        <main>{children}</main>
+      </body>
+    <html>
+  )
+}
+```

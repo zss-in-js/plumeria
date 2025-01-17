@@ -1,0 +1,151 @@
+---
+title: '📚 Quick Start'
+description: 'This page describes Plumeria installation and compile and plugin, and other details.'
+date: '2024-09-29'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+## Installation
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    npm install --save @plumeria/core
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    pnpm install --save @plumeria/core
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    yarn add --save @plumeria/core
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    bun add --save @plumeria/core
+    ```
+  </Tab>
+</Tabs>
+
+### Integration
+
+you need to configure it in your configuration file.
+
+<Tabs items={["Next.js", "Vite", "Webpack"]}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```js title="layout.tsx.js"
+      // Add　<ServerCSS /> for RootLayout
+    ```
+
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```js title="vite.config.js"
+      // Additional configuration is to remove type: "module" in package.json
+      // and change vite.config.ts to vite.config.mts.
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```js title="webpack.config.js"
+    module.exports = {
+      resolve: {
+        fallback: {
+          fs: false,
+          path: false
+        }
+      },
+    };
+    ```
+  </Tab>
+</Tabs>
+
+### Compile command
+
+<code>npx css</code> compiles without type checking. Adding the argument
+<code>--type-check</code>
+will include compilation checking using TypeScript. You can also add the
+<code>--log</code>
+argument to see the CSS log that is output during compilation. It is recommended
+to generating server-side static CSS with a faster compile In parallel next dev.
+
+```json title="package.json"
+  "scripts": {
+    "dev": "css & next dev",
+    "build": "css --type-check & next build",
+  }
+```
+
+### Server component
+
+You can statically preview a Next.js's ServerComponent using <code>\<ServerCSS \/\></code>.  
+This ServerCSS will be null in production.
+
+```tsx title="layout.tsx"
+import { ServerCSS } from '@plumeria/core'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <head>
+        <ServerCSS />
+      </head>
+      .....
+  )
+}
+```
+
+## Linting
+
+Uses the community-made [eslint-plugin-object-css](https://www.npmjs.com/package/eslint-plugin-object-css).
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+<Tab>
+```sh title="shell"
+npm install --save-dev eslint-pulgin-object-css
+```
+</Tab>
+<Tab>
+```sh title="shell"
+pnpm install --save-dev eslint-pulgin-object-css
+```
+</Tab>
+<Tab>
+```sh title="shell"
+yarn add -D eslint-pulgin-object-css
+```
+</Tab>
+<Tab>
+```sh title="shell"
+bun add -D eslint-pulgin-object-css
+```
+</Tab>
+</Tabs>
+<Tabs items={['json']}>
+<Tab>
+```json title=".eslintrc.json"
+{
+  "extends": ["plugin:object-css/recommended"],  
+  "plugins": ["object-css"],
+  "rules": {}
+}
+```
+</Tab>
+</Tabs>
+
+## Supported Node
+
+I'ts confirmed to work with Node.js versions from the under
+
+- ^v18 - v22
+
+If your project's dependencies are at an earlier version, update them.
