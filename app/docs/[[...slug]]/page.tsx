@@ -7,6 +7,7 @@ import {
 } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
+import { getGithubLastEdit } from 'fumadocs-core/server';
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -17,8 +18,28 @@ export default async function Page(props: {
 
   const MDX = page.data.body;
 
+  const time = await getGithubLastEdit({
+    owner: 'fuma-nama',
+    repo: 'fumadocs',
+    path: `content/docs/${page.file.path}`,
+  });
+
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
+    <DocsPage
+      toc={page.data.toc}
+      full={page.data.full}
+      lastUpdate={new Date(time as Date)}
+      editOnGithub={{
+        owner: 'Refirst',
+        repo: 'plumeria-docs',
+        sha: 'main',
+        path: `content/docs/${page.file.path}`,
+      }}
+      tableOfContent={{
+        style: 'clerk',
+        single: true,
+      }}
+    >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
