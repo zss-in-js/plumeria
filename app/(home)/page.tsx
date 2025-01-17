@@ -18,7 +18,7 @@ export default function HomePage() {
           marginBottom: '1rem',
         }}
       >
-        Hello World
+        Plumeria documentation
       </h1>
       <p>
         You can open{' '}
