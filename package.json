@@ -9,20 +9,21 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "next": "15.1.4",
-    "fumadocs-ui": "14.7.4",
+    "@plumeria/core": "^0.1.1",
     "fumadocs-core": "14.7.4",
+    "fumadocs-mdx": "11.3.1",
+    "fumadocs-ui": "14.7.4",
+    "next": "15.1.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "fumadocs-mdx": "11.3.1"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@types/mdx": "^2.0.13",
     "@types/node": "22.10.6",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
-    "typescript": "^5.7.3",
-    "@types/mdx": "^2.0.13",
     "eslint": "^8",
-    "eslint-config-next": "15.1.4"
+    "eslint-config-next": "15.1.4",
+    "typescript": "^5.7.3"
   }
 }
