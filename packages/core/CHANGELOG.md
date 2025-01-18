@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.1.3
+
+### Patch Changes
+
+- e34ce8c: fix: missing not include styles folder
+
 ## 0.1.2
 
 ### Patch Changes
