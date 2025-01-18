@@ -1,4 +1,4 @@
-import type { CreateStyle, ReturnType, CustomHTMLType, CustomProperties, KeyframesDefinition } from 'zss-engine';
+import type { CreateStyle, ReturnType, CustomHTMLType, CustomProperties, KeyframesDefinition, VarsDefinition } from 'zss-engine';
 import { create } from './method/create';
 import { global } from './method/global';
 import { cx } from './cx';
@@ -15,7 +15,7 @@ class css {
     return global(object);
   }
 
-  static defineThemeVars<const T extends Record<string, string | Record<string, string>>>(object: T) {
+  static defineThemeVars<const T extends VarsDefinition>(object: T) {
     return defineThemeVars(object);
   }
 
