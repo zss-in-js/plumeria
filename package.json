@@ -14,13 +14,9 @@
     "packages/*"
   ],
   "author": "Refirst",
-  "repository": "github:elterjs/elter",
-  "homepage": "https://elter.vercel.app",
   "license": "MIT",
-  "main": "dist/core/index.js",
-  "typings": "dist/core/index.d.ts",
   "scripts": {
-    "build": "npx tsc && cp -r src/core/styles dist/core",
+    "build": "cd packages/core && npx tsc && cp -r src/styles dist && cd ../..",
     "test": "jest",
     "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
     "test:e2e": "playwright test"
