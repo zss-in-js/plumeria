@@ -9,7 +9,6 @@
     "noImplicitReturns": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "outDir": "./dist",
     "strict": true,
     "target": "ES2022",
     "noEmitOnError": true,
