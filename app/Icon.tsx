@@ -6,7 +6,7 @@ const styles = css.create({
     position: 'relative',
     display: 'inline-block',
     left: 0,
-    bottom: 6,
+    bottom: 8,
   },
 
   plumeria: {
