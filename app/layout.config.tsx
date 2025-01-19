@@ -1,3 +1,4 @@
+import React from 'react';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import { Icon } from './Icon';
 import { css, cx } from '@plumeria/core';
@@ -25,10 +26,10 @@ export const baseOptions: BaseLayoutProps = {
   nav: {
     // can be JSX too!
     title: (
-      <div>
+      <>
         <Icon />
         <span className={cx(styles.position, styles.purple)}>Plumeria</span>
-      </div>
+      </>
     ),
     transparentMode: 'top',
   },
