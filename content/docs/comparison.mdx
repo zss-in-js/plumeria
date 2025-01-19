@@ -1,6 +1,6 @@
 ---
-title: ♻️ Comparison
-description: Components
+title: 📚 Comparison
+description: How is Plumeria different from other existing frameworks?
 ---
 
 ## Stylex
@@ -29,3 +29,23 @@ For example, Plumeria is ideal if you want to pass class names directly without 
 | React Component | Yes           | No              | Yes    | Yes           |
 | Linting         | Yes           | Yes             | Yes    | N/A           |
 | Ecosystem       | TSX & Node.js | TSX & Babel     | Babel  | PostCSS       |
+
+## vanilla-extract
+
+Plumeria's features are not as powerful as vanilla-extract, but if you want to develop quickly with a minimal API and want to be part of a linter-compatible community, using Plumeria (eslint-plugin-object-css) is an option.  
+If you are familiar with how vanilla-extract is built, we do not recommend switching from vanilla-extract to Plumeria, and you can use eslint-plugin-object-css to enhance vanilla-extract linting.
+
+## Tailwind CSS
+
+Tailwind CSS is a powerful framework that handles utility classes based on atomic CSS.
+Surrounding libraries such as headless ui and shadcn/ui are also well-developed.
+As the creator of Plumeria, if you are having difficulty with the Tailwind CSS development screen, we recommend that you do not consider switching to Plumeria, but rather consider Plumeria when creating a new site.
+
+### When to use Plumeria?
+
+For most web applications, vanilla CSS is no longer enough. These days, you need UI frameworks, CSS-in-JS, client-side styling, etc. In these cases, Plumeria, with its simplified API, allows you to build sites more easily with less CSS syntax.
+
+## We continue to update our essence
+
+We are currently working on modifying eslint-plugin-object-css to make it compatible with eslint 9.  
+A good UI and user and developer experience is always our priority, welcome to give us feedback via Github discussions, issues, PRs.

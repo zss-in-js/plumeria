@@ -1,13 +1,17 @@
 ---
 title: css.colors
-description: Components
+description: The Plumeria css class items colors
 ---
 
-## Code Block
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-```ts
+## Colors functions
+
+Mixes dark or light in the proportion specified by the second argument. Returns: `<color>`
+
+```ts title="TypeScript"
 import { css } from '@plumeria/core';
 
-css.colors.darken('aqua', 0.32);
-css.colors.lighten('skyblue', 0.1);
+css.colors.darken('navy', 0.2);
+css.colors.lighten('aqua', 0.2);
 ```

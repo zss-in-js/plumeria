@@ -1,10 +1,21 @@
 ---
 title: css.container
-description: Components
+description: The Plumeria css class items container
 ---
 
-## Code Block
+## Container functions
 
-```js
-console.log('Hello World');
+Argument: string  
+The usage is the same as for media, and it can be used by putting it in an array.
+
+```ts title="TypeScript"
+import { css } from '@plumeria/core';
+
+css.container.max();
+css.container.min();
+css.container.range();
 ```
+
+- `css.container.max("width: 500px")`
+- `css.container.min("width: 400px")`
+- `css.container.range("width <= 400px")`

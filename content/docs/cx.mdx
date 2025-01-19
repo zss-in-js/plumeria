@@ -3,11 +3,13 @@ title: cx
 description: merge function of the classNames
 ---
 
-## Return Value
+## Return value
 
 Filters undefined and false and returns a string.
 
-```ts
+```ts title="TypeScript" {1}
+import { css, cx } from '@plumeria/core';
+
 const styles = css.create({
   one: {
     display: 'flex',
@@ -18,17 +20,20 @@ const styles = css.create({
     color: '#606060',
   },
 });
+
+const style = cx(styles.one, styles.two); // [!code ++]
 ```
 
-```ts title="tsx"
-import { cx } from '@plumeria/core';
+### Argument expression
 
-const style = cx(styles.one, styles.two);
-```
+<Callout title="Good to know">
+  Since falsy values are filtered out, you can use logical and, ternary
+  operators, etc. in argument expressions.
+</Callout>
 
 ### More
 
 <Cards>
-  <Card title="Learn more about css.create" href="/docs/create" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.vercel.app" />
+  <Card title="See more about css.create" href="/docs/create" />
+  <Card title="See more about css.pseudo" href="/docs/pseudo" />
 </Cards>

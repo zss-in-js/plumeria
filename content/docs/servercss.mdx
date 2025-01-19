@@ -7,15 +7,20 @@ description: For Next.js ServerComponent only
 
 A headless component for facilitating server-side js for Next.js only.
 
+<Callout title="It is safe to know">
+  It will be null in non-development environments and will not be included in
+  production environments.
+</Callout>
+
 ```tsx title="layout.tsx"
 import { ServerCSS } from '@plumeria/core'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html>
-      <head>
-        <ServerCSS />
-      </head>
+      <head> // [!code ++]
+        <ServerCSS /> // [!code ++]
+      </head> // [!code ++]
       <body>
         <main>{children}</main>
       </body>

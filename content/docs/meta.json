@@ -1,8 +1,10 @@
 {
-  "title": "CSS-IN-JS",
+  "title": "Library",
+  "description": "The CSS-in-JS library",
+  "root": true,
   "pages": [
     "---Guide---",
-    "quickstart",
+    "index",
     "comparison",
     "---About Plumeria---",
     "insentive",
@@ -11,12 +13,12 @@
     "global",
     "keyframes",
     "defineThemeVars",
-    "---Items---",
+    "---Collections---",
     "media",
     "container",
     "pseudo",
     "colors",
-    "---utils---",
+    "---Utils---",
     "cx",
     "servercss"
   ]
