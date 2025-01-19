@@ -2,6 +2,8 @@ import { RootProvider } from 'fumadocs-ui/provider';
 import 'fumadocs-ui/style.css';
 import { Inter } from 'next/font/google';
 import type { ReactNode } from 'react';
+import { ServerCSS } from '@plumeria/core';
+import './style';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -10,6 +12,9 @@ const inter = Inter({
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
+      <head>
+        <ServerCSS />
+      </head>
       <body
         style={{
           display: 'flex',
