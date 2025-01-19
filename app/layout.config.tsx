@@ -13,7 +13,7 @@ import { css, cx } from '@plumeria/core';
 const styles = css.create({
   position: {
     position: 'relative',
-    left: 16,
+    left: 6,
   },
   purple: {
     background: 'linear-gradient(90deg, #58c6ff 0%, #076ad9 40%, #ff3bef 80%)',
