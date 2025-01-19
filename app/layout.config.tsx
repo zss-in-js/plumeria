@@ -1,5 +1,6 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-
+import { Icon } from './Icon';
+import { css, cx } from '@plumeria/core';
 /**
  * Shared layout configurations
  *
@@ -7,16 +8,34 @@ import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
  * Home Layout: app/(home)/layout.tsx
  * Docs Layout: app/docs/layout.tsx
  */
+
+const styles = css.create({
+  position: {
+    position: 'relative',
+    left: 16,
+  },
+  purple: {
+    background: 'linear-gradient(90deg, #58c6ff 0%, #076ad9 40%, #ff3bef 80%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  },
+});
+
 export const baseOptions: BaseLayoutProps = {
   nav: {
     // can be JSX too!
-    title: 'Plumeria',
+    title: (
+      <div>
+        <Icon />
+        <span className={cx(styles.position, styles.purple)}>Plumeria</span>
+      </div>
+    ),
+    transparentMode: 'top',
   },
   links: [
     {
-      text: 'Documentation',
+      text: <span className={styles.position}>Documentation</span>,
       url: '/docs',
-      active: 'nested-url',
     },
   ],
 };
