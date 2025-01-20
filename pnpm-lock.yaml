@@ -59,6 +59,9 @@ importers:
       typescript:
         specifier: ^5.7.3
         version: 5.7.3
+      zss-engine:
+        specifier: ^0.2.1
+        version: 0.2.1
 
   packages/collection: {}
 
@@ -88,6 +91,8 @@ importers:
       zss-engine:
         specifier: ^0.2.1
         version: 0.2.1
+
+  packages/next: {}
 
   test-e2e/site:
     dependencies:
