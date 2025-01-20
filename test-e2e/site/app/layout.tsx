@@ -1,4 +1,4 @@
-import { ServerCSS } from '@plumeria/core';
+import { ServerCSS } from '@plumeria/next';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
