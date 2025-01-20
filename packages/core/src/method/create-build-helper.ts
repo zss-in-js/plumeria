@@ -1,7 +1,5 @@
 import { build, isDevelopment } from 'zss-engine';
-import path from 'path';
 
-const filePath = path.join(__dirname, '../styles/create.css');
 let resolvePromise: (value: string) => void;
 let globalPromise: Promise<string>;
 const sheetQueue: string[] = [];
@@ -17,6 +15,9 @@ function initPromise() {
 }
 
 function processQueue() {
+  const path = require('path');
+  const filePath = path.join(__dirname, '../styles/create.css');
+
   while (sheetQueue.length > 0) {
     const styleSheet = sheetQueue.shift();
     if (!isDevelopment && styleSheet) build(styleSheet, filePath);

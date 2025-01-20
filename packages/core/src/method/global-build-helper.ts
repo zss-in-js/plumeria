@@ -1,7 +1,5 @@
 import { build, isDevelopment } from 'zss-engine';
-import path from 'path';
 
-const filePath = path.join(__dirname, '../styles/global.css');
 let resolvePromise: (value: [string, string]) => void;
 let globalPromise: Promise<[string, string]>;
 const seetQueue: [string, string?][] = [];
@@ -17,6 +15,9 @@ function initPromise() {
 }
 
 function processSheets() {
+  const path = require('path');
+  const filePath = path.join(__dirname, '../styles/global.css');
+
   while (seetQueue.length > 0) {
     const [styleSheet, option] = seetQueue.shift() as [string, string];
     if (!isDevelopment && styleSheet) build(styleSheet, filePath, option);
