@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "0.1.3",
-  "description": "Near zero-runtime semantic CSS-in-JS library",
+  "description": "CSS-in-JS with Near Zero-runtime and Semantics library",
   "keywords": [
     "react",
     "css",
