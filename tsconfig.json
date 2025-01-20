@@ -15,6 +15,6 @@
     "skipLibCheck": true,
     "removeComments": true
   },
-  "include": ["./packages/core/src/"],
+  "include": ["./packages/core/src/", "./packages/next/src/"],
   "exclude": ["test-e2e/**", "packages/**/dist/**", "node_modules", "packages/compiler/**"]
 }
