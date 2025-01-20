@@ -11,7 +11,8 @@
   ],
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "website"
   ],
   "author": "Refirst",
   "license": "MIT",
