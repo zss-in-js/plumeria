@@ -1,0 +1,25 @@
+{
+  "title": "Library",
+  "description": "The CSS-in-JS library",
+  "root": true,
+  "pages": [
+    "---Guide---",
+    "index",
+    "comparison",
+    "---About Plumeria---",
+    "insentive",
+    "---API References---",
+    "create",
+    "global",
+    "keyframes",
+    "defineThemeVars",
+    "---Collections---",
+    "media",
+    "container",
+    "pseudo",
+    "colors",
+    "---Utils---",
+    "cx",
+    "servercss"
+  ]
+}

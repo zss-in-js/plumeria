@@ -1,0 +1,21 @@
+---
+title: css.media
+description: The Plumeria css class items media
+---
+
+## Media functions
+
+Argument: string  
+It can be put in an array and used as a selector.
+
+```ts title="TypeScript"
+import { css } from '@plumeria/core';
+
+css.media.max();
+css.media.min();
+css.media.range();
+```
+
+- `css.media.max("width: 800px")`
+- `css.media.min("width: 400px")`
+- `css.media.range("width <= 800px")`

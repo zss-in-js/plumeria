@@ -1,0 +1,59 @@
+---
+title: css.global
+description: The Plumeria css class method global
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+There is no need to put it in a variable, preview it by importing it to the file you want to apply it.
+
+## Write global and compile
+
+In addition to html elements, global allows you to directly define attributes and class names for pseudo elements and class. You can also wrap properties using `css.pseudo.hover`, `css.media.max()`, etc.
+
+<Tabs items={[ 'ts', 'css']}>
+  <Tab>
+    ```ts title="TypeScript"
+    import { css } from '@plumeria/core'
+
+    css.global({
+      body: {
+        color: 'white',
+        background: '#303030',
+        margin: '0 auto'
+        },
+      h2: {
+        color: 'white',
+        fontSize: '32px',
+        fontWeight: '500'
+      },
+      ".highlighted": {
+        color: 'aqua',
+        fontSize: '24px',
+        fontWeight: '450'
+      }
+    });
+    ```
+
+  </Tab>
+  <Tab>
+    ```css title="css"
+    body {
+      color: white;
+      background: #303030;
+      margin: 0 auto;
+    }
+    h2 {
+      color: white;
+      font-size: 32px;
+      font-weight: 500;
+    }
+    .highlighted {
+      color: aqua;
+      font-size: 24px;
+      font-weight: 450;
+    }
+    ```
+
+  </Tab>
+</Tabs>
