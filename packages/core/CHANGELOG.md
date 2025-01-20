@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.2.2
+
+### Patch Changes
+
+- 5a1fc0a: fix: move path inside the function. A bug in vite has been fixed.
+
 ## 0.2.1
 
 ### Patch Changes
