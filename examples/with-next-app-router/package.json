@@ -1,0 +1,27 @@
+{
+  "name": "with-next-app-router",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "css & next dev",
+    "build": "css --type-check && next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@plumeria/core": "^0.2.2",
+    "@plumeria/next": "^0.2.0",
+    "next": "15.1.5",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^22.10.7",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.5",
+    "typescript": "^5"
+  }
+}
