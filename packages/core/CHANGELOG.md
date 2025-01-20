@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.2.0
+
+### Minor Changes
+
+- da443f6: feat: ServerCSS move to @plumeria/next
+
 ## 0.1.3
 
 ### Patch Changes
