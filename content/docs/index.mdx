@@ -43,7 +43,9 @@ you need to configure it in your configuration file.
   {/* prettier-ignore */}
   <Tab>
     ```tsx title="layout.tsx"
-      // Add　<ServerCSS /> for layout.tsx
+    npm install --save @plumeria/next
+
+    // Add <ServerCSS /> for layout.tsx
     ```
 
   </Tab>
@@ -61,7 +63,8 @@ you need to configure it in your configuration file.
       resolve: {
         fallback: {
           fs: false,
-          path: false
+          path: false,
+          util: false
         }
       },
     };
@@ -97,7 +100,7 @@ This ServerCSS is a headless component and is not included in the production env
 <Tabs items={["Next.js"]}>
 <Tab>
 ```tsx title="layout.tsx"
-import { ServerCSS } from '@plumeria/core'
+import { ServerCSS } from '@plumeria/next'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
