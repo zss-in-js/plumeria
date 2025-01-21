@@ -40,6 +40,7 @@ This is the development monorepo for Plumeria
   - [collection](https://github.com/zss-in-js/plumeria/tree/main/packages/collection)
   - [compiler](https://github.com/zss-in-js/plumeria/tree/main/packages/compiler)
   - [core](https://github.com/zss-in-js/plumeria/tree/main/packages/core)
+  - [next](https://github.com/zss-in-js/plumeria/tree/main/packages/next)
 
 ## Contributing
 
