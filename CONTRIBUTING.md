@@ -19,6 +19,7 @@ Our project is organized into several packages within the `packages` directory:
 - **@plumeria/collection**: This package contains all the items needed for Plumeria.
 - **@plumeria/compiler**: This package contains the code required to compile Plumeria.
 - **@plumeria/core**: This is a core package that combines the above two and zss-engine as dependencies.
+- **@plumeria/next**: This package contains the Next.js specific component for Plumeria.
 
 ## Adding a changeset
 
