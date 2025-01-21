@@ -144,7 +144,7 @@ bun add -D eslint-pulgin-object-css
 ```
 </Tab>
 </Tabs>
-<Tabs items={['json']}>
+<Tabs items={['eslint8', 'eslint9']}>
 <Tab>
 ```json title=".eslintrc.json"
 {
@@ -154,6 +154,33 @@ bun add -D eslint-pulgin-object-css
 }
 ```
 </Tab>
+  <Tab>
+    ```js title="eslint.config.mjs"
+    import { FlatCompat } from '@eslint/eslintrc'
+    import objectCss from 'eslint-plugin-object-css'
+
+    const __dirname = import.meta.dirname;
+    const compat = new FlatCompat({
+      baseDirectory: __dirname,
+    })
+
+    const eslintConfig = [
+      {
+        files: ['**/*.{ts,js,jsx,tsx}'],
+        plugins: {
+          'object-css': objectCss,
+        },
+        rules: {
+          'object-css/recess-order': 'warn',
+          'object-css/valid-value': 'error',
+        },
+      },
+    ]
+
+    export default eslintConfig
+    ```
+
+  </Tab>
 </Tabs>
 
 ## Supported Node
