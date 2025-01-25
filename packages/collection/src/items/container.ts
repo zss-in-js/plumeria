@@ -7,5 +7,3 @@ export const container = {
   max,
   min,
 };
-
-container.range('300 => 200');

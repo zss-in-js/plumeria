@@ -23,7 +23,3 @@ export const media = {
   min,
   scheme,
 } as const;
-
-media.scheme.dark;
-
-media.max('width: 300px');
