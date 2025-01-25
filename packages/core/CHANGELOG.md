@@ -1,5 +1,13 @@
 # @plumeria/core
 
+## 0.2.3
+
+### Patch Changes
+
+- 26839d2: fix: removed non-null assertion in defineThemeVars
+- Updated dependencies [c165e69]
+  - @plumeria/collection@0.1.2
+
 ## 0.2.2
 
 ### Patch Changes
