@@ -17,10 +17,10 @@ export const defineThemeVars = <const T extends VarsDefinition>(object: T) => {
       Object.entries(value).forEach(([subKey, subValue]) => {
         if (subKey.startsWith('@media')) {
           (globalStyles[':root'] ||= {})[subKey] ||= {};
-          (globalStyles[':root'][subKey] as Record<string, string | number>)[`--${key}`] = subValue!;
+          (globalStyles[':root'][subKey] as Record<string, string | number>)[`--${key}`] = subValue;
         } else {
           const themeSelector = subKey === 'default' ? ':root' : `:root[data-theme="${subKey}"]`;
-          (globalStyles[themeSelector] ||= {})[`--${key}`] = subValue!;
+          (globalStyles[themeSelector] ||= {})[`--${key}`] = subValue;
         }
       });
     }
