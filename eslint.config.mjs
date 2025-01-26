@@ -19,6 +19,7 @@ const eslintConfig = tseslint.config(
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-extraneous-class': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   }
 );
