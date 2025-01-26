@@ -21,13 +21,13 @@ export default async function Page(props: {
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
-      lastUpdate={new Date(page.data.lastModified || '')}
-      editOnGithub={{
-        owner: 'refirst11',
-        repo: 'plumeria-docs',
-        sha: 'main',
-        path: `content/docs/${page.file.path}`,
-      }}
+      // lastUpdate={new Date(page.data.lastModified || '')}
+      // editOnGithub={{
+      //   owner: 'refirst11',
+      //   repo: 'plumeria-docs',
+      //   sha: 'main',
+      //   path: `content/docs/${page.file.path}`,
+      // }}
       tableOfContent={{
         style: 'clerk',
         single: false,
