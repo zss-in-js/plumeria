@@ -1,21 +1,25 @@
 ---
-title: '💫 Insentives'
-description: 'Plumeria thoughts good to know when using CSS-in-JS solutions'
+title: 📘 Benefits
+description: Benefits of using Plumeria's CSS-in-JS solution
 ---
 
-## Ease of introduction
+## Mechanism
 
 The Plumeria mechanism scans and compiles cssx method define using an AST (Abstract Syntax Tree).
 This allows it to operate in a Node.js environment where TypeScript can be executed.  
-This is not dependent on any specific framework.
+In any case, since the execution environment is a Node.js, it does not depend on a specific framework and does not require a dedicated plugin for a bundler.
 
-### Easy setup
+## Introduction
 
-The learning curve is very gentle.
-It works with zero configuration in Vite by default.  
+The learning curve is very gentle.  
+It supports Vite and Next.js by default.
+
+### Faster setup
+
+In Vite, just remove `type: "module"` and change it to `vite.config.mts` and it will work.  
 In Next.js set a `<ServerCSS />` component and just compile with `npx css`.
 
-### Simple API
+### User friendly API
 
 To be able to use the existing className API, the main methods create only return string.
 The rest are just the global method for writing global css.
@@ -24,14 +28,8 @@ These are very concise and easy to handle, so you can start writing without much
 
 ## Static style
 
-Plumeria does not support dynamic variable embedding.
-
-### Avoiding complexity
-
-✔️ Minimize the size of the library by reducing the cost of developing unnecessary APIs.
-
-Implementing complex features significantly reduces the library's performance and user and developer experience.
-In other words, doing difficult things itself is not favorable for both the library and the developer experience.
+Avoid dynamic variable embedding in favor of static styles.  
+This approach does not limit the library to React inline styles.
 
 ### Complete staticness
 
@@ -61,11 +59,12 @@ There's no need to calculate or resolve styles at runtime. The performance will 
 
 Style objects passed across component boundaries are all Tree shaking at build time.
 Production bundle size does not include objects, and only lightweight CSS remains.
+Also, because it is always written outside the component, it will not be serialized on each rendering, but only once.
 
-## Universally
+## Universality
 
 The create method takes the key as the class name and gives a 7-character hash of the object at the end.
 Class names are changed by objects, but when objects are determined, class names become universal.
-Therefore, when methods are determined, class names can be used as CSS Syntax arguments (has and not, where eg.)
+Therefore, when methods are determined, class names can be used as CSS Syntax arguments (has and not, is where eg.)
 The same object hash and the same key are used in both development and production environments,
 Developers can easily find it.

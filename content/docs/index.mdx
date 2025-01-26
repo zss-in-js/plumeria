@@ -1,7 +1,6 @@
 ---
-title: '⚡️ Quick Start'
-description: 'This page describes Plumeria installation and compile and plugin, and other details.'
-date: '2024-09-29'
+title: 📗 Quick Start
+description: Plumeria's installation, compilation and linting setup
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
@@ -78,8 +77,8 @@ you need to configure it in your configuration file.
 <code>--type-check</code>
 will include compilation checking using TypeScript. You can also add the
 <code>--log</code>
-argument to see the CSS log that is output during compilation. It is recommended
-to generating server-side static CSS with a faster compile In parallel next dev.
+argument to see the CSS log that is output during compilation. It is recommended to generating server-side static CSS with
+a faster compile In parallel next dev.
 
 <Tabs items={["Next.js"]}>
 <Tab>
@@ -117,6 +116,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 </Tab>
 </Tabs>
+
+### More
+
+<Cards>
+  <Card title="See more about ServerCSS" href="/docs/servercss" />
+</Cards>
 
 ## Linting
 
@@ -166,7 +171,7 @@ bun add -D eslint-plugin-object-css
       objectCss.flatConfigs.recommended,
 
       {
-        files: ['**/*.{ts,tsx}'],
+        files: ['**/*.{js,jsx,ts,tsx}'],
       }
     );
 
@@ -186,24 +191,10 @@ bun add -D eslint-plugin-object-css
         objectCss.flatConfigs.recommended,
 
         {
-          files: ['**/*.{js,ts,jsx,tsx}'],
+          files: ['**/*.{js,jsx,ts,tsx}'],
         }
       );
       ```
 
   </Tab>
 </Tabs>
-
-## Supported Node
-
-I'ts confirmed to work with Node.js versions from the under
-
-- ^v18 - v22
-
-If your project's dependencies are at an earlier version, update them.
-
-### More
-
-<Cards>
-  <Card title="See more about ServerCSS" href="/docs/servercss" />
-</Cards>

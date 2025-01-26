@@ -12,6 +12,9 @@ Mixes dark or light in the proportion specified by the second argument. Returns:
 ```ts title="TypeScript"
 import { css } from '@plumeria/core';
 
-css.colors.darken('navy', 0.2);
-css.colors.lighten('aqua', 0.2);
+const styles = css.create({
+  dark_text: {
+    color: css.colors.darken('navy', 0.2), // [!code ++]
+  },
+});
 ```
