@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { isDevTools } from './isDevtools';
 
-export const RefreshOn = () => {
+export const RefreshOn = (): null => {
   const router = useRouter();
   const clickFlagRef = useRef(false);
   useEffect(() => {
