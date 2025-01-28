@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.2.2
+
+### Patch Changes
+
+- 8d74431: fix: refresh with link transition
+
 ## 0.2.1
 
 ### Patch Changes
