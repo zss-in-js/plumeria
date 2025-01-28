@@ -8,6 +8,7 @@ export const RefreshOn = (): null => {
   const pathname = usePathname();
   const clickFlagRef = useRef(false);
   useEffect(() => {
+    router.refresh();
     let timeoutObserve: NodeJS.Timeout;
 
     const handleClick = (e: MouseEvent) => {
