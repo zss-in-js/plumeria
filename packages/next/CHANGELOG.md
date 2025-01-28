@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.2.3
+
+### Patch Changes
+
+- b50c2d6: fix: first mount refresh
+
 ## 0.2.2
 
 ### Patch Changes
