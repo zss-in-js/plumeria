@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { isDevTools } from './isDevtools';
 
 export const RefreshOn = (): null => {
   const router = useRouter();
+  const pathname = usePathname();
   const clickFlagRef = useRef(false);
   useEffect(() => {
     let timeoutObserve: NodeJS.Timeout;
@@ -12,6 +13,7 @@ export const RefreshOn = (): null => {
     const handleClick = (e: MouseEvent) => {
       const targetAnchor = (e.target as HTMLElement).closest('a');
       if (
+        pathname &&
         targetAnchor instanceof HTMLAnchorElement &&
         targetAnchor.origin === window.location.origin &&
         targetAnchor.pathname !== window.location.pathname
@@ -62,7 +64,7 @@ export const RefreshOn = (): null => {
       cssObserver.disconnect();
       clearTimeout(timeoutObserve);
     };
-  }, [router]);
+  }, [pathname, router]);
 
   return null;
 };
