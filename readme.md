@@ -31,9 +31,9 @@ This is the development monorepo for Plumeria
 
 ### Structure
 
-- `example`
+- `examples`
 
-  - Contains example apps using Plumeria and eslint-plugin.
+  - Contains example apps using Plumeria.
 
 - `packages`
   - Contains the Plumeria monorepo
