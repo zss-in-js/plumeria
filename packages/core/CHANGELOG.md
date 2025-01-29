@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.2.4
+
+### Patch Changes
+
+- 54bc23c: Added support for AndString syntax in mediaQuery
+
 ## 0.2.3
 
 ### Patch Changes
