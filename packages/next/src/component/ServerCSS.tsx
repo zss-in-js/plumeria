@@ -1,9 +1,9 @@
-import { isDevServer, getServerCSS } from 'zss-engine';
+import { isDevelopment, getServerCSS } from 'zss-engine';
 import { RefreshOn } from './RefreshOn';
 import { JSX } from 'react';
 
 export const ServerCSS = (): JSX.Element | null => {
-  if (!isDevServer) return null;
+  if (!isDevelopment) return null;
 
   const serverCSS = getServerCSS();
 
