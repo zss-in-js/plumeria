@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.2.4
+
+### Patch Changes
+
+- fe3a7f9: Fixed an issue where server component styles were missing when updating client styles
+
 ## 0.2.3
 
 ### Patch Changes
