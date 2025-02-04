@@ -6,66 +6,32 @@ import { isDevTools } from './isDevtools';
 export const RefreshOn = (): null => {
   const router = useRouter();
   const pathname = usePathname();
-  const clickFlagRef = useRef(false);
+  const isRefreshing = useRef(false);
+  const timeoutId = useRef<NodeJS.Timeout>(undefined);
+  const timeout = isDevTools() ? 2200 : 120;
+
   useEffect(() => {
-    router.refresh();
-    let timeoutObserve: NodeJS.Timeout;
-
-    const handleClick = (e: MouseEvent) => {
-      const targetAnchor = (e.target as HTMLElement).closest('a');
-      if (
-        pathname &&
-        targetAnchor instanceof HTMLAnchorElement &&
-        targetAnchor.origin === window.location.origin &&
-        targetAnchor.pathname !== window.location.pathname
-      ) {
+    queueMicrotask(() => {
+      router.refresh();
+    });
+    const originalFetch = window.fetch;
+    window.fetch = async function (...args) {
+      const response = await originalFetch.apply(this, args);
+      if (pathname && response.status === 200 && !isRefreshing.current) {
+        isRefreshing.current = true;
         router.refresh();
+        router.refresh();
+        timeoutId.current = setTimeout(() => {
+          isRefreshing.current = false;
+        }, timeout);
       }
+      return response;
     };
-
-    let isRefreshing = false;
-    const observeStyleSheets = () => {
-      const styleObserver = new MutationObserver(mutations => {
-        const devtimeout = isDevTools() ? 1800 : 1;
-        const timeout = clickFlagRef.current ? 3600 : devtimeout;
-
-        if (isRefreshing) return;
-
-        for (const mutation of mutations) {
-          if (mutation.type === 'childList') {
-            const addedNodes = Array.from(mutation.addedNodes);
-            if (
-              addedNodes.some(
-                node =>
-                  node instanceof HTMLStyleElement ||
-                  (node instanceof HTMLLinkElement && !(node.rel === 'preload' && node.getAttribute('as') === 'style'))
-              )
-            ) {
-              isRefreshing = true;
-              router.refresh();
-              clearTimeout(timeoutObserve);
-              timeoutObserve = setTimeout(() => {
-                isRefreshing = false;
-              }, timeout);
-              break;
-            }
-          }
-        }
-      });
-
-      styleObserver.observe(document.head, { childList: true });
-      return styleObserver;
-    };
-
-    document.addEventListener('click', handleClick);
-    const cssObserver = observeStyleSheets();
-
     return () => {
-      document.removeEventListener('click', handleClick);
-      cssObserver.disconnect();
-      clearTimeout(timeoutObserve);
+      window.fetch = originalFetch;
+      clearTimeout(timeoutId.current);
     };
-  }, [pathname, router]);
+  }, [pathname, router, timeout]);
 
   return null;
 };
