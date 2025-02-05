@@ -2,7 +2,7 @@ import { RootProvider } from 'fumadocs-ui/provider';
 import 'fumadocs-ui/style.css';
 import { Inter } from 'next/font/google';
 import type { ReactNode } from 'react';
-import { ServerCSS } from '@plumeria/core';
+import { ServerCSS } from '@plumeria/next';
 
 const inter = Inter({
   subsets: ['latin'],
