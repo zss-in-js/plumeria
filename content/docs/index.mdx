@@ -149,26 +149,17 @@ bun add -D eslint-plugin-object-css
 ```
 </Tab>
 </Tabs>
-<Tabs items={['eslint8', 'eslint9 with ESM', 'eslint9 with CommonJS']}>
-<Tab>
-```json title=".eslintrc.json"
-{
-  "extends": ["plugin:object-css/recommended"],  
-  "plugins": ["object-css"],
-  "rules": {}
-}
-```
-</Tab>
+<Tabs items={['eslint9 ESM', 'eslint9 CommonJS', 'eslint8']}>
   <Tab>
     ```js title="eslint.config.mjs"
     import eslint from '@eslint/js';
     import tseslint from 'typescript-eslint';
-    import objectCss from 'eslint-plugin-object-css';
+    import objectCss from 'eslint-plugin-object-css';  // [!code ++]
 
     const eslintConfig = tseslint.config(
       eslint.configs.recommended,
       ...tseslint.configs.strict,
-      objectCss.flatConfigs.recommended,
+      objectCss.flatConfigs.recommended,  // [!code ++]
 
       {
         files: ['**/*.{js,jsx,ts,tsx}'],
@@ -183,12 +174,12 @@ bun add -D eslint-plugin-object-css
       ```js title="eslint.config.js"
       const eslint = require('@eslint/js');
       const tseslint = require('typescript-eslint');
-      const objectCss = require('eslint-plugin-object-css');
+      const objectCss = require('eslint-plugin-object-css');  // [!code ++]
 
       module.exports = tseslint.config(
         eslint.configs.recommended,
         ...tseslint.configs.strict,
-        objectCss.flatConfigs.recommended,
+        objectCss.flatConfigs.recommended,  // [!code ++]
 
         {
           files: ['**/*.{js,jsx,ts,tsx}'],
@@ -197,4 +188,13 @@ bun add -D eslint-plugin-object-css
       ```
 
   </Tab>
+  <Tab>
+    ```json title=".eslintrc.json"
+    {
+      "extends": ["plugin:object-css/recommended"],  
+      "plugins": ["object-css"],
+      "rules": {}
+    }
+    ```
+</Tab>
 </Tabs>
