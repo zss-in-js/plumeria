@@ -11,9 +11,6 @@ export const RefreshOn = (): null => {
   const timeout = isDevTools() ? 2200 : 120;
 
   useEffect(() => {
-    queueMicrotask(() => {
-      router.refresh();
-    });
     const originalFetch = window.fetch;
     window.fetch = async function (...args) {
       const response = await originalFetch.apply(this, args);
