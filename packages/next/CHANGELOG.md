@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.2.5
+
+### Patch Changes
+
+- f183acc: fix: fix 404 rendering loop
+
 ## 0.2.4
 
 ### Patch Changes
