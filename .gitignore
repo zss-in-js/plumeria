@@ -7,7 +7,9 @@ dist
 .DS_Store
 .idea
 .vscode
+.turbo
 package-lock.json
 coverage
 test-results
 playwright-report
+
