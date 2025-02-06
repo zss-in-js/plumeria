@@ -28,7 +28,7 @@ const styles = css.create({
 });
 ```
 
-Pseudo-classes and media queries can be wrapped in property style definitions:
+Pseudo and media queries can be wrapped in property style definitions:
 
 ```ts
 const styles = css.create({
