@@ -1,0 +1,80 @@
+---
+title: css.defineThemeVars
+description: The Plumeria css class method defineThemeVars
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+Create `variables` to be used in data-theme and media or container.
+
+## Write defineThemeVars and compile
+
+If not nested, it will be written to `:root`.  
+If nested, default will be written to `:root`, and the rest will be put into `data-theme` as a string. In the case of `media` or `container`, it will be wrapped in a selector.
+
+<Tabs items={["ts", "css"]}>
+  <Tab>
+    ```ts title="TypeScript"
+    import { css } from "@plumeria/core"
+
+    export const colors = css.defineThemeVars({
+      normal: "white",
+      text_primary: {
+        default: "rgb(60,60,60)",
+        light: "black",
+        dark: "white",
+        [css.media.max("width: 700px")]: "gray",
+      },
+      bg_primary: {
+        light: "white",
+        dark: "black",
+      },
+    });
+    ```
+
+  </Tab>
+  <Tab>
+    ```css title="css"
+    :root {
+      --normal: white;
+      --text_primary: rgb(60,60,60);
+    }
+    :root[data-theme="light"] {
+      --text_primary: black;
+      --bg_primary: white;
+    }
+    :root[data-theme="dark"] {
+      --text_primary: white;
+      --bg_primary: black;
+    }
+    @media (max-width: 700px) {
+      :root {
+        --text_primary: gray;
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Tabs items={["tsx", "css"]}>
+  <Tab>
+    ```ts title="TypeScript"
+    import { css } from "@plumeria/core"
+    import { colors } from "./colors"
+    
+    const colors = css.create({
+      text: {
+        color: colors.text_primary,
+      }
+    });
+    ```
+
+  </Tab>
+  <Tab>
+    ```css title="css"
+    .text_wdjdg4 {
+      color: var(--text_primary);
+    }
+    ```
+  </Tab>
+</Tabs>

@@ -1,0 +1,20 @@
+---
+title: css.colors
+description: The Plumeria css class items colors
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+## Colors functions
+
+Mixes dark or light in the proportion specified by the second argument. Returns: `<color>`
+
+```ts title="TypeScript"
+import { css } from '@plumeria/core';
+
+const styles = css.create({
+  dark_text: {
+    color: css.colors.darken('navy', 0.2), // [!code ++]
+  },
+});
+```

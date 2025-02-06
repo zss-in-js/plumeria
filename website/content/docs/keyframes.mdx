@@ -1,0 +1,54 @@
+---
+title: css.keyframes
+description: The Plumeria css class method keyframes
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+Create the `@keyframes` that define the animation.
+
+## Write keyframes and compile
+
+The returned value is an 8-character hash, so you can use it directly in animationName.
+
+<Tabs items={["tsx", "css"]}>
+  <Tab>
+    ```ts title="TypeScript"
+    import { css } from '@plumeria/core'
+    
+    const fade = css.keyframes({
+      from: {
+        opacity: 0,
+      },
+      to: {
+        opacity: 1,
+      },
+    });
+
+    const styles = css.create({
+      box: {
+        animationName: fade,
+        animationDuration: '1s',
+      },
+    });
+    ```
+
+  </Tab>
+  <Tab>
+    ```css title="css"
+    @keyframes qot92n7o {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    
+    .box_d54cmr {
+      animation-name: qot92n7o;
+      animation-duration: 1s;
+    }
+    ```
+  </Tab>
+</Tabs>

@@ -1,0 +1,70 @@
+---
+title: 📘 Benefits
+description: Benefits of using Plumeria's CSS-in-JS solution
+---
+
+## Mechanism
+
+The Plumeria mechanism scans and compiles cssx method define using an AST (Abstract Syntax Tree).
+This allows it to operate in a Node.js environment where TypeScript can be executed.  
+In any case, since the execution environment is a Node.js, it does not depend on a specific framework and does not require a dedicated plugin for a bundler.
+
+## Introduction
+
+The learning curve is very gentle.  
+It supports Vite and Next.js by default.
+
+### Faster setup
+
+In Vite, just remove `type: "module"` and change it to `vite.config.mts` and it will work.  
+In Next.js set a `<ServerCSS />` component and just compile with `npx css`.
+
+### User friendly API
+
+To be able to use the existing className API, the main methods create only return string.
+The rest are just the global method for writing global css.
+
+These are very concise and easy to handle, so you can start writing without much reference to the documentation.
+
+## Static style
+
+Avoid dynamic variable embedding in favor of static styles.  
+This approach does not limit the library to React inline styles.
+
+### Complete staticness
+
+✔️ Compatible with static site generators and server-side caching strategies.
+
+In Plumeria, styles are statically determined.
+CSS is definite at compile time, providing a fully static CSS solution.
+You can create maintainable, scalable, definite, and easy-to-manage CSS.
+
+### Pre compilation
+
+Plumeria's compilation logic is not coupled with the framework's build.
+The fully independent compilation process does not interfere with the framework's build process, allowing CSS to be safely and deterministically
+included in the build process.
+
+### Debugging
+
+Since all styles are resolved at compile time, runtime uncertainties are completely eliminated.
+Statically determined CSS allows developers to identify all style issues at compile time.
+
+### Performance
+
+By excluding runtime styles, we naturally keep the cost occurrence to "zero runtime".
+There's no need to calculate or resolve styles at runtime. The performance will be finalized.
+
+### Optimization
+
+Style objects passed across component boundaries are all Tree shaking at build time.
+Production bundle size does not include objects, and only lightweight CSS remains.
+Also, because it is always written outside the component, it will not be serialized on each rendering, but only once.
+
+## Universality
+
+The create method takes the key as the class name and gives a 7-character hash of the object at the end.
+Class names are changed by objects, but when objects are determined, class names become universal.
+Therefore, when methods are determined, class names can be used as CSS Syntax arguments (has and not, is where eg.)
+The same object hash and the same key are used in both development and production environments,
+Developers can easily find it.

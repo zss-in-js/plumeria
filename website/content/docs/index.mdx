@@ -1,0 +1,200 @@
+---
+title: 📗 Quick Start
+description: Plumeria's installation, compilation and linting setup
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+## Installation
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    npm install --save @plumeria/core
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    pnpm install --save @plumeria/core
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    yarn add --save @plumeria/core
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    bun add --save @plumeria/core
+    ```
+  </Tab>
+</Tabs>
+
+### Integration
+
+you need to configure it in your configuration file.
+
+<Tabs items={["Next.js", "Vite", "Webpack"]}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```tsx title="layout.tsx"
+    npm install --save @plumeria/next
+
+    // Add <ServerCSS /> for layout.tsx
+    ```
+
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```js title="vite.config.js"
+      // Additional configuration is to remove type: "module" in package.json
+      // and change vite.config.ts to vite.config.mts.
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```js title="webpack.config.js"
+    module.exports = {
+      resolve: {
+        fallback: {
+          fs: false,
+          path: false,
+          util: false
+        }
+      },
+    };
+    ```
+  </Tab>
+</Tabs>
+
+### Compile command
+
+<code>npx css</code> compiles without type checking. Adding the argument
+<code>--type-check</code>
+will include compilation checking using TypeScript. You can also add the
+<code>--log</code>
+argument to see the CSS log that is output during compilation. It is recommended to generating server-side static CSS with
+a faster compile In parallel next dev.
+
+<Tabs items={["Next.js"]}>
+<Tab>
+```json title="package.json"
+  "scripts": {
+    "dev": "css & next dev",
+    "build": "css --type-check && next build",
+  }
+```
+</Tab>
+</Tabs>
+
+### Server component
+
+You can statically preview a Next.js's ServerComponent using <code>\<ServerCSS \/\></code>.  
+This ServerCSS is a headless component and is not included in the production environment.
+
+<Tabs items={["Next.js"]}>
+<Tab>
+```tsx title="layout.tsx"
+import { ServerCSS } from '@plumeria/next'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <head>
+        <ServerCSS /> // [!code ++]
+      </head> 
+      <body>
+        <main>{children}</main>
+      </body>
+    </html>
+  )
+}
+```
+</Tab>
+</Tabs>
+
+### More
+
+<Cards>
+  <Card title="See more about ServerCSS" href="/docs/servercss" />
+</Cards>
+
+## Linting
+
+Uses the community-made [eslint-plugin-object-css](https://www.npmjs.com/package/eslint-plugin-object-css).
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+<Tab>
+```sh title="shell"
+npm install --save-dev eslint-plugin-object-css
+```
+</Tab>
+<Tab>
+```sh title="shell"
+pnpm install --save-dev eslint-plugin-object-css
+```
+</Tab>
+<Tab>
+```sh title="shell"
+yarn add -D eslint-plugin-object-css
+```
+</Tab>
+<Tab>
+```sh title="shell"
+bun add -D eslint-plugin-object-css
+```
+</Tab>
+</Tabs>
+<Tabs items={['eslint9 ESM', 'eslint9 CommonJS', 'eslint8']}>
+  <Tab>
+    ```js title="eslint.config.mjs"
+    import eslint from '@eslint/js';
+    import tseslint from 'typescript-eslint';
+    import objectCss from 'eslint-plugin-object-css';  // [!code ++]
+
+    const eslintConfig = tseslint.config(
+      eslint.configs.recommended,
+      ...tseslint.configs.strict,
+      objectCss.flatConfigs.recommended,  // [!code ++]
+
+      {
+        files: ['**/*.{js,jsx,ts,tsx}'],
+      }
+    );
+
+    export default eslintConfig;
+    ```
+
+  </Tab>
+    <Tab>
+      ```js title="eslint.config.js"
+      const eslint = require('@eslint/js');
+      const tseslint = require('typescript-eslint');
+      const objectCss = require('eslint-plugin-object-css');  // [!code ++]
+
+      module.exports = tseslint.config(
+        eslint.configs.recommended,
+        ...tseslint.configs.strict,
+        objectCss.flatConfigs.recommended,  // [!code ++]
+
+        {
+          files: ['**/*.{js,jsx,ts,tsx}'],
+        }
+      );
+      ```
+
+  </Tab>
+  <Tab>
+    ```json title=".eslintrc.json"
+    {
+      "extends": ["plugin:object-css/recommended"],  
+      "plugins": ["object-css"],
+      "rules": {}
+    }
+    ```
+</Tab>
+</Tabs>

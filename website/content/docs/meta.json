@@ -1,0 +1,25 @@
+{
+  "title": "Library",
+  "description": "The CSS-in-JS library",
+  "root": true,
+  "pages": [
+    "---📖 Guides---",
+    "index",
+    "comparison",
+    "benefits",
+    "ecosystem",
+    "---API References---",
+    "create",
+    "global",
+    "keyframes",
+    "defineThemeVars",
+    "---Collections---",
+    "media",
+    "container",
+    "pseudo",
+    "colors",
+    "---Utils---",
+    "cx",
+    "servercss"
+  ]
+}

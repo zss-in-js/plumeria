@@ -1,0 +1,46 @@
+---
+title: css.create
+description: The Plumeria css class method create
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+create a method that takes the key as a className.
+styles.`active` is type-completed.
+
+## Write create and compile
+
+A hashed prefix of the object is added to the class name, so styles do not conflicts between different components.
+
+<Tabs items={[ 'tsx', 'css' ]}>
+  <Tab>
+    ```ts title="TypeScript"
+    import { css } from '@plumeria/core'
+
+    const styles = css.create({
+      container: {
+        display: 'flex',
+        justifyContent: 'space-between'
+      },
+      link: {
+        fontSize: '14px',
+        textDecoration: 'none'
+      },
+    })
+    ```
+
+  </Tab>
+  <Tab>
+    ```css title="css"
+    .container_ibxiag {
+      display: flex;
+      justify-content: space-between;
+    }
+    .link_ibxiag {
+      font-size: 14px;
+      text-decoration: none;
+    }
+    ```
+
+  </Tab>
+</Tabs>
