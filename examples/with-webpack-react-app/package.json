@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "elter --compile && react-app-rewired build"
+    "build": "css --type-check && react-app-rewired build"
   },
   "browserslist": {
     "production": [
