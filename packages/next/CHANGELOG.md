@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.2.6
+
+### Patch Changes
+
+- a6d6606: fix: fix needed a first refresh
+
 ## 0.2.5
 
 ### Patch Changes
