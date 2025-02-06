@@ -3,28 +3,28 @@ import { css } from '@plumeria/core';
 
 const styles = css.create({
   head: {
+    position: 'absolute',
+    right: 0,
+    left: 0,
+    width: 'fit-content',
+    margin: 'auto',
+    marginBottom: '1rem',
     fontSize: '2rem',
     fontWeight: 'bold',
-    marginBottom: '1rem',
-    width: 'fit-content',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    transform: 'translateY(-100px)',
-    margin: 'auto',
-    background: 'linear-gradient(90deg, #58c6ff 0%, #076ad9 40%, #ff3bef 80%)',
-    WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
+    background: 'linear-gradient(90deg, #58c6ff 0%, #076ad9 40%, #ff3bef 80%)',
+    transform: 'translateY(-100px)',
+    WebkitBackgroundClip: 'text',
     [css.media.max('width: 800px')]: {
-      transform: 'translateY(-80px)',
       fontSize: '1.6rem',
+      transform: 'translateY(-80px)',
     },
   },
   tag: {
     position: 'relative',
     top: 60,
-    fontSize: '2rem',
     marginBottom: '1rem',
+    fontSize: '2rem',
     [css.media.max('width: 800px')]: {
       top: 54,
       fontSize: '1.6rem',
@@ -36,13 +36,13 @@ const styles = css.create({
     height: 63.5,
     padding: '16px 30px',
     fontSize: 20,
-    borderRadius: '50px',
-    border: 'solid 2px currentColor',
     fontWeight: '600',
+    border: 'solid 2px currentColor',
+    borderRadius: '50px',
     transition: 'all 0.2s',
     [css.pseudo.hover]: {
       color: '#ef2a86',
-      border: 'solid 2px ff3bef',
+      border: 'solid 2px #ff3bef',
     },
     [css.media.max('width: 800px')]: {
       fontSize: '15px',
@@ -54,12 +54,12 @@ export default function HomePage() {
   return (
     <main
       style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        textAlign: 'center',
-        justifyContent: 'center',
         position: 'relative',
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        textAlign: 'center',
       }}
     >
       <div className={styles.head}>Plumeria</div>

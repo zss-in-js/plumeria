@@ -2,11 +2,11 @@ import { css } from '@plumeria/core';
 
 const styles = css.create({
   shadow: {
-    filter: 'drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.5))',
     position: 'relative',
-    display: 'inline-block',
-    left: 0,
     bottom: 8,
+    left: 0,
+    display: 'inline-block',
+    filter: 'drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.5))',
   },
 
   plumeria: {
@@ -15,23 +15,23 @@ const styles = css.create({
     rotate: '-5deg',
   },
   petal: {
-    width: '7.5px',
-    height: '15px',
-    background: 'linear-gradient(to bottom, #fff 50%, #ffeb99 100%)',
-    clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
     position: 'absolute',
     top: '0.75px',
     left: '4.5px',
+    width: '7.5px',
+    height: '15px',
+    clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+    background: 'linear-gradient(to bottom, #fff 50%, #ffeb99 100%)',
     transformOrigin: '50% 100%',
   },
   center: {
+    position: 'absolute',
+    top: '6.375px',
+    left: '6.375px',
     width: '3.75px',
     height: '3.75px',
     backgroundColor: '#ffeb99',
     borderRadius: '50%',
-    position: 'absolute',
-    top: '6.375px',
-    left: '6.375px',
   },
 });
 
