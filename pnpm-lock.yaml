@@ -39,8 +39,8 @@ importers:
         specifier: ^9.18.0
         version: 9.18.0(jiti@1.21.7)
       eslint-plugin-object-css:
-        specifier: ^0.4.0
-        version: 0.4.0
+        specifier: ^0.5.0
+        version: 0.5.0
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.10.6)(babel-plugin-macros@3.1.0)
@@ -4626,8 +4626,8 @@ packages:
   eslint-plugin-object-css@0.3.0:
     resolution: {integrity: sha512-sZ2STMyFuHUpV6f6it1sBtipjUH0tTUojHOP1ZXjis+vZXGZxJoQea+lwtIPZHa5qlgRiJCCxoENAAEY9uJdog==}
 
-  eslint-plugin-object-css@0.4.0:
-    resolution: {integrity: sha512-1rTF+TKFXmG8IseL9BJomDD1iRN+9K3oBAEfodPJn11gp3dwSjUFhpsmGD42ePYWlsExrHr/12XgCrD8dMaJUA==}
+  eslint-plugin-object-css@0.5.0:
+    resolution: {integrity: sha512-+v+NQ86RzPEoEl1mC6OcGU05KHDnVtaMNEWaFIxGm4PAvFSN2YUAAlFmqjuNFddVGGusoE0HqfEScRB0XJjn+g==}
 
   eslint-plugin-react-hooks@4.6.2:
     resolution: {integrity: sha512-QzliNJq4GinDBcD8gPB5v0wh6g8q3SUi6EFF0x8N/BL9PoVs0atuGc47ozMRyOWAKdwaZ5OnbOEa3WR+dSGKuQ==}
@@ -5332,6 +5332,10 @@ packages:
 
   import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
+    engines: {node: '>=6'}
+
+  import-fresh@3.3.1:
+    resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
     engines: {node: '>=6'}
 
   import-local@3.2.0:
@@ -13149,7 +13153,7 @@ snapshots:
   cosmiconfig@7.1.0:
     dependencies:
       '@types/parse-json': 4.0.2
-      import-fresh: 3.3.0
+      import-fresh: 3.3.1
       parse-json: 5.2.0
       path-type: 4.0.0
       yaml: 1.10.2
@@ -14080,7 +14084,7 @@ snapshots:
 
   eslint-plugin-object-css@0.3.0: {}
 
-  eslint-plugin-object-css@0.4.0: {}
+  eslint-plugin-object-css@0.5.0: {}
 
   eslint-plugin-react-hooks@4.6.2(eslint@9.18.0(jiti@1.21.7)):
     dependencies:
@@ -15059,6 +15063,11 @@ snapshots:
   immer@9.0.21: {}
 
   import-fresh@3.3.0:
+    dependencies:
+      parent-module: 1.0.1
+      resolve-from: 4.0.0
+
+  import-fresh@3.3.1:
     dependencies:
       parent-module: 1.0.1
       resolve-from: 4.0.0
