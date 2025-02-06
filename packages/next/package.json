@@ -19,5 +19,8 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
