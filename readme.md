@@ -2,7 +2,7 @@
 
 ## Documentation
 
-[Documentation Website](https://plumeria-docs.vercel.app/)
+[Documentation Website](https://plumeria.dev)
 
 Readme for [@plumeria/core](https://github.com/zss-in-js/plumeria/tree/main/packages/core) is in packages/core.
 
