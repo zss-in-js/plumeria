@@ -42,7 +42,6 @@ const styles = css.create({
     transition: 'all 0.2s',
     [css.pseudo.hover]: {
       color: '#ef2a86',
-      border: 'solid 2px #ff3bef',
     },
     [css.media.max('width: 800px')]: {
       fontSize: '15px',
