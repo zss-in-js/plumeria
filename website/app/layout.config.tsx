@@ -17,7 +17,7 @@ const styles = css.create({
   },
   purple: {
     WebkitTextFillColor: 'transparent',
-    background: 'linear-gradient(90deg, #58c6ff 0%, #076ad9 40%, #ff3bef 80%)',
+    background: 'linear-gradient(67.5deg, #58c6ff 0%, #076ad9 40%, #ff3bef 80%)',
     WebkitBackgroundClip: 'text',
   },
 });
