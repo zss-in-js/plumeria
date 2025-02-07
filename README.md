@@ -48,7 +48,7 @@ Development happens in the open on GitHub and we are grateful for contributions 
 
 ### Contributing Guide
 
-Read the [contributing guide](https://github.com/zss-in-js/plumeria/blob/main/CONTRIBUTING.md) to learn about our development process, how to propose bug fixes and improvements, and how to build and test your changes.
+Read the [contributing guide](https://github.com/zss-in-js/plumeria/blob/main/.github/CONTRIBUTING.md) to learn about our development process, how to propose bug fixes and improvements, and how to build and test your changes.
 
 ### License
 
