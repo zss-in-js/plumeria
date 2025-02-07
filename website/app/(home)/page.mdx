@@ -1,0 +1,26 @@
+---
+title: plumeria
+description: Benefits of using Plumeria's CSS-in-JS solution
+---
+
+import { HomeComponent } from './HomeComponent';
+import { styles } from './styles';
+
+<HomeComponent />
+
+<div className={styles.code_div}>
+    ```tsx title="TypeScript"
+    import { css } from '@plumeria/core';
+
+    const styles = css.create({
+      button: {
+        padding: '16px 32px',
+        transition: '200ms',
+        [css.pseudo.hover]: {
+          color: '#ef2a86',
+        },
+      },
+    });
+    ```
+
+</div>
