@@ -27,4 +27,10 @@ css.global({
 
     backgroundSize: '121px 40px',
   },
+  '.dark pre': {
+    background: '#1f1f1f',
+  },
+  pre: {
+    background: '#f1f1f1',
+  },
 });
