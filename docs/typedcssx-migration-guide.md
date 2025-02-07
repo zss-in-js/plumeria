@@ -61,8 +61,8 @@ Values ​​that can only be used on Windows systems can no longer be used from
 
 Please read the documentation for more details.
 
-- [defineThemeVars()](https://plumeria-docs.vercel.app/docs/defineThemeVars)
-- [keyframes()](https://plumeria-docs.vercel.app/docs/keyframes)
+- [defineThemeVars()](https://plumeria.dev/docs/defineThemeVars)
+- [keyframes()](https://plumeria.dev/docs/keyframes)
 
 ## New Utils
 
