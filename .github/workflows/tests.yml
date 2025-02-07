@@ -1,0 +1,91 @@
+name: tests
+on:
+  push:
+    branches:
+      - main
+    pull_request:
+      types: [opened, synchronize, reopened]
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Install dependencies for test-e2e/site
+        run: |
+          cd test-e2e/site
+          npm install
+
+      - name: Setting verification files
+        uses: ./.github/workflows/setup
+
+      - name: Run Jest tests with coverage
+        run: pnpm exec jest --ci --coverage --reporters=github-actions --reporters=summary
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Build packages
+        run: npm run build
+
+      - name: Install dependencies for test-e2e/site
+        run: |
+          cd test-e2e/site
+          npm install
+
+      - name: Setting verification files
+        uses: ./.github/workflows/setup
+
+      - name: Install Playwright chromium
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Start Next.js Dev Server
+        run: npm run dev:e2e &
+        env:
+          CI: true
+
+      - name: Run Playwright tests
+        run: pnpm exec playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
