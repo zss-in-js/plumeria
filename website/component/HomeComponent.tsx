@@ -71,7 +71,7 @@ export const HomeComponent = () => {
     <main className={styles.container}>
       <div className={styles.headings}>Zero-Runtime CSS in JS</div>
       <div className={styles.inlineword}>
-        Generate CSS at build time from JavaScript object maps. Build screens with highly productive syntax and boost
+        Generate CSS at build time from JavaScript object maps. Build screens with highly productive syntax and increase
         efficiency with linting.
       </div>
 
