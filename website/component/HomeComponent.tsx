@@ -23,6 +23,8 @@ const styles = css.create({
   },
 
   headings: {
+    position: 'static',
+    zIndex: 1,
     marginBottom: '20px',
     fontSize: '40px',
     fontWeight: 600,
@@ -35,6 +37,8 @@ const styles = css.create({
     },
   },
   inlineword: {
+    position: 'static',
+    zIndex: 1,
     maxWidth: '460px',
     marginBottom: '40px',
     fontSize: 20,
@@ -47,6 +51,8 @@ const styles = css.create({
     },
   },
   button: {
+    position: 'static',
+    zIndex: 1,
     width: 220,
     padding: '16px 32px',
     marginRight: 260,
