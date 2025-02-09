@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.2.5
+
+### Patch Changes
+
+- a08ff12: chore(package): globby to fast-glob
+
 ## 0.2.4
 
 ### Patch Changes
