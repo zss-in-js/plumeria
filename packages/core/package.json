@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@plumeria/collection": "^0.1.2",
-    "@plumeria/compiler": "^0.1.1",
+    "@plumeria/compiler": "^0.1.2",
     "zss-engine": "^0.2.3"
   },
   "publishConfig": {
