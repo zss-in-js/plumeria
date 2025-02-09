@@ -67,9 +67,9 @@ importers:
 
   packages/compiler:
     dependencies:
-      globby:
-        specifier: ^14.0.2
-        version: 14.0.2
+      fast-glob:
+        specifier: ^3.3.3
+        version: 3.3.3
       postcss:
         specifier: ^8.4.49
         version: 8.4.49
