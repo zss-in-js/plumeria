@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/compiler",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Compiler for Plumeria that build and optimizes",
   "keywords": [
     "react",
