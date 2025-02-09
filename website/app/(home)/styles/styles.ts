@@ -6,6 +6,7 @@ export const styles = css.create({
     top: 275,
     right: 0,
     left: 100,
+    zIndex: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
