@@ -20,7 +20,7 @@
     "build": "echo 'No build necessary'"
   },
   "dependencies": {
-    "globby": "^14.0.2",
+    "fast-glob": "^3.3.3",
     "postcss": "^8.4.49",
     "postcss-combine-duplicated-selectors": "^10.0.3",
     "tsx": "^4.19.2"

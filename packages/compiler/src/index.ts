@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import ts from 'typescript';
-import { globby } from 'globby';
+import fg from 'fast-glob';
 import { cleanUp } from './clean-up';
 import { buildCreate } from '@plumeria/core/dist/method/create-build-helper.js';
 import { buildGlobal } from '@plumeria/core/dist/method/global-build-helper.js';
@@ -26,21 +26,26 @@ function isCSS(filePath: string): boolean {
 
 async function getAppRoot(): Promise<string> {
   const threeLevelsUp = path.join(process.cwd(), '../../../../..');
-  return fs.existsSync(path.join(threeLevelsUp, 'node_modules/.pnpm')) ? path.join(process.cwd(), '../../../../../') : path.join(process.cwd(), '../../');
+  return fs.existsSync(path.join(threeLevelsUp, 'node_modules/.pnpm'))
+    ? path.join(process.cwd(), '../../../../../')
+    : path.join(process.cwd(), '../../');
 }
 
 async function optimizeCSS() {
   const corePath = path.dirname(require.resolve('@plumeria/core/package.json'));
   const cssPath = path.join(corePath, 'dist/styles/global.css');
   const cssContent = fs.readFileSync(cssPath, 'utf8');
-  const result = postcss([combineSelectors({ removeDuplicatedProperties: true })]).process(cssContent, { from: cssPath, to: cssPath });
+  const result = postcss([combineSelectors({ removeDuplicatedProperties: true })]).process(cssContent, {
+    from: cssPath,
+    to: cssPath,
+  });
   fs.writeFileSync(cssPath, result.css);
 }
 
 (async () => {
   await cleanUp();
   const appRoot = await getAppRoot();
-  const files = await globby([path.join(appRoot, '**/*.{js,jsx,ts,tsx}')], {
+  const files = await fg([path.join(appRoot, '**/*.{js,jsx,ts,tsx}')], {
     ignore: ['**/main.{js,ts}/**', '**/dist/**', '**/.next/**', '**/node_modules/**'],
   });
   const styleFiles = files.filter(isCSS);
