@@ -1,7 +1,7 @@
 {
-  "name": "plumeria",
-  "version": "0.0.1",
-  "description": "Near zero-runtime semantic CSS-in-JS library",
+  "name": "plumeria-monorepo",
+  "version": "0.2.5",
+  "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
   "keywords": [
     "css",
     "css-in-js",
