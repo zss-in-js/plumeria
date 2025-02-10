@@ -1,0 +1,105 @@
+---
+title: 📖 Syntax
+description: The Basic syntax and nesting rules in Plumeria
+---
+
+In Plumeria, multiple tags in a list can be defined at once using &.
+
+```ts title="TypeScript" {1}
+import { css, cx } from '@plumeria/core';
+
+const styles = css.create({
+  list: {
+    // [!code ++]
+    '& li': {
+      listStyleType: 'none',
+    },
+  },
+});
+```
+
+```tsx
+<ul className="{styles.list}">
+  <li></li>
+  <li></li>
+  <li></li>
+</ul>
+```
+
+### Nesting Rules
+
+The following example is acceptable:
+
+```ts title="TypeScript" {1}
+import { css, cx } from '@plumeria/core';
+
+const styles = css.create({
+  list: {
+    // [!code ++]
+    [css.media.max('width: 800px')]: {
+      '& li': {
+        listStyleType: 'none',
+      },
+    },
+  },
+});
+```
+
+Unacceptable examples:
+
+```ts title="TypeScript" {1}
+import { css, cx } from '@plumeria/core';
+
+const styles = css.create({
+  list: {
+    '& li': {
+      // [!code --]
+      [css.media.max('width: 800px')]: {
+        listStyleType: 'none',
+      },
+    },
+  },
+});
+```
+
+```ts title="TypeScript" {1}
+import { css, cx } from '@plumeria/core';
+
+const styles = css.create({
+  list: {
+    ':hover': {
+      // [!code --]
+      [css.media.max('width: 800px')]: {
+        background: 'skyblue',
+      },
+    },
+  },
+});
+```
+
+And of course the following example also not acceptable.
+They have different safety at the type level, but have the same meaning as a result: hover.
+
+```ts title="TypeScript"
+const styles = css.create({
+  list: {
+    [css.pseudo.hover]: {
+      // [!code --]
+      [css.media.max('width: 800px')]: {
+        background: 'skyblue',
+      },
+    },
+  },
+});
+```
+
+<Callout type="error" title="Nesting Restrictions">
+  Media can only be nested once with pseudo and &, but pseudo and & cannot nest media.
+</Callout>
+
+### More
+
+<Cards>
+  <Card title="See more about css.cx" href="/docs/cx" />
+  <Card title="See more about css.pseudo" href="/docs/pseudo" />
+</Cards>
