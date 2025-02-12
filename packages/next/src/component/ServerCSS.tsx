@@ -9,8 +9,8 @@ export const ServerCSS = (): JSX.Element | null => {
 
   return (
     <>
-      <RefreshOn />
-      <style dangerouslySetInnerHTML={{ __html: serverCSS }} />
+      <RefreshOn key={serverCSS} />
+      <style>{serverCSS}</style>
     </>
   );
 };
