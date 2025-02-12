@@ -4,7 +4,8 @@
 
 ### Minor Changes
 
-- b95b458: fix: ServerCSS rendering has been significantly improved.
+- b95b458: fix: ServerCSS rendering has been significantly improved.  
+  By adding key={serverCSS} to client components that return null, router.refresh() is now reliably executed when the style changes.
 
 ## 0.2.6
 
