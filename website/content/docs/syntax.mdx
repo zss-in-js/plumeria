@@ -47,7 +47,9 @@ const styles = css.create({
 });
 ```
 
-Unacceptable examples:
+<Callout type="error" title="error cases">
+  Unacceptable examples:
+</Callout>
 
 ```ts title="TypeScript" {1}
 import { css, cx } from '@plumeria/core';
@@ -95,7 +97,7 @@ const styles = css.create({
 });
 ```
 
-<Callout type="error" title="Nesting Restrictions">
+<Callout type="info" title="Nesting Restrictions">
   Media can only be nested once with pseudo and &, but pseudo and & cannot nest media.
 </Callout>
 
