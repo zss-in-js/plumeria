@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.3.0
+
+### Minor Changes
+
+- b95b458: fix: ServerCSS rendering has been significantly improved.
+
 ## 0.2.6
 
 ### Patch Changes
