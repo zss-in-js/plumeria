@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.3.0
+
+### Minor Changes
+
+- [`0473b77`](https://github.com/zss-in-js/plumeria/commit/0473b77b013284b64a909d585ab5f5b3080dc97a) Thanks [@refirst11](https://github.com/refirst11)! - feat: The @plumeria/compiler has been separated from its @plumeria/core dependencies.
+
 ## 0.2.5
 
 ### Patch Changes
