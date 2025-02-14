@@ -85,9 +85,6 @@ importers:
       '@plumeria/collection':
         specifier: ^0.1.2
         version: 0.1.2
-      '@plumeria/compiler':
-        specifier: ^0.1.2
-        version: 0.1.2
       zss-engine:
         specifier: ^0.2.3
         version: 0.2.3
@@ -808,9 +805,6 @@ packages:
 
   '@plumeria/collection@0.1.2':
     resolution: {integrity: sha512-uPzIAxbXzL7MExsR3GKpOBMU/sJdethYDy2z/iCetCIsx9jOx1+kEvcZBvRIXwCXsZsejRL1Cinino5sgdzOOg==}
-
-  '@plumeria/compiler@0.1.2':
-    resolution: {integrity: sha512-eSyC9zEw5sPI1IL4iSkX+W8Qs2w7ga+mk+IiAckjafJKDCgCZvRBiNtgBqvLkZPrCTRbUk49XwTE6m7pXjZ2ww==}
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -2138,10 +2132,6 @@ packages:
     resolution: {integrity: sha512-OCVPnIObs4N29kxTjzLfUryOkvZEq+pf8jTF0lg8E7uETuWHA+v7j3c/xJmiqpX450191LlmZfUKkXxkTry7nA==}
     engines: {node: ^10 || ^12 || >=14}
 
-  postcss@8.5.2:
-    resolution: {integrity: sha512-MjOadfU3Ys9KYoX0AdkBlFEF1Vx37uCCeN4ZHnmwm9FfpbsGWMZeBLMmmpY+6Ocqod7mkdZ0DT31OlbsFrLlkA==}
-    engines: {node: ^10 || ^12 || >=14}
-
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
@@ -3414,13 +3404,6 @@ snapshots:
       playwright: 1.49.1
 
   '@plumeria/collection@0.1.2': {}
-
-  '@plumeria/compiler@0.1.2':
-    dependencies:
-      fast-glob: 3.3.3
-      postcss: 8.5.2
-      postcss-combine-duplicated-selectors: 10.0.3(postcss@8.5.2)
-      tsx: 4.19.2
 
   '@sinclair/typebox@0.27.8': {}
 
@@ -4975,11 +4958,6 @@ snapshots:
       postcss: 8.4.49
       postcss-selector-parser: 6.1.2
 
-  postcss-combine-duplicated-selectors@10.0.3(postcss@8.5.2):
-    dependencies:
-      postcss: 8.5.2
-      postcss-selector-parser: 6.1.2
-
   postcss-selector-parser@6.1.2:
     dependencies:
       cssesc: 3.0.0
@@ -4994,12 +4972,6 @@ snapshots:
   postcss@8.4.49:
     dependencies:
       nanoid: 3.3.7
-      picocolors: 1.1.1
-      source-map-js: 1.2.1
-
-  postcss@8.5.2:
-    dependencies:
-      nanoid: 3.3.8
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
