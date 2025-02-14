@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@plumeria/compiler": "*",
     "@plumeria/core": "*",
     "@plumeria/next": "*",
     "next": "^15.0.1",
