@@ -15,19 +15,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "bin",
     "dist"
   ],
-  "bin": {
-    "css": "./bin/css.mjs"
-  },
   "scripts": {
     "build": "rm -rf dist && tsc && cp -r src/styles dist",
     "test": "jest --config ../../jest.config.js"
   },
   "dependencies": {
     "@plumeria/collection": "^0.1.2",
-    "@plumeria/compiler": "^0.1.2",
     "zss-engine": "^0.2.3"
   },
   "publishConfig": {

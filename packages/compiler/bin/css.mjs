@@ -16,7 +16,7 @@ try {
       stdio: 'inherit',
       cwd: process.cwd(),
     });
-
+  // In the monorepo repository pnpm the right side is executed
   const plumeriaPath = isPnpm ? findPnpmPlumeriaPath() : path.join(process.cwd(), 'node_modules/@plumeria');
 
   const argv = process.argv.includes('--log') ? ' --log' : '';
