@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plumeria/core": "^0.2.2",
+    "@plumeria/core": "^0.4.0",
     "vue": "^3.4.37"
   },
   "devDependencies": {
