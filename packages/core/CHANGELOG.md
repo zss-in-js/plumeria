@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- [`10e3f64`](https://github.com/zss-in-js/plumeria/commit/10e3f642fd0c4983256f2a1c45adbf64bd9af2dc) Thanks [@refirst11](https://github.com/refirst11)! - feat: release v0.4.0 restoring stable implementation from v0.1.2.The experimental changes in v0.2.0 and v0.3.0 are being reverted in favor of the proven stable implementation from v0.1.2, now released as v0.4.0.
+- [`10e3f64`](https://github.com/zss-in-js/plumeria/commit/10e3f642fd0c4983256f2a1c45adbf64bd9af2dc) Thanks [@refirst11](https://github.com/refirst11)! - feat: release v0.4.0 restoring stable implementation from v0.2.5.The experimental changes in v0.3.0 are being reverted in favor of the proven stable implementation from v0.2.5, now released as v0.4.0.
 
 ## 0.3.1
 
