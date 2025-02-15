@@ -8,24 +8,6 @@ import { buildGlobal } from '@plumeria/core/dist/method/global-build-helper.js';
 import postcss from 'postcss';
 import combineSelectors from 'postcss-combine-duplicated-selectors';
 
-function findUp(filename: string, startDir = __dirname) {
-  let dir = path.resolve(startDir);
-
-  while (true) {
-    const filePath = path.join(dir, filename);
-    if (fs.existsSync(filePath)) {
-      return filePath;
-    }
-
-    const parentDir = path.dirname(dir);
-    if (dir === parentDir) {
-      return null;
-    }
-
-    dir = parentDir;
-  }
-}
-
 function isCSS(filePath: string): boolean {
   const content = fs.readFileSync(filePath, 'utf8');
   const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true);
@@ -42,13 +24,11 @@ function isCSS(filePath: string): boolean {
   return checker(sourceFile);
 }
 
-async function getAppRoot() {
-  const packageJsonPath = findUp('package.json', __dirname);
-  if (packageJsonPath) {
-    return path.dirname(packageJsonPath);
-  } else {
-    throw new Error('Project root directory not found');
-  }
+async function getAppRoot(): Promise<string> {
+  const threeLevelsUp = path.join(process.cwd(), '../../../../..');
+  return fs.existsSync(path.join(threeLevelsUp, 'node_modules/.pnpm'))
+    ? path.join(process.cwd(), '../../../../../')
+    : path.join(process.cwd(), '../../');
 }
 
 async function optimizeCSS() {
