@@ -1,5 +1,16 @@
 # @plumeria/core
 
+## 0.4.0
+
+### Minor Changes
+
+- [`c991f52`](https://github.com/zss-in-js/plumeria/commit/c991f52e9f4ffa1fe292de1ddf892f309470c5cd) Thanks [@refirst11](https://github.com/refirst11)! - feat: release v0.4.0 restoring stable implementation from v0.1.2.The experimental changes in v0.2.0 and v0.3.0 are being reverted in favor of the proven stable implementation from v0.1.2, now released as v0.4.0.
+
+### Patch Changes
+
+- Updated dependencies [[`c991f52`](https://github.com/zss-in-js/plumeria/commit/c991f52e9f4ffa1fe292de1ddf892f309470c5cd)]:
+  - @plumeria/compiler@0.4.0
+
 ## 0.3.1
 
 ### Patch Changes
