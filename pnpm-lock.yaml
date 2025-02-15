@@ -86,8 +86,8 @@ importers:
         specifier: ^0.1.2
         version: 0.1.2
       '@plumeria/compiler':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       zss-engine:
         specifier: ^0.2.3
         version: 0.2.3
@@ -809,9 +809,8 @@ packages:
   '@plumeria/collection@0.1.2':
     resolution: {integrity: sha512-uPzIAxbXzL7MExsR3GKpOBMU/sJdethYDy2z/iCetCIsx9jOx1+kEvcZBvRIXwCXsZsejRL1Cinino5sgdzOOg==}
 
-  '@plumeria/compiler@0.2.0':
-    resolution: {integrity: sha512-oQ+arW3i79zc+hQDh4SpNGXTUqvlGUNHFcd0VrGaXLMC7r70tgaxLvYrYwdWdaIKyiGhwIgxIMgdzchK6CW1xg==}
-    hasBin: true
+  '@plumeria/compiler@0.3.0':
+    resolution: {integrity: sha512-k3qhvNJH8pQj+kFeWpryvXg9NZFyh9hLO00JCTZZSx7hJyslZtLFPMPftADWwp5W8wr6ogieTrfUnpmtfgyibQ==}
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -3391,7 +3390,7 @@ snapshots:
 
   '@plumeria/collection@0.1.2': {}
 
-  '@plumeria/compiler@0.2.0':
+  '@plumeria/compiler@0.3.0':
     dependencies:
       fast-glob: 3.3.3
       postcss: 8.5.2
