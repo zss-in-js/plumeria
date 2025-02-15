@@ -1,5 +1,17 @@
 # @plumeria/compiler
 
+## 0.4.0
+
+### Minor Changes
+
+The experimental implementations of 0.2.0 and 0.3.0 have been reverted to 0.4.0, which was based on the stable 0.1.2 implementation.
+
+## 0.3.0
+
+### Minor Changes
+
+Our experimental attempt to install the compiler separately proved unstable and we have rolled back to relying on core.
+
 ## 0.2.0
 
 ### Minor Changes
