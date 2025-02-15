@@ -3,24 +3,26 @@
 import { execSync } from 'child_process';
 import path from 'path';
 import { styleText } from 'util';
+import fs from 'fs';
 
 const checkMark = styleText('greenBright', '✓');
 
 try {
+  const isPnpm = fs.existsSync(path.join(process.cwd(), 'node_modules/.pnpm'));
+
   const typecheck = process.argv.includes('--type-check');
-  if (typecheck) {
+  if (typecheck)
     execSync('npx tsc --noEmit --incremental false', {
       stdio: 'inherit',
       cwd: process.cwd(),
     });
-  }
 
-  const compilerPath = findCompilerPath();
+  const plumeriaPath = isPnpm ? findPnpmPlumeriaPath() : path.join(process.cwd(), 'node_modules/@plumeria');
 
   const argv = process.argv.includes('--log') ? ' --log' : '';
-  execSync(`npx tsx ${path.join(compilerPath, 'src/index.ts')}${argv}`, {
+  execSync('npx tsx compiler/src/index.ts' + argv, {
     stdio: 'inherit',
-    cwd: compilerPath,
+    cwd: plumeriaPath,
   });
 
   const completed = typecheck ? 'Type-check completed' : '';
@@ -30,11 +32,13 @@ try {
   process.exit(1);
 }
 
-function findCompilerPath() {
-  try {
-    const compilerMain = require.resolve('@plumeria/compiler');
-    return path.dirname(compilerMain);
-  } catch (error) {
-    throw new Error('Could not resolve @plumeria/compiler package');
+function findPnpmPlumeriaPath() {
+  const pnpmPath = path.join(process.cwd(), 'node_modules/.pnpm');
+  const plumeriaDir = fs.readdirSync(pnpmPath).find(dir => dir.startsWith('@plumeria+core@'));
+
+  if (!plumeriaDir) {
+    throw new Error('Could not find @plumeria package in pnpm directory');
   }
+
+  return path.join(pnpmPath, plumeriaDir, 'node_modules/@plumeria');
 }
