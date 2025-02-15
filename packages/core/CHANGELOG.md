@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.3.1
+
+### Patch Changes
+
+- [`a0ee1fc`](https://github.com/zss-in-js/plumeria/commit/a0ee1fc48e232197003656b33090a199ed0ae4d6) Thanks [@refirst11](https://github.com/refirst11)! - fix: revert compiler has been restored to its dependencies
+
 ## 0.3.0
 
 ### Minor Changes
