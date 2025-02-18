@@ -6,10 +6,10 @@ import { css } from '@plumeria/core';
 const styles = css.create({
   container: {
     display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
     flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100vh',
   },
 });
 
