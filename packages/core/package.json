@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
   "keywords": [
     "react",
@@ -40,8 +40,8 @@
     "test": "jest --config ../../jest.config.js"
   },
   "dependencies": {
-    "@plumeria/compiler": "^0.4.0",
-    "@plumeria/collection": "^0.1.2",
+    "@plumeria/compiler": "workspace:^",
+    "@plumeria/collection": "workspace:^",
     "zss-engine": "^0.2.3"
   },
   "publishConfig": {

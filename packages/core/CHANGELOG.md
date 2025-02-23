@@ -1,5 +1,17 @@
 # @plumeria/core
 
+## 0.5.0
+
+### Minor Changes
+
+- feat: support dual package
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @plumeria/compiler@0.5.0
+  - @plumeria/collection@0.2.0
+
 ## 0.4.0
 
 ### Minor Changes
