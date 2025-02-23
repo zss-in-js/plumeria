@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.5.0
+
+### Minor Changes
+
+- feat: change import path due to dual package
+
 ## 0.4.0
 
 ### Minor Changes
