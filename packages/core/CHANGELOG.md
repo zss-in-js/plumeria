@@ -1,5 +1,12 @@
 # @plumeria/core
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`1548726`](https://github.com/zss-in-js/plumeria/commit/1548726ea81f757728d25285a07bbd59c8c8dd9f)]:
+  - @plumeria/compiler@0.5.1
+
 ## 0.5.0
 
 ### Minor Changes
