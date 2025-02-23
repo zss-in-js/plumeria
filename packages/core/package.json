@@ -12,7 +12,17 @@
   "author": "Refirst",
   "repository": "github:zss-in-js/plumeria",
   "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.js"
+    }
+  },
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "files": [
     "bin",
@@ -22,7 +32,11 @@
     "css": "./bin/css.mjs"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc && cp -r src/styles dist",
+    "build": "rm -rf dist && pnpm build:mjs && pnpm cjs && pnpm minify && cp -r src/styles dist",
+    "build:mjs": "pnpm esm && for file in $(find dist -name '*.js'); do mv \"$file\" \"${file%.*}.mjs\"; done",
+    "cjs": "npx tsc --project tsconfig.cjs.json",
+    "esm": "npx tsc --project tsconfig.esm.json",
+    "minify": "for file in $(find dist -name '*.js' -o -name '*.mjs'); do terser \"$file\" -m -o \"$file\"; done",
     "test": "jest --config ../../jest.config.js"
   },
   "dependencies": {
