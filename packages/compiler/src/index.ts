@@ -3,8 +3,8 @@ import * as fs from 'fs';
 import ts from 'typescript';
 import fg from 'fast-glob';
 import { cleanUp } from './clean-up';
-import { buildCreate } from '@plumeria/core/dist/method/create-build-helper.js';
-import { buildGlobal } from '@plumeria/core/dist/method/global-build-helper.js';
+import { buildCreate } from '../../core/dist/method/create-build-helper';
+import { buildGlobal } from '../../core/dist/method/global-build-helper';
 import postcss from 'postcss';
 import combineSelectors from 'postcss-combine-duplicated-selectors';
 
