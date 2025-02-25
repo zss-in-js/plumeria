@@ -86,11 +86,11 @@ importers:
   packages/core:
     dependencies:
       '@plumeria/collection':
-        specifier: workspace:^
-        version: link:../collection
+        specifier: ^0.2.0
+        version: 0.2.0
       '@plumeria/compiler':
-        specifier: workspace:^
-        version: link:../compiler
+        specifier: ^0.5.1
+        version: 0.5.1
       zss-engine:
         specifier: ^0.2.3
         version: 0.2.3
@@ -811,6 +811,12 @@ packages:
     resolution: {integrity: sha512-Jii3aBg+CEDpgnuDxEp/h7BimHcUTDlpEtce89xEumlJ5ef2hqepZ+PWp1DDpYC/VO9fmWVI1IlEaoI5fK9FXQ==}
     engines: {node: '>=18'}
     hasBin: true
+
+  '@plumeria/collection@0.2.0':
+    resolution: {integrity: sha512-dg76AhITSTwgui+eiJNAl3cEkvU+9htq30ihkYtoRIjhzZoXswRpIn949+3j9WAUfCtIuXYUQI1hRlzpUZ7otQ==}
+
+  '@plumeria/compiler@0.5.1':
+    resolution: {integrity: sha512-opPI81rfmq8RBv8YmM6QaCaONgQv+RHsYk6xrLTC9/xzhnEl+AAmheZ9Uot3vaT14r9MnJPvaMyQ/wfC/XIMAQ==}
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -3403,6 +3409,15 @@ snapshots:
   '@playwright/test@1.50.1':
     dependencies:
       playwright: 1.50.1
+
+  '@plumeria/collection@0.2.0': {}
+
+  '@plumeria/compiler@0.5.1':
+    dependencies:
+      fast-glob: 3.3.3
+      postcss: 8.5.2
+      postcss-combine-duplicated-selectors: 10.0.3(postcss@8.5.2)
+      tsx: 4.19.2
 
   '@sinclair/typebox@0.27.8': {}
 
