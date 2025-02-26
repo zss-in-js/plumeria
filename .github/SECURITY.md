@@ -18,5 +18,6 @@ You can also read it as security update and patch notes.
 ## Note
 Since 0.6.0 the compiler has been made independent, and @plumeria/compiler must be installed when using @plumeria/core.
 From 0.5.x onwards, bundle code has been minified and packages are now CJS ESM compatible.  
-It is optimized to some extent depending on the required framework.
+It is optimized to some extent depending on the required framework.  
+@plumeria/next was unstable for a long time, but it has been stable since 0.3.0. It is now a dual package in 0.4.0.
 
