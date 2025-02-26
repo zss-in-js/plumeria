@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.6.0
+
+### Minor Changes
+
+- [`2444545`](https://github.com/zss-in-js/plumeria/commit/24445452ba8f54a038ccd3d08c80056cacd92d7f) Thanks [@refirst11](https://github.com/refirst11)! - feat: Now separated from core. @plumeria/compiler needs to be installed as npx css command if you use @plumeria/core.
+
 ## 0.5.1
 
 ### Patch Changes
