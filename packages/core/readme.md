@@ -2,10 +2,19 @@
 
 ## Installation
 
-To start using with Plumeria you can install just core packages:
+To start using Plumeria, install the following two packages:
 
 ```sh
 npm install --save @plumeria/core
+```
+
+### Compiler
+
+To compile `@plumeria/core`, for example, to use `npx css`, install  
+[`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler) for static extraction through the build process.
+
+```sh
+npm install --save-dev @plumeria/compiler
 ```
 
 ## API
@@ -135,7 +144,7 @@ css.colors.darken('skyblue', '12%');
 
 ## Linter
 
-[eslint-plugin-object-css](https://www.npmjs.com/package/eslint-plugin-object-css) can be used with Plumeria.  
+[eslint-plugin-object-css](https://www.npmjs.com/package/eslint-plugin-object-css) is a community base library. can be used with Plumeria.
 Type safety relies on this eslint-plugin. It includes 397 properties, excluding deprecated and experimental.
 
 ## How Plumeria works
