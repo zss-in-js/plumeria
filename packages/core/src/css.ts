@@ -1,4 +1,11 @@
-import type { CreateStyle, ReturnType, CustomHTMLType, CustomProperties, KeyframesDefinition, VarsDefinition } from 'zss-engine';
+import type {
+  CreateStyle,
+  CustomHTMLType,
+  CustomProperties,
+  KeyframesDefinition,
+  ReturnType,
+  VarsDefinition,
+} from 'zss-engine';
 import { create } from './method/create';
 import { global } from './method/global';
 import { cx } from './cx';
