@@ -50,8 +50,8 @@
     "test": "jest --config ../../jest.config.js"
   },
   "dependencies": {
-    "@plumeria/compiler": "^0.5.1",
-    "@plumeria/collection": "^0.2.0",
+    "@plumeria/compiler": "workspace:^",
+    "@plumeria/collection": "workspace:^",
     "zss-engine": "^0.2.3"
   },
   "publishConfig": {
