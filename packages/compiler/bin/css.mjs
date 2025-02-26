@@ -34,7 +34,7 @@ try {
 
 function findPnpmPlumeriaPath() {
   const pnpmPath = path.join(process.cwd(), 'node_modules/.pnpm');
-  const plumeriaDir = fs.readdirSync(pnpmPath).find(dir => dir.startsWith('@plumeria+core@'));
+  const plumeriaDir = fs.readdirSync(pnpmPath).find(dir => dir.startsWith('@plumeria+compiler@'));
 
   if (!plumeriaDir) {
     throw new Error('Could not find @plumeria package in pnpm directory');
