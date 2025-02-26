@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.6.0
+
+### Minor Changes
+
+- [`a80c383`](https://github.com/zss-in-js/plumeria/commit/a80c383f7510648d2f764f83d91910a7471a9071) Thanks [@refirst11](https://github.com/refirst11)! - feat: Moved bin responsibilities to the compiler and made the compiler independent of dependencies, allowing for gradual adoption.
+
 ## 0.5.1
 
 ### Patch Changes
