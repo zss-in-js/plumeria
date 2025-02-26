@@ -34,11 +34,58 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
   </Tab>
 </Tabs>
 
+### Compiler
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    npm install --save-dev @plumeria/compiler
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    pnpm install --save-dev @plumeria/compiler
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    yarn add --save-dev @plumeria/compiler
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="shell"
+    bun add --save-dev @plumeria/compiler
+    ```
+  </Tab>
+</Tabs>
+
+`npx css` compiles without type checking. Adding the argument
+`--type-check`
+will include compilation checking using TypeScript. You can also add the
+`--log`
+argument to see the CSS log that is output during compilation. It is recommended to generating server-side static CSS with
+a faster compile In parallel next dev.
+
+<Tabs items={["Next.js"]}>
+<Tab>
+```json title="package.json"
+  "scripts": {
+    "dev": "css & next dev",
+    "build": "css --type-check && next build",
+  }
+```
+</Tab>
+</Tabs>
+
 ### Integration
 
 you need to configure it in your configuration file.
 
-<Tabs items={["Next.js", "Vite", "Webpack"]}>
+<Tabs items={["Next.js", "Vite"]}>
   {/* prettier-ignore */}
   <Tab>
     ```tsx title="layout.tsx"
@@ -55,45 +102,11 @@ you need to configure it in your configuration file.
       // and change vite.config.ts to vite.config.mts.
     ```
   </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```js title="webpack.config.js"
-    module.exports = {
-      resolve: {
-        fallback: {
-          fs: false,
-          path: false,
-          util: false
-        }
-      },
-    };
-    ```
-  </Tab>
-</Tabs>
-
-### Compile command
-
-<code>npx css</code> compiles without type checking. Adding the argument
-<code>--type-check</code>
-will include compilation checking using TypeScript. You can also add the
-<code>--log</code>
-argument to see the CSS log that is output during compilation. It is recommended to generating server-side static CSS with
-a faster compile In parallel next dev.
-
-<Tabs items={["Next.js"]}>
-<Tab>
-```json title="package.json"
-  "scripts": {
-    "dev": "css & next dev",
-    "build": "css --type-check && next build",
-  }
-```
-</Tab>
 </Tabs>
 
 ### Server component
 
-You can statically preview a Next.js's ServerComponent using <code>\<ServerCSS \/\></code>.  
+You can statically preview a Next.js's ServerComponent using `\<ServerCSS \/\>`.  
 This ServerCSS is a headless component and is not included in the production environment.
 
 <Tabs items={["Next.js"]}>
