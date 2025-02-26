@@ -88,9 +88,6 @@ importers:
       '@plumeria/collection':
         specifier: workspace:^
         version: link:../collection
-      '@plumeria/compiler':
-        specifier: workspace:^
-        version: link:../compiler
       zss-engine:
         specifier: ^0.2.3
         version: 0.2.3
