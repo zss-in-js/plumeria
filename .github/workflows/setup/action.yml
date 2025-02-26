@@ -15,13 +15,13 @@ runs:
         mkdir -p test-e2e/site/node_modules/@plumeria/compiler
         mkdir -p test-e2e/site/node_modules/@plumeria/core
         mkdir -p test-e2e/site/node_modules/@plumeria/next
-        cp -r packages/core/bin test-e2e/site/node_modules/@plumeria/core/
         cp -r packages/core/dist test-e2e/site/node_modules/@plumeria/core/
         cp -r packages/core/package.json test-e2e/site/node_modules/@plumeria/core/
         cp -r packages/collection/dist test-e2e/site/node_modules/@plumeria/collection/
         cp -r packages/collection/package.json test-e2e/site/node_modules/@plumeria/collection/
         cp -r packages/next/dist test-e2e/site/node_modules/@plumeria/next/
         cp -r packages/next/package.json test-e2e/site/node_modules/@plumeria/next/
+        cp -r packages/compiler/bin test-e2e/site/node_modules/@plumeria/compiler/
         cp -r packages/compiler/src test-e2e/site/node_modules/@plumeria/compiler/
         cp -r packages/compiler/package.json test-e2e/site/node_modules/@plumeria/compiler/
         cp -r packages/compiler/tsconfig.json test-e2e/site/node_modules/@plumeria/compiler/
