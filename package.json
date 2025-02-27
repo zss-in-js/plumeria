@@ -1,6 +1,6 @@
 {
   "name": "plumeria-monorepo",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
   "keywords": [
     "css",
