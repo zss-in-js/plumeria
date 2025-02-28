@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.6.1
+
+### Patch Changes
+
+- [`ee8d212`](https://github.com/zss-in-js/plumeria/commit/ee8d212096f17fb18070fb98f47df834fed9f1eb) Thanks [@refirst11](https://github.com/refirst11)! - feat: zss-engine to v0.2.5
+
 ## 0.6.0
 
 ### Minor Changes
