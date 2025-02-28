@@ -2,6 +2,7 @@
   "name": "with-vite-react-swc",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "css --type-check && tsc -b && vite build",
@@ -9,6 +10,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@plumeria/compiler": "^0.6.0",
     "@eslint/js": "^9.17.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
@@ -21,7 +23,7 @@
     "vite": "^5.4.11"
   },
   "dependencies": {
-    "@plumeria/core": "^0.4.0",
+    "@plumeria/core": "^0.6.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   }
