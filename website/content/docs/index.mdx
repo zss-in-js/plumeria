@@ -91,18 +91,16 @@ you need to configure it in your configuration file.
 <Tabs items={["Next.js", "Vite"]}>
   {/* prettier-ignore */}
   <Tab>
-    ```tsx title="layout.tsx"
+    ```sh title="sh"
     npm install --save @plumeria/next
-
-    // Add <ServerCSS /> for layout.tsx
+    # Add <ServerCSS /> for layout.tsx
     ```
 
   </Tab>
   {/* prettier-ignore */}
   <Tab>
-    ```js title="vite.config.js"
-      // Additional configuration is to remove type: "module" in package.json
-      // and change vite.config.ts to vite.config.mts.
+    ```text title="vite.config.ts"
+    No configuration required.
     ```
   </Tab>
 </Tabs>
