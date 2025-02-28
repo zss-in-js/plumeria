@@ -2,18 +2,20 @@
   "name": "with-vite-svelte",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "css --type-check && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@plumeria/compiler": "^0.6.0",
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
     "svelte": "^4.2.18",
     "typescript": "^5.6.3",
     "vite": "^5.4.1"
   },
   "dependencies": {
-    "@plumeria/core": "^0.4.0"
+    "@plumeria/core": "^0.6.0"
   }
 }
