@@ -16,8 +16,8 @@ It supports Vite and Next.js by default.
 
 ### Faster setup
 
-In Vite, just remove `type: "module"` and change it to `vite.config.mts` and it will work.  
-In Next.js set a `<ServerCSS />` component and just `@plumeria/compiler` with `npx css`.
+In Vite: no configuration required.  
+In Next.js: set a `<ServerCSS />` component and just `@plumeria/compiler` with `npx css`.
 
 ### User friendly API
 
@@ -63,7 +63,7 @@ Also, because it is always written outside the component, it will not be seriali
 
 ## Universality
 
-The create method takes the key as the class name and gives a 7-character hash of the object at the end.
+The create method takes the key as the class name and gives a 6-character hash of the object at the end.
 Class names are changed by objects, but when objects are determined, class names become universal.
 Therefore, when methods are determined, class names can be used as CSS Syntax arguments (has and not, is where eg.)
 The same object hash and the same key are used in both development and production environments,
