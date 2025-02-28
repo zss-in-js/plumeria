@@ -1,9 +1,10 @@
 module.exports = {
   transform: {
-    '^.+\\.ts?$': '@swc/jest',
+    '^.+\\.ts$': 'ts-jest',
   },
   roots: ['<rootDir>/packages/core/__tests__'],
-  testEnvironment: 'jsdom',
+  preset: 'ts-jest',
+  testEnvironment: 'node',
   coverageReporters: ['text', 'html'],
   reporters: [['github-actions', { silent: false }], 'summary'],
 };
