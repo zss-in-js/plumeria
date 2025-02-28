@@ -27,11 +27,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && pnpm build:mjs && pnpm cjs && pnpm minify",
+    "build": "rm -rf dist && pnpm build:mjs && pnpm cjs",
     "build:mjs": "pnpm esm && for file in $(find dist -name '*.js'); do mv \"$file\" \"${file%.*}.mjs\"; done",
     "cjs": "npx tsc --project tsconfig.cjs.json",
-    "esm": "npx tsc --project tsconfig.esm.json",
-    "minify": "for file in $(find dist -name '*.js' -o -name '*.mjs'); do terser \"$file\" -m -o \"$file\"; done"
+    "esm": "npx tsc --project tsconfig.esm.json"
   },
   "publishConfig": {
     "access": "public"
