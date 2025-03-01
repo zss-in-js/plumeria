@@ -38,15 +38,14 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && pnpm build:mjs && pnpm cjs && cp -r src/styles dist",
-    "build:mjs": "pnpm esm && for file in $(find dist -name '*.js'); do mv \"$file\" \"${file%.*}.mjs\"; done",
-    "cjs": "npx tsc --project tsconfig.cjs.json",
-    "esm": "npx tsc --project tsconfig.esm.json",
+    "build": "pnpm esm && pnpm cjs && cp -r src/styles dist",
+    "cjs": "tsc --project tsconfig.cjs.json",
+    "esm": "tsc --project tsconfig.esm.json && node build.esm.js",
     "test": "jest --config ../../jest.config.js"
   },
   "dependencies": {
     "@plumeria/collection": "workspace:^",
-    "zss-engine": "^0.2.5"
+    "zss-engine": "^0.2.6"
   },
   "publishConfig": {
     "access": "public"

@@ -28,10 +28,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && pnpm build:mjs && pnpm cjs",
-    "build:mjs": "pnpm esm && for file in $(find dist -name '*.js'); do mv \"$file\" \"${file%.*}.mjs\"; done",
-    "cjs": "npx tsc --project tsconfig.cjs.json",
-    "esm": "npx tsc --project tsconfig.esm.json"
+    "build": "pnpm esm && pnpm cjs",
+    "cjs": "tsc --project tsconfig.cjs.json",
+    "esm": "tsc --project tsconfig.esm.json && node build.esm.js"
   },
   "publishConfig": {
     "access": "public"
