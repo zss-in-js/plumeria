@@ -1,5 +1,14 @@
 # @plumeria/core
 
+## 0.6.2
+
+### Patch Changes
+
+- [`d8e7fce`](https://github.com/zss-in-js/plumeria/commit/d8e7fceca6f03221c09d00bc3bf36757ae71e63e) Thanks [@refirst11](https://github.com/refirst11)! - fix: Minify has been discontinued for security reasons.
+
+- Updated dependencies [[`d8e7fce`](https://github.com/zss-in-js/plumeria/commit/d8e7fceca6f03221c09d00bc3bf36757ae71e63e)]:
+  - @plumeria/collection@0.2.1
+
 ## 0.6.1
 
 ### Patch Changes
