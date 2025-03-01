@@ -16,26 +16,27 @@
   "exports": {
     "./package.json": "./package.json",
     "./dist/method/create-build-helper": {
-      "types": "./dist/method/create-build-helper.d.ts",
+      "types": "./types/method/create-build-helper.d.ts",
       "import": "./dist/method/create-build-helper.mjs",
       "default": "./dist/method/create-build-helper.js"
     },
     "./dist/method/global-build-helper": {
-      "types": "./dist/method/global-build-helper.d.ts",
+      "types": "./types/method/global-build-helper.d.ts",
       "import": "./dist/method/global-build-helper.mjs",
       "default": "./dist/method/global-build-helper.js"
     },
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./types/index.d.ts",
       "import": "./dist/index.mjs",
       "default": "./dist/index.js"
     }
   },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "types"
   ],
   "scripts": {
     "build": "pnpm esm && pnpm cjs && cp -r src/styles dist",
