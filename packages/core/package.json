@@ -39,7 +39,7 @@
     "types"
   ],
   "scripts": {
-    "build": "pnpm esm && pnpm cjs && pnpm dts && pnpm css",
+    "build": "shx rm -rf dist && pnpm esm && pnpm cjs && pnpm dts && pnpm css",
     "cjs": "tsc --project tsconfig.cjs.json",
     "esm": "tsc --project tsconfig.esm.json && node build.esm.js",
     "dts": "tsc --project tsconfig.dts.json",
