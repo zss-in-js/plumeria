@@ -1,17 +1,21 @@
-name: Setup Verification Files
-description: Sets up verification files for testing
+name: Setup test environment
+description: Sets unpublish files for testing
 
 runs:
   using: composite
   steps:
-    - name: Setting verification files
+    - name: Cleanup
       shell: bash
       run: |
-        rm -rf test-e2e/site/node_modules/@plumeria/collection/*
-        rm -rf test-e2e/site/node_modules/@plumeria/compiler/*
-        rm -rf test-e2e/site/node_modules/@plumeria/core/*
-        rm -rf test-e2e/site/node_modules/@plumeria/next/*
-        cp -r packages/core/* test-e2e/site/node_modules/@plumeria/core/
-        cp -r packages/collection/* test-e2e/site/node_modules/@plumeria/collection/
-        cp -r packages/next/* test-e2e/site/node_modules/@plumeria/next/
-        cp -r packages/compiler/* test-e2e/site/node_modules/@plumeria/compiler/
+        pnpm rm test-e2e/site/node_modules/@plumeria/core/*
+        pnpm rm test-e2e/site/node_modules/@plumeria/collection/*
+        pnpm rm test-e2e/site/node_modules/@plumeria/next/*
+        pnpm rm test-e2e/site/node_modules/@plumeria/compiler/*
+
+    - name: Copy test-env
+      shell: bash
+      run: |
+        pnpm cp packages/core/* test-e2e/site/node_modules/@plumeria/core/
+        pnpm cp packages/collection/* test-e2e/site/node_modules/@plumeria/collection/
+        pnpm cp packages/next/* test-e2e/site/node_modules/@plumeria/next/
+        pnpm cp packages/compiler/* test-e2e/site/node_modules/@plumeria/compiler/
