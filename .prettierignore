@@ -1,0 +1,6 @@
+.next
+build
+coverage
+dist
+node_modules
+*.mdx
