@@ -36,7 +36,7 @@ jobs:
           cd test-e2e/site
           npm install
 
-      - name: Setting verification files
+      - name: Setup test environment
         uses: ./.github/workflows/setup
 
       - name: Run Jest tests with coverage
@@ -73,7 +73,7 @@ jobs:
           cd test-e2e/site
           npm install
 
-      - name: Setting verification files
+      - name: Setup test environment
         uses: ./.github/workflows/setup
 
       - name: Install Playwright chromium
