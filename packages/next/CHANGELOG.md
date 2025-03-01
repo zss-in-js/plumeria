@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.4.1
+
+### Patch Changes
+
+- [`d8e7fce`](https://github.com/zss-in-js/plumeria/commit/d8e7fceca6f03221c09d00bc3bf36757ae71e63e) Thanks [@refirst11](https://github.com/refirst11)! - fix: Minify has been discontinued for security reasons.
+
 ## 0.4.0
 
 ### Minor Changes
