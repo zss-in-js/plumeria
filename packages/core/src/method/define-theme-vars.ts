@@ -2,7 +2,10 @@ import { global } from './global';
 import type { VarsDefinition, VarsTransformed } from 'zss-engine';
 
 export const defineThemeVars = <const T extends VarsDefinition>(object: T) => {
-  const globalStyles: Record<string, Record<string, string | number | object>> = {};
+  const globalStyles: Record<
+    string,
+    Record<string, string | number | object>
+  > = {};
 
   const result = {} as {
     [K in keyof T]: `var(--${string & K})`;
@@ -17,9 +20,12 @@ export const defineThemeVars = <const T extends VarsDefinition>(object: T) => {
       Object.entries(value).forEach(([subKey, subValue]) => {
         if (subKey.startsWith('@media')) {
           (globalStyles[':root'] ||= {})[subKey] ||= {};
-          (globalStyles[':root'][subKey] as Record<string, string | number>)[`--${key}`] = subValue;
+          (globalStyles[':root'][subKey] as Record<string, string | number>)[
+            `--${key}`
+          ] = subValue;
         } else {
-          const themeSelector = subKey === 'default' ? ':root' : `:root[data-theme="${subKey}"]`;
+          const themeSelector =
+            subKey === 'default' ? ':root' : `:root[data-theme="${subKey}"]`;
           (globalStyles[themeSelector] ||= {})[`--${key}`] = subValue;
         }
       });

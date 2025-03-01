@@ -14,7 +14,9 @@ import { keyframes } from './method/keyframes';
 import { media, pseudo, colors, container } from '@plumeria/collection';
 
 class css {
-  static create<T extends Record<string, CustomProperties>>(object: CreateStyle<T>): ReturnType<T> {
+  static create<T extends Record<string, CustomProperties>>(
+    object: CreateStyle<T>,
+  ): ReturnType<T> {
     return create(object);
   }
 

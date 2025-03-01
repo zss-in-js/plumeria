@@ -10,13 +10,20 @@ import combineSelectors from 'postcss-combine-duplicated-selectors';
 
 function isCSS(filePath: string): boolean {
   const content = fs.readFileSync(filePath, 'utf8');
-  const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true);
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    content,
+    ts.ScriptTarget.Latest,
+    true,
+  );
 
   const checker = (node: ts.Node): boolean => {
     if (ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.name)) {
       const expressionText = node.expression.getText(sourceFile);
       const methodName = node.name.getText(sourceFile);
-      return expressionText === 'css' && ['create', 'global'].includes(methodName);
+      return (
+        expressionText === 'css' && ['create', 'global'].includes(methodName)
+      );
     }
     return ts.forEachChild(node, checker) || false;
   };
@@ -35,7 +42,9 @@ async function optimizeCSS() {
   const corePath = path.dirname(require.resolve('@plumeria/core/package.json'));
   const cssPath = path.join(corePath, 'dist/styles/global.css');
   const cssContent = fs.readFileSync(cssPath, 'utf8');
-  const result = postcss([combineSelectors({ removeDuplicatedProperties: true })]).process(cssContent, {
+  const result = postcss([
+    combineSelectors({ removeDuplicatedProperties: true }),
+  ]).process(cssContent, {
     from: cssPath,
     to: cssPath,
   });
@@ -46,10 +55,17 @@ async function optimizeCSS() {
   await cleanUp();
   const appRoot = await getAppRoot();
   const files = await fg([path.join(appRoot, '**/*.{js,jsx,ts,tsx}')], {
-    ignore: ['**/main.{js,ts}/**', '**/dist/**', '**/.next/**', '**/node_modules/**'],
+    ignore: [
+      '**/main.{js,ts}/**',
+      '**/dist/**',
+      '**/.next/**',
+      '**/node_modules/**',
+    ],
   });
   const styleFiles = files.filter(isCSS);
-  const importPromises = styleFiles.map(styleFile => import(path.resolve(styleFile)));
+  const importPromises = styleFiles.map(
+    (styleFile) => import(path.resolve(styleFile)),
+  );
   await Promise.all(importPromises);
 
   for (let i = 0; i < styleFiles.length; i++) {

@@ -4,8 +4,10 @@ const has = (str: string) => `:has(${str})` as ':has()';
 const is = (str: string) => `:is(${str})` as ':is()';
 const where = (str: string) => `:where(${str})` as ':where()';
 const nthChild = (str: string) => `:nth-child(${str})` as ':nth-child()';
-const nthLastChild = (str: string) => `:nth-last-child(${str})` as ':nth-last-child()';
-const nthLastOfType = (str: string) => `:nth-last-of-type(${str})` as ':nth-last-of-type()';
+const nthLastChild = (str: string) =>
+  `:nth-last-child(${str})` as ':nth-last-child()';
+const nthLastOfType = (str: string) =>
+  `:nth-last-of-type(${str})` as ':nth-last-of-type()';
 const nthOfType = (str: string) => `:nth-of-type(${str})` as ':nth-of-type()';
 
 export const pseudo = {

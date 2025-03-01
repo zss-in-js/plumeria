@@ -6,7 +6,7 @@ const sheetQueue: string[] = [];
 let isProcessing = false;
 
 function initPromise() {
-  globalPromise = new Promise<string>(resolve => {
+  globalPromise = new Promise<string>((resolve) => {
     resolvePromise = (value: string) => {
       sheetQueue.push(value);
       resolve(value);

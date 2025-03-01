@@ -1,6 +1,17 @@
 import type { CustomHTMLType, VarsDefinition } from 'zss-engine';
-import { isDevAndTest, isServer, injectServerCSS, injectClientGlobalCSS, transpiler, genBase36Hash } from 'zss-engine';
-import { resolvePromise, globalPromise, initPromise } from './global-build-helper';
+import {
+  isDevAndTest,
+  isServer,
+  injectServerCSS,
+  injectClientGlobalCSS,
+  transpiler,
+  genBase36Hash,
+} from 'zss-engine';
+import {
+  resolvePromise,
+  globalPromise,
+  initPromise,
+} from './global-build-helper';
 import '../styles/global.css';
 
 export function global(object: CustomHTMLType | VarsDefinition): void {
@@ -9,5 +20,8 @@ export function global(object: CustomHTMLType | VarsDefinition): void {
   if (typeof globalPromise === 'undefined') initPromise();
   resolvePromise([styleSheet, '--global']);
 
-  if (isDevAndTest) isServer ? injectServerCSS(base36Hash, styleSheet) : injectClientGlobalCSS(styleSheet, 'global');
+  if (isDevAndTest)
+    isServer
+      ? injectServerCSS(base36Hash, styleSheet)
+      : injectClientGlobalCSS(styleSheet, 'global');
 }

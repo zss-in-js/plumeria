@@ -1,16 +1,29 @@
 import type { ReturnType, CreateStyle, CustomProperties } from 'zss-engine';
-import { isDevAndTest, transpiler, injectServerCSS, genBase36Hash, isServer, injectClientCSS } from 'zss-engine';
-import { initPromise, globalPromise, resolvePromise } from './create-build-helper';
+import {
+  isDevAndTest,
+  transpiler,
+  injectServerCSS,
+  genBase36Hash,
+  isServer,
+  injectClientCSS,
+} from 'zss-engine';
+import {
+  initPromise,
+  globalPromise,
+  resolvePromise,
+} from './create-build-helper';
 import '../styles/create.css';
 
-export function create<T extends Record<string, CustomProperties>>(object: CreateStyle<T>): ReturnType<T> {
+export function create<T extends Record<string, CustomProperties>>(
+  object: CreateStyle<T>,
+): ReturnType<T> {
   const base36Hash = genBase36Hash(object, 6);
   const { styleSheet } = transpiler(object, base36Hash);
   const injectCSS = isServer ? injectServerCSS : injectClientCSS;
   if (typeof globalPromise === 'undefined') initPromise();
   resolvePromise(styleSheet);
 
-  Object.keys(object).forEach(key => {
+  Object.keys(object).forEach((key) => {
     Object.defineProperty(object, key, {
       get: () => {
         const className = key + '_' + base36Hash;

@@ -1,7 +1,9 @@
-export function cx(...strings: Array<string | undefined | false>): string & ':' {
+export function cx(
+  ...strings: Array<string | undefined | false>
+): string & ':' {
   let result = '';
   let isFirst = true;
-  strings.filter(Boolean).forEach(str => {
+  strings.filter(Boolean).forEach((str) => {
     if (str?.toString().startsWith(':')) {
       result += str.toString() as string & ':';
     } else if (typeof str === 'string') {
