@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.5.0
+
+### Minor Changes
+
+- [`3333425`](https://github.com/zss-in-js/plumeria/commit/333342500841e5466eaeff0418801174ca9fc42a) Thanks [@refirst11](https://github.com/refirst11)! - Fixed: Type definition file was not included.
+
 ## 0.4.2
 
 ### Patch Changes
