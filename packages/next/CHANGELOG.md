@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.4.2
+
+### Patch Changes
+
+- [`966a794`](https://github.com/zss-in-js/plumeria/commit/966a7945cc571c92179602f467ce4f9b042b3c41) Thanks [@refirst11](https://github.com/refirst11)! - feat: build imporve and add sourceMap
+
 ## 0.4.1
 
 ### Patch Changes
