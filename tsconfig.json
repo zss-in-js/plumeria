@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "declaration": true,
+    "sourceMap": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "lib": ["ESNext", "dom"],
@@ -14,6 +14,15 @@
     "skipLibCheck": true,
     "removeComments": true
   },
-  "include": ["./packages/core/src/", "./packages/next/src/"],
-  "exclude": ["test-e2e/**", "packages/**/dist/**", "node_modules", "packages/compiler/**"]
+  "include": [
+    "./packages/core/src/",
+    "./packages/collection/src/",
+    "./packages/next/src/"
+  ],
+  "exclude": [
+    "test-e2e/**",
+    "packages/**/dist/**",
+    "node_modules",
+    "packages/compiler/**"
+  ]
 }
