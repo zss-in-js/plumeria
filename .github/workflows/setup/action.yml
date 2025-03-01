@@ -7,15 +7,15 @@ runs:
     - name: Cleanup
       shell: bash
       run: |
-        pnpm rm test-e2e/site/node_modules/@plumeria/core/*
-        pnpm rm test-e2e/site/node_modules/@plumeria/collection/*
-        pnpm rm test-e2e/site/node_modules/@plumeria/next/*
-        pnpm rm test-e2e/site/node_modules/@plumeria/compiler/*
+        pnpm shx rm -rf test-e2e/site/node_modules/@plumeria/core/*
+        pnpm shx rm -rf test-e2e/site/node_modules/@plumeria/collection/*
+        pnpm shx rm -rf test-e2e/site/node_modules/@plumeria/next/*
+        pnpm shx rm -rf test-e2e/site/node_modules/@plumeria/compiler/*
 
     - name: Copy test-env
       shell: bash
       run: |
-        pnpm cp packages/core/* test-e2e/site/node_modules/@plumeria/core/
-        pnpm cp packages/collection/* test-e2e/site/node_modules/@plumeria/collection/
-        pnpm cp packages/next/* test-e2e/site/node_modules/@plumeria/next/
-        pnpm cp packages/compiler/* test-e2e/site/node_modules/@plumeria/compiler/
+        pnpm shx cp -r packages/core/* test-e2e/site/node_modules/@plumeria/core/
+        pnpm shx cp -r packages/collection/* test-e2e/site/node_modules/@plumeria/collection/
+        pnpm shx cp -r packages/next/* test-e2e/site/node_modules/@plumeria/next/
+        pnpm shx cp -r packages/compiler/* test-e2e/site/node_modules/@plumeria/compiler/
