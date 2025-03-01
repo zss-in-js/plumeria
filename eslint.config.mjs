@@ -6,7 +6,13 @@ const eslintConfig = tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.strict,
   {
-    ignores: ['**/dist/**', '**/.next/**', '**/*.js', '**/*css.mjs'],
+    ignores: [
+      '**/dist/**',
+      '**/packages/collection/**',
+      '**/.next/**',
+      '**/*.js',
+      '**/*css.mjs',
+    ],
   },
   {
     files: ['**/*.{ts,tsx}'],
@@ -21,7 +27,7 @@ const eslintConfig = tseslint.config(
       '@typescript-eslint/no-unused-expressions': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
     },
-  }
+  },
 );
 
 export default eslintConfig;
