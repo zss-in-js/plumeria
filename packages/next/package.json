@@ -28,9 +28,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "pnpm esm && pnpm cjs",
+    "build": "pnpm esm && pnpm cjs && pnpm dts",
     "cjs": "tsc --project tsconfig.cjs.json",
-    "esm": "tsc --project tsconfig.esm.json && node build.esm.js"
+    "esm": "tsc --project tsconfig.esm.json && node build.esm.js",
+    "dts": "tsc --project tsconfig.dts.json"
   },
   "publishConfig": {
     "access": "public"
