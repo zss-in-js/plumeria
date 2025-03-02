@@ -7,6 +7,7 @@ You can also read it as security update and patch notes.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.6.6   | :white_check_mark: The type definition has been fixed as @plumeria/collection@0.4.0. |
 | 0.6.5   | :x: Same as below |
 | 0.6.4   | :x: The type definition for collectioin is broken |
 | 0.6.3   | :x: @plumeria/collectioin@0.2.2 and @plumeria/next@0.4.2 has not include npm to types |
@@ -24,5 +25,6 @@ You can also read it as security update and patch notes.
 Since 0.6.0 the compiler has been made independent, and @plumeria/compiler must be installed when using @plumeria/core.  
 From 0.5.x onwards, bundle code has been packages are now CJS ESM compatible.  
 It is optimized to some extent depending on the required framework.  
-@plumeria/next was unstable for a long time, but it has been stable since 0.3.0. It is now a dual package in 0.4.0.
+@plumeria/next was unstable for a long time, but it has been stable since 0.3.0. It is now a dual package in 0.4.0.  
+Please note that only @plumeria/next@0.4.2, where the type definition was forgotten, cannot be used with typescript.
 
