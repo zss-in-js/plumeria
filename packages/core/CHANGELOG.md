@@ -1,5 +1,14 @@
 # @plumeria/core
 
+## 0.6.5
+
+### Patch Changes
+
+- [`083c86c`](https://github.com/zss-in-js/plumeria/commit/083c86c82602be1bcbfcf62de7bf71b81467e0ba) Thanks [@refirst11](https://github.com/refirst11)! - Separation of dist and types was complicated to manage, so we rolled it back.
+
+- Updated dependencies [[`083c86c`](https://github.com/zss-in-js/plumeria/commit/083c86c82602be1bcbfcf62de7bf71b81467e0ba)]:
+  - @plumeria/collection@0.3.1
+
 ## 0.6.4
 
 ### Patch Changes
