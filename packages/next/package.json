@@ -16,23 +16,21 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./types/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "default": "./dist/index.js"
     }
   },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "types": "types/index.d.ts",
+  "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "types"
+    "dist"
   ],
   "scripts": {
-    "build": "shx rm -rf dist && pnpm esm && pnpm cjs && pnpm dts",
+    "build": "shx rm -rf dist && pnpm esm && pnpm cjs",
     "cjs": "tsc --project tsconfig.cjs.json",
-    "esm": "tsc --project tsconfig.esm.json && node build.esm.js",
-    "dts": "tsc --project tsconfig.dts.json"
+    "esm": "tsc --project tsconfig.esm.json && node build.esm.js"
   },
   "publishConfig": {
     "access": "public"
