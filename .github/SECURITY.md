@@ -7,6 +7,11 @@ You can also read it as security update and patch notes.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.6.5   | :x: Same as below |
+| 0.6.4   | :x: Since the type definition of collection is broken, completion may not work or an error may occur.|
+| 0.6.3   | :x: Tried to include sourceMap, but missed including types in @plumeria/next@0.4.2 and @plumeria/collection@0.2.2 |
+| 0.6.2   | :white_check_mark: fix: Minify has been discontinued for security reasons |
+| 0.6.1   | :white_check_mark: feat: zss-engine to v0.2.5 |
 | 0.6.0   | :white_check_mark: We succeeded in making the compiler independent, which was attempted in 0.3.0.|
 | 0.5.1   | :white_check_mark: Problems caused by compression are resolved and created dual packaging. |
 | 0.5.0   | :x: Excessive compression with minify has caused the use directive to disappear, causing an fs error in NextJS. |                |　
