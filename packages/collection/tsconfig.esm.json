@@ -6,6 +6,8 @@
     "paths": {},
     "rootDir": "src/",
     "outDir": "./dist",
+    "declaration": true,
+    "declarationDir": "./types",
     "types": ["node"]
   },
   "include": ["src/"]
