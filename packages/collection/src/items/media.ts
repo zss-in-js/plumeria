@@ -3,9 +3,9 @@ export const scheme = {
   light: '@media (prefers-color-scheme: light)',
 } as const;
 
-const range = (range: string): string => `@media (${range})`;
-const max = (size: string): string => `@media (max-${size})`;
-const min = (size: string): string => `@media (min-${size})`;
+const range = (range: string) => `@media (${range})` as '@media ()';
+const max = (str: string) => `@media (max-${str})` as '@media (max-)';
+const min = (str: string) => `@media (min-${str})` as '@media (min-)';
 
 export const media = {
   min_sm: '@media (min-width: 640px)',

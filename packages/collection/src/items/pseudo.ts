@@ -1,20 +1,23 @@
-const lang = (str: string): string => `:lang(${str})`;
-const not = (str: string): string => `:not(${str})`;
-const has = (str: string): string => `:has(${str})`;
-const is = (str: string): string => `:is(${str})`;
-const where = (str: string): string => `:where(${str})`;
-const nthChild = (str: string): string => `:nth-child(${str})`;
-const nthLastChild = (str: string): string => `:nth-last-child(${str})`;
-const nthLastOfType = (str: string): string => `:nth-last-of-type(${str})`;
-const nthOfType = (str: string): string => `:nth-of-type(${str})`;
-const viewTransitionOld = (str: string): string =>
-  `::view-transition-old(${str})`;
-const viewTransitionNew = (str: string): string =>
-  `::view-transition-new(${str})`;
-const viewTransitionGroup = (str: string): string =>
-  `::view-transition-group(${str})`;
-const viewTransitionImagePair = (str: string): string =>
-  `::view-transition-image-pair(${str})`;
+const lang = (str: string) => `:lang(${str})` as ':lang()';
+const not = (str: string) => `:not(${str})` as ':not()';
+const has = (str: string) => `:has(${str})` as ':has()';
+const is = (str: string) => `:is(${str})` as ':is()';
+const where = (str: string) => `:where(${str})` as ':where()';
+const nthChild = (str: string) => `:nth-child(${str})` as ':nth-child()';
+const nthLastChild = (str: string) =>
+  `:nth-last-child(${str})` as ':nth-last-child()';
+const nthLastOfType = (str: string) =>
+  `:nth-last-of-type(${str})` as ':nth-last-of-type()';
+const nthOfType = (str: string) => `:nth-of-type(${str})` as ':nth-of-type()';
+
+const viewTransitionOld = (str: string) =>
+  `::view-transition-old(${str})` as '::view-transition-old()';
+const viewTransitionNew = (str: string) =>
+  `::view-transition-new(${str})` as '::view-transition-new()';
+const viewTransitionGroup = (str: string) =>
+  `::view-transition-group(${str})` as '::view-transition-group()';
+const viewTransitionImagePair = (str: string) =>
+  `::view-transition-image-pair(${str})` as '::view-transition-image-pair()';
 
 export const pseudo = {
   // User action pseudo-classes
