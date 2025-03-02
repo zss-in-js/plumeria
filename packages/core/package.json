@@ -16,34 +16,32 @@
   "exports": {
     "./package.json": "./package.json",
     "./dist/method/create-build-helper": {
-      "types": "./types/method/create-build-helper.d.ts",
+      "types": "./dist/method/create-build-helper.d.ts",
       "import": "./dist/method/create-build-helper.mjs",
       "default": "./dist/method/create-build-helper.js"
     },
     "./dist/method/global-build-helper": {
-      "types": "./types/method/global-build-helper.d.ts",
+      "types": "./dist/method/global-build-helper.d.ts",
       "import": "./dist/method/global-build-helper.mjs",
       "default": "./dist/method/global-build-helper.js"
     },
     ".": {
-      "types": "./types/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "default": "./dist/index.js"
     }
   },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "types": "types/index.d.ts",
+  "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "types"
+    "dist"
   ],
   "scripts": {
-    "build": "shx rm -rf dist && pnpm esm && pnpm cjs && pnpm dts && pnpm css",
+    "build": "shx rm -rf dist && pnpm esm && pnpm cjs && pnpm css",
+    "css": "shx cp -r src/styles dist",
     "cjs": "tsc --project tsconfig.cjs.json",
     "esm": "tsc --project tsconfig.esm.json && node build.esm.js",
-    "dts": "tsc --project tsconfig.dts.json",
-    "css": "shx cp -r src/styles dist",
     "test": "jest --config ../../jest.config.js"
   },
   "dependencies": {
