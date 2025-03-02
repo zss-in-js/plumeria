@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.5.2
+
+### Patch Changes
+
+- [`5f5c41e`](https://github.com/zss-in-js/plumeria/commit/5f5c41e2f0e9dea3e7e02c55090908e9fbada6d5) Thanks [@refirst11](https://github.com/refirst11)! - chore: npm add included dist types
+
 ## 0.5.1
 
 ### Patch Changes
