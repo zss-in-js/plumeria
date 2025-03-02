@@ -21,7 +21,8 @@
     "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
     "test:e2e": "playwright test",
     "prettier": "prettier --write \"**/*.js\" \"**/*.ts\"",
-    "lint": "eslint --ext .js,.ts,.tsx ."
+    "prettier:report": "prettier --check \"**/*.js\" \"**/*.ts\"",
+    "lint:report": "eslint --fix"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
