@@ -1,5 +1,11 @@
 # @plumeria/collection
 
+## 0.4.0
+
+### Minor Changes
+
+- [`9cf0fa1`](https://github.com/zss-in-js/plumeria/commit/9cf0fa1fe6ead211da16c8789993005e23f73c44) Thanks [@refirst11](https://github.com/refirst11)! - fix: as types roll backed
+
 ## 0.3.1
 
 ### Patch Changes
