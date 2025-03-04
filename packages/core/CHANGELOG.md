@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.6.7
+
+### Patch Changes
+
+- [`ef0eec2`](https://github.com/zss-in-js/plumeria/commit/ef0eec2dd540bbc6451899e909f1297d9b16a43c) Thanks [@refirst11](https://github.com/refirst11)! - feat: dependencies update zss-engine@0.2.7
+
 ## 0.6.6
 
 ### Patch Changes
