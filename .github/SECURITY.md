@@ -7,6 +7,8 @@ You can also read it as security update and patch notes.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.6.8   | :white_check_mark: update to zss-engine@0.2.8. The zss-engine add PseudoElementType to css.global |
+| 0.6.7   | :white_check_mark: update to zss-engine@0.2.7. With zss-engine d.ts have been separated types and dist |
 | 0.6.6   | :white_check_mark: The type definition has been fixed as @plumeria/collection@0.4.0. |
 | 0.6.5   | :x: Same as below |
 | 0.6.4   | :x: The type definition for collectioin is broken |
