@@ -60,8 +60,8 @@ importers:
         specifier: ^8.25.0
         version: 8.25.0(eslint@9.21.0)(typescript@5.7.3)
       zss-engine:
-        specifier: ^0.2.6
-        version: 0.2.6
+        specifier: ^0.2.7
+        version: 0.2.7
 
   packages/collection: {}
 
@@ -86,8 +86,8 @@ importers:
         specifier: workspace:^
         version: link:../collection
       zss-engine:
-        specifier: ^0.2.6
-        version: 0.2.6
+        specifier: ^0.2.7
+        version: 0.2.7
 
   packages/next: {}
 
@@ -2315,8 +2315,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zss-engine@0.2.6:
-    resolution: {integrity: sha512-PgOIRAllSaZvedmvjBuajKf5tORcJg5YLtSwtimffHzZq9vWpEv6D+PYI4xsix3gLzceFSUoDLtz0Z2kC2sNNg==}
+  zss-engine@0.2.7:
+    resolution: {integrity: sha512-k2Xi0u1yHjQwUlKq1Nml6CI0HyMm/lygcQ/bh+h/10ch9o1SMPmFNcOO31bvZy3fhbdZ3iK5LdEQdfRRguFebw==}
 
 snapshots:
 
@@ -4824,6 +4824,6 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zss-engine@0.2.6:
+  zss-engine@0.2.7:
     dependencies:
       csstype: 3.1.3
