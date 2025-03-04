@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.6.8
+
+### Patch Changes
+
+- [`20bb089`](https://github.com/zss-in-js/plumeria/commit/20bb0898ab15fdb8c355285e0c3e9835c37d2aa4) Thanks [@refirst11](https://github.com/refirst11)! - feat: PseudoElementType has been added to types in zss-engine@0.2.8
+
 ## 0.6.7
 
 ### Patch Changes
