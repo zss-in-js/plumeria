@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.5.3
+
+### Patch Changes
+
+- [`92d4139`](https://github.com/zss-in-js/plumeria/commit/92d4139112cedf8cab9aefab813435a86415d194) Thanks [@refirst11](https://github.com/refirst11)! - fix: Fixed so that style does not peel off
+
 ## 0.5.2
 
 ### Patch Changes
