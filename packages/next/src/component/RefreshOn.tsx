@@ -16,10 +16,12 @@ export const RefreshOn = (): null => {
       const response = await originalFetch.apply(this, args);
       if (pathname && response.status === 200 && !isRefreshing.current) {
         isRefreshing.current = true;
-        router.refresh();
-        timeoutId.current = setTimeout(() => {
-          isRefreshing.current = false;
-        }, timeout);
+        queueMicrotask(() => {
+          router.refresh();
+          timeoutId.current = setTimeout(() => {
+            isRefreshing.current = false;
+          }, timeout);
+        });
       }
       return response;
     };
