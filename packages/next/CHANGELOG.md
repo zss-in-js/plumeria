@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.5.4
+
+### Patch Changes
+
+- 6c91a26: feat: security update
+
 ## 0.5.3
 
 ### Patch Changes

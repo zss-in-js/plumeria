@@ -1,5 +1,13 @@
 # @plumeria/core
 
+## 0.6.9
+
+### Patch Changes
+
+- 6c91a26: feat: security update
+- Updated dependencies [6c91a26]
+  - @plumeria/collection@0.4.1
+
 ## 0.6.8
 
 ### Patch Changes
