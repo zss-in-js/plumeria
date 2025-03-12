@@ -38,10 +38,10 @@
     "types/"
   ],
   "scripts": {
-    "build": "shx rm -rf dist types && pnpm esm && pnpm cjs && pnpm css",
-    "css": "shx cp -r src/styles dist",
+    "build": "rimraf dist types && pnpm esm && pnpm cjs && pnpm css",
+    "css": "cpy 'src/styles/**' 'dist/styles'",
     "cjs": "tsc --project tsconfig.cjs.json",
-    "esm": "tsc --project tsconfig.esm.json && node build.esm.js"
+    "esm": "tsc --project tsconfig.esm.json && node ../../esm.create.mjs"
   },
   "dependencies": {
     "@plumeria/collection": "workspace:^",
