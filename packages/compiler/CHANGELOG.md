@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.6.1
+
+### Patch Changes
+
+- 6c91a26: feat: security update
+
 ## 0.6.0
 
 ### Minor Changes
