@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@plumeria/collection": "workspace:^",
-    "zss-engine": "^0.2.8"
+    "zss-engine": "^0.2.9"
   },
   "publishConfig": {
     "access": "public"
