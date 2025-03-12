@@ -28,9 +28,13 @@
     "types/"
   ],
   "scripts": {
-    "build": "shx rm -rf dist types && pnpm esm && pnpm cjs",
+    "build": "rimraf dist types && pnpm esm && pnpm cjs",
     "cjs": "tsc --project tsconfig.cjs.json",
-    "esm": "tsc --project tsconfig.esm.json && node build.esm.js"
+    "esm": "tsc --project tsconfig.esm.json && node ../../esm.create.mjs"
+  },
+  "devDependencies": {
+    "next": "15.1.2",
+    "zss-engine": "^0.2.8"
   },
   "publishConfig": {
     "access": "public"
