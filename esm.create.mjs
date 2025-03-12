@@ -1,8 +1,8 @@
-const fg = require('fast-glob');
-const fs = require('fs/promises');
+import fs from 'fs/promises';
+import { globSync } from 'fs';
 
-async function buildESM() {
-  const files = await fg('dist/**/*.js');
+(async () => {
+  const files = globSync('dist/**/*.js');
 
   await Promise.all(
     files.map(async (file) => {
@@ -10,6 +10,4 @@ async function buildESM() {
       await fs.rename(file, newPath);
     }),
   );
-}
-
-buildESM();
+})();
