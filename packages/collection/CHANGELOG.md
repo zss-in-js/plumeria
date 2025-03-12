@@ -1,5 +1,11 @@
 # @plumeria/collection
 
+## 0.4.1
+
+### Patch Changes
+
+- 6c91a26: feat: security update
+
 ## 0.4.0
 
 ### Minor Changes
