@@ -3,7 +3,7 @@
   "description": "The CSS-in-JS library",
   "root": true,
   "pages": [
-    "---✨ Guides---",
+    "---Guides---",
     "index",
     "comparison",
     "benefits",
@@ -21,6 +21,7 @@
     "colors",
     "---Utils---",
     "cx",
+    "rx",
     "servercss"
   ]
 }
