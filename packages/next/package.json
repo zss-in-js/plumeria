@@ -33,8 +33,8 @@
     "esm": "tsc --project tsconfig.esm.json && node ../../esm.create.mjs"
   },
   "devDependencies": {
-    "next": "15.1.2",
-    "zss-engine": "^0.2.8"
+    "next": "15.2.2",
+    "zss-engine": "^0.2.9"
   },
   "publishConfig": {
     "access": "public"
