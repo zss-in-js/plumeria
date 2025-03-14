@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.7.0
+
+### Minor Changes
+
+- 99edcc7: feat: rx for react dynamic state
+
 ## 0.6.9
 
 ### Patch Changes
