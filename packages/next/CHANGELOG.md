@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.5.5
+
+### Patch Changes
+
+- 4b6eae1: fix: next security update
+
 ## 0.5.4
 
 ### Patch Changes
