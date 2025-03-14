@@ -1,6 +1,6 @@
-export function cx(
-  ...strings: Array<string | undefined | false>
-): string & ':' {
+export const cx = (
+  ...strings: Array<string | null | undefined | false>
+): string & ':' => {
   let result = '';
   let isFirst = true;
   strings.filter(Boolean).forEach((str) => {
@@ -16,4 +16,4 @@ export function cx(
     }
   });
   return result as string & ':';
-}
+};

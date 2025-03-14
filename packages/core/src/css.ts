@@ -8,10 +8,11 @@ import type {
 } from 'zss-engine';
 import { create } from './method/create';
 import { global } from './method/global';
-import { cx } from './cx';
 import { defineThemeVars } from './method/define-theme-vars';
 import { keyframes } from './method/keyframes';
 import { media, pseudo, colors, container } from '@plumeria/collection';
+import { cx } from './cx';
+import { rx } from './rx';
 
 class css {
   static create<T extends Record<string, CustomProperties>>(
@@ -38,4 +39,4 @@ class css {
   static container = container;
 }
 
-export { css, cx };
+export { css, cx, rx };
