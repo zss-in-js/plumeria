@@ -1,0 +1,59 @@
+---
+title: rx
+description: offload css variable of the use React style
+---
+
+
+## React JSX only features
+React `inline-style` are **offloaded** using only static sheet the css variables.
+
+
+
+```ts title="TypeScript" {1}
+'use client';
+
+import { useState } from 'react';
+import { css, rx } from '@plumeria/core';
+
+
+const styles = css.create({
+  bar: {
+    width: 'var(--width)',
+    background: 'aqua',
+  },
+});
+
+export const Component = () => {
+  const [state, setState] = useState(0);
+  return (
+    <div {...rx(styles.bar, { '--width': state + 'px' })} />
+  )
+}
+```
+
+```tsx
+<div {...rx(styles.bar, { '--width': state + 'px', '--height': state + 'px' })} />
+```
+
+```tsx
+<div
+  {...rx(styles.bar, {
+    '--width': isActive ? '100px' : '50px',
+    '--height': isActive ? '200px' : '100px',
+  })}
+/>
+```
+
+```tsx
+const dynamicStyle = { '--width': state + 'px', '--height': state + 'px' };
+<div {...rx(styles.bar, dynamicStyle)} />
+<div {...rx(styles.other, dynamicStyle)} />
+```
+
+
+<Callout title="Use sparingly">
+There is a minimum cost associated with using inline style values.  
+in most cases, conditional static styles are sufficient.
+</Callout>
+
+
