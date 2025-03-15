@@ -44,8 +44,8 @@
     "esm": "tsc --project tsconfig.esm.json && node ../../esm.create.mjs"
   },
   "dependencies": {
-    "@plumeria/collection": "workspace:^",
-    "zss-engine": "^0.2.9"
+    "@plumeria/collection": "workspace:",
+    "zss-engine": "0.2.11"
   },
   "publishConfig": {
     "access": "public"
