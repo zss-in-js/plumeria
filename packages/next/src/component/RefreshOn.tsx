@@ -7,7 +7,7 @@ export const RefreshOn = (): null => {
   const router = useRouter();
   const pathname = usePathname();
   const isRefreshing = useRef(false);
-  const timeoutId = useRef<NodeJS.Timeout>(undefined);
+  const timeoutId = useRef<ReturnType<typeof setTimeout>>(undefined);
   const timeout = isDevTools() ? 2200 : 120;
 
   useEffect(() => {
