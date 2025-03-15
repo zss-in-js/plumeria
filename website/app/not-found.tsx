@@ -1,4 +1,3 @@
-'use client';
 import Link from 'next/link';
 import { JSX } from 'react';
 import { css } from '@plumeria/core';
