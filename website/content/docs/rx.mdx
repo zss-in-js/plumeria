@@ -31,6 +31,8 @@ export const Component = () => {
 }
 ```
 
+You can also apply multiple variables at the same time.
+
 ```tsx
 <div {...rx(styles.bar, { '--width': state + 'px', '--height': state + 'px' })} />
 ```
@@ -43,6 +45,8 @@ export const Component = () => {
   })}
 />
 ```
+
+You can also abstract away logic further.
 
 ```tsx
 const dynamicStyle = { '--width': state + 'px', '--height': state + 'px' };
