@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.7.1
+
+### Patch Changes
+
+- 9190340: feat: anchor the dependencies
+
 ## 0.7.0
 
 ### Minor Changes
