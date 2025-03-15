@@ -74,11 +74,11 @@ importers:
   packages/core:
     dependencies:
       '@plumeria/collection':
-        specifier: workspace:^
+        specifier: 'workspace:'
         version: link:../collection
       zss-engine:
-        specifier: ^0.2.10
-        version: 0.2.10
+        specifier: 0.2.11
+        version: 0.2.11
 
   packages/next:
     devDependencies:
@@ -2404,8 +2404,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zss-engine@0.2.10:
-    resolution: {integrity: sha512-AFDzNFvSohH5XaFwLvMJRmeXnjQYXIjWVXDFLDGy6Zh1giFvj16bB9jE3tCOpDddbipnyp5isG0/P1/rbXzDvA==}
+  zss-engine@0.2.11:
+    resolution: {integrity: sha512-uh9L1lGKr138HUM4aNxI03/5Mzb6etwQEMYePxx8kaG/otV6p4x4A/k6KLvqPo43Ze2nwk42reRQDYal3f/93g==}
 
   zss-engine@0.2.9:
     resolution: {integrity: sha512-yqgqY39cblOegIvkIc80PmEiJo2HCsoyQ7tq93b+zuLnB1dPn76Bk4IiWZB0gBN9kQsvW24TQDFRf9ZAI7XbJw==}
@@ -5008,7 +5008,7 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zss-engine@0.2.10:
+  zss-engine@0.2.11:
     dependencies:
       csstype: 3.1.3
 
