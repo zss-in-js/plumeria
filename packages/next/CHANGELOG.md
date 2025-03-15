@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.5.6
+
+### Patch Changes
+
+- 9190340: feat: anchor the dependencies
+
 ## 0.5.5
 
 ### Patch Changes
