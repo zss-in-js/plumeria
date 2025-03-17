@@ -1,6 +1,5 @@
 import React from 'react';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { Icon } from './Icon';
 import { css, cx } from '@plumeria/core';
 /**
  * Shared layout configurations
@@ -23,15 +22,15 @@ const styles = css.create({
 });
 
 export const baseOptions: BaseLayoutProps = {
+  githubUrl: 'https://github.com/zss-in-js/plumeria',
   nav: {
-    // can be JSX too!
     title: (
       <>
-        <Icon />
-        <span className={cx(styles.position, styles.purple)}>Plumeria</span>
+        <span className={cx(styles.position, styles.purple)}>@plumeria</span>
       </>
     ),
-    transparentMode: 'top',
+
+    transparentMode: 'always',
   },
   links: [
     {
