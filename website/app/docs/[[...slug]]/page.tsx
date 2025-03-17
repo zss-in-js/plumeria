@@ -22,12 +22,12 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
         path: `website/content/docs/${page.file.path}`,
       }}
       tableOfContent={{
-        style: 'clerk',
-        single: false,
+        style: 'normal',
+        single: true,
       }}
     >
       <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
+      <DocsDescription hidden>{page.data.description}</DocsDescription>
       <DocsBody>
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>
