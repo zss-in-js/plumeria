@@ -33,6 +33,7 @@ export const styles = css.create({
       height: '242px',
       padding: '22px 44px',
       fontSize: '12px',
+      border: 'solid 1px gray',
       borderRadius: '4px',
       transform: 'translateX(200px)',
     },
