@@ -1,214 +1,82 @@
 ---
-title: 📗 Quick Start
-description: Plumeria's installation, compilation and linting setup
+title: Introduction
+description: Welcome to the plumeria documentation!
 ---
 
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+Welcome to the plumeria documentation!
 
-## Installation
+---
 
-<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="shell"
-    npm install --save @plumeria/core
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="shell"
-    pnpm install --save @plumeria/core
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="shell"
-    yarn add --save @plumeria/core
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="shell"
-    bun add --save @plumeria/core
-    ```
-  </Tab>
-</Tabs>
+## What is Plumeria?
 
-At this point you can start writing your styles.  
-If you like plumeria's dev:runtime, such as hot reloading, You can set up the compiler in stages.
+Plumeria is a high-performance and faster CSS-in-JS system for JavaScript and TypeScript codebases.
 
-### Compiler
+Reusability and readability through abstraction of style definitions, Developers can focus on what to apply styles to, rather than how to apply them.
+It designed for Vite and Next.js and is optimized for React.
 
-<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="shell"
-    npm install --save-dev @plumeria/compiler
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="shell"
-    pnpm install --save-dev @plumeria/compiler
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="shell"
-    yarn add --save-dev @plumeria/compiler
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="shell"
-    bun add --save-dev @plumeria/compiler
-    ```
-  </Tab>
-</Tabs>
 
-`npx css` compiles without type checking. Adding the argument
-`--type-check`
-will include compilation checking using TypeScript. You can also add the
-`--log`
-argument to see the CSS log that is output during compilation. It is recommended to generating server-side static CSS with
-a faster compile In parallel next dev.
+## The CSS Module Problem
 
-<Tabs items={["Next.js"]}>
-<Tab>
-```json title="package.json"
-  "scripts": {
-    "dev": "css & next dev",
-    "build": "css --type-check && next build",
-  }
+CSS Modules have many advantages - but **lack type safety**. Therefore making it difficult to detect class name errors and refactor styles safely.
+
 ```
-</Tab>
-</Tabs>
+[CSS Modules]
+──────────────────────────────────────────────────────────
+┌──────────────────────┐
+│ Component            │  ← CSS Module is imported in a JSX file  
+│ (JSX importing)      │     (e.g., `import styles from './button.module.css'`)  
+└──────────────────────┘
+            │
+            │  CSS is written in an external file
+            ▼
+┌────────────────────────┐
+│ CSS File (.module.css) │  ← Styles are statically defined  
+└────────────────────────┘
+            │
+            │  ※ The bundler (e.g., Webpack) processes  
+            │     and hashes class names at build time  
+            ▼
+┌─────────────────────────┐
+│ Build Process (Webpack) │  ← Class names are determined during build  
+└─────────────────────────┘
+            │
+            ▼
+┌──────────────────────┐
+│ Generated CSS Output │  ← Hashed class names are output  
+│ (Only visible after  │     ※ The final result is unknown until build  
+│ building)            │  
+└──────────────────────┘
 
-### Integration
-
-you need to configure it in your configuration file.
-
-<Tabs items={["Next.js", "Vite"]}>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="sh"
-    npm install --save @plumeria/next
-    # Add <ServerCSS /> for layout.tsx
-    ```
-
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```text title="vite.config.ts"
-    No configuration required.
-    ```
-  </Tab>
-</Tabs>
-
-### Server component
-
-You can statically preview a Next.js's ServerComponent using `<ServerCSS \>`.  
-This ServerCSS is a headless component and is not included in the production environment.
-
-<Tabs items={["Next.js"]}>
-<Tab>
-```tsx title="layout.tsx"
-import { ServerCSS } from '@plumeria/next'
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html>
-      <head>
-        <ServerCSS /> // [!code ++]
-      </head> 
-      <body>
-        <main>{children}</main>
-      </body>
-    </html>
-  )
-}
 ```
-</Tab>
-</Tabs>
+It has the characteristic that the final output result is not known until the build is completed.  
+The feedback loop needs to the shortest so developers can deliver high-quality code quickly.
 
-### More
 
-<Cards>
-  <Card title="See more about ServerCSS" href="/docs/servercss" />
-</Cards>
 
-## Linting
-
-Uses the community-made [eslint-plugin-object-css](https://www.npmjs.com/package/eslint-plugin-object-css).
-
-<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
-<Tab>
-```sh title="shell"
-npm install --save-dev eslint-plugin-object-css
+## The CSS in JS solution
+A feature of plumeria is that the compilation process is independent from the development flow.
 ```
-</Tab>
-<Tab>
-```sh title="shell"
-pnpm install --save-dev eslint-plugin-object-css
+[CSS in JS (plumeria)]
+──────────────────────────────────────────────────────────
+┌──────────────────────┐       ┌─────────────────────────┐
+│ Component            │───1──▶│ CLI Command Execution   │
+│ (JSX with CSS in JS) │       │ (Precompilation)        │
+└──────────────────────┘       └─────────────────────────┘
+     ▲         ┌─────────────────────────┐           │
+     │         │ Generated CSS File      │           │
+   3 └─────────│ (Static CSS available)  │ ◀─────────┘ 2
+               └─────────────────────────┘  ※ The final result is known at this time
+                           │        
+                           │        
+                           │
+                           │
+                           │  ※ The following process happens in production builds  
+                           ▼
+            ┌───────────────────────────────┐
+            │ Production Build Process      │  ← e.g., Webpack, Vite  
+            │ (Tree-shaking & Minification) │     ※ Removes used styles  
+            └───────────────────────────────┘
 ```
-</Tab>
-<Tab>
-```sh title="shell"
-yarn add -D eslint-plugin-object-css
-```
-</Tab>
-<Tab>
-```sh title="shell"
-bun add -D eslint-plugin-object-css
-```
-</Tab>
-</Tabs>
-<Tabs items={['eslint9 ESM', 'eslint9 CommonJS', 'eslint8']}>
-  <Tab>
-    ```js title="eslint.config.mjs"
-    import eslint from '@eslint/js';
-    import tseslint from 'typescript-eslint';
-    import objectCss from 'eslint-plugin-object-css';  // [!code ++]
+Plumeria solves the problem of debugging CSS through a CLI.
+By allowing you to quickly cycle through the feedback loop of write,compile,test,write,compile,test you can drastically reduce the time you spend debugging.
 
-    const eslintConfig = tseslint.config(
-      eslint.configs.recommended,
-      ...tseslint.configs.strict,
-      objectCss.flatConfigs.recommended,  // [!code ++]
-
-      {
-        files: ['**/*.{js,jsx,ts,tsx}'],
-      }
-    );
-
-    export default eslintConfig;
-    ```
-
-  </Tab>
-    <Tab>
-      ```js title="eslint.config.js"
-      const eslint = require('@eslint/js');
-      const tseslint = require('typescript-eslint');
-      const objectCss = require('eslint-plugin-object-css');  // [!code ++]
-
-      module.exports = tseslint.config(
-        eslint.configs.recommended,
-        ...tseslint.configs.strict,
-        objectCss.flatConfigs.recommended,  // [!code ++]
-
-        {
-          files: ['**/*.{js,jsx,ts,tsx}'],
-        }
-      );
-      ```
-
-  </Tab>
-  <Tab>
-    ```json title=".eslintrc.json"
-    {
-      "extends": ["plugin:object-css/recommended"],  
-      "plugins": ["object-css"],
-      "rules": {}
-    }
-    ```
-</Tab>
-</Tabs>
