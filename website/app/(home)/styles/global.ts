@@ -2,35 +2,23 @@ import { css } from '@plumeria/core';
 
 css.global({
   '.dark body': {
-    background: `   
-      linear-gradient(to right, 
-        rgba(255, 255, 255, 0.04) 0.5px, 
-        transparent 1px
-      ),
-      linear-gradient(to bottom, 
-        rgba(255, 255, 255, 0.04) 0.5px, 
-        transparent 1px
-      )`,
-
-    backgroundSize: '121px 40px',
+    background: 'black',
   },
   body: {
-    background: `
-      linear-gradient(to right, 
-        rgba(0, 0, 0, 0.05) 0.5px, 
-        transparent 1px
-      ),
-      linear-gradient(to bottom, 
-        rgba(0, 0, 0, 0.05) 0.5px, 
-        transparent 1px
-      )`,
-
-    backgroundSize: '121px 40px',
+    background: 'white',
   },
   '.dark pre': {
-    background: '#1f1f1f',
+    background: '#000000',
   },
   pre: {
-    background: '#f1f1f1',
+    '& span': {
+      fontFamily: 'var(--font-geist-mono)',
+    },
+  },
+  code: {
+    fontFamily: 'var(--font-geist-mono)',
+  },
+  '.dark aside': {
+    background: '#0b0b0b',
   },
 });
