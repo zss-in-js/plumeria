@@ -1,16 +1,14 @@
 import { RootProvider } from 'fumadocs-ui/provider';
 import 'fumadocs-ui/style.css';
-import { Inter } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import type { ReactNode } from 'react';
 import { ServerCSS } from '@plumeria/next';
-
-const inter = Inter({
-  subsets: ['latin'],
-});
+import './(home)/styles/global';
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={inter.className} suppressHydrationWarning>
+    <html lang="en" className={`${GeistSans.className} ${GeistMono.variable}`} suppressHydrationWarning>
       <head>
         <ServerCSS />
       </head>
