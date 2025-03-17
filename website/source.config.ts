@@ -11,8 +11,8 @@ export default defineConfig({
       rehypeCodeOptions: {
         inline: 'tailing-curly-colon',
         themes: {
-          light: 'catppuccin-latte',
-          dark: 'catppuccin-mocha',
+          light: 'solarized-light',
+          dark: 'nord',
         },
       },
     };
