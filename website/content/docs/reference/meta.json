@@ -1,0 +1,28 @@
+{
+  "defaultOpen": true,
+  "title": "API reference",
+  "pages": [
+    "create",
+    "global",
+    "defineThemeVars",
+    "keyframes",
+    "cx",
+    "rx",
+    "media",
+    "container",
+    "pseudo",
+    "colors",
+    "---Headless components---",
+    "servercss",
+    "---Commands---",
+    "css",
+    "---Syntax---",
+    "nest",
+    "---Packages---",
+    "compiler",
+    "next",
+    "collection",
+    "engine",
+    "eslint-plugin"
+  ]
+}

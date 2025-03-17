@@ -1,0 +1,58 @@
+---
+title: css
+description: npx command
+---
+
+Run compile the background plumeria style build process.
+```sh title="Terminal"
+npx css
+```
+
+```json title="json"
+  "scripts": {
+    "dev": "css & next dev",
+    "build": "css --type-check && next build",
+  }
+```
+
+## Options
+
+## `--log`
+Use it to visualize your builds and test them as you go.  
+Do not include the --log argument in your build script as it will get into the server logs.
+
+```sh title="Terminal"
+npx css --log
+```
+Example output:
+```sh title="Terminal"
+✅Generated global CSS
+
+@keyframes qot92n7o {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+✅Generated global CSS
+
+::view-transition-old(ybrzha82) {
+  animation-name: ybrzha82;
+  animation-duration: 0.4s;
+  animation-timing-function: ease;
+}
+::view-transition-new(qot92n7o) {
+  animation-name: qot92n7o;
+  animation-duration: 0.4s;
+  animation-timing-function: ease;
+}
+```
+
+## `--type-check`
+Runs Typescript type checking before compiling.
+```sh title="Terminal"
+npx css --type-check
+```
