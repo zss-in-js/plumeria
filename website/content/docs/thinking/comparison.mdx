@@ -1,0 +1,39 @@
+---
+title: Comparison
+description: How is Plumeria different from other existing frameworks?
+---
+
+## plumeria
+
+plumeria is a compilation timing focused Zero-runtime CLI library.  
+Include static-style in your application without changing bundler behavior.
+
+If you're looking for an uncomplicated CSS-in-JS, `plumeria` is your next choice after CSS Module.
+
+### Feature Table
+
+| Feature           | plumeria       | Emotion   | Tailwind CSS     | 
+| ----------------- | -------------- | --------- | ---------------- |
+| Zero-Runtime      | ✅ Yes         | ❌ Runtime | ✅ Yes           |
+| Type-Safety       | ✅ Yes         | ❌ No      | ❌ No            |
+| Define-style      | 🟢 Object      | 🔵 Literal | 🟡 className     |
+| Static            | ✅ Yes         | 🟩 Partial | ✅ Yes           |
+| Dynamic           | 🟢 Build time  | 🔴 Runtime | 🟡 Limited (JIT) |
+| Bundle Size       | 🟢 Low         | 🟡 Mid     | 🔴 High          |
+| Server Components | ✅ Yes         | ❌ No      | ✅ Yes           |
+| Linting           | ✅ Yes         | ✅ Yes     | ✅ Yes           |
+| Compile           | 🟢 CLI         | 🔴 Runtime | 🟢 JIT           |
+
+
+## Tailwind CSS
+
+Tailwind CSS is a powerful framework that handles utility classes based on atomic CSS.
+Surrounding libraries such as `headlessui` and `shadcn/ui` are also well-developed.
+However, one of the drawbacks of Tailwind is that definitions tend to be redundant, resulting in the screen appearing the same no matter who creates it.
+
+### When to use plumeria?
+
+For most web applications, vanilla CSS is no longer enough. These days, you need UI frameworks, CSS-in-JS, client-side styling, etc.  
+
+
+`plumeria` is a strong choice if you want to quickly implement a type-safe feedback cycle.
