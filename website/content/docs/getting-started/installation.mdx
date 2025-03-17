@@ -1,0 +1,137 @@
+---
+title: Installation
+description: Plumeria's installation, compilation and linting setup
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+<Steps>
+<Step>
+## Runtime
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    npm i @plumeria/core
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    yarn add @plumeria/core
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    pnpm i @plumeria/core
+    ```
+  </Tab>
+</Tabs>
+At this point you can start writing your styles.  
+If you like plumeria's dev:runtime, such as hot reloading, You can set up the compiler in stages.
+
+</Step>
+<Step>
+## Compiler
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    npm i --save-dev @plumeria/compiler
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    pnpm i --save-dev @plumeria/compiler
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    yarn add --save-dev @plumeria/compiler
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    bun add --save-dev @plumeria/compiler
+    ```
+  </Tab>
+</Tabs>
+
+`npx css` compiles without type checking. Adding the argument
+`--type-check`
+will include compilation checking using TypeScript. You can also add the
+`--log`
+argument to see the CSS log that is output during compilation. It is recommended to generating server-side static CSS with
+a faster compile In parallel next dev.
+
+<Tabs items={["Next.js"]}>
+<Tab>
+```json title="package.json"
+  "scripts": {
+    "dev": "css & next dev",
+    "build": "css --type-check && next build",
+  }
+```
+</Tab>
+</Tabs>
+
+</Step>
+<Step>
+## Integration
+
+Plumeria does not require a bundler-specific plugins.
+
+<Tabs items={["Next.js", "Vite"]}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    npm i --save-dev @plumeria/next
+    # Add <ServerCSS /> for layout.tsx
+    ```
+
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```text title="vite.config.ts"
+    No configuration required.
+    ```
+  </Tab>
+</Tabs>
+</Step>
+<Step>
+## Server component
+
+You can statically preview a Next.js's ServerComponent using `<ServerCSS \>`.  
+This ServerCSS is a headless component and is not included in the production environment.
+
+
+
+```tsx title="layout.tsx"
+import { ServerCSS } from '@plumeria/next'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <head>
+        <ServerCSS /> // [!code ++]
+      </head> 
+      <body>
+        <main>{children}</main>
+      </body>
+    </html>
+  )
+}
+```
+</Step>
+<Cards>
+  <Card title="See more about ServerCSS" href="/docs/reference/servercss" />
+  <Card title="See more about @plumeria/next package" href="/docs/reference/next-utility" />
+</Cards>
+</Steps>

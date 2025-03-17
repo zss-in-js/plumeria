@@ -1,0 +1,99 @@
+---
+title: Editor integration
+description: a
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+<Callout title="It is Good know">
+  You can jump to definitions from styles even if they are not written in JSX `command or Alt + click`.
+</Callout>
+
+<Steps>
+<Step>
+## ESLint check
+
+It is the plumeria [Linter `eslint-plugin-stylefix` package](https://www.npmjs.com/package/eslint-plugin-stylefix)
+
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i --save-dev eslint-plugin-stylefix
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i --save-dev eslint-plugin-stylefix
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D eslint-plugin-stylefix
+```
+</Tab>
+</Tabs>
+<Tabs items={['Flat Config ESM', 'CJS', 'eslint8']}>
+  <Tab>
+    ```js title="eslint.config.mjs"
+    import eslint from '@eslint/js';
+    import tseslint from 'typescript-eslint';
+    import stylefixlint from 'eslint-plugin-stylefix';
+
+    const eslintConfig = tseslint.config(
+      eslint.configs.recommended,
+      ...tseslint.configs.strict,
+      stylefixlint.flatConfigs.recommended,  // [!code ++]
+
+      {
+        files: ['**/*.{ts,tsx}'],
+      }
+    );
+
+    export default eslintConfig;
+    ```
+
+  </Tab>
+    <Tab>
+      ```js title="eslint.config.js"
+      const eslint = require('@eslint/js');
+      const tseslint = require('typescript-eslint');
+      const stylefixlint = require('eslint-plugin-stylefix');
+
+      module.exports = tseslint.config(
+        eslint.configs.recommended,
+        ...tseslint.configs.strict,
+        stylefixlint.flatConfigs.recommended,  // [!code ++]
+
+        {
+          files: ['**/*.{ts,tsx}'],
+        }
+      );
+      ```
+
+  </Tab>
+  <Tab>
+    ```json title=".eslintrc.json"
+    {
+      "plugins": ["eslint-plugin-stylefix"],
+      "extends": ["plugin:stylefix/recommended"],     
+      "rules": {}
+    }
+    ```
+</Tab>
+</Tabs>
+</Step>
+<Step>
+## className snippets
+
+Creates a shortcut for object expansion of className.
+```json
+{
+  "React className": {
+    "prefix": "cn",
+    "body": "className={$1}",
+    "description": "React className with curly braces",
+  }
+}
+```
+</Step>
+</Steps>
