@@ -11,6 +11,7 @@
   "dependencies": {
     "@plumeria/core": "^0.7.0",
     "@plumeria/next": "^0.5.5",
+    "@vercel/analytics": "^1.5.0",
     "fumadocs-core": "14.7.4",
     "fumadocs-mdx": "11.3.1",
     "fumadocs-ui": "14.7.4",
