@@ -1,10 +1,11 @@
 import { RootProvider } from 'fumadocs-ui/provider';
 import 'fumadocs-ui/style.css';
+import './(home)/styles/global';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import type { ReactNode } from 'react';
 import { ServerCSS } from '@plumeria/next';
-import './(home)/styles/global';
+import { Analytics } from '@vercel/analytics/next';
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
@@ -20,6 +21,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         }}
       >
         <RootProvider>{children}</RootProvider>
+        <Analytics mode="production" />
       </body>
     </html>
   );
