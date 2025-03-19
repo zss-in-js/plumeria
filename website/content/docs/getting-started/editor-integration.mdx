@@ -13,22 +13,22 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 <Step>
 ## ESLint check
 
-It is the plumeria [Linter `eslint-plugin-stylefix` package](https://www.npmjs.com/package/eslint-plugin-stylefix)
+It is the plumeria [Linter `eslint-plugin-zss-lint` package](https://www.npmjs.com/package/eslint-plugin-zss-lint)
 
 <Tabs items={['npm',  'yarn', 'pnpm']}>
 <Tab>
 ```sh title="Terminal"
-npm i --save-dev eslint-plugin-stylefix
+npm i --save-dev eslint-plugin-zss-lint
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-pnpm i --save-dev eslint-plugin-stylefix
+pnpm i --save-dev eslint-plugin-zss-lint
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-yarn add -D eslint-plugin-stylefix
+yarn add -D eslint-plugin-zss-lint
 ```
 </Tab>
 </Tabs>
@@ -37,12 +37,12 @@ yarn add -D eslint-plugin-stylefix
     ```js title="eslint.config.mjs"
     import eslint from '@eslint/js';
     import tseslint from 'typescript-eslint';
-    import stylefixlint from 'eslint-plugin-stylefix';
+    import zsslint from 'eslint-plugin-zss-lint';
 
     const eslintConfig = tseslint.config(
       eslint.configs.recommended,
       ...tseslint.configs.strict,
-      stylefixlint.flatConfigs.recommended,  // [!code ++]
+      zsslint.flatConfigs.recommended,  // [!code ++]
 
       {
         files: ['**/*.{ts,tsx}'],
@@ -57,12 +57,12 @@ yarn add -D eslint-plugin-stylefix
       ```js title="eslint.config.js"
       const eslint = require('@eslint/js');
       const tseslint = require('typescript-eslint');
-      const stylefixlint = require('eslint-plugin-stylefix');
+      const zsslint = require('eslint-plugin-zss-lint');
 
       module.exports = tseslint.config(
         eslint.configs.recommended,
         ...tseslint.configs.strict,
-        stylefixlint.flatConfigs.recommended,  // [!code ++]
+        zsslint.flatConfigs.recommended,  // [!code ++]
 
         {
           files: ['**/*.{ts,tsx}'],
@@ -74,8 +74,8 @@ yarn add -D eslint-plugin-stylefix
   <Tab>
     ```json title=".eslintrc.json"
     {
-      "plugins": ["eslint-plugin-stylefix"],
-      "extends": ["plugin:stylefix/recommended"],     
+      "plugins": ["eslint-plugin-zss-lint"],
+      "extends": ["plugin:zss-lint/recommended"],     
       "rules": {}
     }
     ```
@@ -97,3 +97,6 @@ Creates a shortcut for object expansion of className.
 ```
 </Step>
 </Steps>
+<Cards>
+  <Card title="See more about eslint-plugin-zss-lint" href="/docs/reference/eslint-plugin" />
+</Cards>
