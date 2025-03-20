@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.7.3
+
+### Patch Changes
+
+- 4d397b6: feat: readme update
+
 ## 0.7.2
 
 ### Patch Changes
