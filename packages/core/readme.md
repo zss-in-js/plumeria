@@ -89,6 +89,37 @@ const styles = css.create({
 });
 ```
 
+### rx
+
+### React JSX only features
+
+React `inline-style` are **offloaded** using only static sheet the css variables.  
+It is can pass states to multiple variables at once.
+
+```ts
+'use client';
+
+import { useState } from 'react';
+import { css, rx } from '@plumeria/core';
+
+const styles = css.create({
+  bar: {
+    width: 'var(--width)',
+    background: 'aqua',
+  },
+});
+
+export const Component = () => {
+  const [state, setState] = useState(0);
+  return (
+    <di>
+      <button onClick={() => setState((prev) => prev + 10)}>count</button>
+      <div {...rx(styles.bar, { '--width': state + 'px' })} />
+    </di>
+  );
+};
+```
+
 ### css.keyframes()
 
 Define @keyframes and set the return value directly to animationName.
@@ -144,8 +175,13 @@ css.colors.darken('skyblue', '12%');
 
 ## Linter
 
-[eslint-plugin-object-css](https://www.npmjs.com/package/eslint-plugin-object-css) is a community base library. can be used with Plumeria.
-Type safety relies on this eslint-plugin. It includes 397 properties, excluding deprecated and experimental.
+[eslint-plugin-zss-lint](https://www.npmjs.com/package/eslint-plugin-zss-lint) is a linter built for CSS-in-JS libraries built with zss-engine.
+
+Rules:  
+\- sort-properties  
+\- validate-values
+
+Type safety relies on this eslint-plugin. It includes all properties, excluding deprecated and experimental.
 
 ## How Plumeria works
 
