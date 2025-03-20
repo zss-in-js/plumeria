@@ -4,17 +4,17 @@ css.global({
   '.dark body': {
     background: 'black',
   },
-  body: {
-    background: 'white',
-  },
+
   '.dark pre': {
     background: '#000000',
   },
+
   pre: {
     '& span': {
       fontFamily: 'var(--font-geist-mono)',
     },
   },
+
   code: {
     fontFamily: 'var(--font-geist-mono)',
   },

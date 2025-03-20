@@ -1,11 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import { css } from '@plumeria/core';
+import { Component } from './Plumeria';
 
 const styles = css.create({
   container: {
     position: 'absolute',
     top: 270,
-    right: 400,
+    right: 700,
     left: 0,
     display: 'flex',
     flexDirection: 'column',
@@ -15,33 +18,19 @@ const styles = css.create({
     [css.media.max('width: 804px')]: {
       position: 'static',
       right: 'auto',
-      left: 'auto',
+      left: '20px',
       display: 'flex',
       width: '100%',
       margin: '0 auto',
     },
   },
 
-  headings: {
-    position: 'static',
-    zIndex: 1,
-    marginBottom: '20px',
-    fontSize: '40px',
-    fontWeight: 600,
-    WebkitTextFillColor: 'transparent',
-    background: 'linear-gradient(45deg, #58c6ff 0%, #076ad9 40%, #ff3bef 80%)',
-    WebkitBackgroundClip: 'text',
-    [css.media.max('width: 800px')]: {
-      marginTop: '54px',
-      fontSize: '1.6rem',
-    },
-  },
   inlineword: {
     position: 'static',
     zIndex: 1,
     maxWidth: '460px',
     marginBottom: '40px',
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: 350,
     textAlign: 'left',
     wordBreak: 'break-all',
@@ -50,23 +39,30 @@ const styles = css.create({
       fontSize: '1rem',
     },
   },
+  link_box: {
+    display: 'flex',
+  },
   button: {
-    position: 'static',
+    position: 'relative',
+    left: 30,
     zIndex: 1,
-    width: 220,
+    width: '220px',
     padding: '16px 32px',
-    marginRight: 260,
+    marginRight: 35,
     fontSize: 20,
     fontWeight: '600',
-    border: 'solid 2px currentColor',
+    color: 'white',
+    background: '#ef2a86',
+    border: 'solid 2px #ef2a86',
     borderRadius: '50px',
     transition: 'all 0.2s',
     [css.pseudo.hover]: {
-      color: '#ef2a86',
+      scale: 1.05,
     },
     [css.media.max('width: 804px')]: {
       position: 'relative',
-      left: 60,
+      left: -10,
+      marginRight: -20,
       scale: 0.8,
     },
   },
@@ -75,15 +71,21 @@ const styles = css.create({
 export const HomeComponent = () => {
   return (
     <main className={styles.container}>
-      <div className={styles.headings}>Zero-Runtime CSS in JS</div>
+      <Component />
       <div className={styles.inlineword}>
-        Generate CSS at build time from JavaScript object maps. Build screens with highly productive syntax and increase
-        efficiency with linting.
+        Type-safe CSS object Maps.
+        <br />
+        Command Line for Precompilation.
       </div>
 
-      <Link href="/docs" className={styles.button}>
-        GET STARTED
-      </Link>
+      <div className={styles.link_box}>
+        <Link href="/docs/getting-started/installation" className={styles.button}>
+          GET STARTED
+        </Link>
+        <Link href="/docs" className={styles.button}>
+          Thinking
+        </Link>
+      </div>
     </main>
   );
 };
