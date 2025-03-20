@@ -18,22 +18,22 @@ css.global({
 const styles = css.create({
   code_div: {
     position: 'absolute',
-    top: 300,
-    right: 440,
-    left: 'calc(50% + 200px)',
+    top: 680,
+    left: '50%',
     zIndex: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     width: 'fit-content',
     padding: '18px 40px',
+    marginBottom: 200,
     fontSize: 12,
     background: '#F5F5F5',
     borderRadius: '8px',
     transform: 'translate(-50%)',
     [css.media.max('width: 804px')]: {
-      position: 'static',
-      top: 640,
+      position: 'relative',
+      top: 20,
       right: 'auto',
       left: 'auto',
       display: 'flex',
@@ -43,17 +43,6 @@ const styles = css.create({
       width: '100%',
       margin: '40px auto',
       transform: 'translate(0%)',
-    },
-    '& figure .dark': {
-      background: 'black',
-      border: 'solid 1px #272727',
-    },
-    '& figure': {
-      backgroundColor: 'transparent',
-      border: 'solid 1px #dedede',
-    },
-    '& div': {
-      background: '#F5F5F5',
     },
   },
 });

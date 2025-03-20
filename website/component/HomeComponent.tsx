@@ -6,21 +6,21 @@ import { Component } from './Plumeria';
 
 const styles = css.create({
   container: {
-    position: 'absolute',
-    top: 270,
-    right: 700,
-    left: 0,
+    position: 'relative',
+    top: 200,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    height: '100vh',
     textAlign: 'center',
     [css.media.max('width: 804px')]: {
-      position: 'static',
+      top: 0,
       right: 'auto',
-      left: '20px',
+      left: 'auto',
       display: 'flex',
       width: '100%',
+      height: 'auto',
       margin: '0 auto',
     },
   },
@@ -41,14 +41,17 @@ const styles = css.create({
   },
   link_box: {
     display: 'flex',
+    flexDirection: 'row',
+    gridGap: 75,
+    [css.media.max('width: 804px')]: {
+      gridGap: 10,
+    },
   },
   button: {
     position: 'relative',
-    left: 30,
     zIndex: 1,
-    width: '220px',
+    width: '280px',
     padding: '16px 32px',
-    marginRight: 35,
     fontSize: 20,
     fontWeight: '600',
     color: 'white',
@@ -62,7 +65,9 @@ const styles = css.create({
     [css.media.max('width: 804px')]: {
       position: 'relative',
       left: -10,
+      width: 200,
       marginRight: -20,
+      whiteSpace: 'nowrap',
       scale: 0.8,
     },
   },
@@ -77,7 +82,6 @@ export const HomeComponent = () => {
         <br />
         Command Line for Precompilation.
       </div>
-
       <div className={styles.link_box}>
         <Link href="/docs/getting-started/installation" className={styles.button}>
           GET STARTED
