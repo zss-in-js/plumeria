@@ -17,9 +17,9 @@ const styles = css.create({
     background: 'var(--bg)',
     WebkitBackgroundClip: 'text',
     [css.media.max('width: 800px')]: {
-      right: 24,
+      right: 12,
       marginTop: '54px',
-      fontSize: '36px',
+      fontSize: '42px',
     },
   },
 });
