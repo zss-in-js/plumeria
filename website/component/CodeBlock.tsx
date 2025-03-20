@@ -1,20 +1,6 @@
 import { codeToHtml } from 'shiki';
 import { css } from '@plumeria/core';
 
-css.global({
-  figure: {
-    backgroundColor: 'transparent',
-    border: 'solid 1px #dedede',
-    '& div': {
-      background: '#F5F5F5',
-    },
-  },
-  '.dark figure': {
-    background: 'black',
-    border: 'solid 1px #272727',
-  },
-});
-
 const styles = css.create({
   code_div: {
     position: 'absolute',
