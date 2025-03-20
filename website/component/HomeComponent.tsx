@@ -50,7 +50,7 @@ const styles = css.create({
   button: {
     position: 'relative',
     zIndex: 1,
-    width: '280px',
+    width: '220px',
     padding: '16px 32px',
     fontSize: 20,
     fontWeight: '600',
