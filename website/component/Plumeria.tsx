@@ -10,7 +10,7 @@ const styles = css.create({
     zIndex: 1,
     display: 'inline',
     marginBottom: '12px',
-    fontSize: 80,
+    fontSize: 56,
     fontWeight: 600,
     WebkitTextFillColor: 'transparent',
     textAlign: 'left',

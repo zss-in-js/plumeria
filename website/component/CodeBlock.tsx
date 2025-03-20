@@ -18,7 +18,7 @@ css.global({
 const styles = css.create({
   code_div: {
     position: 'absolute',
-    top: 680,
+    top: 640,
     left: '50%',
     zIndex: 0,
     display: 'flex',

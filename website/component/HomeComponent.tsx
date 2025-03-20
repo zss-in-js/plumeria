@@ -26,11 +26,12 @@ const styles = css.create({
   },
 
   inlineword: {
-    position: 'static',
+    position: 'relative',
+    left: 14,
     zIndex: 1,
     maxWidth: '460px',
     marginBottom: '40px',
-    fontSize: 28,
+    fontSize: 21,
     fontWeight: 350,
     textAlign: 'left',
     wordBreak: 'break-all',
@@ -42,7 +43,7 @@ const styles = css.create({
   link_box: {
     display: 'flex',
     flexDirection: 'row',
-    gridGap: 75,
+    gridGap: 50,
     [css.media.max('width: 804px')]: {
       gridGap: 10,
     },
@@ -52,7 +53,7 @@ const styles = css.create({
     zIndex: 1,
     width: '220px',
     padding: '16px 32px',
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '600',
     color: 'white',
     background: '#ef2a86',
