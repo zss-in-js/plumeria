@@ -9,7 +9,7 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@plumeria/core": "^0.7.1",
+    "@plumeria/core": "^0.7.3",
     "@plumeria/next": "^0.5.5",
     "@vercel/analytics": "^1.5.0",
     "fumadocs-core": "14.7.4",
