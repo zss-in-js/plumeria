@@ -1,6 +1,5 @@
 import { RootProvider } from 'fumadocs-ui/provider';
 import 'fumadocs-ui/style.css';
-import './(home)/styles/global';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import type { ReactNode } from 'react';
