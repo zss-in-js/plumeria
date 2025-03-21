@@ -5,7 +5,7 @@
   "workspaces": [
     "packages/*"
   ],
-  "author": "Refirst",
+  "author": "refirst",
   "license": "MIT",
   "scripts": {
     "build": "NODE_NO_WARNINGS=1 npm run build --workspaces",
