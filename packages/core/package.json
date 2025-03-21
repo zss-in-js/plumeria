@@ -10,6 +10,7 @@
     "styling"
   ],
   "repository": "github:zss-in-js/plumeria",
+  "author": "refirst",
   "license": "MIT",
   "sideEffects": false,
   "exports": {
@@ -44,7 +45,7 @@
     "esm": "tsc --project tsconfig.esm.json && node ../../esm.create.mjs"
   },
   "dependencies": {
-    "@plumeria/collection": "workspace:",
+    "@plumeria/collection": "0.4.1",
     "zss-engine": "0.2.15"
   },
   "publishConfig": {
