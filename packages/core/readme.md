@@ -179,7 +179,8 @@ css.colors.darken('skyblue', '12%');
 
 Rules:  
 \- sort-properties  
-\- validate-values
+\- validate-values  
+\- no-unused-keys
 
 Type safety relies on this eslint-plugin. It includes all properties, excluding deprecated and experimental.
 
