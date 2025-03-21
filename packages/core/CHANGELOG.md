@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.7.4
+
+### Patch Changes
+
+- ceac330: feat: readme add lint key rule and add package.json author.
+
 ## 0.7.3
 
 ### Patch Changes
