@@ -1,3 +1,11 @@
+const cue = (str: string) => `::cue(${str})` as '::cue()';
+const slotted = (str: string) => `::slotted(${str})` as '::slotted()';
+const highlight = (str: string) => `::highlight(${str})` as '::highlight()';
+const state = (str: string) => `:state(${str})` as ':state()';
+const hostContext = (str: string) =>
+  `:host-context(${str})` as ':host-context()';
+const host = (str: string) => `:host(${str})` as ':host()';
+const dir = (str: string) => `:dir(${str})` as ':dir()';
 const lang = (str: string) => `:lang(${str})` as ':lang()';
 const not = (str: string) => `:not(${str})` as ':not()';
 const has = (str: string) => `:has(${str})` as ':has()';
@@ -20,63 +28,157 @@ const viewTransitionImagePair = (str: string) =>
   `::view-transition-image-pair(${str})` as '::view-transition-image-pair()';
 
 export const pseudo = {
-  // User action pseudo-classes
+  // Pseudo-classes
+  // A
   active: ':active',
-  hover: ':hover',
-  focus: ':focus',
-  link: ':link',
-  visited: ':visited',
-  target: ':target',
+  anyLink: ':any-link',
+  autoFill: ':autofill',
+  // B
+  buffering: ':buffering',
 
-  // Language pseudo-class functions
-  lang,
-  not,
-  has,
-  is,
-  where,
-
-  // Structural pseudo-classes
-  firstChild: ':first-child',
-  lastChild: ':last-child',
-  firstOfType: ':first-of-type',
-  lastOfType: ':last-of-type',
-  onlyOfType: ':only-of-type',
-  onlyChild: ':only-child',
-
-  // Structural pseudo-class functions
-  nthChild,
-  nthLastChild,
-  nthLastOfType,
-  nthOfType,
-
-  // Other pseudo-classes
-  empty: ':empty',
-
-  // Form state pseudo-classes
+  // C
   checked: ':checked',
+
+  // D
+  default: ':default',
+  defined: ':defined',
   disabled: ':disabled',
+
+  // E
+  empty: ':empty',
   enabled: ':enabled',
-  optional: ':optional',
-  required: ':required',
+
+  // F
+  first: ':first',
+  firstChild: ':first-child',
+  firstOfType: ':first-of-type',
+  focus: ':focus',
+  focusVisible: ':focus-visible',
+  focusWithin: ':focus-within',
+  fullscreen: ':fullscreen',
+  future: ':future',
+
+  // H
+  hasSlotted: ':has-slotted',
+  host: ':host',
+  hover: ':hover',
+
+  // I
   inRange: ':in-range',
-  outOfRange: ':out-of-range',
+  indeterminate: ':indeterminate',
   invalid: ':invalid',
-  valid: ':valid',
+
+  // L
+  lastChild: ':last-child',
+  lastOfType: ':last-of-type',
+  left: ':left',
+  link: ':link',
+
+  // M
+  modal: ':modal',
+  muted: ':muted',
+
+  // N
+
+  // O
+  onlyChild: ':only-child',
+  onlyOfType: ':only-of-type',
+  open: ':open',
+  optional: ':optional',
+  outOfRange: ':out-of-range',
+
+  // P
+  past: ':past',
+  paused: ':paused',
+  pictureInPicture: ':picture-in-picture',
+  placeholderShown: ':placeholder-shown',
+  playing: ':playing',
+  popoverOpen: ':popover-open',
+
+  // R
   readOnly: ':read-only',
   readWrite: ':read-write',
+  required: ':required',
+  right: ':right',
+  root: 'root',
+
+  // S
+  scope: ':scope',
+  seeking: ':seeking',
+  stalled: ':stalled',
+
+  // T
+  target: ':target',
+
+  // U
+  userInvalid: ':user-invalid',
+  userValid: ':user-valid',
+
+  // V
+  valid: ':valid',
+  visited: ':visited',
+  volumeLocked: ':volume-locked',
 
   // Pseudo-elements
+  // A
   after: '::after',
+
+  // B
+  backdrop: '::backdrop',
   before: '::before',
+
+  // C
+  cue: '::cue',
+
+  // D
+  detailsContent: '::details-content',
+
+  // F
+  firstSelectorButton: '::first-selector-button',
   firstLetter: '::first-letter',
   firstLine: '::first-line',
-  marker: '::marker',
-  selection: '::selection',
 
-  // View Transition pseudo-element functions
+  // G
+  grammarError: '::grammar-error',
+
+  // H
+
+  // M
+  marker: '::marker',
+
+  // P
+  placeholder: '::placeholder',
+
+  // S
+  selection: '::selection',
+  spellingError: '::spellingError',
+
+  // T
+  targetText: '::target-text',
+
+  // V
   viewTransition: '::view-transition',
-  viewTransitionImagePair,
-  viewTransitionGroup,
-  viewTransitionOld,
-  viewTransitionNew,
+
+  fn: {
+    cue,
+    dir,
+    has,
+    highlight,
+    host,
+    hostContext,
+    is,
+    lang,
+    nthChild,
+    nthLastChild,
+    nthLastOfType,
+    nthOfType,
+    not,
+    slotted,
+    state,
+    viewTransitionImagePair,
+    viewTransitionGroup,
+    viewTransitionOld,
+    viewTransitionNew,
+    where,
+  },
 } as const;
