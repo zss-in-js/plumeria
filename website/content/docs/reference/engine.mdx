@@ -8,8 +8,11 @@ You can use this to develop Zero-runtime StyleSheet CSS-in-JS libraries.
 
 Feature entry file:
 ```ts
-export * from './types';
-export * from './utils/helper';
+export type { CustomProperties } from './types/common/css-properties';
+export type { CreateStyle, ClassesStyle, ReturnType } from './types/main/create';
+export type { KeyframesDefinition, CustomHTMLType } from './types/main/global';
+export type { VarsDefinition, VarsTransformed } from './types/main/vars';
+export { isServer, isDevelopment, isDevAndTest } from './utils/helper';
 export { genBase36Hash } from './utils/hash';
 export { transpiler } from './utils/transpiler';
 export { build } from './utils/build';
@@ -31,6 +34,7 @@ CustomHTMLType,
 
 // defineVars method
 VarsDefinition,
+VarsTransformed,
 
 // keyframes method
 KeyframesDefinition,
