@@ -1,5 +1,11 @@
 # @plumeria/collection
 
+## 0.5.0
+
+### Minor Changes
+
+- 8f12aff: feat: pseudo collection update
+
 ## 0.4.1
 
 ### Patch Changes
