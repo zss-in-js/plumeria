@@ -1,5 +1,11 @@
 # @plumeria/collection
 
+## 0.5.1
+
+### Patch Changes
+
+- 3be50fe: feat: pseudo part(). A functional element
+
 ## 0.5.0
 
 ### Minor Changes
