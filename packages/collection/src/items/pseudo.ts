@@ -1,23 +1,26 @@
-const cue = (str: string) => `::cue(${str})` as '::cue()';
-const slotted = (str: string) => `::slotted(${str})` as '::slotted()';
-const highlight = (str: string) => `::highlight(${str})` as '::highlight()';
-const state = (str: string) => `:state(${str})` as ':state()';
+// Functional classes
+const dir = (str: string) => `:dir(${str})` as ':dir()';
+const has = (str: string) => `:has(${str})` as ':has()';
 const hostContext = (str: string) =>
   `:host-context(${str})` as ':host-context()';
 const host = (str: string) => `:host(${str})` as ':host()';
-const dir = (str: string) => `:dir(${str})` as ':dir()';
-const lang = (str: string) => `:lang(${str})` as ':lang()';
-const not = (str: string) => `:not(${str})` as ':not()';
-const has = (str: string) => `:has(${str})` as ':has()';
 const is = (str: string) => `:is(${str})` as ':is()';
-const where = (str: string) => `:where(${str})` as ':where()';
+const lang = (str: string) => `:lang(${str})` as ':lang()';
 const nthChild = (str: string) => `:nth-child(${str})` as ':nth-child()';
 const nthLastChild = (str: string) =>
   `:nth-last-child(${str})` as ':nth-last-child()';
 const nthLastOfType = (str: string) =>
   `:nth-last-of-type(${str})` as ':nth-last-of-type()';
 const nthOfType = (str: string) => `:nth-of-type(${str})` as ':nth-of-type()';
+const not = (str: string) => `:not(${str})` as ':not()';
+const state = (str: string) => `:state(${str})` as ':state()';
+const where = (str: string) => `:where(${str})` as ':where()';
 
+// Functional element
+const cue = (str: string) => `::cue(${str})` as '::cue()';
+const highlight = (str: string) => `::highlight(${str})` as '::highlight()';
+const part = (str: string) => `::part(${str})` as '::part()';
+const slotted = (str: string) => `::slotted(${str})` as '::slotted()';
 const viewTransitionOld = (str: string) =>
   `::view-transition-old(${str})` as '::view-transition-old()';
 const viewTransitionNew = (str: string) =>
@@ -160,10 +163,10 @@ export const pseudo = {
   viewTransition: '::view-transition',
 
   fn: {
+    // Functional pseudo-classes
     cue,
     dir,
     has,
-    highlight,
     host,
     hostContext,
     is,
@@ -173,12 +176,16 @@ export const pseudo = {
     nthLastOfType,
     nthOfType,
     not,
-    slotted,
     state,
+    where,
+
+    // Functional pseudo-elements
+    highlight,
+    part,
+    slotted,
     viewTransitionImagePair,
     viewTransitionGroup,
     viewTransitionOld,
     viewTransitionNew,
-    where,
   },
 } as const;
