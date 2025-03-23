@@ -25,7 +25,7 @@
     "@types/react": "^19.0.10",
     "cpy-cli": "^5.0.0",
     "eslint": "^9.22.0",
-    "eslint-plugin-object-css": "^0.5.2",
+    "eslint-plugin-zss-lint": "^0.2.2",
     "jest": "^29.7.0",
     "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
