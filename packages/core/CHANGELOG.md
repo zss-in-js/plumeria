@@ -1,5 +1,12 @@
 # @plumeria/core
 
+## 0.7.5
+
+### Patch Changes
+
+- Updated dependencies [8f12aff]
+  - @plumeria/collection@0.5.0
+
 ## 0.7.4
 
 ### Patch Changes
