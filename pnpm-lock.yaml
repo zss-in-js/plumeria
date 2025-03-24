@@ -74,11 +74,11 @@ importers:
   packages/core:
     dependencies:
       '@plumeria/collection':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../collection
       zss-engine:
-        specifier: 0.2.18
-        version: 0.2.18
+        specifier: ^0.2.19
+        version: 0.2.19
 
   packages/next:
     devDependencies:
@@ -2412,8 +2412,8 @@ packages:
   zss-engine@0.2.11:
     resolution: {integrity: sha512-uh9L1lGKr138HUM4aNxI03/5Mzb6etwQEMYePxx8kaG/otV6p4x4A/k6KLvqPo43Ze2nwk42reRQDYal3f/93g==}
 
-  zss-engine@0.2.18:
-    resolution: {integrity: sha512-XJsB7EJeddk8ybr8G+z6UrAE0oBF2ojL4s1DWb+Lu88OdyQPu0OeASb608jQwbJP3YLTzsjgg6iIx0ltQVQxuA==}
+  zss-engine@0.2.19:
+    resolution: {integrity: sha512-1QnFEyP45/FbV52OA1l6BTxfSIcE9XOu0pU+p5kGxUrCnbueJAHlgLWuJV4riVD5JzmF5sWKg2dP5ioE4udQtw==}
 
 snapshots:
 
@@ -5019,6 +5019,6 @@ snapshots:
     dependencies:
       csstype: 3.1.3
 
-  zss-engine@0.2.18:
+  zss-engine@0.2.19:
     dependencies:
       csstype: 3.1.3
