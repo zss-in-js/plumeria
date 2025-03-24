@@ -1,5 +1,5 @@
 import { FlatCompat } from '@eslint/eslintrc';
-import objectCss from 'eslint-plugin-object-css';
+import zsslint from 'eslint-plugin-zss-lint';
 
 const __dirname = import.meta.dirname;
 
@@ -12,10 +12,10 @@ const eslintConfig = [
   {
     files: ['**/*.{ts,js,jsx,tsx}'],
     plugins: {
-      'object-css': objectCss,
+      'zss-lint': zsslint,
     },
   },
-  ...compat.extends('plugin:object-css/recommended'),
+  ...compat.extends('plugin:zss-lint/recommended'),
 ];
 
 export default eslintConfig;
