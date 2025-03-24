@@ -1,3 +1,4 @@
+import '../styles/create.css';
 import type { ReturnType, CreateStyle, CustomProperties } from 'zss-engine';
 import {
   isDevAndTest,
@@ -12,7 +13,6 @@ import {
   globalPromise,
   resolvePromise,
 } from './create-build-helper';
-import '../styles/create.css';
 
 export function create<T extends Record<string, CustomProperties>>(
   object: CreateStyle<T>,
