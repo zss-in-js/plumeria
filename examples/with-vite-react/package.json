@@ -10,20 +10,21 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.6.0",
     "@eslint/js": "^9.17.0",
+    "@plumeria/compiler": "^0.6.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react-swc": "^3.7.2",
     "eslint": "^9.17.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.16",
+    "eslint-plugin-zss-lint": "^0.2.2",
     "globals": "^15.14.0",
     "typescript": "^5.7.2",
     "vite": "^5.4.11"
   },
   "dependencies": {
-    "@plumeria/core": "^0.6.0",
+    "@plumeria/core": "^0.7.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   }
