@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.6.2
+
+### Patch Changes
+
+- a4f3c50: feat: compiler: faster log timing core: dependencies and fix
+
 ## 0.6.1
 
 ### Patch Changes
