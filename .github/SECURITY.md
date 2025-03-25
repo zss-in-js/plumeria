@@ -6,6 +6,8 @@ We provide security updates for the following versions:
 
 | Version | Supported          | Notes                                                                                                       |
 | ------- | ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| 0.7.7   | :white_check_mark: | Fixed a use directive warning that occurred during build with vite.                                         |
+| 0.7.6   | :white_check_mark: | pseudo functions have been migrated to css.pseudo.fn.**.                                                    |
 | 0.7.0   | :white_check_mark: | Security update for created code of conduct                                                                 |
 | 0.6.9   | :white_check_mark: | Security update for dependencies                                                                            |
 | 0.6.8   | :white_check_mark: | Update to zss-engine@0.2.8. The zss-engine added PseudoElementType to css.global.                           |
