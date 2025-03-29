@@ -1,4 +1,4 @@
-import { global } from './global';
+import { global } from './global.js';
 import type { VarsDefinition, VarsTransformed } from 'zss-engine';
 
 export const defineThemeVars = <const T extends VarsDefinition>(object: T) => {
