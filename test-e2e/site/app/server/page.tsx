@@ -1,4 +1,4 @@
-import { ServerComponent } from '@/component/style-server-component';
+import { ServerComponent } from 'component/style-server-component';
 import Link from 'next/link';
 
 export default function Page() {
