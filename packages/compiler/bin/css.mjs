@@ -6,14 +6,13 @@ import { styleText } from 'util';
 import fs from 'fs';
 
 try {
+  process.env.PATH = `${path.resolve(process.cwd(), 'node_modules', '.bin')}:${process.env.PATH}`;
   const checkMark = styleText('greenBright', '✓');
   const isPnpm = fs.existsSync(path.join(process.cwd(), 'node_modules/.pnpm'));
   const typecheck = process.argv.includes('--type-check');
-  const compilation = typecheck ? 'Type-check completed' : '';
-  console.log(` ${checkMark} Compilation... ${compilation}`);
 
   if (typecheck)
-    execSync('npx tsc --noEmit --incremental false', {
+    execSync('tsc --noEmit --incremental false', {
       stdio: 'inherit',
       cwd: process.cwd(),
     });
@@ -23,10 +22,13 @@ try {
     : path.join(process.cwd(), 'node_modules/@plumeria');
 
   const argv = process.argv.includes('--log') ? ' --log' : '';
-  execSync('npx tsx compiler/src/index.ts' + argv, {
+  execSync('rscute compiler/src/index.ts' + argv, {
     stdio: 'inherit',
     cwd: plumeriaPath,
   });
+
+  const compilation = typecheck ? 'Type-check completed' : '';
+  console.log(` ${checkMark} Compiled... ${compilation}`);
 } catch (error) {
   console.error('Compilation failed:', error.message);
   process.exit(1);
