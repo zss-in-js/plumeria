@@ -6,13 +6,13 @@ import type {
   ReturnType,
   VarsDefinition,
 } from 'zss-engine';
-import { create } from './method/create';
-import { global } from './method/global';
-import { defineThemeVars } from './method/define-theme-vars';
-import { keyframes } from './method/keyframes';
+import { create } from './method/create.js';
+import { global } from './method/global.js';
+import { defineThemeVars } from './method/define-theme-vars.js';
+import { keyframes } from './method/keyframes.js';
 import { media, pseudo, colors, container } from '@plumeria/collection';
-import { cx } from './cx';
-import { rx } from './rx';
+import { cx } from './cx.js';
+import { rx } from './rx.js';
 
 class css {
   static create<T extends Record<string, CustomProperties>>(
