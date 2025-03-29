@@ -1,12 +1,25 @@
+import { fileURLToPath } from 'url';
 import * as path from 'path';
 import * as fs from 'fs';
+import { execute } from 'rscute';
 import ts from 'typescript';
 import fg from 'fast-glob';
-import { cleanUp } from './clean-up';
 import { buildCreate } from '@plumeria/core/dist/method/create-build-helper';
 import { buildGlobal } from '@plumeria/core/dist/method/global-build-helper';
 import postcss from 'postcss';
 import combineSelectors from 'postcss-combine-duplicated-selectors';
+
+export const cleanUp = async () => {
+  const projectRoot = process.cwd().split('node_modules')[0];
+  const directPath = path.join(projectRoot, 'node_modules/@plumeria/core');
+  const coreFilePath = path.join(directPath, 'dist/stylesheet/core.css');
+
+  try {
+    fs.writeFileSync(coreFilePath, '', 'utf-8');
+  } catch (err) {
+    console.error('An error occurred:', err);
+  }
+};
 
 function isCSS(filePath: string): boolean {
   const content = fs.readFileSync(filePath, 'utf8');
@@ -39,8 +52,9 @@ async function getAppRoot(): Promise<string> {
 }
 
 async function optimizeCSS() {
-  const corePath = path.dirname(require.resolve('@plumeria/core/package.json'));
-  const cssPath = path.join(corePath, 'dist/styles/global.css');
+  const corePackagePath = import.meta.resolve('@plumeria/core/package.json');
+  const corePath = path.dirname(fileURLToPath(new URL(corePackagePath)));
+  const cssPath = path.join(corePath, 'dist/stylesheet/core.css');
   const cssContent = fs.readFileSync(cssPath, 'utf8');
   const result = postcss([
     combineSelectors({ removeDuplicatedProperties: true }),
@@ -63,16 +77,18 @@ async function optimizeCSS() {
     ],
   });
   const styleFiles = files.filter(isCSS);
-  const importPromises = styleFiles.map(
-    (styleFile) => import(path.resolve(styleFile)),
-  );
-  await Promise.all(importPromises);
+
+  for (let i = 0; i < styleFiles.length; i++) {
+    await execute(path.resolve(styleFiles[i]));
+  }
+
+  for (let i = 0; i < styleFiles.length; i++) {
+    await buildGlobal();
+  }
 
   for (let i = 0; i < styleFiles.length; i++) {
     await buildCreate();
   }
-  for (let i = 0; i < styleFiles.length; i++) {
-    await buildGlobal();
-  }
+
   await optimizeCSS();
 })();
