@@ -1,5 +1,5 @@
-import { E2ETest } from '@/component/style-create';
-import { Conflict } from '@/component/style-not-conflict';
+import { E2ETest } from 'component/style-create';
+import { Conflict } from 'component/style-not-conflict';
 import Link from 'next/link';
 import { css } from '@plumeria/core';
 
