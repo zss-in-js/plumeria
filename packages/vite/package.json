@@ -10,6 +10,9 @@
   ],
   "main": "./dist/index.js",
   "license": "MIT",
+  "scripts": {
+    "build": "echo 'No build necessary'"
+  },
   "devDependencies": {
     "vite": "6.2.3"
   }
