@@ -13,8 +13,7 @@
   "license": "MIT",
   "files": [
     "bin",
-    "src",
-    "tsconfig.json"
+    "src"
   ],
   "bin": {
     "css": "./bin/css.mjs"
@@ -24,9 +23,9 @@
   },
   "dependencies": {
     "fast-glob": "^3.3.3",
+    "rscute": "^0.0.1",
     "postcss": "^8.4.49",
-    "postcss-combine-duplicated-selectors": "^10.0.3",
-    "tsx": "^4.19.2"
+    "postcss-combine-duplicated-selectors": "^10.0.3"
   },
   "publishConfig": {
     "access": "public"
