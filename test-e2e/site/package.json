@@ -12,12 +12,12 @@
     "@plumeria/compiler": "*",
     "@plumeria/core": "*",
     "@plumeria/next": "*",
-    "next": "^15.0.1",
+    "next": "^15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.5.4",
+    "@types/node": "^22.13.14",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "typescript": "^5"
