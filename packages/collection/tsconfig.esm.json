@@ -5,9 +5,9 @@
     "moduleResolution": "Bundler",
     "paths": {},
     "rootDir": "src/",
-    "outDir": "./dist",
+    "outDir": "./dist/esm",
     "declaration": true,
-    "declarationDir": "./types",
+    "declarationDir": "./dist/types",
     "types": ["node"]
   },
   "include": ["src/"]
