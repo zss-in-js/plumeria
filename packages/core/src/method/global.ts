@@ -1,4 +1,3 @@
-import '../styles/global.css';
 import type { CustomHTMLType, VarsDefinition } from 'zss-engine';
 import {
   isDevAndTest,
@@ -12,7 +11,7 @@ import {
   resolvePromise,
   globalPromise,
   initPromise,
-} from './global-build-helper';
+} from './global-build-helper.js';
 
 export function global(object: CustomHTMLType | VarsDefinition): void {
   const base36Hash = genBase36Hash(object, 8);
