@@ -5,7 +5,7 @@
     "moduleResolution": "NodeNext",
     "paths": {},
     "rootDir": "src/",
-    "outDir": "./dist",
+    "outDir": "./dist/cjs",
     "types": ["node"]
   },
   "include": ["src/"]

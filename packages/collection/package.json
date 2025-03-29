@@ -15,22 +15,22 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./types/index.d.ts",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.js"
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/cjs/index.js"
     }
   },
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "types/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
   "files": [
     "dist/",
     "types/"
   ],
   "scripts": {
-    "build": "rimraf dist types && pnpm esm && pnpm cjs",
+    "build": "rimraf dist && pnpm esm && pnpm cjs",
     "cjs": "tsc --project tsconfig.cjs.json",
-    "esm": "tsc --project tsconfig.esm.json && node ../../esm.create.mjs"
+    "esm": "tsc --project tsconfig.esm.json"
   },
   "publishConfig": {
     "access": "public"
