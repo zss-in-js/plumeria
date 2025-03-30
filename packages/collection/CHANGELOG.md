@@ -1,5 +1,11 @@
 # @plumeria/collection
 
+## 0.5.2
+
+### Patch Changes
+
+- 9f4d373: feat: Distribution dist/esm|cjs types
+
 ## 0.5.1
 
 ### Patch Changes
