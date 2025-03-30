@@ -7,7 +7,7 @@
     "rootDir": "src/",
     "outDir": "./dist/esm",
     "declaration": true,
-    "declarationDir": "./dist/types",
+    "declarationDir": "./types",
     "types": ["node"]
   },
   "include": ["src/"]
