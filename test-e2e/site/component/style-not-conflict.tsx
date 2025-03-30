@@ -1,7 +1,7 @@
 'use client';
 
 import { css } from '@plumeria/core';
-import { utility } from './vars';
+import { utility } from 'component/vars';
 
 const styles = css.create({
   test_conflict: {
