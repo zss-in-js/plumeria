@@ -5,27 +5,27 @@
   "scripts": {
     "build": "css --type-check && next build",
     "dev": "css & next dev",
-    "start": "next start",
-    "postinstall": "fumadocs-mdx"
+    "start": "next start"
   },
   "dependencies": {
-    "@plumeria/core": "^0.7.3",
-    "@plumeria/next": "^0.5.5",
+    "@plumeria/core": "^0.7.8",
+    "@plumeria/next": "^0.5.7",
     "@vercel/analytics": "^1.5.0",
     "fumadocs-core": "14.7.4",
-    "fumadocs-mdx": "11.3.1",
+    "fumadocs-mdx": "^11.5.7",
     "fumadocs-ui": "14.7.4",
     "geist": "^1.3.1",
     "next": "15.1.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "shiki": "^3.2.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.20.0",
-    "@plumeria/compiler": "^0.6.0",
+    "@plumeria/compiler": "^0.6.3",
     "@types/mdx": "^2.0.13",
-    "@types/node": "22.10.6",
+    "@types/node": "^22.13.14",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "eslint": "^9.20.1",
