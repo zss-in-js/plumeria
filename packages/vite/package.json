@@ -1,0 +1,25 @@
+{
+  "name": "@plumeria/vite",
+  "version": "0.0.0",
+  "type": "module",
+  "description": "vite use node.js for clean setup",
+  "keywords": [
+    "@plumeria",
+    "vite-plugin",
+    "css-in-js"
+  ],
+  "main": "dist/index.js",
+  "types": "types/index.d.ts",
+  "license": "MIT",
+  "files": [
+    "dist/",
+    "types/"
+  ],
+  "scripts": {
+    "build": "pnpm esm",
+    "esm": "tsc --project tsconfig.esm.json"
+  },
+  "devDependencies": {
+    "vite": "6.2.3"
+  }
+}
