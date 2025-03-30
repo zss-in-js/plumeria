@@ -41,7 +41,7 @@ This is the development monorepo for Plumeria
   - [compiler](https://github.com/zss-in-js/plumeria/tree/main/packages/compiler)
   - [core](https://github.com/zss-in-js/plumeria/tree/main/packages/core)
   - [next](https://github.com/zss-in-js/plumeria/tree/main/packages/next)
-
+  - [vite](https://github.com/zss-in-js/plumeria/tree/main/packages/vite) 
 ## Contributing
 
 Development happens in the open on GitHub and we are grateful for contributions including bug fixes, improvements, and ideas.
