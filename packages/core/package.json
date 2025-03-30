@@ -23,31 +23,31 @@
       "default": "./stylesheet/index.js"
     },
     "./dist/method/create-build-helper": {
-      "types": "./dist/types/method/create-build-helper.d.ts",
+      "types": "./types/method/create-build-helper.d.ts",
       "import": "./dist/esm/method/create-build-helper.js",
       "default": "./dist/cjs/method/create-build-helper.js"
     },
     "./dist/method/global-build-helper": {
-      "types": "./dist/types/method/global-build-helper.d.ts",
+      "types": "./types/method/global-build-helper.d.ts",
       "import": "./dist/esm/method/global-build-helper.js",
       "default": "./dist/cjs//method/global-build-helper.js"
     },
     ".": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./types/index.d.ts",
       "import": "./dist/esm/index.js",
       "default": "./dist/cjs/index.js"
     }
   },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
     "dist/",
-    "types/"
+    "types/",
+    "stylesheet/"
   ],
   "scripts": {
-    "build": "rimraf dist && pnpm esm && pnpm cjs && pnpm css",
-    "css": "cpy 'stylesheet/**' 'dist/stylesheet'",
+    "build": "rimraf dist types && pnpm esm && pnpm cjs",
     "cjs": "tsc --project tsconfig.cjs.json",
     "esm": "tsc --project tsconfig.esm.json && node __direname"
   },
