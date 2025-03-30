@@ -16,7 +16,7 @@ function initPromise() {
 }
 
 async function processSheets() {
-  const filePath = path.join(__dirname, '../../stylesheet/core.css');
+  const filePath = path.join(__dirname, '../../../stylesheet/core.css');
 
   while (seetQueue.length > 0) {
     const [styleSheet, option] = seetQueue.shift() as [string, string];
