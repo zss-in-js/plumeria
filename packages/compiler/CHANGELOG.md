@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.6.3
+
+### Patch Changes
+
+- 9f4d373: feat: Distribution dist/esm|cjs types
+
 ## 0.6.2
 
 ### Patch Changes

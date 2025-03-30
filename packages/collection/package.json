@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/collection",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Collection of media, pseudo, and other items for Plumeria",
   "keywords": [
     "react",
