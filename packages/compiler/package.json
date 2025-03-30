@@ -22,7 +22,7 @@
     "build": "echo 'Build unnecessary'"
   },
   "dependencies": {
-    "rscute": "^0.0.4",
+    "rscute": "^0.0.5",
     "fast-glob": "^3.3.3",
     "postcss": "^8.4.49",
     "postcss-combine-duplicated-selectors": "^10.0.3"
