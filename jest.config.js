@@ -2,6 +2,9 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
+  moduleNameMapper: {
+    '^(\\..+)\\.js$': '$1',
+  },
   roots: ['<rootDir>/packages/core/__tests__'],
   preset: 'ts-jest',
   testEnvironment: 'node',
