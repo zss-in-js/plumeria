@@ -67,8 +67,8 @@ importers:
         specifier: ^10.0.3
         version: 10.0.3(postcss@8.5.3)
       rscute:
-        specifier: ^0.0.4
-        version: 0.0.4(@swc/helpers@0.5.15)(@types/node@22.13.14)
+        specifier: ^0.0.5
+        version: 0.0.5(@swc/helpers@0.5.15)(@types/node@22.13.14)
 
   packages/core:
     dependencies:
@@ -3797,10 +3797,10 @@ packages:
     engines: { node: 20 || >=22 }
     hasBin: true
 
-  rscute@0.0.4:
+  rscute@0.0.5:
     resolution:
       {
-        integrity: sha512-2oSmRszBkfaxoDMnGAuAL4PAGH01x6K1ZXdmhtXOyd+zaMZTIiXzaQMpVV1Gfffal2PxBSilfiX07CSuVTlePQ==,
+        integrity: sha512-yij/AjtGPMi+xJu6rnxeuD4nDKmyEePvBn1EbqLanPDQ+AJRUpE9EYc4bqyTfZALFrMXYvtAuoHWYNGlgMlBhA==,
       }
     hasBin: true
     peerDependencies:
@@ -6607,7 +6607,7 @@ snapshots:
       glob: 11.0.1
       package-json-from-dist: 1.0.1
 
-  rscute@0.0.4(@swc/helpers@0.5.15)(@types/node@22.13.14):
+  rscute@0.0.5(@swc/helpers@0.5.15)(@types/node@22.13.14):
     dependencies:
       '@swc/core': 1.11.13(@swc/helpers@0.5.15)
       '@types/node': 22.13.14
