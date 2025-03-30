@@ -16,7 +16,7 @@ function initPromise() {
 }
 
 function processQueue() {
-  const filePath = path.join(__dirname, '../../stylesheet/core.css');
+  const filePath = path.join(__dirname, '../../../stylesheet/core.css');
 
   while (sheetQueue.length > 0) {
     const styleSheet = sheetQueue.shift();
