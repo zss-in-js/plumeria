@@ -53,7 +53,10 @@
   },
   "dependencies": {
     "@plumeria/collection": "workspace:^",
-    "zss-engine": "^0.2.23"
+    "zss-engine": "0.2.24"
+  },
+  "peerDependencies": {
+    "@plumeria/compiler": ">=0.6.5"
   },
   "publishConfig": {
     "access": "public"
