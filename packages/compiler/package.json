@@ -19,7 +19,7 @@
     "css": "./bin/css.mjs"
   },
   "scripts": {
-    "build": "echo 'No build necessary'"
+    "build": "echo 'Build unnecessary'"
   },
   "dependencies": {
     "fast-glob": "^3.3.3",
