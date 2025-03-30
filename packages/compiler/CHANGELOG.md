@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.6.4
+
+### Patch Changes
+
+- 05f2693: fix: dependencies rscute update
+
 ## 0.6.3
 
 ### Patch Changes
