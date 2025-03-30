@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.7.8",
+  "version": "0.7.9",
   "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
   "keywords": [
     "react",
