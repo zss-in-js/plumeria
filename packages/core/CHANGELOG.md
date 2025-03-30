@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.7.9
+
+### Patch Changes
+
+- e7be3d3: feat: @plumeria/core LTS. To the rust base swc compiler
+
 ## 0.7.8
 
 ### Patch Changes
