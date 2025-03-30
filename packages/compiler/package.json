@@ -22,8 +22,8 @@
     "build": "echo 'Build unnecessary'"
   },
   "dependencies": {
+    "rscute": "^0.0.4",
     "fast-glob": "^3.3.3",
-    "rscute": "^0.0.1",
     "postcss": "^8.4.49",
     "postcss-combine-duplicated-selectors": "^10.0.3"
   },
