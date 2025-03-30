@@ -19,7 +19,7 @@ export default function Home() {
   return (
     <main>
       <h1>Typed CSS X E2E Test</h1>
-      <h2 className={styles.page}>page.tsx in elter</h2>
+      <h2 className={styles.page}>server component</h2>
       <Link href="/server">Server Page</Link>
       <E2ETest />
       <Conflict />
