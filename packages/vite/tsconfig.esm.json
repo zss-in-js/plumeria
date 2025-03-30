@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "paths": {},
+    "rootDir": "src/",
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationDir": "./types",
+    "types": ["node"]
+  },
+  "include": ["src/"]
+}
