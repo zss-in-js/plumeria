@@ -1,5 +1,13 @@
 # @plumeria/core
 
+## 0.7.8
+
+### Patch Changes
+
+- 9f4d373: feat: Distribution dist/esm|cjs types
+- Updated dependencies [9f4d373]
+  - @plumeria/collection@0.5.2
+
 ## 0.7.7
 
 ### Patch Changes
