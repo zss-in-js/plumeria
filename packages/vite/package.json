@@ -20,6 +20,6 @@
     "esm": "tsc --project tsconfig.esm.json"
   },
   "devDependencies": {
-    "vite": "6.2.3"
+    "vite": "6.2.4"
   }
 }
