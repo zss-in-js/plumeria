@@ -82,11 +82,20 @@ a faster compile In parallel next dev.
 </Tab>
 </Tabs>
 
+--- 
+
+\- Applying a Style Sheet: import `@plumeria/core/stylesheet` in your application entry point.
+```ts
+import "@plumeria/core/stylesheet"
+```
+
+
+
 </Step>
 <Step>
 ## Integration
 
-Plumeria does not require a bundler-specific plugins.
+Plumeira can be integrated with Vite and Next.js.
 
 <Tabs items={["Next.js", "Vite"]}>
   {/* prettier-ignore */}
@@ -99,14 +108,15 @@ Plumeria does not require a bundler-specific plugins.
   </Tab>
   {/* prettier-ignore */}
   <Tab>
-    ```text title="vite.config.ts"
-    No configuration required.
+    ```sh title="Terminal"
+    npm i --save-dev @plumeria/vite
+    # Add plumeria() for vite.config.ts
     ```
   </Tab>
 </Tabs>
 </Step>
 <Step>
-## Server component
+## Next.js: (Server component)
 
 You can statically preview a Next.js's ServerComponent using `<ServerCSS \>`.  
 This ServerCSS is a headless component and is not included in the production environment.
@@ -128,6 +138,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   )
 }
+```
+</Step>
+<Step>
+## Vite: (Node.js build externalization)
+It will display warnings and errors when it is possible to execute the command, but by installing a plugin you can externalize Node.js smartly.
+```ts title="vite.config.ts"
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import plumeria from '@plumeria/vite';
+
+export default defineConfig({
+  plugins: [react(), plumeria()],  // [!code ++]
+});
+
 ```
 </Step>
 <Cards>
