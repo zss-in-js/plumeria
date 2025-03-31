@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "css & next dev",
-    "build": "css --type-check & next build",
+    "build": "css --type-check && next build",
     "start": "next start",
     "lint": "next lint"
   },
