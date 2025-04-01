@@ -6,6 +6,8 @@ We provide security updates for the following versions:
 
 | Version | Supported          | Notes                                                                                                       |
 | ------- | ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| 0.7.9   | :white_check_mark: | Importing stylesheet is now required. import "@plumeria/core/stylesheet" your app entry points.             |
+| 0.7.8   | :white_check_mark: | Fixed Reverted because Next.js's behavior has changed to ESM, rollback ESM use directive.                   |  
 | 0.7.7   | :white_check_mark: | Fixed a use directive warning that occurred during build with vite.                                         |
 | 0.7.6   | :white_check_mark: | pseudo functions have been migrated to css.pseudo.fn.**.                                                    |
 | 0.7.0   | :white_check_mark: | Security update for created code of conduct                                                                 |
