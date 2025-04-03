@@ -3,26 +3,26 @@ title: Comparison
 description: Comparing plumeria's features to other libraries
 ---
 
-## plumeria
+## Plumeria
 
 plumeria is a compilation timing focused Zero-runtime CLI library.  
 Include static-style in your application without changing bundler behavior.
 
-If you're looking for an uncomplicated CSS-in-JS, `plumeria` is your next choice after CSS Module.
+If you're looking for an uncomplicated CSS-in-JS, `Plumeria` is your next choice after CSS Module.
 
 ### Feature Table
 
-| Feature           | plumeria       | Emotion   | Tailwind CSS     | 
-| ----------------- | -------------- | ----------| ---------------- |
-| Zero-Runtime      | ✅ Yes         | Runtime    | ✅ Yes           |
-| Type-Safety       | ✅ Yes         | No         | No            |
+| Feature           | Plumeria      | Emotion   | Tailwind CSS     | 
+| ----------------- | -------------- | ---------- | ---------------- |
+| Zero-Runtime      | ✅ Yes         | 🟢 Runtime  | ✅ Yes           |
+| Type-Safety       | ✅ Yes         | No         | No               |
 | Define-style      | 🟢 Object      | 🟢 Literal | 🟢 className     |
 | Static            | ✅ Yes         | Partial    | ✅ Yes           |
-| Dynamic           | 🟢 Build time  | Runtime    | 🟢 Limited (JIT) |
-| Bundle Size       | 🟢 Low         | Mid        |  High          |
+| Dynamic           | 🟢 Build time  | Runtime    | 🟢 Static       |
+| Bundle Size       | 🟢 Low         | 🟢 Mid      | 🟢 MID          |
 | Server Components | ✅ Yes         | No         | ✅ Yes           |
 | Linting           | ✅ Yes         | ✅ Yes     | ✅ Yes           |
-| Compile           | 🟢 CLI         | Runtime    | 🟢 JIT           |
+| Compile           | 🟢 CLI         | 🟢 Runtime | 🟢 Build time    |
 
 
 ## Tailwind CSS
@@ -31,9 +31,9 @@ Tailwind CSS is a powerful framework that handles utility classes based on atomi
 Surrounding libraries such as `headlessui` and `shadcn/ui` are also well-developed.
 However, one of the drawbacks of Tailwind is that definitions tend to be redundant, resulting in the screen appearing the same no matter who creates it.
 
-### When to use plumeria?
+### When to use Plumeria?
 
 For most web applications, vanilla CSS is no longer enough. These days, you need UI frameworks, CSS-in-JS, client-side styling, etc.  
 
 
-`plumeria` is a strong choice if you want to quickly implement a type-safe feedback cycle.
+`@plumeria` is a strong choice if you want to quickly implement a type-safe feedback cycle
