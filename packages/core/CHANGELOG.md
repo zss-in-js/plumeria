@@ -1,5 +1,12 @@
 # @plumeria/core
 
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies [53ce723]
+  - @plumeria/compiler@0.7.0
+
 ## 0.7.9
 
 ### Patch Changes

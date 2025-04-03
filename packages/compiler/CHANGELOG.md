@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.7.0
+
+### Minor Changes
+
+- 53ce723: feat: replaced tsx(esbuild) with rscute(swc)
+
 ## 0.6.5
 
 ### Patch Changes
