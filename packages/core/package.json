@@ -17,11 +17,7 @@
   "sideEffects": false,
   "exports": {
     "./package.json": "./package.json",
-    "./stylesheet": {
-      "types": "./stylesheet/index.d.ts",
-      "import": "./stylesheet/index.mjs",
-      "default": "./stylesheet/index.js"
-    },
+    "./stylesheet": "./stylesheet/core.css",
     "./dist/method/create-build-helper": {
       "types": "./types/method/create-build-helper.d.ts",
       "import": "./dist/esm/method/create-build-helper.js",
@@ -53,7 +49,7 @@
   },
   "dependencies": {
     "style-preset": "0.0.14",
-    "zss-engine": "0.2.24"
+    "zss-engine": "0.2.25"
   },
   "peerDependencies": {
     "@plumeria/compiler": ">=0.6.5"
