@@ -53,8 +53,6 @@ importers:
         specifier: ^8.26.1
         version: 8.28.0(eslint@9.23.0)(typescript@5.7.3)
 
-  packages/collection: {}
-
   packages/compiler:
     dependencies:
       fast-glob:
@@ -72,12 +70,12 @@ importers:
 
   packages/core:
     dependencies:
-      '@plumeria/collection':
-        specifier: workspace:^
-        version: link:../collection
       '@plumeria/compiler':
         specifier: '>=0.6.5'
         version: 0.6.5(@types/node@22.13.14)
+      style-preset:
+        specifier: 0.0.14
+        version: 0.0.14
       zss-engine:
         specifier: 0.2.24
         version: 0.2.24
@@ -4124,6 +4122,9 @@ packages:
       }
     engines: { node: '>=8' }
 
+  style-preset@0.0.14:
+    resolution: {integrity: sha512-3rO/SaX2DK0k7oTlBYnkWK22r2co7abN2H1vNlQo+iQ7AkJxmHK0m/eBJ+M4jOgzDEa8FCg7a0aSLq3U9JWAQw==}
+
   styled-jsx@5.1.6:
     resolution:
       {
@@ -7083,6 +7084,8 @@ snapshots:
   strip-final-newline@2.0.0: {}
 
   strip-json-comments@3.1.1: {}
+
+  style-preset@0.0.14: {}
 
   styled-jsx@5.1.6(@babel/core@7.26.10)(react@19.1.0):
     dependencies:
