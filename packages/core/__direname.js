@@ -11,7 +11,19 @@ const filePaths = [
       try {
         let content = await fs.readFile(filePath, 'utf-8');
         const lines = content.split('\n');
-        lines.splice(2, 0, 'const __dirname = import.meta.dirname;');
+
+        // Insert the line after 'import path from "path";'
+        const importPathIndex = lines.findIndex((line) =>
+          line.includes("const path = await import('path');"),
+        );
+        if (importPathIndex !== -1) {
+          lines.splice(
+            importPathIndex + 1,
+            0,
+            '\tconst __dirname = import.meta.dirname;',
+          );
+        }
+
         const updatedContent = lines.join('\n');
 
         await fs.writeFile(filePath, updatedContent);
