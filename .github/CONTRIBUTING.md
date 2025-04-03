@@ -16,10 +16,10 @@ Our project uses `pnpm`. Here's how you can set it up:
 
 Our project is organized into several packages within the `packages` directory:
 
-- **@plumeria/collection**: This package contains all the items needed for Plumeria.
 - **@plumeria/compiler**: This package contains the code required to compile Plumeria.
-- **@plumeria/core**: This is a core package that combines the above two and zss-engine as dependencies.
+- **@plumeria/core**: This package is the core package that uses zss-engine and style-preset.
 - **@plumeria/next**: This package contains the Next.js specific component for Plumeria.
+- **@plumeria/vite**: This package contains the vite-plugin for Plumeria uses Vite.
 
 ## Adding a changeset
 
