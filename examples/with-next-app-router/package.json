@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@plumeria/core": "^0.7.10",
+    "@plumeria/core": "^0.7.11",
     "@plumeria/next": "^0.5.7",
     "next": "15.2.4",
     "react": "^19.0.0",
