@@ -13,6 +13,12 @@ The fully independent compilation process does not interfere with the framework'
 included in the build process.
 </Step>
 <Step>
+## Compilation Speed
+Built on SWC, Plumeria's compiler achieves exceptional performance. It runs in parallel with Next.js
+development server and completes compilation Before framework preparation is complete, there will
+be zero delays in your development workflow.
+</Step>
+<Step>
 ## Debugging
 
 Since all styles are resolved at compile time, runtime uncertainties are completely eliminated.
@@ -27,7 +33,7 @@ Short hashes minimize the amount of CSS.
 <Step>
 ## Optimization
 
-Style objects passed across component boundaries are all Tree shaking at build time.
+Style objects passed across component boundaries are all Tree shake at build time.
 Production bundle size does not include objects, and only lightweight CSS remains.
 Also, because it is always written outside the component, the object is not rendered.
 </Step>
