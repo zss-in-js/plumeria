@@ -17,13 +17,22 @@ To compile `@plumeria/core`, for example, to use `npx css`, install
 npm install --save-dev @plumeria/compiler
 ```
 
+### Entry StyleSheet
+
+Import stylesheet in your application's entry point.  
+Applies the static stylesheet for production environments.
+
+```ts
+import '@plumeria/core/stylesheet';
+```
+
 ## API
 
 ### css.create()
 
 Styles are defined as a map of CSS rules using css.create(). In the example below, there are 2 different CSS rules. The names "box" and "text" are arbitrary names given to the rules.
 
-```tsx
+```ts
 import { css } from '@plumeria/core';
 
 const styles = css.create({
@@ -188,7 +197,7 @@ Type safety relies on this eslint-plugin. It includes all properties, excluding 
 
 Plumeria complies with Semantic HTML, which means that it uses one style for each class name.
 
-```tsx
+```ts
 import { css } from '@plumeria/core';
 
 const styles = css.create({
