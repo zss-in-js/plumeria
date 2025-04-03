@@ -52,7 +52,7 @@
     "esm": "tsc --project tsconfig.esm.json && node __direname"
   },
   "dependencies": {
-    "@plumeria/collection": "workspace:^",
+    "style-preset": "0.0.14",
     "zss-engine": "0.2.24"
   },
   "peerDependencies": {

@@ -10,7 +10,7 @@ import { create } from './method/create.js';
 import { global } from './method/global.js';
 import { defineThemeVars } from './method/define-theme-vars.js';
 import { keyframes } from './method/keyframes.js';
-import { media, pseudo, colors, container } from '@plumeria/collection';
+import { media, pseudo, colors, container } from 'style-preset';
 import { cx } from './cx.js';
 import { rx } from './rx.js';
 
