@@ -20,8 +20,9 @@
     "nest",
     "---Packages---",
     "compiler",
+    "vite",
     "next",
-    "collection",
+    "preset",
     "engine",
     "eslint-plugin"
   ]
