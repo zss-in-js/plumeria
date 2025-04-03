@@ -56,7 +56,7 @@ The feedback loop needs to the shortest so developers can deliver high-quality c
 ## The CSS in JS solution
 A feature of plumeria is that the compilation process is independent from the development flow.
 ```
-[CSS in JS (plumeria)]
+[CSS in JS (@plumeria)]
 ──────────────────────────────────────────────────────────
 ┌──────────────────────┐       ┌─────────────────────────┐
 │ Component            │───1──▶│ CLI Command Execution   │
@@ -66,14 +66,14 @@ A feature of plumeria is that the compilation process is independent from the de
      │         │ Generated CSS File      │           │
    3 └─────────│ (Static CSS available)  │ ◀─────────┘ 2
                └─────────────────────────┘  ※ The final result is known at this time
-                           │
-                           │
-                           │  ※ The following process happens in production builds  
-                           ▼
-            ┌───────────────────────────────┐
-            │ Production Build Process      │  ← e.g., Webpack, Vite  
-            │ (Tree-shaking & Minification) │     ※ Removes used styles  
-            └───────────────────────────────┘
+                  │
+                4 │
+                  │  ※ The following process happens in production builds  
+                  ▼
+┌───────────────────────────────┐
+│ Production Build Process      │  ← e.g., Webpack, Vite  
+│ (Tree-shaking & Minification) │     ※ Removes used styles  
+└───────────────────────────────┘
 ```
 Plumeria solves the problem of debugging CSS through a CLI.
 By allowing you to quickly cycle through the feedback loop of write,compile,test,write,compile,test you can drastically reduce the time you spend debugging.
