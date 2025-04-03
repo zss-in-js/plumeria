@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.7.0
+
+### Minor Changes
+
+- bb78745: feat: executor change to rscute
+
 ## 0.6.5
 
 ### Patch Changes
