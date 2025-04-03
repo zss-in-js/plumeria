@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.7.11
+
+### Patch Changes
+
+- 3b9ce1a: fix: fix vite production environment
+
 ## 0.7.10
 
 ### Patch Changes
