@@ -12,6 +12,8 @@ export const metadata: Metadata = {
     'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%%22 y=%2250%%22 style=%22dominant-baseline:central;text-anchor:middle;font-size:90px;%22>🪡</text></svg>',
 };
 
+export const dynamic = 'force-static';
+
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${GeistSans.className} ${GeistMono.variable}`} suppressHydrationWarning>
