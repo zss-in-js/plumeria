@@ -13,15 +13,11 @@
     "skipLibCheck": true,
     "removeComments": true
   },
-  "include": [
-    "./packages/core/src/",
-    "./packages/collection/src/",
-    "./packages/next/src/"
-  ],
   "exclude": [
-    "test-e2e/**",
-    "packages/**/dist/**",
     "node_modules",
+    "test-e2e/**",
+    "website/**",
+    "packages/**/dist/**",
     "packages/compiler/**"
   ]
 }
