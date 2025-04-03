@@ -9,7 +9,7 @@ import { buildGlobal } from '@plumeria/core/dist/method/global-build-helper';
 import postcss from 'postcss';
 import combineSelectors from 'postcss-combine-duplicated-selectors';
 
-export const cleanUp = async () => {
+const cleanUp = async () => {
   const projectRoot = process.cwd().split('node_modules')[0];
   const directPath = path.join(projectRoot, 'node_modules/@plumeria/core');
   const coreFilePath = path.join(directPath, 'stylesheet/core.css');
