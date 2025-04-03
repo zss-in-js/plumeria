@@ -3,6 +3,7 @@
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "lib": ["ESNext", "dom"],
+    "module": "ES2022",
     "moduleResolution": "node",
     "noImplicitReturns": false,
     "noUnusedLocals": true,
