@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.7.10
+
+### Patch Changes
+
+- d57e057: feat: replaced @plumeria/collection with style-preset
+
 ## 0.7.9
 
 ### Patch Changes
