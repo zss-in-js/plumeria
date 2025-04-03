@@ -1,5 +1,4 @@
 import { build, isDevelopment } from 'zss-engine';
-import path from 'path';
 
 let resolvePromise: (value: string) => void;
 let globalPromise: Promise<string>;
@@ -15,7 +14,8 @@ function initPromise() {
   });
 }
 
-function processQueue() {
+async function processQueue() {
+  const path = await import('path');
   const filePath = path.join(__dirname, '../../../stylesheet/core.css');
 
   while (sheetQueue.length > 0) {
