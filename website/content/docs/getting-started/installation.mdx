@@ -37,7 +37,7 @@ If you like plumeria's runtime, such as hot reloading, You can set up the compil
 <Step>
 ## Compiler
 
-<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+<Tabs items={['npm', 'pnpm', 'yarn']}>
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
@@ -56,28 +56,36 @@ If you like plumeria's runtime, such as hot reloading, You can set up the compil
     yarn add -D @plumeria/compiler
     ```
   </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="Terminal"
-    bun add -D @plumeria/compiler
-    ```
-  </Tab>
 </Tabs>
+- `npx css`  
+compiles without type checking.
+- argument `--type-check`  
+The  will include compilation check.
 
-`npx css` compiles without type checking. Adding the argument
-`--type-check`
-will include compilation checking using TypeScript. You can also add the
-`--log`
-argument to see the CSS log that is output during compilation. It is recommended to generating server-side static CSS with
-a faster compile In parallel next dev.
+- argment `--log`  
+argument to see the CSS log that is output during compilation.
 
-<Tabs items={["Next.js"]}>
+Next.js recommends generating SSR CSS by compiling with next dev.  
+In Vite, only the client is referenced, so there is no need to compile at the same time as dev.
+
+
+<Tabs items={["Next.js", "Vite"]}>
 <Tab>
 ```json title="package.json"
   "scripts": {
     "dev": "css & next dev",
     "build": "css --type-check && next build",
+    // ...
   }
+```
+</Tab>
+<Tab>
+```json title="package.json"
+  "scripts": {
+    "dev": "vite",
+    "build": "css --type-check && tsc -b && vite build", 
+    // ...
+  },
 ```
 </Tab>
 </Tabs>
