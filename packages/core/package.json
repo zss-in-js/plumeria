@@ -3,31 +3,19 @@
   "version": "0.7.11",
   "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
   "keywords": [
-    "react",
-    "vite",
-    "next",
     "css",
     "css-in-js",
     "plumeria",
-    "styling"
+    "react",
+    "vite",
+    "next"
   ],
   "repository": "github:zss-in-js/plumeria",
-  "author": "Refirst",
   "license": "MIT",
   "sideEffects": false,
   "exports": {
     "./package.json": "./package.json",
     "./stylesheet": "./stylesheet/core.css",
-    "./dist/method/create-build-helper": {
-      "types": "./types/method/create-build-helper.d.ts",
-      "import": "./dist/esm/method/create-build-helper.js",
-      "default": "./dist/cjs/method/create-build-helper.js"
-    },
-    "./dist/method/global-build-helper": {
-      "types": "./types/method/global-build-helper.d.ts",
-      "import": "./dist/esm/method/global-build-helper.js",
-      "default": "./dist/cjs//method/global-build-helper.js"
-    },
     ".": {
       "types": "./types/index.d.ts",
       "import": "./dist/esm/index.js",
@@ -45,11 +33,11 @@
   "scripts": {
     "build": "rimraf dist types && pnpm esm && pnpm cjs",
     "cjs": "tsc --project tsconfig.cjs.json",
-    "esm": "tsc --project tsconfig.esm.json && node __direname"
+    "esm": "tsc --project tsconfig.esm.json"
   },
   "dependencies": {
-    "style-preset": "0.0.14",
-    "zss-engine": "0.2.25"
+    "zss-engine": "^0.2.26",
+    "zss-utils": "^0.0.3"
   },
   "peerDependencies": {
     "@plumeria/compiler": ">=0.6.5"
