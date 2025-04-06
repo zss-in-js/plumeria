@@ -133,6 +133,7 @@ This ServerCSS is a headless component and is not included in the production env
 
 ```tsx title="layout.tsx"
 import { ServerCSS } from '@plumeria/next'
+// const { ServerCSS } = require('@plumeria/next'); // next dev --turbo
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
