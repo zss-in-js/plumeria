@@ -40,7 +40,7 @@
     "zss-utils": "^0.0.3"
   },
   "peerDependencies": {
-    "@plumeria/compiler": ">=0.6.5"
+    "@plumeria/compiler": ">=0.7.0"
   },
   "publishConfig": {
     "access": "public"
