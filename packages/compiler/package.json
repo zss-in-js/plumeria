@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/compiler",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "type": "module",
   "description": "A fast compiler for Plumeria",
   "keywords": [

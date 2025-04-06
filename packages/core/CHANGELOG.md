@@ -1,5 +1,13 @@
 # @plumeria/core
 
+## 0.7.12
+
+### Patch Changes
+
+- cbc6b03: feat: Exposing the api as zss-utils and including it as a dependency.
+- Updated dependencies [cbc6b03]
+  - @plumeria/compiler@0.7.1
+
 ## 0.7.11
 
 ### Patch Changes
