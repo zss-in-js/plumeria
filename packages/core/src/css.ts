@@ -6,13 +6,18 @@ import type {
   ReturnType,
   VarsDefinition,
 } from 'zss-engine';
-import { create } from './method/create.js';
-import { global } from './method/global.js';
-import { defineThemeVars } from './method/define-theme-vars.js';
-import { keyframes } from './method/keyframes.js';
-import { media, pseudo, colors, container } from 'style-preset';
-import { cx } from './cx.js';
-import { rx } from './rx.js';
+import {
+  create,
+  global,
+  defineThemeVars,
+  keyframes,
+  media,
+  pseudo,
+  colors,
+  container,
+  cx,
+  rx,
+} from 'zss-utils';
 
 class css {
   static create<T extends Record<string, CustomProperties>>(
