@@ -72,8 +72,8 @@ importers:
   packages/core:
     dependencies:
       '@plumeria/compiler':
-        specifier: '>=0.6.5'
-        version: 0.7.0(@types/node@22.14.0)
+        specifier: '>=0.7.0'
+        version: 0.7.0(@swc/helpers@0.5.15)(@types/node@22.14.0)
       zss-engine:
         specifier: ^0.2.26
         version: 0.2.26
@@ -3456,7 +3456,7 @@ snapshots:
     dependencies:
       playwright: 1.51.1
 
-  '@plumeria/compiler@0.7.0(@types/node@22.14.0)':
+  '@plumeria/compiler@0.7.0(@swc/helpers@0.5.15)(@types/node@22.14.0)':
     dependencies:
       fast-glob: 3.3.3
       postcss: 8.5.3
