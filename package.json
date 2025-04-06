@@ -31,7 +31,9 @@
     "rimraf": "^6.0.1",
     "ts-jest": "^29.2.6",
     "typescript": "5.7.3",
-    "typescript-eslint": "^8.26.1"
+    "typescript-eslint": "^8.26.1",
+    "zss-engine": "^0.2.26",
+    "zss-utils": "^0.0.3"
   },
   "packageManager": "pnpm@10.5.2"
 }
