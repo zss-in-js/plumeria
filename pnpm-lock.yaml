@@ -66,14 +66,14 @@ importers:
   packages/core:
     dependencies:
       '@plumeria/compiler':
-        specifier: '>=0.6.5'
-        version: 0.7.0(@swc/helpers@0.5.15)(@types/node@22.14.0)
-      style-preset:
-        specifier: 0.0.14
-        version: 0.0.14
+        specifier: '>=0.7.3'
+        version: 0.7.3(@swc/helpers@0.5.15)(@types/node@22.14.0)
       zss-engine:
         specifier: 0.2.26
         version: 0.2.26
+      zss-utils:
+        specifier: 0.0.4
+        version: 0.0.4
 
   packages/next:
     devDependencies:
@@ -802,8 +802,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@plumeria/compiler@0.7.0':
-    resolution: {integrity: sha512-upn/enbbg/rXPhLV3j7mRTn2DCXHr0sVZ1f+ZNSpntJ7RTykVIvWi4wgLKP45EskS+/OE+Vve6u5Sf/fwfByUw==}
+  '@plumeria/compiler@0.7.3':
+    resolution: {integrity: sha512-n+c9peqgXU72EYD4xpxOTfhas7bhRfwdpEAN7/hmYXexU/1pD6mMrirjGIJk1gFTQGVSGz4Ow8AAXAUkGSizsw==}
     hasBin: true
 
   '@rollup/rollup-android-arm-eabi@4.38.0':
@@ -1313,11 +1313,6 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
-
-  cssesc@3.0.0:
-    resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
-    engines: {node: '>=4'}
-    hasBin: true
 
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
@@ -2185,16 +2180,6 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  postcss-combine-duplicated-selectors@10.0.3:
-    resolution: {integrity: sha512-IP0BmwFloCskv7DV7xqvzDXqMHpwdczJa6ZvIW8abgHdcIHs9mCJX2ltFhu3EwA51ozp13DByng30+Ke+eIExA==}
-    engines: {node: ^10.0.0 || ^12.0.0 || >=14.0.0}
-    peerDependencies:
-      postcss: ^8.1.0
-
-  postcss-selector-parser@6.1.2:
-    resolution: {integrity: sha512-Q8qQfPiZ+THO/3ZrOrO0cJJKfpYCagtMUkXbnEfmgUjwXg6z/WBeOyS9APBBPCTSiDV+s4SwQGu8yFsiMRIudg==}
-    engines: {node: '>=4'}
-
   postcss@8.4.31:
     resolution: {integrity: sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ==}
     engines: {node: ^10 || ^12 || >=14}
@@ -2295,12 +2280,6 @@ packages:
     resolution: {integrity: sha512-5SsIRtJy9bf1ErAOiFMFzl64Ex9X5V7bnJ+WlFMb+zmP459OSWCEG7b0ERZ+PEU7xPt4OG3RHbrp1LJlXxYTrw==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
-
-  rscute@0.0.11:
-    resolution: {integrity: sha512-rDkU58rney3XiFkrSlE8sQ8nj6nPOpRzjAbwoCmHpz8YmwsGQmuXk2FcY+wkN+18chV+f/nvu2paniqtK06MTQ==}
-    hasBin: true
-    peerDependencies:
-      '@types/node': '>=22.13.11'
 
   rscute@0.0.14:
     resolution: {integrity: sha512-EivMjYemLtSH6QenG0l33U2A+nLRjK6VhtEYBtDmGAPYrH947EW/GlxOX2cIMeIG3dAa+Iqv2CJYyqQH0aYYmw==}
@@ -2419,9 +2398,6 @@ packages:
   strip-json-comments@3.1.1:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
-
-  style-preset@0.0.14:
-    resolution: {integrity: sha512-3rO/SaX2DK0k7oTlBYnkWK22r2co7abN2H1vNlQo+iQ7AkJxmHK0m/eBJ+M4jOgzDEa8FCg7a0aSLq3U9JWAQw==}
 
   styled-jsx@5.1.6:
     resolution: {integrity: sha512-qSVyDTeMotdvQYoHWLNGwRFJHC+i+ZvdBRYosOFgC+Wg1vx4frN2/RG/NA7SYqqvKNLf39P2LSRA2pu6n0XYZA==}
@@ -2547,9 +2523,6 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  util-deprecate@1.0.2:
-    resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
-
   v8-to-istanbul@9.3.0:
     resolution: {integrity: sha512-kiGUalWN+rgBJ/1OHZsBtU4rXZOfj/7rKQxULKlIzwzQSvMJUUNgPwJEEh7gU6xEVxC0ahoOBvN2YI8GH6FNgA==}
     engines: {node: '>=10.12.0'}
@@ -2645,6 +2618,9 @@ packages:
 
   zss-engine@0.2.26:
     resolution: {integrity: sha512-WqZyYLFkfT441LIjcpEz2O3Icij277YzNSkmAmeL7sfaez9FCjlboXxtU8Kn//bYX53cvzjOiTg9zWezq8RndA==}
+
+  zss-utils@0.0.4:
+    resolution: {integrity: sha512-3yWvcTu4PGCOMrvZ9RY1t93V4KvDqgOz7pqJ2Ti+uoU0v64RUpEhZ3h/rMu0bBAyBZTPSuAfhpjA98Crd3pDQg==}
 
 snapshots:
 
@@ -3454,12 +3430,10 @@ snapshots:
     dependencies:
       playwright: 1.51.1
 
-  '@plumeria/compiler@0.7.0(@swc/helpers@0.5.15)(@types/node@22.14.0)':
+  '@plumeria/compiler@0.7.3(@swc/helpers@0.5.15)(@types/node@22.14.0)':
     dependencies:
       fast-glob: 3.3.3
-      postcss: 8.5.3
-      postcss-combine-duplicated-selectors: 10.0.3(postcss@8.5.3)
-      rscute: 0.0.11(@swc/helpers@0.5.15)(@types/node@22.14.0)
+      rscute: 0.0.14(@swc/helpers@0.5.15)(@types/node@22.14.0)
     transitivePeerDependencies:
       - '@swc/helpers'
       - '@types/node'
@@ -3983,8 +3957,6 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
-
-  cssesc@3.0.0: {}
 
   csstype@3.1.3: {}
 
@@ -5032,16 +5004,6 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  postcss-combine-duplicated-selectors@10.0.3(postcss@8.5.3):
-    dependencies:
-      postcss: 8.5.3
-      postcss-selector-parser: 6.1.2
-
-  postcss-selector-parser@6.1.2:
-    dependencies:
-      cssesc: 3.0.0
-      util-deprecate: 1.0.2
-
   postcss@8.4.31:
     dependencies:
       nanoid: 3.3.11
@@ -5147,13 +5109,6 @@ snapshots:
       '@rollup/rollup-win32-ia32-msvc': 4.38.0
       '@rollup/rollup-win32-x64-msvc': 4.38.0
       fsevents: 2.3.3
-
-  rscute@0.0.11(@swc/helpers@0.5.15)(@types/node@22.14.0):
-    dependencies:
-      '@swc/core': 1.11.16(@swc/helpers@0.5.15)
-      '@types/node': 22.14.0
-    transitivePeerDependencies:
-      - '@swc/helpers'
 
   rscute@0.0.14(@swc/helpers@0.5.15)(@types/node@22.14.0):
     dependencies:
@@ -5277,8 +5232,6 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  style-preset@0.0.14: {}
-
   styled-jsx@5.1.6(@babel/core@7.26.10)(react@19.1.0):
     dependencies:
       client-only: 0.0.1
@@ -5378,8 +5331,6 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  util-deprecate@1.0.2: {}
-
   v8-to-istanbul@9.3.0:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
@@ -5449,3 +5400,5 @@ snapshots:
   zss-engine@0.2.26:
     dependencies:
       csstype: 3.1.3
+
+  zss-utils@0.0.4: {}
