@@ -9,7 +9,7 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@plumeria/core": "^0.7.9",
+    "@plumeria/core": "^0.7.16",
     "@plumeria/next": "^0.5.7",
     "@vercel/analytics": "^1.5.0",
     "fumadocs-core": "14.7.4",
@@ -24,7 +24,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.20.0",
-    "@plumeria/compiler": "^0.6.5",
+    "@plumeria/compiler": "^0.7.3",
     "@types/mdx": "^2.0.13",
     "@types/node": "^22.13.14",
     "@types/react": "^19.0.7",
