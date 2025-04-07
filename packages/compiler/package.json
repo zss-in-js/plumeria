@@ -1,31 +1,29 @@
 {
   "name": "@plumeria/compiler",
   "version": "0.7.0",
-  "description": "Compiler for Plumeria that build and optimizes",
+  "description": "A faster compiler for Plumeria",
   "keywords": [
-    "react",
     "css",
     "css-in-js",
     "plumeria",
-    "styling"
+    "rscute",
+    "compiler"
   ],
   "repository": "github:zss-in-js/plumeria",
   "license": "MIT",
   "files": [
-    "bin",
-    "src"
+    "bin/",
+    "dist/"
   ],
   "bin": {
     "css": "./bin/css.mjs"
   },
   "scripts": {
-    "build": "echo 'Build unnecessary'"
+    "build": "rimraf dist && tsc"
   },
   "dependencies": {
-    "rscute": "^0.0.11",
     "fast-glob": "^3.3.3",
-    "postcss": "^8.4.49",
-    "postcss-combine-duplicated-selectors": "^10.0.3"
+    "rscute": "^0.0.14"
   },
   "publishConfig": {
     "access": "public"
