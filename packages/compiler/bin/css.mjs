@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
-import path from 'path';
-import { styleText } from 'util';
 import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { styleText } from 'util';
 
 try {
   process.env.PATH = `${path.resolve(process.cwd(), 'node_modules', '.bin')}:${process.env.PATH}`;
@@ -22,7 +22,7 @@ try {
     : path.join(process.cwd(), 'node_modules/@plumeria');
 
   const argv = process.argv.includes('--log') ? ' --log' : '';
-  execSync('rscute compiler/src/index.ts' + argv, {
+  execSync('rscute compiler/dist/index.js' + argv, {
     stdio: 'inherit',
     cwd: plumeriaPath,
   });
