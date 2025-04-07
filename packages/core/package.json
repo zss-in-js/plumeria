@@ -3,16 +3,14 @@
   "version": "0.7.11",
   "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
   "keywords": [
-    "react",
-    "vite",
-    "next",
     "css",
     "css-in-js",
     "plumeria",
-    "styling"
+    "react",
+    "vite",
+    "next"
   ],
   "repository": "github:zss-in-js/plumeria",
-  "author": "Refirst",
   "license": "MIT",
   "sideEffects": false,
   "exports": {
