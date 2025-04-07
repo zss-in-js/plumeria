@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "style-preset": "0.0.14",
-    "zss-engine": "0.2.25"
+    "zss-engine": "0.2.26"
   },
   "peerDependencies": {
     "@plumeria/compiler": ">=0.6.5"
