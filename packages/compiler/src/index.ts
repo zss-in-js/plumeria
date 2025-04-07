@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'url';
 import * as path from 'path';
 import * as fs from 'fs';
 import { execute } from 'rscute';
@@ -6,8 +5,6 @@ import ts from 'typescript';
 import fg from 'fast-glob';
 import { buildCreate } from '@plumeria/core/dist/method/create-build-helper';
 import { buildGlobal } from '@plumeria/core/dist/method/global-build-helper';
-import postcss from 'postcss';
-import combineSelectors from 'postcss-combine-duplicated-selectors';
 
 const cleanUp = async () => {
   const projectRoot = process.cwd().split('node_modules')[0];
@@ -51,20 +48,6 @@ async function getAppRoot(): Promise<string> {
     : path.join(process.cwd(), '../../');
 }
 
-async function optimizeCSS() {
-  const corePackagePath = import.meta.resolve('@plumeria/core/package.json');
-  const corePath = path.dirname(fileURLToPath(new URL(corePackagePath)));
-  const cssPath = path.join(corePath, 'stylesheet/core.css');
-  const cssContent = fs.readFileSync(cssPath, 'utf8');
-  const result = postcss([
-    combineSelectors({ removeDuplicatedProperties: true }),
-  ]).process(cssContent, {
-    from: cssPath,
-    to: cssPath,
-  });
-  fs.writeFileSync(cssPath, result.css);
-}
-
 (async () => {
   await cleanUp();
   const appRoot = await getAppRoot();
@@ -86,5 +69,4 @@ async function optimizeCSS() {
   for (let i = 0; i < styleFiles.length; i++) {
     await buildCreate();
   }
-  await optimizeCSS();
 })();
