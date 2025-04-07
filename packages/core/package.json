@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.7.11",
+  "version": "0.7.15",
   "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
   "keywords": [
     "css",
@@ -46,11 +46,11 @@
     "esm": "tsc --project tsconfig.esm.json && node __direname"
   },
   "dependencies": {
-    "style-preset": "0.0.14",
+    "zss-utils": "0.0.4",
     "zss-engine": "0.2.26"
   },
   "peerDependencies": {
-    "@plumeria/compiler": ">=0.6.5"
+    "@plumeria/compiler": ">=0.7.3"
   },
   "publishConfig": {
     "access": "public"
