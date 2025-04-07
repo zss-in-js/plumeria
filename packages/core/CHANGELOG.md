@@ -1,5 +1,13 @@
 # @plumeria/core
 
+## 0.7.12
+
+### Patch Changes
+
+- 447b342: feat: Compiler optimization with one global call
+- Updated dependencies [447b342]
+  - @plumeria/compiler@0.7.1
+
 ## 0.7.11
 
 ### Patch Changes

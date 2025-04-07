@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.7.1
+
+### Patch Changes
+
+- 447b342: feat: Compiler optimization with one global call
+
 ## 0.7.0
 
 ### Minor Changes
