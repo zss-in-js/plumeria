@@ -21,9 +21,15 @@ class css {
     return create(object);
   }
 
-  static global(object: CustomHTMLType): void {
-    return global(object);
-  }
+  static global = ((called: boolean = false) => {
+    return (object: CustomHTMLType) => {
+      if (called) {
+        throw new Error('css.global() must be one');
+      }
+      called = true;
+      return global(object);
+    };
+  })();
 
   static defineThemeVars<const T extends VarsDefinition>(object: T) {
     return defineThemeVars(object);
