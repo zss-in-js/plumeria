@@ -9,9 +9,14 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "dependencies": {
+    "@plumeria/core": "^0.7.16",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
-    "@plumeria/compiler": "^0.7.0",
+    "@plumeria/compiler": "^0.7.3",
     "@plumeria/vite": "^0.0.0",
     "@types/node": "^22.13.14",
     "@types/react": "^18.3.18",
@@ -24,10 +29,5 @@
     "globals": "^15.14.0",
     "typescript": "^5.7.2",
     "vite": "^5.4.11"
-  },
-  "dependencies": {
-    "@plumeria/core": "^0.7.11",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
   }
 }
