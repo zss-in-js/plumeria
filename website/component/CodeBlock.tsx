@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 import { codeToHtml } from 'shiki';
 import { css } from '@plumeria/core';
 
@@ -35,7 +36,7 @@ const styles = css.create({
 
 const demoCode = `'use client';
 
-import { css, rx } from '@plumeria/core';
+import { css, rx } from \'@plumeria/core\';
 import { TimeCount } from './timeHooks';
 
 const styles = css.create({
