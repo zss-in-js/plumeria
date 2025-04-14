@@ -1,5 +1,7 @@
 # @plumeria/core
 
+Plumeria is a CSS-in-JS built using [**zss-engine**](https://www.npmjs.com/package/zss-engine) and [**zss-utils**](https://www.npmjs.com/package/zss-utils) that provides a speedy development cycle.
+
 ## Installation
 
 To start using Plumeria, install the following two packages:
@@ -11,15 +13,20 @@ npm install --save @plumeria/core
 ### Compiler
 
 To compile `@plumeria/core`, for example, to use `npx css`, install  
-[`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler) for static extraction through the build process.
+[`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler) for static extraction through the Command Line.  
+Also, it can be easily integrated into the build process.
+
+The compiler is built using [**SWC**](https://swc.rs/) and performs high-speed transpilation in memory.
 
 ```sh
 npm install --save-dev @plumeria/compiler
 ```
 
-### Entry StyleSheet
+### Static StyleSheet
 
 Import stylesheet in your application's entry point.  
+CSS for all APIs is collected here.
+
 Applies the static stylesheet for production environments.
 
 ```ts
@@ -68,7 +75,7 @@ const styles = css.create({
 ### css.global()
 
 This API lets you define global CSS.
-You need to import the file containing css.global() wherever you use it (e.g. the top-level root).
+Due to restrictions on avoiding collisions in HTML selectors, css.global() is designed to throw a compilation error if written more than once.
 
 ```ts
 css.global({
@@ -178,8 +185,8 @@ Mixes #000 or #FFF into the color.
 The first argument takes the color and the second argument takes the same value as opacity (string % or number).
 
 ```ts
-css.colors.darken('skyblue', 0.12);
-css.colors.darken('skyblue', '12%');
+color: css.colors.darken('skyblue', 0.12),
+color: css.colors.lighten('navy', 0.6),
 ```
 
 ## Linter
