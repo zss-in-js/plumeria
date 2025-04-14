@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.7.4
+
+### Patch Changes
+
+- b63fc05: feat: rscute@0.1.0
+
 ## 0.7.0
 
 ### Minor Changes
