@@ -59,8 +59,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       rscute:
-        specifier: 0.1.0
-        version: 0.1.0(@types/node@22.14.1)
+        specifier: 0.1.1
+        version: 0.1.1(@types/node@22.14.1)
 
   packages/core:
     dependencies:
@@ -3837,6 +3837,12 @@ packages:
     peerDependencies:
       '@types/node': '>=22.13.11'
 
+  rscute@0.1.1:
+    resolution: {integrity: sha512-2uQH/YPau0SuH9BmUqmjANCaY4uXNvvNPTNC8bJ09cmDKRft7vbLPvaK2zuTQNuLOEaTUaWt7JIB1sGXr387mQ==}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>=22.13.11'
+
   run-parallel@1.2.0:
     resolution:
       {
@@ -6845,6 +6851,13 @@ snapshots:
       fsevents: 2.3.3
 
   rscute@0.1.0(@types/node@22.14.1):
+    dependencies:
+      '@swc/core': 1.11.20
+      '@types/node': 22.14.1
+    transitivePeerDependencies:
+      - '@swc/helpers'
+
+  rscute@0.1.1(@types/node@22.14.1):
     dependencies:
       '@swc/core': 1.11.20
       '@types/node': 22.14.1
