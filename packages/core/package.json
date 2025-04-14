@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.7.16",
+  "version": "0.7.18",
   "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
   "keywords": [
     "css",
@@ -19,7 +19,7 @@
     "./dist/method/create-build-helper": {
       "types": "./types/method/create-build-helper.d.ts",
       "import": "./dist/esm/method/create-build-helper.js",
-      "default": "./dist/cjs/method/global-build-helper.js"
+      "default": "./dist/cjs/method/create-build-helper.js"
     },
     "./dist/method/global-build-helper": {
       "types": "./types/method/global-build-helper.d.ts",
@@ -50,7 +50,7 @@
     "zss-engine": "0.2.26"
   },
   "peerDependencies": {
-    "@plumeria/compiler": ">=0.7.3"
+    "@plumeria/compiler": ">=0.7.6"
   },
   "publishConfig": {
     "access": "public"
