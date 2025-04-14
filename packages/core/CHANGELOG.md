@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.7.20
+
+### Patch Changes
+
+- 448074b: feat(docs): readme.md updated
+
 ## 0.7.19
 
 ### Patch Changes
