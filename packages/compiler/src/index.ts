@@ -14,8 +14,6 @@ const cleanUp = async () => {
   if (process.env.CI && fs.existsSync(coreFilePath)) {
     fs.unlinkSync(coreFilePath);
     console.log('File deleted successfully');
-  } else {
-    console.log('File does not exist');
   }
   try {
     fs.writeFileSync(coreFilePath, '', 'utf-8');
@@ -58,12 +56,7 @@ async function getAppRoot(): Promise<string> {
   await cleanUp();
   const appRoot = await getAppRoot();
   const files = await fg([path.join(appRoot, '**/*.{js,jsx,ts,tsx}')], {
-    ignore: [
-      '**/main.{js,ts}/**',
-      '**/dist/**',
-      '**/.next/**',
-      '**/node_modules/**',
-    ],
+    ignore: ['**/node_modules/**', '**/dist/**', '**/.next/**'],
   });
   const styleFiles = files.filter(isCSS);
   for (let i = 0; i < styleFiles.length; i++) {
