@@ -1,16 +1,23 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { execute } from 'rscute';
 import ts from 'typescript';
 import fg from 'fast-glob';
 import { buildCreate } from '@plumeria/core/dist/method/create-build-helper';
 import { buildGlobal } from '@plumeria/core/dist/method/global-build-helper';
+import { JIT } from 'rscute';
+
+const coreFilePath = path.join(
+  import.meta.dirname,
+  '../../core/stylesheet/core.css',
+);
 
 const cleanUp = async () => {
-  const projectRoot = process.cwd().split('node_modules')[0];
-  const directPath = path.join(projectRoot, 'node_modules/@plumeria/core');
-  const coreFilePath = path.join(directPath, 'stylesheet/core.css');
-
+  if (process.env.CI && fs.existsSync(coreFilePath)) {
+    fs.unlinkSync(coreFilePath);
+    console.log('File deleted successfully');
+  } else {
+    console.log('File does not exist');
+  }
   try {
     fs.writeFileSync(coreFilePath, '', 'utf-8');
   } catch (err) {
@@ -61,7 +68,7 @@ async function getAppRoot(): Promise<string> {
   });
   const styleFiles = files.filter(isCSS);
   for (let i = 0; i < styleFiles.length; i++) {
-    await execute(path.resolve(styleFiles[i]));
+    await JIT(path.resolve(styleFiles[i]));
   }
   for (let i = 0; i < styleFiles.length; i++) {
     await buildGlobal();

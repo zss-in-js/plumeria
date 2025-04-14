@@ -56,11 +56,11 @@ importers:
   packages/compiler:
     dependencies:
       fast-glob:
-        specifier: ^3.3.3
+        specifier: 3.3.3
         version: 3.3.3
       rscute:
-        specifier: ^0.0.14
-        version: 0.0.14(@swc/helpers@0.5.15)(@types/node@22.14.0)
+        specifier: 0.1.0
+        version: 0.1.0(@swc/helpers@0.5.15)(@types/node@22.14.0)
 
   packages/core:
     dependencies:
@@ -3850,6 +3850,12 @@ packages:
     peerDependencies:
       '@types/node': '>=22.13.11'
 
+  rscute@0.1.0:
+    resolution: {integrity: sha512-qE73vSxVhPFx8H2I2cKtLNx/crIPzv25ZHwx/m+m+EPR7QDIGXIr+NW9Pvsqcw84Kh1xZS66FwFdy5BNKArBfw==}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>=22.13.11'
+
   run-parallel@1.2.0:
     resolution:
       {
@@ -6895,6 +6901,13 @@ snapshots:
       fsevents: 2.3.3
 
   rscute@0.0.14(@swc/helpers@0.5.15)(@types/node@22.14.0):
+    dependencies:
+      '@swc/core': 1.11.16(@swc/helpers@0.5.15)
+      '@types/node': 22.14.0
+    transitivePeerDependencies:
+      - '@swc/helpers'
+
+  rscute@0.1.0(@swc/helpers@0.5.15)(@types/node@22.14.0):
     dependencies:
       '@swc/core': 1.11.16(@swc/helpers@0.5.15)
       '@types/node': 22.14.0

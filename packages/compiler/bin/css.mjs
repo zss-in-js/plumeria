@@ -32,8 +32,8 @@ try {
     : path.join(process.cwd(), 'node_modules/@plumeria');
 
   const rscutePath = isPnpm
-    ? findPnpmPath('rscute@', 'node_modules/rscute/dist/execute.js')
-    : path.join(process.cwd(), 'node_modules/rscute/dist/execute.js');
+    ? findPnpmPath('rscute@', 'node_modules/rscute/dist/jit.js')
+    : path.join(process.cwd(), 'node_modules/rscute/dist/jit.js');
 
   const argv = process.argv.includes('--log') ? ' --log' : '';
   execSync(`node ${rscutePath} compiler/dist/index.js` + argv, {
