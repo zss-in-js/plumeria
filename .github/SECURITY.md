@@ -10,8 +10,11 @@ We provide security updates for the following versions:
 
 | Version | Supported          | Notes                                                                                                       |
 | ------- | ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| 0.7.19  | :white_check_mark: | compiler update: It can now be used in conjunction with the css ext.                                     　 |
+| 0.7.18  | :white_check_mark: | compiler update: It now runs on a VM, which avoids node.js errors.                                       　 |
+| 0.7.15  | :white_check_mark: | style-preset to Replaced by zss-utils                       　　　　　                                     　 |
 | 0.7.11  | :white_check_mark: | The Node.js APIs exposed in the Vite environment will be replaced with dynamic imports and the preview will complete successfully. If you are in a Vite environment, please use plumeria vite-plugin's @plumeria/vite.|
-| 0.7.10  | :white_check_mark: | @plumeria/collection to Replaced by style-preset            　　　　　                                     　|
+| 0.7.10  | :white_check_mark: | @plumeria/collection to Replaced by style-preset            　　　　　                                     　 |
 | 0.7.9   | :white_check_mark: | Importing stylesheet is now required. import "@plumeria/core/stylesheet" your app entry points.             |
 | 0.7.8   | :white_check_mark: | Fixed Reverted because Next.js's behavior has changed to ESM, rollback ESM use directive.                   |  
 | 0.7.7   | :white_check_mark: | Fixed a use directive warning that occurred during build with vite.                                         |
