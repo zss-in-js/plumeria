@@ -1,8 +1,16 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
-import { styles } from "./style";
+import { useState } from 'react';
+import reactLogo from './assets/react.svg';
+import viteLogo from '/vite.svg';
+import './App.css';
+import { css } from '@plumeria/core';
+
+const styles = css.create({
+  color: {
+    WebkitTextFillColor: 'transparent',
+    background: 'linear-gradient(90deg, #58c6ff 0%, #076ad9 50%, #ff3bef 100%)',
+    backgroundClip: 'text',
+  },
+});
 
 function App() {
   const [count, setCount] = useState(0);
