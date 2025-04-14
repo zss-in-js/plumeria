@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/compiler",
-  "version": "0.7.3",
+  "version": "0.7.6",
   "description": "A faster compiler for Plumeria",
   "keywords": [
     "css",
@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "fast-glob": "3.3.3",
-    "rscute": "0.1.0"
+    "rscute": "0.1.1"
   },
   "publishConfig": {
     "access": "public"
