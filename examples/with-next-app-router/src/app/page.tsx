@@ -1,6 +1,15 @@
-import Image from "next/image";
-import styles from "./page.module.css";
-import { style } from "./style";
+import Image from 'next/image';
+import styles from './page.module.css';
+import { css } from '@plumeria/core';
+
+const style = css.create({
+  color: {
+    fontSize: 40,
+    WebkitTextFillColor: 'transparent',
+    background: 'linear-gradient(90deg, #58c6ff 0%, #076ad9 50%, #ff3bef 100%)',
+    backgroundClip: 'text',
+  },
+});
 
 export default function Home() {
   return (
