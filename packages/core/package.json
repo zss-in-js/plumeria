@@ -50,7 +50,7 @@
     "zss-engine": "0.2.26"
   },
   "peerDependencies": {
-    "@plumeria/compiler": ">=0.7.6"
+    "@plumeria/compiler": ">=0.7.7"
   },
   "publishConfig": {
     "access": "public"
