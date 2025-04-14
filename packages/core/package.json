@@ -18,11 +18,13 @@
     "./stylesheet": "./stylesheet/core.css",
     "./dist/method/create-build-helper": {
       "types": "./types/method/create-build-helper.d.ts",
-      "import": "./dist/esm/method/create-build-helper.js"
+      "import": "./dist/esm/method/create-build-helper.js",
+      "default": "./dist/cjs/method/global-build-helper.js"
     },
     "./dist/method/global-build-helper": {
       "types": "./types/method/global-build-helper.d.ts",
-      "import": "./dist/esm/method/global-build-helper.js"
+      "import": "./dist/esm/method/global-build-helper.js",
+      "default": "./dist/cjs/method/global-build-helper.js"
     },
     ".": {
       "types": "./types/index.d.ts",
