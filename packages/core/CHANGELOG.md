@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.7.19
+
+### Patch Changes
+
+- 6749af3: Fixed: prevent errors from occurring with image extensions, css extensions, etc.
+
 ## 0.7.11
 
 ### Patch Changes
