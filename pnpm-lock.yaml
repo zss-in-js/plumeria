@@ -60,14 +60,14 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       rscute:
-        specifier: 0.1.1
-        version: 0.1.1(@types/node@22.14.1)
+        specifier: 0.1.3
+        version: 0.1.3(@types/node@22.14.1)
 
   packages/core:
     dependencies:
       '@plumeria/compiler':
-        specifier: '>=0.7.6'
-        version: 0.7.6(@types/node@22.14.1)
+        specifier: '>=0.7.7'
+        version: 0.7.7(@types/node@22.14.1)
       zss-engine:
         specifier: 0.2.26
         version: 0.2.26
@@ -806,8 +806,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@plumeria/compiler@0.7.6':
-    resolution: {integrity: sha512-U75kQr91hoLTNlCK1mwQReOXtlWj6ZuAAULL9BpB41mgBYmvSBIOCBXwSrKSvC4tnSYqNu9PVNNktP+IjhAFtA==}
+  '@plumeria/compiler@0.7.7':
+    resolution: {integrity: sha512-ORIvC7WvisuBW96wCuuSGwU36ZusGFy6uxf8AK0yqqKvu0vaUwa9lMOp1dBb5ypERSrErMUNdTtRerzGmQMw2A==}
     hasBin: true
 
   '@rollup/rollup-android-arm-eabi@4.40.0':
@@ -2282,8 +2282,8 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  rscute@0.1.1:
-    resolution: {integrity: sha512-2uQH/YPau0SuH9BmUqmjANCaY4uXNvvNPTNC8bJ09cmDKRft7vbLPvaK2zuTQNuLOEaTUaWt7JIB1sGXr387mQ==}
+  rscute@0.1.3:
+    resolution: {integrity: sha512-NqCkJ9Ab0PkfJChpwyv1KhrlWabQueejzerb3wWViP6rMglZM6vOCc5Q/YZ/ox5Ozvdj12hfoGJc7BdRUl1nTA==}
     hasBin: true
     peerDependencies:
       '@types/node': '>=22.13.11'
@@ -3432,10 +3432,10 @@ snapshots:
     dependencies:
       playwright: 1.51.1
 
-  '@plumeria/compiler@0.7.6(@types/node@22.14.1)':
+  '@plumeria/compiler@0.7.7(@types/node@22.14.1)':
     dependencies:
       fast-glob: 3.3.3
-      rscute: 0.1.1(@types/node@22.14.1)
+      rscute: 0.1.3(@types/node@22.14.1)
     transitivePeerDependencies:
       - '@swc/helpers'
       - '@types/node'
@@ -5077,7 +5077,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.40.0
       fsevents: 2.3.3
 
-  rscute@0.1.1(@types/node@22.14.1):
+  rscute@0.1.3(@types/node@22.14.1):
     dependencies:
       '@swc/core': 1.11.20
       '@types/node': 22.14.1
