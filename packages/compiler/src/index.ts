@@ -6,10 +6,9 @@ import { buildCreate } from '@plumeria/core/dist/method/create-build-helper';
 import { buildGlobal } from '@plumeria/core/dist/method/global-build-helper';
 import { JIT } from 'rscute';
 
-const coreFilePath = path.join(
-  import.meta.dirname,
-  '../../core/stylesheet/core.css',
-);
+const projectRoot = process.cwd().split('node_modules')[0];
+const directPath = path.join(projectRoot, 'node_modules/@plumeria/core');
+const coreFilePath = path.join(directPath, 'stylesheet/core.css');
 
 const cleanUp = async () => {
   if (process.env.CI && fs.existsSync(coreFilePath)) {
