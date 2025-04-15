@@ -22,7 +22,7 @@
     "compiler",
     "vite",
     "next",
-    "preset",
+    "utils",
     "engine",
     "eslint-plugin"
   ]
