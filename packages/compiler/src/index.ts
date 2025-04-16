@@ -2,8 +2,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import ts from 'typescript';
 import fg from 'fast-glob';
-import { buildCreate } from '@plumeria/core/dist/method/create-build-helper';
-import { buildGlobal } from '@plumeria/core/dist/method/global-build-helper';
+import { buildCreate } from 'zss-utils';
+import { buildGlobal } from 'zss-utils';
 import { JIT } from 'rscute';
 
 const projectRoot = process.cwd().split('node_modules')[0];
@@ -63,9 +63,9 @@ async function getAppRoot(): Promise<string> {
     await JIT(path.resolve(styleFiles[i]));
   }
   for (let i = 0; i < styleFiles.length; i++) {
-    await buildGlobal();
+    await buildGlobal(coreFilePath);
   }
   for (let i = 0; i < styleFiles.length; i++) {
-    await buildCreate();
+    await buildCreate(coreFilePath);
   }
 })();
