@@ -16,16 +16,6 @@
   "exports": {
     "./package.json": "./package.json",
     "./stylesheet": "./stylesheet/core.css",
-    "./dist/method/create-build-helper": {
-      "types": "./types/method/create-build-helper.d.ts",
-      "import": "./dist/esm/method/create-build-helper.js",
-      "default": "./dist/cjs/method/create-build-helper.js"
-    },
-    "./dist/method/global-build-helper": {
-      "types": "./types/method/global-build-helper.d.ts",
-      "import": "./dist/esm/method/global-build-helper.js",
-      "default": "./dist/cjs/method/global-build-helper.js"
-    },
     ".": {
       "types": "./types/index.d.ts",
       "import": "./dist/esm/index.js",
@@ -46,8 +36,7 @@
     "esm": "tsc --project tsconfig.esm.json && node __direname"
   },
   "dependencies": {
-    "zss-utils": "0.0.4",
-    "zss-engine": "0.2.26"
+    "zss-utils": "0.0.8"
   },
   "peerDependencies": {
     "@plumeria/compiler": ">=0.7.7"
