@@ -65,8 +65,8 @@ importers:
   packages/core:
     dependencies:
       '@plumeria/compiler':
-        specifier: '>=0.7.7'
-        version: 0.8.1(@types/node@22.14.1)
+        specifier: '>=0.8.2'
+        version: 0.8.2(@types/node@22.14.1)
       zss-utils:
         specifier: 0.0.8
         version: 0.0.8
@@ -1254,10 +1254,10 @@ packages:
     engines: { node: '>=18' }
     hasBin: true
 
-  '@plumeria/compiler@0.8.1':
+  '@plumeria/compiler@0.8.2':
     resolution:
       {
-        integrity: sha512-I1SDEzJuvZ/1FLoHR20sKNDD6TtJz6WId9qY9jbnyn/OsVVNEgU9CbvYYWCCIFTjc+Ses4kUYHNw/vLVU14STg==,
+        integrity: sha512-sgi3O4lqTNtWQs1zqaeXp4s7jSBld+K5BVl5f+0m17onvQGhTcAAPuLsbHwS6lP03Iqy7OlTsCspuv2wFtDNgg==,
       }
     hasBin: true
 
@@ -5199,7 +5199,7 @@ snapshots:
     dependencies:
       playwright: 1.51.1
 
-  '@plumeria/compiler@0.8.1(@types/node@22.14.1)':
+  '@plumeria/compiler@0.8.2(@types/node@22.14.1)':
     dependencies:
       fast-glob: 3.3.3
       rscute: 0.1.3(@types/node@22.14.1)
