@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.8.0-beta.1",
+  "version": "0.8.0-beta.2",
   "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
   "keywords": [
     "css",
@@ -16,6 +16,11 @@
   "exports": {
     "./package.json": "./package.json",
     "./stylesheet": "./stylesheet/core.css",
+    "./build-helper": {
+      "import": "./dist/esm/build-helper.js",
+      "require": "./dist/cjs/build-helper.js",
+      "types": "./types/build-helper.d.ts"
+    },
     ".": {
       "types": "./types/index.d.ts",
       "import": "./dist/esm/index.js",
