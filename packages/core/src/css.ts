@@ -6,11 +6,19 @@ import type {
   ReturnType,
   VarsDefinition,
 } from 'zss-utils';
-import { create } from 'zss-utils';
-import { global } from 'zss-utils';
-import { defineThemeVars } from 'zss-utils';
-import { keyframes } from 'zss-utils';
-import { media, pseudo, colors, container, cx, rx } from 'zss-utils';
+
+import {
+  create,
+  global,
+  keyframes,
+  defineThemeVars,
+  media,
+  pseudo,
+  colors,
+  container,
+  cx,
+  rx,
+} from 'zss-utils';
 
 class css {
   static create<T extends Record<string, CustomProperties>>(
@@ -19,15 +27,9 @@ class css {
     return create(object);
   }
 
-  static global = ((called: boolean = false) => {
-    return (object: CustomHTMLType) => {
-      if (called) {
-        throw new Error('css.global() must be one');
-      }
-      called = true;
-      return global(object);
-    };
-  })();
+  static global(object: CustomHTMLType): void {
+    return global(object);
+  }
 
   static defineThemeVars<const T extends VarsDefinition>(object: T) {
     return defineThemeVars(object);
