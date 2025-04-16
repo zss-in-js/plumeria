@@ -2,8 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import ts from 'typescript';
 import fg from 'fast-glob';
-import { buildCreate } from 'zss-utils';
-import { buildGlobal } from 'zss-utils';
+import { buildGlobal, buildCreate } from '@plumeria/core/build-helper';
 import { JIT } from 'rscute';
 
 const projectRoot = process.cwd().split('node_modules')[0];
