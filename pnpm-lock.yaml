@@ -62,10 +62,6 @@ importers:
       rscute:
         specifier: 0.1.3
         version: 0.1.3(@types/node@22.14.1)
-    devDependencies:
-      zss-utils:
-        specifier: 0.0.8
-        version: 0.0.8
 
   packages/core:
     dependencies:
