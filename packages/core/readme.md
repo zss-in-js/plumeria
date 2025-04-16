@@ -1,6 +1,6 @@
 # @plumeria/core
 
-Plumeria is a CSS-in-JS built using [**zss-engine**](https://www.npmjs.com/package/zss-engine) and [**zss-utils**](https://www.npmjs.com/package/zss-utils) that provides a speedy development cycle.
+Plumeria is a CSS-in-JS built with [**zss-utils**](https://www.npmjs.com/package/zss-utils) that provides a speedy development cycle.
 
 ## Installation
 
@@ -15,8 +15,6 @@ npm install --save @plumeria/core
 To compile `@plumeria/core`, for example, to use `npx css`, install  
 [`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler) for static extraction through the Command Line.  
 Also, it can be easily integrated into the build process.
-
-The compiler is built using [**SWC**](https://swc.rs/) and performs high-speed transpilation in memory.
 
 ```sh
 npm install --save-dev @plumeria/compiler
@@ -75,7 +73,7 @@ const styles = css.create({
 ### css.global()
 
 This API lets you define global CSS.
-Due to restrictions on avoiding collisions in HTML selectors, css.global() is designed to throw a compilation error if written more than once.
+\*Please be careful not to create selectors that conflict by creating more than one global object.
 
 ```ts
 css.global({
@@ -87,8 +85,6 @@ css.global({
   },
 });
 ```
-
-The compiler extracts the CSS rules, replacing the rules in the source code with the compiled CSS.
 
 ### cx
 
