@@ -1,30 +1,34 @@
 {
   "name": "@plumeria/core",
-  "version": "0.8.0",
-  "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
+  "version": "0.8.1",
+  "description": "Zero-runtime StyleSheet for speedy development cycle",
   "keywords": [
     "css",
     "css-in-js",
     "plumeria",
     "react",
-    "vite",
-    "next"
+    "next",
+    "vite"
   ],
-  "repository": "github:zss-in-js/plumeria",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/core"
+  },
   "license": "MIT",
   "sideEffects": false,
   "exports": {
     "./package.json": "./package.json",
     "./stylesheet": "./stylesheet/core.css",
-    "./build-helper": {
-      "import": "./dist/esm/build-helper.js",
-      "require": "./dist/cjs/build-helper.js",
-      "types": "./types/build-helper.d.ts"
-    },
     ".": {
       "types": "./types/index.d.ts",
       "import": "./dist/esm/index.js",
       "default": "./dist/cjs/index.js"
+    },
+    "./build-helper": {
+      "types": "./types/build-helper.d.ts",
+      "import": "./dist/esm/build-helper.js",
+      "default": "./dist/cjs/build-helper.js"
     }
   },
   "main": "dist/cjs/index.js",
