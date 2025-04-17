@@ -1,6 +1,7 @@
 import React from 'react';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { css, cx } from '@plumeria/core';
+import { css } from '@plumeria/core';
+import { Plumeria } from 'component/Plumeria';
 /**
  * Shared layout configurations
  *
@@ -10,14 +11,19 @@ import { css, cx } from '@plumeria/core';
  */
 
 const styles = css.create({
-  position: {
+  top_link: {
     position: 'relative',
-    left: 6,
+    left: 100,
   },
-  purple: {
-    WebkitTextFillColor: 'transparent',
-    background: 'linear-gradient(67.5deg, #58c6ff 0%, #076ad9 40%, #ff3bef 80%)',
-    WebkitBackgroundClip: 'text',
+  top_logo: {
+    position: 'absolute',
+    left: -80,
+    scale: 0.28,
+    [css.media.max('width: 804px')]: {
+      top: -10,
+      left: -50,
+      scale: 0.34,
+    },
   },
 });
 
@@ -25,16 +31,14 @@ export const baseOptions: BaseLayoutProps = {
   githubUrl: 'https://github.com/zss-in-js/plumeria',
   nav: {
     title: (
-      <>
-        <span className={cx(styles.position, styles.purple)}>@plumeria</span>
-      </>
+      <span className={styles.top_logo}>
+        <Plumeria />
+      </span>
     ),
-
-    transparentMode: 'always',
   },
   links: [
     {
-      text: <span className={styles.position}>Documentation</span>,
+      text: <span className={styles.top_link}>Documentation</span>,
       url: '/docs',
     },
   ],

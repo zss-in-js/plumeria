@@ -6,8 +6,8 @@ import { TimeCount } from './timeHooks';
 const styles = css.create({
   headings: {
     position: 'relative',
-    right: 0,
-    zIndex: 1,
+    right: 26,
+    zIndex: 0,
     display: 'inline',
     marginBottom: '12px',
     fontSize: 56,
@@ -17,14 +17,15 @@ const styles = css.create({
     background: 'var(--bg)',
     WebkitBackgroundClip: 'text',
     [css.media.max('width: 800px')]: {
-      right: 12,
+      top: 20,
+      right: 20,
       marginTop: '54px',
       fontSize: '42px',
     },
   },
 });
 
-export const Component = () => {
+export const Plumeria = () => {
   const time = TimeCount();
   const generateGradualHsl = (offset = 0) => {
     const hue = (time + offset) % 360;
@@ -43,5 +44,5 @@ export const Component = () => {
     `,
   };
 
-  return <div {...rx(styles.headings, dynamicStyle)}>@plumeria/</div>;
+  return <div {...rx(styles.headings, dynamicStyle)}>💐 Plumeria</div>;
 };
