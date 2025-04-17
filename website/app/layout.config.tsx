@@ -1,7 +1,7 @@
 import React from 'react';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { css } from '@plumeria/core';
 import { Plumeria } from 'component/Plumeria';
+import { styles } from './styles';
 /**
  * Shared layout configurations
  *
@@ -9,23 +9,6 @@ import { Plumeria } from 'component/Plumeria';
  * Home Layout: app/(home)/layout.tsx
  * Docs Layout: app/docs/layout.tsx
  */
-
-const styles = css.create({
-  top_link: {
-    position: 'relative',
-    left: 100,
-  },
-  top_logo: {
-    position: 'absolute',
-    left: -80,
-    scale: 0.28,
-    [css.media.max('width: 804px')]: {
-      top: -10,
-      left: -50,
-      scale: 0.34,
-    },
-  },
-});
 
 export const baseOptions: BaseLayoutProps = {
   githubUrl: 'https://github.com/zss-in-js/plumeria',
