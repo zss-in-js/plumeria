@@ -1,4 +1,4 @@
-# @plumeria/core
+# 💐 Plumeria
 
 Plumeria is a CSS-in-JS built with [**zss-utils**](https://www.npmjs.com/package/zss-utils) that provides a speedy development cycle.
 
@@ -7,27 +7,28 @@ Plumeria is a CSS-in-JS built with [**zss-utils**](https://www.npmjs.com/package
 To start using Plumeria, install the following two packages:
 
 ```sh
-npm install --save @plumeria/core
+npm install @plumeria/core
 ```
 
 ### Compiler
 
-To compile `@plumeria/core`, for example, to use `npx css`, install  
-[`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler) for static extraction through the Command Line.  
-Also, it can be easily integrated into the build process.
+Plumeria is designed to extract styles into static CSS stylesheets using the CLI.
+Install the following libraries to enable CLI commands: [`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler)
 
 ```sh
 npm install --save-dev @plumeria/compiler
 ```
 
+For more information on compiler commnads, please see the documentation  
+[API reference/css](https://plumeria.dev/docs/reference/css).
+
 ### Static StyleSheet
 
 Import stylesheet in your application's entry point.  
-CSS for all APIs is collected here.
-
 Applies the static stylesheet for production environments.
 
 ```ts
+// eg: main.ts or layout.tsx
 import '@plumeria/core/stylesheet';
 ```
 
@@ -35,7 +36,7 @@ import '@plumeria/core/stylesheet';
 
 ### css.create()
 
-Styles are defined as a map of CSS rules using css.create(). In the example below, there are 2 different CSS rules. The names "box" and "text" are arbitrary names given to the rules.
+Styles are defined as a map of CSS rules using css.create(). In the example below, there are 2 different CSS className. The className `styles.box` and `styles.text` are arbitrary names given to the rules.
 
 ```ts
 import { css } from '@plumeria/core';
@@ -51,7 +52,8 @@ const styles = css.create({
 });
 ```
 
-Pseudo and media queries can be wrapped in property style definitions:
+Pseudo and media queries can be wrapped in property style definitions:  
+Also, any properties that are not wrapped will conform to that className.
 
 ```ts
 const styles = css.create({
@@ -62,8 +64,9 @@ const styles = css.create({
     },
   },
   text: {
+    color: '#333' // standard properties of that className
     [css.pseudo.hover]: {
-      color: 'yellow',
+      color: 'skyblue',
       opacity: 0.9,
     },
   },
@@ -77,11 +80,24 @@ This API lets you define global CSS.
 
 ```ts
 css.global({
+  html: {
+    width: '100%',
+    height: '100%',
+    padding: 0,
+    margin: 0,
+  },
+  body: {
+    position: 'relative',
+    width: 600,
+  },
+  h1: {
+    fontSize: 32,
+  },
   h2: {
     fontSize: 24,
   },
   h3: {
-    fontSize: 34,
+    fontSize: 16,
   },
 });
 ```
@@ -99,37 +115,6 @@ const styles = css.create({
     },
   },
 });
-```
-
-### rx
-
-### React JSX only features
-
-React `inline-style` are **offloaded** using only static sheet the css variables.  
-It is can pass states to multiple variables at once.
-
-```ts
-'use client';
-
-import { useState } from 'react';
-import { css, rx } from '@plumeria/core';
-
-const styles = css.create({
-  bar: {
-    width: 'var(--width)',
-    background: 'aqua',
-  },
-});
-
-export const Component = () => {
-  const [state, setState] = useState(0);
-  return (
-    <di>
-      <button onClick={() => setState((prev) => prev + 10)}>count</button>
-      <div {...rx(styles.bar, { '--width': state + 'px' })} />
-    </di>
-  );
-};
 ```
 
 ### css.keyframes()
@@ -160,7 +145,7 @@ Define data-theme and regular variables as objects.
 A default compile to :root, and the rest as a string compile to data-theme, You can also use media and container here.
 
 ```ts
-const colors = css.defineThemeVars({
+const preset = css.defineThemeVars({
   normal: 'white',
   text_primary: {
     default: 'rgb(60,60,60)',
@@ -175,7 +160,7 @@ const colors = css.defineThemeVars({
 });
 ```
 
-### css.colors.darken()
+### css.colors
 
 Mixes #000 or #FFF into the color.  
 The first argument takes the color and the second argument takes the same value as opacity (string % or number).
