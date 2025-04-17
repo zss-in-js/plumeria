@@ -43,7 +43,7 @@ const styles = css.create({
   headings: {
     WebkitTextFillColor: 'transparent',
     background: 'var(--bg)',
-    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
   },
 });
 
@@ -67,7 +67,7 @@ export const Component = () => {
 
   return (
     <div {...rx(styles.headings, dynamicStyle)}>
-      @plumeria/
+      💐 Plumeria
     </div>
   );
 };
@@ -78,7 +78,7 @@ export const CodeBlock = async () => {
     lang: 'javascript',
     themes: {
       light: 'everforest-light',
-      dark: 'poimandres',
+      dark: 'ayu-dark',
     },
     defaultColor: false,
   });
