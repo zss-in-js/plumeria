@@ -1,7 +1,13 @@
 import React from 'react';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { Plumeria } from 'component/Plumeria';
-import { styles } from './styles';
+import { css } from '@plumeria/core';
+
+const styles = css.create({
+  logo: {
+    fontWeight: 400,
+  },
+});
+
 /**
  * Shared layout configurations
  *
@@ -13,15 +19,11 @@ import { styles } from './styles';
 export const baseOptions: BaseLayoutProps = {
   githubUrl: 'https://github.com/zss-in-js/plumeria',
   nav: {
-    title: (
-      <span className={styles.top_logo}>
-        <Plumeria />
-      </span>
-    ),
+    title: <span className={styles.logo}>💐 Plumeria</span>,
   },
   links: [
     {
-      text: <span className={styles.top_link}>Documentation</span>,
+      text: <span>Documentation</span>,
       url: '/docs',
     },
   ],
