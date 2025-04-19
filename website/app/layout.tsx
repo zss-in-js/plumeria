@@ -3,7 +3,7 @@ import 'fumadocs-ui/style.css';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import type { ReactNode } from 'react';
-import { ServerCSS } from '@plumeria/next';
+import { ServerCSS } from '@plumeria/next-util';
 import { VercelAnalytics } from './VercelAnalytics';
 import { Metadata } from 'next';
 
