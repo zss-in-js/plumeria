@@ -18,7 +18,7 @@ const styles = css.create({
     WebkitBackgroundClip: 'text',
     [css.media.max('width: 800px')]: {
       top: 20,
-      right: 20,
+      right: 22,
       marginTop: '54px',
       fontSize: '42px',
     },
