@@ -2,7 +2,7 @@ import type { Plugin } from 'vite';
 
 export default function plumeria(): Plugin {
   return {
-    name: '@plumeria/vite',
+    name: '@plumeria/vite-plugin',
     config: ({ build = {} }) => ({
       build: {
         ...build,
@@ -11,7 +11,6 @@ export default function plumeria(): Plugin {
           external: [
             ...((build.rollupOptions?.external || []) as string[]),
             'fs',
-            'path',
             'util',
           ],
         },

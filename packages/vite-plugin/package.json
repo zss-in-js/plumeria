@@ -1,12 +1,17 @@
 {
-  "name": "@plumeria/vite",
-  "version": "0.0.0",
+  "name": "@plumeria/vite-plugin",
+  "version": "0.8.1",
   "type": "module",
   "description": "vite use node.js for clean setup",
   "keywords": [
-    "@plumeria",
+    "plumeria",
+    "vite",
     "vite-plugin",
-    "css-in-js"
+    "css",
+    "css-in-js",
+    "styling",
+    "build-time",
+    "zero-runtime"
   ],
   "main": "dist/index.js",
   "types": "types/index.d.ts",
