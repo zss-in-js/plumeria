@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import '@plumeria/core/stylesheet';
-import { ServerCSS } from '@plumeria/next';
+import { ServerCSS } from '@plumeria/next-util';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
