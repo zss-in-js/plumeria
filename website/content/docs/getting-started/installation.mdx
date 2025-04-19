@@ -109,7 +109,7 @@ Plumeira can be integrated with Vite and Next.js.
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    npm i -D @plumeria/next
+    npm i -D @plumeria/next-util
     # Add <ServerCSS /> for layout.tsx
     ```
 
@@ -117,7 +117,7 @@ Plumeira can be integrated with Vite and Next.js.
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    npm i -D @plumeria/vite
+    npm i -D @plumeria/vite-plugin
     # Add plumeria() for vite.config.ts
     ```
   </Tab>
@@ -132,8 +132,8 @@ This ServerCSS is a headless component and is not included in the production env
 
 
 ```tsx title="layout.tsx"
-import { ServerCSS } from '@plumeria/next'
-// const { ServerCSS } = require('@plumeria/next'); // next dev --turbo
+import { ServerCSS } from '@plumeria/next-util'; // [!code ++]
+// const { ServerCSS } = require('@plumeria/next-util'); // next dev --turbo
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -155,16 +155,16 @@ It will display warnings and errors when it is possible to execute the command, 
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import plumeria from '@plumeria/vite';
+import plumeria from '@plumeria/vite-plugin'; // [!code ++]
 
 export default defineConfig({
-  plugins: [react(), plumeria()],  // [!code ++]
+  plugins: [react(), plumeria()],
 });
 
 ```
 </Step>
 <Cards>
-  <Card title="See more about @plumeria/vite package" href="/docs/reference/vite" />
-  <Card title="See more about @plumeria/next package" href="/docs/reference/next" />
+  <Card title="See more about @plumeria/vite-plugin package" href="/docs/reference/vite" />
+  <Card title="See more about @plumeria/next-util package" href="/docs/reference/next" />
 </Cards>
 </Steps>
