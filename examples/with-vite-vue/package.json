@@ -10,11 +10,11 @@
   },
   "dependencies": {
     "@plumeria/core": "^0.8.1",
+    "@plumeria/vite-plugin": "^0.8.1",
     "vue": "^3.4.37"
   },
   "devDependencies": {
     "@plumeria/compiler": "^0.8.2",
-    "@plumeria/vite": "^0.0.0",
     "@vitejs/plugin-vue": "^5.1.2",
     "typescript": "^5.5.3",
     "vite": "^5.4.1",
