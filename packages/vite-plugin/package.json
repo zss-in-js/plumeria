@@ -26,5 +26,8 @@
   },
   "devDependencies": {
     "vite": "6.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
