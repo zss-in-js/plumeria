@@ -65,8 +65,8 @@ importers:
   packages/core:
     dependencies:
       '@plumeria/compiler':
-        specifier: '>=0.8.2'
-        version: 0.8.2(@types/node@22.14.1)
+        specifier: '>=0.8.3'
+        version: 0.8.3(@types/node@22.14.1)
       zss-utils:
         specifier: 0.0.8
         version: 0.0.8
@@ -1254,10 +1254,10 @@ packages:
     engines: { node: '>=18' }
     hasBin: true
 
-  '@plumeria/compiler@0.8.2':
+  '@plumeria/compiler@0.8.3':
     resolution:
       {
-        integrity: sha512-sgi3O4lqTNtWQs1zqaeXp4s7jSBld+K5BVl5f+0m17onvQGhTcAAPuLsbHwS6lP03Iqy7OlTsCspuv2wFtDNgg==,
+        integrity: sha512-JtU5dluKsXDpKzgufjAJR1MXHgtSV4DWtNry0v9OZLBnOGm7O/ROsEoaQ94Yb0moTGQb69vWEZVr0n2A5qIAWw==,
       }
     hasBin: true
 
@@ -3825,26 +3825,20 @@ packages:
     engines: { node: '>=18.0.0', npm: '>=8.0.0' }
     hasBin: true
 
-  rscute@0.1.0:
+  rscute@0.1.3:
     resolution:
       {
-        integrity: sha512-qE73vSxVhPFx8H2I2cKtLNx/crIPzv25ZHwx/m+m+EPR7QDIGXIr+NW9Pvsqcw84Kh1xZS66FwFdy5BNKArBfw==,
-      }
-    hasBin: true
-    peerDependencies:
-      '@types/node': '>=22.13.11'
-
-  rscute@0.1.1:
-    resolution:
-      {
-        integrity: sha512-2uQH/YPau0SuH9BmUqmjANCaY4uXNvvNPTNC8bJ09cmDKRft7vbLPvaK2zuTQNuLOEaTUaWt7JIB1sGXr387mQ==,
+        integrity: sha512-NqCkJ9Ab0PkfJChpwyv1KhrlWabQueejzerb3wWViP6rMglZM6vOCc5Q/YZ/ox5Ozvdj12hfoGJc7BdRUl1nTA==,
       }
     hasBin: true
     peerDependencies:
       '@types/node': '>=22.13.11'
 
   rscute@0.1.7:
-    resolution: {integrity: sha512-lGaYX6xKKw4ZGDEYQGQfVlfabC8/VwAoBkdzwbsddkkIO/wWubxb5mfcM+7KMzLlmmX2/uhw/Vk4CCmTWouosw==}
+    resolution:
+      {
+        integrity: sha512-lGaYX6xKKw4ZGDEYQGQfVlfabC8/VwAoBkdzwbsddkkIO/wWubxb5mfcM+7KMzLlmmX2/uhw/Vk4CCmTWouosw==,
+      }
     hasBin: true
     peerDependencies:
       '@types/node': '>=22.13.11'
@@ -5205,10 +5199,10 @@ snapshots:
     dependencies:
       playwright: 1.51.1
 
-  '@plumeria/compiler@0.8.2(@types/node@22.14.1)':
+  '@plumeria/compiler@0.8.3(@types/node@22.14.1)':
     dependencies:
       fast-glob: 3.3.3
-      rscute: 0.1.3(@types/node@22.14.1)
+      rscute: 0.1.7(@types/node@22.14.1)
     transitivePeerDependencies:
       - '@swc/helpers'
       - '@types/node'
@@ -6849,13 +6843,6 @@ snapshots:
       '@rollup/rollup-win32-ia32-msvc': 4.40.0
       '@rollup/rollup-win32-x64-msvc': 4.40.0
       fsevents: 2.3.3
-
-  rscute@0.1.3(@types/node@22.14.1):
-    dependencies:
-      '@swc/core': 1.11.21
-      '@types/node': 22.14.1
-    transitivePeerDependencies:
-      - '@swc/helpers'
 
   rscute@0.1.7(@types/node@22.14.1):
     dependencies:
