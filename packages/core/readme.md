@@ -1,10 +1,11 @@
-# 💐 Plumeria
+# @plumeria/core
 
 Plumeria is a CSS-in-JS built with [**zss-utils**](https://www.npmjs.com/package/zss-utils) that provides a speedy development cycle.
 
 ## Installation
 
-To start using Plumeria, install the following two packages:
+For integration with the bundler see: [Installation](https://plumeria.dev/docs/getting-started/installation).  
+To start using Plumeria, Install the following two packages and the bundler package:
 
 ```sh
 npm install @plumeria/core
@@ -12,21 +13,23 @@ npm install @plumeria/core
 
 ### Compiler
 
-To compile @plumeria/core, for example, to use `npx css`, install  
-[`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler) for static extraction through the Command-line.  
-Also, it can be easily integrated(`css &&`) into the build process.
+Plumeria is designed to extract styles into static CSS stylesheets using the CLI.
+Install the following libraries to enable CLI commands: [`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler)
 
 ```sh
 npm install --save-dev @plumeria/compiler
 ```
 
+For more information on compiler commnads, please see the documentation:  
+[API reference](https://plumeria.dev/docs/reference/css).
+
 ### Static StyleSheet
 
 Import stylesheet in your application's entry point.  
-CSS for all APIs is collected here.  
 Applies the static stylesheet for production environments.
 
 ```ts
+// eg: main.ts or layout.tsx
 import '@plumeria/core/stylesheet';
 ```
 
