@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.8.3
+
+### Patch Changes
+
+- 92c5bde: feat(compiler): update rscute version 0.1.7
+
 ## 0.7.0
 
 ### Minor Changes
