@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.8.3
+
+### Patch Changes
+
+- 32568e0: fix(core): fix readme and update compiler perDependencies
+
 ## 0.7.20
 
 ### Patch Changes
