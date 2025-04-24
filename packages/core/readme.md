@@ -12,21 +12,23 @@ npm install @plumeria/core
 
 ### Compiler
 
-To compile @plumeria/core, for example, to use `npx css`, install  
-[`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler) for static extraction through the Command-line.  
-Also, it can be easily integrated(`css &&`) into the build process.
+Plumeria is designed to extract styles into static CSS stylesheets using the CLI.
+Install the following libraries to enable CLI commands: [`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler)
 
 ```sh
 npm install --save-dev @plumeria/compiler
 ```
 
+For more information on compiler commnads, please see the documentation  
+[API reference/css](https://plumeria.dev/docs/reference/css).
+
 ### Static StyleSheet
 
 Import stylesheet in your application's entry point.  
-CSS for all APIs is collected here.  
 Applies the static stylesheet for production environments.
 
 ```ts
+// eg: main.ts or layout.tsx
 import '@plumeria/core/stylesheet';
 ```
 
