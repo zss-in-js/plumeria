@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "fast-glob": "3.3.3",
-    "rscute": "0.1.3"
+    "rscute": "0.1.7"
   },
   "publishConfig": {
     "access": "public"
