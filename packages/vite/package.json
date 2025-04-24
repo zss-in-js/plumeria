@@ -2,11 +2,13 @@
   "name": "@plumeria/vite",
   "version": "0.0.0",
   "type": "module",
-  "description": "vite use node.js for clean setup",
+  "description": "Vite plugin for Plumeria",
   "keywords": [
-    "@plumeria",
-    "vite-plugin",
-    "css-in-js"
+    "react",
+    "css",
+    "css-in-js",
+    "plumeria",
+    "styling"
   ],
   "main": "dist/index.js",
   "types": "types/index.d.ts",
@@ -21,5 +23,8 @@
   },
   "devDependencies": {
     "vite": "6.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
