@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/compiler",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "A faster compiler for Plumeria",
   "keywords": [
     "css",
