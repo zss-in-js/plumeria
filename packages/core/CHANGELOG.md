@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.8.4
+
+### Patch Changes
+
+- 3b2c862: feat: Postcss and lightningcss processing have been added to the compiler post-processing. The AST parser has been changed from TypeScript to SWC, making it faster.
+
 ## 0.8.3
 
 ### Patch Changes
