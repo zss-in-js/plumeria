@@ -1,5 +1,17 @@
 # @plumeria/compiler
 
+## 0.8.4
+
+### Patch Changes
+
+- 39008ba: feat: AST parser is **TypeScript** to **SWC** and add **postcss** and **lightningcss**
+
+- arguments update:
+  `--log` is changed to **`--view`**
+
+- new args: **`--paths`**  
+  this is outputs a list of paths to files that describe styles.
+
 ## 0.8.3
 
 ### Patch Changes
