@@ -71,17 +71,17 @@ importers:
         specifier: ^10.0.3
         version: 10.0.3(postcss@8.5.3)
       rscute:
-        specifier: 0.1.7
-        version: 0.1.7(@types/node@22.14.1)
+        specifier: ^0.2.1
+        version: 0.2.1(@types/node@22.14.1)
 
   packages/core:
     dependencies:
       '@plumeria/compiler':
-        specifier: '>=0.8.3'
-        version: 0.8.3(@types/node@22.14.1)
+        specifier: '>=0.8.4'
+        version: 0.8.4(@types/node@22.14.1)
       zss-utils:
-        specifier: 0.0.8
-        version: 0.0.8
+        specifier: 0.1.0
+        version: 0.1.0
 
   packages/next:
     devDependencies:
@@ -1266,10 +1266,10 @@ packages:
     engines: { node: '>=18' }
     hasBin: true
 
-  '@plumeria/compiler@0.8.3':
+  '@plumeria/compiler@0.8.4':
     resolution:
       {
-        integrity: sha512-JtU5dluKsXDpKzgufjAJR1MXHgtSV4DWtNry0v9OZLBnOGm7O/ROsEoaQ94Yb0moTGQb69vWEZVr0n2A5qIAWw==,
+        integrity: sha512-6yhm4YsV6yAzLmWG+cfMdlbr/x2c8T6A4Paihp23qI4QdvSwNSHvIscq2vODztTryfw/j9R8bdRObI2jVUpMHQ==,
       }
     hasBin: true
 
@@ -3934,19 +3934,10 @@ packages:
     engines: { node: '>=18.0.0', npm: '>=8.0.0' }
     hasBin: true
 
-  rscute@0.1.3:
+  rscute@0.2.1:
     resolution:
       {
-        integrity: sha512-NqCkJ9Ab0PkfJChpwyv1KhrlWabQueejzerb3wWViP6rMglZM6vOCc5Q/YZ/ox5Ozvdj12hfoGJc7BdRUl1nTA==,
-      }
-    hasBin: true
-    peerDependencies:
-      '@types/node': '>=22.13.11'
-
-  rscute@0.1.7:
-    resolution:
-      {
-        integrity: sha512-lGaYX6xKKw4ZGDEYQGQfVlfabC8/VwAoBkdzwbsddkkIO/wWubxb5mfcM+7KMzLlmmX2/uhw/Vk4CCmTWouosw==,
+        integrity: sha512-LPTMxC5XrnZiePJO/9LKLNjk7Sba1719fxUC0T7cSD9IhxBNrSIybcx0xCe8C7ubKECU55LQzusGyZO35Cl3Dw==,
       }
     hasBin: true
     peerDependencies:
@@ -4489,6 +4480,12 @@ packages:
     resolution:
       {
         integrity: sha512-WqZyYLFkfT441LIjcpEz2O3Icij277YzNSkmAmeL7sfaez9FCjlboXxtU8Kn//bYX53cvzjOiTg9zWezq8RndA==,
+      }
+
+  zss-engine@0.2.27:
+    resolution:
+      {
+        integrity: sha512-/f8xJveR7w5UBmMLLkrWjxC+pob7iFDQ44YV/cHFcZt7G0/Rf8o4tcGmz67YRsQLyxYx5TTs96GdJPjFRUSPsA==,
       }
 
   zss-utils@0.0.8:
@@ -5308,10 +5305,14 @@ snapshots:
     dependencies:
       playwright: 1.51.1
 
-  '@plumeria/compiler@0.8.3(@types/node@22.14.1)':
+  '@plumeria/compiler@0.8.4(@types/node@22.14.1)':
     dependencies:
+      '@swc/core': 1.11.22
       fast-glob: 3.3.3
-      rscute: 0.1.7(@types/node@22.14.1)
+      lightningcss: 1.29.3
+      postcss: 8.5.3
+      postcss-combine-duplicated-selectors: 10.0.3(postcss@8.5.3)
+      rscute: 0.2.1(@types/node@22.14.1)
     transitivePeerDependencies:
       - '@swc/helpers'
       - '@types/node'
@@ -7009,7 +7010,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.40.0
       fsevents: 2.3.3
 
-  rscute@0.1.7(@types/node@22.14.1):
+  rscute@0.2.1(@types/node@22.14.1):
     dependencies:
       '@swc/core': 1.11.22
       '@types/node': 22.14.1
@@ -7297,6 +7298,14 @@ snapshots:
     dependencies:
       csstype: 3.1.3
 
+  zss-engine@0.2.27:
+    dependencies:
+      csstype: 3.1.3
+
   zss-utils@0.0.8:
     dependencies:
       zss-engine: 0.2.26
+
+  zss-utils@0.1.0:
+    dependencies:
+      zss-engine: 0.2.27
