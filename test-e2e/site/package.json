@@ -9,14 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@plumeria/compiler": "*",
-    "@plumeria/core": "*",
-    "@plumeria/next": "*",
     "next": "^15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@plumeria/core": "*",
+    "@plumeria/compiler": "*",
+    "@plumeria/next": "*",
     "@types/node": "^22.13.14",
     "@types/react": "^18",
     "@types/react-dom": "^18",
