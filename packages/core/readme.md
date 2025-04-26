@@ -82,7 +82,6 @@ const styles = css.create({
 ### css.global()
 
 This API lets you define global CSS.
-\*Please be careful not to create selectors that conflict by creating more than one global object.
 
 ```ts
 css.global({
