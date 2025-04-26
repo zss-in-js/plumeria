@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.0
+
+### Minor Changes
+
+- 0f4c687: feat: postcss and lightningcss are now available
+
 ## 0.8.4
 
 ### Patch Changes
