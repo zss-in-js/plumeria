@@ -16,7 +16,7 @@ The file extension has changed from `*.css.ts` to `*.ts.` or `*.tsx`
 
 `npx cssx` is now `npx css`.  
 The argument --compile has been changed to --type-check.  
-argments is `--log` or `--type-check`.
+argments is `--view` and `--paths` and `--type-check`.
 
 ## Deleted API
 
