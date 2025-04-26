@@ -78,8 +78,8 @@ importers:
   packages/core:
     dependencies:
       '@plumeria/compiler':
-        specifier: '>=0.8.4'
-        version: 0.8.4(@types/node@22.14.1)
+        specifier: '>=0.8.5'
+        version: 0.8.5(@types/node@22.14.1)
       zss-utils:
         specifier: 0.1.0
         version: 0.1.0
@@ -815,8 +815,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@plumeria/compiler@0.8.4':
-    resolution: {integrity: sha512-6yhm4YsV6yAzLmWG+cfMdlbr/x2c8T6A4Paihp23qI4QdvSwNSHvIscq2vODztTryfw/j9R8bdRObI2jVUpMHQ==}
+  '@plumeria/compiler@0.8.5':
+    resolution: {integrity: sha512-3t34IgKWJdE+g6B2fGjCwnYghocb3wPX05LpaaxSY/ezZawrU7pZLMCzirkEoWbFEtKQ2ca+aLSi6iI1YMxjCw==}
     hasBin: true
 
   '@rollup/rollup-android-arm-eabi@4.40.0':
@@ -3526,7 +3526,7 @@ snapshots:
     dependencies:
       playwright: 1.51.1
 
-  '@plumeria/compiler@0.8.4(@types/node@22.14.1)':
+  '@plumeria/compiler@0.8.5(@types/node@22.14.1)':
     dependencies:
       '@swc/core': 1.11.22
       fast-glob: 3.3.3
