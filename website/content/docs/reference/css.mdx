@@ -24,12 +24,12 @@ npx css
 
 ## Options
 
-## `--log`
+## `--view`
 Use it to visualize your builds and test them as you go.  
-Do not include the --log argument in your build script as it will get into the server logs.
+Do not include the --view argument in your build script as it will get into the server logs.
 
 ```sh title="Terminal"
-npx css --log
+npx css --view
 ```
 Example output:
 ```sh title="Terminal"
@@ -56,6 +56,21 @@ Example output:
   animation-duration: 0.4s;
   animation-timing-function: ease;
 }
+```
+
+## `--paths`
+Outputs a list of the files to be compiled. file.
+```sh title="Terminal"
+npx css --paths
+```
+Example output:
+```sh title="Terminal"
+plumeria/test-e2e/site/app/page.tsx
+plumeria/test-e2e/site/component/style-create.tsx
+plumeria/test-e2e/site/component/style-not-conflict.tsx
+plumeria/test-e2e/site/component/style-server-component.tsx
+ ✓ Compiled... 
+
 ```
 
 ## `--type-check`
