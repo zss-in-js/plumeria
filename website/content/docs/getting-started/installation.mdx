@@ -62,8 +62,13 @@ compiles without type checking.
 - argument `--type-check`  
 The  will include compilation check.
 
-- arugment `--log`  
+- arugment `--view`  
 See the CSS log that is output during compilation.
+
+- argument `--paths`  
+See the compile target paths list is output during compilation.
+
+## Integration with build
 
 Next.js recommends generating SSR CSS by compiling with next dev.  
 In Vite, only the client is referenced, so there is no need to compile at the same time as dev.
@@ -90,7 +95,7 @@ In Vite, only the client is referenced, so there is no need to compile at the sa
 </Tab>
 </Tabs>
 
---- 
+## Static Stylesheet
 
 - Applying a Style Sheet: import `@plumeria/core/stylesheet` in your application entry point.
 ```ts
