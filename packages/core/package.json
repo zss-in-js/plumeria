@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "Zero-runtime StyleSheet for speedy development cycle",
   "keywords": [
     "css",
