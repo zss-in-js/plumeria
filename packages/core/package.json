@@ -45,10 +45,10 @@
     "esm": "tsc --project tsconfig.esm.json"
   },
   "dependencies": {
-    "zss-utils": "0.0.8"
+    "zss-utils": "0.1.0"
   },
   "peerDependencies": {
-    "@plumeria/compiler": ">=0.8.3"
+    "@plumeria/compiler": ">=0.8.4"
   },
   "publishConfig": {
     "access": "public"
