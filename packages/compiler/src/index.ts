@@ -1,19 +1,58 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import ts from 'typescript';
 import fg from 'fast-glob';
+import postcss from 'postcss';
+import combineSelectors from 'postcss-combine-duplicated-selectors';
+import { transform } from 'lightningcss';
+import { parseSync } from '@swc/core';
+import { execute } from 'rscute';
 import { buildGlobal, buildCreate } from '@plumeria/core/build-helper';
-import { JIT } from 'rscute';
+
+function isCSS(filePath: string): boolean {
+  const code = fs.readFileSync(filePath, 'utf8');
+  const ast = parseSync(code, {
+    syntax: 'typescript',
+    tsx: filePath.endsWith('.tsx'),
+    decorators: false,
+    dynamicImport: true,
+  });
+
+  let found = false;
+
+  function visit(node: any) {
+    if (node.type === 'MemberExpression' && node.property?.value) {
+      if (node.object?.type === 'Identifier' && node.object.value === 'css') {
+        if (
+          node.property.value === 'create' ||
+          node.property.value === 'global'
+        ) {
+          found = true;
+        }
+      }
+    }
+
+    for (const key in node) {
+      const value = node[key];
+      if (value && typeof value === 'object') {
+        if (Array.isArray(value)) {
+          value.forEach(visit);
+        } else {
+          visit(value);
+        }
+      }
+    }
+  }
+
+  visit(ast);
+
+  return found;
+}
 
 const projectRoot = process.cwd().split('node_modules')[0];
 const directPath = path.join(projectRoot, 'node_modules/@plumeria/core');
 const coreFilePath = path.join(directPath, 'stylesheet/core.css');
 
 const cleanUp = async () => {
-  if (process.env.CI && fs.existsSync(coreFilePath)) {
-    fs.unlinkSync(coreFilePath);
-    console.log('File deleted successfully');
-  }
   try {
     fs.writeFileSync(coreFilePath, '', 'utf-8');
   } catch (err) {
@@ -21,27 +60,28 @@ const cleanUp = async () => {
   }
 };
 
-function isCSS(filePath: string): boolean {
-  const content = fs.readFileSync(filePath, 'utf8');
-  const sourceFile = ts.createSourceFile(
-    filePath,
-    content,
-    ts.ScriptTarget.Latest,
-    true,
-  );
+async function optimizeCSS() {
+  const code = fs.readFileSync(coreFilePath, 'utf8');
+  const mergedResult = postcss([
+    combineSelectors({ removeDuplicatedProperties: true }),
+  ]).process(code, {
+    from: coreFilePath,
+    to: coreFilePath,
+  });
 
-  const checker = (node: ts.Node): boolean => {
-    if (ts.isPropertyAccessExpression(node) && ts.isIdentifier(node.name)) {
-      const expressionText = node.expression.getText(sourceFile);
-      const methodName = node.name.getText(sourceFile);
-      return (
-        expressionText === 'css' && ['create', 'global'].includes(methodName)
-      );
-    }
-    return ts.forEachChild(node, checker) || false;
-  };
+  const prefixResult = transform({
+    filename: coreFilePath,
+    code: Buffer.from(mergedResult.css),
+    minify: true,
+    targets: {
+      safari: 16,
+      edge: 110,
+      firefox: 110,
+      chrome: 110,
+    },
+  });
 
-  return checker(sourceFile);
+  fs.writeFileSync(coreFilePath, prefixResult.code);
 }
 
 async function getAppRoot(): Promise<string> {
@@ -59,7 +99,8 @@ async function getAppRoot(): Promise<string> {
   });
   const styleFiles = files.filter(isCSS);
   for (let i = 0; i < styleFiles.length; i++) {
-    await JIT(path.resolve(styleFiles[i]));
+    await execute(path.resolve(styleFiles[i]));
+    if (process.argv.includes('--paths')) console.log(styleFiles[i]);
   }
   for (let i = 0; i < styleFiles.length; i++) {
     await buildGlobal(coreFilePath);
@@ -67,4 +108,5 @@ async function getAppRoot(): Promise<string> {
   for (let i = 0; i < styleFiles.length; i++) {
     await buildCreate(coreFilePath);
   }
+  await optimizeCSS();
 })();

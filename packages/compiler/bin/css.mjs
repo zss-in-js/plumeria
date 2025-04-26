@@ -5,17 +5,6 @@ import path from 'path';
 import { execSync } from 'child_process';
 import { styleText } from 'util';
 
-function findPnpmPath(arg1, arg2) {
-  const pnpmPath = path.join(process.cwd(), 'node_modules/.pnpm');
-  const pnpmDir = fs.readdirSync(pnpmPath).find((dir) => dir.startsWith(arg1));
-
-  if (!pnpmDir) {
-    throw new Error(`Could not find ${arg1} package in pnpm directory`);
-  }
-
-  return path.join(pnpmPath, pnpmDir, arg2);
-}
-
 try {
   const checkMark = styleText('greenBright', '✓');
   const isPnpm = fs.existsSync(path.join(process.cwd(), 'node_modules/.pnpm'));
@@ -32,11 +21,14 @@ try {
     : path.join(process.cwd(), 'node_modules/@plumeria');
 
   const rscutePath = isPnpm
-    ? findPnpmPath('rscute@', 'node_modules/rscute/dist/jit.js')
-    : path.join(process.cwd(), 'node_modules/rscute/dist/jit.js');
+    ? findPnpmPath('rscute@', 'node_modules/rscute/dist/execute.js')
+    : path.join(process.cwd(), 'node_modules/rscute/dist/execute.js');
 
-  const argv = process.argv.includes('--log') ? ' --log' : '';
-  execSync(`node ${rscutePath} compiler/dist/index.js` + argv, {
+  const a1 = process.argv.includes('--view') ? '--view' : '';
+  const a2 = process.argv.includes('--paths') ? '--paths' : '';
+  const argv = [a1, a2].join(' ');
+
+  execSync(`node ${rscutePath} compiler/dist/index.js ` + argv, {
     stdio: 'inherit',
     cwd: plumeriaPath,
   });
@@ -46,4 +38,15 @@ try {
 } catch (error) {
   console.error('Compilation failed:', error.message);
   process.exit(1);
+}
+
+function findPnpmPath(arg1, arg2) {
+  const pnpmPath = path.join(process.cwd(), 'node_modules/.pnpm');
+  const pnpmDir = fs.readdirSync(pnpmPath).find((dir) => dir.startsWith(arg1));
+
+  if (!pnpmDir) {
+    throw new Error(`Could not find ${arg1} package in pnpm directory`);
+  }
+
+  return path.join(pnpmPath, pnpmDir, arg2);
 }
