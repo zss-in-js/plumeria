@@ -62,6 +62,9 @@ importers:
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
+      jttx:
+        specifier: ^1.2.1
+        version: 1.2.1(@types/node@22.14.1)
       lightningcss:
         specifier: ^1.29.3
         version: 1.29.3
@@ -71,9 +74,6 @@ importers:
       postcss-combine-duplicated-selectors:
         specifier: ^10.0.3
         version: 10.0.3(postcss@8.5.3)
-      rscute:
-        specifier: ^0.2.1
-        version: 0.2.1(@types/node@22.14.1)
 
   packages/core:
     dependencies:
@@ -1915,6 +1915,11 @@ packages:
 
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
+
+  jttx@1.2.1:
+    resolution: {integrity: sha512-afe9hMU1TwW6INHhpKLfztr1wkh3QkTnZPy0JEwEOe4+YThwMyyrLLbSJhJ0gjy0lHVwGMUS3iwbTI/GDPuNqw==}
+    peerDependencies:
+      '@types/node': '>=22.13.11'
 
   junk@4.0.1:
     resolution: {integrity: sha512-Qush0uP+G8ZScpGMZvHUiRfI0YBWuB3gVBYlI0v0vvOJt5FLicco+IkP0a50LqTTQhmts/m6tP5SWE+USyIvcQ==}
@@ -4832,6 +4837,13 @@ snapshots:
   jsonfile@4.0.0:
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  jttx@1.2.1(@types/node@22.14.1):
+    dependencies:
+      '@swc/core': 1.11.22
+      '@types/node': 22.14.1
+    transitivePeerDependencies:
+      - '@swc/helpers'
 
   junk@4.0.1: {}
 
