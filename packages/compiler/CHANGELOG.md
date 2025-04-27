@@ -1,5 +1,19 @@
 # @plumeria/compiler
 
+## 0.8.6
+
+### Patch Changes
+
+- ebba36c: feat: The executor has been changed from **rscute** to **jttx**.
+  It will be stable for a while because we changed from using the Function constructor to executing it using the Node.js internal API.
+
+## 0.8.5
+
+### Patch Changes
+
+- 68c8aff feat: **Postcss** and **lightningcss** processing have been added to the compiler **post-processing**.
+  It is **not enabled in 0.8.4.**
+
 ## 0.8.4
 
 ### Patch Changes
