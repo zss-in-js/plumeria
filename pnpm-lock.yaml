@@ -78,8 +78,8 @@ importers:
   packages/core:
     dependencies:
       '@plumeria/compiler':
-        specifier: '>=0.8.5'
-        version: 0.8.5(@types/node@22.14.1)
+        specifier: '>=0.8.6'
+        version: 0.8.6(@types/node@22.14.1)
       zss-utils:
         specifier: 0.1.0
         version: 0.1.0
@@ -815,8 +815,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@plumeria/compiler@0.8.5':
-    resolution: {integrity: sha512-3t34IgKWJdE+g6B2fGjCwnYghocb3wPX05LpaaxSY/ezZawrU7pZLMCzirkEoWbFEtKQ2ca+aLSi6iI1YMxjCw==}
+  '@plumeria/compiler@0.8.6':
+    resolution: {integrity: sha512-SeM31QF2bTYK1UHsxOVy8emBFHRnOD+Sacz/VYS5tgZF2GTtHTmwdvqsWC6B/YhsOgft6+bGob+8g2jZarVZUQ==}
     hasBin: true
 
   '@rollup/rollup-android-arm-eabi@4.40.0':
@@ -2375,12 +2375,6 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  rscute@0.2.1:
-    resolution: {integrity: sha512-LPTMxC5XrnZiePJO/9LKLNjk7Sba1719fxUC0T7cSD9IhxBNrSIybcx0xCe8C7ubKECU55LQzusGyZO35Cl3Dw==}
-    hasBin: true
-    peerDependencies:
-      '@types/node': '>=22.13.11'
-
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
@@ -3531,14 +3525,14 @@ snapshots:
     dependencies:
       playwright: 1.51.1
 
-  '@plumeria/compiler@0.8.5(@types/node@22.14.1)':
+  '@plumeria/compiler@0.8.6(@types/node@22.14.1)':
     dependencies:
       '@swc/core': 1.11.22
       fast-glob: 3.3.3
+      jttx: 1.2.1(@types/node@22.14.1)
       lightningcss: 1.29.3
       postcss: 8.5.3
       postcss-combine-duplicated-selectors: 10.0.3(postcss@8.5.3)
-      rscute: 0.2.1(@types/node@22.14.1)
     transitivePeerDependencies:
       - '@swc/helpers'
       - '@types/node'
@@ -5242,13 +5236,6 @@ snapshots:
       '@rollup/rollup-win32-ia32-msvc': 4.40.0
       '@rollup/rollup-win32-x64-msvc': 4.40.0
       fsevents: 2.3.3
-
-  rscute@0.2.1(@types/node@22.14.1):
-    dependencies:
-      '@swc/core': 1.11.22
-      '@types/node': 22.14.1
-    transitivePeerDependencies:
-      - '@swc/helpers'
 
   run-parallel@1.2.0:
     dependencies:
