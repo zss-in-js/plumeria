@@ -20,15 +20,11 @@ try {
     ? findPnpmPath('@plumeria+compiler@', 'node_modules/@plumeria')
     : path.join(process.cwd(), 'node_modules/@plumeria');
 
-  const rscutePath = isPnpm
-    ? findPnpmPath('rscute@', 'node_modules/rscute/dist/execute.js')
-    : path.join(process.cwd(), 'node_modules/rscute/dist/execute.js');
-
   const a1 = process.argv.includes('--view') ? '--view' : '';
   const a2 = process.argv.includes('--paths') ? '--paths' : '';
   const argv = [a1, a2].join(' ');
 
-  execSync(`node ${rscutePath} compiler/dist/index.js ` + argv, {
+  execSync(`node --import jttx compiler/dist/index.js ` + argv, {
     stdio: 'inherit',
     cwd: plumeriaPath,
   });
