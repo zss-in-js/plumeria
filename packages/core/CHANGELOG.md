@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.8.6
+
+### Patch Changes
+
+- 7b6fa8b: feat(peerDependencies): Please use a compiler that uses stable jttx from 0.8.6 onwards.
+
 ## 0.8.5
 
 ### Patch Changes
