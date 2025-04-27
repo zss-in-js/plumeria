@@ -6,7 +6,6 @@ import postcss from 'postcss';
 import combineSelectors from 'postcss-combine-duplicated-selectors';
 import { transform } from 'lightningcss';
 import { parseSync } from '@swc/core';
-import { execute } from 'rscute';
 import { buildGlobal, buildCreate } from '@plumeria/core/build-helper';
 
 const projectRoot = process.cwd().split('node_modules')[0];
@@ -107,7 +106,7 @@ async function getAppRoot(): Promise<string> {
   const styleFiles = files.filter((_, i) => results[i]);
 
   for (let i = 0; i < styleFiles.length; i++) {
-    await execute(path.resolve(styleFiles[i]));
+    await import(path.resolve(styleFiles[i]));
     if (process.argv.includes('--paths')) console.log(styleFiles[i]);
   }
   for (let i = 0; i < styleFiles.length; i++) {
@@ -115,6 +114,7 @@ async function getAppRoot(): Promise<string> {
   }
   for (let i = 0; i < styleFiles.length; i++) {
     await buildCreate(coreFilePath);
+    await new Promise((resolve) => setImmediate(resolve));
   }
   await optimizeCSS();
 })();
