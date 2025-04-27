@@ -20,7 +20,9 @@ export const baseOptions: BaseLayoutProps = {
   githubUrl: 'https://github.com/zss-in-js/plumeria',
   nav: {
     title: <span className={styles.logo}>💐 Plumeria</span>,
+    transparentMode: 'always',
   },
+
   links: [
     {
       text: <span>Documentation</span>,
