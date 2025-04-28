@@ -1,5 +1,12 @@
 # @plumeria/compiler
 
+## 0.8.8
+
+### Patch Changes
+
+- 6e3ff2f: fix(compiler): Fixed that the order was not correct.
+  update: migrating to rscute 0.2.4.
+
 ## 0.8.6
 
 ### Patch Changes
