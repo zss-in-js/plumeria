@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.8.6",
+  "version": "0.8.8",
   "description": "Zero-runtime StyleSheet for speedy development cycle",
   "keywords": [
     "css",
@@ -48,7 +48,7 @@
     "zss-utils": "0.1.0"
   },
   "peerDependencies": {
-    "@plumeria/compiler": ">=0.8.6"
+    "@plumeria/compiler": ">=0.8.8"
   },
   "publishConfig": {
     "access": "public"
