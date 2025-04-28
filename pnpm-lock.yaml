@@ -62,9 +62,6 @@ importers:
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
-      jttx:
-        specifier: ^1.2.1
-        version: 1.2.1(@types/node@22.14.1)
       lightningcss:
         specifier: ^1.29.3
         version: 1.29.3
@@ -74,6 +71,9 @@ importers:
       postcss-combine-duplicated-selectors:
         specifier: ^10.0.3
         version: 10.0.3(postcss@8.5.3)
+      rscute:
+        specifier: ^0.2.4
+        version: 0.2.4(@types/node@22.14.1)
 
   packages/core:
     dependencies:
@@ -2374,6 +2374,12 @@ packages:
     resolution: {integrity: sha512-Noe455xmA96nnqH5piFtLobsGbCij7Tu+tb3c1vYjNbTkfzGqXqQXG3wJaYXkRZuQ0vEYN4bhwg7QnIrqB5B+w==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
+
+  rscute@0.2.4:
+    resolution: {integrity: sha512-n1uTk3OoMBZItIcQZWWMnHAmKBblQ+bU3yNXwEM4M3Fm8o1ukVqltQZds75qBgqzQXPzb/Mk7vzHpkScymaQdQ==}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>=22.13.11'
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
@@ -5236,6 +5242,13 @@ snapshots:
       '@rollup/rollup-win32-ia32-msvc': 4.40.0
       '@rollup/rollup-win32-x64-msvc': 4.40.0
       fsevents: 2.3.3
+
+  rscute@0.2.4(@types/node@22.14.1):
+    dependencies:
+      '@swc/core': 1.11.22
+      '@types/node': 22.14.1
+    transitivePeerDependencies:
+      - '@swc/helpers'
 
   run-parallel@1.2.0:
     dependencies:
