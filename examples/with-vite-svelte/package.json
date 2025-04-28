@@ -9,11 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plumeria/core": "^0.8.1"
+    "@plumeria/core": "^0.8.8"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.8.2",
-    "@plumeria/vite": "^0.0.0",
+    "@plumeria/compiler": "^0.8.8",
+    "@plumeria/vite": "^0.1.0",
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
     "svelte": "^4.2.18",
     "typescript": "^5.6.3",
