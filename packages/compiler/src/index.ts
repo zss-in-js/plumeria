@@ -1,12 +1,13 @@
-import * as path from 'path';
-import { unlinkSync, existsSync } from 'fs';
-import { readFile, writeFile } from 'fs/promises';
-import fg from 'fast-glob';
-import postcss from 'postcss';
-import combineSelectors from 'postcss-combine-duplicated-selectors';
-import { transform } from 'lightningcss';
-import { parseSync } from '@swc/core';
-import { buildGlobal, buildCreate } from '@plumeria/core/build-helper';
+const path = require('path');
+const { unlinkSync, existsSync } = require('fs');
+const { readFile, writeFile } = require('fs/promises');
+const fg = require('fast-glob');
+const postcss = require('postcss');
+const combineSelectors = require('postcss-combine-duplicated-selectors');
+const { execute } = require('rscute/execute');
+const { transform } = require('lightningcss');
+const { parseSync } = require('@swc/core');
+const { buildGlobal, buildCreate } = require('@plumeria/core/build-helper');
 
 const projectRoot = process.cwd().split('node_modules')[0];
 const directPath = path.join(projectRoot, 'node_modules/@plumeria/core');
@@ -98,15 +99,18 @@ async function getAppRoot(): Promise<string> {
 (async () => {
   await cleanUp();
   const appRoot = await getAppRoot();
-  const files = await fg([path.join(appRoot, '**/*.{js,jsx,ts,tsx}')], {
-    ignore: ['**/node_modules/**', '**/dist/**', '**/.next/**'],
-  });
+  const files: string[] = await fg(
+    [path.join(appRoot, '**/*.{js,jsx,ts,tsx}')],
+    {
+      ignore: ['**/node_modules/**', '**/dist/**', '**/.next/**'],
+    },
+  );
 
   const results = await Promise.all(files.map((file) => isCSS(file)));
   const styleFiles = files.filter((_, i) => results[i]);
 
   for (let i = 0; i < styleFiles.length; i++) {
-    await import(path.resolve(styleFiles[i]));
+    await execute(path.resolve(styleFiles[i]));
     if (process.argv.includes('--paths')) console.log(styleFiles[i]);
   }
   for (let i = 0; i < styleFiles.length; i++) {
@@ -114,7 +118,6 @@ async function getAppRoot(): Promise<string> {
   }
   for (let i = 0; i < styleFiles.length; i++) {
     await buildCreate(coreFilePath);
-    await new Promise((resolve) => setImmediate(resolve));
   }
   await optimizeCSS();
 })();

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import fs from 'fs';
-import path from 'path';
-import { execSync } from 'child_process';
-import { styleText } from 'util';
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+const { styleText } = require('util');
 
 try {
   const checkMark = styleText('greenBright', '✓');
@@ -24,7 +24,7 @@ try {
   const a2 = process.argv.includes('--paths') ? '--paths' : '';
   const argv = [a1, a2].join(' ');
 
-  execSync(`node --import jttx compiler/dist/index.js ` + argv, {
+  execSync(`node -r rscute compiler/dist/index.js ` + argv, {
     stdio: 'inherit',
     cwd: plumeriaPath,
   });
