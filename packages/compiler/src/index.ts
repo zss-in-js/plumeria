@@ -1,5 +1,5 @@
 const path = require('path');
-const { unlinkSync, existsSync } = require('fs');
+const { unlinkSync, existsSync, readFileSync } = require('fs');
 const { readFile, writeFile } = require('fs/promises');
 const fg = require('fast-glob');
 const postcss = require('postcss');
@@ -25,8 +25,8 @@ const cleanUp = async (): Promise<void> => {
   }
 };
 
-async function isCSS(filePath: string): Promise<boolean> {
-  const code = await readFile(filePath, 'utf8');
+function isCSS(filePath: string): boolean {
+  const code = readFileSync(filePath, 'utf8');
   const ast = parseSync(code, {
     syntax: 'typescript',
     tsx: filePath.endsWith('.tsx'),
@@ -52,7 +52,9 @@ async function isCSS(filePath: string): Promise<boolean> {
       const value = node[key];
       if (value && typeof value === 'object') {
         if (Array.isArray(value)) {
-          value.forEach(visit);
+          for (const item of value) {
+            visit(item);
+          }
         } else {
           visit(value);
         }
@@ -106,9 +108,7 @@ async function getAppRoot(): Promise<string> {
     },
   );
 
-  const results = await Promise.all(files.map((file) => isCSS(file)));
-  const styleFiles = files.filter((_, i) => results[i]);
-
+  const styleFiles = files.filter(isCSS).sort();
   for (let i = 0; i < styleFiles.length; i++) {
     await execute(path.resolve(styleFiles[i]));
     if (process.argv.includes('--paths')) console.log(styleFiles[i]);
