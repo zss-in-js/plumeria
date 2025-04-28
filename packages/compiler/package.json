@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/compiler",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "A faster compiler for Plumeria",
   "keywords": [
     "css",
@@ -16,7 +16,7 @@
     "dist/"
   ],
   "bin": {
-    "css": "./bin/css.mjs"
+    "css": "./bin/css.js"
   },
   "scripts": {
     "build": "rimraf dist && tsc"
@@ -24,10 +24,10 @@
   "dependencies": {
     "@swc/core": "^1.11.22",
     "fast-glob": "^3.3.3",
-    "jttx": "^1.2.1",
     "lightningcss": "^1.29.3",
     "postcss": "^8.5.3",
-    "postcss-combine-duplicated-selectors": "^10.0.3"
+    "postcss-combine-duplicated-selectors": "^10.0.3",
+    "rscute": "^0.2.4"
   },
   "publishConfig": {
     "access": "public"
