@@ -1,5 +1,12 @@
 # @plumeria/core
 
+## 0.8.8
+
+### Patch Changes
+
+- a2f9318: feat(peerDependencies): Changed the compiler and went back to rscute 0.2.4 from jttx.  
+  Now you can start it with node -r, so there is no need to search for the rscute path, and it is now stable.
+
 ## 0.8.6
 
 ### Patch Changes
@@ -23,6 +30,26 @@
 ### Patch Changes
 
 - 32568e0: fix(core): fix readme and update compiler perDependencies
+
+## 0.8.2
+
+### Patch Changes
+
+- fix: mini fix readme.md update
+
+## 0.8.1
+
+### Patch Changes
+
+- fix: mini fix readme.md update
+
+## 0.8.0
+
+### Minor Changes
+
+- refactor: Dependencies have been packaged into zss-utils.
+  In 0.8.0 the API was made public (zss-utils), which includes the backend
+  as zss-engine and is a bridge library that provides the API.
 
 ## 0.7.20
 
