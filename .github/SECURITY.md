@@ -10,9 +10,19 @@ We provide security updates for the following versions:
 
 | Version | Supported          | Notes                                                                                                       |
 | ------- | ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| 0.8.8   | :white_check_mark: | compiler peerDependencies update with compiler v0.8.8                                                       |
+| 0.8.7   | skip               | Core 0.8.7 has not been released because compiler 0.8.7 had a bug.                                          |
+| 0.8.6   | :white_check_mark: | compiler peerDependencies update with compiler v0.8.6                                                       |
+| 0.8.5   | :white_check_mark: | compiler peerDependencies update with compiler v0.8.5                                                       |
+| 0.8.4   | :white_check_mark: | compiler peerDependencies update with compiler v0.8.4                                                       |
+| 0.8.3   | :white_check_mark: | compiler peerDependencies update with compiler v0.8.3                                                       |
+| 0.8.2   | :white_check_mark: | mini fix readme.md update                                                                                   |
+| 0.8.1   | :white_check_mark: | mini fix readme.md update                                                                                   |
+| 0.8.0   | :white_check_mark: | Deps have been reorganized. From now on, they will be packaged into zss-utils, which provides the API.      |
+| 0.7.20  | :white_check_mark: | mini fix readme.md update                                                    　                             |
 | 0.7.19  | :white_check_mark: | compiler update: It can now be used in conjunction with the css ext.                                     　 |
 | 0.7.18  | :white_check_mark: | compiler update: It now runs on a VM, which avoids node.js errors.                                       　 |
-| 0.7.15  | :white_check_mark: | style-preset to Replaced by zss-utils                       　　　　　                                     　 |
+| 0.7.15  | :white_check_mark: | style-preset to Replaced by zss-utils                       　　　　　                                     　|
 | 0.7.11  | :white_check_mark: | The Node.js APIs exposed in the Vite environment will be replaced with dynamic imports and the preview will complete successfully. If you are in a Vite environment, please use plumeria vite-plugin's @plumeria/vite.|
 | 0.7.10  | :white_check_mark: | @plumeria/collection to Replaced by style-preset            　　　　　                                     　 |
 | 0.7.9   | :white_check_mark: | Importing stylesheet is now required. import "@plumeria/core/stylesheet" your app entry points.             |
