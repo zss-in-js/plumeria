@@ -1,6 +1,12 @@
 import { css } from '@plumeria/core';
 
 css.global({
+  '.dark html': {
+    '--slash': '#676767',
+  },
+  html: {
+    '--slash': '#4d4d4d',
+  },
   '.dark body': {
     background: 'black',
   },
