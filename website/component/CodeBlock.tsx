@@ -77,8 +77,8 @@ export const CodeBlock = async () => {
   const tsx = await codeToHtml(demoCode, {
     lang: 'javascript',
     themes: {
-      light: 'everforest-light',
-      dark: 'ayu-dark',
+      light: 'snazzy-light',
+      dark: 'laserwave',
     },
     defaultColor: false,
   });
