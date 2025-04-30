@@ -11,7 +11,7 @@ export const TimeCount = () => {
         startTimeRef.current = timestamp;
       }
       const elapsed = timestamp - startTimeRef.current;
-      setTime(elapsed * 0.1);
+      setTime(elapsed * 0.08);
       requestRef.current = requestAnimationFrame(animate);
     };
 
