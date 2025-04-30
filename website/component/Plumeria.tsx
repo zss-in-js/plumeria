@@ -29,7 +29,7 @@ export const Plumeria = () => {
   const time = TimeCount();
   const generateGradualHsl = (offset = 0) => {
     const hue = (time + offset) % 360;
-    return `hsl(${hue.toFixed(2)}deg, 80%, 50%)`;
+    return `hsl(${hue.toFixed(2)}deg, 100%, 65%)`;
   };
 
   const color1 = generateGradualHsl(0);
@@ -39,8 +39,8 @@ export const Plumeria = () => {
     '--bg': `
     linear-gradient(45deg,
     ${color1} 0%,
-    ${color2} 40%,
-    ${color3} 80%)
+    ${color2} 50%,
+    ${color3} 100%)
     `,
   };
 
