@@ -9,8 +9,25 @@ export const metadata: Metadata = {
 
 const styles = css.create({
   container: {
-    position: 'relative',
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
     zIndex: 0,
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 120,
+    transform: 'translate(-50%, -50%)',
+    [css.media.max('width: 804px')]: {
+      position: 'relative',
+      top: 'auto',
+      left: 'auto',
+      flexDirection: 'column',
+      rowGap: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 'auto',
+      transform: 'translate(0%, 0%)',
+    },
   },
 });
 export default function Page() {

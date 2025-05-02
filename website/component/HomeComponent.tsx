@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { css } from '@plumeria/core';
 import { Plumeria } from './Plumeria';
@@ -7,21 +5,23 @@ import { Plumeria } from './Plumeria';
 const styles = css.create({
   container: {
     position: 'relative',
-    top: 200,
+    top: 180,
     zIndex: 1,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    height: '100vh',
+    justifyContent: 'center',
+    width: 600,
+    height: 'fit-content',
     textAlign: 'center',
     [css.media.max('width: 804px')]: {
       top: 0,
       right: 'auto',
       left: 'auto',
       display: 'flex',
+      justifyContent: 'center',
       width: '100%',
-      height: 'auto',
+      height: '100%',
       margin: '0 auto',
     },
   },
