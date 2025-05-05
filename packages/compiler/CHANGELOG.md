@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.8.9
+
+### Patch Changes
+
+- 8e9236a: feat(compiler): Supports react-router-v7
+
 ## 0.8.8
 
 ### Patch Changes
