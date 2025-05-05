@@ -27,7 +27,7 @@
     "lightningcss": "^1.29.3",
     "postcss": "^8.5.3",
     "postcss-combine-duplicated-selectors": "^10.0.3",
-    "rscute": "^0.2.4"
+    "rscute": "^0.2.5"
   },
   "publishConfig": {
     "access": "public"
