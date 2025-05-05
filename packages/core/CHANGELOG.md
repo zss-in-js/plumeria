@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.8.10
+
+### Patch Changes
+
+- bb6b0c0: feat: In the compiler swc settings, set react.runtime to automatic.
+
 ## 0.8.8
 
 ### Patch Changes
