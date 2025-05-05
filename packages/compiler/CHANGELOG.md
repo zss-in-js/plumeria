@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.8.10
+
+### Patch Changes
+
+- e134ee2: fix(compiler): swc react.runtime automatic
+
 ## 0.8.9
 
 ### Patch Changes
