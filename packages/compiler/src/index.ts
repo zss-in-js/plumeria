@@ -104,7 +104,12 @@ async function getAppRoot(): Promise<string> {
   const files: string[] = await fg(
     [path.join(appRoot, '**/*.{js,jsx,ts,tsx}')],
     {
-      ignore: ['**/node_modules/**', '**/dist/**', '**/.next/**'],
+      ignore: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/.next/**',
+      ],
     },
   );
 
