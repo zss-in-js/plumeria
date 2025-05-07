@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { css } from '@plumeria/core';
-import { Component } from './Plumeria';
+import { Plumeria } from './Plumeria';
 
 const styles = css.create({
   container: {
     position: 'relative',
     top: 200,
+    zIndex: 1,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -27,15 +28,15 @@ const styles = css.create({
 
   inlineword: {
     position: 'relative',
-    left: 14,
     zIndex: 1,
     maxWidth: '460px',
     marginBottom: '40px',
     fontSize: 21,
     fontWeight: 350,
-    textAlign: 'left',
+    textAlign: 'center',
     wordBreak: 'break-all',
     [css.media.max('width: 804px')]: {
+      top: 20,
       maxWidth: 300,
       fontSize: '1rem',
     },
@@ -45,13 +46,13 @@ const styles = css.create({
     flexDirection: 'row',
     gridGap: 50,
     [css.media.max('width: 804px')]: {
-      gridGap: 10,
+      gridGap: 14,
     },
   },
   button: {
     position: 'relative',
     zIndex: 1,
-    width: '220px',
+    width: '200px',
     padding: '16px 32px',
     fontSize: 16,
     fontWeight: '600',
@@ -61,15 +62,18 @@ const styles = css.create({
     borderRadius: '50px',
     transition: 'all 0.2s',
     [css.pseudo.hover]: {
-      scale: 1.05,
+      scale: 1.025,
     },
     [css.media.max('width: 804px')]: {
       position: 'relative',
       left: -10,
-      width: 200,
+      width: 180,
       marginRight: -20,
       whiteSpace: 'nowrap',
       scale: 0.8,
+      [css.pseudo.hover]: {
+        scale: 0.84,
+      },
     },
   },
 });
@@ -77,11 +81,11 @@ const styles = css.create({
 export const HomeComponent = () => {
   return (
     <main className={styles.container}>
-      <Component />
+      <Plumeria />
       <div className={styles.inlineword}>
-        Type-safe CSS object Maps.
+        Zero-Runtime CSS-in-JS
         <br />
-        Command Line for Precompilation.
+        Command-line for faster Precompilation
       </div>
       <div className={styles.link_box}>
         <Link href="/docs/getting-started/installation" className={styles.button}>
