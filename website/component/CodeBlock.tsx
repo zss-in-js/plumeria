@@ -43,7 +43,7 @@ const styles = css.create({
   headings: {
     WebkitTextFillColor: 'transparent',
     background: 'var(--bg)',
-    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
   },
 });
 
@@ -52,7 +52,7 @@ export const Component = () => {
   
   const generateGradualHsl = (offset = 0) => {
     const hue = (time + offset) % 360;
-    return \`hsl(\${hue.toFixed(2)}deg, 80%, 50%)\`;
+    return \`hsl(\${hue.toFixed(2)}deg, 100%, 65%)\`;
   };
 
   const color1 = generateGradualHsl(0);
@@ -61,13 +61,13 @@ export const Component = () => {
   const dynamicStyle = {
     '--bg': \`linear-gradient(45deg,
     \${color1} 0%,
-    \${color2} 40%,
-    \${color3} 80%)\`,
+    \${color2} 50%,
+    \${color3} 100%)\`,
   };
 
   return (
     <div {...rx(styles.headings, dynamicStyle)}>
-      @plumeria/
+      💐 Plumeria
     </div>
   );
 };
@@ -77,8 +77,8 @@ export const CodeBlock = async () => {
   const tsx = await codeToHtml(demoCode, {
     lang: 'javascript',
     themes: {
-      light: 'everforest-light',
-      dark: 'poimandres',
+      light: 'snazzy-light',
+      dark: 'laserwave',
     },
     defaultColor: false,
   });
