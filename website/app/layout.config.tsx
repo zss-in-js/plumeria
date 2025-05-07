@@ -1,10 +1,23 @@
 import React from 'react';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import { css } from '@plumeria/core';
+import Image from 'next/image';
 
 const styles = css.create({
   logo: {
-    fontWeight: 400,
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 20,
+    fontWeight: 700,
+  },
+  zss: {
+    borderRadius: '8px',
+  },
+  slash: {
+    fontSize: 14,
+    fontWeight: '100',
+    color: 'rgb(170 170 170 / 0.3)',
+    rotate: '15deg',
   },
 });
 
@@ -19,7 +32,12 @@ const styles = css.create({
 export const baseOptions: BaseLayoutProps = {
   githubUrl: 'https://github.com/zss-in-js/plumeria',
   nav: {
-    title: <span className={styles.logo}>💐 Plumeria</span>,
+    title: (
+      <span className={styles.logo}>
+        <Image src="/zss.png" alt="Plumeria logo" height={24} width={24} className={styles.zss} />
+        <span className={styles.slash}>/</span> 💐 Plumeria
+      </span>
+    ),
     transparentMode: 'always',
   },
 
@@ -27,6 +45,10 @@ export const baseOptions: BaseLayoutProps = {
     {
       text: <span>Documentation</span>,
       url: '/docs',
+    },
+    {
+      text: <span>DeepWiki</span>,
+      url: 'https://deepwiki.com/zss-in-js/plumeria',
     },
   ],
 };
