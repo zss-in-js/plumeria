@@ -22,12 +22,12 @@
     "build": "rimraf dist && tsc"
   },
   "dependencies": {
-    "@swc/core": "^1.11.22",
+    "@swc/core": "^1.11.24",
     "fast-glob": "^3.3.3",
     "lightningcss": "^1.29.3",
     "postcss": "^8.5.3",
     "postcss-combine-duplicated-selectors": "^10.0.3",
-    "rscute": "^0.2.5"
+    "rscute": "^0.2.6"
   },
   "publishConfig": {
     "access": "public"
