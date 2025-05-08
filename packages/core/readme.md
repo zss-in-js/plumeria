@@ -1,10 +1,10 @@
 # @plumeria/core
 
-Plumeria is a CSS-in-JS built with [**zss-utils**](https://www.npmjs.com/package/zss-utils) that provides a speedy development cycle.
+Plumeria is a Near zero-runtime CSS-in-JS for efficient design systems.
 
 ## Installation
 
-To start using Plumeria, Install the following two packages and the bundler package:
+To start using Plumeria, Install the following two packages:
 
 ```sh
 npm install @plumeria/core
@@ -12,31 +12,21 @@ npm install @plumeria/core
 
 ### Compiler
 
-Plumeria is designed to extract styles into static CSS stylesheets using the CLI.
-Install the following libraries to enable CLI commands: [`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler)
+To compile `@plumeria/core`, for example, to use `npx css`, install  
+[`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler) for static extraction through the build process.
 
 ```sh
 npm install --save-dev @plumeria/compiler
 ```
 
-For more information on compiler commnads, please see the documentation  
-[API reference](https://plumeria.dev/docs/reference/css).
-
-### Static StyleSheet
+### StyleSheet
 
 Import stylesheet in your application's entry point.  
 Applies the static stylesheet for production environments.
 
 ```ts
-// eg: main.ts or layout.tsx
 import '@plumeria/core/stylesheet';
 ```
-
-### Integrate
-
-To integrate with Next.js or Vite, you'll need one of the following packages:  
-[@plumeria/next](https://www.npmjs.com/package/@plumeria/next) or [@plumeria/vite](https://www.npmjs.com/package/@plumeria/vite).  
-See [Installation](https://plumeria.dev/docs/getting-started/installation) in the documentation for more details.
 
 ## API
 
@@ -70,7 +60,7 @@ const styles = css.create({
     },
   },
   text: {
-    color: '#333' // standard properties of that className
+    color: '#333',
     [css.pseudo.hover]: {
       color: 'skyblue',
       opacity: 0.9,
