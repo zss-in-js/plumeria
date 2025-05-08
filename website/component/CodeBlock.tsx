@@ -52,7 +52,7 @@ export const Component = () => {
   
   const generateGradualHsl = (offset = 0) => {
     const hue = (time + offset) % 360;
-    return \`hsl(\${hue.toFixed(2)}deg, 100%, 65%)\`;
+    return \`hsl(\${hue.toFixed(100)}deg, 65%, 65%)\`;
   };
 
   const color1 = generateGradualHsl(0);
@@ -67,7 +67,7 @@ export const Component = () => {
 
   return (
     <div {...rx(styles.headings, dynamicStyle)}>
-      💐 Plumeria
+      ✾ Plumeria
     </div>
   );
 };

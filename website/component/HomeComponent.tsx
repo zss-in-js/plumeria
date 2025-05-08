@@ -32,7 +32,7 @@ const styles = css.create({
     maxWidth: '460px',
     marginBottom: '40px',
     fontSize: 21,
-    fontWeight: 350,
+    fontWeight: 400,
     textAlign: 'center',
     wordBreak: 'break-all',
     [css.media.max('width: 804px')]: {
