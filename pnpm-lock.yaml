@@ -77,9 +77,6 @@ importers:
 
   packages/core:
     dependencies:
-      '@plumeria/compiler':
-        specifier: '>=0.8.10'
-        version: 0.8.10(@types/node@22.14.1)
       zss-utils:
         specifier: 0.1.0
         version: 0.1.0
@@ -813,10 +810,6 @@ packages:
   '@playwright/test@1.51.1':
     resolution: {integrity: sha512-nM+kEaTSAoVlXmMPH10017vn3FSiFqr/bh4fKg9vmAdMfd9SDqRZNvPSiAHADc/itWak+qPvMPZQOPwCBW7k7Q==}
     engines: {node: '>=18'}
-    hasBin: true
-
-  '@plumeria/compiler@0.8.10':
-    resolution: {integrity: sha512-4TTVfs7duREVx3GLCJPomUppkiAclV2R9cLFBAPCIcud9fhTRfjQnuN8Byzw97/yVvsuvbrOY7qcv9/yZeRMog==}
     hasBin: true
 
   '@rollup/rollup-android-arm-eabi@4.40.0':
@@ -3525,18 +3518,6 @@ snapshots:
   '@playwright/test@1.51.1':
     dependencies:
       playwright: 1.51.1
-
-  '@plumeria/compiler@0.8.10(@types/node@22.14.1)':
-    dependencies:
-      '@swc/core': 1.11.22
-      fast-glob: 3.3.3
-      lightningcss: 1.29.3
-      postcss: 8.5.3
-      postcss-combine-duplicated-selectors: 10.0.3(postcss@8.5.3)
-      rscute: 0.2.5(@types/node@22.14.1)
-    transitivePeerDependencies:
-      - '@swc/helpers'
-      - '@types/node'
 
   '@rollup/rollup-android-arm-eabi@4.40.0':
     optional: true
