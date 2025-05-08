@@ -79,7 +79,7 @@ async function optimizeCSS(): Promise<void> {
   const light = transform({
     filename: coreFilePath,
     code: Buffer.from(merged.css),
-    minify: true,
+    minify: process.env.NODE_ENV === 'production',
     targets: {
       safari: 16,
       edge: 110,
