@@ -18,7 +18,7 @@ const styles = css.create({
     WebkitBackgroundClip: 'text',
     [css.media.max('width: 800px')]: {
       top: 20,
-      right: 22,
+      right: 18,
       marginTop: '54px',
       fontSize: '42px',
     },
@@ -29,7 +29,7 @@ export const Plumeria = () => {
   const time = TimeCount();
   const generateGradualHsl = (offset = 0) => {
     const hue = (time + offset) % 360;
-    return `hsl(${hue.toFixed(2)}deg, 100%, 65%)`;
+    return `hsl(${hue.toFixed(100)}deg, 65%, 65%)`;
   };
 
   const color1 = generateGradualHsl(0);
@@ -44,5 +44,5 @@ export const Plumeria = () => {
     `,
   };
 
-  return <div {...rx(styles.headings, dynamicStyle)}>💐 Plumeria</div>;
+  return <div {...rx(styles.headings, dynamicStyle)}>✾ Plumeria</div>;
 };
