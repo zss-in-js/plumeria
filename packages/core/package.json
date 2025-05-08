@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "0.8.10",
-  "description": "Zero-runtime StyleSheet for speedy development cycle",
+  "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
   "keywords": [
     "css",
     "css-in-js",
@@ -46,9 +46,6 @@
   },
   "dependencies": {
     "zss-utils": "0.1.0"
-  },
-  "peerDependencies": {
-    "@plumeria/compiler": ">=0.8.10"
   },
   "publishConfig": {
     "access": "public"
