@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.6.1
+
+### Patch Changes
+
+- 54a348f: feat: readme update and compile minify is production only
+
 ## 0.5.7
 
 ### Patch Changes
