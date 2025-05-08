@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.8.11
+
+### Patch Changes
+
+- 54a348f: feat: readme update and compile minify is production only
+
 ## 0.8.10
 
 ### Patch Changes
