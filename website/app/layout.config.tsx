@@ -38,7 +38,7 @@ export const baseOptions: BaseLayoutProps = {
         <span className={styles.slash}>/</span> ✾ Plumeria
       </span>
     ),
-    transparentMode: 'always',
+    transparentMode: 'top',
   },
 
   links: [
