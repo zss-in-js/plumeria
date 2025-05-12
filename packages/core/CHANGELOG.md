@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.8.12
+
+### Patch Changes
+
+- ad15df4: refactor(zss-utils): refactored core and zss-utils.
+
 ## 0.8.11
 
 ### Patch Changes
