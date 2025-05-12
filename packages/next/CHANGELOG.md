@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.6.2
+
+### Patch Changes
+
+- b701464: refactor(zss-utils): patch update
+
 ## 0.6.1
 
 ### Patch Changes
