@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "next": "15.2.4",
-    "zss-utils": "0.0.8"
+    "zss-utils": "0.1.1"
   },
   "publishConfig": {
     "access": "public"
