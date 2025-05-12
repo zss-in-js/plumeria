@@ -78,8 +78,8 @@ importers:
   packages/core:
     dependencies:
       zss-utils:
-        specifier: 0.1.0
-        version: 0.1.0
+        specifier: 0.1.1
+        version: 0.1.1
 
   packages/next:
     devDependencies:
@@ -87,8 +87,8 @@ importers:
         specifier: 15.2.4
         version: 15.2.4(@babel/core@7.26.10)(@playwright/test@1.51.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       zss-utils:
-        specifier: 0.0.8
-        version: 0.0.8
+        specifier: 0.1.1
+        version: 0.1.1
 
   packages/vite:
     devDependencies:
@@ -2693,17 +2693,11 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zss-engine@0.2.26:
-    resolution: {integrity: sha512-WqZyYLFkfT441LIjcpEz2O3Icij277YzNSkmAmeL7sfaez9FCjlboXxtU8Kn//bYX53cvzjOiTg9zWezq8RndA==}
-
   zss-engine@0.2.27:
     resolution: {integrity: sha512-/f8xJveR7w5UBmMLLkrWjxC+pob7iFDQ44YV/cHFcZt7G0/Rf8o4tcGmz67YRsQLyxYx5TTs96GdJPjFRUSPsA==}
 
-  zss-utils@0.0.8:
-    resolution: {integrity: sha512-Gvy/Z4Cm9oEsrWoFP/dqexh875zmPc4w4kPooHwoCSExeRWzOyHR9mVwqiN/z5A9/+F6nTZ4XI/ZxpK7qJ7Nww==}
-
-  zss-utils@0.1.0:
-    resolution: {integrity: sha512-OpJT1pUO9J/VQIwR0+JbJWC7LSP5yFIbIx8rrac2fiBrzzjK57Lar9TKZR32Mr9ba6ErhVBuZ7qY8K/OY5x/Sw==}
+  zss-utils@0.1.1:
+    resolution: {integrity: sha512-zLqqFPKPIUDPCIzKNNj/GfIwgPbR+q2Ne5ymmOFKs8clraBgsBbp05MElNrXqhXsdAIEWUSesywoPCIkr5h3SQ==}
 
 snapshots:
 
@@ -5493,18 +5487,10 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zss-engine@0.2.26:
-    dependencies:
-      csstype: 3.1.3
-
   zss-engine@0.2.27:
     dependencies:
       csstype: 3.1.3
 
-  zss-utils@0.0.8:
-    dependencies:
-      zss-engine: 0.2.26
-
-  zss-utils@0.1.0:
+  zss-utils@0.1.1:
     dependencies:
       zss-engine: 0.2.27
