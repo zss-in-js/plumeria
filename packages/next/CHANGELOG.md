@@ -4,6 +4,12 @@
 
 ### Patch Changes
 
+- ad15df4: refactor(zss-utils): refactored core and zss-utils.
+
+## 0.6.1
+
+### Patch Changes
+
 - 54a348f: feat: readme update and compile minify is production only
 
 ## 0.5.7
