@@ -6,7 +6,7 @@ const seetQueue: [string, string?][] = [];
 let isProcessing = false;
 
 function initPromise() {
-  globalPromise = new Promise<[string, string]>(resolve => {
+  globalPromise = new Promise<[string, string]>((resolve) => {
     resolvePromise = (value: [string, string]) => {
       seetQueue.push(value);
       resolve(value);
