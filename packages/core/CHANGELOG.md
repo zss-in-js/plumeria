@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.8.14
+
+### Patch Changes
+
+- 32e6073: fix(README): update colors to color
+
 ## 0.8.13
 
 ### Patch Changes
