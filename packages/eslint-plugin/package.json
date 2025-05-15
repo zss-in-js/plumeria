@@ -17,6 +17,9 @@
   "files": [
     "lib/"
   ],
+  "scripts": {
+    "build": "echo 'No build necessary'"
+  },
   "devDependencies": {
     "eslint": "^9.15.0"
   },
