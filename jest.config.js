@@ -5,7 +5,10 @@ module.exports = {
   moduleNameMapper: {
     '^(\\..+)\\.js$': '$1',
   },
-  roots: ['<rootDir>/packages/core/__tests__'],
+  roots: [
+    '<rootDir>/packages/core/__tests__',
+    '<rootDir>/packages/eslint-plugin/__tests__',
+  ],
   preset: 'ts-jest',
   testEnvironment: 'node',
   transformIgnorePatterns: ['node_modules/(?!(zss-utils|@plumeria/core)/)'],
