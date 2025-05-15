@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.8.13
+
+### Patch Changes
+
+- 586ec10: feat: Returned responsibility from zss-utils.
+
 ## 0.8.12
 
 ### Patch Changes
