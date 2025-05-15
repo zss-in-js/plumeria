@@ -155,14 +155,14 @@ const tokens = css.defineThemeVars({
 });
 ```
 
-### css.colors
+### css.color
 
 Mixes #000 or #FFF into the color.  
 The first argument takes the color and the second argument takes the same value as opacity (string % or number).
 
 ```ts
-color: css.colors.darken('skyblue', 0.12),
-color: css.colors.lighten('navy', 0.6),
+color: css.color.darken('skyblue', 0.12),
+color: css.color.lighten('navy', 0.6),
 ```
 
 ## ESLint
