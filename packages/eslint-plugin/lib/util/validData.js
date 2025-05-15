@@ -9,9 +9,9 @@ const fontSizeSubValues = [
   'math',
   'smaller',
   'larger',
-]
-const lengthSubValues = ['max-content', 'min-content', 'fit-content']
-const widthKeywords = ['thin', 'medium', 'thick']
+];
+const lengthSubValues = ['max-content', 'min-content', 'fit-content'];
+const widthKeywords = ['thin', 'medium', 'thick'];
 const alignKeywords = [
   'start',
   'end',
@@ -20,7 +20,7 @@ const alignKeywords = [
   'center',
   'justify',
   'match-parent',
-]
+];
 const breakBeforeAfterValues = [
   'auto',
   'avoid',
@@ -36,7 +36,7 @@ const breakBeforeAfterValues = [
   'column',
   'avoid-region',
   'region',
-]
+];
 const lineStyle = [
   'none',
   'hidden',
@@ -48,8 +48,8 @@ const lineStyle = [
   'ridge',
   'inset',
   'outset',
-]
-const overflowKeyword = ['visible', 'hidden', 'clip', 'scroll', 'auto']
+];
+const overflowKeyword = ['visible', 'hidden', 'clip', 'scroll', 'auto'];
 const overflowAlignment = [
   'safe start',
   'safe end',
@@ -61,7 +61,7 @@ const overflowAlignment = [
   'unsafe center',
   'unsafe flex-start',
   'unsafe flex-end',
-]
+];
 
 const validData = {
   all: [], // 1
@@ -1047,6 +1047,6 @@ const validData = {
     'sideways-lr',
   ], // 396
   zoom: ['normal', 'reset'], // 397
-}
+};
 
-module.exports = validData
+module.exports = validData;

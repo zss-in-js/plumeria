@@ -1,7 +1,7 @@
-const { RuleTester } = require('eslint')
-const rule = require('../lib/rules/sort-properties')
+const { RuleTester } = require('eslint');
+const rule = require('../lib/rules/sort-properties');
 
-const ruleTester = new RuleTester()
+const ruleTester = new RuleTester();
 
 ruleTester.run('sort-properties', rule, {
   valid: [
@@ -42,4 +42,4 @@ ruleTester.run('sort-properties', rule, {
       },
     },
   ],
-})
+});

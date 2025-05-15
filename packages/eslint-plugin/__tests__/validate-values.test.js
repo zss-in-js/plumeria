@@ -1,7 +1,7 @@
-const { RuleTester } = require('eslint')
-const rule = require('../lib/rules/validate-values')
+const { RuleTester } = require('eslint');
+const rule = require('../lib/rules/validate-values');
 
-const ruleTester = new RuleTester()
+const ruleTester = new RuleTester();
 
 ruleTester.run('validate-values', rule, {
   valid: [
@@ -71,4 +71,4 @@ ruleTester.run('validate-values', rule, {
       },
     },
   ],
-})
+});

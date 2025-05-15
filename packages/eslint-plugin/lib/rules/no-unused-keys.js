@@ -18,11 +18,13 @@ module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Detect unused object keys if they are not referenced anywhere',
+      description:
+        'Detect unused object keys if they are not referenced anywhere',
       recommended: true,
     },
     messages: {
-      unusedKey: "The key '{{ key }}' is defined but never referenced anywhere.",
+      unusedKey:
+        "The key '{{ key }}' is defined but never referenced anywhere.",
     },
   },
 
@@ -47,12 +49,20 @@ module.exports = {
           node.callee.property.name !== 'keyframes'
         ) {
           const arg = node.arguments[0];
-          if (arg && arg.type === 'ObjectExpression' && node.parent.type === 'VariableDeclarator') {
+          if (
+            arg &&
+            arg.type === 'ObjectExpression' &&
+            node.parent.type === 'VariableDeclarator'
+          ) {
             const variableName = node.parent.id.name;
             const keyMap = new Map();
 
             arg.properties.forEach((prop) => {
-              if (prop.key && prop.key.type === 'Identifier' && prop.value.type === 'ObjectExpression') {
+              if (
+                prop.key &&
+                prop.key.type === 'Identifier' &&
+                prop.value.type === 'ObjectExpression'
+              ) {
                 keyMap.set(prop.key.name, prop.key);
               }
             });
@@ -63,7 +73,10 @@ module.exports = {
       },
       // `styles.header_main` の参照を記録
       MemberExpression(node) {
-        if (node.object.type === 'Identifier' && node.property.type === 'Identifier') {
+        if (
+          node.object.type === 'Identifier' &&
+          node.property.type === 'Identifier'
+        ) {
           const fullKey = `${node.object.name}.${node.property.name}`;
           referencedKeys.add(fullKey);
 

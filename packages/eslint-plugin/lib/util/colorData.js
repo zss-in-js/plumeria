@@ -149,63 +149,63 @@ const colorNames = [
   'whitesmoke',
   'yellow',
   'yellowgreen',
-].join('|')
+].join('|');
 
 // Numeric patterns (including negative numbers, decimals, and percentages)
-const numberPattern = '-?\\d+(?:\\.\\d+)?%?'
+const numberPattern = '-?\\d+(?:\\.\\d+)?%?';
 
 // Percentage value pattern
-const percentagePattern = `${numberPattern}%`
+const percentagePattern = `${numberPattern}%`;
 
 // Pattern containing angle units
-const angleUnit = '(?:deg|grad|rad|turn)?'
-const anglePattern = `${numberPattern}${angleUnit}`
+const angleUnit = '(?:deg|grad|rad|turn)?';
+const anglePattern = `${numberPattern}${angleUnit}`;
 
 // Alpha value (transparency) pattern
-const alphaPattern = `(?:\\s/\\s${numberPattern}%?)?`
+const alphaPattern = `(?:\\s/\\s${numberPattern}%?)?`;
 
 // Pattern for separating values (comma or space)
-const separator = '(?:\\s?,\\s?|\\s{1})'
+const separator = '(?:\\s?,\\s?|\\s{1})';
 
 // Hex color code pattern
-const hexPattern = '#(?:[0-9a-fA-F]{3,8})'
+const hexPattern = '#(?:[0-9a-fA-F]{3,8})';
 
 // RGB function pattern
-const rgbFunctionName = 'rgb(?:a)?'
-const rgbCommaParameters = `\\(\\s*${numberPattern}(?:\\s*,\\s*${numberPattern}){2}(?:\\s*,\\s*${numberPattern}%?)?\\s*\\)`
-const rgbSpaceParameters = `\\(\\s*${numberPattern}(?:\\s+${numberPattern}){2}${alphaPattern}\\s*\\)`
-const rgbPattern = `${rgbFunctionName}(?:${rgbCommaParameters}|${rgbSpaceParameters})`
+const rgbFunctionName = 'rgb(?:a)?';
+const rgbCommaParameters = `\\(\\s*${numberPattern}(?:\\s*,\\s*${numberPattern}){2}(?:\\s*,\\s*${numberPattern}%?)?\\s*\\)`;
+const rgbSpaceParameters = `\\(\\s*${numberPattern}(?:\\s+${numberPattern}){2}${alphaPattern}\\s*\\)`;
+const rgbPattern = `${rgbFunctionName}(?:${rgbCommaParameters}|${rgbSpaceParameters})`;
 
 // HSL function pattern
-const hslFunctionName = 'hsl(?:a)?'
-const hslCommaParameters = `\\(\\s*${anglePattern}(?:\\s*,\\s*${percentagePattern}){2}(?:\\s*,\\s*${numberPattern}%?)?\\s*\\)`
-const hslSpaceParameters = `\\(\\s*${anglePattern}(?:\\s+${percentagePattern}){2}${alphaPattern}\\s*\\)`
-const hslPattern = `${hslFunctionName}(?:${hslCommaParameters}|${hslSpaceParameters})`
+const hslFunctionName = 'hsl(?:a)?';
+const hslCommaParameters = `\\(\\s*${anglePattern}(?:\\s*,\\s*${percentagePattern}){2}(?:\\s*,\\s*${numberPattern}%?)?\\s*\\)`;
+const hslSpaceParameters = `\\(\\s*${anglePattern}(?:\\s+${percentagePattern}){2}${alphaPattern}\\s*\\)`;
+const hslPattern = `${hslFunctionName}(?:${hslCommaParameters}|${hslSpaceParameters})`;
 
 // HWB function pattern
-const hwbFunctionName = 'hwb'
-const hwbCommaParameters = `\\(\\s*${anglePattern}(?:\\s*,\\s*${percentagePattern}){2}(?:\\s*,\\s*${numberPattern}%?)?\\s*\\)`
-const hwbSpaceParameters = `\\(\\s*${anglePattern}(?:\\s+${percentagePattern}){2}${alphaPattern}\\s*\\)`
-const hwbPattern = `${hwbFunctionName}(?:${hwbCommaParameters}|${hwbSpaceParameters})`
+const hwbFunctionName = 'hwb';
+const hwbCommaParameters = `\\(\\s*${anglePattern}(?:\\s*,\\s*${percentagePattern}){2}(?:\\s*,\\s*${numberPattern}%?)?\\s*\\)`;
+const hwbSpaceParameters = `\\(\\s*${anglePattern}(?:\\s+${percentagePattern}){2}${alphaPattern}\\s*\\)`;
+const hwbPattern = `${hwbFunctionName}(?:${hwbCommaParameters}|${hwbSpaceParameters})`;
 
 // LAB/OKLAB function pattern
-const labFunctionName = '(?:lab|oklab)'
-const labParameters = `\\(\\s*${percentagePattern}(?:\\s+${numberPattern}){2}${alphaPattern}\\s*\\)`
-const labPattern = `${labFunctionName}${labParameters}`
+const labFunctionName = '(?:lab|oklab)';
+const labParameters = `\\(\\s*${percentagePattern}(?:\\s+${numberPattern}){2}${alphaPattern}\\s*\\)`;
+const labPattern = `${labFunctionName}${labParameters}`;
 
 // LCH/OKLCH function pattern
-const lchFunctionName = '(?:lch|oklch)'
-const lchParameters = `\\(\\s*${percentagePattern}(?:\\s+${numberPattern}){2}${alphaPattern}\\s*\\)`
-const lchPattern = `${lchFunctionName}${lchParameters}`
+const lchFunctionName = '(?:lch|oklch)';
+const lchParameters = `\\(\\s*${percentagePattern}(?:\\s+${numberPattern}){2}${alphaPattern}\\s*\\)`;
+const lchPattern = `${lchFunctionName}${lchParameters}`;
 
 // color function pattern
-const colorFunctionName = 'color'
+const colorFunctionName = 'color';
 const colorSpaces =
-  '(?:srgb|srgb-linear|display-p3|a98-rgb|prophoto-rgb|rec2020|rec2100-pq|rec2100-hlg|rec2100-linear|jzazbz|ictcp|xyz|xyz-d50|xyz-d65)'
-const colorParameters = `\\(\\s*${colorSpaces}(?:${separator}${numberPattern}){3}${alphaPattern}\\s*\\)`
-const colorFunctionPattern = `${colorFunctionName}${colorParameters}`
+  '(?:srgb|srgb-linear|display-p3|a98-rgb|prophoto-rgb|rec2020|rec2100-pq|rec2100-hlg|rec2100-linear|jzazbz|ictcp|xyz|xyz-d50|xyz-d65)';
+const colorParameters = `\\(\\s*${colorSpaces}(?:${separator}${numberPattern}){3}${alphaPattern}\\s*\\)`;
+const colorFunctionPattern = `${colorFunctionName}${colorParameters}`;
 
 // overall pattern of color values
-const colorValue = `(?:${hexPattern}|${rgbPattern}|${hslPattern}|${hwbPattern}|${labPattern}|${lchPattern}|${colorFunctionPattern}|${colorNames})`
+const colorValue = `(?:${hexPattern}|${rgbPattern}|${hslPattern}|${hwbPattern}|${labPattern}|${lchPattern}|${colorFunctionPattern}|${colorNames})`;
 
-module.exports = { colorValue }
+module.exports = { colorValue };

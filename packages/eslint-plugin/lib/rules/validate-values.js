@@ -8,7 +8,12 @@
 const validData = require('../util/validData');
 const unitData = require('../util/unitData');
 const { colorValue } = require('../util/colorData');
-const { isValidPlaceContent, isValidPlaceItems, isValidPlaceSelf, isValidTouchAction } = require('../util/place');
+const {
+  isValidPlaceContent,
+  isValidPlaceItems,
+  isValidPlaceSelf,
+  isValidTouchAction,
+} = require('../util/place');
 
 const globalValues = ['inherit', 'initial', 'revert', 'revert-layer', 'unset'];
 
@@ -157,17 +162,33 @@ function buildColorMixPattern() {
 
 const colorMixString = buildColorMixPattern();
 
-const colorRegex = new RegExp(`^(${colorValue}|${colorMixString}|${varString})$`);
+const colorRegex = new RegExp(
+  `^(${colorValue}|${colorMixString}|${varString})$`,
+);
 const colorSource = colorRegex.source.slice(1, -1);
 
 const imageRegex = new RegExp(`^(${linearGradientString}|${urlString})$`);
 const urlRegex = new RegExp(`^(${urlString})$`);
 
-const sliceValuePattern = '^(?:-?\\d+(?:\\.\\d+)?%?|fill)(?:\\s+(?:-?\\d+(?:\\.\\d+)?%?|fill)){0,3}$';
+const sliceValuePattern =
+  '^(?:-?\\d+(?:\\.\\d+)?%?|fill)(?:\\s+(?:-?\\d+(?:\\.\\d+)?%?|fill)){0,3}$';
 const sliceRegex = new RegExp(`^(${sliceValuePattern})$`);
 
-const otherGroupProperties = ['fontWeight', 'opacity', 'stopOpacity', 'strokeOpacity', 'flexGrow', 'flexShrink'];
-const integerGroupProperties = ['columnCount', 'zIndex', 'order', 'orphans', 'widows'];
+const otherGroupProperties = [
+  'fontWeight',
+  'opacity',
+  'stopOpacity',
+  'strokeOpacity',
+  'flexGrow',
+  'flexShrink',
+];
+const integerGroupProperties = [
+  'columnCount',
+  'zIndex',
+  'order',
+  'orphans',
+  'widows',
+];
 
 const multipleValueProperties = [
   'borderSpacing',
@@ -243,7 +264,12 @@ const borderWidthProperties = [
   'columnRuleWidth',
   'outlineWidth',
 ];
-const ImageSourceProperties = ['borderImageSource', 'listStyleImage', 'maskBorderSource', 'maskImage'];
+const ImageSourceProperties = [
+  'borderImageSource',
+  'listStyleImage',
+  'maskBorderSource',
+  'maskImage',
+];
 const borderProperties = [
   'border',
   'outline', // same as border
@@ -382,12 +408,14 @@ module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Validate camelCase CSS property values in JS objects or JSX',
+      description:
+        'Validate camelCase CSS property values in JS objects or JSX',
       recommended: true,
     },
     schema: [],
     messages: {
-      validateValue: "'{{key}}' has an invalid value '{{value}}'. Valid values: {{validValues}}",
+      validateValue:
+        "'{{key}}' has an invalid value '{{value}}'. Valid values: {{validValues}}",
     },
   },
   create(context) {
@@ -420,7 +448,9 @@ module.exports = {
               const report = createReport(property, key, value);
 
               const globalValue =
-                !validData[key].includes(value) && !globalValues.includes(value) && !varRegex.test(value);
+                !validData[key].includes(value) &&
+                !globalValues.includes(value) &&
+                !varRegex.test(value);
 
               const isBorderWidth = borderWidthProperties.includes(key);
               const multiAutoProperties = [
@@ -568,28 +598,45 @@ module.exports = {
                 `|${calcString}|${clampString}|${anchorString}|${anchorSizeString}|${minString}|${maxString}|${varString}`;
               const lengthValueRegex = new RegExp(`^(${lengthValuePattern})$`);
 
-              const isOtherGroups = ['opacity', 'stopOpacity', 'strokeOpacity'].includes(key);
-              const otherSingleValue = `${numberPattern}` + (isOtherGroups ? '%?' : '') + `|0`;
-              const otherSingleValueRegex = new RegExp(`^(${otherSingleValue})$`);
+              const isOtherGroups = [
+                'opacity',
+                'stopOpacity',
+                'strokeOpacity',
+              ].includes(key);
+              const otherSingleValue =
+                `${numberPattern}` + (isOtherGroups ? '%?' : '') + `|0`;
+              const otherSingleValueRegex = new RegExp(
+                `^(${otherSingleValue})$`,
+              );
 
               const multipleValueRegex = new RegExp(
-                `^(${lengthValuePattern})( (?!\\s)(${lengthValuePattern})){0,${valueCountMap[key] - 1}}$`
+                `^(${lengthValuePattern})( (?!\\s)(${lengthValuePattern})){0,${valueCountMap[key] - 1}}$`,
               );
 
               const backgroundPairRegex = new RegExp(
-                `^(${lengthValuePattern})(\\s+(${lengthValuePattern}))?(\\s*,\\s*(${lengthValuePattern})(\\s+(${lengthValuePattern}))?)*$`
+                `^(${lengthValuePattern})(\\s+(${lengthValuePattern}))?(\\s*,\\s*(${lengthValuePattern})(\\s+(${lengthValuePattern}))?)*$`,
               );
-              const backgroundPairProperties = ['backgroundSize', 'backgroundPositionY', 'backgroundPositionX'];
+              const backgroundPairProperties = [
+                'backgroundSize',
+                'backgroundPositionY',
+                'backgroundPositionX',
+              ];
 
               const backgroundQuadRegex = new RegExp(
-                `^(${lengthValuePattern})(\\s+(${lengthValuePattern}))?(\\s+(${lengthValuePattern}))?(\\s+(${lengthValuePattern}))?(\\s*,\\s*(${lengthValuePattern})(\\s+(${lengthValuePattern}))?(\\s+(${lengthValuePattern}))?(\\s+(${lengthValuePattern}))?)*$`
+                `^(${lengthValuePattern})(\\s+(${lengthValuePattern}))?(\\s+(${lengthValuePattern}))?(\\s+(${lengthValuePattern}))?(\\s*,\\s*(${lengthValuePattern})(\\s+(${lengthValuePattern}))?(\\s+(${lengthValuePattern}))?(\\s+(${lengthValuePattern}))?)*$`,
               );
 
               const backgroundQuadProperties = ['backgroundPosition'];
 
-              const visualBox = 'border-box|padding-box|content-box|' + varString;
-              const backgroundOriginRegex = new RegExp(`^(${visualBox})(\\s*,\\s*(${visualBox}))*$`);
-              const backgroundOriginProperties = ['backgroundOrigin', 'backgroundClip'];
+              const visualBox =
+                'border-box|padding-box|content-box|' + varString;
+              const backgroundOriginRegex = new RegExp(
+                `^(${visualBox})(\\s*,\\s*(${visualBox}))*$`,
+              );
+              const backgroundOriginProperties = [
+                'backgroundOrigin',
+                'backgroundClip',
+              ];
 
               const blendMode = [
                 'normal',
@@ -611,25 +658,32 @@ module.exports = {
                 varString,
               ].join('|');
 
-              const backgroundBlendModeRegex = new RegExp(`^(${blendMode})(\\s*,\\s*(${blendMode}))*$`);
+              const backgroundBlendModeRegex = new RegExp(
+                `^(${blendMode})(\\s*,\\s*(${blendMode}))*$`,
+              );
               const backgroundBlendModeProperties = ['backgroundBlendMode'];
 
               const attachment = `scroll|fixed|local|${varString}`;
               const backgroundAttachmentProperties = ['backgroundAttachment'];
-              const backgroundAttachmentRegex = new RegExp(`^(${attachment})(\\s*,\\s*(${attachment}))*$`);
+              const backgroundAttachmentRegex = new RegExp(
+                `^(${attachment})(\\s*,\\s*(${attachment}))*$`,
+              );
 
               const backgroundImageRegex = new RegExp(
-                `^(${linearGradientString}|${urlString}|${varString}|none)(\\s*,\\s*(${linearGradientString}|${urlString}|${varString}|none))*$`
+                `^(${linearGradientString}|${urlString}|${varString}|none)(\\s*,\\s*(${linearGradientString}|${urlString}|${varString}|none))*$`,
               );
               const backgroundImageProperties = ['backgroundImage'];
 
               const repeatKeyword = 'repeat|space|round|no-repeat';
               const backgroundRepeatRegex = new RegExp(
-                `^(((?:${repeatKeyword}|${varString})(\\s+(?:${repeatKeyword}|${varString})))?|(repeatX|repeatY))$`
+                `^(((?:${repeatKeyword}|${varString})(\\s+(?:${repeatKeyword}|${varString})))?|(repeatX|repeatY))$`,
               );
               const backgroundRepeatProperties = ['backgroundRepeat'];
 
-              const backgroundRepeatSource = backgroundRepeatRegex.source.slice(1, -1);
+              const backgroundRepeatSource = backgroundRepeatRegex.source.slice(
+                1,
+                -1,
+              );
 
               const positionKeyword = `top|bottom|center|left|right|${varString}`;
               const sizeKeyword = 'cover|contain';
@@ -656,21 +710,23 @@ module.exports = {
               const flexibleLayerWithColor = `(?:${flexibleLayerWithoutColor}\\s*)*${colorValuePattern}`;
 
               const backgroundRegex = new RegExp(
-                `^(?!\\s)(?=\\S)${flexibleLayerWithColor}(?:\\s*,\\s*${flexibleLayerWithColor})*$`
+                `^(?!\\s)(?=\\S)${flexibleLayerWithColor}(?:\\s*,\\s*${flexibleLayerWithColor})*$`,
               );
 
               const backgroundProperties = ['background'];
 
               const boxShadowRegex = new RegExp(
-                `^(?:(?:inset\\s+)?(${lengthValuePattern})\\s+(${lengthValuePattern})(?:\\s+(${lengthValuePattern}))?(?:\\s+(${lengthValuePattern}))?\\s+(${colorSource}))(?:\\s*,\\s*(?:(?:inset\\s+)?(${lengthValuePattern})\\s+(${lengthValuePattern})(?:\\s+(${lengthValuePattern}))?(?:\\s+(${lengthValuePattern}))?\\s+(${colorSource})))*$`
+                `^(?:(?:inset\\s+)?(${lengthValuePattern})\\s+(${lengthValuePattern})(?:\\s+(${lengthValuePattern}))?(?:\\s+(${lengthValuePattern}))?\\s+(${colorSource}))(?:\\s*,\\s*(?:(?:inset\\s+)?(${lengthValuePattern})\\s+(${lengthValuePattern})(?:\\s+(${lengthValuePattern}))?(?:\\s+(${lengthValuePattern}))?\\s+(${colorSource})))*$`,
               );
               const boxShadowProperties = ['boxShadow'];
 
               const borderRadiusRegex = new RegExp(
-                `^(${lengthValuePattern})( (?!\\s)(${lengthValuePattern})){0,3}(\\s*/\\s*(${lengthValuePattern})( (?!\\s)(${lengthValuePattern})){0,3})?$`
+                `^(${lengthValuePattern})( (?!\\s)(${lengthValuePattern})){0,3}(\\s*/\\s*(${lengthValuePattern})( (?!\\s)(${lengthValuePattern})){0,3})?$`,
               );
 
-              const borderStyleRegex = new RegExp(`^(${lineStyle})( (?!\\s)(${lineStyle})){0,3}$`);
+              const borderStyleRegex = new RegExp(
+                `^(${lineStyle})( (?!\\s)(${lineStyle})){0,3}$`,
+              );
 
               function createBorderImageRegex() {
                 const varString = `var\\(${dashedIdentString}(,\\s*[^\\)]+)?\\)?`;
@@ -683,19 +739,23 @@ module.exports = {
                 const repeatPart = `(?:\\s+(${varString}|stretch|repeat|round|space)){0,2}?`; // Optional repeat part
 
                 return new RegExp(
-                  `^${imageSource}` + `${slicePart}` + `${widthPart}` + `${outsetPart}` + `${repeatPart}$`
+                  `^${imageSource}` +
+                    `${slicePart}` +
+                    `${widthPart}` +
+                    `${outsetPart}` +
+                    `${repeatPart}$`,
                 );
               }
               const borderImageRegex = createBorderImageRegex();
 
               const aspectRatioRegex = new RegExp(
-                `^(auto\\s+)?(${varString}|${numberPattern}(\\s*\\/\\s*${numberPattern})?|auto)(\\s+auto)?$`
+                `^(auto\\s+)?(${varString}|${numberPattern}(\\s*\\/\\s*${numberPattern})?|auto)(\\s+auto)?$`,
               );
               const aspectRatioProperties = ['aspectRatio'];
 
               const timeUnit = '(s|ms)';
               const animationTimeRegex = new RegExp(
-                `^-?(${pureNumber}${timeUnit}|${varString})(,\\s-?(${pureNumber}${timeUnit}|${varString}))*$`
+                `^-?(${pureNumber}${timeUnit}|${varString})(,\\s-?(${pureNumber}${timeUnit}|${varString}))*$`,
               );
 
               const animationTimeProperties = [
@@ -705,22 +765,44 @@ module.exports = {
                 'transitionDuration',
               ];
 
-              const animationDirection = ['normal', 'reverse', 'alternate', 'alternate-reverse', varString].join('|');
-              const animationDirectionRegex = new RegExp(`^(${animationDirection})(,\\s*(${animationDirection}))*$`);
+              const animationDirection = [
+                'normal',
+                'reverse',
+                'alternate',
+                'alternate-reverse',
+                varString,
+              ].join('|');
+              const animationDirectionRegex = new RegExp(
+                `^(${animationDirection})(,\\s*(${animationDirection}))*$`,
+              );
               const animationDirectionProperties = ['animationDirection'];
 
-              const animationFillMode = ['none', 'forwards', 'backwards', 'both', varString].join('|');
-              const animationFillModeRegex = new RegExp(`^(${animationFillMode})(,\\s*(${animationFillMode}))*$`);
+              const animationFillMode = [
+                'none',
+                'forwards',
+                'backwards',
+                'both',
+                varString,
+              ].join('|');
+              const animationFillModeRegex = new RegExp(
+                `^(${animationFillMode})(,\\s*(${animationFillMode}))*$`,
+              );
               const animationFillModeProperties = ['animationFillMode'];
 
-              const animationPlayState = ['paused', 'running', varString].join('|');
-              const animationPlayStateRegex = new RegExp(`^(${animationPlayState})(,\\s*(${animationPlayState}))*$`);
+              const animationPlayState = ['paused', 'running', varString].join(
+                '|',
+              );
+              const animationPlayStateRegex = new RegExp(
+                `^(${animationPlayState})(,\\s*(${animationPlayState}))*$`,
+              );
               const animationPlayStateProperties = ['animationPlayState'];
 
               const animationIterationCountRegex = new RegExp(
-                `^${numberPattern}|infinite(,\\s*${numberPattern}|infinite)*$`
+                `^${numberPattern}|infinite(,\\s*${numberPattern}|infinite)*$`,
               );
-              const animationIterationCountProperties = ['animationIterationCount'];
+              const animationIterationCountProperties = [
+                'animationIterationCount',
+              ];
 
               const stringNameRegex = new RegExp('^.*$');
               const stringNameProperties = [
@@ -745,7 +827,15 @@ module.exports = {
                 'willChange',
               ];
 
-              const easing = ['ease', 'ease-in', 'ease-out', 'ease-in-out', 'linear', 'step-start', 'step-end'];
+              const easing = [
+                'ease',
+                'ease-in',
+                'ease-out',
+                'ease-in-out',
+                'linear',
+                'step-start',
+                'step-end',
+              ];
               const easingPattern = easing.join('|');
 
               const zeroToOne = '(0(\\.\\d+)?|1(\\.0+)?|0?\\.\\d+)';
@@ -756,17 +846,27 @@ module.exports = {
 
               const linearPattern = `linear\\(\\s*(${numberPercentage}(\\s*,\\s*${numberPercentage})*)+\\s*\\)`;
 
-              const stepPositions = ['jump-start', 'jump-end', 'jump-none', 'jump-both', 'start', 'end'];
+              const stepPositions = [
+                'jump-start',
+                'jump-end',
+                'jump-none',
+                'jump-both',
+                'start',
+                'end',
+              ];
               const stepPositionPattern = stepPositions.join('|');
               const stepPattern = `steps\\(\\s*(\\d+)\\s*,\\s*(${stepPositionPattern})\\s*\\)`;
 
               const singleTimingFunctionPattern = `(${easingPattern}|${cubicBezierPattern}|${linearPattern}|${stepPattern}|${varString})`;
 
               const animationTimingFunctionRegex = new RegExp(
-                `^${singleTimingFunctionPattern}(\\s*,\\s*${singleTimingFunctionPattern})*$`
+                `^${singleTimingFunctionPattern}(\\s*,\\s*${singleTimingFunctionPattern})*$`,
               );
 
-              const animationTimingFunctionProperties = ['animationTimingFunction', 'transitionTimingFunction'];
+              const animationTimingFunctionProperties = [
+                'animationTimingFunction',
+                'transitionTimingFunction',
+              ];
 
               const filterNumFunction = [
                 'brightness',
@@ -812,7 +912,12 @@ module.exports = {
                   }
                 }
 
-                return hasStyle || hasWidth || hasColor || parts.some((part) => varRegex.test(part));
+                return (
+                  hasStyle ||
+                  hasWidth ||
+                  hasColor ||
+                  parts.some((part) => varRegex.test(part))
+                );
               }
 
               const matrixString = 'matrix\\([^\\)]+\\)';
@@ -863,7 +968,8 @@ module.exports = {
 
               const filterProperties = ['backdropFilter', 'filter'];
 
-              const geometryBaseSet = 'content-box|padding-box|border-box|fill-box|stroke-box|view-box';
+              const geometryBaseSet =
+                'content-box|padding-box|border-box|fill-box|stroke-box|view-box';
               const geometryBox = geometryBaseSet + '|margin-box';
 
               const insetString = 'inset\\([^\\)]+\\)';
@@ -879,18 +985,18 @@ module.exports = {
               const geometryBoxWithVar = `(${geometryBox}|${varString})`;
 
               const clipPathRegex = new RegExp(
-                `^(${basicShapeString}|${geometryBoxWithVar}|${geometryBoxWithVar}\\s+${basicShapeString}|${basicShapeString}\\s+${geometryBoxWithVar})$`
+                `^(${basicShapeString}|${geometryBoxWithVar}|${geometryBoxWithVar}\\s+${basicShapeString}|${basicShapeString}\\s+${geometryBoxWithVar})$`,
               );
 
               const clipPathProperties = ['clipPath'];
 
               const columnsRegex = new RegExp(
-                `^(?:auto\\s*(?:auto|${lengthValuePattern}|${numberPattern})?|${numberPattern}\\s*(?:auto|${lengthValuePattern}|${numberPattern})?|${lengthValuePattern}\\s*(?:auto|${lengthValuePattern}|${numberPattern})?)$`
+                `^(?:auto\\s*(?:auto|${lengthValuePattern}|${numberPattern})?|${numberPattern}\\s*(?:auto|${lengthValuePattern}|${numberPattern})?|${lengthValuePattern}\\s*(?:auto|${lengthValuePattern}|${numberPattern})?)$`,
               );
               const columnsProperties = ['columns'];
 
               const contentValueRegex = new RegExp(
-                `^(${urlString}|${linearGradientString}|${imageSetString}|${attrString}|${counterString}|${countersString}|${stringString})$`
+                `^(${urlString}|${linearGradientString}|${imageSetString}|${attrString}|${counterString}|${countersString}|${stringString})$`,
               );
 
               const contentProperty = ['content'];
@@ -899,7 +1005,9 @@ module.exports = {
                 const urlWithHotspotRegex = `(${urlString}|${varString})(\\s+(${numberPattern})(\\s+(${numberPattern}))?)?`;
                 const urlPart = `(${urlWithHotspotRegex})`;
                 const standalonePattern = new RegExp(`^(${cursorValue})$`);
-                const urlListPattern = new RegExp(`^${urlPart}(\\s*,\\s*${urlPart})*\\s*,\\s*(${cursorValue})$`);
+                const urlListPattern = new RegExp(
+                  `^${urlPart}(\\s*,\\s*${urlPart})*\\s*,\\s*(${cursorValue})$`,
+                );
 
                 if (standalonePattern.test(value)) {
                   return true;
@@ -944,7 +1052,8 @@ module.exports = {
                 if (parts.length === 1) {
                   // Single value can be either a number or a length
                   return (
-                    new RegExp(`^${numberPattern}$`).test(parts[0]) || new RegExp(lengthValuePattern).test(parts[0])
+                    new RegExp(`^${numberPattern}$`).test(parts[0]) ||
+                    new RegExp(lengthValuePattern).test(parts[0])
                   );
                 }
 
@@ -957,7 +1066,8 @@ module.exports = {
 
                   // Second value can be either a number or a length
                   return (
-                    new RegExp(`^${numberPattern}$`).test(parts[1]) || new RegExp(lengthValuePattern).test(parts[1])
+                    new RegExp(`^${numberPattern}$`).test(parts[1]) ||
+                    new RegExp(lengthValuePattern).test(parts[1])
                   );
                 }
 
@@ -1126,16 +1236,29 @@ module.exports = {
                 .map((tag) => `'${tag}'|"${tag}"`)
                 .join('|');
 
-              const featureTag = [tagA_E, tagF_J, tagsK_O, tagsP_T, tagsU_Z].join('|');
+              const featureTag = [
+                tagA_E,
+                tagF_J,
+                tagsK_O,
+                tagsP_T,
+                tagsU_Z,
+              ].join('|');
               const singlePair = `(${featureTag}|${varString})(\\s+(-?\\d+|on|off|${varString}))?`;
 
-              const fontFeatureSettingsRegex = new RegExp(`^${singlePair}(\\s*,\\s*${singlePair})*$`);
+              const fontFeatureSettingsRegex = new RegExp(
+                `^${singlePair}(\\s*,\\s*${singlePair})*$`,
+              );
               const fontFeatureSettingsProperties = ['fontFeatureSettings'];
 
               const stringValueRegex = RegExp(`^${stringString}$`);
-              const stringStringProperties = ['fontLanguageOverride', 'hyphenateCharacter'];
+              const stringStringProperties = [
+                'fontLanguageOverride',
+                'hyphenateCharacter',
+              ];
 
-              const fontPaletteRegex = new RegExp(`^(${dashedIdentString}|${paletteMixString})$`);
+              const fontPaletteRegex = new RegExp(
+                `^(${dashedIdentString}|${paletteMixString})$`,
+              );
               const fontPaletteProperties = 'fontPalette';
 
               const fontMetric = `ex-height|cap-height|ch-width|ic-width|ic-height|${varString}`;
@@ -1156,7 +1279,9 @@ module.exports = {
                 }
 
                 if (parts.length === 2) {
-                  const isValidFirstPart = new RegExp(`^(${fontMetric})$`).test(parts[0]);
+                  const isValidFirstPart = new RegExp(`^(${fontMetric})$`).test(
+                    parts[0],
+                  );
                   if (!isValidFirstPart) {
                     return false;
                   }
@@ -1170,12 +1295,14 @@ module.exports = {
 
               const fontStretchProperties = ['fontStretch'];
 
-              const fontStyleRegex = new RegExp(`^(oblique|${anglePattern})(\\s+(oblique|${anglePattern}))?$`);
+              const fontStyleRegex = new RegExp(
+                `^(oblique|${anglePattern})(\\s+(oblique|${anglePattern}))?$`,
+              );
               const fontStyleProperties = ['fontStyle'];
 
               const fontSynthesisRegex = new RegExp(
                 `^(?:(weight|style|small-caps|position|${varString})(?:\\s+(?!\\1)(weight|style|small-caps|position|${varString}))*)?$`,
-                'i'
+                'i',
               );
               const fontSynthesisProperties = ['fontSynthesis'];
 
@@ -1186,7 +1313,7 @@ module.exports = {
                   `(?:(?:${notationFuncs})\\s+){0,6}(historical-forms|${varString})` +
                   `(?:\\s+(?:${notationFuncs})){0,6})` +
                   `)$`,
-                'i'
+                'i',
               );
 
               const fontVariantAlternatesProperties = ['fontVariantAlternates'];
@@ -1196,7 +1323,7 @@ module.exports = {
                   `(?:jis78|jis83|jis90|jis04|simplified|traditional|full-width|proportional-width|ruby|${varString})` +
                   `(?:\\s+(?:jis78|jis83|jis90|jis04|simplified|traditional|full-width|proportional-width|ruby|${varString})){0,2}` +
                   '$',
-                'i'
+                'i',
               );
 
               function isValidFontVariantEastAsian(value) {
@@ -1207,10 +1334,19 @@ module.exports = {
                 const values = value.toLowerCase().split(/\s+/);
 
                 const jisCount = values.filter((v) =>
-                  ['jis78', 'jis83', 'jis90', 'jis04', 'simplified', 'traditional'].includes(v)
+                  [
+                    'jis78',
+                    'jis83',
+                    'jis90',
+                    'jis04',
+                    'simplified',
+                    'traditional',
+                  ].includes(v),
                 ).length;
 
-                const widthCount = values.filter((v) => ['full-width', 'proportional-width'].includes(v)).length;
+                const widthCount = values.filter((v) =>
+                  ['full-width', 'proportional-width'].includes(v),
+                ).length;
 
                 const rubyCount = values.filter((v) => v === 'ruby').length;
 
@@ -1218,24 +1354,33 @@ module.exports = {
               }
               const fontVariantEastAsianProperties = ['fontVariantEastAsian'];
 
-              const commonLig = 'common-ligatures|no-common-ligatures' + `|${varString}`;
-              const discretionaryLig = 'discretionary-ligatures|no-discretionary-ligatures' + `|${varString}`;
-              const historicalLig = 'historical-ligatures|no-historical-ligatures' + `|${varString}`;
-              const contextualAlt = 'contextual|no-contextual' + `|${varString}`;
+              const commonLig =
+                'common-ligatures|no-common-ligatures' + `|${varString}`;
+              const discretionaryLig =
+                'discretionary-ligatures|no-discretionary-ligatures' +
+                `|${varString}`;
+              const historicalLig =
+                'historical-ligatures|no-historical-ligatures' +
+                `|${varString}`;
+              const contextualAlt =
+                'contextual|no-contextual' + `|${varString}`;
               const fontVariantLigaturesRegex = new RegExp(
-                `^(?:(?:(${commonLig})|)(?: (${discretionaryLig})|)(?: (${historicalLig})|)(?: (${contextualAlt})|)){1,4}$`
+                `^(?:(?:(${commonLig})|)(?: (${discretionaryLig})|)(?: (${historicalLig})|)(?: (${contextualAlt})|)){1,4}$`,
               );
               const fontVariantLigaturesProperties = ['fontVariantLigatures'];
 
               const alternatesValues = `(?:${notationFuncs}|historical-forms)`;
               const numericFigureValues = 'lining-nums|oldstyle-nums';
               const numericSpacingValues = 'proportional-nums|tabular-nums';
-              const numericFractionValues = 'diagonal-fractions|stacked-fractions';
+              const numericFractionValues =
+                'diagonal-fractions|stacked-fractions';
               const numericOtherValues = 'normal|ordinal|slashed-zero';
-              const eastAsianVariantValues = 'jis78|jis83|jis90|jis04|simplified|traditional';
+              const eastAsianVariantValues =
+                'jis78|jis83|jis90|jis04|simplified|traditional';
               const eastAsianWidthValues = 'full-width|proportional-width';
               const eastAsianRuby = 'ruby';
-              const capsValues = 'small-caps|all-small-caps|petite-caps|all-petite-caps|unicase|titling-caps';
+              const capsValues =
+                'small-caps|all-small-caps|petite-caps|all-petite-caps|unicase|titling-caps';
               const emojiValues = 'text|emoji|unicode';
               const positionValues = 'sub|super';
 
@@ -1249,7 +1394,7 @@ module.exports = {
 
               const fontVariantNumericRegex = new RegExp(
                 `^(?:(${figureSpacingFractionValues})(?:\\s+(?!\\1)(${figureSpacingFractionValues}))*)?$`,
-                'i'
+                'i',
               );
               const fontVariantNumericProperties = ['fontVariantNumeric'];
 
@@ -1291,7 +1436,7 @@ module.exports = {
                   `)` +
                   `)*` +
                   `)$`,
-                'i'
+                'i',
               );
 
               const fontVariantProperties = ['fontVariant'];
@@ -1299,7 +1444,7 @@ module.exports = {
               const axisTagDouble = '"wght"|"wdth"|"slnt"|"ital"|"opsz"';
               const axisTagSingle = "'wght'|'wdth'|'slnt'|'ital'|'opsz'";
               const fontVariationSettingsRegex = new RegExp(
-                `^(${axisTagDouble}|${axisTagSingle}|${varString})\\s+(${numberPattern})$`
+                `^(${axisTagDouble}|${axisTagSingle}|${varString})\\s+(${numberPattern})$`,
               );
               const fontVariationSettingsProperties = ['fontVariationSettings'];
 
@@ -1324,10 +1469,13 @@ module.exports = {
               ].join('|');
 
               const gridAutoColumnsRegex = new RegExp(
-                `^(?:${gridTrackListPattern})(?:\\s+(?:${gridTrackListPattern}))*$`
+                `^(?:${gridTrackListPattern})(?:\\s+(?:${gridTrackListPattern}))*$`,
               );
 
-              const gridAutoColumnsRowsProperties = ['gridAutoColumns', 'gridAutoRows'];
+              const gridAutoColumnsRowsProperties = [
+                'gridAutoColumns',
+                'gridAutoRows',
+              ];
 
               const quoteRegex = new RegExp(`${stringString}`);
               const gridTemplateAreasProperties = ['gridTemplateAreas'];
@@ -1353,7 +1501,7 @@ module.exports = {
                   `(?:\\s*\\/\\s*(?:${explicitTrackPattern}|${autoFlowPattern}(?:\\s+${explicitTrackPattern}|${autoFlowPattern})*)+)?|` +
                   // Option 3: Columns only (starting with a slash)
                   `\\s*\\/\\s*(?:${explicitTrackPattern}|${autoFlowPattern}(?:\\s+${explicitTrackPattern}|${autoFlowPattern})*)+` +
-                  ')$'
+                  ')$',
               );
 
               const gridProperties = ['grid'];
@@ -1370,9 +1518,12 @@ module.exports = {
                 ...(isTemplateColumns ? [fitContentString] : []),
               ].join('|');
               const gridTemplateTrackListRegex = new RegExp(
-                `^(?:${templateTrackListPattern})(?:\\s+(?:${templateTrackListPattern}))*$`
+                `^(?:${templateTrackListPattern})(?:\\s+(?:${templateTrackListPattern}))*$`,
               );
-              const gridTemplateTrackListProperties = ['gridTemplateColumns', 'gridTemplateRows'];
+              const gridTemplateTrackListProperties = [
+                'gridTemplateColumns',
+                'gridTemplateRows',
+              ];
 
               const isValidateGridTemplate = (value) => {
                 if (typeof value !== 'string') return false;
@@ -1398,29 +1549,35 @@ module.exports = {
                     `(?:\\s*\\/\\s*(?:${explicitTrackPattern}(?:\\s+${explicitTrackPattern})*)+)?|` +
                     // Option 3: Columns only (starting with a slash)
                     `\\s*\\/\\s*(?:${explicitTrackPattern}(?:\\s+${explicitTrackPattern})*)+` +
-                    ')$'
+                    ')$',
                 ).test(value);
               };
 
               const gridTemplateProperties = ['gridTemplate'];
 
               const hyphenateLimitCharsRegex = new RegExp(
-                `^(${numberPattern}|auto)( (?!\\s)(${numberPattern}|auto)){0,2}$`
+                `^(${numberPattern}|auto)( (?!\\s)(${numberPattern}|auto)){0,2}$`,
               );
               const hyphenateLimitCharsProperties = ['hyphenateLimitChars'];
 
-              const imageOrientationRegex = new RegExp(`^(${anglePattern})( (?!\\s)(flip|${varString})){0,1}$`);
+              const imageOrientationRegex = new RegExp(
+                `^(${anglePattern})( (?!\\s)(flip|${varString})){0,1}$`,
+              );
               const imageOrientationProperties = ['imageOrientation'];
 
               const initialLetterRegex = new RegExp(
-                `^(${numberPattern})( (?!\\s)(${integerPattern}|drop|raise)){0,1}$`
+                `^(${numberPattern})( (?!\\s)(${integerPattern}|drop|raise)){0,1}$`,
               );
               const initialLetterProperties = ['initialLetter'];
 
-              const insetPairRegex = new RegExp(`^(${lengthValuePattern}|auto)(\\s+(${lengthValuePattern}))?$`);
+              const insetPairRegex = new RegExp(
+                `^(${lengthValuePattern}|auto)(\\s+(${lengthValuePattern}))?$`,
+              );
               const insetPairProperties = ['insetBlock', 'insetInline'];
 
-              const marginPairRegex = new RegExp(`^(${lengthValuePattern})(\\s+(${lengthValuePattern}))?$`);
+              const marginPairRegex = new RegExp(
+                `^(${lengthValuePattern})(\\s+(${lengthValuePattern}))?$`,
+              );
               const marginPairProperties = [
                 'marginBlock', //
                 'marginInline', //
@@ -1432,19 +1589,24 @@ module.exports = {
                 'scrollMarginInline', // not auto
               ];
 
-              const markerProperties = ['marker', 'markerEnd', 'markerMid', 'markerStart'];
+              const markerProperties = [
+                'marker',
+                'markerEnd',
+                'markerMid',
+                'markerStart',
+              ];
 
               const maskBorderOutsetRegex = new RegExp(
-                `^(${lengthValuePattern}|${numberPattern})( (?!\\s)(${lengthValuePattern}|${numberPattern})){0,3}$`
+                `^(${lengthValuePattern}|${numberPattern})( (?!\\s)(${lengthValuePattern}|${numberPattern})){0,3}$`,
               );
               const maskBorderOutsetProperties = ['maskBorderOutset'];
 
               const maskBorderSliceRegex = new RegExp(
-                `^(${percentagePattern}|${numberPattern}|fill)( (?!\\s)(${percentagePattern}|${numberPattern}|fill)){0,3}$`
+                `^(${percentagePattern}|${numberPattern}|fill)( (?!\\s)(${percentagePattern}|${numberPattern}|fill)){0,3}$`,
               );
               const maskBorderSliceProperties = ['maskBorderSlice'];
               const maskBorderWidthRegex = new RegExp(
-                `^(${lengthValuePattern}|${numberPattern}|auto)( (?!\\s)(${lengthValuePattern}|${numberPattern}|auto)){0,3}$`
+                `^(${lengthValuePattern}|${numberPattern}|auto)( (?!\\s)(${lengthValuePattern}|${numberPattern}|auto)){0,3}$`,
               );
               const maskBorderWidthProperties = ['maskBorderWidth'];
 
@@ -1452,9 +1614,18 @@ module.exports = {
 
               const repeatFullSet = `(${repeatKeyword}|${backgroundRepeatRegex.source.slice(1, -1)})`;
 
-              const maskBorderOutsetSource = maskBorderOutsetRegex.source.slice(1, -1);
-              const maskBorderSliceSource = maskBorderSliceRegex.source.slice(1, -1);
-              const maskBorderWidthSource = maskBorderWidthRegex.source.slice(1, -1);
+              const maskBorderOutsetSource = maskBorderOutsetRegex.source.slice(
+                1,
+                -1,
+              );
+              const maskBorderSliceSource = maskBorderSliceRegex.source.slice(
+                1,
+                -1,
+              );
+              const maskBorderWidthSource = maskBorderWidthRegex.source.slice(
+                1,
+                -1,
+              );
 
               const maskBorderRegex = new RegExp(
                 `^(?:${linearGradientString}|${urlString})` +
@@ -1462,42 +1633,58 @@ module.exports = {
                   `(?:\\s?/\\s?${maskBorderWidthSource})?` +
                   `(?:\\s?/\\s?${maskBorderOutsetSource})?` +
                   `(?:\\s+(?:${repeatFullSet}))?` +
-                  `(?:\\s+(?:${modeKeyword}))?$`
+                  `(?:\\s+(?:${modeKeyword}))?$`,
               );
               const maskBorderProperties = ['maskBorder'];
 
-              const maskClipKeyword = geometryBaseSet + `|no-clip|border|padding|content|text|${varString}`;
-              const maskClipRegex = new RegExp(`^(${maskClipKeyword})(,\\s*(${maskClipKeyword}))*$`);
+              const maskClipKeyword =
+                geometryBaseSet +
+                `|no-clip|border|padding|content|text|${varString}`;
+              const maskClipRegex = new RegExp(
+                `^(${maskClipKeyword})(,\\s*(${maskClipKeyword}))*$`,
+              );
               const maskClipProperties = ['maskClip'];
 
               const compositeKeyword = `add|subtract|intersect|exclude|${varString}`;
-              const maskCompositeRegex = new RegExp(`^(${compositeKeyword})(,\\s*(${compositeKeyword}))*$`);
+              const maskCompositeRegex = new RegExp(
+                `^(${compositeKeyword})(,\\s*(${compositeKeyword}))*$`,
+              );
               const maskCompositeProperties = ['maskComposite'];
 
               const maskModeKeyword = `alpha|luminance|match-source|${varString}`;
-              const maskModeRegex = new RegExp(`^(${maskModeKeyword})(,\\s*(${maskModeKeyword}))*$`);
+              const maskModeRegex = new RegExp(
+                `^(${maskModeKeyword})(,\\s*(${maskModeKeyword}))*$`,
+              );
               const maksModeProperties = ['maskMode'];
 
-              const maskOriginKeyword = geometryBaseSet + `|content|padding|border|${varString}`;
-              const maskOriginRegex = new RegExp(`^(${maskOriginKeyword})(,\\s*(${maskOriginKeyword}))*$`);
+              const maskOriginKeyword =
+                geometryBaseSet + `|content|padding|border|${varString}`;
+              const maskOriginRegex = new RegExp(
+                `^(${maskOriginKeyword})(,\\s*(${maskOriginKeyword}))*$`,
+              );
               const maskOriginProperties = ['maskOrigin'];
 
               const maskPositionRegex = new RegExp(
-                `^(?:(${lengthValuePattern}|${positionKeyword})( (?!\\s)(${lengthValuePattern}|${positionKeyword})){0,3})(?:,\\s*(${lengthValuePattern}|${positionKeyword})( (?!\\s)(${lengthValuePattern}|${positionKeyword})){0,3})*$`
+                `^(?:(${lengthValuePattern}|${positionKeyword})( (?!\\s)(${lengthValuePattern}|${positionKeyword})){0,3})(?:,\\s*(${lengthValuePattern}|${positionKeyword})( (?!\\s)(${lengthValuePattern}|${positionKeyword})){0,3})*$`,
               );
               const maskPositionProperties = ['maskPosition'];
 
-              const maskRepeatRegex = new RegExp(`^(${backgroundRepeatSource})(,\\s*(${backgroundRepeatSource}))*$`);
+              const maskRepeatRegex = new RegExp(
+                `^(${backgroundRepeatSource})(,\\s*(${backgroundRepeatSource}))*$`,
+              );
               const maskRepeatProperties = ['maskRepeat'];
 
               const maskRepeatKeyword = 'stretch|repeat|round|space';
               const maskBorderRepeatRegex = new RegExp(
-                `^((?:${maskRepeatKeyword}|${varString})(?:\\s+(?:${maskRepeatKeyword}|${varString}))?)$`
+                `^((?:${maskRepeatKeyword}|${varString})(?:\\s+(?:${maskRepeatKeyword}|${varString}))?)$`,
               );
-              const maskBorderRepeatProperties = ['maskBorderRepeat', 'borderImageRepeat'];
+              const maskBorderRepeatProperties = [
+                'maskBorderRepeat',
+                'borderImageRepeat',
+              ];
 
               const maskSizeRegex = new RegExp(
-                `^(${lengthValuePattern}|cover|contain|auto)(\\s+(${lengthValuePattern}|cover|contain|auto))?(,\\s*(${lengthValuePattern}|cover|contain|auto)(\\s+(${lengthValuePattern}|cover|contain|auto))?)*$`
+                `^(${lengthValuePattern}|cover|contain|auto)(\\s+(${lengthValuePattern}|cover|contain|auto))?(,\\s*(${lengthValuePattern}|cover|contain|auto)(\\s+(${lengthValuePattern}|cover|contain|auto))?)*$`,
               );
               const maskSizeProperties = ['maskSize'];
 
@@ -1515,14 +1702,18 @@ module.exports = {
                 `(?:\\s+${maskClipKeyword})?` +
                 `(?:\\s+${compositeKeyword})?` +
                 `(?:\\s+${maskModeKeyword})?`;
-              const maskRegex = new RegExp(`^${maskLayerRegex}(?:,(?:\\s+${maskLayerRegex}))*$`);
+              const maskRegex = new RegExp(
+                `^${maskLayerRegex}(?:,(?:\\s+${maskLayerRegex}))*$`,
+              );
               const maskProperties = ['mask'];
 
-              const mathDepthRegex = new RegExp(`^(${addString}|${integerPattern})$`);
+              const mathDepthRegex = new RegExp(
+                `^(${addString}|${integerPattern})$`,
+              );
               const mathDepthProperties = ['mathDepth'];
 
               const lengthPositionRegex = new RegExp(
-                `^(${lengthValuePattern}|${positionKeyword})( (?!\\s)(${lengthValuePattern}|${positionKeyword})){0,3}$`
+                `^(${lengthValuePattern}|${positionKeyword})( (?!\\s)(${lengthValuePattern}|${positionKeyword})){0,3}$`,
               );
 
               const lengthPositionProperties = [
@@ -1534,34 +1725,41 @@ module.exports = {
 
               const rayString = 'ray\\([^\\)]+\\)';
               const offsetPathRegex = new RegExp(
-                `^(${rayString}|${urlString}|${basicShapeString}|${geometryBaseSet})$`
+                `^(${rayString}|${urlString}|${basicShapeString}|${geometryBaseSet})$`,
               );
               const offsetPathProperties = ['offsetPath'];
 
-              const offsetRotateRegex = new RegExp(`^(${anglePattern}|auto|reverse)( (?!\\s)(${anglePattern})){0,1}$`);
+              const offsetRotateRegex = new RegExp(
+                `^(${anglePattern}|auto|reverse)( (?!\\s)(${anglePattern})){0,1}$`,
+              );
               const offsetRotateProperties = ['offsetRotate'];
 
-              const offsetPositionSource = lengthPositionRegex.source.slice(1, -1);
+              const offsetPositionSource = lengthPositionRegex.source.slice(
+                1,
+                -1,
+              );
               const offsetRotateSource = offsetRotateRegex.source.slice(1, -1);
               // distance at use lengthValuePattern
               const offsetPathSource = offsetPathRegex.source.slice(1, -1);
 
               const offsetRegex = new RegExp(
-                `^(?!\\s)(?=\\S)(${offsetPositionSource})?\\s*(${offsetPathSource}(\\s(${lengthValuePattern}(\\s+${offsetRotateSource})?|${offsetRotateSource}))?)?\\s*(\\/\\s*${offsetPositionSource})?(?<!\\s)$`
+                `^(?!\\s)(?=\\S)(${offsetPositionSource})?\\s*(${offsetPathSource}(\\s(${lengthValuePattern}(\\s+${offsetRotateSource})?|${offsetRotateSource}))?)?\\s*(\\/\\s*${offsetPositionSource})?(?<!\\s)$`,
               );
               const offsetProperties = ['offset'];
 
               const oveflowKeyword = `visible|hidden|clip|scroll|auto|${varString}`;
-              const oveflowRegex = new RegExp(`^(${oveflowKeyword})(\\s+(${oveflowKeyword}))?$`);
+              const oveflowRegex = new RegExp(
+                `^(${oveflowKeyword})(\\s+(${oveflowKeyword}))?$`,
+              );
               const oveflowProperties = ['overflow'];
 
               const overflowClipMarginRegex = new RegExp(
-                `^(?:${lengthValuePattern}$|${visualBox}$|${lengthValuePattern}\\s+${visualBox}$|${visualBox}\\s+${lengthValuePattern}$)`
+                `^(?:${lengthValuePattern}$|${visualBox}$|${lengthValuePattern}\\s+${visualBox}$|${visualBox}\\s+${lengthValuePattern}$)`,
               );
               const overflowClipMarginProperties = ['overflowClipMargin'];
 
               const overscrollBehaviorRegex = new RegExp(
-                `^(auto|contain|${varString})( (?!\\s)(auto|contain|${varString})){0,1}$`
+                `^(auto|contain|${varString})( (?!\\s)(auto|contain|${varString})){0,1}$`,
               );
               const overscrollBehaviorProperties = ['overscrollBehavior'];
 
@@ -1579,7 +1777,9 @@ module.exports = {
               const paintOrderRegex = new RegExp(`^(${paintOrderPattern})$`);
               const paintOrderProperties = ['paintOrder'];
 
-              const quotesRegex = new RegExp(`^(${stringString}|${varString})(\\s(${stringString}|${varString}))*$`);
+              const quotesRegex = new RegExp(
+                `^(${stringString}|${varString})(\\s(${stringString}|${varString}))*$`,
+              );
               const quotesProperties = ['quotes'];
 
               const rotatePattern =
@@ -1591,22 +1791,28 @@ module.exports = {
 
               const numberAndPercentagePattern = `${numberPattern}|${percentagePattern}`;
               const scaleRegex = new RegExp(
-                `^(${numberAndPercentagePattern})( (?!\\s)(${numberAndPercentagePattern})){0,2}$`
+                `^(${numberAndPercentagePattern})( (?!\\s)(${numberAndPercentagePattern})){0,2}$`,
               );
               const scaleProperties = ['scale'];
 
-              const scrollMarginRegex = new RegExp(`^(${lengthValuePattern})( (?!\\s)(${lengthValuePattern})){0,3}$`);
+              const scrollMarginRegex = new RegExp(
+                `^(${lengthValuePattern})( (?!\\s)(${lengthValuePattern})){0,3}$`,
+              );
               const scrollMarginProperties = ['scrollMargin'];
 
               const scrollPaddingRegex = new RegExp(
-                `^(${lengthValuePattern}|auto)( (?!\\s)(${lengthValuePattern}|auto)){0,3}$`
+                `^(${lengthValuePattern}|auto)( (?!\\s)(${lengthValuePattern}|auto)){0,3}$`,
               );
               const scrollPaddingProperties = ['scrollPadding'];
 
-              const scrollbarColorRegex = new RegExp(`^(${colorSource}(\\s${colorSource})?)$`);
+              const scrollbarColorRegex = new RegExp(
+                `^(${colorSource}(\\s${colorSource})?)$`,
+              );
               const scrollbarColorProperties = ['scrollbarColor'];
 
-              const shapeImageThresholdRegex = new RegExp(`^(${numberAndPercentagePattern})$`);
+              const shapeImageThresholdRegex = new RegExp(
+                `^(${numberAndPercentagePattern})$`,
+              );
               const shapeImageThresholdProperties = ['shapeImageThreshold'];
 
               const outsideShape = `(${insetString}|${circleString}|${ellipseString}|${polygonString}|${varString})`;
@@ -1617,15 +1823,17 @@ module.exports = {
                   `(?:${outsideShape}(?:\\s+${shapeVisualBox})?)|` +
                   `(?:${shapeVisualBox}(?:\\s+${outsideShape})?)|` +
                   `${linearGradientString}|${urlString}|${varString}` +
-                  `)$`
+                  `)$`,
               );
               const shapeOutsideProperties = ['shapeOutside'];
 
-              const strokeRegex = new RegExp(`^${linearGradientString}|${urlString}|${colorSource}$`);
+              const strokeRegex = new RegExp(
+                `^${linearGradientString}|${urlString}|${colorSource}$`,
+              );
               const strokeProperties = ['stroke'];
 
               const strokeDasharrayRegex = new RegExp(
-                `^(${numberPattern}|${lengthValuePattern})(,\\s(${numberPattern}|${lengthValuePattern}))*$`
+                `^(${numberPattern}|${lengthValuePattern})(,\\s(${numberPattern}|${lengthValuePattern}))*$`,
               );
               const strokeDasharrayProperties = ['strokeDasharray'];
 
@@ -1633,7 +1841,12 @@ module.exports = {
               const strokeMiterlimitProperties = ['strokeMiterlimit'];
 
               const isValidTextDecorationLine = (value) => {
-                const decorationValues = ['underline', 'overline', 'line-through', 'blink'];
+                const decorationValues = [
+                  'underline',
+                  'overline',
+                  'line-through',
+                  'blink',
+                ];
                 const usedValues = new Set();
 
                 const trimmedValue = value.trim();
@@ -1648,7 +1861,10 @@ module.exports = {
                     return true;
                   }
 
-                  if (decorationValues.includes(token) || varString.includes(token)) {
+                  if (
+                    decorationValues.includes(token) ||
+                    varString.includes(token)
+                  ) {
                     return !usedValues.has(token) && usedValues.add(token);
                   }
 
@@ -1658,12 +1874,12 @@ module.exports = {
               const textDecorationProperties = ['textDecorationLine'];
 
               const textIndentRegex = new RegExp(
-                `^(${lengthValuePattern})(\\s(hanging|${varString})?)?(\\s(each-line|${varString})?)?$`
+                `^(${lengthValuePattern})(\\s(hanging|${varString})?)?(\\s(each-line|${varString})?)?$`,
               );
               const textIndentProperties = ['textIndent'];
 
               const textShadowRegex = new RegExp(
-                `^(?:(?:(${colorSource})\\s+)?(${lengthValuePattern})\\s+(${lengthValuePattern})(?:\\s+(${lengthValuePattern}))?(?:\\s+(${colorSource}))?(?:\\s*,\\s*(?:(${colorSource})\\s+)?(${lengthValuePattern})\\s+(${lengthValuePattern})(?:\\s+(${lengthValuePattern}))?(?:\\s+(${colorSource}))?)*|none)$`
+                `^(?:(?:(${colorSource})\\s+)?(${lengthValuePattern})\\s+(${lengthValuePattern})(?:\\s+(${lengthValuePattern}))?(?:\\s+(${colorSource}))?(?:\\s*,\\s*(?:(${colorSource})\\s+)?(${lengthValuePattern})\\s+(${lengthValuePattern})(?:\\s+(${lengthValuePattern}))?(?:\\s+(${colorSource}))?)*|none)$`,
               );
               const textShadowProperties = ['textShadow'];
 
@@ -1672,13 +1888,13 @@ module.exports = {
               const baseline = `baseline|${varString}`;
               const touchActionProperties = ['touchAction'];
               const alignContentRegex = new RegExp(
-                `^(((safe|unsafe|${varString})\\s+(${alignKeyword}))|(${firstLast})\\s+(${baseline}))$`
+                `^(((safe|unsafe|${varString})\\s+(${alignKeyword}))|(${firstLast})\\s+(${baseline}))$`,
               );
               const alignContentProperties = ['alignContent'];
 
               const itemsSelfKeyword = `self-start|self-end|anchor-center|start|end|center|flex-start|flex-end|${varString}`;
               const alignItemsSelfRegex = new RegExp(
-                `^(((safe|unsafe|${varString})\\s+(${itemsSelfKeyword}))|(${firstLast})\\s+(${baseline}))$`
+                `^(((safe|unsafe|${varString})\\s+(${itemsSelfKeyword}))|(${firstLast})\\s+(${baseline}))$`,
               );
               const alignItemsSelfProperties = ['alignItems', 'alignSelf'];
 
@@ -1687,13 +1903,15 @@ module.exports = {
               const listItem = `list-item|${varString}`;
               const listItemRightGroup = `block|inline|flow|flow-root|run-in|${varString}`;
               const displayRegex = new RegExp(
-                `^(((${leftGroup})\\s+(${rightGroup}))|(${listItem})\\s+(${listItemRightGroup}))$`
+                `^(((${leftGroup})\\s+(${rightGroup}))|(${listItem})\\s+(${listItemRightGroup}))$`,
               );
               const displayProperties = ['display'];
 
               const direction = 'row|row-reverse|column|column-reverse';
               const wrap = 'nowrap|wrap|wrap-reverse';
-              const flexFlowRegex = new RegExp(`^((${direction}|${varString})(\\s+(${wrap}|${varString})))$`);
+              const flexFlowRegex = new RegExp(
+                `^((${direction}|${varString})(\\s+(${wrap}|${varString})))$`,
+              );
               const flexFlowProperties = ['flexFlow'];
 
               const first = `(first|${varString})`;
@@ -1706,37 +1924,39 @@ module.exports = {
                 `(?:${first}\\s+${forceAllow}\\s+${last})?` +
                 `(?:${first}\\s+${last})?`;
 
-              const hangingPunctuationRegex = new RegExp(`^(${hangingPunctuationPattern})$`);
+              const hangingPunctuationRegex = new RegExp(
+                `^(${hangingPunctuationPattern})$`,
+              );
               const hangingPunctuationProperties = ['hangingPunctuation'];
 
               const justifyContentKeyword = `left|right|stretch|start|end|center|flex-start|flex-end|${varString}`;
               const justifyContentRegex = new RegExp(
-                `^(((safe|unsafe|${varString})\\s+(${justifyContentKeyword}))|(${firstLast})\\s+(${baseline}))$`
+                `^(((safe|unsafe|${varString})\\s+(${justifyContentKeyword}))|(${firstLast})\\s+(${baseline}))$`,
               );
               const justifyContentProperties = ['justifyContent'];
 
               const justifyItemsSelfKeyword = `left|right|anchor-center|stretch|self-start|self-end|start|end|center|flex-start|flex-end|${varString}`;
               const justifySelfRegex = new RegExp(
-                `^(((safe|unsafe|${varString})\\s+(${justifyItemsSelfKeyword}))|(${firstLast})\\s+(${baseline}))$`
+                `^(((safe|unsafe|${varString})\\s+(${justifyItemsSelfKeyword}))|(${firstLast})\\s+(${baseline}))$`,
               );
               const justifySelfProperties = ['justifySelf'];
 
               const legacyValues = `(legacy|${varString})\\s+(left|right|center|${varString})`;
               const justifyItemsRegex = new RegExp(
-                `^(((safe|unsafe|${varString})\\s+(${justifyItemsSelfKeyword}))|(${firstLast})\\s+(${baseline})|(${legacyValues}))$`
+                `^(((safe|unsafe|${varString})\\s+(${justifyItemsSelfKeyword}))|(${firstLast})\\s+(${baseline})|(${legacyValues}))$`,
               );
               const justifyItemsProperties = ['justifyItems'];
 
               const scrollSnapAlignKeyword = 'start|end|center';
               const scrollSnapAlignRegex = new RegExp(
-                `^((?:${scrollSnapAlignKeyword}|${varString})(?:\\s+(?:${scrollSnapAlignKeyword}|${varString}))?)$`
+                `^((?:${scrollSnapAlignKeyword}|${varString})(?:\\s+(?:${scrollSnapAlignKeyword}|${varString}))?)$`,
               );
               const scrollSnapAlignProperties = ['scrollSnapAlign'];
 
               const scrollSnapTypeKeyword = 'x|y|block|inline|both';
               const snapStrictKeyowrd = 'mandatory|proximity';
               const scrollSnapTypeRegex = new RegExp(
-                `^((?:${scrollSnapTypeKeyword}|${varString})(?:\\s+(?:${snapStrictKeyowrd}|${varString}))?)$`
+                `^((?:${scrollSnapTypeKeyword}|${varString})(?:\\s+(?:${snapStrictKeyowrd}|${varString}))?)$`,
               );
               const scrollSnapTypeProperties = ['scrollSnapType'];
 
@@ -1744,32 +1964,37 @@ module.exports = {
               const overUnder = `over|under|${varString}`;
 
               const textEmphasisPositionRegex = new RegExp(
-                `^(((?:${overUnder})(?:\\s+(?:${leftRight}))|(?:${leftRight})(?:\\s+(?:${overUnder})))?)$`
+                `^(((?:${overUnder})(?:\\s+(?:${leftRight}))|(?:${leftRight})(?:\\s+(?:${overUnder})))?)$`,
               );
               const textEmphasisPositionProperties = ['textEmphasisPosition'];
 
               const filledOpen = `filled|open|${varString}`;
               const emphasisStyleKeyword = `dot|circle|double-circle|triangle|sesame|${varString}`;
               const textEmphasisStyleRegex = new RegExp(
-                `^(((?:${filledOpen})(?:\\s+(?:${emphasisStyleKeyword})))?|${stringString}?)$`
+                `^(((?:${filledOpen})(?:\\s+(?:${emphasisStyleKeyword})))?|${stringString}?)$`,
               );
               const textEmphasisStyleProperties = ['textEmphasisStyle'];
 
-              const textEmphasisStyleSource = textEmphasisStyleRegex.source.slice(1, -1);
-              const textEmphasisRegex = new RegExp(`^(${textEmphasisStyleSource})(\\s(${colorSource}))?$`);
+              const textEmphasisStyleSource =
+                textEmphasisStyleRegex.source.slice(1, -1);
+              const textEmphasisRegex = new RegExp(
+                `^(${textEmphasisStyleSource})(\\s(${colorSource}))?$`,
+              );
               const textEmphasisProperties = ['textEmphasis'];
 
               const transformValue = `(${lengthValuePattern}|left|center|right|top|bottom)`;
               const transformOriginRegex = new RegExp(
-                `^(${transformValue})(\\s(${transformValue}))?(\\s(${transformValue}))?$`
+                `^(${transformValue})(\\s(${transformValue}))?(\\s(${transformValue}))?$`,
               );
               const transformOriginProperties = ['transformOrigin'];
 
-              const transformRegex = new RegExp(`^((${transformFunctions})(\\s+(${transformFunctions}))*)?$`);
+              const transformRegex = new RegExp(
+                `^((${transformFunctions})(\\s+(${transformFunctions}))*)?$`,
+              );
               const transformProperties = ['transform'];
 
               const translateRegex = new RegExp(
-                `^(${lengthValuePattern}|${percentagePattern})(\\s(${lengthValuePattern}|${percentagePattern}))?(\\s(${lengthValuePattern}))?$`
+                `^(${lengthValuePattern}|${percentagePattern})(\\s(${lengthValuePattern}|${percentagePattern}))?(\\s(${lengthValuePattern}))?$`,
               );
               const translateProperties = ['translate'];
 

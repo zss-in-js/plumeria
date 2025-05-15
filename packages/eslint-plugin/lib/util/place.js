@@ -12,7 +12,13 @@ function getOverflowPositions() {
 }
 
 function getContentDistributions() {
-  return ['space-between', 'space-around', 'space-evenly', 'stretch', varString];
+  return [
+    'space-between',
+    'space-around',
+    'space-evenly',
+    'stretch',
+    varString,
+  ];
 }
 
 function getContentPositions() {
@@ -79,7 +85,16 @@ function generatePlaceContentPattern() {
 }
 
 function getPositions() {
-  return ['center', 'start', 'end', 'self-start', 'self-end', 'flex-start', 'flex-end', varString];
+  return [
+    'center',
+    'start',
+    'end',
+    'self-start',
+    'self-end',
+    'flex-start',
+    'flex-end',
+    varString,
+  ];
 }
 
 function getAlignItems() {

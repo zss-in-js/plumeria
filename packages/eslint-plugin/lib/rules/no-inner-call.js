@@ -10,7 +10,8 @@ module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'An error occurs if a specific call is made within a function',
+      description:
+        'An error occurs if a specific call is made within a function',
       recommended: true,
     },
     messages: {

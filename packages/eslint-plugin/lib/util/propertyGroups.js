@@ -552,6 +552,6 @@ const propertyGroups = [
       'orphans',
     ],
   },
-]
+];
 
-module.exports = propertyGroups
+module.exports = propertyGroups;

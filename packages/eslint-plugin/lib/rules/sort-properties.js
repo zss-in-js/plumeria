@@ -27,7 +27,10 @@ function getPropertyIndex(property, isTopLevel = false) {
 
   if (
     isTopLevel &&
-    (property.key.type !== 'Identifier' || name.startsWith('&') || name.startsWith(':') || name.startsWith('@'))
+    (property.key.type !== 'Identifier' ||
+      name.startsWith('&') ||
+      name.startsWith(':') ||
+      name.startsWith('@'))
   ) {
     return null;
   }
@@ -60,13 +63,15 @@ module.exports = {
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Sort CSS properties keeping original order for specific keys',
+      description:
+        'Sort CSS properties keeping original order for specific keys',
       recommended: true,
     },
     fixable: 'code',
     schema: [],
     messages: {
-      sortProperties: 'Property "{{property}}" should be at position {{position}}',
+      sortProperties:
+        'Property "{{property}}" should be at position {{position}}',
     },
   },
 
@@ -115,7 +120,7 @@ module.exports = {
 
               return fixer.replaceTextRange(
                 [node.range[0] + 1, node.range[1] - 1],
-                `${lineEnding}${newText}${lineEnding}`
+                `${lineEnding}${newText}${lineEnding}`,
               );
             },
           });

@@ -1,7 +1,7 @@
-const { RuleTester } = require('eslint')
-const rule = require('../lib/rules/no-unused-keys')
+const { RuleTester } = require('eslint');
+const rule = require('../lib/rules/no-unused-keys');
 
-const ruleTester = new RuleTester()
+const ruleTester = new RuleTester();
 
 ruleTester.run('no-unused-keys', rule, {
   valid: [
@@ -28,4 +28,4 @@ ruleTester.run('no-unused-keys', rule, {
       },
     },
   ],
-})
+});
