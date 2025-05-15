@@ -77,9 +77,18 @@ importers:
 
   packages/core:
     dependencies:
+      zss-engine:
+        specifier: ^0.2.27
+        version: 0.2.27
       zss-utils:
-        specifier: 0.1.1
-        version: 0.1.1
+        specifier: 0.2.0
+        version: 0.2.0
+
+  packages/eslint-plugin:
+    devDependencies:
+      eslint:
+        specifier: ^9.15.0
+        version: 9.24.0
 
   packages/next:
     devDependencies:
@@ -2698,6 +2707,9 @@ packages:
 
   zss-utils@0.1.1:
     resolution: {integrity: sha512-zLqqFPKPIUDPCIzKNNj/GfIwgPbR+q2Ne5ymmOFKs8clraBgsBbp05MElNrXqhXsdAIEWUSesywoPCIkr5h3SQ==}
+
+  zss-utils@0.2.0:
+    resolution: {integrity: sha512-d+N8vUNVP6p3nRm2M3a9RTUSSHArPywPpx7nMCcCC7uUYJov8t0ci+Rqbq5JXy5TsGzFOO1H7MCmOaPkhyES2w==}
 
 snapshots:
 
@@ -5494,3 +5506,5 @@ snapshots:
   zss-utils@0.1.1:
     dependencies:
       zss-engine: 0.2.27
+
+  zss-utils@0.2.0: {}
