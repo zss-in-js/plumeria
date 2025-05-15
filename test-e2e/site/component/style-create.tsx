@@ -5,7 +5,7 @@ import { css } from '@plumeria/core';
 const styles = css.create({
   e2e: {
     color: 'pink',
-    [css.media.max_lg]: {
+    [css.media.max('width: 1024px')]: {
       color: 'aqua',
     },
   },
