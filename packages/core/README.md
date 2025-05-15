@@ -99,7 +99,7 @@ css.global({
 
 ### cx
 
-Merges strings such as class names and pseudos.
+Merges strings such as class names and pseudo.
 
 ```tsx
 const styles = css.create({
@@ -140,8 +140,8 @@ Define data-theme and regular variables as objects.
 A default compile to :root, and the rest as a string compile to data-theme, You can also use media and container here.
 
 ```ts
-const preset = css.defineThemeVars({
-  normal: 'white',
+const tokens = css.defineThemeVars({
+  white: 'white',
   text_primary: {
     default: 'rgb(60,60,60)',
     light: 'black',
@@ -165,35 +165,19 @@ color: css.colors.darken('skyblue', 0.12),
 color: css.colors.lighten('navy', 0.6),
 ```
 
-## Linter
+## ESLint
 
-[eslint-plugin-zss-lint](https://www.npmjs.com/package/eslint-plugin-zss-lint) is a linter built for CSS-in-JS libraries built with zss-engine.
+[@plumeria/eslint-plugin](https://www.npmjs.com/package/@plumeria/eslint-plugin)
 
-Rules:  
-\- sort-properties  
-\- validate-values  
-\- no-unused-keys
+### Rules: recommended
 
-Type safety relies on this eslint-plugin. It includes all properties, excluding deprecated and experimental.
+\- no-inner-call:(error)  
+\- no-unused-keys:(warn)  
+\- sort-properties:(warn)  
+\- validate-values:(warn)
 
-## How Plumeria works
+It is recommended to use it in conjunction with TypeScript completion, which is one of the big advantages of using plumeria.
 
-Plumeria complies with Semantic HTML, which means that it uses one style for each class name.
+## License
 
-```ts
-import { css } from '@plumeria/core';
-
-const styles = css.create({
-  box: {
-    width: '100%',
-    color: 'rgb(60,60,60)',
-  },
-  text: {
-    color: 'yellow',
-  },
-});
-```
-
-This is necessary to preserve the CSS syntax and the concept of keeping track of classes.  
-In this code, box and text are converted to class names with a prefix that makes the object a hash: .box_ybg34i .text_ybg34i  
-These classes are designed to be used in CSS syntax.
+plumeria is [MIT licensed](https://github.com/refirst11/rscute/blob/main/LICENSE).
