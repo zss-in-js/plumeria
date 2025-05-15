@@ -20,10 +20,10 @@
     "nest",
     "---Packages---",
     "compiler",
+    "eslint-plugin",
     "vite",
     "next",
     "utils",
-    "engine",
-    "eslint-plugin"
+    "engine"
   ]
 }

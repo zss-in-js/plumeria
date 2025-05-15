@@ -13,22 +13,22 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 <Step>
 ## ESLint
 
-It is the plumeria [Linter `eslint-plugin-zss-lint` package](https://www.npmjs.com/package/eslint-plugin-zss-lint)
+It is the plumeria [Linter `@plumeria/eslint-plugin` package](https://www.npmjs.com/package/@plumeria/eslint-plugin)
 
 <Tabs items={['npm',  'yarn', 'pnpm']}>
 <Tab>
 ```sh title="Terminal"
-npm i --save-dev eslint-plugin-zss-lint
+npm i --save-dev @plumeria/eslint-plugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-pnpm i --save-dev eslint-plugin-zss-lint
+pnpm i --save-dev @plumeria/eslint-plugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-yarn add -D eslint-plugin-zss-lint
+yarn add -D @plumeria/eslint-plugin
 ```
 </Tab>
 </Tabs>
@@ -37,12 +37,12 @@ yarn add -D eslint-plugin-zss-lint
     ```js title="eslint.config.mjs"
     import eslint from '@eslint/js';
     import tseslint from 'typescript-eslint';
-    import zsslint from 'eslint-plugin-zss-lint';
+    import plumeria from '@plumeria/eslint-plugin';
 
     const eslintConfig = tseslint.config(
       eslint.configs.recommended,
       ...tseslint.configs.strict,
-      zsslint.flatConfigs.recommended,  // [!code ++]
+      plumeria.flatConfigs.recommended,  // [!code ++]
 
       {
         files: ['**/*.{ts,tsx}'],
@@ -57,12 +57,12 @@ yarn add -D eslint-plugin-zss-lint
       ```js title="eslint.config.js"
       const eslint = require('@eslint/js');
       const tseslint = require('typescript-eslint');
-      const zsslint = require('eslint-plugin-zss-lint');
+      const zsslint = require('@plumeria/eslint-plugin');
 
       module.exports = tseslint.config(
         eslint.configs.recommended,
         ...tseslint.configs.strict,
-        zsslint.flatConfigs.recommended,  // [!code ++]
+        plumeria.flatConfigs.recommended,  // [!code ++]
 
         {
           files: ['**/*.{ts,tsx}'],
@@ -74,8 +74,8 @@ yarn add -D eslint-plugin-zss-lint
   <Tab>
     ```json title=".eslintrc.json"
     {
-      "plugins": ["eslint-plugin-zss-lint"],
-      "extends": ["plugin:zss-lint/recommended"],     
+      "plugins": ["@plumeria"],
+      "extends": ["plugin:@plumeria/recommended"],     
       "rules": {}
     }
     ```
@@ -98,5 +98,5 @@ Creates a shortcut for object expansion of className.
 </Step>
 </Steps>
 <Cards>
-  <Card title="See more about eslint-plugin-zss-lint" href="/docs/reference/eslint-plugin" />
+  <Card title="See more about @plumeria/eslint-plugin" href="/docs/reference/eslint-plugin" />
 </Cards>
