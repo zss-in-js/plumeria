@@ -1,11 +1,11 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import zsslint from 'eslint-plugin-zss-lint';
+import plumeria from '@plumeria/eslint-plugin';
 
 const eslintConfig = tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.strict,
-  zsslint.flatConfigs.recommended,
+  plumeria.flatConfigs.recommended,
   {
     ignores: [
       '**/dist/**',
