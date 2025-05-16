@@ -26,13 +26,13 @@ pnpm i --save-dev @plumeria/eslint-plugin
 </Tab>
 </Tabs>
 
-Rules:  
-- @plumeria/no-inner-call
-- @plumeria/no-unused-keys
-- @plumeria/sort-properties
-- @plumeria/validate-values
+Rules: recommended
+- `@plumeria/no-inner-call:(error)`
+- `@plumeria/no-unused-keys:(warn)`
+- `@plumeria/sort-properties:(warn)`
+- `@plumeria/validate-values:(warn)`
 
-When using `recommended`, both error levels are warn.
+When using `recommended`, all rules are turned on.
 
 <Cards>
   <Card title="See more about Editor integration" href="/docs/getting-started/editor-integration" />
