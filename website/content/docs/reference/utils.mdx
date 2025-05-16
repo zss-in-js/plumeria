@@ -3,9 +3,26 @@ title: zss-utils
 description:  Lear more about zss-utils              .
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import Link from 'next/link';
 
 It is the plumeria [Utility `zss-utils` package](https://www.npmjs.com/package/zss-utils)  
-This is managed in the zss-in-js project and included in the `core package`, along with `zss-engine`.
+This is managed in the zss-in-js project and included in the <Link href="/docs/reference/core">`core package`</Link>, along with <Link href="/docs/reference/engine">`zss-engine`</Link>.  
+
+The following utility items are included:
+
+- `css.media.***`
+- `css.container.***`
+- `css.pseudo.***`
+- `css.color.***`
+
+Feature entry file:
+
+```js
+export { media } from './utils/media.js';
+export { container } from './utils/container.js';
+export { pseudo } from './utils/pseudo.js';
+export { color } from './utils/color.js';
+```
 
 ## Learn more
 <Cards>

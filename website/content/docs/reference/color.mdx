@@ -1,11 +1,11 @@
 ---
-title: colors
-description:  API reference for the The `colors` utility
+title: color
+description:  API reference for the The `color` utility
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-## Colors functions
+## color object
 
 Mixes dark or light in the proportion specified by the second argument. Returns: `<color>`
 
@@ -14,10 +14,10 @@ import { css } from '@plumeria/core';
 
 const styles = css.create({
   dark_text: {
-    color: css.colors.darken('navy', 0.2), // [!code ++]
+    color: css.color.darken('navy', 0.2), // [!code ++]
   },
   light_text: {
-    color: css.colors.lighten('navy', 0.8), // [!code ++]
+    color: css.color.lighten('navy', 0.8), // [!code ++]
   },
 });
 ```
