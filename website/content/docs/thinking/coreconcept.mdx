@@ -4,16 +4,21 @@ description: Learn more about plumeria's css-in-js design concepts
 ---
 import { Step, Steps } from "fumadocs-ui/components/steps";
 
+Just like CSS, the selectors written below always take precedence. Also, the order of CSS selectors after compilation will be maintained in the order written in the function.
+
+
 <Steps>
 <Step>
-## Precompilation
+## AOT(Ahead-Of-Time) Compiler
 
-Plumeria's compilation logic is not coupled with the framework's build.
+Plumeria's precompilation logic is not coupled with the framework's build.
 The fully independent compilation process does not interfere with the framework's build process, allowing CSS to be safely and deterministically
 included in the build process.
 </Step>
 <Step>
 ## Compilation Speed
+It runs in 0.0005 seconds per file.
+It can compile 2000 styles file per second.
 Built on SWC, Plumeria's compiler achieves exceptional performance. It runs in parallel with Next.js
 development server and completes compilation Before framework preparation is complete, there will
 be zero delays in your development workflow.
@@ -29,13 +34,16 @@ Statically determined CSS allows developers to identify all style issues at comp
 
 Semantic properties help avoid HTML pollution.
 Short hashes minimize the amount of CSS.
+We use lightningcss and postcss-plugin for post-processing.
+They are minified and compressed in production.
+The impact on build size is not even an additional initial cost.
 </Step>
 <Step>
 ## Optimization
 
-Style objects passed across component boundaries are all Tree shake at build time.
+Style objects that are not used in production will be culled by tree shaking at build time.
 Production bundle size does not include objects, and only lightweight CSS remains.
-Also, because it is always written outside the component, the object is not rendered.
+Also, because it is always written outside the component, the object is not rendered and is always processed statically.
 </Step>
 <Step>
 ## Hashes
