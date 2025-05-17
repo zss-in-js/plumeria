@@ -1,4 +1,4 @@
-export const cx = (
+const cx = (
   ...strings: Array<string | null | undefined | false>
 ): string & ':' => {
   let result = '';
@@ -17,3 +17,5 @@ export const cx = (
   });
   return result as string & ':';
 };
+
+export default cx;
