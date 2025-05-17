@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.1
+
+### Patch Changes
+
+- 6721df4: fix(Minor patch): 0.9.0 has already been released, so I uploaded a patch and released it.
+
 ## 0.9.0
 
 ### Minor Changes
