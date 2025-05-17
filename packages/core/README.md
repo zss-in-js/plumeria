@@ -1,6 +1,6 @@
 # @plumeria/core
 
-Plumeria is a Near zero-runtime CSS-in-JS for efficient design systems.
+**Zero-runtime CSS in JS library in TypeScript.**
 
 ## Installation
 
@@ -25,7 +25,7 @@ Import stylesheet in your application's entry point.
 Applies the static stylesheet for production environments.
 
 ```ts
-import '@plumeria/core/stylesheet';
+import '@plumeria/core/stylesheet.css';
 ```
 
 ## API
@@ -97,21 +97,6 @@ css.global({
 });
 ```
 
-### cx
-
-Merges strings such as class names and pseudo.
-
-```tsx
-const styles = css.create({
-  text: {
-    [cx(css.pseudo.hover, css.pseudo.after)]: {
-      color: 'yellow',
-      opacity: 0.9,
-    },
-  },
-});
-```
-
 ### css.keyframes()
 
 Define @keyframes and set the return value directly to animationName.
@@ -134,19 +119,33 @@ const styles = css.create({
 });
 ```
 
-### css.defineThemeVars()
+### css.defineVars()
 
-Define data-theme and regular variables as objects.  
+Defines custom CSS variables (custom properties) at the `:root` level.  
+This API allows you to declare design tokens such as spacing, sizes, or other constants, which can be referenced throughout your styles using the tokens.sm to `var(--sm)` syntax.
+
+```ts
+const tokens = css.defineVars({
+  xs: 240,
+  sm: 360,
+  md: 480,
+  lg: 600,
+  xl: 768,
+});
+```
+
+### css.defineTheme()
+
+Define data-theme as objects.  
 A default compile to :root, and the rest as a string compile to data-theme, You can also use media and container here.
 
 ```ts
-const tokens = css.defineThemeVars({
-  white: 'white',
+const themes = css.defineTheme({
   text_primary: {
     default: 'rgb(60,60,60)',
     light: 'black',
     dark: 'white',
-    [css.media.max('width: 700px')]: 'gray',
+    [css.media.maxWidth(700)]: 'gray',
   },
   bg_primary: {
     light: 'white',
@@ -163,6 +162,17 @@ The first argument takes the color and the second argument takes the same value 
 ```ts
 color: css.color.darken('skyblue', 0.12),
 color: css.color.lighten('navy', 0.6),
+color: css.color.skyblue,
+color: css.color.navy,
+```
+
+### cx
+
+Merges strings such as class names and pseudo.
+
+```tsx
+cx(css.pseudo.hover, css.pseudo.after); // ":hover::after"
+cx(styles.text, styles, box); // "text_hash box_hash"
 ```
 
 ## ESLint
@@ -171,10 +181,10 @@ color: css.color.lighten('navy', 0.6),
 
 ### Rules: recommended
 
-\- no-inner-call:(error)  
-\- no-unused-keys:(warn)  
-\- sort-properties:(warn)  
-\- validate-values:(warn)
+\- **no-inner-call:(error)**  
+\- **no-unused-keys:(warn)**  
+\- **sort-properties:(warn)**  
+\- **validate-values:(warn)**
 
 It is recommended to use it in conjunction with TypeScript completion, which is one of the big advantages of using plumeria.
 
