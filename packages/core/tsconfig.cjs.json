@@ -6,7 +6,6 @@
     "paths": {},
     "rootDir": "src/",
     "outDir": "./dist/cjs",
-    "sourceMap": true,
     "types": ["node"]
   },
   "include": ["src/"]
