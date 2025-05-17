@@ -1,4 +1,5 @@
-import { create } from '../src/methods/create';
+/* eslint-disable @plumeria/no-inner-call */
+import { default as css } from '../src/css';
 
 const styleSheet = 'button_xhash67 { color: red; background: blue }';
 const base36hash = 'xhash67';
@@ -21,7 +22,7 @@ describe('create function', () => {
       },
     };
 
-    const styles = create(styleObject);
+    const styles = css.create(styleObject);
     expect(typeof styles).toBe('object');
     expect(typeof styles.button).toBe('string');
     expect(styles).toHaveProperty('button');
