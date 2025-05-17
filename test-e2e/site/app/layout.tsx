@@ -1,4 +1,4 @@
-import '@plumeria/core/stylesheet';
+import '@plumeria/core/stylesheet.css';
 
 const { ServerCSS } = require('@plumeria/next');
 

@@ -1,5 +1,5 @@
 import { css } from '@plumeria/core';
 
-export const utility = css.defineThemeVars({
+export const utils = css.defineVars({
   mini: '12px',
 });
