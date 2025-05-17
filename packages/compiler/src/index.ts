@@ -7,11 +7,11 @@ const combineSelectors = require('postcss-combine-duplicated-selectors');
 const { execute } = require('rscute/execute');
 const { transform } = require('lightningcss');
 const { parseSync } = require('@swc/core');
-const { buildGlobal, buildCreate } = require('@plumeria/core/build-helper');
+const { buildGlobal, buildCreate } = require('@plumeria/core/processors');
 
 const projectRoot = process.cwd().split('node_modules')[0];
 const directPath = path.join(projectRoot, 'node_modules/@plumeria/core');
-const coreFilePath = path.join(directPath, 'stylesheet/core.css');
+const coreFilePath = path.join(directPath, 'stylesheet.css');
 
 const cleanUp = async (): Promise<void> => {
   if (process.env.CI && existsSync(coreFilePath)) {
