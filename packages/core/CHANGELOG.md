@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.2
+
+### Patch Changes
+
+- a31ea4d: fix: update readme and description and sourceMap false
+
 ## 0.9.1
 
 ### Patch Changes
