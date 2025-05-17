@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/next",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Next.js ServerComponent for Plumeria",
   "keywords": [
     "react",
