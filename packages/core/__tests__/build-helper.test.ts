@@ -1,5 +1,6 @@
-import { globalPromise } from '../src/methods/create-build-helper';
-import { create } from '../src/methods/create';
+/* eslint-disable @plumeria/no-inner-call */
+import { globalPromise_1 } from '../src/processors/css';
+import { default as css } from '../src/css';
 
 const styleSheet = 'button_xhyxio { color: red; }';
 const base36hash = 'xhyxio';
@@ -14,8 +15,8 @@ jest.mock('zss-engine', () => ({
 }));
 
 test('set function should create globalPromise and add styles to it', () => {
-  expect(globalPromise).toBeUndefined();
-  create({ test: { color: 'red' } });
-  expect(globalPromise).toBeDefined();
-  expect(globalPromise).resolves.toContain('color: red');
+  expect(globalPromise_1).toBeUndefined();
+  css.create({ test: { color: 'red' } });
+  expect(globalPromise_1).toBeDefined();
+  expect(globalPromise_1).resolves.toContain('color: red');
 });
