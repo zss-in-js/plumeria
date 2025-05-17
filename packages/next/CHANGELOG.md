@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.6.3
+
+### Patch Changes
+
+- 7309528: fix: import from zss-utils changed to zss-engine
+
 ## 0.6.2
 
 ### Patch Changes
