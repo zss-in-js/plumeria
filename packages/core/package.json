@@ -19,16 +19,16 @@
   "sideEffects": false,
   "exports": {
     "./package.json": "./package.json",
-    "./stylesheet": "./stylesheet/core.css",
-    "./build-helper": {
-      "types": "./types/methods/build-helper.d.ts",
-      "import": "./dist/esm/methods/build-helper.js",
-      "default": "./dist/cjs/methods/build-helper.js"
-    },
+    "./stylesheet.css": "./stylesheet.css",
     ".": {
       "types": "./types/index.d.ts",
       "import": "./dist/esm/index.js",
       "default": "./dist/cjs/index.js"
+    },
+    "./processors": {
+      "types": "./types/processors/css.d.ts",
+      "import": "./dist/esm/processors/css.js",
+      "default": "./dist/cjs/processors/css.js"
     }
   },
   "main": "dist/cjs/index.js",
@@ -37,7 +37,7 @@
   "files": [
     "dist/",
     "types/",
-    "stylesheet/"
+    "stylesheet.css"
   ],
   "scripts": {
     "build": "rimraf dist types && pnpm esm && pnpm cjs",
@@ -45,8 +45,8 @@
     "esm": "tsc --project tsconfig.esm.json"
   },
   "dependencies": {
-    "zss-engine": "^0.2.27",
-    "zss-utils": "0.2.0"
+    "zss-engine": "0.2.32",
+    "zss-utils": "0.2.2"
   },
   "publishConfig": {
     "access": "public"
