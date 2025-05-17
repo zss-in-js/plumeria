@@ -8,6 +8,7 @@
     "outDir": "./dist/esm",
     "declaration": true,
     "declarationDir": "./types",
+    "sourceMap": true,
     "types": ["node"]
   },
   "include": ["src/"]
