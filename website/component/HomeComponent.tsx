@@ -16,7 +16,7 @@ const styles = css.create({
     justifyContent: 'center',
     textAlign: 'center',
     transform: 'translate(-50%, -50%)',
-    [css.media.max('width: 804px')]: {
+    [css.media.maxWidth(804)]: {
       top: 0,
       right: 'auto',
       left: 'auto',
@@ -37,7 +37,7 @@ const styles = css.create({
     fontWeight: 400,
     textAlign: 'center',
     wordBreak: 'break-all',
-    [css.media.max('width: 804px')]: {
+    [css.media.maxWidth(804)]: {
       top: 20,
       maxWidth: 300,
       fontSize: '1rem',
@@ -47,7 +47,7 @@ const styles = css.create({
     display: 'flex',
     flexDirection: 'row',
     gridGap: 50,
-    [css.media.max('width: 804px')]: {
+    [css.media.maxWidth(804)]: {
       gridGap: 14,
     },
   },
@@ -65,7 +65,7 @@ const styles = css.create({
       color: 'white',
       background: '#ef2a86',
     },
-    [css.media.max('width: 804px')]: {
+    [css.media.maxWidth(804)]: {
       position: 'relative',
       left: -10,
       width: 180,
