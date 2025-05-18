@@ -21,31 +21,30 @@
     "./package.json": "./package.json",
     "./stylesheet.css": "./stylesheet.css",
     ".": {
-      "types": "./types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/cjs/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.js"
     },
     "./processors": {
-      "types": "./types/processors/css.d.ts",
-      "import": "./dist/esm/processors/css.js",
-      "default": "./dist/cjs/processors/css.js"
+      "types": "./dist/processors/css.d.ts",
+      "import": "./dist/procesmsors/css.mjs",
+      "default": "./dist/processors/css.js"
     }
   },
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "types/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "files": [
     "dist/",
-    "types/",
     "stylesheet.css"
   ],
   "scripts": {
-    "build": "rimraf dist types && pnpm esm && pnpm cjs",
+    "build": "tsdown",
     "cjs": "tsc --project tsconfig.cjs.json",
     "esm": "tsc --project tsconfig.esm.json"
   },
   "dependencies": {
-    "zss-engine": "0.2.34",
+    "zss-engine": "0.2.35",
     "zss-utils": "0.2.2"
   },
   "publishConfig": {
