@@ -7,7 +7,6 @@ import type {
   CreateVars,
   CreateKeyframes,
   ReturnType,
-  CamelToKebabCase,
 } from 'zss-engine';
 import {
   transpiler,
@@ -69,7 +68,7 @@ const defineVars = <const T extends CreateVars>(object: T) => {
   };
 
   const result = {} as {
-    [K in keyof T]: `var(--${CamelToKebabCase<string & K>})`;
+    [K in keyof T]: `var(--${string})`;
   };
 
   Object.entries(object).forEach(([key, value]) => {
@@ -85,7 +84,7 @@ const defineVars = <const T extends CreateVars>(object: T) => {
 const defineTheme = <const T extends CreateTheme>(object: T) => {
   const styles: Record<string, Record<string, string | number | object>> = {};
   const result = {} as {
-    [K in keyof T]: `var(--${CamelToKebabCase<string & K>})`;
+    [K in keyof T]: `var(--${string})`;
   };
 
   Object.entries(object).forEach(([key, value]) => {
