@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.4
+
+### Patch Changes
+
+- 9116bee: fix: fix vendor prefix output
+
 ## 0.9.3
 
 ### Patch Changes
