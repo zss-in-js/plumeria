@@ -44,7 +44,7 @@
     "esm": "tsc --project tsconfig.esm.json"
   },
   "dependencies": {
-    "zss-engine": "0.2.35",
+    "zss-engine": "0.2.36",
     "zss-utils": "0.2.2"
   },
   "publishConfig": {
