@@ -1,20 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { css } from '@plumeria/core';
+import { css, cx } from '@plumeria/core';
 import { Plumeria } from './Plumeria';
 
 const styles = css.create({
   container: {
-    position: 'relative',
-    top: 200,
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
     zIndex: 1,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    height: '100vh',
+    justifyContent: 'center',
     textAlign: 'center',
+    transform: 'translate(-50%, -50%)',
     [css.media.max('width: 804px')]: {
       top: 0,
       right: 'auto',
@@ -23,6 +24,7 @@ const styles = css.create({
       width: '100%',
       height: 'auto',
       margin: '0 auto',
+      transform: 'translate(0%, 50%)',
     },
   },
 
@@ -52,17 +54,16 @@ const styles = css.create({
   button: {
     position: 'relative',
     zIndex: 1,
-    width: '200px',
-    padding: '16px 32px',
-    fontSize: 16,
+    width: '180px',
+    padding: '12px 26px',
+    fontSize: 15,
     fontWeight: '600',
-    color: 'white',
-    background: '#ef2a86',
     border: 'solid 2px #ef2a86',
     borderRadius: '50px',
-    transition: 'all 0.2s',
+    transition: 'all 0.1s',
     [css.pseudo.hover]: {
-      scale: 1.025,
+      color: 'white',
+      background: '#ef2a86',
     },
     [css.media.max('width: 804px')]: {
       position: 'relative',
@@ -76,6 +77,10 @@ const styles = css.create({
       },
     },
   },
+  getStarted: {
+    color: 'white',
+    background: '#ef2a86',
+  },
 });
 
 export const HomeComponent = () => {
@@ -88,7 +93,7 @@ export const HomeComponent = () => {
         Command-line for faster Precompilation
       </div>
       <div className={styles.link_box}>
-        <Link href="/docs/getting-started/installation" className={styles.button}>
+        <Link href="/docs/getting-started/installation" className={cx(styles.button, styles.getStarted)}>
           GET STARTED
         </Link>
         <Link href="/docs" className={styles.button}>
