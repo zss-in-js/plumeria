@@ -4,7 +4,8 @@
   "pages": [
     "create",
     "global",
-    "defineThemeVars",
+    "defineVars",
+    "defineTheme",
     "keyframes",
     "cx",
     "rx",
