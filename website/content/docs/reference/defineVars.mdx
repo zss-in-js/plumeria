@@ -1,0 +1,52 @@
+---
+title: defineVars
+description:  API reference for the The `defineVars` method
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+Create `static variables` to be used in `defineTheme()` and `create()`.
+
+## Example use:
+
+
+<Tabs items={["ts", "css"]}>
+  <Tab>
+```ts title="TypeScript"
+// tokens.ts
+export const tokens = css.defineVars({
+  white: 'white',
+  black: 'black',
+  textPrimary: '#eaeaea',
+  textSecondary: '#333',
+  link: 'lighteblue',
+  accent: 'purple',
+});
+```
+  </Tab>
+
+  <Tab>
+```css
+:root {
+  --background: white;
+  --text: black;
+  --text-primary: #eaeaea;
+  --text-secondary: #333;
+  --link: lightblue;
+  --accent: purple;
+}
+```
+  </Tab>
+</Tabs>
+
+```ts title="TypeScript"
+import { css } from "@plumeria/core"
+import { tokens } from './tokens'
+
+export const theme = css.defineTheme({
+  textPrimary: {
+    light: tokens.black,
+    dark: tokens.white,
+  },
+});
+```

@@ -1,0 +1,75 @@
+---
+title: defineTheme
+description:  API reference for the The `defineTheme` method
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+Create `data-theme variables` to be used in data-theme and media or container.
+
+## Example use:
+
+Default will be written to :root, and the rest will be put into root:[data-theme="key"] as a `key string`. In the case of media or container, it will be wrapped in a selector.
+
+<Tabs items={["ts", "css"]}>
+  <Tab>
+    ```ts title="TypeScript"
+    import { css } from "@plumeria/core"
+
+    export const theme = css.defineTheme({
+      textPrimary: {
+        default: 'rgb(60,60,60)',
+        light: 'black',
+        dark: 'white',
+      },
+      bgPrimary: {
+        light: 'white',
+        dark: 'black',
+      },
+    });
+    ```
+
+  </Tab>
+  <Tab>
+    ```css title="css"
+    :root {
+      --text_primary: #3c3c3c;
+    }
+
+    :root[data-theme="light"] {
+      --text-primary: black;
+      --bg-primary: white;
+    }
+
+    :root[data-theme="dark"] {
+      --text-primary: white;
+      --bg-primary: black;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Tabs items={["tsx", "css"]}>
+  <Tab>
+    ```ts title="TypeScript"
+    import { css } from "@plumeria/core"
+    import { theme } from "./colors"
+    
+    const styles = css.create({
+      text: {
+        color: theme.textPrimary,
+        background: theme.bgPrimary,
+      }
+    });
+    ```
+
+  </Tab>
+  <Tab>
+    ```css title="css"
+    .text_oro9qj {
+      color: var(--text-primary);
+      background: var(--bg-primary);
+    }
+    ```
+  </Tab>
+</Tabs>

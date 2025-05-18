@@ -6,18 +6,20 @@ description:  API reference for the The `container` utility
 ## Container functions
 
 Argument: string  
-The usage is the same as for media, and it can be used by putting it in an array.
+The usage is the same as for media, and it can be used by putting it in an array `[css.container.maxWidth(600)]: {...}`.
 
 ```ts title="TypeScript"
 import { css } from '@plumeria/core';
 
-css.container.max();
-css.container.min();
+css.container.maxWidth();
+css.container.maxHeight();
+css.container.minWidth();
+css.container.minHeight();
 css.container.range();
 ```
 
-- `css.container.max("width: 500px")`
-- `css.container.min("width: 400px")`
+- `css.container.minWidth(240)`
+- `css.container.minHeight("20rem")`
 - `css.container.range("width <= 400px")`
 
 <Cards>
