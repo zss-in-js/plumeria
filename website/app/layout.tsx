@@ -2,9 +2,9 @@ import { RootProvider } from 'fumadocs-ui/provider';
 import 'fumadocs-ui/style.css';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
+import { Analytics } from '@vercel/analytics/next';
 import type { ReactNode } from 'react';
 import { ServerCSS } from '@plumeria/next';
-import { VercelAnalytics } from './VercelAnalytics';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         }}
       >
         <RootProvider>{children}</RootProvider>
-        <VercelAnalytics />
+        <Analytics mode="production" />;
       </body>
     </html>
   );
