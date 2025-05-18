@@ -6,7 +6,7 @@ import { TimeCount } from './timeHooks';
 const styles = css.create({
   headings: {
     position: 'relative',
-    right: 26,
+    right: 24,
     zIndex: 0,
     display: 'inline',
     marginBottom: '12px',
