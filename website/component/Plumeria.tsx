@@ -15,8 +15,8 @@ const styles = css.create({
     WebkitTextFillColor: 'transparent',
     textAlign: 'left',
     background: 'var(--bg)',
-    WebkitBackgroundClip: 'text',
-    [css.media.max('width: 800px')]: {
+    backgroundClip: 'text',
+    [css.media.maxWidth(804)]: {
       top: 20,
       right: 18,
       marginTop: '54px',
