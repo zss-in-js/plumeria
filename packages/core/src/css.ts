@@ -1,12 +1,13 @@
 import type {
   CSSProperties,
   CSSHTML,
+  CreateStyle,
   CreateStyleType,
   CreateTheme,
   CreateVars,
   CreateKeyframes,
   ReturnType,
-  CreateStyle,
+  CamelToKebabCase,
 } from 'zss-engine';
 import {
   transpiler,
@@ -16,6 +17,7 @@ import {
   injectClientCSS,
   injectClientGlobalCSS,
   genBase36Hash,
+  camelToKebabCase,
 } from 'zss-engine';
 import {
   initPromise_1,
@@ -66,10 +68,13 @@ const defineVars = <const T extends CreateVars>(object: T) => {
     ':root': {},
   };
 
-  const result = {} as { [K in keyof T]: `var(--${string & K})` };
+  const result = {} as {
+    [K in keyof T]: `var(--${CamelToKebabCase<string & K>})`;
+  };
 
   Object.entries(object).forEach(([key, value]) => {
-    result[key as keyof T] = `var(--${key})`;
+    const kebabKey = camelToKebabCase(key);
+    (result as any)[key] = `var(--${kebabKey})`;
     styles[':root'][`--${key}`] = value;
   });
 
@@ -79,10 +84,13 @@ const defineVars = <const T extends CreateVars>(object: T) => {
 
 const defineTheme = <const T extends CreateTheme>(object: T) => {
   const styles: Record<string, Record<string, string | number | object>> = {};
-  const result = {} as { [K in keyof T]: `var(--${string & K})` };
+  const result = {} as {
+    [K in keyof T]: `var(--${CamelToKebabCase<string & K>})`;
+  };
 
   Object.entries(object).forEach(([key, value]) => {
-    result[key as keyof T] = `var(--${key})`;
+    const kebabKey = camelToKebabCase(key);
+    (result as any)[key] = `var(--${kebabKey})`;
 
     Object.entries(value).forEach(([subKey, subValue]) => {
       if (subKey.startsWith('@media')) {
