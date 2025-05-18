@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "next": "15.2.4",
-    "zss-engine": "0.2.32"
+    "zss-engine": "0.2.34"
   },
   "publishConfig": {
     "access": "public"
