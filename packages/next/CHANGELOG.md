@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.6.4
+
+### Patch Changes
+
+- 7b6a433: feat: zss-engine update
+
 ## 0.6.3
 
 ### Patch Changes
