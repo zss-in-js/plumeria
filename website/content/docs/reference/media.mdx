@@ -5,19 +5,22 @@ description:  API reference for the The `media` utility
 
 ## Media functions
 
-Argument: string  
-It can be put in an array and used as a selector.
+Argument: string | number
+If it is a number, px will be added automatically.  
+It can be put in an array and used as a selector `[css.media.maxWidth(560)]: {...}`.
 
 ```ts title="TypeScript"
 import { css } from '@plumeria/core';
 
-css.media.max();
-css.media.min();
+css.media.maxWidth();
+css.media.maxHeight();
+css.media.minWidth();
+css.media.minHeight();
 css.media.range();
 ```
 
-- `css.media.max("width: 800px")`
-- `css.media.min("width: 400px")`
+- `css.media.maxWidth(764)`
+- `css.media.maxWidth("48rem")`
 - `css.media.range("width <= 800px")`
 
 <Cards>
