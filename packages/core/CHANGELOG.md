@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.3
+
+### Patch Changes
+
+- 2ad93c8: fix: defineVars and defineTheme return type
+
 ## 0.9.2
 
 ### Patch Changes
