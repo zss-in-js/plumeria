@@ -39,9 +39,7 @@
     "stylesheet.css"
   ],
   "scripts": {
-    "build": "tsdown",
-    "cjs": "tsc --project tsconfig.cjs.json",
-    "esm": "tsc --project tsconfig.esm.json"
+    "build": "tsdown"
   },
   "dependencies": {
     "zss-engine": "0.2.36",
