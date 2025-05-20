@@ -7,7 +7,45 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ## color object
 
+### colors
+Provides a color set from an object that is supplied with autocomplete.
+
+### themeColors
+Provides a set of common framework colors. eg: `error` `success`.
+
+### lighten darken
 Mixes dark or light in the proportion specified by the second argument. Returns: `<color>`
+
+```ts
+export const color = {
+  ...colors,
+  ...themeColors,
+  lighten,
+  darken,
+};
+```
+
+## colors
+```ts
+const colors = {
+  ...
+  wheat: 'wheat',
+  white: 'white',
+  whitesmoke: 'whitesmoke',
+  yellow: 'yellow',
+  yellowgreen: 'yellowgreen',
+}
+```
+## themeColors 
+```ts
+const themeColors = {
+  primary: '#0070f3',
+  secondary: '#ff4081',
+  success: '#2e7d32',
+  warning: '#ed6c02',
+  error: '#d32f2f',
+}
+```
 
 ```ts title="TypeScript"
 import { css } from '@plumeria/core';
