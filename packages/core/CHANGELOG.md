@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.6
+
+### Patch Changes
+
+- ac4f76c: feat: readme and package description update
+
 ## 0.9.5
 
 ### Patch Changes
