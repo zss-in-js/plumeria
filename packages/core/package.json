@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "Zero-runtime CSS in JS - Compile at build-time. No runtime overhead.",
   "keywords": [
     "css",
