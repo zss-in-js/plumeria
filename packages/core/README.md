@@ -1,6 +1,7 @@
 # @plumeria/core
 
-**Zero-runtime CSS in JS library in TypeScript.**
+**Zero-runtime CSS in JS**  
+Compile at build-time. No runtime overhead.
 
 ## Installation
 
