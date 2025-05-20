@@ -20,7 +20,7 @@ const styles = css.create({
       top: 20,
       right: 18,
       marginTop: '54px',
-      fontSize: '42px',
+      fontSize: '46px',
     },
   },
 });
