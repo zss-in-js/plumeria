@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.5
+
+### Patch Changes
+
+- fcbe1a7: feat(dependencies): update zss-utils use tsdown
+
 ## 0.9.4
 
 ### Patch Changes
