@@ -8,36 +8,42 @@ You can use this to develop Zero-runtime StyleSheet CSS-in-JS libraries.
 
 Feature entry file:
 ```ts
-export type { CustomProperties } from './types/common/css-properties';
-export type { CreateStyle, ClassesStyle, ReturnType } from './types/main/create';
-export type { KeyframesDefinition, CustomHTMLType } from './types/main/global';
-export type { VarsDefinition, VarsTransformed } from './types/main/vars';
-export { isServer, isDevelopment, isDevAndTest } from './utils/helper';
-export { genBase36Hash } from './utils/hash';
-export { transpiler } from './utils/transpiler';
-export { build } from './utils/build';
-export { injectClientCSS } from './utils/inject-client-css';
-export { injectClientGlobalCSS } from './utils/inject-client-global-css';
-export { injectServerCSS, getServerCSS } from './utils/inject-server-css';
+export type { CSSProperties } from './types/common/css-properties';
+export type { CreateStyleType, ReturnType, CreateStyle } from './types/main/create';
+export type { CSSHTML, CreateKeyframes } from './types/main/global';
+export type { CreateVars, CreateTheme } from './types/main/vars';
+export { isServer, isDevelopment, isDevAndTest } from './utils/helper.js';
+export { genBase36Hash } from './utils/hash.js';
+export { transpiler } from './utils/transpiler.js';
+export { build } from './utils/build.js';
+export { camelToKebabCase } from './utils/helper.js';
+export { injectClientCSS } from './utils/inject-client-css.js';
+export { injectClientGlobalCSS } from './utils/inject-client-global-css.js';
+export { injectServerCSS, getServerCSS } from './utils/inject-server-css.js';
 ```
 
 ## Types
 For API development.
 ```ts title="TypeScript"
 // create method
-CustomProperties, 
-CreateStyle<T>, 
+CSSProperties, 
+CreateStyleType<T>, 
 ReturnType<T>,
 
+// create supply type
+CreateStyle,
+
 // global method
-CustomHTMLType, 
+CSSHTMLType, 
 
 // defineVars method
-VarsDefinition,
-VarsTransformed,
+CreateVars,
+
+// defineTheme method
+CreateTheme,
 
 // keyframes method
-KeyframesDefinition,
+CreateKeyframes,
 ```
 
 ## Helpers
