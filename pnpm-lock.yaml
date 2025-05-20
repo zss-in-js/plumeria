@@ -81,11 +81,11 @@ importers:
   packages/core:
     dependencies:
       zss-engine:
-        specifier: 0.2.36
-        version: 0.2.36
+        specifier: 0.2.39
+        version: 0.2.39
       zss-utils:
-        specifier: 0.2.2
-        version: 0.2.2
+        specifier: 0.2.3
+        version: 0.2.3
 
   packages/eslint-plugin:
     devDependencies:
@@ -99,8 +99,8 @@ importers:
         specifier: 15.2.4
         version: 15.2.4(@babel/core@7.26.10)(@playwright/test@1.51.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       zss-engine:
-        specifier: 0.2.36
-        version: 0.2.36
+        specifier: 0.2.39
+        version: 0.2.39
 
   packages/vite:
     devDependencies:
@@ -2944,11 +2944,11 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zss-engine@0.2.36:
-    resolution: {integrity: sha512-oJQb5nJJEOw4LSg8ruYL1r/MSInGdt3lJ+HULcBwf001inlu+z+ClQBZgOz0vZFjnVLBMZS+dY4YAiTPN0m+cw==}
+  zss-engine@0.2.39:
+    resolution: {integrity: sha512-668dvAFk3yS8LM/b2fM7biwkHSYvs14fhk/XdW2fi4+/9WRWlNVoW7zgocZGiBDe6jlARye8RHHXdlelwi2S8A==}
 
-  zss-utils@0.2.2:
-    resolution: {integrity: sha512-EbfI8CwHMQYLMPlxEhkakVqQwOYSVzlcB5Y/6P0nEtwmLlrIbSZSR3QodOv4b9a3DUm4SM+rAZVL741LLdAVyw==}
+  zss-utils@0.2.3:
+    resolution: {integrity: sha512-FZAKpHUQgKFmL+IV9H7Awo8Z216xNFt8Cb0ckpoMlWO9SwZonTlWWBIuJzrz2yxHGFvJaRCwMK8Hew9A038img==}
 
 snapshots:
 
@@ -5953,8 +5953,8 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zss-engine@0.2.36:
+  zss-engine@0.2.39:
     dependencies:
       csstype: 3.1.3
 
-  zss-utils@0.2.2: {}
+  zss-utils@0.2.3: {}
