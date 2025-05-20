@@ -1,8 +1,7 @@
-'use client';
-
 import Link from 'next/link';
 import { css, cx } from '@plumeria/core';
 import { Plumeria } from './Plumeria';
+import { CodeBlock } from './CodeBlock';
 
 const styles = css.create({
   container: {
@@ -14,7 +13,6 @@ const styles = css.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    textAlign: 'center',
     transform: 'translate(-50%, -50%)',
     [css.media.maxWidth(804)]: {
       top: 0,
@@ -24,7 +22,7 @@ const styles = css.create({
       width: '100%',
       height: 'auto',
       margin: '0 auto',
-      transform: 'translate(0%, 50%)',
+      transform: 'translate(0%, 30%)',
     },
   },
 
@@ -32,7 +30,7 @@ const styles = css.create({
     position: 'relative',
     zIndex: 1,
     maxWidth: '460px',
-    marginBottom: '40px',
+    marginBottom: '10px',
     fontSize: 21,
     fontWeight: 400,
     textAlign: 'center',
@@ -40,13 +38,13 @@ const styles = css.create({
     [css.media.maxWidth(804)]: {
       top: 20,
       maxWidth: 300,
-      fontSize: '1rem',
+      fontSize: 19,
     },
   },
   link_box: {
     display: 'flex',
     flexDirection: 'row',
-    gridGap: 50,
+    gridGap: 20,
     [css.media.maxWidth(804)]: {
       gridGap: 14,
     },
@@ -58,12 +56,14 @@ const styles = css.create({
     padding: '12px 26px',
     fontSize: 15,
     fontWeight: '600',
-    border: 'solid 2px #ef2a86',
-    borderRadius: '50px',
+    textAlign: 'center',
+    border: 'solid 2px currentColor',
+    borderRadius: '12px',
     transition: 'all 0.1s',
     [css.pseudo.hover]: {
       color: 'white',
       background: '#ef2a86',
+      border: 'solid 2px #ef2a86',
     },
     [css.media.maxWidth(804)]: {
       position: 'relative',
@@ -80,6 +80,13 @@ const styles = css.create({
   getStarted: {
     color: 'white',
     background: '#ef2a86',
+    border: 'solid 2px #ef2a86',
+  },
+  textSize: {
+    fontSize: 16,
+    [css.media.maxWidth(804)]: {
+      fontSize: 14,
+    },
   },
 });
 
@@ -90,14 +97,15 @@ export const HomeComponent = () => {
       <div className={styles.inlineword}>
         Zero-Runtime CSS-in-JS
         <br />
-        Command-line for faster Precompilation
+        <span className={styles.textSize}>Compile at build-time. No runtime overhead.</span>
       </div>
+      <CodeBlock />
       <div className={styles.link_box}>
         <Link href="/docs/getting-started/installation" className={cx(styles.button, styles.getStarted)}>
           GET STARTED
         </Link>
         <Link href="/docs" className={styles.button}>
-          Thinking
+          THINKING
         </Link>
       </div>
     </main>
