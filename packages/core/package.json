@@ -42,8 +42,8 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "zss-engine": "0.2.36",
-    "zss-utils": "0.2.2"
+    "zss-engine": "0.2.39",
+    "zss-utils": "0.2.3"
   },
   "publishConfig": {
     "access": "public"
