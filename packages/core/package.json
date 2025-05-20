@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "0.9.5",
-  "description": "Zero-runtime CSS in JS library in TypeScript.",
+  "description": "Zero-runtime CSS in JS - Compile at build-time. No runtime overhead.",
   "keywords": [
     "css",
     "css-in-js",
