@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/eslint-plugin",
   "version": "0.1.1",
-  "description": "Near Zero-runtime CSS-in-JS for efficient design systems.",
+  "description": "Zero-runtime CSS in JS - Compile at build-time. No runtime overhead.",
   "repository": "github:zss-in-js/plumeria",
   "license": "MIT",
   "keywords": [
