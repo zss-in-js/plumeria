@@ -6,7 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from 'react-router';
-import '@plumeria/core/stylesheet';
+import '@plumeria/core/stylesheet.css';
 
 import type { Route } from './+types/root';
 import './app.css';
