@@ -1,22 +1,11 @@
 # @plumeria/compiler
 
-## 0.9.3
-
-### Patch Changes
-
-- 2b456f1: features: Patch update. fix typo execute to exclude
-
-## 0.9.2
-
-### Patch Changes
-
-- d9ac6fa: features: Patch update. add node check and early return
-
-## 0.9.1
+## 0.9.4
 
 ### Patch Changes
 
 - 084b875: features: Patch update. replace fast-glob with @rust-gear/glob
+  0.9.1~0.9.3 were unpublished because the exclude node_modules was mistakenly deleted.
 
 ## 0.9.0
 
