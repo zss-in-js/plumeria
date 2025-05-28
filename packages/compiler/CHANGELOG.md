@@ -1,5 +1,12 @@
 # @plumeria/compiler
 
+## 0.9.4
+
+### Patch Changes
+
+- 084b875: features: Patch update. replace fast-glob with @rust-gear/glob
+  0.9.1~0.9.3 were unpublished because the exclude node_modules was mistakenly deleted.
+
 ## 0.9.0
 
 ### Minor Changes
