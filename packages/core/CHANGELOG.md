@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.7
+
+### Patch Changes
+
+- e7d4390: fix: core README.md update
+
 ## 0.9.6
 
 ### Patch Changes
