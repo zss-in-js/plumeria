@@ -37,7 +37,6 @@ function isCSS(filePath: string): boolean {
   let found = false;
 
   function visit(node: any) {
-    if (!node) return;
     if (node.type === 'MemberExpression' && node.property?.value) {
       if (node.object?.type === 'Identifier' && node.object.value === 'css') {
         if (
@@ -97,7 +96,12 @@ async function optimizeCSS(): Promise<void> {
   const files: string[] = await glob(
     path.join(projectRoot, '**/*.{js,jsx,ts,tsx}'),
     {
-      exclude: ['**/dist/**', '**/build/**', '**/.next/**'],
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/.next/**',
+      ],
       cwd: projectRoot,
     },
   );
