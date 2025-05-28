@@ -97,11 +97,10 @@ async function optimizeCSS(): Promise<void> {
   const files: string[] = await glob(
     path.join(projectRoot, '**/*.{js,jsx,ts,tsx}'),
     {
-      execute: ['**/dist/**', '**/build/**', '**/.next/**'],
+      exclude: ['**/dist/**', '**/build/**', '**/.next/**'],
       cwd: projectRoot,
     },
   );
-
   const styleFiles = files.filter(isCSS).sort();
   for (let i = 0; i < styleFiles.length; i++) {
     await execute(path.resolve(styleFiles[i]));
