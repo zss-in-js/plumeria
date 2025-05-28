@@ -37,6 +37,7 @@ function isCSS(filePath: string): boolean {
   let found = false;
 
   function visit(node: any) {
+    if (!node) return;
     if (node.type === 'MemberExpression' && node.property?.value) {
       if (node.object?.type === 'Identifier' && node.object.value === 'css') {
         if (
