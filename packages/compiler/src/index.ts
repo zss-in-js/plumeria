@@ -1,7 +1,7 @@
 const path = require('path');
 const { unlinkSync, existsSync, readFileSync } = require('fs');
 const { readFile, writeFile } = require('fs/promises');
-const fg = require('fast-glob');
+const { glob } = require('@rust-gear/glob');
 const postcss = require('postcss');
 const combineSelectors = require('postcss-combine-duplicated-selectors');
 const { execute } = require('rscute/execute');
@@ -91,28 +91,20 @@ async function optimizeCSS(): Promise<void> {
   await writeFile(coreFilePath, optimizedCss, 'utf-8');
 }
 
-async function getAppRoot(): Promise<string> {
-  const threeLevelsUp = path.join(process.cwd(), '../../../../..');
-  return existsSync(path.join(threeLevelsUp, 'node_modules/.pnpm'))
-    ? path.join(process.cwd(), '../../../../../')
-    : path.join(process.cwd(), '../../');
-}
-
 (async () => {
   await cleanUp();
-  const appRoot = await getAppRoot();
-  const files: string[] = await fg(
-    [path.join(appRoot, '**/*.{js,jsx,ts,tsx}')],
+  const files: string[] = await glob(
+    path.join(projectRoot, '**/*.{js,jsx,ts,tsx}'),
     {
-      ignore: [
+      exclude: [
         '**/node_modules/**',
         '**/dist/**',
         '**/build/**',
         '**/.next/**',
       ],
+      cwd: projectRoot,
     },
   );
-
   const styleFiles = files.filter(isCSS).sort();
   for (let i = 0; i < styleFiles.length; i++) {
     await execute(path.resolve(styleFiles[i]));
