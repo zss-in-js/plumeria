@@ -1,7 +1,6 @@
 # @plumeria/core
 
-**Zero-runtime CSS in JS**  
-Compile at build-time. No runtime overhead.
+**Zero-runtime CSS in JS library in TypeScript.**
 
 ## Installation
 
@@ -55,7 +54,8 @@ Also, any properties that are not wrapped will conform to that className.
 ```ts
 const styles = css.create({
   box: {
-    [css.media.max('width: 900px')]: {
+    // 900px
+    [css.media.maxWidth(900)]: {
       width: '100%',
       color: 'rgb(60,60,60)',
     },
@@ -88,12 +88,6 @@ css.global({
   },
   h1: {
     fontSize: 32,
-  },
-  h2: {
-    fontSize: 24,
-  },
-  h3: {
-    fontSize: 16,
   },
 });
 ```
@@ -131,7 +125,7 @@ const tokens = css.defineVars({
   sm: 360,
   md: 480,
   lg: 600,
-  xl: 768,
+  xl: 720,
 });
 ```
 
@@ -160,11 +154,17 @@ const themes = css.defineTheme({
 Mixes #000 or #FFF into the color.  
 The first argument takes the color and the second argument takes the same value as opacity (string % or number).
 
+You can also retrieve the complement of the color property from an color object.
+
 ```ts
 color: css.color.darken('skyblue', 0.12),
 color: css.color.lighten('navy', 0.6),
+
 color: css.color.skyblue,
-color: css.color.navy,
+color: css.color.aqua,
+// ...many more colors
+color: css.color.*...,
+
 ```
 
 ### cx
@@ -172,8 +172,10 @@ color: css.color.navy,
 Merges strings such as class names and pseudo.
 
 ```tsx
-cx(css.pseudo.hover, css.pseudo.after); // ":hover::after"
-cx(styles.text, styles, box); // "text_hash box_hash"
+// ":hover::after"
+cx(css.pseudo.hover, css.pseudo.after);
+// "text_hash box_hash"
+cx(styles.text, styles, box);
 ```
 
 ## ESLint
@@ -182,10 +184,10 @@ cx(styles.text, styles, box); // "text_hash box_hash"
 
 ### Rules: recommended
 
-\- **no-inner-call:(error)**  
-\- **no-unused-keys:(warn)**  
-\- **sort-properties:(warn)**  
-\- **validate-values:(warn)**
+\- no-inner-call:(error)  
+\- no-unused-keys:(warn)  
+\- sort-properties:(warn)  
+\- validate-values:(warn)
 
 It is recommended to use it in conjunction with TypeScript completion, which is one of the big advantages of using plumeria.
 
