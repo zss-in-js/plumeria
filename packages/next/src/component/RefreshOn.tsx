@@ -17,10 +17,12 @@ export const RefreshOn = (): null => {
       if (pathname && response.status === 200 && !isRefreshing.current) {
         isRefreshing.current = true;
         queueMicrotask(() => {
-          router.refresh();
-          timeoutId.current = setTimeout(() => {
-            isRefreshing.current = false;
-          }, timeout);
+          process.nextTick(() => {
+            router.refresh();
+            timeoutId.current = setTimeout(() => {
+              isRefreshing.current = false;
+            }, timeout);
+          });
         });
       }
       return response;
