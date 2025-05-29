@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.6.5
+
+### Patch Changes
+
+- 523997f: fix(next): RefreshOn.tsx add process.nextTick for SSR
+
 ## 0.6.4
 
 ### Patch Changes
