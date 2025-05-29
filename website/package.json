@@ -24,7 +24,7 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.20.0",
     "@plumeria/compiler": "^0.9.4",
-    "@plumeria/next": "^0.6.4",
+    "@plumeria/next": "^0.6.5",
     "@types/mdx": "^2.0.13",
     "@types/node": "^22.13.14",
     "@types/react": "^19.0.7",
