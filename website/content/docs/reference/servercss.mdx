@@ -28,6 +28,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
+## Turbopack
+To use it with "next dev --turbopack", you need to adapt it to the CJS environment.
+```tsx
+const { ServerCSS } = require('@plumeria/next');
+```
+
+To import it, use CJS `require`.
+```tsx
+const { css } = require('@plumeria/core');
+```
 <Cards>
   <Card title="See more about Installation" href="/docs/getting-started/installation" />
   <Card title="See more about @plumeria/next package" href="/docs/reference/next" />
