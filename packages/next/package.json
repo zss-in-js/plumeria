@@ -28,7 +28,7 @@
     "types/"
   ],
   "scripts": {
-    "build": "rimraf dist && pnpm esm && pnpm cjs",
+    "build": "rimraf dist types && pnpm esm && pnpm cjs",
     "cjs": "tsc --project tsconfig.cjs.json",
     "esm": "tsc --project tsconfig.esm.json"
   },
