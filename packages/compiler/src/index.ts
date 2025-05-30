@@ -108,7 +108,8 @@ async function optimizeCSS(): Promise<void> {
   const styleFiles = files.filter(isCSS).sort();
   for (let i = 0; i < styleFiles.length; i++) {
     await execute(path.resolve(styleFiles[i]));
-    if (process.argv.includes('--paths')) console.log(styleFiles[i]);
+    if (process.argv.includes('--paths'))
+      console.log(path.relative(projectRoot, styleFiles[i]));
   }
   for (let i = 0; i < styleFiles.length; i++) {
     await buildGlobal(coreFilePath);
