@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.9.5
+
+### Patch Changes
+
+- b58c9ae: fix(compiler): --paths flag to relative path return
+
 ## 0.9.4
 
 ### Patch Changes
