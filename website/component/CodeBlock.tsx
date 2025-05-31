@@ -23,10 +23,6 @@ const styles = css.create({
   },
 });
 
-export const styls = css.create({
-  text: { fontSize: 16, color: 'pink' },
-});
-
 const demoCode = ` text: { fontSize: 16, color: 'pink' }
  ↓
 .text_lgulad { font-size: 16px; color: pink; }`;
