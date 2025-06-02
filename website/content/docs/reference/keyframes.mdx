@@ -1,22 +1,22 @@
 ---
 title: keyframes
-description:  API reference for the The `keyframes` method
+description: API reference for the `keyframes` method
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-Create the `@keyframes` that define the animation.
+Define CSS animations in JavaScript with full type safety.  
+The `keyframes()` method generates a unique animation name (an 8-character hash) that can be used directly in styles.
 
 ## Example use:
-
-The returned value is an 8-character hash, so you can use it directly in animationName.
 
 <Tabs items={["tsx", "css"]}>
   <Tab>
     ```ts title="TypeScript"
     import { css } from '@plumeria/core'
-    
-    const fade = css.keyframes({
+
+    // Define animation using keyframes
+    const fadeIn = css.keyframes({
       from: {
         opacity: 0,
       },
@@ -27,15 +27,15 @@ The returned value is an 8-character hash, so you can use it directly in animati
 
     const styles = css.create({
       box: {
-        animationName: fade,
+        animationName: fadeIn,
         animationDuration: '1s',
+        animationTimingFunction: 'ease-in-out',
       },
     });
     ```
-
   </Tab>
   <Tab>
-    ```css title="css"
+    ```css title="CSS"
     @keyframes qot92n7o {
       from {
         opacity: 0;
@@ -44,11 +44,27 @@ The returned value is an 8-character hash, so you can use it directly in animati
         opacity: 1;
       }
     }
-    
+
     .box_d54cmr {
       animation-name: qot92n7o;
       animation-duration: 1s;
+      animation-timing-function: ease-in-out;
     }
     ```
   </Tab>
 </Tabs>
+
+## Advanced usage
+
+You can also trigger animations on hover or using other pseudo selectors:
+
+```ts
+const styles = css.create({
+  card: {
+    transition: 'transform 0.3s ease',
+    ':hover': {
+      animationName: fadeIn,
+      animationDuration: '0.5s',
+    },
+  },
+});
