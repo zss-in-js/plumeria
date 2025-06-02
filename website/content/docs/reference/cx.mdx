@@ -1,13 +1,11 @@
 ---
 title: cx
-description:  API reference for the The `cx` function
+description: API reference for the `cx` function
 ---
 
-## Return value
+The `cx()` function merges class names together while **filtering out falsy values** like `undefined`, `false`, or `null`. It is useful when conditionally combining styles.
 
-Filters undefined and false and returns a string.
-
-```ts title="TypeScript" {1}
+```ts title="TypeScript"
 import { css, cx } from '@plumeria/core';
 
 const styles = css.create({
@@ -21,10 +19,45 @@ const styles = css.create({
   },
 });
 
-const style = cx(styles.one, styles.two); // [!code ++]
+const className = cx(styles.one, styles.two);  // [!code ++] →  "one_ocpc7u two_ocpc7u"
 ```
 
-### Argument expression
+> 💡 className will be something like "one_ocpc7u two_ocpc7u"  
+> Only truthy values are preserved.
+
+## Usage Patterns
+
+### Conditional styles
+
+```ts
+const isActive = true;
+
+const className = cx(
+  styles.one,
+  isActive && styles.two // 'styles.two' is only added when isActive is true
+);
+```
+
+### With ternary
+
+```ts
+const className = cx(
+  isDark ? styles.dark : styles.light,
+  isHovered && styles.hovered
+);
+```
+
+---
+
+## Return value
+Returns a single string of space-separated class names, ignoring falsy inputs:
+
+```ts
+cx('a', false, undefined, 'b'); // → 'a b'
+```
+
+
+## See Also
 
 <Callout title="Good to know">
   Since falsy values are filtered out, you can use logical and, ternary
