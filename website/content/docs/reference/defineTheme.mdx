@@ -1,53 +1,71 @@
 ---
 title: defineTheme
-description:  API reference for the The `defineTheme` method
+description: API reference for the `defineTheme` method
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import Link from 'next/link';
 
-Create `data-theme variables` to be used in data-theme and media or container.
+The `defineTheme` function allows you to define **semantic design tokens** that respond to themes such as `"light"` or `"dark"`, and can optionally fall back to a `default` value.
 
-## Example use:
+These tokens are automatically turned into `CSS custom properties` (i.e. `--variables`) and placed into:
 
-Default will be written to :root, and the rest will be put into root:[data-theme="key"] as a `key string`. In the case of media or container, it will be wrapped in a selector.
+- `:root` for defaults
+- `:root[data-theme="themeName"]` for per-theme overrides
+- or `@media`, `@container` selectors if used via `css.media` or `css.container`
+
+---
+
+## 🎯 Basic usage
+
+Define tokens with theme-aware values.
 
 <Tabs items={["ts", "css"]}>
   <Tab>
-    ```ts title="TypeScript"
-    import { css } from "@plumeria/core"
 
-    export const theme = css.defineTheme({
-      textPrimary: {
-        default: 'rgb(60,60,60)',
-        light: 'black',
-        dark: 'white',
-      },
-      bgPrimary: {
-        light: 'white',
-        dark: 'black',
-      },
-    });
-    ```
+```ts title="TypeScript"
+import { css } from "@plumeria/core"
 
-  </Tab>
-  <Tab>
-    ```css title="css"
-    :root {
-      --text_primary: #3c3c3c;
-    }
+export const theme = css.defineTheme({
+  textPrimary: {
+    default: 'rgb(60,60,60)',
+    light: 'black',
+    dark: 'white',
+  },
+  bgPrimary: {
+    light: 'white',
+    dark: 'black',
+  },
+});
+```
+</Tab>
+<Tab>
+```css title="css"
+:root {
+  --text_primary: #3c3c3c;
+}
 
-    :root[data-theme="light"] {
-      --text-primary: black;
-      --bg-primary: white;
-    }
+:root[data-theme="light"] {
+  --text-primary: black;
+  --bg-primary: white;
+}
 
-    :root[data-theme="dark"] {
-      --text-primary: white;
-      --bg-primary: black;
-    }
-    ```
-  </Tab>
+:root[data-theme="dark"] {
+  --text-primary: white;
+  --bg-primary: black;
+}
+```
+</Tab>
 </Tabs>
+
+- If `default` is defined, it's written to `:root`
+- Each theme name becomes `:root[data-theme="name"]`
+- Keys are converted to kebab-case
+
+---
+
+## 🎨 Consuming themes in components
+Use theme tokens in your components just like any other CSS variable.
 
 <Tabs items={["tsx", "css"]}>
   <Tab>
@@ -73,3 +91,19 @@ Default will be written to :root, and the rest will be put into root:[data-theme
     ```
   </Tab>
 </Tabs>
+
+## 📦 Output summary
+Plumeria will generate:
+- `var(--token-name)` references in CSS
+- Theme-specific overrides in data attributes
+- (Optional) integration with `css.media` or `css.container`
+This allows for **light/dark mode switching, theming via props**, and **custom container queries.**
+
+## 💡 Tips
+- Use  together with defineVars() to separate tokens from themes
+- Themes are **resolved at runtime** via the data-theme attribute
+- You can dynamically switch themes by toggling document.documentElement.dataset.theme = 'dark'
+
+## 📚 Related APIs
+- <Link href="/docs/reference/defineVars">defineVars()</Link> — define base variables to reuse in themes
+- <Link href="/docs/reference/create">create()</Link> — style components using theme tokens
