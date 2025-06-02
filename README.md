@@ -1,14 +1,16 @@
-# Plumeria &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@plumeria/core.svg?color=red)](https://www.npmjs.com/package/@plumeria/core) [![tests](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml/badge.svg)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-na.svg?color=brightgreen)](https://github.com/zss-in-js/plumeria/blob/main/.github/CONTRIBUTING.md)
+[![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@plumeria/core.svg?color=brightgreen)](https://www.npmjs.com/package/@plumeria/core) [![tests](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml/badge.svg)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml)
 
-## Documentation
+# Plumeria 🍃 <br> The expressive CSS-in-JS library
 
-[Documentation Website](https://plumeria.dev)
+> 🌸 Plumeria is a modern CSS-in-JS library focused on ergonomics, performance, and expressive design systems.
 
-Readme for [@plumeria/core](https://github.com/zss-in-js/plumeria/tree/main/packages/core) is in packages/core.
+## 📘 Documentation
 
-### Example
+👉 [plumeria.dev](https://plumeria.dev) — Full guides and API references
 
-Here is a simple example of Plumeria use:
+Each package has its own README, such as [@plumeria/core](https://github.com/zss-in-js/plumeria/tree/main/packages/core).
+
+## ✨ Quick Example
 
 ```ts
 import { css, cx } from '@plumeria/core';
@@ -22,35 +24,29 @@ const styles = css.create({
   },
 });
 
-const style = cx(styles.text, styles.size);
+const className = cx(styles.text, styles.size);
 ```
 
-## Development
+## 📦 Monorepo Structure
 
-This is the development monorepo for Plumeria
+```vbnet
+plumeria/
+├── examples/         → Example apps and integrations
+└── packages/
+    ├── compiler/     → Style compiler and static extraction
+    ├── core/         → Core runtime utilities (css, cx, etc.)
+    ├── eslint-plugin/→ Lint rules for Plumeria conventions
+    ├── next/         → Integration with Next.js
+    └── vite/         → Plugin for Vite builds
 
-### Structure
+```
 
-- `examples`
+## 🧑‍💻 Contributing
 
-  - Contains example apps using Plumeria.
+We welcome contributions of all kinds — bug reports, feature ideas, pull requests.
 
-- `packages`
-  - Contains the Plumeria monorepo
-  - [compiler](https://github.com/zss-in-js/plumeria/tree/main/packages/compiler)
-  - [core](https://github.com/zss-in-js/plumeria/tree/main/packages/core)
-  - [eslint-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/eslint-plugin)
-  - [next](https://github.com/zss-in-js/plumeria/tree/main/packages/next)
-  - [vite](https://github.com/zss-in-js/plumeria/tree/main/packages/vite)
+📄 [Contributing Guide](https://github.com/zss-in-js/plumeria/blob/main/.github/CONTRIBUTING.md)
 
-## Contributing
-
-Development happens in the open on GitHub and we are grateful for contributions including bug fixes, improvements, and ideas.
-
-### Contributing Guide
-
-Read the [contributing guide](https://github.com/zss-in-js/plumeria/blob/main/.github/CONTRIBUTING.md) to learn about our development process, how to propose bug fixes and improvements, and how to build and test your changes.
-
-### License
+## ⚖️ License
 
 Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/license).
