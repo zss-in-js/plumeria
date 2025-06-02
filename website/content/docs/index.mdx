@@ -1,22 +1,38 @@
 ---
 title: Introduction
-description: Welcome to the Plumeria documentation!
+description: Introduction Plumeria - A CSS-in-JS framework for fast, type-safe, zero-runtime styling.
 ---
 
-Welcome to the Plumeria documentation!
+# Welcome to Plumeria
+
+Plumeria is a **zero-runtime CSS-in-JS library** that delivers blazing-fast performance with full type safety.
+Style at the speed of thought — build faster, debug less, scale effortlessly.
+
+
+It helps developers focus on **what** to style, not **how** to style it.
 
 ---
 
-## What is Plumeria?
+## ✨ Why Plumeria?
 
-Plumeria is a high-performance CSS-in-JS library designed for speed, scalability, and efficient styling in modern JavaScript and TypeScript projects.
+Plumeria was built with a vision:  
+To become the go-to solution for styling in modern front-end development powered by frameworks like React, Vite, and Next.js.
 
-Reusability and readability through abstraction of style definitions, Developers can focus on what to apply styles to, rather than how to apply them. It designed for Vite and Next.js and is optimized for React.
+**Plumeria focuses on the following principles:**
 
+- ✅ **Developer Productivity**: Write, compile, and test styles in rapid cycles.
+- ✅ **Type-Safe Styling**: Avoid runtime bugs with fully type-checked class names.
+- ✅ **Zero Runtime**: No overhead at runtime. All styles are generated at build time.
 
-## The CSS Module Problem
+---
 
-CSS Modules have many advantages - but **lack type safety**. Therefore making it difficult to detect class name errors and refactor styles safely.
+## 🧩 The Problem with CSS Modules
+
+While CSS Modules offer encapsulation, they lack type safety — leading to:
+
+- Runtime errors from typos
+- Difficult refactoring
+- Delayed feedback during build
 
 ```
 [CSS Modules]
@@ -47,15 +63,14 @@ CSS Modules have many advantages - but **lack type safety**. Therefore making it
 └──────────────────────┘
 
 ```
-It has the characteristic that the final output result is not known until the build is completed.  
-The feedback loop needs to the shortest so developers can deliver high-quality code quickly.
+---
 
+## 🧪 The Plumeria Solution
 
+Plumeria decouples CSS compilation from your dev workflow via a CLI, giving you **instant feedback** and static CSS files.
 
-## The CSS in JS solution
-A feature of Plumeria is that the compilation process is independent from the development flow.
 ```
-[CSS in JS (Plumeria)]
+[CSS-in-JS (Plumeria)]
 ──────────────────────────────────────────────────────────
 ┌──────────────────────┐       ┌─────────────────────────┐
 │ Component            │───1──▶│ CLI Command Execution   │
@@ -74,6 +89,21 @@ A feature of Plumeria is that the compilation process is independent from the de
 │ (Tree-shaking & Minification) │     ※ Removes used styles  
 └───────────────────────────────┘
 ```
-Plumeria solves the problem of debugging CSS through a CLI.
-By allowing you to quickly cycle through the feedback loop of write,compile,test,write,compile,test you can drastically reduce the time you spend debugging.
+
+
+
+Unlike traditional solutions, you **know exactly what CSS is generated** at authoring time.
+
+---
+
+## 🏁 Fast Iteration
+
+Plumeria enables a fast write → compile → test cycle.  
+This leads to:
+
+- Shorter feedback loops
+- Faster debugging
+- Higher code quality
+
+> Focus on building beautiful UIs — not wrestling with your styles.
 
