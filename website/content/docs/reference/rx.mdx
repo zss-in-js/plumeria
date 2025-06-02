@@ -1,20 +1,29 @@
 ---
 title: rx
-description:  API reference for the The `rx` function
+description: API reference for the `rx` function
 ---
 
+## Overview
 
-## React JSX only features
-React `inline-style` are **offloaded** using only static sheet the css variables.
+The `rx()` function allows you to inject **dynamic inline variables** into your React components.  
+It enables variable-based styling without breaking static CSS extraction.
 
+> ✅ Works only in **React JSX** context. Not for plain DOM or non-React frameworks.
 
+## Purpose
 
-```ts title="TypeScript" {1}
+React's inline `style` attributes don't participate in class-based CSS extraction.  
+`rx()` solves this by injecting **CSS variables** inline, while still using your static CSS classes.
+
+---
+
+## Example
+
+```ts title="TypeScript"
 'use client';
 
 import { useState } from 'react';
 import { css, rx } from '@plumeria/core';
-
 
 const styles = css.create({
   bar: {
@@ -31,11 +40,20 @@ export const Component = () => {
 }
 ```
 
-You can also apply multiple variables at the same time.
+---
+
+## Apply multiple variables
+
+You can apply as many CSS variables as you need:
 
 ```tsx
-<div {...rx(styles.bar, { '--width': state + 'px', '--height': state + 'px' })} />
+<div {...rx(styles.bar, {
+  '--width': state + 'px',
+  '--height': state + 'px'
+})} />
 ```
+
+You can also use expressions directly:
 
 ```tsx
 <div
@@ -46,18 +64,37 @@ You can also apply multiple variables at the same time.
 />
 ```
 
-You can also abstract away logic further.
+## Extract logic
 
 ```tsx
-const dynamicStyle = { '--width': state + 'px', '--height': state + 'px' };
-<div {...rx(styles.bar, dynamicStyle)} />
-<div {...rx(styles.other, dynamicStyle)} />
+const dynamicVars = {
+  '--width': state + 'px',
+  '--height': state + 'px',
+};
+
+<div {...rx(styles.bar, dynamicVars)} />
+<div {...rx(styles.other, dynamicVars)} />
 ```
 
+## Return value
+Returns an object with:
+- className: your static class
+- style: dynamic inline variable map
+
+```tsx
+const props = rx(styles.bar, { '--width': '100px' });
+/*
+{
+  className: 'bar_xxxxx',
+  style: {
+    '--width': '100px'
+  }
+}
+*/
+```
 
 <Callout title="Use sparingly">
-There is a minimum cost associated with using inline style values.  
-in most cases, conditional static styles are sufficient.
+There is a runtime cost to inline styles. Prefer static styles with `css.create()` + `cx()` where possible. 
 </Callout>
 
 
