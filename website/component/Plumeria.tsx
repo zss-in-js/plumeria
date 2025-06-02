@@ -6,7 +6,7 @@ import { TimeCount } from './timeHooks';
 const styles = css.create({
   headings: {
     position: 'relative',
-    right: 24,
+    left: -4,
     zIndex: 0,
     display: 'inline',
     marginBottom: '12px',
@@ -44,5 +44,5 @@ export const Plumeria = () => {
     `,
   };
 
-  return <div {...rx(styles.headings, dynamicStyle)}>✾ Plumeria</div>;
+  return <div {...rx(styles.headings, dynamicStyle)}>Plumeria</div>;
 };
