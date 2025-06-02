@@ -1,17 +1,19 @@
 ---
 title: defineVars
-description:  API reference for the The `defineVars` method
+description: Define static CSS variables to use across themes and components.
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-Create `static variables` to be used in `defineTheme()` and `create()`.
+The `defineVars` function defines **static CSS variables** that are available globally and can be reused across `defineTheme()` or `create()`.
 
-## Example use:
+Use it to create **semantic tokens** like colors, spacing, or any design values that are consistent across your design system.
 
+## 🎯 Example: Creating tokens
 
 <Tabs items={["ts", "css"]}>
   <Tab>
+
 ```ts title="TypeScript"
 // tokens.ts
 export const tokens = css.defineVars({
@@ -19,17 +21,16 @@ export const tokens = css.defineVars({
   black: 'black',
   textPrimary: '#eaeaea',
   textSecondary: '#333',
-  link: 'lighteblue',
+  link: 'lightblue',
   accent: 'purple',
 });
 ```
-  </Tab>
-
-  <Tab>
+</Tab>
+<Tab>
 ```css
 :root {
-  --background: white;
-  --text: black;
+  --white: white;
+  --black: black;
   --text-primary: #eaeaea;
   --text-secondary: #333;
   --link: lightblue;
@@ -39,6 +40,10 @@ export const tokens = css.defineVars({
   </Tab>
 </Tabs>
 
+These variables will be accessible in your theme or styles via tokens.white, tokens.textPrimary, etc.
+
+
+## 🎨 Using tokens in a theme
 ```ts title="TypeScript"
 import { css } from "@plumeria/core"
 import { tokens } from './tokens'
