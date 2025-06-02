@@ -1,57 +1,58 @@
 ---
 title: Core concept
-description: Learn more about plumeria's css-in-js design concepts
+description: Learn more about Plumeria's CSS-in-JS design principles
 ---
 import { Step, Steps } from "fumadocs-ui/components/steps";
 
-Just like CSS, the selectors written below always take precedence. Also, the order of CSS selectors after compilation will be maintained in the order written in the function.
-
+Plumeria’s compiler behaves like CSS: selectors declared later always take precedence.  
+The final CSS respects the declaration order inside your function, preserving source code structure.
 
 <Steps>
 <Step>
-## AOT(Ahead-Of-Time) Compiler
+## AOT (Ahead-Of-Time) Compiler
 
-Plumeria's precompilation logic is not coupled with the framework's build.
-The fully independent compilation process does not interfere with the framework's build process, allowing CSS to be safely and deterministically
-included in the build process.
+Plumeria compiles styles independently from your framework’s build system.  
+This allows it to safely and deterministically emit CSS ahead of time,  
+with no runtime style generation and no interference with your app’s bundling pipeline.
 </Step>
+
 <Step>
 ## Compilation Speed
-It runs in 0.0005 seconds per file.
-It can compile 2000 styles file per second.
-Built on SWC, Plumeria's compiler achieves exceptional performance. It runs in parallel with Next.js
-development server and completes compilation Before framework preparation is complete, there will
-be zero delays in your development workflow.
+
+Built on SWC, Plumeria’s compiler is extremely fast—**0.0005s per file**, compiling up to **2000 style files per second**.  
+It runs in parallel with your dev server (like Next.js), finishing before your app even starts.  
+There’s **zero delay** in your development flow.
 </Step>
+
 <Step>
 ## Debugging
 
-Since all styles are resolved at compile time, runtime uncertainties are completely eliminated.
-Statically determined CSS allows developers to identify all style issues at compile time.
+All styles are resolved at compile time.  
+That means no runtime surprises, no dynamic logic, and no hidden fallbacks.  
+You’ll catch all styling issues statically, before they hit production.
 </Step>
+
 <Step>
 ## Performance
 
-Semantic properties help avoid HTML pollution.
-Short hashes minimize the amount of CSS.
-We use lightningcss and postcss-plugin for post-processing.
-They are minified and compressed in production.
-The impact on build size is not even an additional initial cost.
+Plumeria avoids unnecessary DOM pollution by promoting semantic styling.  
+Short class hashes reduce CSS payload, and post-processing via **lightningcss** and **PostCSS** ensures  
+that production styles are fully minified and compressed—**without adding any initial cost**.
 </Step>
+
 <Step>
 ## Optimization
 
-Style objects that are not used in production will be culled by tree shaking at build time.
-Production bundle size does not include objects, and only lightweight CSS remains.
-Also, because it is always written outside the component, the object is not rendered and is always processed statically.
+Unused style objects are automatically tree-shaken at build time.  
+Because styles are declared outside components, they never run at runtime.  
+Your production bundle contains only the final CSS, not style declarations.
 </Step>
+
 <Step>
 ## Hashes
 
-The create method takes the key as the class name and gives a 6-character hash of the object at the end.
-Class names are changed by objects, but when objects are determined, class names become universal.
-Therefore, when methods are determined, class names can be used as CSS Syntax arguments (has and not, is where eg.)
-The same object hash and the same `key` are used in both `development and production` environments,
-Developers can easily find it.
+The `create` method generates class names by appending a 6-character hash to your defined key.  
+Same object → same hash → **consistent class names across development and production**.  
+This makes it easy to debug, reuse styles, and even reference them in advanced selectors (`:has`, `:not`, `:is`, etc.).
 </Step>
 </Steps>
