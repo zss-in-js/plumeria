@@ -1,59 +1,57 @@
 ---
 title: global
-description:  API reference for the The `global` method
+description: Define global styles including elements, classes, pseudo-classes, and media queries.
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-There is no need to put it in a variable, **preview it by importing it to the file** you want to apply it.
+The `global` method defines styles that apply globally to the entire document.  
+It supports targeting HTML elements, class names, and even pseudo-classes or media queries — all **with full type support** and **compile-time extraction**.
 
-## Example use:
+## 🌍 Example
 
-In addition to html elements, global allows you to directly define attributes and class names for pseudo elements and class. You can also wrap properties using `css.pseudo.hover`, `css.media.max()`, etc.
-
-<Tabs items={[ 'ts', 'css']}>
+<Tabs items={['ts', 'css']}>
   <Tab>
-    ```ts title="TypeScript"
-    import { css } from '@plumeria/core'
 
-    css.global({
-      body: {
-        color: 'white',
-        background: '#303030',
-        margin: '0 auto'
-        },
-      h2: {
-        color: 'white',
-        fontSize: '32px',
-        fontWeight: '500'
-      },
-      ".highlighted": {
-        color: 'aqua',
-        fontSize: '24px',
-        fontWeight: '450'
-      }
-    });
-    ```
+```ts title="TypeScript"
+import { css } from '@plumeria/core'
 
-  </Tab>
-  <Tab>
-    ```css title="css"
-    body {
-      color: white;
-      background: #303030;
-      margin: 0 auto;
-    }
-    h2 {
-      color: white;
-      font-size: 32px;
-      font-weight: 500;
-    }
-    .highlighted {
-      color: aqua;
-      font-size: 24px;
-      font-weight: 450;
-    }
-    ```
-
-  </Tab>
+css.global({
+  body: {
+    margin: '0 auto',
+    color: 'white',
+    background: '#303030',
+  },
+  h2: {
+    fontSize: '32px',
+    fontWeight: '500',
+    color: 'white',
+  },
+  '.highlighted': {
+    fontSize: '24px',
+    fontWeight: '450',
+    color: 'aqua',
+  },
+});
+```
+</Tab>
+<Tab>
+```css title="css"
+body {
+  margin: 0 auto;
+  color: white;
+  background: #303030;
+}
+h2 {
+  font-size: 32px;
+  font-weight: 500;
+  color: white;
+}
+.highlighted {
+  font-size: 24px;
+  font-weight: 450;
+  color: aqua;
+}
+```
+</Tab>
 </Tabs>
