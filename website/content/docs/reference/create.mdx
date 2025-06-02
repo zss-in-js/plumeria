@@ -1,46 +1,45 @@
 ---
 title: create
-description:  API reference for the The `create` method
+description: Define local component-scoped styles with full type-safety and static generation.
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-create a method that takes the key as a className.
-styles.`**active**` is type-completed.
+The `create` method defines static, component-scoped styles using plain JavaScript objects.  
+It ensures **type-safe keys**, **compile-time validation**, and **scoped class names** through automatic hashing.
 
-## Example use:
+Plumeria statically extracts styles at build time, so there's **no runtime cost** or CSS injection overhead.
 
-A hashed prefix of the object is added to the class name, so styles do not conflicts between different components.
+## 🧪 Example
 
-<Tabs items={[ 'tsx', 'css' ]}>
+<Tabs items={['tsx', 'css']}>
   <Tab>
-    ```ts title="TypeScript"
-    import { css } from '@plumeria/core'
 
-    const styles = css.create({
-      container: {
-        display: 'flex',
-        justifyContent: 'space-between'
-      },
-      link: {
-        fontSize: '14px',
-        textDecoration: 'none'
-      },
-    })
-    ```
+```tsx title="TypeScript"
+import { css } from '@plumeria/core'
 
-  </Tab>
-  <Tab>
-    ```css title="css"
-    .container_ibxiag {
-      display: flex;
-      justify-content: space-between;
-    }
-    .link_ibxiag {
-      font-size: 14px;
-      text-decoration: none;
-    }
-    ```
-
-  </Tab>
+const styles = css.create({
+  container: {
+    display: 'flex',
+    justifyContent: 'space-between',
+  },
+  link: {
+    fontSize: '14px',
+    textDecoration: 'none',
+  },
+})
+```
+</Tab>
+<Tab>
+```css title="css"
+.container_ibxiag {
+  display: flex;
+  justify-content: space-between;
+}
+.link_ibxiag {
+  font-size: 14px;
+  text-decoration: none;
+}
+```
+</Tab>
 </Tabs>
