@@ -3,11 +3,13 @@ title: Nesting rule
 description: Learn more about `nesting rule` syntax
 ---
 
-
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 In plumeria, multiple tags in a list can be defined at once `using &`.
 
-```ts title="TypeScript" {1}
+<Tabs  items={[ 'ts', 'css' ]}>
+<Tab>
+```ts title="TypeScript"
 import { css } from '@plumeria/core';
 
 const styles = css.create({
@@ -19,8 +21,17 @@ const styles = css.create({
   },
 });
 ```
+</Tab>
+<Tab>
+```css title="CSS"
+.list_ep1r34 li {
+  list-style-type: none;
+}
+```
+</Tab>
+</Tabs>
 
-```tsx
+```tsx title="JSX"
 <ul className={styles.list}>
   <li></li>
   <li></li>
@@ -31,9 +42,10 @@ const styles = css.create({
 ### Nesting Rules
 
 The following example is acceptable:
-
+<Tabs items={[ 'ts', 'css' ]}>
+<Tab>
 ```ts title="TypeScript" {1}
-import { css, cx } from '@plumeria/core';
+import { css } from '@plumeria/core';
 
 const styles = css.create({
   list: {
@@ -47,6 +59,18 @@ const styles = css.create({
   },
 });
 ```
+</Tab>
+<Tab>
+```css title="CSS"
+@media (max-width: 800px) {
+  .list_wntean li {
+    list-style-type: none;
+  }
+}
+```
+</Tab>
+</Tabs>
+
 
 <Callout type="error" title="error cases">
   Unacceptable examples:
