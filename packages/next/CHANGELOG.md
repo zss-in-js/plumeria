@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.6.6
+
+### Patch Changes
+
+- dd36811: chore(next): package dependencies update zss-engine@0.2.40
+
 ## 0.6.5
 
 ### Patch Changes
