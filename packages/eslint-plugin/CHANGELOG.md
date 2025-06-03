@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.2.1
+
+### Patch Changes
+
+- 199f27f: feat(eslint-plugin): validation support light-dark function & values
+
 ## 0.2.0
 
 ### Minor Changes
