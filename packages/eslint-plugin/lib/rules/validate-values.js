@@ -161,9 +161,11 @@ function buildColorMixPattern() {
 }
 
 const colorMixString = buildColorMixPattern();
+const lightDarkValue = `${colorValue}|${colorMixString}|${varString}`;
+const lightDarkString = `light-dark\\((?:${lightDarkValue}),\\s*(?:${lightDarkValue})\\)`;
 
 const colorRegex = new RegExp(
-  `^(${colorValue}|${colorMixString}|${varString})$`,
+  `^(${colorValue}|${colorMixString}|${lightDarkString}|${varString})$`,
 );
 const colorSource = colorRegex.source.slice(1, -1);
 
