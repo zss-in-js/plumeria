@@ -18,8 +18,8 @@ importers:
         specifier: ^1.51.0
         version: 1.51.1
       '@plumeria/eslint-plugin':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.2.1
+        version: 0.2.1
       '@types/jest':
         specifier: ^29.5.14
         version: 29.5.14
@@ -857,8 +857,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@plumeria/eslint-plugin@0.1.1':
-    resolution: {integrity: sha512-NdtNYmmELXjxaCfKOmyUM3IyJKesNx2xrdrnsSHtImQk77ySUrCjMKCvvBmmaZSY80gpbnvhXCnScFiNBMKPYw==}
+  '@plumeria/eslint-plugin@0.2.1':
+    resolution: {integrity: sha512-gkzzJGN3ncolQvnVOlYXFLnBhGEIaFhqZRvPmCuF7M677tzCndYlcKNjPAegOZ5GEjfZCksVreg5yJ9KnnBJHg==}
 
   '@quansync/fs@0.1.3':
     resolution: {integrity: sha512-G0OnZbMWEs5LhDyqy2UL17vGhSVHkQIfVojMtEWVenvj0V5S84VBgy86kJIuNsGDp2p7sTKlpSIpBUWdC35OKg==}
@@ -3861,7 +3861,7 @@ snapshots:
     dependencies:
       playwright: 1.51.1
 
-  '@plumeria/eslint-plugin@0.1.1': {}
+  '@plumeria/eslint-plugin@0.2.1': {}
 
   '@quansync/fs@0.1.3':
     dependencies:
