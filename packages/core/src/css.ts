@@ -4,7 +4,7 @@ import type {
   CreateStyle,
   CreateStyleType,
   CreateTheme,
-  CreateVars,
+  CreateValues,
   CreateKeyframes,
   ReturnType,
 } from 'zss-engine';
@@ -28,7 +28,7 @@ import {
 } from './processors/css.js';
 import { media, container, pseudo, color } from 'zss-utils';
 
-function create<T extends Record<string, CSSProperties>>(
+function create<const T extends Record<string, CSSProperties>>(
   object: CreateStyleType<T>,
 ): ReturnType<T> {
   const base36Hash = genBase36Hash(object, 6);
@@ -62,8 +62,18 @@ function global(object: CSSHTML): void {
       : injectClientGlobalCSS(styleSheet);
 }
 
-const defineVars = <const T extends CreateVars>(object: T) => {
-  const styles: Record<string, Record<string, string | number>> = {
+const keyframes = (object: CreateKeyframes) => {
+  const prefix = genBase36Hash(object, 8);
+  global({ [`@keyframes ${prefix}`]: object });
+  return prefix;
+};
+
+const defineConsts = <const T extends CreateValues>(constants: T) => {
+  return constants;
+};
+
+const defineVars = <const T extends CreateValues>(object: T) => {
+  const styles: Record<string, CreateValues> = {
     ':root': {},
   };
 
@@ -111,14 +121,8 @@ const defineTheme = <const T extends CreateTheme>(object: T) => {
   return result;
 };
 
-const keyframes = (object: CreateKeyframes) => {
-  const prefix = genBase36Hash(object, 8);
-  global({ [`@keyframes ${prefix}`]: object });
-  return prefix;
-};
-
 class css {
-  static create<T extends Record<string, CSSProperties>>(
+  static create<const T extends Record<string, CSSProperties>>(
     object: CreateStyleType<T>,
   ): ReturnType<T> {
     return create(object);
@@ -128,16 +132,20 @@ class css {
     return global(object);
   }
 
-  static defineVars<const T extends CreateVars>(object: T) {
+  static keyframes(object: CreateKeyframes): string {
+    return keyframes(object);
+  }
+
+  static defineConsts<const T extends CreateValues>(object: T) {
+    return defineConsts(object);
+  }
+
+  static defineVars<const T extends CreateValues>(object: T) {
     return defineVars(object);
   }
 
   static defineTheme<const T extends CreateTheme>(object: T) {
     return defineTheme(object);
-  }
-
-  static keyframes(object: CreateKeyframes): string {
-    return keyframes(object);
   }
 
   static media = media;
