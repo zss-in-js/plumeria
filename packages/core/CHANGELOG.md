@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.8
+
+### Patch Changes
+
+- d590cdd: feat(core): add defineConsts API and README update
+
 ## 0.9.7
 
 ### Patch Changes
