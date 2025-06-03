@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - d590cdd: feat(core): add defineConsts API and README update
+  The create function type has been modified to add readonly.
 
 ## 0.9.7
 
