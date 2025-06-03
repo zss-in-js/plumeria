@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "0.9.7",
-  "description": "Zero-runtime CSS in JS - Compile at build-time. No runtime overhead.",
+  "description": "Zero-runtime, expressive CSS-in-JS library for TypeScript.",
   "keywords": [
     "css",
     "css-in-js",
@@ -42,7 +42,7 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "zss-engine": "0.2.39",
+    "zss-engine": "0.2.40",
     "zss-utils": "0.2.3"
   },
   "publishConfig": {
