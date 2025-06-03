@@ -1,38 +1,38 @@
 # @plumeria/core
 
-**Zero-runtime CSS in JS library in TypeScript.**
+**Zero-runtime, expressive CSS-in-JS library for TypeScript.**
 
-## Installation
+## 🌱 Installation
 
-To start using Plumeria, Install the following two packages:
+To get started with Plumeria, install the core package:
 
 ```sh
 npm install @plumeria/core
 ```
 
-### Compiler
+### 🛠 Compiler (for static extraction)
 
-To compile `@plumeria/core`, for example, to use `npx css`, install  
-[`@plumeria/compiler`](https://www.npmjs.com/package/@plumeria/compiler) for static extraction through the build process.
+If you want to extract styles at build time using commands like `npx css`, install:
 
 ```sh
 npm install --save-dev @plumeria/compiler
 ```
 
-### StyleSheet
+More at: [@plumeria/compiler on npm](https://www.npmjs.com/package/@plumeria/compiler)
 
-Import stylesheet in your application's entry point.  
-Applies the static stylesheet for production environments.
+### 🎨 Stylesheet Import
+
+In your app entry point, import the compiled CSS file:
 
 ```ts
 import '@plumeria/core/stylesheet.css';
 ```
 
-## API
+## 📘 API Reference
 
-### css.create()
+### `css.create()`
 
-Styles are defined as a map of CSS rules using css.create(). In the example below, there are 2 different CSS className. The className `styles.box` and `styles.text` are arbitrary names given to the rules.
+Define a set of styles:
 
 ```ts
 import { css } from '@plumeria/core';
@@ -48,16 +48,13 @@ const styles = css.create({
 });
 ```
 
-Pseudo and media queries can be wrapped in property style definitions:  
-Also, any properties that are not wrapped will conform to that className.
+Supports pseudo/media queries inline:
 
 ```ts
 const styles = css.create({
   box: {
-    // 900px
     [css.media.maxWidth(900)]: {
       width: '100%',
-      color: 'rgb(60,60,60)',
     },
   },
   text: {
@@ -70,9 +67,9 @@ const styles = css.create({
 });
 ```
 
-### css.global()
+### `css.global()`
 
-This API lets you define global CSS.
+Define global styles:
 
 ```ts
 css.global({
@@ -92,9 +89,9 @@ css.global({
 });
 ```
 
-### css.keyframes()
+### `css.keyframes()`
 
-Define @keyframes and set the return value directly to animationName.
+Create keyframes for animation:
 
 ```ts
 const fade = css.keyframes({
@@ -114,25 +111,55 @@ const styles = css.create({
 });
 ```
 
-### css.defineVars()
+### `css.defineConsts()`
 
-Defines custom CSS variables (custom properties) at the `:root` level.  
-This API allows you to declare design tokens such as spacing, sizes, or other constants, which can be referenced throughout your styles using the tokens.sm to `var(--sm)` syntax.
+Define reusable constant values with type safety:
 
 ```ts
-const tokens = css.defineVars({
-  xs: 240,
-  sm: 360,
-  md: 480,
-  lg: 600,
-  xl: 720,
+const breakpoints = css.defineConsts({
+  xs: css.media.maxWidth(480),
+  sm: css.media.maxWidth(640),
+  md: css.media.maxWidth(768),
+  lg: css.media.maxWidth(1024),
+  xl: css.media.maxWidth(1280),
 });
 ```
 
-### css.defineTheme()
+Use them in your style definitions:
 
-Define data-theme as objects.  
-A default compile to :root, and the rest as a string compile to data-theme, You can also use media and container here.
+```ts
+const styles = css.create({
+  container: {
+    [breakpoints.sm]: {
+      padding: 16,
+    },
+    [breakpoints.lg]: {
+      padding: 32,
+    },
+  },
+});
+```
+
+Constants are fully type-safe and readonly.
+
+### `css.defineVars()`
+
+Define design tokens with CSS variables:
+
+```ts
+const tokens = css.defineVars({
+  white: 'white',
+  black: 'black',
+  textPrimary: '#eaeaea',
+  textSecondary: '#333',
+  link: 'lightblue',
+  accent: 'purple',
+});
+```
+
+### `css.defineTheme()`
+
+Define theme values with responsive and conditional support:
 
 ```ts
 const themes = css.defineTheme({
@@ -149,12 +176,9 @@ const themes = css.defineTheme({
 });
 ```
 
-### css.color
+### `css.color`
 
-Mixes #000 or #FFF into the color.  
-The first argument takes the color and the second argument takes the same value as opacity (string % or number).
-
-You can also retrieve the complement of the color property from an color object.
+Color utilities:
 
 ```ts
 color: css.color.darken('skyblue', 0.12),
@@ -162,35 +186,35 @@ color: css.color.lighten('navy', 0.6),
 
 color: css.color.skyblue,
 color: css.color.aqua,
-// ...many more colors
-color: css.color.*...,
-
+// and many more
 ```
 
-### cx
+### `cx`
 
-Merges strings such as class names and pseudo.
+Classname merging helper:
 
 ```tsx
-// ":hover::after"
 cx(css.pseudo.hover, css.pseudo.after);
-// "text_hash box_hash"
-cx(styles.text, styles, box);
+// => ":hover::after"
+cx(styles.text, styles.box);
+// => "text_hash box_hash"
 ```
 
-## ESLint
+## 🧹 ESLint Support
 
-[@plumeria/eslint-plugin](https://www.npmjs.com/package/@plumeria/eslint-plugin)
+Use [@plumeria/eslint-plugin](https://www.npmjs.com/package/@plumeria/eslint-plugin) for recommended rules:
 
 ### Rules: recommended
 
-\- no-inner-call:(error)  
-\- no-unused-keys:(warn)  
-\- sort-properties:(warn)  
-\- validate-values:(warn)
+```
+- no-inner-call: error
+- no-unused-keys: warn
+- sort-properties: warn
+- validate-values: warn
+```
 
-It is recommended to use it in conjunction with TypeScript completion, which is one of the big advantages of using plumeria.
+Plumeria is best used alongside TypeScript for excellent autocomplete and validation support.
 
-## License
+## 📄 License
 
-plumeria is [MIT licensed](https://github.com/refirst11/rscute/blob/main/LICENSE).
+Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/LICENSE).
