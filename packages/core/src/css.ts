@@ -50,6 +50,20 @@ function create<const T extends Record<string, CSSProperties>>(
   return Object.freeze(object as unknown as ReturnType<T>);
 }
 
+function createComposite<const T extends Record<string, CSSProperties>>(
+  className: string,
+  object: T,
+): ReturnType<T> {
+  const composed = create(object);
+  const result = {} as ReturnType<T>;
+
+  for (const key in composed) {
+    result[key as keyof T] = `${className} ${composed[key]}`;
+  }
+
+  return result;
+}
+
 function global(object: CSSHTML): void {
   const base36Hash = genBase36Hash(object, 8);
   const { styleSheet } = transpiler(object, undefined, '--global');
@@ -126,6 +140,13 @@ class css {
     object: CreateStyleType<T>,
   ): ReturnType<T> {
     return create(object);
+  }
+
+  static createComposite<const T extends Record<string, CSSProperties>>(
+    className: string,
+    object: T,
+  ): ReturnType<T> {
+    return createComposite(className, object);
   }
 
   static global(object: CSSHTML): void {
