@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.9
+
+### Patch Changes
+
+- 091fac1: feat(core): new API add css.createComposite()
+
 ## 0.9.8
 
 ### Patch Changes
