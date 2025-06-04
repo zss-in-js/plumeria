@@ -1,0 +1,87 @@
+---
+title: createComposite
+description: Create named modifier classes for a base style.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+The `createComposite` function allows you to define **modifier classes** based on a base style object.  
+This helps keep your base styles clean while still supporting interactive variants like hover or active.
+
+Use it to create structured, reusable style compositions for complex components.
+
+## 🔧 Example: Flexbox with modifiers
+
+<Tabs items={["ts", "jsx"]}>
+  <Tab>
+
+```ts title="TypeScript"
+// styles.ts
+import { css } from '@plumeria/core'
+
+export const styles = css.create({
+  flexBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+});
+
+export const composed = css.createComposite(styles.flexBox, {
+  hover: {
+    [css.pseudo.hover]: {
+      scale: 1.5,
+    },
+  },
+  active: {
+    [css.pseudo.active]: {
+      color: css.color.gray,
+    },
+  },
+});
+```
+</Tab> 
+<Tab>
+```tsx title="TypeScript"
+// component.tsx
+import { composed } from './styles'
+
+export function Box() {
+  return <div className={composed.hover} />
+}
+```
+</Tab>
+</Tabs>
+
+## 💡 Why use `createComposite()`?
+- Enables reusable, composable modifiers without duplicating base styles
+- Encourages consistent, predictable modifier names like hover, active, focus, etc.
+- Grows linearly — like Atomic CSS — where shared logic doesn't increase output size
+- Works seamlessly with `css.create()` and `css.pseudo`, keeping all logic declarative and type-safe
+
+## 📌 Tip
+
+You can combine it with utility classes or `defineTheme()` output to create flexible, scalable component styles.
+
+```ts
+const modifiers = css.createComposite(styles.buttonBase, {
+  hover: {
+    [css.pseudo.hover]: {
+      background: theme.accent,
+    },
+  },
+});
+```
+
+## 📘 Define in the same file
+`css.createComposite()` must be defined in the **same file and scope as** the `css.create()` call it extends.
+
+This is a deliberate design for two key reasons:
+
+1. **To avoid circular references at compile time**
+The compiler does not allow composite styles to reference base styles from other files, in order to prevent dependency cycles and ensure predictable builds.
+
+2. **To preserve clear declaration order**
+When base and composite styles are defined together, it's obvious which properties are overridden. This avoids creating a "declaration order black box," where styles coming from different files make it unclear which one takes precedence.
+
+This design encourages a local, linear style structure that's easier to understand, faster to compile, and less error-prone across large codebases and bundlers like `rscute`.
