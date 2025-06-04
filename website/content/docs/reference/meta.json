@@ -3,6 +3,7 @@
   "title": "API reference",
   "pages": [
     "create",
+    "createComposite",
     "global",
     "keyframes",
     "defineConsts",
