@@ -1,0 +1,51 @@
+---
+title: defineConsts
+description: Define static constant values to use inside Plumeria styles.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+The `defineConsts` function defines **static constant values** (not CSS variables) that can be used inside `create()` or `defineTheme()` for conditions like media queries or other static references.
+
+It is useful for creating values such as **breakpoints**, spacing scales, or other fixed design constants that don't rely on CSS variable resolution.
+
+## 🎯 Example: Creating breakpoints
+
+```ts title="TypeScript"
+// breakpoints.ts
+export const breakpoints = css.defineConsts({
+  xs: css.media.maxWidth(480),
+  sm: css.media.maxWidth(640),
+  md: css.media.maxWidth(768),
+  lg: css.media.maxWidth(1024),
+  xl: css.media.maxWidth(1280),
+});
+```
+These constants are fully **type-safe, readonly,** and enforced as **as const**.
+
+## 🎨 Using constants in styles
+```ts
+import { css } from "@plumeria/core";
+import { breakpoints } from "./breakpoints";
+
+export const styles = css.create({
+  container: {
+    [breakpoints.sm]: {
+      padding: 16,
+    },
+    [breakpoints.lg]: {
+      padding: 32,
+    },
+  },
+});
+```
+You can use these constants for any static keys inside styles or themes.
+
+## ✅ Type enforcement benefits
+
+- Enforces **as const** automatically
+- Restricts to **string | number** values only
+- Disallows object **nesting**
+- Produces a **readonly** type automatically
+
+This helps reduce bugs and keeps your design tokens **predictable**.
