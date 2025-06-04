@@ -67,6 +67,42 @@ const styles = css.create({
 });
 ```
 
+### `css.createComposite()`
+
+Creates modifier classes for a base style:
+
+```ts
+const styles = css.create({
+  flexBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+});
+
+const composed = css.createComposite(styles.flexBox, {
+  hover: {
+    [css.pseudo.hover]: {
+      scale: 1.5,
+    },
+  },
+  active: {
+    [css.pseudo.active]: {
+      color: css.color.gray,
+    },
+  },
+});
+```
+
+This produces named modifier classes based on the base style.  
+You can use them like this:
+
+```jsx
+<div className={composed.hover} />
+```
+
+Automatically generates all modifier variants while keeping the base style clean.
+
 ### `css.global()`
 
 Define global styles:
