@@ -4,9 +4,10 @@
   "pages": [
     "create",
     "global",
+    "keyframes",
+    "defineConsts",
     "defineVars",
     "defineTheme",
-    "keyframes",
     "cx",
     "rx",
     "media",
