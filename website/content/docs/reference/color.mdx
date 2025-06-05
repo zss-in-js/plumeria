@@ -1,65 +1,293 @@
 ---
-title: color
-description:  API reference for the The `color` utility
+title: Color Utility
+description: Comprehensive API reference for the `color` utility in the @plumeria/core package, covering all standard colors, theme colors, and lighten/darken utilities.
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Card, Cards } from 'fumadocs-ui/components/card';
+import { Color } from 'component/Color';
 
-## color object
+The `color` utility in the `@plumeria/core` package provides a comprehensive set of tools for applying colors in your styles. It includes a complete collection of 141 CSS named colors, framework-specific theme colors, and utilities to lighten or darken colors programmatically. This reference details all available colors and utilities, with examples to demonstrate their usage.
 
-### colors
-Provides a color set from an object that is supplied with autocomplete.
+## Overview
 
-### themeColors
-Provides a set of common framework colors. eg: `error` `success`.
+The `color` utility simplifies color management in your styles by providing:
 
-### lighten darken
-Mixes dark or light in the proportion specified by the second argument. Returns: `<color>`
+- **Standard Colors**: A complete set of 141 CSS named colors with autocomplete support.
+- **Theme Colors**: Predefined colors for common UI states (e.g., `primary`, `success`).
+- **Lighten/Darken Utilities**: Functions to adjust color brightness dynamically.
+
+These utilities integrate seamlessly with `@plumeria/core` and can be combined with other utilities like `pseudo` for dynamic and responsive styling.
 
 ```ts
 export const color = {
-  ...colors,
-  ...themeColors,
-  lighten,
-  darken,
+  ...colors, // Standard named colors
+  ...themeColors, // Framework-specific colors
+  lighten, // Lighten a color by a specified proportion
+  darken, // Darken a color by a specified proportion
 };
 ```
 
-## colors
+## Standard Colors
+
+The `colors` object provides a complete set of 141 CSS named colors, supporting autocomplete in modern IDEs. Below is a curated list of commonly used colors, with the full list available in the expandable section.
+
+| Color Name             | Hex Code                                         | Description                                                |
+| ---------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
+| `aliceblue`            | <Color color="aliceblue" /> `#F0F8FF`            | A pale blue tint, ideal for light backgrounds.             |
+| `antiquewhite`         | <Color color="antiquewhite" /> `#FAEBD7`         | A soft, warm white with a hint of peach.                   |
+| `aqua`                 | <Color color="aqua" /> `#00FFFF`                 | Bright cyan, suitable for vibrant accents.                 |
+| `aquamarine`           | <Color color="aquamarine" /> `#7FFFD4`           | A light cyan-green, great for fresh designs.               |
+| `azure`                | <Color color="azure" /> `#F0FFFF`                | A very pale cyan, nearly white, for subtle backgrounds.    |
+| `beige`                | <Color color="beige" /> `#F5F5DC`                | A warm, neutral color for backgrounds or text.             |
+| `bisque`               | <Color color="bisque" /> `#FFE4C4`               | A soft peach color, ideal for warm UI elements.            |
+| `black`                | <Color color="black" /> `#000000`                | Pure black, often used for text or borders.                |
+| `blanchedalmond`       | <Color color="blanchedalmond" /> `#FFEBCD`       | A creamy beige, suitable for subtle highlights.            |
+| `blue`                 | <Color color="blue" /> `#0000FF`                 | Bright blue, great for links or buttons.                   |
+| `blueviolet`           | <Color color="blueviolet" /> `#8A2BE2`           | A rich purple-blue, ideal for creative designs.            |
+| `brown`                | <Color color="brown" /> `#A52A2A`                | A deep reddish-brown, suitable for earthy tones.           |
+| `burlywood`            | <Color color="burlywood" /> `#DEB887`            | A warm tan, great for natural-themed UIs.                  |
+| `cadetblue`            | <Color color="cadetblue" /> `#5F9EA0`            | A muted blue-green, ideal for calm designs.                |
+| `chartreuse`           | <Color color="chartreuse" /> `#7FFF00`           | A vivid green-yellow, suitable for highlights.             |
+| `chocolate`            | <Color color="chocolate" /> `#D2691E`            | A rich brown, perfect for warm accents.                    |
+| `coral`                | <Color color="coral" /> `#FF7F50`                | A vibrant orange-pink, great for lively designs.           |
+| `cornflowerblue`       | <Color color="cornflowerblue" /> `#6495ED`       | A soft blue, ideal for buttons or backgrounds.             |
+| `cornsilk`             | <Color color="cornsilk" /> `#FFF8DC`             | A pale yellow, suitable for light backgrounds.             |
+| `crimson`              | <Color color="crimson" /> `#DC143C`              | A deep red, great for bold accents or alerts.              |
+| `cyan`                 | <Color color="cyan" /> `#00FFFF`                 | Bright cyan, alias for aqua, for vibrant accents.          |
+| `darkblue`             | <Color color="darkblue" /> `#00008B`             | A deep blue, suitable for strong contrasts.                |
+| `darkcyan`             | <Color color="darkcyan" /> `#008B8B`             | A deep cyan, great for calm, rich designs.                 |
+| `darkgoldenrod`        | <Color color="darkgoldenrod" /> `#B8860B`        | A dark golden yellow, ideal for earthy tones.              |
+| `darkgray`             | <Color color="darkgray" /> `#A9A9A9`             | A medium-dark gray, versatile for UI elements.             |
+| `darkgreen`            | <Color color="darkgreen" /> `#006400`            | A deep green, suitable for natural themes.                 |
+| `darkgrey`             | <Color color="darkgrey" /> `#A9A9A9`             | Alias for darkgray, for consistency.                       |
+| `darkkhaki`            | <Color color="darkkhaki" /> `#BDB76B`            | A muted khaki, great for earthy backgrounds.               |
+| `darkmagenta`          | <Color color="darkmagenta" /> `#8B008B`          | A deep purple, ideal for bold accents.                     |
+| `darkolivegreen`       | <Color color="darkolivegreen" /> `#556B2F`       | A dark olive shade, suitable for natural designs.          |
+| `darkorange`           | <Color color="darkorange" /> `#FF8C00`           | A vibrant orange, great for attention-grabbing elements.   |
+| `darkorchid`           | <Color color="darkorchid" /> `#9932CC`           | A rich purple, ideal for creative designs.                 |
+| `darkred`              | <Color color="darkred" /> `#8B0000`              | A deep red, perfect for error states or accents.           |
+| `darksalmon`           | <Color color="darksalmon" /> `#E9967A`           | A muted orange-pink, great for warm designs.               |
+| `darkseagreen`         | <Color color="darkseagreen" /> `#8FBC8F`         | A soft green, ideal for calm backgrounds.                  |
+| `darkslateblue`        | <Color color="darkslateblue" /> `#483D8B`        | A deep blue-purple, suitable for rich designs.             |
+| `darkslategray`        | <Color color="darkslategray" /> `#2F4F4F`        | A dark gray with a blue tint, great for muted UIs.         |
+| `darkslategrey`        | <Color color="darkslategrey" /> `#2F4F4F`        | Alias for darkslategray, for consistency.                  |
+| `darkturquoise`        | <Color color="darkturquoise" /> `#00CED1`        | A vibrant cyan, great for fresh accents.                   |
+| `darkviolet`           | <Color color="darkviolet" /> `#9400D3`           | A deep purple, ideal for bold creative elements.           |
+| `deeppink`             | <Color color="deeppink" /> `#FF1493`             | A bright pink, perfect for vibrant highlights.             |
+| `deepskyblue`          | <Color color="deepskyblue" /> `#00BFFF`          | A bright blue, great for lively buttons or links.          |
+| `dimgray`              | <Color color="dimgray" /> `#696969`              | A medium-dark gray, versatile for text or borders.         |
+| `dimgrey`              | <Color color="dimgrey" /> `#696969`              | Alias for dimgray, for consistency.                        |
+| `dodgerblue`           | <Color color="dodgerblue" /> `#1E90FF`           | A vibrant blue, ideal for buttons or links.                |
+| `firebrick`            | <Color color="firebrick" /> `#B22222`            | A deep red-brown, suitable for error states.               |
+| `floralwhite`          | <Color color="floralwhite" /> `#FFFAF0`          | A soft white with a hint of peach, great for backgrounds.  |
+| `forestgreen`          | <Color color="forestgreen" /> `#228B22`          | A rich green, ideal for natural themes.                    |
+| `fuchsia`              | <Color color="fuchsia" /> `#FF00FF`              | Bright magenta, great for bold accents.                    |
+| `gainsboro`            | <Color color="gainsboro" /> `#DCDCDC`            | A light gray, suitable for subtle backgrounds.             |
+| `ghostwhite`           | <Color color="ghostwhite" /> `#F8F8FF`           | A very pale blue-white, ideal for light backgrounds.       |
+| `gold`                 | <Color color="gold" /> `#FFD700`                 | A bright yellow-gold, great for highlights.                |
+| `goldenrod`            | <Color color="goldenrod" /> `#DAA520`            | A warm golden yellow, ideal for earthy tones.              |
+| `gray`                 | <Color color="gray" /> `#808080`                 | A neutral gray, versatile for text or backgrounds.         |
+| `green`                | <Color color="green" /> `#008000`                | A standard green, great for natural themes.                |
+| `greenyellow`          | <Color color="greenyellow" /> `#ADFF2F`          | A bright yellow-green, ideal for success states.           |
+| `grey`                 | <Color color="grey" /> `#808080`                 | Alias for gray, for consistency.                           |
+| `honeydew`             | <Color color="honeydew" /> `#F0FFF0`             | A very pale green, great for subtle backgrounds.           |
+| `hotpink`              | <Color color="hotpink" /> `#FF69B4`              | A vibrant pink, perfect for lively accents.                |
+| `indianred`            | <Color color="indianred" /> `#CD5C5C`            | A muted red, suitable for warm designs.                    |
+| `indigo`               | <Color color="indigo" /> `#4B0082`               | A deep blue-purple, ideal for rich designs.                |
+| `ivory`                | <Color color="ivory" /> `#FFFFF0`                | A soft white with a hint of yellow, great for backgrounds. |
+| `khaki`                | <Color color="khaki" /> `#F0E68C`                | A light yellow-brown, ideal for earthy tones.              |
+| `lavender`             | <Color color="lavender" /> `#E6E6FA`             | A pale purple, great for soft backgrounds.                 |
+| `lavenderblush`        | <Color color="lavenderblush" /> `#FFF0F5`        | A very pale pink, ideal for subtle backgrounds.            |
+| `lawngreen`            | <Color color="lawngreen" /> `#7CFC00`            | A bright green, great for vibrant highlights.              |
+| `lemonchiffon`         | <Color color="lemonchiffon" /> `#FFFACD`         | A pale yellow, suitable for light backgrounds.             |
+| `lightblue`            | <Color color="lightblue" /> `#ADD8E6`            | A soft blue, ideal for calm designs.                       |
+| `lightcoral`           | <Color color="lightcoral" /> `#F08080`           | A muted coral, great for warm accents.                     |
+| `lightcyan`            | <Color color="lightcyan" /> `#E0FFFF`            | A very pale cyan, ideal for light backgrounds.             |
+| `lightgoldenrodyellow` | <Color color="lightgoldenrodyellow" /> `#FAFAD2` | A pale yellow, great for subtle highlights.                |
+| `lightgray`            | <Color color="lightgray" /> `#D3D3D3`            | A light gray, versatile for backgrounds.                   |
+| `lightgreen`           | <Color color="lightgreen" /> `#90EE90`           | A soft green, ideal for fresh designs.                     |
+| `lightgrey`            | <Color color="lightgrey" /> `#D3D3D3`            | Alias for lightgray, for consistency.                      |
+| `lightpink`            | <Color color="lightpink" /> `#FFB6C1`            | A soft pink, great for feminine designs.                   |
+| `lightsalmon`          | <Color color="lightsalmon" /> `#FFA07A`          | A light orange-pink, ideal for warm accents.               |
+| `lightseagreen`        | <Color color="lightseagreen" /> `#20B2AA`        | A vibrant teal, great for fresh designs.                   |
+| `lightskyblue`         | <Color color="lightskyblue" /> `#87CEFA`         | A soft blue, ideal for calm backgrounds.                   |
+| `lightslategray`       | <Color color="lightslategray" /> `#778899`       | A medium gray with a blue tint, versatile for UI.          |
+| `lightslategrey`       | <Color color="lightslategrey" /> `#778899`       | Alias for lightslategray, for consistency.                 |
+| `lightsteelblue`       | <Color color="lightsteelblue" /> `#B0C4DE`       | A soft blue-gray, great for calm designs.                  |
+| `lightyellow`          | <Color color="lightyellow" /> `#FFFFE0`          | A pale yellow, suitable for light backgrounds.             |
+| `lime`                 | <Color color="lime" /> `#00FF00`                 | Bright green, great for vibrant highlights.                |
+| `limegreen`            | <Color color="limegreen" /> `#32CD32`            | A vivid green, ideal for success states.                   |
+| `linen`                | <Color color="linen" /> `#FAF0E6`                | A soft white with a hint of pink, great for backgrounds.   |
+| `magenta`              | <Color color="magenta" /> `#FF00FF`              | Bright magenta, alias for fuchsia, for bold accents.       |
+| `maroon`               | <Color color="maroon" /> `#800000`               | A deep red-brown, suitable for rich designs.               |
+| `mediumaquamarine`     | <Color color="mediumaquamarine" /> `#66CDAA`     | A medium cyan-green, great for fresh designs.              |
+| `mediumblue`           | <Color color="mediumblue" /> `#0000CD`           | A medium blue, ideal for links or buttons.                 |
+| `mediumorchid`         | <Color color="mediumorchid" /> `#BA55D3`         | A medium purple, great for creative accents.               |
+| `mediumpurple`         | <Color color="mediumpurple" /> `#9370DB`         | A soft purple, ideal for calm designs.                     |
+| `mediumseagreen`       | <Color color="mediumseagreen" /> `#3CB371`       | A medium green, great for natural themes.                  |
+| `mediumslateblue`      | <Color color="mediumslateblue" /> `#7B68EE`      | A medium blue-purple, ideal for creative UIs.              |
+| `mediumspringgreen`    | <Color color="mediumspringgreen" /> `#00FA9A`    | A bright green, great for vibrant highlights.              |
+| `mediumturquoise`      | <Color color="mediumturquoise" /> `#48D1CC`      | A medium cyan, ideal for fresh designs.                    |
+| `mediumvioletred`      | <Color color="mediumvioletred" /> `#C71585`      | A deep pink-purple, great for bold accents.                |
+| `midnightblue`         | <Color color="midnightblue" /> `#191970`         | A very dark blue, ideal for strong contrasts.              |
+| `mintcream`            | <Color color="mintcream" /> `#F5FFFA`            | A very pale green, great for subtle backgrounds.           |
+| `mistyrose`            | <Color color="mistyrose" /> `#FFE4E1`            | A soft pink, ideal for feminine designs.                   |
+| `moccasin`             | <Color color="moccasin" /> `#FFE4B5`             | A warm peach, great for warm backgrounds.                  |
+| `navajowhite`          | <Color color="navajowhite" /> `#FFDEAD`          | A light peach, suitable for soft backgrounds.              |
+| `navy`                 | <Color color="navy" /> `#000080`                 | A very dark blue, often used for backgrounds or text.      |
+| `oldlace`              | <Color color="oldlace" /> `#FDF5E6`              | A pale, creamy white, great for backgrounds.               |
+| `olive`                | <Color color="olive" /> `#808000`                | A muted yellow-green, suitable for earthy themes.          |
+| `olivedrab`            | <Color color="olivedrab" /> `#6B8E23`            | A dark olive green, ideal for natural designs.             |
+| `orange`               | <Color color="orange" /> `#FFA500`               | A bright orange, perfect for attention-grabbing elements.  |
+| `orangered`            | <Color color="orangered" /> `#FF4500`            | A strong red-orange, great for bold accents.               |
+| `orchid`               | <Color color="orchid" /> `#DA70D6`               | A light purple, ideal for creative designs.                |
+| `palegoldenrod`        | <Color color="palegoldenrod" /> `#EEE8AA`        | A soft yellow, suitable for subtle highlights.             |
+| `palegreen`            | <Color color="palegreen" /> `#98FB98`            | A light green, great for fresh backgrounds.                |
+| `paleturquoise`        | <Color color="paleturquoise" /> `#AFEEEE`        | A pale cyan, ideal for calm designs.                       |
+| `palevioletred`        | <Color color="palevioletred" /> `#DB7093`        | A soft pink-purple, great for feminine accents.            |
+| `papayawhip`           | <Color color="papayawhip" /> `#FFEFD5`           | A creamy peach, suitable for light backgrounds.            |
+| `peachpuff`            | <Color color="peachpuff" /> `#FFDAB9`            | A soft peach, great for warm backgrounds.                  |
+| `peru`                 | <Color color="peru" /> `#CD853F`                 | A medium brown, ideal for earthy themes.                   |
+| `pink`                 | <Color color="pink" /> `#FFC0CB`                 | A classic pink, perfect for feminine or playful designs.   |
+| `plum`                 | <Color color="plum" /> `#DDA0DD`                 | A soft purple, suitable for subtle accents.                |
+| `powderblue`           | <Color color="powderblue" /> `#B0E0E6`           | A light blue, great for calm backgrounds.                  |
+| `purple`               | <Color color="purple" /> `#800080`               | A deep purple, ideal for creative themes.                  |
+| `rebeccapurple`        | <Color color="rebeccapurple" /> `#663399`        | A rich purple, named after Rebecca Meyer.                  |
+| `red`                  | <Color color="red" /> `#FF0000`                  | Pure red, great for alerts or accents.                     |
+| `rosybrown`            | <Color color="rosybrown" /> `#BC8F8F`            | A muted brown with a pink tint, suitable for soft designs. |
+| `royalblue`            | <Color color="royalblue" /> `#4169E1`            | A vivid blue, ideal for buttons or links.                  |
+| `saddlebrown`          | <Color color="saddlebrown" /> `#8B4513`          | A deep brown, great for natural or rustic themes.          |
+| `salmon`               | <Color color="salmon" /> `#FA8072`               | A soft orange-pink, suitable for warm accents.             |
+| `sandybrown`           | <Color color="sandybrown" /> `#F4A460`           | A warm tan, great for earthy backgrounds.                  |
+| `seagreen`             | <Color color="seagreen" /> `#2E8B57`             | A deep green, ideal for natural designs.                   |
+| `seashell`             | <Color color="seashell" /> `#FFF5EE`             | A pale pink-white, perfect for subtle backgrounds.         |
+| `sienna`               | <Color color="sienna" /> `#A0522D`               | A reddish-brown, suitable for earthy accents.              |
+| `silver`               | <Color color="silver" /> `#C0C0C0`               | A light gray, versatile for backgrounds or text.           |
+| `skyblue`              | <Color color="skyblue" /> `#87CEEB`              | A light blue, great for calm, airy designs.                |
+| `slateblue`            | <Color color="slateblue" /> `#6A5ACD`            | A medium blue-purple, ideal for creative UIs.              |
+| `slategray`            | <Color color="slategray" /> `#708090`            | A medium gray with a blue tint, suitable for UI elements.  |
+| `slategrey`            | <Color color="slategrey" /> `#708090`            | Alias for slategray, for consistency.                      |
+| `snow`                 | <Color color="snow" /> `#FFFAFA`                 | A very pale pink-white, ideal for light backgrounds.       |
+| `springgreen`          | <Color color="springgreen" /> `#00FF7F`          | A bright green, perfect for lively highlights.             |
+| `steelblue`            | <Color color="steelblue" /> `#4682B4`            | A medium blue, great for professional designs.             |
+| `tan`                  | <Color color="tan" /> `#D2B48C`                  | A light brown, suitable for natural backgrounds.           |
+| `teal`                 | <Color color="teal" /> `#008080`                 | A dark cyan, ideal for modern designs.                     |
+| `thistle`              | <Color color="thistle" /> `#D8BFD8`              | A soft purple, great for subtle backgrounds.               |
+| `tomato`               | <Color color="tomato" /> `#FF6347`               | A vibrant red-orange, suitable for bold accents.           |
+| `turquoise`            | <Color color="turquoise" /> `#40E0D0`            | A bright cyan-green, perfect for fresh highlights.         |
+| `violet`               | <Color color="violet" /> `#EE82EE`               | A light purple, ideal for creative elements.               |
+| `wheat`                | <Color color="wheat" /> `#F5DEB3`                | A light tan, great for warm backgrounds.                   |
+| `white`                | <Color color="white" /> `#FFFFFF`                | Pure white, commonly used for backgrounds.                 |
+| `whitesmoke`           | <Color color="whitesmoke" /> `#F5F5F5`           | A very light gray, ideal for subtle backgrounds.           |
+| `yellow`               | <Color color="yellow" /> `#FFFF00`               | Bright yellow, perfect for highlights or warnings.         |
+| `yellowgreen`          | <Color color="yellowgreen" /> `#9ACD32`          | A medium yellow-green, great for fresh accents.            |
+
+## Theme Colors
+
+The `themeColors` object provides a set of predefined colors tailored for common UI states, such as buttons, alerts, or notifications. These colors are designed to align with modern framework conventions.
+
+| Color Name  | Hex Code                            | Description                                                          |
+| ----------- | ----------------------------------- | -------------------------------------------------------------------- |
+| `primary`   | <Color color="#0070F3" /> `#0070F3` | A vibrant blue, ideal for primary buttons or links.                  |
+| `secondary` | <Color color="#FF4081" /> `#FF4081` | A bold pink, suitable for secondary actions or highlights.           |
+| `success`   | <Color color="#2E7D32" /> `#2E7D32` | A rich green, used for success states (e.g., confirmation messages). |
+| `warning`   | <Color color="#ED6C02" /> `#ED6C02` | A warm orange, perfect for warning messages or alerts.               |
+| `error`     | <Color color="#D32F2F" /> `#D32F2F` | A deep red, ideal for error states or validation messages.           |
+
+## Lighten and Darken Utilities
+
+The `lighten` and `darken` utilities adjust a color's brightness by mixing it with white or black based on a proportion (0 to 1 or a percentage string like `'20%'`). Ideal for hover effects, focus states, or dynamic color variations.
+
+| Function                     | Description                            | Arguments                                                                                                  | Returns              |
+| ---------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------- |
+| `lighten(color, proportion)` | Lightens a color by mixing with white. | `color`: A color name or hex code<br/>`proportion`: A number (0 to 1) or percentage string (e.g., `'20%'`) | `<color>` (hex code) |
+| `darken(color, proportion)`  | Darkens a color by mixing with black.  | `color`: A color name or hex code<br/>`proportion`: A number (0 to 1) or percentage string (e.g., `'20%'`) | `<color>` (hex code) |
+
+### Notes
+
+- A `proportion` of `0` (or `'0%'`) leaves the color unchanged; `1` (or `'100%'`) results in pure white (`lighten`) or black (`darken`).
+- Works with named colors (e.g., `navy`) and hex codes (e.g., `#000080`).
+
+## Usage Examples
+
+Below are practical examples demonstrating how to use the `color` utility with `@plumeria/core`.
+
+### Example 1: Using Standard Colors
+
 ```ts
-const colors = {
-  ...
-  wheat: 'wheat',
-  white: 'white',
-  whitesmoke: 'whitesmoke',
-  yellow: 'yellow',
-  yellowgreen: 'yellowgreen',
-}
-```
-## themeColors 
-```ts
-const themeColors = {
-  primary: '#0070f3',
-  secondary: '#ff4081',
-  success: '#2e7d32',
-  warning: '#ed6c02',
-  error: '#d32f2f',
-}
-```
-## lighten darken
-```ts title="TypeScript"
 import { css } from '@plumeria/core';
 
 const styles = css.create({
-  dark_text: {
-    color: css.color.darken('navy', 0.2), // [!code ++]
+  background: {
+    backgroundColor: css.color.wheat, // Warm beige background
+    color: css.color.black, // Black text for contrast
   },
-  light_text: {
-    color: css.color.lighten('navy', 0.8), // [!code ++]
+  highlight: {
+    backgroundColor: css.color.crimson, // Deep red for alerts
   },
 });
 ```
 
+### Example 2: Using Theme Colors
+
+```ts
+import { css } from '@plumeria/core';
+
+const buttonStyles = css.create({
+  primaryButton: {
+    backgroundColor: css.color.primary, // Vibrant blue for primary buttons
+    color: css.color.white,
+    padding: '10px 20px',
+  },
+  errorMessage: {
+    backgroundColor: css.color.error, // Red for error alerts
+    color: css.color.white,
+    borderRadius: '4px',
+  },
+});
+```
+
+### Example 3: Using Lighten and Darken
+
+```ts
+import { css } from '@plumeria/core';
+
+const styles = css.create({
+  button: {
+    backgroundColor: css.color.primary, // #0070F3
+    color: css.color.white,
+    [css.pseudo.hover]: {
+      backgroundColor: css.color.lighten('primary', 0.2), // Lighter blue on hover
+    },
+    [css.pseudo.active]: {
+      backgroundColor: css.color.darken('primary', 0.2), // Darker blue on click
+    },
+  },
+});
+```
+
+### Example 4: Combining Colors with Pseudo-Classes
+
+```ts
+import { css } from '@plumeria/core';
+
+const styles = css.create({
+  alert: {
+    backgroundColor: css.color.warning, // Orange for warnings
+    color: css.color.white,
+    padding: '10px',
+    [css.pseudo.hover]: {
+      backgroundColor: css.color.lighten('warning', 0.3), // Lighter orange on hover
+    },
+  },
+});
+```
+
+## 🔗 Related
+
 <Cards>
-  <Card title="See more about @plumeria/collection package" href="/docs/reference/collection" />
+  <Card title="zss-utils Package" href="/docs/reference/utils" description="Explore other utilities in the zss-utils package." />
+  <Card title="Plumeria Core Documentation" href="/docs/core" description="Learn more about the @plumeria/core package." />
+  <Card title="Pseudo Utility" href="/docs/reference/pseudo" description="Discover how to combine colors with pseudo-classes and pseudo-elements." />
 </Cards>
