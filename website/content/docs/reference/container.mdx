@@ -1,27 +1,31 @@
 ---
-title: container
-description:  API reference for the The `container` utility
+title: Container Utilities
+description: API reference for the `container` utility in @plumeria/core
 ---
 
-## Container functions
+The `css.container` utility works just like `css.media`, but targets **CSS container queries** instead of viewport media queries.
 
-Argument: string  
-The usage is the same as for media, and it can be used by putting it in an array `[css.container.maxWidth(600)]: {...}`.
-
-```ts title="TypeScript"
-import { css } from '@plumeria/core';
-
-css.container.maxWidth();
-css.container.maxHeight();
-css.container.minWidth();
-css.container.minHeight();
-css.container.range();
+- Same function names: `minWidth`, `maxWidth`, `range`, etc.
+- Accepts `number` (auto-suffixed with `px`) or `string`
+- Can be used as a selector key:
+```ts
+  [css.container.minWidth(600)]: {
+    display: "grid"
+  }
 ```
 
-- `css.container.minWidth(240)`
-- `css.container.minHeight("20rem")`
-- `css.container.range("width <= 400px")`
+## 📘 API
+
+The following functions mirror those in `css.media`, but use `@container` rules:
+
+| Function                            | Output                           |
+| ----------------------------------- | -------------------------------- |
+| `container.minWidth(240)`           | `@container (min-width: 240px)`  |
+| `container.minHeight("20rem")`      | `@container (min-height: 20rem)` |
+| `container.range("width <= 400px")` | `@container (width <= 400px)`    |
+
+## 🔗 Related
 
 <Cards>
-  <Card title="See more about @plumeria/collection package" href="/docs/reference/collection" />
+  <Card title="See also: Media Queries" href="/docs/reference/media" />
 </Cards>
