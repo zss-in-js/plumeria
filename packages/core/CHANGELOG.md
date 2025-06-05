@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.9.10
+
+### Patch Changes
+
+- 29fb635: fix(core package.json): fix typo processors import field
+
 ## 0.9.9
 
 ### Patch Changes
