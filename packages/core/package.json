@@ -27,7 +27,7 @@
     },
     "./processors": {
       "types": "./dist/processors/css.d.ts",
-      "import": "./dist/procesmsors/css.mjs",
+      "import": "./dist/processors/css.mjs",
       "default": "./dist/processors/css.js"
     }
   },
