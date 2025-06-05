@@ -22,12 +22,12 @@
     "build": "rimraf dist && tsc"
   },
   "dependencies": {
-    "@rust-gear/glob": "^0.2.1",
+    "@rust-gear/glob": "^0.2.2",
     "@swc/core": "^1.11.24",
     "lightningcss": "^1.29.3",
     "postcss": "^8.5.3",
     "postcss-combine-duplicated-selectors": "^10.0.3",
-    "rscute": "^0.2.6"
+    "rscute": "^0.2.7"
   },
   "publishConfig": {
     "access": "public"
