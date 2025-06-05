@@ -1,116 +1,216 @@
 ---
-title: pseudo
-description:  API reference for the The `pseudo` utility
+title: Pseudo Utility
+description: Comprehensive API reference for the `pseudo` utility in the zss-utils package, covering all pseudo-classes, pseudo-elements, and functional pseudo selectors.
 ---
 
-## Pseudo items
+The `pseudo` utility in the `@plumeria/core` package provides a powerful way to apply CSS pseudo-classes and pseudo-elements programmatically. You can use these utilities as selectors within an array or combine multiple pseudo states using the `cx` function. This reference covers all available pseudo-classes, pseudo-elements, and functional pseudo selectors, with detailed descriptions and usage examples.
 
-string | Functions argument: string  
-Just like media and container, you can use it as a selector by putting it in an array.  
-You can write pseudo of multiple using cx.
+## Overview
 
-```ts title="TypeScript"
+The `pseudo` utility allows developers to apply CSS pseudo-classes and pseudo-elements directly within JavaScript or TypeScript code using `@plumeria/core`. This is particularly useful for dynamic styling in modern web applications, such as single-page apps or component-based frameworks. By leveraging these utilities, you can create responsive and interactive styles with minimal CSS boilerplate.
+
+---
+
+## Pseudo-Classes
+
+### Standard Pseudo-Classes
+
+Pseudo-classes target elements based on their state, position, or user interaction. Below is a comprehensive list of all supported pseudo-classes in the `pseudo` utility.
+
+| Pseudo-Class                  | Description                                                                  | Example Use Case                                      |
+| ----------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `css.pseudo.active`           | Styles an element when it is being activated (e.g., clicked).                | Highlight a button during a click event.              |
+| `css.pseudo.anyLink`          | Targets any link, whether visited or unvisited.                              | Style all anchor tags uniformly.                      |
+| `css.pseudo.autoFill`         | Targets form elements auto-filled by the browser.                            | Customize the appearance of auto-filled input fields. |
+| `css.pseudo.buffering`        | Styles media elements (e.g., `<video>`) while buffering.                     | Display a loading state for a video player.           |
+| `css.pseudo.checked`          | Targets checked form elements (e.g., checkboxes, radio buttons).             | Style checked radio buttons or checkboxes.            |
+| `css.pseudo.default`          | Targets the default element among a group (e.g., default button in a form).  | Highlight the default submit button.                  |
+| `css.pseudo.defined`          | Targets elements that are defined (e.g., custom elements with a definition). | Style custom web components after definition.         |
+| `css.pseudo.disabled`         | Targets disabled form elements or controls.                                  | Gray out disabled buttons or inputs.                  |
+| `css.pseudo.empty`            | Targets elements with no children or text content.                           | Hide empty `<div>` elements.                          |
+| `css.pseudo.enabled`          | Targets enabled form elements or controls.                                   | Style enabled inputs differently from disabled ones.  |
+| `css.pseudo.first`            | Targets the first element in a group (e.g., in a `:where()` context).        | Style the first item in a dynamic list.               |
+| `css.pseudo.firstChild`       | Targets the first child of a parent element.                                 | Style the first `<p>` in a `<div>`.                   |
+| `css.pseudo.firstOfType`      | Targets the first sibling of its type.                                       | Style the first `<h1>` among siblings.                |
+| `css.pseudo.focus`            | Targets an element that has focus (e.g., via keyboard or click).             | Add an outline to focused input fields.               |
+| `css.pseudo.focusVisible`     | Targets an element with visible focus (e.g., keyboard navigation).           | Show focus ring only for keyboard users.              |
+| `css.pseudo.focusWithin`      | Targets an element containing a focused descendant.                          | Style a form when any input inside is focused.        |
+| `css.pseudo.fullscreen`       | Targets an element in fullscreen mode.                                       | Style a video player in fullscreen.                   |
+| `css.pseudo.future`           | Targets elements in a timeline context (e.g., Temporal API).                 | Style future dates in a calendar.                     |
+| `css.pseudo.hasSlotted`       | Targets shadow DOM hosts with slotted content.                               | Style elements with slotted children in shadow DOM.   |
+| `css.pseudo.host`             | Targets the shadow DOM host element.                                         | Style the root of a shadow DOM.                       |
+| `css.pseudo.hover`            | Styles an element when the mouse hovers over it.                             | Change background color on hover.                     |
+| `css.pseudo.inRange`          | Targets form elements with values within a valid range.                      | Highlight valid range inputs.                         |
+| `css.pseudo.indeterminate`    | Targets checkboxes or radio buttons in an indeterminate state.               | Style indeterminate checkboxes.                       |
+| `css.pseudo.invalid`          | Targets form elements with invalid input.                                    | Highlight invalid input fields.                       |
+| `css.pseudo.lastChild`        | Targets the last child of a parent element.                                  | Style the last `<li>` in a list.                      |
+| `css.pseudo.lastOfType`       | Targets the last sibling of its type.                                        | Style the last `<p>` among siblings.                  |
+| `css.pseudo.left`             | Targets elements in a paged context (e.g., print layouts).                   | Style left-hand pages in a print stylesheet.          |
+| `css.pseudo.link`             | Targets unvisited links.                                                     | Style unvisited `<a>` tags.                           |
+| `css.pseudo.modal`            | Targets elements in a modal state (e.g., dialogs).                           | Style modal dialogs.                                  |
+| `css.pseudo.muted`            | Targets media elements that are muted.                                       | Style muted video players.                            |
+| `css.pseudo.onlyChild`        | Targets an element that is the only child of its parent.                     | Style a lone `<span>` in a `<div>`.                   |
+| `css.pseudo.onlyOfType`       | Targets an element that is the only one of its type among siblings.          | Style a single `<h2>` among siblings.                 |
+| `css.pseudo.open`             | Targets open `<details>` or `<dialog>` elements.                             | Style open accordion sections.                        |
+| `css.pseudo.optional`         | Targets form elements that are not required.                                 | Style optional input fields.                          |
+| `css.pseudo.outOfRange`       | Targets form elements with values outside a valid range.                     | Highlight out-of-range inputs.                        |
+| `css.pseudo.past`             | Targets elements in a timeline context (e.g., Temporal API).                 | Style past dates in a calendar.                       |
+| `css.pseudo.paused`           | Targets paused media elements.                                               | Style paused video players.                           |
+| `css.pseudo.pictureInPicture` | Targets elements in picture-in-picture mode.                                 | Style videos in PIP mode.                             |
+| `css.pseudo.placeholderShown` | Targets inputs or textareas showing their placeholder.                       | Style input fields with visible placeholders.         |
+| `css.pseudo.playing`          | Targets playing media elements.                                              | Style active video or audio players.                  |
+| `css.pseudo.popoverOpen`      | Targets open popover elements.                                               | Style open popovers.                                  |
+| `css.pseudo.readOnly`         | Targets read-only form elements.                                             | Style read-only inputs.                               |
+| `css.pseudo.readWrite`        | Targets editable form elements.                                              | Style editable textareas.                             |
+| `css.pseudo.required`         | Targets required form elements.                                              | Highlight required input fields.                      |
+| `css.pseudo.right`            | Targets elements in a paged context (e.g., print layouts).                   | Style right-hand pages in a print stylesheet.         |
+| `css.pseudo.root`             | Targets the root element of a document or shadow DOM.                        | Style the `<html>` or shadow DOM root.                |
+| `css.pseudo.scope`            | Targets elements within a specific scope (e.g., `:scope`).                   | Style elements in a specific context.                 |
+| `css.pseudo.seeking`          | Targets media elements during seeking.                                       | Style a video player during seek operations.          |
+| `css.pseudo.stalled`          | Targets media elements that are stalled.                                     | Style stalled media players.                          |
+| `css.pseudo.target`           | Targets an element that is the target of a URL fragment.                     | Style the element with a matching `id` in the URL.    |
+| `css.pseudo.userInvalid`      | Targets form elements marked invalid by user interaction.                    | Style inputs after user error.                        |
+| `css.pseudo.userValid`        | Targets form elements marked valid by user interaction.                      | Style inputs after successful validation.             |
+| `css.pseudo.valid`            | Targets valid form elements.                                                 | Style valid input fields.                             |
+| `css.pseudo.visited`          | Targets visited links.                                                       | Style visited `<a>` tags.                             |
+| `css.pseudo.volumeLocked`     | Targets media elements with locked volume controls.                          | Style media players with restricted volume.           |
+
+---
+
+## Pseudo-Elements
+
+Pseudo-elements allow styling specific parts of an element, such as its first letter or content inserted before/after it.
+
+| Pseudo-Element                   | Description                                              | Example Use Case                                 |
+| -------------------------------- | -------------------------------------------------------- | ------------------------------------------------ |
+| `css.pseudo.after`               | Styles content inserted after an element.                | Add an icon after a link.                        |
+| `css.pseudo.backdrop`            | Targets the backdrop of a dialog or fullscreen element.  | Style the dimmed background of a modal.          |
+| `css.pseudo.before`              | Styles content inserted before an element.               | Add a bullet before a list item.                 |
+| `css.pseudo.cue`                 | Styles WebVTT cues for media elements (e.g., subtitles). | Customize subtitle appearance in videos.         |
+| `css.pseudo.detailsContent`      | Targets the content of a `<details>` element.            | Style the content inside an accordion.           |
+| `css.pseudo.firstSelectorButton` | Targets the first selector button in a UI component.     | Style the first button in a custom form control. |
+| `css.pseudo.firstLetter`         | Styles the first letter of an element’s text.            | Enlarge the first letter of a paragraph.         |
+| `css.pseudo.firstLine`           | Styles the first line of an element’s text.              | Bold the first line of a paragraph.              |
+| `css.pseudo.grammarError`        | Styles text marked as a grammar error by the browser.    | Highlight grammar errors in a text editor.       |
+| `css.pseudo.marker`              | Styles list item markers (e.g., bullets or numbers).     | Customize bullet styles in a list.               |
+| `css.pseudo.placeholder`         | Styles the placeholder text in inputs or textareas.      | Change placeholder text color.                   |
+| `css.pseudo.selection`           | Styles selected text within an element.                  | Customize text selection highlight.              |
+| `css.pseudo.spellingError`       | Styles text marked as a spelling error by the browser.   | Highlight spelling errors in a text editor.      |
+| `css.pseudo.targetText`          | Styles text targeted by a URL fragment.                  | Highlight text linked via a URL anchor.          |
+| `css.pseudo.viewTransition`      | Styles elements during a view transition animation.      | Style elements during page transitions.          |
+
+---
+
+## Functional Pseudo-Classes
+
+Functional pseudo-classes accept arguments to define complex selectors dynamically.
+
+| Functional Pseudo-Class                | Description                                                               | Example Use Case                                       |
+| -------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `css.pseudo.fn.dir(direction)`         | Targets elements based on text direction (e.g., `ltr` or `rtl`).          | Style text differently for RTL languages.              |
+| `css.pseudo.fn.has(selector)`          | Matches elements containing specific descendants.                         | Style a `<div>` containing a specific `<span>`.        |
+| `css.pseudo.fn.host(selector)`         | Targets the shadow DOM host matching the selector.                        | Style a shadow DOM host based on a class.              |
+| `css.pseudo.fn.hostContext(selector)`  | Matches the shadow DOM host based on its context.                         | Style a host when a parent has a specific class.       |
+| `css.pseudo.fn.is(selector)`           | Matches elements that match any of the provided selectors.                | Combine multiple selectors for flexible styling.       |
+| `css.pseudo.fn.lang(language)`         | Targets elements with a specific language (e.g., `en`, `ja`).             | Style text for a specific language.                    |
+| `css.pseudo.fn.nthChild(formula)`      | Targets elements based on their position among siblings (e.g., `2n+1`).   | Style odd-numbered list items.                         |
+| `css.pseudo.fn.nthLastChild(formula)`  | Targets elements based on their position from the last sibling.           | Style the second-to-last list item.                    |
+| `css.pseudo.fn.nthLastOfType(formula)` | Targets elements of a type based on their position from the last sibling. | Style the last `<p>` among siblings.                   |
+| `css.pseudo.fn.nthOfType(formula)`     | Targets elements of a type based on their position among siblings.        | Style every third `<div>` of its type.                 |
+| `css.pseudo.fn.not(selector)`          | Targets elements that do not match the provided selector.                 | Style all elements except those with a specific class. |
+| `css.pseudo.fn.state(state)`           | Targets elements in a specific custom state.                              | Style elements with a custom state attribute.          |
+| `css.pseudo.fn.where(selector)`        | Matches elements that match the provided selector with specificity.       | Style elements matching complex conditions.            |
+
+---
+
+## Functional Pseudo-Elements
+
+Functional pseudo-elements allow styling specific parts of an element with arguments.
+
+| Functional Pseudo-Element                     | Description                                          | Example Use Case                              |
+| --------------------------------------------- | ---------------------------------------------------- | --------------------------------------------- |
+| `css.pseudo.fn.cue(selector)`                 | Styles specific WebVTT cues for media elements.      | Customize specific subtitle styles in videos. |
+| `css.pseudo.fn.highlight(name)`               | Styles highlighted content (e.g., search results).   | Highlight search matches in a document.       |
+| `css.pseudo.fn.part(name)`                    | Targets a specific part in a shadow DOM.             | Style a specific part of a custom component.  |
+| `css.pseudo.fn.slotted(selector)`             | Styles slotted content in a shadow DOM.              | Style content passed into a shadow DOM slot.  |
+| `css.pseudo.fn.viewTransitionGroup(name)`     | Styles a group of elements during a view transition. | Style a group during page transitions.        |
+| `css.pseudo.fn.viewTransitionImagePair(name)` | Styles an image pair during a view transition.       | Style images during a transition animation.   |
+| `css.pseudo.fn.viewTransitionNew(name)`       | Styles the new content during a view transition.     | Style incoming content in a transition.       |
+| `css.pseudo.fn.viewTransitionOld(name)`       | Styles the old content during a view transition.     | Style outgoing content in a transition.       |
+
+---
+
+## Usage Examples
+
+Below are practical examples demonstrating how to use the `pseudo` utility with `@plumeria/core`.
+
+### Example 1: Styling a Button with Hover and Focus
+
+```ts title="TypeScript Example"
 import { css } from '@plumeria/core';
 
-// Pseudo-classes
-css.pseudo.active;
-css.pseudo.anyLink;
-css.pseudo.autoFill;
-css.pseudo.buffering;
-css.pseudo.checked;
-css.pseudo.default;
-css.pseudo.defined;
-css.pseudo.disabled;
-css.pseudo.empty;
-css.pseudo.enabled;
-css.pseudo.first;
-css.pseudo.firstChild;
-css.pseudo.firstOfType;
-css.pseudo.focus;
-css.pseudo.focusVisible;
-css.pseudo.focusWithin;
-css.pseudo.fullscreen;
-css.pseudo.future;
-css.pseudo.hasSlotted;
-css.pseudo.host;
-css.pseudo.hover;
-css.pseudo.inRange;
-css.pseudo.indeterminate;
-css.pseudo.invalid;
-css.pseudo.lastChild;
-css.pseudo.lastOfType;
-css.pseudo.left;
-css.pseudo.link;
-css.pseudo.modal;
-css.pseudo.muted;
-css.pseudo.onlyChild;
-css.pseudo.onlyOfType;
-css.pseudo.open;
-css.pseudo.optional;
-css.pseudo.outOfRange;
-css.pseudo.past;
-css.pseudo.paused;
-css.pseudo.pictureInPicture;
-css.pseudo.placeholderShown;
-css.pseudo.playing;
-css.pseudo.popoverOpen;
-css.pseudo.readOnly;
-css.pseudo.readWrite;
-css.pseudo.required;
-css.pseudo.right;
-css.pseudo.root;
-css.pseudo.scope;
-css.pseudo.seeking;
-css.pseudo.stalled;
-css.pseudo.target;
-css.pseudo.userInvalid;
-css.pseudo.userValid;
-css.pseudo.valid;
-css.pseudo.visited;
-css.pseudo.volumeLocked;
-
-// Pseudo-elements
-css.pseudo.after;
-css.pseudo.backdrop;
-css.pseudo.before;
-css.pseudo.cue;
-css.pseudo.detailsContent;
-css.pseudo.firstSelectorButton;
-css.pseudo.firstLetter;
-css.pseudo.firstLine;
-css.pseudo.grammarError;
-css.pseudo.marker;
-css.pseudo.placeholder;
-css.pseudo.selection;
-css.pseudo.spellingError;
-css.pseudo.targetText;
-css.pseudo.viewTransition;
-
-// Functional pseudo-classes
-css.pseudo.fn.dir();
-css.pseudo.fn.has();
-css.pseudo.fn.host();
-css.pseudo.fn.hostContext();
-css.pseudo.fn.is();
-css.pseudo.fn.lang();
-css.pseudo.fn.nthChild();
-css.pseudo.fn.nthLastChild();
-css.pseudo.fn.nthLastOfType();
-css.pseudo.fn.nthOfType();
-css.pseudo.fn.not();
-css.pseudo.fn.state();
-css.pseudo.fn.where();
-
-// Functional pseudo-elements
-css.pseudo.fn.cue();
-css.pseudo.fn.highlight();
-css.pseudo.fn.part();
-css.pseudo.fn.slotted();
-css.pseudo.fn.viewTransitionGroup();
-css.pseudo.fn.viewTransitionImagePair();
-css.pseudo.fn.viewTransitionNew();
-css.pseudo.fn.viewTransitionOld();
+const buttonStyles = css.create({
+  button: {
+    background: 'blue',
+    color: 'white',
+    padding: '10px 20px',
+    [css.pseudo.hover]: {
+      background: 'darkblue',
+    },
+    [css.pseudo.focus]: {
+      outline: '2px solid yellow',
+    },
+  },
+});
 ```
+
+## Example 2: Combining Pseudo-Classes with cx
+
+```ts
+import { cx } from '@plumeria/core';
+
+const combinedStyles = cx(css.pseudo.active, css.pseudo.focusVisible, css.pseudo.fn.has('div'));
+```
+
+## Example 3: Using Functional Pseudo-Classes
+
+```ts
+import { css } from '@plumeria/core';
+
+const listStyles = css.create({
+  list: {
+    [css.pseudo.fn.nthChild('2n')]: {
+      background: 'lightgray',
+    },
+    [css.pseudo.fn.has('img')]: {
+      border: '1px solid black',
+    },
+  },
+});
+```
+
+## Example 4: Styling Pseudo-Elements
+
+```ts
+import { css } from '@plumeria/core';
+
+const textStyles = css.create({
+  text: {
+    [css.pseudo.firstLetter]: {
+      fontSize: '1.5em',
+      color: 'red',
+    },
+    [css.pseudo.before]: {
+      content: '"★ "',
+      color: 'gold',
+    },
+  },
+});
+```
+
+## 🔗 Related
+
 <Cards>
-  <Card title="See more about zss-utils package" href="/docs/reference/utils" />
+  <Card title="zss-utils Package" href="/docs/reference/utils" description="Explore other utilities in the zss-utils package." />
+  <Card title="Plumeria Core Documentation" href="/docs/core" description="Learn more about the @plumeria/core package." />
 </Cards>
