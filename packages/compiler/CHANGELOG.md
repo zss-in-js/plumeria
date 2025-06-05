@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.9.6
+
+### Patch Changes
+
+- ae454ea: feat(compiler): Make the string beginning with "create" the compile target
+
 ## 0.9.5
 
 ### Patch Changes
