@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.10.0
+
+### Minor Changes
+
+- fdf46bd: feat(Along with the core): Semi-circular reference errors have been improved and are now stable.
+
 ## 0.9.6
 
 ### Patch Changes
