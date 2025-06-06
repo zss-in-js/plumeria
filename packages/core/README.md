@@ -88,7 +88,7 @@ const composed = css.createComposite(styles.flexBox, {
   },
   active: {
     [ps.active]: {
-      color: color.gray,
+      color: css.color.gray,
     },
   },
 });
