@@ -35,7 +35,7 @@ import '@plumeria/core/stylesheet.css';
 Define a set of styles:
 
 ```ts
-import { css, cx, ps, px, color } from '@plumeria/core';
+import { css, cx, ps, px } from '@plumeria/core';
 
 const styles = css.create({
   box: {
@@ -212,16 +212,16 @@ const themes = css.defineTheme({
 });
 ```
 
-### `color`
+### `css.color`
 
 Color utility:
 
 ```ts
-color: color.darken('skyblue', 0.12),
-color: color.lighten('navy', 0.6),
+color: css.color.darken('skyblue', 0.12),
+color: css.color.lighten('navy', 0.6),
 
-color: color.skyblue,
-color: color.aqua,
+color: css.color.skyblue,
+color: css.color.aqua,
 // and many more
 ```
 
