@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.10.0
+
+### Minor Changes
+
+- cda35e6: feat(core): 0.10.0: pseudo(ps) and color are now separated from their CSS classes.
+
 ## 0.9.10
 
 ### Patch Changes
