@@ -35,7 +35,7 @@ import '@plumeria/core/stylesheet.css';
 Define a set of styles:
 
 ```ts
-import { css } from '@plumeria/core';
+import { css, cx, ps, px, color } from '@plumeria/core';
 
 const styles = css.create({
   box: {
@@ -59,7 +59,7 @@ const styles = css.create({
   },
   text: {
     color: '#333',
-    [css.pseudo.hover]: {
+    [ps.hover]: {
       color: 'skyblue',
       opacity: 0.9,
     },
@@ -82,13 +82,13 @@ const styles = css.create({
 
 const composed = css.createComposite(styles.flexBox, {
   hover: {
-    [css.pseudo.hover]: {
+    [ps.hover]: {
       scale: 1.5,
     },
   },
   active: {
-    [css.pseudo.active]: {
-      color: css.color.gray,
+    [ps.active]: {
+      color: color.gray,
     },
   },
 });
@@ -212,16 +212,16 @@ const themes = css.defineTheme({
 });
 ```
 
-### `css.color`
+### `color`
 
-Color utilities:
+Color utility:
 
 ```ts
-color: css.color.darken('skyblue', 0.12),
-color: css.color.lighten('navy', 0.6),
+color: color.darken('skyblue', 0.12),
+color: color.lighten('navy', 0.6),
 
-color: css.color.skyblue,
-color: css.color.aqua,
+color: color.skyblue,
+color: color.aqua,
 // and many more
 ```
 
@@ -230,7 +230,7 @@ color: css.color.aqua,
 Classname merging helper:
 
 ```tsx
-cx(css.pseudo.hover, css.pseudo.after);
+px(ps.hover, ps.after);
 // => ":hover::after"
 cx(styles.text, styles.box);
 // => "text_hash box_hash"
