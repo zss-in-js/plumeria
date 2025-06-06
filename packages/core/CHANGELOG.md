@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.10.1
+
+### Patch Changes
+
+- b60c70b: fix(core): Change color is back to a css class and readme fixed
+
 ## 0.10.0
 
 ### Minor Changes
