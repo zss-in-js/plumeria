@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "Zero-runtime, expressive CSS-in-JS library for TypeScript.",
   "keywords": [
     "css",
