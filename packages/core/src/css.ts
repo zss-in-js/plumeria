@@ -26,7 +26,7 @@ import {
   globalPromise_2,
   resolvePromise_2,
 } from './processors/css.js';
-import { media, container } from 'zss-utils';
+import { media, container, color } from 'zss-utils';
 
 function create<const T extends Record<string, CSSProperties>>(
   object: CreateStyleType<T>,
@@ -171,6 +171,7 @@ class css {
 
   static media = media;
   static container = container;
+  static color = color;
 }
 
 export default css;
