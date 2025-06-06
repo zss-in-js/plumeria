@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.10.3
+
+### Patch Changes
+
+- ffcd871: fix: bugfix included license
+
 ## 0.10.1
 
 ### Patch Changes
