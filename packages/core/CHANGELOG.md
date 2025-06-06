@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.10.1
+
+### Patch Changes
+
+- e5ee871: fix(core/README.md): fix readme
+
 ## 0.10.0
 
 ### Minor Changes
