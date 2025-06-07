@@ -26,7 +26,30 @@ pnpm i --save-dev @plumeria/eslint-plugin
 </Tab>
 </Tabs>
 
-Rules: recommended
+## Overview
+```ts
+import { ESLint, Linter, Rule } from 'eslint';
+
+declare const plugin: ESLint.Plugin & {
+  rules: {
+    'no-inner-call': Rule.RuleModule;
+    'no-unused-keys': Rule.RuleModule;
+    'sort-properties': Rule.RuleModule;
+    'validate-values': Rule.RuleModule;
+  };
+  configs: {
+    recommended: Linter.LegacyConfig;
+  };
+  flatConfigs: {
+    recommended: Linter.Config<Linter.RulesRecord>;
+  };
+};
+
+export = plugin;
+```
+
+## API
+`Rules: recommended`
 - `@plumeria/no-inner-call:(error)`
 - `@plumeria/no-unused-keys:(warn)`
 - `@plumeria/sort-properties:(warn)`
