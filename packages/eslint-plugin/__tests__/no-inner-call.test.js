@@ -8,8 +8,10 @@ const settings = { settings: { ecmaVersion: 2021 } };
 ruleTester.run('no-inner-call', rule, {
   valid: [
     { code: 'css.create();', ...settings },
+    { code: 'css.createComposite();', ...settings },
     { code: 'css.global();', ...settings },
     { code: 'css.keyframes();', ...settings },
+    { code: 'css.defineConsts();', ...settings },
     { code: 'css.defineVars();', ...settings },
     { code: 'css.defineTheme();', ...settings },
     { code: 'other.create();', ...settings },
@@ -22,6 +24,11 @@ ruleTester.run('no-inner-call', rule, {
       ...settings,
     },
     {
+      code: 'function foo() { css.createComposite(); }',
+      errors: [{ message: 'Do not use css.createComposite inside functions' }],
+      ...settings,
+    },
+    {
       code: 'const bar = () => { css.global(); }',
       errors: [{ message: 'Do not use css.global inside functions' }],
       ...settings,
@@ -29,6 +36,11 @@ ruleTester.run('no-inner-call', rule, {
     {
       code: '(() => { css.keyframes(); })();',
       errors: [{ message: 'Do not use css.keyframes inside functions' }],
+      ...settings,
+    },
+    {
+      code: 'function theme() { css.defineConsts(); }',
+      errors: [{ message: 'Do not use css.defineConsts inside functions' }],
       ...settings,
     },
     {
