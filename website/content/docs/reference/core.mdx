@@ -7,13 +7,7 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import Link from 'next/link';
 
 It is the plumeria [core `@plumeria/core` package](https://www.npmjs.com/package/@plumeria/core).  
-This includes APIs exposed as css in js.
-- `css.create()`
-- `css.global()`
-- `css.defineVars()`
-- `css.defineTheme()`
-- `css.keyframes()`
-
+Main dependencies include <Link href="/docs/reference/engine">`zss-engine`</Link> and <Link href="/docs/reference/utils">`zss-utils`</Link>.
 ## Installation
 
 <Tabs items={['npm',  'yarn', 'pnpm']}>
@@ -34,5 +28,94 @@ pnpm i @plumeria/core
 </Tab>
 </Tabs>
 
-Main dependencies include <Link href="/docs/reference/engine">`zss-engine`</Link> and <Link href="/docs/reference/utils">`zss-utils`</Link>.
+## Overview
 
+
+This includes APIs exposed as CSS-in-JS.
+
+```ts
+export { default as css } from './css';
+export { default as cx } from './cx';
+export { default as ps } from './ps';
+export { default as px } from './px';
+export { default as rx } from './rx';
+export type { CSSProperties , CSSHTML, CreateStyle } from './css';
+```
+
+## API
+```ts
+import { css, cx, ps, px, rx } from 'plumeria/core';
+import type { CSSProperties, CSSHTML, CreateStyle } from 'plumeria/core';
+```
+
+## Types
+
+- `CSSProperties`
+- `CSSHTML`
+- `CreateStyle`
+
+## Type Reference
+
+### `CSSProperties`
+A map of style definitions that can be used as an argument to `css.create()` and `css.global()`.
+
+```ts
+import type { CSSProperties } from '@plumeria/core';
+
+const styles: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  backgroundColor: 'var(--color-bg)',
+  padding: '1rem',
+  ':hover': {
+    backgroundColor: 'var(--color-bg-hover)',
+  },
+  '@media (min-width: 768px)': {
+    flexDirection: 'row',
+  },
+};
+```
+
+### `CSSHTML`
+A map of style definitions that can be used as an argument to `css.global()`.
+```ts
+import type { CSSHTML } from '@plumeria/core';
+
+const styles: CSSHTML = {
+  html: {
+    boxSizing: 'border-box',
+    padding: 0,
+    margin: 0,
+  },
+  body: {
+    fontFamily: 'Arial, sans-serif',
+    lineHeight: 1.6,
+    color: '#333',
+    backgroundColor: '#f4f4f4',
+  },
+  header: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '1rem',
+  },
+};
+```
+
+### `CreateStyle`
+A map of style definitions that can be used as an argument to `css.create()`.
+```ts
+import type { CreateStyle } from '@plumeria/core';
+
+const styles: CreateStyle = {
+  container: {
+    maxWidth: '1280px',
+    margin: '0 auto',
+  },
+  title: {
+    fontSize: '2rem',
+    fontWeight: 'bold',
+  },
+};
+```
