@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.10.4
+
+### Patch Changes
+
+- 57cca0e: fix(cx.ts): use new Set do not output the same value
+
 ## 0.10.3
 
 ### Patch Changes
