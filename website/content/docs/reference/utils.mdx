@@ -1,6 +1,6 @@
 ---
 title: zss-utils
-description:  Lear more about zss-utils              .
+description:  Lear more about zss-utils.
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import Link from 'next/link';
@@ -8,23 +8,47 @@ import Link from 'next/link';
 It is the plumeria [Utility `zss-utils` package](https://www.npmjs.com/package/zss-utils)  
 This is managed in the zss-in-js project and included in the <Link href="/docs/reference/core">`core package`</Link>, along with <Link href="/docs/reference/engine">`zss-engine`</Link>.  
 
-The following utility items are included:
 
-- `css.media.***`
-- `css.container.***`
-- `css.pseudo.***`
-- `css.color.***`
+## Installation
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i zss-utils
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add zss-utils
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i zss-utils
+```
+</Tab>
+</Tabs>
 
-Feature entry file:
+
+## Overview
 
 ```js
 export { media } from './utils/media.js';
 export { container } from './utils/container.js';
-export { pseudo } from './utils/pseudo.js';
+export { ps } from './utils/pseudo.js';
 export { color } from './utils/color.js';
 ```
 
-## Learn more
+## API
+
+```ts
+import { media container, ps, color } from 'zss-utils';
+
+media
+container
+ps
+color
+```
+
 <Cards>
   <Card title="See more about media" href="/docs/reference/media" />
   <Card title="See more about container" href="/docs/reference/container" />
