@@ -44,28 +44,6 @@ export { injectClientGlobalCSS } from './utils/inject-client-global-css.js';
 export { injectServerCSS, getServerCSS } from './utils/inject-server-css.js';
 ```
 
-## Types
-For API development.
-```ts title="TypeScript"
-// create method
-CSSProperties, // supply 
-CreateStyle, // supply
-CreateStyleType<T>, 
-ReturnType<T>,
-
-// global method
-CSSHTMLType, // supply
-
-// keyframes method
-CreateKeyframes,
-
-// defineConsts and defineVars method
-CreateValues,
-
-// defineTheme method
-CreateTheme,
-```
-
 ## API
 
 ### Helpers
@@ -133,4 +111,26 @@ Argments: `void`
 Returns: `styleSheet: string`
 ```ts title="TypeScript"
   const serverCSS = getServerCSS();
+```
+
+## Types
+For API development.
+```ts title="TypeScript"
+// create method
+CSSProperties, // supply 
+CreateStyle, // supply
+CreateStyleType<T>, 
+ReturnType<T>,
+
+// global method
+CSSHTMLType, // supply
+
+// keyframes method
+CreateKeyframes,
+
+// defineConsts and defineVars method
+CreateValues,
+
+// defineTheme method
+CreateTheme,
 ```
