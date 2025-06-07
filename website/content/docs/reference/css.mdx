@@ -11,10 +11,18 @@ description:  API reference for the `css` command
 Run compile the plumeria styles, easily integrated into framework build process.  
 The `@plumeria/compiler` package is required to run commands.
 
+
+### Overview
 ```sh title="Terminal"
 npx css
 ```
 
+### Success
+```sh title="Terminal"
+ ✓ Compiled... 
+```
+
+### Usage
 ```json title="json"
   "scripts": {
     "dev": "css & next dev",
@@ -24,7 +32,7 @@ npx css
 
 ## Options
 
-## `--view`
+### `--view`
 Use it to visualize your builds and test them as you go.  
 Do not include the --view argument in your build script as it will get into the server logs.
 
@@ -59,7 +67,7 @@ Example output:
  ✓ Compiled... 
 ```
 
-## `--paths`
+### `--paths`
 Outputs a list of the files to be compiled. file.
 ```sh title="Terminal"
 npx css --paths
@@ -76,8 +84,12 @@ component/Plumeria.tsx
 
 ```
 
-## `--type-check`
+### `--type-check`
 Runs Typescript type checking before compiling.
 ```sh title="Terminal"
 npx css --type-check
+```
+### Success
+```sh
+ ✓ Compiled... Type-check completed
 ```
