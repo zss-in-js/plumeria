@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.2.2
+
+### Patch Changes
+
+- 148167c: feat(eslint-plugin): rule no-ineer-call add defineConsts and createComposite
+
 ## 0.2.1
 
 ### Patch Changes
