@@ -26,6 +26,21 @@ pnpm i -D @plumeria/vite
 </Tab>
 </Tabs>
 
+## Overview
+```ts
+import type { Plugin } from 'vite';
+export default function plumeria(): Plugin;
+```
+
+## API
+```ts
+import plumeria from '@plumeria/vite';
+
+export default defineConfig({
+  plugins: [plumeria()],
+});
+```
+
 <Cards>
   <Card title="See more about Installation vite-plugin" href="/docs/getting-started/installation#vite-nodejs-build-externalization" />
 </Cards>
