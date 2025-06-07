@@ -3,15 +3,37 @@ title: zss-engine
 description: Lear more about zss-engine.
 ---
 
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
 It is the plumeria [Runtime `zss-engine` package](https://www.npmjs.com/package/zss-engine)  
 You can use this to develop Zero-runtime StyleSheet CSS-in-JS libraries.  
 
-Feature entry file:
+## Installation
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i zss-engine
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add zss-engine
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i zss-engine
+```
+</Tab>
+</Tabs>
+
+## Overview
 ```ts
 export type { CSSProperties } from './types/common/css-properties';
 export type { CreateStyleType, ReturnType, CreateStyle } from './types/main/create';
 export type { CSSHTML, CreateKeyframes } from './types/main/global';
-export type { CreateVars, CreateTheme } from './types/main/vars';
+export type { CreateValues, CreateTheme } from './types/main/vars';
+export type { Join } from './types/main/join';
 export { isServer, isDevelopment, isDevAndTest } from './utils/helper.js';
 export { genBase36Hash } from './utils/hash.js';
 export { transpiler } from './utils/transpiler.js';
@@ -26,27 +48,27 @@ export { injectServerCSS, getServerCSS } from './utils/inject-server-css.js';
 For API development.
 ```ts title="TypeScript"
 // create method
-CSSProperties, 
+CSSProperties, // supply 
+CreateStyle, // supply
 CreateStyleType<T>, 
 ReturnType<T>,
 
-// create supply type
-CreateStyle,
-
 // global method
-CSSHTMLType, 
-
-// defineVars method
-CreateVars,
-
-// defineTheme method
-CreateTheme,
+CSSHTMLType, // supply
 
 // keyframes method
 CreateKeyframes,
+
+// defineConsts and defineVars method
+CreateValues,
+
+// defineTheme method
+CreateTheme,
 ```
 
-## Helpers
+## API
+
+### Helpers
 For branching the environment.
 ```ts title="TypeScript"
 const isWindowDefined = typeof window !== 'undefined';
@@ -58,9 +80,9 @@ export const isDevAndTest = process.env.NODE_ENV === 'development' || process.en
 
 
 
-## Functions
+### Functions
 
-## `genBase36Hash`
+### `genBase36Hash`
 Arguments: `object, number of hash lengths`  
 Returns: `string of hash`
 
@@ -70,7 +92,7 @@ Returns: `string of hash`
 
 
 
-## `transpiler`
+### `transpiler`
 Argments: `object: style object, hash: string`  
 Returns: `styleSheet: string    `
 
@@ -78,35 +100,35 @@ Returns: `styleSheet: string    `
   const { styleSheet } = transpiler(object, base36Hash);
 ```
 
-## `build`
+### `build`
 Argments: `styleSheet: string, filePath: string`  
 Returns: `void`
 ```ts title="TypeScript" 
   build(styleSheet, filePath);
 ```
 
-## `injectClientCSS`
+### `injectClientCSS`
 Argments: `hash: string, styleSheet: string`  
 Returns: `void`
 ```ts title="TypeScript" 
   injectClientCSS(base36Hash, styleSheet);
 ```
 
-## `injectClientGlobalCSS`
+### `injectClientGlobalCSS`
 Argments: `styleSheet: string, scoped: string`  
 Returns: `void`
 ```ts title="TypeScript" 
   injectClientGlobalCSS(styleSheet, 'global');
 ```
 
-## `injectServerCSS`
+### `injectServerCSS`
 Argments: `hash: string, styleSheet: string`  
 Returns: `void`
 ```ts title="TypeScript" 
   injectServerCSS(base36Hash, styleSheet);
 ```
 
-## `getServerCSS`
+### `getServerCSS`
 Argments: `void`
 Returns: `styleSheet: string`
 ```ts title="TypeScript"
