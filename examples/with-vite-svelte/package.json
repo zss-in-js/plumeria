@@ -1,22 +1,25 @@
 {
-  "name": "with-vite-svelte",
+  "name": "my-svelte-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "css --type-check && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@plumeria/core": "^0.9.6"
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.9.0",
+    "@plumeria/compiler": "^0.10.0",
     "@plumeria/vite": "^0.1.0",
-    "@sveltejs/vite-plugin-svelte": "^3.1.1",
-    "svelte": "^4.2.18",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.1"
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tsconfig/svelte": "^5.0.4",
+    "svelte": "^5.28.1",
+    "svelte-check": "^4.1.6",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "@plumeria/core": "^0.10.4"
   }
 }
