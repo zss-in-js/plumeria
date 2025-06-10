@@ -1,5 +1,5 @@
 {
-  "name": "with-vite-react-swc",
+  "name": "my-vue-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,24 +10,23 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plumeria/core": "^0.9.6",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@plumeria/core": "^0.10.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.17.0",
-    "@plumeria/compiler": "^0.9.0",
+    "@eslint/js": "^9.25.0",
+    "@plumeria/compiler": "^0.10.0",
     "@plumeria/vite": "^0.1.0",
-    "@types/node": "^22.13.14",
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
-    "@vitejs/plugin-react-swc": "^3.7.2",
-    "eslint": "^9.17.0",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "eslint-plugin-react-refresh": "^0.4.16",
-    "eslint-plugin-zss-lint": "^0.2.2",
-    "globals": "^15.14.0",
-    "typescript": "^5.7.2",
-    "vite": "^5.4.11"
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.30.1",
+    "vite": "^6.3.5"
   }
 }
