@@ -4,7 +4,7 @@ import './index.css';
 import App from './App.tsx';
 import '@plumeria/core/stylesheet.css';
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
     <App />
   </StrictMode>,
