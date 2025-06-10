@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { styles } from "../style";
+import { ref } from 'vue';
+import { styles } from '../style';
 
 defineProps<{ msg: string }>();
 

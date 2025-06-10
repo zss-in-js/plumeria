@@ -1,5 +1,5 @@
 {
-  "name": "with-vite-vue",
+  "name": "my-vue-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,15 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plumeria/core": "^0.9.6",
-    "vue": "^3.4.37"
+    "@plumeria/core": "^0.10.4",
+    "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.9.0",
+    "@plumeria/compiler": "^0.10.0",
     "@plumeria/vite": "^0.1.0",
-    "@vitejs/plugin-vue": "^5.1.2",
-    "typescript": "^5.5.3",
-    "vite": "^5.4.1",
-    "vue-tsc": "^2.0.29"
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vue/tsconfig": "^0.7.0",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5",
+    "vue-tsc": "^2.2.8"
   }
 }
