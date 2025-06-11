@@ -4,6 +4,10 @@ export const { docs, meta } = defineDocs({
   dir: 'content/docs',
 });
 
+export const { docs: blogDocs, meta: blogMeta } = defineDocs({
+  dir: 'content/blog',
+});
+
 export default defineConfig({
   lastModifiedTime: 'git',
   mdxOptions: async () => {
