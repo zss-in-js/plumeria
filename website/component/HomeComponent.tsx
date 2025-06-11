@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { css, cx } from '@plumeria/core';
+import { css, cx, ps } from '@plumeria/core';
 import { Plumeria } from './Plumeria';
 import { CodeBlock } from './CodeBlock';
 
@@ -60,7 +60,7 @@ const styles = css.create({
     border: 'solid 2px currentColor',
     borderRadius: '12px',
     transition: 'all 0.1s',
-    [css.pseudo.hover]: {
+    [ps.hover]: {
       color: 'white',
       background: '#ef2a86',
       border: 'solid 2px #ef2a86',
@@ -72,7 +72,7 @@ const styles = css.create({
       marginRight: -20,
       whiteSpace: 'nowrap',
       scale: 0.8,
-      [css.pseudo.hover]: {
+      [ps.hover]: {
         scale: 0.84,
       },
     },
@@ -90,6 +90,10 @@ const styles = css.create({
   },
 });
 
+const demoCode = ` text: { fontSize: 16, color: 'pink' }
+ ↓
+.text_lgulad { font-size: 16px; color: pink; }`;
+
 export const HomeComponent = () => {
   return (
     <main className={styles.container}>
@@ -99,7 +103,7 @@ export const HomeComponent = () => {
         <br />
         <span className={styles.textSize}>Compile at build-time. No runtime overhead.</span>
       </div>
-      <CodeBlock />
+      <CodeBlock code={demoCode} lang="css" />
       <div className={styles.link_box}>
         <Link href="/docs/getting-started/installation" className={cx(styles.button, styles.getStarted)}>
           GET STARTED
