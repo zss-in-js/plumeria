@@ -23,13 +23,9 @@ const styles = css.create({
   },
 });
 
-const demoCode = ` text: { fontSize: 16, color: 'pink' }
- ↓
-.text_lgulad { font-size: 16px; color: pink; }`;
-
-export const CodeBlock = async () => {
-  const tsx = await codeToHtml(demoCode, {
-    lang: 'text',
+export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) => {
+  const tsx = await codeToHtml(code, {
+    lang: lang,
     themes: {
       light: 'everforest-light',
       dark: 'poimandres',
