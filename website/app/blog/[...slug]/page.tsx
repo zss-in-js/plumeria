@@ -27,7 +27,7 @@ export default async function Page(props: { params: Promise<{ slug?: Array<strin
       </div>
 
       {page.data.title && <h1 className={styles.title}>{page.data.title}</h1>}
-      <p className={styles.date}>{new Date(page.data.lastModified!).toString()}</p>
+      <p className={styles.date}>{page.data.date}</p>
       <DocsBody>
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>

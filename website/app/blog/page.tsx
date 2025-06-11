@@ -26,7 +26,7 @@ function Page(): JSX.Element {
           <h2 className={styles.cardTitle}>{post.data.title}</h2>
           <p className={styles.cardDesc}>{post.data.description}</p>
           <p className={styles.cardDesc}>Read more →</p>
-          {post.data.lastModified && <p className={styles.cardDate}>{post.data.lastModified as unknown as string}</p>}
+          <p className={styles.cardDate}>{post.data.date}</p>
         </Link>
       ))}
     </main>
