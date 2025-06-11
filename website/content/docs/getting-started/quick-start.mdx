@@ -4,15 +4,18 @@ description: Learn more about `Plumeria` syntax and recipe
 ---
 
 import { Box } from 'component/QuickStart'
+import { FancyButtons } from 'component/FancyButtons'
 
 Get started with **Plumeria** using `css.create()` and `css.createComposite()` to build styles with clarity and structure.
 
-## 1. Define styles
+## Rotation Card
+
+### 1. Define styles
 
 Use `css.create()` to define reusable style objects:
 
 ```tsx
-import { css, ps } from '@plumeria/core';
+import { css, cx, ps } from '@plumeria/core';
 
 const rotateHover = css.keyframes({
   from: {
@@ -54,7 +57,7 @@ const styles = css.create({
 });
 ```
 
-## 2. Compose pseudo interactions
+### 2. Compose pseudo interactions
 Extend your styles with pseudo interactions using `css.createComposite():`
 
 ```ts
@@ -99,3 +102,91 @@ export const Box = () => {
 
 ## View
 <Box />
+
+## FancyButtons
+
+### 1. Define styles
+Use `css.create()` to define reusable style objects:
+
+```ts
+import { css, ps } from '@plumeria/core';
+
+const base = css.create({
+  stack: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+    alignItems: 'center',
+    marginTop: 32,
+  },
+  button: {
+    padding: '0.75rem 1.5rem',
+    fontSize: '1rem',
+    fontWeight: 600,
+    color: '#fff',
+    cursor: 'pointer',
+    border: 'none',
+    borderRadius: '0.75rem',
+    boxShadow: '0 6px 16px rgba(79,70,229,0.3)',
+    transition: 'all 0.3s ease',
+  },
+  hover: {
+    [ps.hover]: {
+      boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+      transform: 'translateY(-2px)',
+    },
+  },
+});
+```
+
+### 2. Compose pseudo interactions
+Extend your styles with pseudo interactions using `css.createComposite():`
+```ts
+const buttons = css.createComposite(cx(base.button, base.hover), {
+  focusPurple: {
+    background: 'linear-gradient(135deg,rgb(68, 60, 222), #6366f1)',
+    [ps.hover]: {
+      background: 'linear-gradient(135deg, #3932c0, #6366f1)',
+    },
+    [ps.focus]: {
+      outline: '2px solid #a5b4fc',
+      outlineOffset: '4px',
+    },
+  },
+  focusSky: {
+    background: 'linear-gradient(135deg, #16adf9, #3ce1fb)',
+    [ps.hover]: {
+      background: 'linear-gradient(135deg, #0c9ce4, #3ce1fb)',
+    },
+    [ps.focus]: {
+      outline: '2px solid #82c3e4',
+      outlineOffset: '4px',
+    },
+  },
+  focusGreen: {
+    background: 'linear-gradient(135deg,rgb(10, 177, 121), #34d399)',
+    [ps.hover]: {
+      background: 'linear-gradient(135deg, #089e6c, #34d399)',
+    },
+    [ps.focus]: {
+      outline: '2px solid #5bd3ab',
+      outlineOffset: '4px',
+    },
+  },
+});
+```
+
+```tsx title="JSX"
+export function FancyButtons() {
+  return (
+    <div className={base.stack}>
+      <button className={buttons.focusPurple}>Purple</button>
+      <button className={buttons.focusSky}>Sky</button>
+      <button className={buttons.focusGreen}>Green</button>
+    </div>
+  );
+}
+```
+
+## View
+<FancyButtons />
