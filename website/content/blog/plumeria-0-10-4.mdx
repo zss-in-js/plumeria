@@ -1,0 +1,39 @@
+---
+title: 'Plumeria 0.10.4'
+description: 'Fixed rscute to compile semi-cyclic references and add new APIs'
+date: '2025/06/11'
+---
+
+import Link from 'next/link'
+
+`pseudo(ps)` are now separated from their `css class`.
+To use ps you need to import it.
+
+```ts
+import { css, ps } from '@plumeria/core';
+```
+
+```ts
+const styles css.create({
+    key: {
+        [ps.hover]: {
+            color: css.color.lightsalmon,
+        },
+    },
+});
+```
+
+Please use compiler and core versions that are as close as possible.  
+eg, `core: 0.10.4` and `compiler: 0.10.0`.
+
+## APIs have been added and changed.
+- Added <Link href="/docs/reference/createComposite">`css.createComposite()`</Link>.
+- Added <Link href="/docs/reference/defineConsts">`css.defineConsts()`</Link>.
+- Fixed <Link href="/docs/reference/defineConsts">`rscute`</Link> to compile semi-cyclic references.
+- Fixed `defineThemeVars` split into <Link href="/docs/reference/defineVars">`defineVars`</Link> and <Link href="/docs/reference/defineTheme">`defineTheme`</Link>.
+- Added all color completions to <Link href="/docs/reference/color">`css.color`</Link>
+- API Types definitions are now public.
+
+## Other Fixed:
+- The bug where camel case would separate consecutive uppercase letters has been fixed.
+- `cx` will no longer output the same string twice.
