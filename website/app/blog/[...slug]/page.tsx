@@ -1,0 +1,36 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { blog } from 'lib/source';
+import { JSX } from 'react';
+import { DocsBody } from 'fumadocs-ui/page';
+import defaultMdxComponents from 'fumadocs-ui/mdx';
+import { styles } from './styles';
+
+export function generateStaticParams(): Array<{ slug: Array<string> }> {
+  return blog.getPages().map((page) => ({
+    slug: page.slugs,
+  }));
+}
+
+export default async function Page(props: { params: Promise<{ slug?: Array<string> }> }): Promise<JSX.Element> {
+  const params = await props.params;
+  const page = blog.getPage(params.slug);
+  if (!page) notFound();
+  const MDX = page.data.body;
+
+  return (
+    <article className={styles.article}>
+      <div className={styles.backLinkWrapper}>
+        <Link href="/blog" className={styles.backLink}>
+          ← Back to blog
+        </Link>
+      </div>
+
+      {page.data.title && <h1 className={styles.title}>{page.data.title}</h1>}
+      <p className={styles.date}>{new Date(page.data.lastModified!).toString()}</p>
+      <DocsBody>
+        <MDX components={{ ...defaultMdxComponents }} />
+      </DocsBody>
+    </article>
+  );
+}
