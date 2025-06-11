@@ -8,6 +8,9 @@ export const styles = css.create({
     marginInline: 'auto',
     marginBottom: '40px',
     lineHeight: 1.7,
+    [css.media.maxWidth(764)]: {
+      width: '100%',
+    },
   },
   backLinkWrapper: {
     marginBottom: '24px',
