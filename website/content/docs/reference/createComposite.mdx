@@ -13,7 +13,7 @@ Use it to create structured, reusable style compositions for complex components.
 ## 🔧 Example: Flexbox with modifiers
 
 ```ts title="TypeScript"
-import { css } from '@plumeria/core'
+import { css, ps } from '@plumeria/core'
 
 const styles = css.create({
   flexBox: {
@@ -25,12 +25,12 @@ const styles = css.create({
 
 const composed = css.createComposite(styles.flexBox, {
   hover: {
-    [css.pseudo.hover]: {
+    [ps.hover]: {
       scale: 1.5,
     },
   },
   active: {
-    [css.pseudo.active]: {
+    [ps.active]: {
       color: css.color.gray,
     },
   },
@@ -61,7 +61,7 @@ You can combine it with utility classes or `defineTheme()` output to create flex
 ```ts
 const modifiers = css.createComposite(styles.buttonBase, {
   hover: {
-    [css.pseudo.hover]: {
+    [ps.hover]: {
       background: theme.accent,
     },
   },
