@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.10.5
+
+### Patch Changes
+
+- d7bf9ff: fix(core): css.ts fix createComposite arg type
+
 ## 0.10.4
 
 ### Patch Changes
