@@ -52,7 +52,7 @@ function create<const T extends Record<string, CSSProperties>>(
 
 function createComposite<const T extends Record<string, CSSProperties>>(
   className: string,
-  object: T,
+  object: CreateStyleType<T>,
 ): ReturnType<T> {
   const composed = create(object);
   const result = {} as ReturnType<T>;
@@ -144,7 +144,7 @@ class css {
 
   static createComposite<const T extends Record<string, CSSProperties>>(
     className: string,
-    object: T,
+    object: CreateStyleType<T>,
   ): ReturnType<T> {
     return createComposite(className, object);
   }
