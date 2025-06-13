@@ -25,7 +25,7 @@ import {
   initPromise_2,
   globalPromise_2,
   resolvePromise_2,
-} from './processors/css.js';
+} from './processors/css';
 import { media, container, color } from 'zss-utils';
 
 function create<const T extends Record<string, CSSProperties>>(
