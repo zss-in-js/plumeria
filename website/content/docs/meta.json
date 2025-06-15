@@ -2,5 +2,5 @@
   "title": "Library",
   "description": "The CSS-in-JS library",
   "root": true,
-  "pages": ["index", "getting-started", "thinking", "reference"]
+  "pages": ["index", "getting-started", "thinking", "reference", "ecosystem"]
 }

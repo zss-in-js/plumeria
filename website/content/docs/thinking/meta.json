@@ -1,4 +1,4 @@
 {
-  "defaultOpen": true,
+  "defaultOpen": false,
   "pages": ["coreconcept", "comparison"]
 }

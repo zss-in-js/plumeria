@@ -32,6 +32,7 @@ import { ESLint, Linter, Rule } from 'eslint';
 
 declare const plugin: ESLint.Plugin & {
   rules: {
+    'no-destructure': Rule.RuleModule;
     'no-inner-call': Rule.RuleModule;
     'no-unused-keys': Rule.RuleModule;
     'sort-properties': Rule.RuleModule;
@@ -50,6 +51,7 @@ export = plugin;
 
 ## API
 `Rules: recommended`
+- `@plumeria/no-destructure:(error)`
 - `@plumeria/no-inner-call:(error)`
 - `@plumeria/no-unused-keys:(warn)`
 - `@plumeria/sort-properties:(warn)`

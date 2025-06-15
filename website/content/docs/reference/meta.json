@@ -1,5 +1,5 @@
 {
-  "defaultOpen": true,
+  "defaultOpen": false,
   "title": "API reference",
   "pages": [
     "create",
@@ -14,17 +14,9 @@
     "container",
     "color",
     "pseudo",
-    "---Headless components---",
+    "---Next.js Headless component---",
     "servercss",
     "---Commands---",
-    "css",
-    "---Packages---",
-    "compiler",
-    "core",
-    "eslint-plugin",
-    "vite",
-    "next",
-    "utils",
-    "engine"
+    "css"
   ]
 }
