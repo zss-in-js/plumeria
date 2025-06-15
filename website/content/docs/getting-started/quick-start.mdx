@@ -6,7 +6,7 @@ description: Learn more about `Plumeria` syntax and recipe
 import { Box } from 'component/QuickStart'
 import { FancyButtons } from 'component/FancyButtons'
 
-Get started with **Plumeria** using `css.create()` and `css.createComposite()` to build styles with clarity and structure.
+Get started with **Plumeria** using `css.create()` and `css.props()` to build styles with clarity and structure.
 
 ## Rotation Card
 
@@ -55,13 +55,8 @@ const styles = css.create({
     transition: 'transform 0.4s ease, box-shadow 0.4s ease',
   },
 });
-```
 
-### 2. Compose pseudo interactions
-Extend your styles with pseudo interactions using `css.createComposite():`
-
-```ts
-const animated = css.createComposite(styles.card, {
+const animated = css.create({
   hover: {
     [ps.hover]: {
       background: css.color.azure,
@@ -86,21 +81,21 @@ const animated = css.createComposite(styles.card, {
 ```tsx title="JSX"
 export const Box = () => {
   return (
-    <div className={styles.container}>
+    <div className={css.props(styles.container)}>
       <span>
         hover
-        <span tabIndex={0} className={animated.hover} />
+        <span tabIndex={0} className={css.props(styles.card, animated.hover)} />
       </span>
       <span>
         focus
-        <span tabIndex={0} className={animated.focus} />
+        <span tabIndex={0} className={css.props(styles.card, animated.focus)} />
       </span>
     </div>
   );
 };
 ```
 
-## View
+## 2. View
 <Box />
 
 ## FancyButtons
@@ -111,7 +106,7 @@ Use `css.create()` to define reusable style objects:
 ```ts
 import { css, ps } from '@plumeria/core';
 
-const base = css.create({
+const styles = css.create({
   stack: {
     display: 'flex',
     flexDirection: 'column',
@@ -137,12 +132,8 @@ const base = css.create({
     },
   },
 });
-```
 
-### 2. Compose pseudo interactions
-Extend your styles with pseudo interactions using `css.createComposite():`
-```ts
-const buttons = css.createComposite(cx(base.button, base.hover), {
+const buttons = css.create({
   focusPurple: {
     background: 'linear-gradient(135deg,rgb(68, 60, 222), #6366f1)',
     [ps.hover]: {
@@ -173,20 +164,20 @@ const buttons = css.createComposite(cx(base.button, base.hover), {
       outlineOffset: '4px',
     },
   },
-});
+})
 ```
 
 ```tsx title="JSX"
 export function FancyButtons() {
   return (
-    <div className={base.stack}>
-      <button className={buttons.focusPurple}>Purple</button>
-      <button className={buttons.focusSky}>Sky</button>
-      <button className={buttons.focusGreen}>Green</button>
+    <div className={css.props(styles.stack)}>
+      <button className={css.props(styles.button, styles.hover, buttons.focusPurple)}>Purple</button>
+      <button className={css.props(styles.button, styles.hover, buttons.focusSky)}>Sky</button>
+      <button className={css.props(styles.button, styles.hover, buttons.focusGreen)}>Green</button>
     </div>
   );
 }
 ```
 
-## View
+## 2. View
 <FancyButtons />
