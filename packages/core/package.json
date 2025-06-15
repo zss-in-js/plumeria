@@ -42,7 +42,7 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "zss-engine": "0.2.41",
+    "zss-engine": "0.2.44",
     "zss-utils": "0.2.4"
   },
   "publishConfig": {
