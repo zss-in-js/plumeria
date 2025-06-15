@@ -13,7 +13,7 @@ const styles = css.create({
 
 export function E2ETest() {
   return (
-    <div className={styles.e2e} data-testid="e2e-test-div">
+    <div className={css.props(styles.e2e)} data-testid="e2e-test-div">
       Component-attach-class and Responsive-design test
     </div>
   );

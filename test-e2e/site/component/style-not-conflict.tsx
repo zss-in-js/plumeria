@@ -13,7 +13,10 @@ const styles = css.create({
 
 export function Conflict() {
   return (
-    <span className={styles.test_conflict} data-testid="e2e-test-span">
+    <span
+      className={css.props(styles.test_conflict)}
+      data-testid="e2e-test-span"
+    >
       Not conflict test
     </span>
   );
