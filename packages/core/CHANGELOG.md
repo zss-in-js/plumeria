@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.11.0
+
+### Minor Changes
+
+- 7edce11: feat: API specification change: and compiler updated
+
 ## 0.10.5
 
 ### Patch Changes
