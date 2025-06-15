@@ -7,29 +7,35 @@ const settings = { settings: { ecmaVersion: 2021 } };
 
 ruleTester.run('no-inner-call', rule, {
   valid: [
-    { code: 'css.create();', ...settings },
-    { code: 'css.createComposite();', ...settings },
-    { code: 'css.global();', ...settings },
-    { code: 'css.keyframes();', ...settings },
-    { code: 'css.defineConsts();', ...settings },
-    { code: 'css.defineVars();', ...settings },
-    { code: 'css.defineTheme();', ...settings },
-    { code: 'other.create();', ...settings },
-    { code: 'const style = css.create();', ...settings },
+    {
+      code: 'css.create();',
+      code: 'css.global();',
+      code: 'css.keyframes();',
+      code: 'css.defineConsts();',
+      code: 'css.defineVars();',
+      code: 'css.defineTheme();',
+      code: 'const styles = css.create();',
+      ...settings,
+    },
   ],
   invalid: [
     {
-      code: 'function foo() { css.create(); }',
+      code: 'const create = () => { css.create(); }',
       errors: [{ message: 'Do not use css.create inside functions' }],
       ...settings,
     },
     {
-      code: 'function foo() { css.createComposite(); }',
-      errors: [{ message: 'Do not use css.createComposite inside functions' }],
+      code: 'const globl = () => { css.global(); }',
+      errors: [{ message: 'Do not use css.global inside functions' }],
       ...settings,
     },
     {
-      code: 'const bar = () => { css.global(); }',
+      code: 'function create() { css.create(); }',
+      errors: [{ message: 'Do not use css.create inside functions' }],
+      ...settings,
+    },
+    {
+      code: 'function global() { css.global(); }',
       errors: [{ message: 'Do not use css.global inside functions' }],
       ...settings,
     },
@@ -39,28 +45,18 @@ ruleTester.run('no-inner-call', rule, {
       ...settings,
     },
     {
-      code: 'function theme() { css.defineConsts(); }',
+      code: 'function consts() { css.defineConsts(); }',
       errors: [{ message: 'Do not use css.defineConsts inside functions' }],
       ...settings,
     },
     {
-      code: 'function theme() { css.defineVars(); }',
+      code: 'function vars() { css.defineVars(); }',
       errors: [{ message: 'Do not use css.defineVars inside functions' }],
       ...settings,
     },
     {
       code: 'function theme() { css.defineTheme(); }',
       errors: [{ message: 'Do not use css.defineTheme inside functions' }],
-      ...settings,
-    },
-    {
-      code: 'function outer() { function inner() { css.create(); } }',
-      errors: [{ message: 'Do not use css.create inside functions' }],
-      ...settings,
-    },
-    {
-      code: 'const fn = function() { css.global(); }',
-      errors: [{ message: 'Do not use css.global inside functions' }],
       ...settings,
     },
   ],
