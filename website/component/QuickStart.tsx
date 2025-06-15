@@ -43,7 +43,7 @@ const styles = css.create({
   },
 });
 
-const animated = css.createComposite(styles.card, {
+const animated = css.create({
   hover: {
     [ps.hover]: {
       background: css.color.azure,
@@ -66,14 +66,14 @@ const animated = css.createComposite(styles.card, {
 
 export const Box = () => {
   return (
-    <div className={styles.container}>
+    <div className={css.props(styles.container)}>
       <span>
         hover
-        <span tabIndex={0} className={animated.hover} />
+        <span tabIndex={0} className={css.props(styles.card, animated.hover)} />
       </span>
       <span>
         focus
-        <span tabIndex={0} className={animated.focus} />
+        <span tabIndex={0} className={css.props(styles.card, animated.focus)} />
       </span>
     </div>
   );

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { css, cx, ps } from '@plumeria/core';
+import { css, ps } from '@plumeria/core';
 import { Plumeria } from './Plumeria';
 import { CodeBlock } from './CodeBlock';
 
@@ -96,19 +96,19 @@ const demoCode = ` text: { fontSize: 16, color: 'pink' }
 
 export const HomeComponent = () => {
   return (
-    <main className={styles.container}>
+    <main className={css.props(styles.container)}>
       <Plumeria />
-      <div className={styles.inlineword}>
+      <div className={css.props(styles.inlineword)}>
         Zero-Runtime CSS-in-JS
         <br />
-        <span className={styles.textSize}>Compile at build-time. No runtime overhead.</span>
+        <span className={css.props(styles.textSize)}>Compile at build-time. No runtime overhead.</span>
       </div>
       <CodeBlock code={demoCode} lang="css" />
-      <div className={styles.link_box}>
-        <Link href="/docs/getting-started/installation" className={cx(styles.button, styles.getStarted)}>
+      <div className={css.props(styles.link_box)}>
+        <Link href="/docs/getting-started/installation" className={css.props(styles.button, styles.getStarted)}>
           GET STARTED
         </Link>
-        <Link href="/docs" className={styles.button}>
+        <Link href="/docs" className={css.props(styles.button)}>
           THINKING
         </Link>
       </div>

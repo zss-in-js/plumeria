@@ -1,6 +1,6 @@
-import { css, cx, ps } from '@plumeria/core';
+import { css, ps } from '@plumeria/core';
 
-const base = css.create({
+const styles = css.create({
   stack: {
     display: 'flex',
     flexDirection: 'column',
@@ -27,7 +27,7 @@ const base = css.create({
   },
 });
 
-const buttons = css.createComposite(cx(base.button, base.hover), {
+const buttons = css.create({
   focusPurple: {
     background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
     [ps.hover]: {
@@ -38,7 +38,7 @@ const buttons = css.createComposite(cx(base.button, base.hover), {
       outlineOffset: '4px',
     },
   },
-  focusPureOrange: {
+  focusSky: {
     background: 'linear-gradient(135deg, #16adf9, #3ce1fb)',
     [ps.hover]: {
       background: 'linear-gradient(135deg, #0c9ce4, #3ce1fb)',
@@ -48,7 +48,7 @@ const buttons = css.createComposite(cx(base.button, base.hover), {
       outlineOffset: '4px',
     },
   },
-  focusPureSkyGreen: {
+  focusGreen: {
     background: 'linear-gradient(135deg, #10b981, #34d399)',
     [ps.hover]: {
       background: 'linear-gradient(135deg, #089e6c, #34d399)',
@@ -62,10 +62,10 @@ const buttons = css.createComposite(cx(base.button, base.hover), {
 
 export function FancyButtons() {
   return (
-    <div className={base.stack}>
-      <button className={buttons.focusPurple}>Purple</button>
-      <button className={buttons.focusPureOrange}>Sky</button>
-      <button className={buttons.focusPureSkyGreen}>Green</button>
+    <div className={css.props(styles.stack)}>
+      <button className={css.props(styles.button, styles.hover, buttons.focusPurple)}>Purple</button>
+      <button className={css.props(styles.button, styles.hover, buttons.focusSky)}>Sky</button>
+      <button className={css.props(styles.button, styles.hover, buttons.focusGreen)}>Green</button>
     </div>
   );
 }
