@@ -8,11 +8,9 @@ export const { docs, meta } = defineDocs({
 export const { docs: blogDocs, meta: blogMeta } = defineDocs({
   dir: 'content/blog',
   docs: {
-    schema: frontmatterSchema
-      .extend({
-        date: z.string(),
-      })
-      .strict(),
+    schema: frontmatterSchema.extend({
+      date: z.string(),
+    }),
   },
 });
 
