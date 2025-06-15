@@ -21,14 +21,17 @@ function Page(): JSX.Element {
         <span>The latest updates and releases from the Plumeria team at ZSS-in-JS.</span>
       </div>
 
-      {posts.map((post) => (
-        <Link href={`/blog/${post.slugs.join('/')}`} className={styles.card} key={post.data.title}>
-          <h2 className={styles.cardTitle}>{post.data.title}</h2>
-          <p className={styles.cardDesc}>{post.data.description}</p>
-          <p className={styles.cardDesc}>Read more →</p>
-          <p className={styles.cardDate}>{post.data.date}</p>
-        </Link>
-      ))}
+      {posts
+        .reverse()
+        .map((post) => (
+          <Link href={`/blog/${post.slugs.join('/')}`} className={styles.card} key={post.data.title}>
+            <h2 className={styles.cardTitle}>{post.data.title}</h2>
+            <p className={styles.cardDesc}>{post.data.description}</p>
+            <p className={styles.cardDesc}>Read more →</p>
+            <p className={styles.cardDate}>{post.data.date}</p>
+          </Link>
+        ))
+        .sort()}
     </main>
   );
 }
