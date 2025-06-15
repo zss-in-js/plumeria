@@ -10,5 +10,5 @@ export const styles = css.create({
 });
 
 export const Component = () => {
-  return <p className={styles.color}>Astro + React + Plumeria</p>;
+  return <p className={css.props(styles.color)}>Astro + React + Plumeria</p>;
 };
