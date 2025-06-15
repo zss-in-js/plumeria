@@ -13,7 +13,7 @@ Each package has its own README, such as [@plumeria/core](https://github.com/zss
 ## ✨ Quick Example
 
 ```ts
-import { css, cx } from '@plumeria/core';
+import { css } from '@plumeria/core';
 
 const styles = css.create({
   text: {
@@ -24,12 +24,12 @@ const styles = css.create({
   },
 });
 
-const className = cx(styles.text, styles.size);
+const classNameString = css.props(styles.text, styles.size);
 ```
 
 ## 📦 Monorepo Structure
 
-```vbnet
+```
 plumeria/
 ├── examples/         → Example apps and integrations
 └── packages/
