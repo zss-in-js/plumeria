@@ -7,11 +7,15 @@ import type {
   CreateValues,
   CreateKeyframes,
   ReturnType,
+  Join,
+  ReturnVariableType,
+  RxVariableSet,
+  ReturnRx,
 } from 'zss-engine';
 import {
   transpiler,
   isServer,
-  isDevAndTest,
+  isTestingDevelopment,
   injectServerCSS,
   injectClientCSS,
   injectClientGlobalCSS,
@@ -26,7 +30,10 @@ import {
   globalPromise_2,
   resolvePromise_2,
 } from './processors/css';
-import { media, container, color } from 'zss-utils';
+
+import { media, container, color, ps } from 'zss-utils';
+
+const objectToKeyHashMap = new WeakMap<CSSProperties, string>();
 
 function create<const T extends Record<string, CSSProperties>>(
   object: CreateStyleType<T>,
@@ -38,31 +45,44 @@ function create<const T extends Record<string, CSSProperties>>(
   resolvePromise_1(styleSheet);
 
   Object.keys(object).forEach((key) => {
+    const cssProperties = object[key];
+    const hashedClassName = key + '_' + base36Hash;
+    objectToKeyHashMap.set(cssProperties, hashedClassName);
     Object.defineProperty(object, key, {
       get: () => {
-        const className = key + '_' + base36Hash;
-        if (isDevAndTest) injectCSS(base36Hash, styleSheet);
-        return className;
+        if (isTestingDevelopment) injectCSS(base36Hash, styleSheet);
+        return Object.freeze(cssProperties);
       },
     });
   });
 
-  return Object.freeze(object as unknown as ReturnType<T>);
+  return Object.freeze(object as ReturnType<T>);
 }
 
-function createComposite<const T extends Record<string, CSSProperties>>(
-  className: string,
-  object: CreateStyleType<T>,
-): ReturnType<T> {
-  const composed = create(object);
-  const result = {} as ReturnType<T>;
+const props = (
+  ...objects: (false | Readonly<CSSProperties> | null | undefined)[]
+): string => {
+  const classNames = objects.filter(Boolean).map((obj) => {
+    if (obj && typeof obj === 'object') {
+      const keyHash = objectToKeyHashMap.get(obj);
+      if (keyHash) return keyHash;
+    }
+    return '';
+  });
 
-  for (const key in composed) {
-    result[key as keyof T] = `${className} ${composed[key]}`;
-  }
+  return [...new Set(classNames)].join(' ');
+};
 
-  return result;
-}
+const rx = (cssProperties: Readonly<CSSProperties>, varSet: RxVariableSet) => ({
+  className: props(cssProperties),
+  style: Object.fromEntries(
+    Object.entries(varSet).map(([key, value]) => [key, value]),
+  ),
+});
+
+const px = <T extends readonly string[]>(...pseudos: T): Join<T> => {
+  return pseudos.filter(Boolean).join('') as Join<T>;
+};
 
 function global(object: CSSHTML): void {
   const base36Hash = genBase36Hash(object, 8);
@@ -70,13 +90,13 @@ function global(object: CSSHTML): void {
   if (typeof globalPromise_2 === 'undefined') initPromise_2();
   resolvePromise_2(styleSheet);
 
-  if (isDevAndTest)
+  if (isTestingDevelopment)
     isServer
       ? injectServerCSS(base36Hash, styleSheet)
       : injectClientGlobalCSS(styleSheet);
 }
 
-const keyframes = (object: CreateKeyframes) => {
+const keyframes = (object: CreateKeyframes): string => {
   const prefix = genBase36Hash(object, 8);
   global({ [`@keyframes ${prefix}`]: object });
   return prefix;
@@ -91,9 +111,7 @@ const defineVars = <const T extends CreateValues>(object: T) => {
     ':root': {},
   };
 
-  const result = {} as {
-    [K in keyof T]: `var(--${string})`;
-  };
+  const result = {} as ReturnVariableType<T>;
 
   Object.entries(object).forEach(([key, value]) => {
     const kebabKey = camelToKebabCase(key);
@@ -107,9 +125,7 @@ const defineVars = <const T extends CreateValues>(object: T) => {
 
 const defineTheme = <const T extends CreateTheme>(object: T) => {
   const styles: Record<string, Record<string, string | number | object>> = {};
-  const result = {} as {
-    [K in keyof T]: `var(--${string})`;
-  };
+  const result = {} as ReturnVariableType<T>;
 
   Object.entries(object).forEach(([key, value]) => {
     const kebabKey = camelToKebabCase(key);
@@ -136,17 +152,11 @@ const defineTheme = <const T extends CreateTheme>(object: T) => {
 };
 
 class css {
+  private constructor() {}
   static create<const T extends Record<string, CSSProperties>>(
     object: CreateStyleType<T>,
   ): ReturnType<T> {
     return create(object);
-  }
-
-  static createComposite<const T extends Record<string, CSSProperties>>(
-    className: string,
-    object: CreateStyleType<T>,
-  ): ReturnType<T> {
-    return createComposite(className, object);
   }
 
   static global(object: CSSHTML): void {
@@ -157,16 +167,37 @@ class css {
     return keyframes(object);
   }
 
-  static defineConsts<const T extends CreateValues>(object: T) {
+  static defineConsts<const T extends CreateValues>(object: T): CreateValues {
     return defineConsts(object);
   }
 
-  static defineVars<const T extends CreateValues>(object: T) {
+  static defineVars<const T extends CreateValues>(
+    object: T,
+  ): ReturnVariableType<T> {
     return defineVars(object);
   }
 
-  static defineTheme<const T extends CreateTheme>(object: T) {
+  static defineTheme<const T extends CreateTheme>(
+    object: T,
+  ): ReturnVariableType<T> {
     return defineTheme(object);
+  }
+
+  static props(
+    ...objects: (false | Readonly<CSSProperties> | null | undefined)[]
+  ): string {
+    return props(...objects);
+  }
+
+  static rx(
+    cssProperties: Readonly<CSSProperties>,
+    varSet: RxVariableSet,
+  ): ReturnRx {
+    return rx(cssProperties, varSet);
+  }
+
+  static px<T extends readonly string[]>(...pseudos: T): Join<T> {
+    return px(...pseudos);
   }
 
   static media = media;
@@ -174,5 +205,5 @@ class css {
   static color = color;
 }
 
-export default css;
-export type { CSSProperties, CSSHTML, CreateStyle };
+export { css, ps, px, rx };
+export type { CreateStyle, CSSHTML, CSSProperties };
