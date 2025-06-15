@@ -1,12 +1,12 @@
 [![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@plumeria/core.svg?color=brightgreen)](https://www.npmjs.com/package/@plumeria/core) [![tests](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml/badge.svg)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml)
 
-# Plumeria 🍃 <br> The expressive CSS-in-JS library
+# Plumeria the expressive CSS-in-JS library
 
-> 🌸 Plumeria is a modern CSS-in-JS library focused on ergonomics, performance, and expressive design systems.
+> ✾ Plumeria is a modern CSS-in-JS library focused on ergonomics, performance, and expressive design systems.
 
 ## 📘 Documentation
 
-👉 [plumeria.dev](https://plumeria.dev) — Full guides and API references
+⚡️ [plumeria.dev](https://plumeria.dev) — Full guides and API references
 
 Each package has its own README, such as [@plumeria/core](https://github.com/zss-in-js/plumeria/tree/main/packages/core).
 
