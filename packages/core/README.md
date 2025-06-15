@@ -35,7 +35,7 @@ import '@plumeria/core/stylesheet.css';
 Define a set of styles:
 
 ```ts
-import { css, cx, ps, px } from '@plumeria/core';
+import { css, ps } from '@plumeria/core';
 
 const styles = css.create({
   box: {
@@ -46,6 +46,15 @@ const styles = css.create({
     color: 'yellow',
   },
 });
+
+const classNameString = css.props(styles.text, styles.box);
+```
+
+Use `css.props()` to convert a style object into a string with a hashed key.  
+You can use them like this:
+
+```jsx
+<div className={css.props(styles.text, styles.box)} />
 ```
 
 Supports pseudo/media queries inline:
@@ -66,42 +75,6 @@ const styles = css.create({
   },
 });
 ```
-
-### `css.createComposite()`
-
-Creates modifier classes for a base style:
-
-```ts
-const styles = css.create({
-  flexBox: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-  },
-});
-
-const composed = css.createComposite(styles.flexBox, {
-  hover: {
-    [ps.hover]: {
-      scale: 1.5,
-    },
-  },
-  active: {
-    [ps.active]: {
-      color: css.color.gray,
-    },
-  },
-});
-```
-
-This produces named modifier classes based on the base style.  
-You can use them like this:
-
-```jsx
-<div className={composed.hover} />
-```
-
-Automatically generates all modifier variants while keeping the base style clean.
 
 ### `css.global()`
 
@@ -225,15 +198,19 @@ color: css.color.aqua,
 // and many more
 ```
 
-### `cx`
+### `css.px`
 
-Classname merging helper:
+Pseudo expand helper:
 
 ```tsx
-px(ps.hover, ps.after);
+css.px(ps.hover, ps.after);
 // => ":hover::after"
-cx(styles.text, styles.box);
-// => "text_hash box_hash"
+```
+
+`px` is also available as an export function.
+
+```ts
+import { px } from '@plumeria/core';
 ```
 
 ## 🧹 ESLint Support
