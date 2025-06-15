@@ -1,5 +1,5 @@
 /* eslint-disable @plumeria/validate-values */
-import { default as css } from '../src/css';
+import { css } from '../src/css';
 
 const result = css.defineVars({
   fontSize: '',

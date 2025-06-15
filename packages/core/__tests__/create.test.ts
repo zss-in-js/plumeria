@@ -1,5 +1,5 @@
 /* eslint-disable @plumeria/no-inner-call */
-import { default as css } from '../src/css';
+import { css } from '../src/css';
 
 const styleSheet = 'button_xhash67 { color: red; background: blue }';
 const base36hash = 'xhash67';
@@ -24,9 +24,9 @@ describe('create function', () => {
 
     const styles = css.create(styleObject);
     expect(typeof styles).toBe('object');
-    expect(typeof styles.button).toBe('string');
+    expect(typeof css.props(styles.button)).toBe('string');
     expect(styles).toHaveProperty('button');
-    expect(styles.button).toBe('button_xhash67'); // Expected value using mock base36Hash;
+    expect(css.props(styles.button)).toBe('button_xhash67'); // Expected value using mock base36Hash;
     expect(Object.isFrozen(styles)).toBe(true); // Check that the resulting object is frozen;
   });
 });
