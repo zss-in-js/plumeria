@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next/types';
 import { blog } from 'lib/source';
 import { styles } from './styles';
+import { css } from '@plumeria/core';
 import { JSX } from 'react';
 
 export function generateMetadata(): Metadata {
@@ -15,20 +16,20 @@ function Page(): JSX.Element {
   const posts = blog.getPages();
 
   return (
-    <main className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Blog</h1>
+    <main className={css.props(styles.container)}>
+      <div className={css.props(styles.header)}>
+        <h1 className={css.props(styles.title)}>Blog</h1>
         <span>The latest updates and releases from the Plumeria team at ZSS-in-JS.</span>
       </div>
 
       {posts
         .reverse()
         .map((post) => (
-          <Link href={`/blog/${post.slugs.join('/')}`} className={styles.card} key={post.data.title}>
-            <h2 className={styles.cardTitle}>{post.data.title}</h2>
-            <p className={styles.cardDesc}>{post.data.description}</p>
-            <p className={styles.cardDesc}>Read more →</p>
-            <p className={styles.cardDate}>{post.data.date}</p>
+          <Link href={`/blog/${post.slugs.join('/')}`} className={css.props(styles.card)} key={post.data.title}>
+            <h2 className={css.props(styles.cardTitle)}>{post.data.title}</h2>
+            <p className={css.props(styles.cardDesc)}>{post.data.description}</p>
+            <p className={css.props(styles.cardDesc)}>Read more →</p>
+            <p className={css.props(styles.cardDate)}>{post.data.date}</p>
           </Link>
         ))
         .sort()}
