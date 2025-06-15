@@ -49,7 +49,7 @@ module.exports = {
             if (objectName === 'css') {
               const fullName = `${objectName}.${propertyName}`;
               if (
-                propertyName.startsWith('create') ||
+                propertyName === 'create' ||
                 propertyName === 'global' ||
                 propertyName === 'keyframes' ||
                 propertyName.startsWith('define')
