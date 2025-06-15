@@ -1,5 +1,5 @@
 /* eslint-disable @plumeria/no-inner-call */
-import { default as css } from '../src/css';
+import { css } from '../src/css';
 
 const styleSheet = 'h1 { font-size: 24px; }';
 const base36hash = 'abcdef';

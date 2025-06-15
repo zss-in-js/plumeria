@@ -1,6 +1,6 @@
 /* eslint-disable @plumeria/no-inner-call */
 import { globalPromise_1 } from '../src/processors/css';
-import { default as css } from '../src/css';
+import { css } from '../src/css';
 
 const styleSheet = 'button_xhyxio { color: red; }';
 const base36hash = 'xhyxio';
