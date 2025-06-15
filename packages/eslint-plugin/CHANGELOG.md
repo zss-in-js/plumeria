@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.2.3
+
+### Patch Changes
+
+- 965ae6c: feat: add no-destructure rule
+
 ## 0.2.2
 
 ### Patch Changes
