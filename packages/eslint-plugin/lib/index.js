@@ -1,11 +1,13 @@
 'use strict';
 
+const noDestructure = require('./rules/no-destructure.js');
 const noInnerCall = require('./rules/no-inner-call.js');
 const noUnusedKeys = require('./rules/no-unused-keys.js');
 const sortProperties = require('./rules/sort-properties.js');
 const validateValues = require('./rules/validate-values.js');
 
 const rules = {
+  'no-destructure': noDestructure,
   'no-inner-call': noInnerCall,
   'no-unused-keys': noUnusedKeys,
   'sort-properties': sortProperties,
@@ -16,6 +18,7 @@ const configs = {
   recommended: {
     plugins: ['@plumeria'],
     rules: {
+      '@plumeria/no-destructure': 'error',
       '@plumeria/no-inner-call': 'error',
       '@plumeria/no-unused-keys': 'warn',
       '@plumeria/sort-properties': 'warn',
@@ -32,6 +35,7 @@ const flatConfigs = {
       },
     },
     rules: {
+      '@plumeria/no-destructure': 'error',
       '@plumeria/no-inner-call': 'error',
       '@plumeria/no-unused-keys': 'warn',
       '@plumeria/sort-properties': 'warn',
