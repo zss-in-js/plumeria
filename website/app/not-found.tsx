@@ -14,7 +14,7 @@ const styles = css.create({
 
 const NotFound = (): JSX.Element => {
   return (
-    <div className={styles.container}>
+    <div className={css.props(styles.container)}>
       <h1>ClientSide Error status code 404 Request page is not found:</h1>
       <Link href="/">
         <u>Return to Top page</u>

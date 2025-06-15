@@ -5,6 +5,7 @@ import { JSX } from 'react';
 import { DocsBody } from 'fumadocs-ui/page';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { styles } from './styles';
+import { css } from '@plumeria/core';
 
 export function generateStaticParams(): Array<{ slug: Array<string> }> {
   return blog.getPages().map((page) => ({
@@ -19,15 +20,15 @@ export default async function Page(props: { params: Promise<{ slug?: Array<strin
   const MDX = page.data.body;
 
   return (
-    <article className={styles.article}>
-      <div className={styles.backLinkWrapper}>
-        <Link href="/blog" className={styles.backLink}>
+    <article className={css.props(styles.article)}>
+      <div className={css.props(styles.backLinkWrapper)}>
+        <Link href="/blog" className={css.props(styles.backLink)}>
           ← Back to blog
         </Link>
       </div>
 
-      {page.data.title && <h1 className={styles.title}>{page.data.title}</h1>}
-      <p className={styles.date}>{page.data.date}</p>
+      {page.data.title && <h1 className={css.props(styles.title)}>{page.data.title}</h1>}
+      <p className={css.props(styles.date)}>{page.data.date}</p>
       <DocsBody>
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>
