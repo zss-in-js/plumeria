@@ -7,6 +7,7 @@ Below are the available rules and the recommended configuration.
 
 The `plugin:@plumeria/recommended` config enables the following:
 
+- `@plumeria/no-destructure`: **error**
 - `@plumeria/no-inner-call`: **error**
 - `@plumeria/no-unused-keys`: **warn**
 - `@plumeria/sort-properties`: **warn**
@@ -19,6 +20,10 @@ export default [plumeria.flatConfigs.recommended];
 ```
 
 ## Rules
+
+### no-destructure
+
+Disallow destructuring `css.create` and `css.global`.
 
 ### no-inner-call
 
