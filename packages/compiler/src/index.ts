@@ -40,7 +40,7 @@ function isCSS(filePath: string): boolean {
     if (node.type === 'MemberExpression' && node.property?.value) {
       if (node.object?.type === 'Identifier' && node.object.value === 'css') {
         if (
-          node.property.value.startsWith('create') ||
+          node.property.value === 'create' ||
           node.property.value === 'global'
         ) {
           found = true;
