@@ -1,0 +1,51 @@
+---
+title: 'Plumeria 0.11.0'
+description: 'The usage of css.create has changed (3 min read)'
+date: '2025/06/15'
+---
+
+The following changes and updates have been made to take full advantage of being an object.
+
+**cx** and **createComposite** have been **integrated** into `css.props()`. The **return value** of `create` has changed from a `string` to an `object`. You can convert it to a hashed key string using `css.props()`.  
+There is no cost to `css.props()`, this has already been verified.
+
+You can use css.props() like this:
+```tsx
+<div className={css.props(styles.text)}>text</div>
+```
+
+```ts
+import { css } from '@plumeria/core';
+
+const styles css.create({
+  text: {
+    color: css.color.lightsalmon,  
+  },
+});
+```
+`styles.text`, which is type-completed and hovered like this:
+```ts
+const text: {
+    color: "lightsalmon";
+}
+(property) text: Readonly<{
+    readonly color: "lightsalmon";
+}>
+```
+
+
+
+You can create small `CSSProperties` objects and combine them to create `reusable` styles.
+
+## APIs have been added and changed.
+\- integrated `css.createComposite()`.  
+\- integrated `cx`.
+- Add `css.props()`
+
+`css.props()` uses objects as keys in a WeakMap to hold hashed class names, and returns the hashed class names for the object passed in. Unreferenced key-value pairs will be freed by garbage collection.
+
+
+
+## Other Fixed:
+- refactor: Update Types name  
+We have consistently implemented the naming convention "`Selector`" for pseudo-element media queries based on "`Create`" and "`Return`".
