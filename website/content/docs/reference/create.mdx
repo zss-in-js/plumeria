@@ -23,7 +23,7 @@ const styles = css.create({
     display: 'flex',
     justifyContent: 'space-between',
   },
-  link: {
+  text: {
     fontSize: '14px',
     textDecoration: 'none',
   },
@@ -43,3 +43,13 @@ const styles = css.create({
 ```
 </Tab>
 </Tabs>
+
+## ⚙️ Usage
+
+```jsx title="JSX"
+<div className={css.props(styles.container, styles.text)}>text<div>
+```
+
+## ⚠️ Beware of circular references
+If modules reference each other circularly, the compiler will fail to compile them correctly.
+This design encourages a local, linear style structure that's easier to understand, faster to compile, and less error-prone across large codebases and bundlers like **rscute**.
