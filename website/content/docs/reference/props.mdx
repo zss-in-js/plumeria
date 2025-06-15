@@ -1,12 +1,12 @@
 ---
-title: cx
-description: API reference for the `cx` function
+title: props
+description: API reference for the `props` function
 ---
 
-The `cx()` function merges class names together while **filtering out falsy values** like `undefined`, `false`, or `null`. It is useful when conditionally combining styles.
+The `css.props()` function returns `styleObject` as `hashedClassName` together while **filtering out falsy values** like `undefined`, `false`, or `null`. It is useful when conditionally combining styles.
 
 ```ts title="TypeScript"
-import { css, cx } from '@plumeria/core';
+import { css } from '@plumeria/core';
 
 const styles = css.create({
   one: {
@@ -19,7 +19,7 @@ const styles = css.create({
   },
 });
 
-const className = cx(styles.one, styles.two);  // [!code ++] →  "one_ocpc7u two_ocpc7u"
+const className = css.props(styles.one, styles.two);  // [!code ++] →  "one_ocpc7u two_ocpc7u"
 ```
 
 > 💡 className will be something like "one_ocpc7u two_ocpc7u"  
@@ -32,7 +32,7 @@ const className = cx(styles.one, styles.two);  // [!code ++] →  "one_ocpc7u tw
 ```ts
 const isActive = true;
 
-const className = cx(
+const className = css.props(
   styles.one,
   isActive && styles.two // 'styles.two' is only added when isActive is true
 );
@@ -41,7 +41,7 @@ const className = cx(
 ### With ternary
 
 ```ts
-const className = cx(
+const className = css.props(
   isDark ? styles.dark : styles.light,
   isHovered && styles.hovered
 );
@@ -50,10 +50,10 @@ const className = cx(
 ---
 
 ## Return value
-Returns a single string of space-separated class names, ignoring falsy inputs:
+Returns a single string of space-separated styleObject, ignoring falsy inputs:
 
 ```ts
-cx('a', false, undefined, 'b'); // → 'a b'
+css.props(styles.one, false, undefined, styles.two); // → "one_ocpc7u two_ocpc7u"
 ```
 
 
