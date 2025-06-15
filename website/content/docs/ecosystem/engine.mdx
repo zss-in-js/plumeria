@@ -32,9 +32,9 @@ pnpm i zss-engine
 export type { CSSProperties } from './types/common/css-properties';
 export type { CreateStyleType, ReturnType, CreateStyle } from './types/main/create';
 export type { CSSHTML, CreateKeyframes } from './types/main/global';
-export type { CreateValues, CreateTheme } from './types/main/vars';
+export type { CreateValues, CreateTheme, ReturnVariableType, RxVariableSet, ReturnRx } from './types/main/vars';
 export type { Join } from './types/main/join';
-export { isServer, isDevelopment, isDevAndTest } from './utils/helper.js';
+export { isServer, isDevelopment, isTestingDevelopment } from './utils/helper.js';
 export { genBase36Hash } from './utils/hash.js';
 export { transpiler } from './utils/transpiler.js';
 export { build } from './utils/build.js';
@@ -53,7 +53,7 @@ const isWindowDefined = typeof window !== 'undefined';
 const isDocumentDefined = typeof document !== 'undefined';
 export const isServer = !isWindowDefined || !isDocumentDefined;
 export const isDevelopment = process.env.NODE_ENV === 'development';
-export const isDevAndTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+export const isTestingDevelopment = process.env.NODE_ENV === 'test' || isDevelopment;
 ```
 
 
@@ -83,6 +83,13 @@ Argments: `styleSheet: string, filePath: string`
 Returns: `void`
 ```ts title="TypeScript" 
   build(styleSheet, filePath);
+```
+
+### `camelToKebabCase`
+Argments: `property: string`
+Returns: `string`
+```ts title="TypeScript"
+const kebab = camelToKebabCase('CreateStyle') // return create-style
 ```
 
 ### `injectClientCSS`
@@ -133,4 +140,11 @@ CreateValues,
 
 // defineTheme method
 CreateTheme,
+
+// defineVars and defineTheme return type
+ReturnVariableType,
+
+// rx function
+ RxVariableSet,
+ ReturnRx
 ```
