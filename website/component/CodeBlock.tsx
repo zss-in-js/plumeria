@@ -10,7 +10,7 @@ const styles = css.create({
     padding: '18px 28px',
     marginBottom: 20,
     fontSize: 12,
-    background: '#F5F5F5',
+    background: 'black',
     borderRadius: '8px',
     [css.media.maxWidth(804)]: {
       width: '317px',
@@ -27,7 +27,7 @@ export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) 
   const tsx = await codeToHtml(code, {
     lang: lang,
     themes: {
-      light: 'everforest-light',
+      light: 'poimandres',
       dark: 'poimandres',
     },
     defaultColor: false,
