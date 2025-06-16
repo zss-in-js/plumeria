@@ -1,5 +1,5 @@
 {
   "defaultOpen": false,
   "title": "Ecosystem",
-  "pages": ["compiler", "core", "eslint-plugin", "vite", "next", "utils", "engine"]
+  "pages": ["core", "compiler", "eslint-plugin", "vite", "next", "utils", "engine"]
 }
