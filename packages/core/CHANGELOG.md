@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.11.1
+
+### Patch Changes
+
+- 72fad7e: fix(core): readme update eslint description add no-destructure rule
+
 ## 0.11.0
 
 ### Minor Changes
