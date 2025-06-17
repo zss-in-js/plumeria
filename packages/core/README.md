@@ -220,6 +220,7 @@ Use [@plumeria/eslint-plugin](https://www.npmjs.com/package/@plumeria/eslint-plu
 ### Rules: recommended
 
 ```
+- no-destructure: error
 - no-inner-call: error
 - no-unused-keys: warn
 - sort-properties: warn
