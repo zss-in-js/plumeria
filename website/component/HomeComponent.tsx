@@ -103,7 +103,7 @@ export const HomeComponent = () => {
         <br />
         <span className={css.props(styles.textSize)}>Compile at build-time. No runtime overhead.</span>
       </div>
-      <CodeBlock code={demoCode} lang="css" />
+      <CodeBlock code={demoCode} lang="text" />
       <div className={css.props(styles.link_box)}>
         <Link href="/docs/getting-started/installation" className={css.props(styles.button, styles.getStarted)}>
           GET STARTED
