@@ -24,6 +24,7 @@
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.20.0",
     "@plumeria/compiler": "^0.11.0",
+    "@plumeria/eslint-plugin": "^0.2.3",
     "@plumeria/next": "^0.6.7",
     "@types/mdx": "^2.0.13",
     "@types/node": "^22.13.14",
@@ -31,7 +32,6 @@
     "@types/react-dom": "^19.0.3",
     "eslint": "^9.20.1",
     "eslint-config-next": "15.1.4",
-    "eslint-plugin-object-css": "^0.5.0",
     "typescript": "^5.7.3"
   }
 }
