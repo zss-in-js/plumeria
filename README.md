@@ -24,17 +24,18 @@ const styles = css.create({
   },
 });
 
-const classNameString = css.props(styles.text, styles.size);
+const className = css.props(styles.text, styles.size);
 ```
 
 ## 📦 Monorepo Structure
 
 ```
 plumeria/
+├── docs/             → Documentation website (Next.js + fuma-docs)
 ├── examples/         → Example apps and integrations
 └── packages/
     ├── compiler/     → Style compiler and static extraction
-    ├── core/         → Core runtime utilities (css, cx, etc.)
+    ├── core/         → Core runtime utilities (css, ps, etc.)
     ├── eslint-plugin/→ Lint rules for Plumeria conventions
     ├── next/         → Integration with Next.js
     └── vite/         → Plugin for Vite builds
