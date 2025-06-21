@@ -1,6 +1,6 @@
 import '@plumeria/core/stylesheet.css';
 
-const { ServerCSS } = require('@plumeria/next');
+import { ServerCSS } from '@plumeria/next';
 
 export default function RootLayout({
   children,
