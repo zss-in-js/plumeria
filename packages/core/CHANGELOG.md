@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.11.2
+
+### Patch Changes
+
+- 4e5a7f0: refactor(core): refactored readme and source
+
 ## 0.11.1
 
 ### Patch Changes
