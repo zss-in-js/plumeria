@@ -47,7 +47,7 @@ const styles = css.create({
   },
 });
 
-const classNameString = css.props(styles.text, styles.box);
+const className = css.props(styles.text, styles.box);
 ```
 
 Use `css.props()` to convert a style object into a string with a hashed key.  
