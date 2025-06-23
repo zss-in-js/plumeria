@@ -1,0 +1,70 @@
+---
+title: 'px'
+description: 'API reference for the `px` function'
+---
+
+## Overview
+
+The `px()` function — short for **Pseudo Expand** — allows you to **combine multiple pseudo-class strings** into one unified selector.
+
+It’s useful when working with Plumeria’s pseudo utilities like `ps.hover`, `ps.active`, or custom `ps.fn.has()`.  
+The result is a single **joined pseudo selector string** that can be passed into `css.create()` or other style utilities.
+
+> ✅ Designed to work with **pseudo-class utility strings** — not general-purpose string concatenation.
+
+---
+
+## Purpose
+
+When defining styles for complex pseudo states (`:hover:focus`, `:has(div):focus-visible`, etc.), manually writing strings becomes error-prone.  
+The `px()` function ensures **type-safe composition** of pseudo strings while preserving **string literal types** for DX and autocomplete.
+
+---
+
+## Example
+
+```ts title="TypeScript"
+import { px } from '@plumeria/core';
+
+const combined = px(
+  ps.active,
+  ps.focusVisible,
+  ps.fn.has('div')
+);
+
+// Result:
+// ':active:focus-visible:has(div)'
+```
+
+You can use the combined result in your styles:
+
+```ts
+const styles = css.create({
+  container: {
+    [px(ps.hover, ps.focusVisible)]: {
+      background: 'lightblue',
+    },
+  },
+});
+```
+
+## Return value
+
+Returns a **joined pseudo selector string**, preserving literal types:
+```ts
+const result = px(ps.hover, ps.focusVisible);
+// type: ':hover:focus-visible'
+```
+
+## Use cases
+
+- Combine standard pseudo-classes:
+```ts
+px(ps.hover, ps.focus)
+```
+- Combine functional and state pseudo-classes:
+```ts
+px(ps.fn.has('input'), ps.focusVisible)
+```
+
+<Callout title="Type-safety benefit"> Since `px()` preserves string literal types, you get full type-checking and editor autocomplete — even for composed pseudo selectors. </Callout>
