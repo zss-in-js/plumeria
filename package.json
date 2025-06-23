@@ -10,7 +10,7 @@
   "scripts": {
     "build": "npm run build --workspaces",
     "test": "jest",
-    "dev": "cd website && npm run dev",
+    "dev": "cd docs && npm run dev",
     "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
     "test:e2e": "playwright test",
     "prettier": "prettier --write \"**/*.js\" \"**/*.ts\"",
