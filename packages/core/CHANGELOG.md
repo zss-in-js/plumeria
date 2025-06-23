@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.11.3
+
+### Patch Changes
+
+- 8773ffe: fix(core): Removed tsdown comments from npm bundle
+
 ## 0.11.2
 
 ### Patch Changes
