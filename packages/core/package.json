@@ -39,7 +39,7 @@
     "stylesheet.css"
   ],
   "scripts": {
-    "build": "tsdown"
+    "build": "tsdown && node strip-comments"
   },
   "dependencies": {
     "zss-engine": "0.2.44",
