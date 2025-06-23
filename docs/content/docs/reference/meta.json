@@ -9,6 +9,7 @@
     "defineVars",
     "defineTheme",
     "props",
+    "px",
     "rx",
     "media",
     "container",
