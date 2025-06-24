@@ -25,4 +25,4 @@ function global(object: CSSHTML): void {
       : injectClientGlobalCSS(styleSheet);
 }
 
-export default global;
+export { global };

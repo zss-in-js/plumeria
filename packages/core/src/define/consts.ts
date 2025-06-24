@@ -4,4 +4,4 @@ const defineConsts = <const T extends CreateValues>(constants: T) => {
   return constants;
 };
 
-export default defineConsts;
+export { defineConsts };

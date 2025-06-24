@@ -1,6 +1,6 @@
 import type { CreateValues, ReturnVariableType } from 'zss-engine';
 import { camelToKebabCase } from 'zss-engine';
-import { default as global } from '../main/global';
+import { global } from '../main/global';
 
 const defineVars = <const T extends CreateValues>(object: T) => {
   const styles: Record<string, CreateValues> = {
@@ -19,4 +19,4 @@ const defineVars = <const T extends CreateValues>(object: T) => {
   return result;
 };
 
-export default defineVars;
+export { defineVars };

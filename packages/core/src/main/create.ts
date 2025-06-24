@@ -39,5 +39,4 @@ function create<const T extends Record<string, CSSProperties>>(
   return Object.freeze(object as ReturnType<T>);
 }
 
-export { objectToKeyHashMap };
-export default create;
+export { create, objectToKeyHashMap };
