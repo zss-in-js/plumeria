@@ -1,5 +1,5 @@
 /* eslint-disable @plumeria/no-inner-call */
-import { default as css } from '../src/css';
+import { css } from '../src/css';
 
 const styleSheet = 'button_xhash67 { color: red; background: blue }';
 const base36hash = 'xhash67';
