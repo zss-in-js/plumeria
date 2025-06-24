@@ -1,6 +1,6 @@
 import type { Join } from 'zss-engine';
 import type { CSSProperties, RxVariableSet } from 'zss-engine';
-import { default as props } from './props';
+import { props } from './props';
 
 const px = <T extends readonly string[]>(...pseudos: T): Join<T> => {
   return pseudos.filter(Boolean).join('') as Join<T>;

@@ -15,4 +15,4 @@ const props = (
   return [...new Set(classNames)].join(' ');
 };
 
-export default props;
+export { props };

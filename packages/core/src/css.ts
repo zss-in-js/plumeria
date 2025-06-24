@@ -13,18 +13,19 @@ import type {
   ReturnRx,
 } from 'zss-engine';
 
-import { default as create } from './main/create';
-import { default as global } from './main/global';
-import { default as props } from './main/props';
+import { create } from './main/create';
+import { global } from './main/global';
+import { props } from './main/props';
 import { px, rx } from './main/utilities';
-import { default as keyframes } from './define/keyframes';
-import { default as defineVars } from './define/vars';
-import { default as defineTheme } from './define/theme';
-import { default as defineConsts } from './define/consts';
+import { keyframes } from './define/keyframes';
+import { defineVars } from './define/vars';
+import { defineTheme } from './define/theme';
+import { defineConsts } from './define/consts';
 import { media, container, color, ps } from 'zss-utils';
 
 class css {
   private constructor() {}
+
   static create<const T extends Record<string, CSSProperties>>(
     object: CreateStyleType<T>,
   ): ReturnType<T> {
@@ -77,6 +78,5 @@ class css {
   static color = color;
 }
 
-export { ps, px, rx };
-export default css;
+export { css, ps, px, rx };
 export type { CreateStyle, CSSHTML, CSSProperties };
