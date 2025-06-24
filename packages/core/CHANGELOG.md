@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.11.4
+
+### Patch Changes
+
+- e8a9b4c: fix(core/src): change to named export and import
+
 ## 0.11.3
 
 ### Patch Changes
