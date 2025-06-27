@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.11.5
+
+### Patch Changes
+
+- f87d9a0: fix: Fixed an issue where nested selector types in ReturnType<T> were collapsed by completion.
+
 ## 0.11.4
 
 ### Patch Changes
