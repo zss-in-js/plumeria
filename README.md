@@ -24,7 +24,11 @@ const styles = css.create({
   },
 });
 
-const className = css.props(styles.text, styles.size);
+const className = styles.$text;
+// class name of "text_xhashx" (string)
+
+const classNames = css.props(styles.text, styles.size);
+// class name combined with style object (string)
 ```
 
 ## 📦 Monorepo Structure
