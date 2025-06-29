@@ -73,14 +73,17 @@ module.exports = {
           node.object.type === 'Identifier' &&
           node.property.type === 'Identifier'
         ) {
-          const fullKey = `${node.object.name}.${node.property.name}`;
-          referencedKeys.add(fullKey);
+          const normalKey = `${node.object.name}.${node.property.name}`;
+          const dollerKey = `${node.object.name}.$${node.property.name}`;
+          referencedKeys.add(normalKey);
+          referencedKeys.add(dollerKey);
 
           if (parserServices && checker) {
             const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
             const symbol = checker.getSymbolAtLocation(tsNode);
             if (symbol) {
-              referencedKeys.add(fullKey);
+              referencedKeys.add(normalKey);
+              referencedKeys.add(dollerKey);
             }
           }
         }
@@ -88,8 +91,12 @@ module.exports = {
       'Program:exit'() {
         definedKeys.forEach((keyMap, variableName) => {
           keyMap.forEach((keyNode, keyName) => {
-            const fullKey = `${variableName}.${keyName}`;
-            if (!referencedKeys.has(fullKey)) {
+            const normalKey = `${variableName}.${keyName}`;
+            const dollerKey = `${variableName}.$${keyName}`;
+            if (
+              !referencedKeys.has(normalKey) &&
+              !referencedKeys.has(dollerKey)
+            ) {
               context.report({
                 node: keyNode,
                 messageId: 'unusedKey',
