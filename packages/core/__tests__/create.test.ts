@@ -25,6 +25,7 @@ describe('create function', () => {
     const styles = css.create(styleObject);
     expect(typeof styles).toBe('object');
     expect(typeof css.props(styles.button)).toBe('string');
+    expect(typeof styles.$button).toBe('string');
     expect(styles).toHaveProperty('button');
     expect(css.props(styles.button)).toBe('button_xhash67'); // Expected value using mock base36Hash;
     expect(Object.isFrozen(styles)).toBe(true); // Check that the resulting object is frozen;
