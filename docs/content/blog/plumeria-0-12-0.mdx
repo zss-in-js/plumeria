@@ -1,0 +1,45 @@
+---
+title: 'Plumeria 0.12.0'
+description: 'Developer experience (DX) has been greatly improved (2 min read)'
+date: '2025/06/29'
+---
+
+## Imporved a way for return class name.  
+
+- `styles.$name` can now be used as a `className` **accessor**.
+
+**Example**: `styles.$button`
+
+The previous `styles.button` (object) can still be used.
+
+### definingStyles
+
+```ts
+const styles = css.create({
+  button: {
+    color: "blue",
+  },
+  size: {
+    width: 24,
+    height: 24,
+  },
+})
+```
+
+```tsx
+<div className={styles.$button} /> // assign a string directly
+```
+You can put it directly as a string by prepending a `$`, this will act as a key hash **directly**.  
+This is useful if you want to apply a **single** style.
+
+The class name is not meta information of the style object, but an **artifact(representation)** of the style.
+Therefore, it is provided in a flat structure: `styles.$name`.
+
+> Provides a clean separation between design `(objects)` and presentation `(class names)`.  
+Apply a single style intuitively with `styles.$name` . Apply multiple or conditional styles explicitly with `css.props()`.
+
+If you want to apply multiple classes as per the previous syntax, the following syntax is supported:
+
+```tsx
+<div className={css.props(styles.button, styles.size)} />
+```
