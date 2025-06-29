@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "css --type-check && next build",
-    "dev": "css & next dev",
+    "dev": "css & NODE_OPTIONS='--inspect' next dev",
     "start": "next start",
     "postinstall": "fumadocs-mdx"
   },
