@@ -6,11 +6,19 @@ const px = <T extends readonly string[]>(...pseudos: T): Join<T> => {
   return pseudos.filter(Boolean).join('') as Join<T>;
 };
 
-const rx = (cssProperties: Readonly<CSSProperties>, varSet: RxVariableSet) => ({
-  className: props(cssProperties),
-  style: Object.fromEntries(
-    Object.entries(varSet).map(([key, value]) => [key, value]),
-  ),
-});
+const rx = (
+  styleProps: string | Readonly<CSSProperties>,
+  varSet: RxVariableSet,
+) => {
+  const className =
+    typeof styleProps === 'string' ? styleProps : props(styleProps);
+
+  return {
+    className,
+    style: Object.fromEntries(
+      Object.entries(varSet).map(([key, value]) => [key, value]),
+    ),
+  };
+};
 
 export { px, rx };
