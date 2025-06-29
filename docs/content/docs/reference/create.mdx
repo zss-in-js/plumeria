@@ -36,7 +36,7 @@ const styles = css.create({
   display: flex;
   justify-content: space-between;
 }
-.link_ibxiag {
+.text_ibxiag {
   font-size: 14px;
   text-decoration: none;
 }
@@ -47,7 +47,11 @@ const styles = css.create({
 ## ⚙️ Usage
 
 ```jsx title="JSX"
-<div className={css.props(styles.container, styles.text)}>text<div>
+<h2 className={styles.$text}>heading</h2>
+// $text of "text_ibxiag"
+
+<div className={css.props(styles.container, styles.text)}>text</div>
+// css.props of return "container_ibxiag text_ibxiag"
 ```
 
 ## ⚠️ Beware of circular references
