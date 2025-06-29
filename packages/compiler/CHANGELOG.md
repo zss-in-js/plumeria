@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.12.0
+
+### Minor Changes
+
+- b273ff1: feat: Returns the className directly with the dollar sign
+
 ## 0.11.0
 
 ### Minor Changes
