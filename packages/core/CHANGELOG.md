@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.12.1
+
+### Patch Changes
+
+- 4b8c0ef: feat: readme update
+
 ## 0.12.0
 
 ### Minor Changes
