@@ -50,8 +50,13 @@ const styles = css.create({
 const className = css.props(styles.text, styles.box);
 ```
 
-Use `css.props()` to convert a style object into a string with a hashed key.  
-You can use them like this:
+If you only have one style, you can get the class name directly with the $ accessor:
+
+```jsx
+<div className={styles.$text} />
+```
+
+Use `css.props()` to combine multiple styles or switch between them conditionally.
 
 ```jsx
 <div className={css.props(styles.text, styles.box)} />
