@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.2.4
+
+### Patch Changes
+
+- eebd506: feat: supports $ accessor
+
 ## 0.2.3
 
 ### Patch Changes
