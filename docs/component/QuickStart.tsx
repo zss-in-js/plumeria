@@ -66,7 +66,7 @@ const animated = css.create({
 
 export const Box = () => {
   return (
-    <div className={css.props(styles.container)}>
+    <div className={styles.$container}>
       <span>
         hover
         <span tabIndex={0} className={css.props(styles.card, animated.hover)} />
