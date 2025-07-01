@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- eebd506: feat: supports $ accessor
+- eebd506: feat: rule no-unused-keys supports $ accessor
 
 ## 0.2.3
 
