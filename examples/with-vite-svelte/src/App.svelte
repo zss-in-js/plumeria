@@ -3,7 +3,6 @@
   import viteLogo from '/vite.svg'
   import Counter from './lib/Counter.svelte'
   import { styles } from './style'
-  import { css } from '@plumeria/core'
 </script>
 
 <main>
@@ -15,7 +14,7 @@
       <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
     </a>
   </div>
-  <h1 class={css.props(styles.color)} >Vite + Svelte + Plumeria</h1>
+  <h1 class={styles.$color} >Vite + Svelte + Plumeria</h1>
 
   <div class="card">
     <Counter />
