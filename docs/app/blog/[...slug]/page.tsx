@@ -20,15 +20,15 @@ export default async function Page(props: { params: Promise<{ slug?: Array<strin
   const MDX = page.data.body;
 
   return (
-    <article className={css.props(styles.article)}>
-      <div className={css.props(styles.backLinkWrapper)}>
+    <article className={styles.$article}>
+      <div className={styles.$backLinkWrapper}>
         <Link href="/blog" className={css.props(styles.backLink)}>
           ← Back to blog
         </Link>
       </div>
 
-      {page.data.title && <h1 className={css.props(styles.title)}>{page.data.title}</h1>}
-      <p className={css.props(styles.date)}>{page.data.date}</p>
+      {page.data.title && <h1 className={styles.$title}>{page.data.title}</h1>}
+      <p className={styles.$date}>{page.data.date}</p>
       <DocsBody>
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>

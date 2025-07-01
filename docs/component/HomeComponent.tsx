@@ -96,19 +96,19 @@ const demoCode = ` text: { fontSize: 16, color: 'pink' }
 
 export const HomeComponent = () => {
   return (
-    <main className={css.props(styles.container)}>
+    <main className={styles.$container}>
       <Plumeria />
-      <div className={css.props(styles.inlineword)}>
+      <div className={styles.$inlineword}>
         Zero-Runtime CSS-in-JS
         <br />
-        <span className={css.props(styles.textSize)}>Compile at build-time. No runtime overhead.</span>
+        <span className={styles.$textSize}>Compile at build-time. No runtime overhead.</span>
       </div>
       <CodeBlock code={demoCode} lang="text" />
-      <div className={css.props(styles.link_box)}>
+      <div className={styles.$link_box}>
         <Link href="/docs/getting-started/installation" className={css.props(styles.button, styles.getStarted)}>
           GET STARTED
         </Link>
-        <Link href="/docs" className={css.props(styles.button)}>
+        <Link href="/docs" className={styles.$button}>
           THINKING
         </Link>
       </div>
