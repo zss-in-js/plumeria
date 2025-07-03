@@ -1,11 +1,18 @@
-import type { CSSProperties, CreateStyleType, ReturnType } from 'zss-engine';
+import type {
+  CSSProperties,
+  CreateStyle,
+  CreateStyleType,
+  ReturnType,
+} from 'zss-engine';
 import {
-  transpiler,
+  transpile,
   isServer,
   isTestingDevelopment,
   injectServerCSS,
   injectClientCSS,
   genBase36Hash,
+  splitAtomicAndNested,
+  processAtomicProps,
 } from 'zss-engine';
 import {
   initPromise_1,
@@ -14,37 +21,55 @@ import {
 } from '../processors/css';
 
 const objectToKeyHashMap = new WeakMap<CSSProperties, string>();
-
 function create<const T extends Record<string, CSSProperties>>(
   object: CreateStyleType<T>,
 ): ReturnType<T> {
-  const base36Hash = genBase36Hash(object, 6);
-  const { styleSheet } = transpiler(object, base36Hash);
-  const injectCSS = isServer ? injectServerCSS : injectClientCSS;
-  const injectIfNeeded = () => {
-    if (isTestingDevelopment) injectCSS(base36Hash, styleSheet);
-  };
-  if (typeof globalPromise_1 === 'undefined') initPromise_1();
-  resolvePromise_1(styleSheet);
-
   const result = {};
 
   Object.keys(object).forEach((key) => {
     const cssProperties = object[key];
-    const hashedClassName = key + '_' + base36Hash;
-    objectToKeyHashMap.set(cssProperties, hashedClassName);
+    const atomicHashes: string[] = [];
+    const allStyleSheets: string[] = [];
+
+    const flat: CreateStyle = {};
+    const nonFlat: CreateStyle = {};
+    splitAtomicAndNested(cssProperties, flat, nonFlat);
+
+    // flat atomics process
+    processAtomicProps(flat, undefined, atomicHashes, allStyleSheets);
+
+    // non flat process
+    if (Object.keys(nonFlat).length > 0) {
+      // Pass the top key
+      const nonFlatObj = { [key]: nonFlat };
+      const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
+      atomicHashes.push(nonFlatHash);
+
+      const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
+      allStyleSheets.push(styleSheet);
+    }
+
+    const injectIfNeeded = isServer ? injectServerCSS : injectClientCSS;
+
+    if (typeof globalPromise_1 === 'undefined') initPromise_1();
+    resolvePromise_1(allStyleSheets.join('\n'));
+
+    const combinedClassName = atomicHashes.join(' ');
+    objectToKeyHashMap.set(cssProperties, combinedClassName);
+
+    if (isTestingDevelopment) {
+      injectIfNeeded(combinedClassName, allStyleSheets.join('\n'));
+    }
 
     Object.defineProperty(result, key, {
       get: () => {
-        injectIfNeeded();
         return Object.freeze(cssProperties);
       },
     });
 
     Object.defineProperty(result, '$' + key, {
       get: () => {
-        injectIfNeeded();
-        return hashedClassName;
+        return combinedClassName;
       },
     });
   });
