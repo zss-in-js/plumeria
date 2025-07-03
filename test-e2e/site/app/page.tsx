@@ -9,20 +9,14 @@ const styles = css.create({
   },
 });
 
-css.global({
-  h1: {
-    color: 'cyan',
-  },
-});
-
 export default function Home() {
   return (
     <main>
-      <h1>Typed CSS X E2E Test</h1>
+      <h1>@plumeria/core E2E Test</h1>
       <h2 className={css.props(styles.page)}>server component</h2>
       <Link href="/server">Server Page</Link>
-      <E2ETest />
       <Conflict />
+      <E2ETest />
     </main>
   );
 }
