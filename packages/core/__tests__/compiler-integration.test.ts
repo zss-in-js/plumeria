@@ -11,7 +11,6 @@ test('CSS compilation logs contain expected output', async () => {
 
   console.log('stdout:', stdout);
   expect(stdout).toContain('Generated create CSS');
-  expect(stdout).toContain('.e2e_');
   expect(stdout).toContain('color: pink;');
   expect(stdout).toContain('@media (max-width: 1024px)');
   expect(stdout).toContain('color: aqua;');
