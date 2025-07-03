@@ -3,7 +3,7 @@ import { genBase36Hash } from 'zss-engine';
 import { global } from '../main/global';
 
 const keyframes = (object: CreateKeyframes): string => {
-  const prefix = genBase36Hash(object, 8);
+  const prefix = genBase36Hash(object, 1, 8);
   global({ [`@keyframes ${prefix}`]: object });
   return prefix;
 };
