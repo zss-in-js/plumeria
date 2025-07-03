@@ -36,7 +36,7 @@ function create<const T extends Record<string, CSSProperties>>(
     splitAtomicAndNested(cssProperties, flat, nonFlat);
 
     // flat atomics process
-    processAtomicProps(flat, undefined, atomicHashes, allStyleSheets);
+    processAtomicProps(flat, atomicHashes, allStyleSheets);
 
     // non flat process
     if (Object.keys(nonFlat).length > 0) {
