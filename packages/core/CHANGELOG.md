@@ -6,6 +6,41 @@
 
 - d7dcf5d: feat(core, compiler): atomicize create function
 
+Background:
+The main create function had a large impact on CSS size.
+This was atomized to make it easier to scale.
+
+Change:
+
+- Fixed create() into distinct atomicize styles:
+
+Impact:
+
+- Atomization of the main create function minimizes linear growth of CSS bundles
+
+When using a class name in has is where, you can use it dynamically by cutting the variable as follows.
+
+```ts
+// Object that summarizes color styles
+const colorStyles = css.create({
+  primaryText: {
+    color: 'pink',
+    [css.media.maxWidth(765)]: {
+      color: 'skyblue',
+    },
+  },
+});
+
+// Use has() to change the font size of elements that have primaryText
+const layoutStyles = css.create({
+  highlightedSection: {
+    [ps.fn.has(colorStyles.$primaryText)]: {
+      fontSize: 24,
+    },
+  },
+});
+```
+
 ## 0.12.1
 
 ### Patch Changes
