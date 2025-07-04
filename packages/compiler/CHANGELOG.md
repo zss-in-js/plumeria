@@ -6,6 +6,14 @@
 
 - d7dcf5d: feat(core, compiler): atomicize create function
 
+Change:
+
+- Added post-processing in postcss rule to merge media selectors.
+
+Impact:
+
+- This helps to keep CSS bundle sizes small.
+
 ## 0.12.0
 
 ### Minor Changes
