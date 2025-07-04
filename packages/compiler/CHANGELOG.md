@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.13.0
+
+### Minor Changes
+
+- d7dcf5d: feat(core, compiler): atomicize create function
+
 ## 0.12.0
 
 ### Minor Changes
