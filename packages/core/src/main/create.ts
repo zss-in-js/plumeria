@@ -21,6 +21,8 @@ import {
 } from '../processors/css';
 
 const objectToKeyHashMap = new WeakMap<CSSProperties, string>();
+const injectedStyleSheets = new Set<string>();
+
 function create<const T extends Record<string, CSSProperties>>(
   object: CreateStyleType<T>,
 ): ReturnType<T> {
@@ -28,8 +30,8 @@ function create<const T extends Record<string, CSSProperties>>(
 
   Object.keys(object).forEach((key) => {
     const cssProperties = object[key];
-    const atomicHashes: string[] = [];
-    const allStyleSheets: string[] = [];
+    const atomicHashes = new Set<string>();
+    const allStyleSheets = new Set<string>();
 
     const flat: CreateStyle = {};
     const nonFlat: CreateStyle = {};
@@ -43,22 +45,33 @@ function create<const T extends Record<string, CSSProperties>>(
       // Pass the top key
       const nonFlatObj = { [key]: nonFlat };
       const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
-      atomicHashes.push(nonFlatHash);
+      atomicHashes.add(nonFlatHash);
 
       const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
-      allStyleSheets.push(styleSheet);
+      allStyleSheets.add(styleSheet);
     }
 
     const injectIfNeeded = isServer ? injectServerCSS : injectClientCSS;
 
     if (typeof globalPromise_1 === 'undefined') initPromise_1();
-    resolvePromise_1(allStyleSheets.join('\n'));
+    resolvePromise_1([...allStyleSheets].join('\n'));
 
-    const combinedClassName = atomicHashes.join(' ');
+    // Extract only non-duplicate styleSheets
+    const uniqueStyleSheets = [...allStyleSheets].filter(
+      (sheet) => !injectedStyleSheets.has(sheet),
+    );
+
+    // Add the new styleSheets to injectedStyleSheets.
+    uniqueStyleSheets.forEach((sheet) => injectedStyleSheets.add(sheet));
+
+    const combinedClassName = [...atomicHashes].join(' ');
     objectToKeyHashMap.set(cssProperties, combinedClassName);
 
     if (isTestingDevelopment) {
-      injectIfNeeded(combinedClassName, allStyleSheets.join('\n'));
+      // Inject only deduplicated styleSheets
+      if (uniqueStyleSheets.length > 0) {
+        injectIfNeeded(combinedClassName, uniqueStyleSheets.join('\n'));
+      }
     }
 
     Object.defineProperty(result, key, {
