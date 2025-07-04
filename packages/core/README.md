@@ -32,34 +32,37 @@ import '@plumeria/core/stylesheet.css';
 
 ### `css.create()`
 
-Define a set of styles:
+Define a set of atomic styles:
 
 ```ts
 import { css, ps } from '@plumeria/core';
 
 const styles = css.create({
-  box: {
-    width: '100%',
-    color: 'rgb(60,60,60)',
-  },
   text: {
-    color: 'yellow',
+    color: 'yellow', // xhash1x
+  },
+  box: {
+    width: '100%', // xhash2x
+    background: 'rgb(60,60,60)', // xhash3x
   },
 });
 
 const className = css.props(styles.text, styles.box);
+// className is "xhash1x xhash2x xhash3x"
 ```
 
 If you only have one style, you can get the class name directly with the $ accessor:
 
 ```jsx
 <div className={styles.$text} />
+// className is "xhash1x"
 ```
 
 Use `css.props()` to combine multiple styles or switch between them conditionally.
 
 ```jsx
 <div className={css.props(styles.text, styles.box)} />
+// "xhash1x xhash2x xhash3x"
 ```
 
 Supports pseudo/media queries inline:
