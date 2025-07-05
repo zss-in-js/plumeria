@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@plumeria/core": "^0.13.1",
+    "@plumeria/eslint-plugin": "^0.2.4",
     "next": "15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -23,7 +24,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.1.5",
-    "eslint-plugin-zss-lint": "^0.2.2",
     "typescript": "^5"
   }
 }
