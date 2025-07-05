@@ -10,6 +10,10 @@ It ensures **type-safe keys**, **compile-time validation**, and **scoped class n
 
 Plumeria statically extracts styles at build time, so there's **no runtime cost** or CSS injection overhead.
 
+<Callout title="Atomic API">
+Even when used repeatedly, it has almost no impact on CSS bundle size.
+</Callout>
+
 ## 🧪 Example
 
 <Tabs items={['tsx', 'css']}>
@@ -20,12 +24,12 @@ import { css } from '@plumeria/core'
 
 const styles = css.create({
   container: {
-    display: 'flex',
-    justifyContent: 'space-between',
+    display: 'flex', // xhash1x
+    justifyContent: 'space-between', // xhash2x
   },
   text: {
-    fontSize: '14px',
-    textDecoration: 'none',
+    fontSize: '14px', // xhash3x
+    textDecoration: 'none', // xhash4x
   },
 })
 ```
@@ -48,10 +52,10 @@ const styles = css.create({
 
 ```jsx title="JSX"
 <h2 className={styles.$text}>heading</h2>
-// $text of "text_ibxiag"
+// $text is "xhash3x xhash4x"
 
-<div className={css.props(styles.container, styles.text)}>text</div>
-// css.props of return "container_ibxiag text_ibxiag"
+<div className={css.props(styles.container, styles.text)}>text</div> // object to string
+// css.props of return "xhash1x xhash2x xhash3x xhash4x"
 ```
 
 ## ⚠️ Beware of circular references
