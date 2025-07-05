@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.13.1
+
+### Patch Changes
+
+- ee2911e: feat(core): add AtomicClass property and value for hover completion
+
 ## 0.13.0
 
 ### Minor Changes
