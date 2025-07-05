@@ -1,0 +1,57 @@
+---
+title: 'Plumeria 0.13.0'
+description: 'The create function is now atomic and css bundling has been improved (2 min read)'
+date: '2025/07/05'
+---
+
+## Imporved `create` function in Main API
+
+The create function creates an atom based on a set of properties and values and reuses the same atom.
+More details are available on GitHub and in the npm readme, but it creates a hash class for each property.
+
+### Simple example:
+```ts
+import { css } from '@plumeria/core';
+
+const styles = css.create({
+  text: {
+    fontSize: 12, // xhash1x
+    color: 'navy', // xhash2x
+  },
+});
+
+const className = styles.$text;
+// className is "xhash1x xhash2x"
+
+const classNames = css.props(styles.text); // if you want to apply more styles
+// classNames is "xhash1x xhash2x
+```
+
+The API will be the same as before, but the new hash of atoms may make the classes harder to find in development tools.
+
+In development mode, the class name is set as the id of the `<style>` in the `<head>`, and you can see a list of classes that are being used and reused.
+
+
+When using pseudo selectors, be aware that they are not pooled into atoms (the hash chunks are grouped together per selector).
+
+## A Sample Project:
+### Effect of reuse rate
+Below is an example of a comparison of style sizes between atomic and semantic:
+| Style                  | Size        | Version |
+|------------------------|-------------|----------|
+| Semantic (traditional) | 3,229 bytes |  v0.12.0 |
+| Atomic                 | 2,687 bytes |  v0.13.0 |
+
+
+In this case, a reuse effect of about 16.78% was observed.
+As the number of styles in the entire project increases, atomicization will lead to further class reuse, and even greater size reduction effects can be expected.
+
+However, this only measures the bundle of the create function, and global is still the traditional semantic style, so it should be kept to a minimum.
+
+## New Hash Improvements
+The distribution rate of hash generation has been greatly improved.
+
+The property-value set object is converted to a string using `MurmurHash3`'s `32-bit` string format and used for the hash.
+
+The hash looks much cleaner because `toString(36)` is used.
+The uniqueness of atoms is guaranteed, eliminating most concerns about collisions.
