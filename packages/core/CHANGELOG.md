@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.13.2
+
+### Patch Changes
+
+- b937df7: fix: Fixed a small console output bug and fixed atomic hash to 8 characters.
+
 ## 0.13.1
 
 ### Patch Changes
