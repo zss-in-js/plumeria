@@ -13,6 +13,7 @@
     "dev": "cd docs && npm run dev",
     "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
     "test:e2e": "playwright test",
+    "update:examples": "./update_examples.sh",
     "prettier": "prettier --write \"**/*.js\" \"**/*.ts\"",
     "prettier:report": "prettier --check \"**/*.js\" \"**/*.ts\"",
     "lint:report": "eslint --fix"
