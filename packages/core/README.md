@@ -39,30 +39,30 @@ import { css, ps } from '@plumeria/core';
 
 const styles = css.create({
   text: {
-    color: 'yellow', // xhash1x
+    color: 'yellow', // xxxhash1
   },
   box: {
-    width: '100%', // xhash2x
-    background: 'rgb(60,60,60)', // xhash3x
+    width: '100%', // xxxhash2
+    background: 'rgb(60,60,60)', // xxxhash3
   },
 });
 
 const className = css.props(styles.text, styles.box);
-// className is "xhash1x xhash2x xhash3x"
+// className is "xxxhash1 xxxhash2 xxxhash3"
 ```
 
 If you only have one style, you can get the class name directly with the $ accessor:
 
 ```jsx
 <div className={styles.$text} />
-// className is "xhash1x"
+// className is "xxxhash1"
 ```
 
 Use `css.props()` to combine multiple styles or switch between them conditionally.
 
 ```jsx
 <div className={css.props(styles.text, styles.box)} />
-// "xhash1x xhash2x xhash3x"
+// "xxxhash1 xxxhash2 xxxhash3"
 ```
 
 Supports pseudo/media queries inline:
