@@ -24,19 +24,19 @@ import { css } from '@plumeria/core';
 
 const styles = css.create({
   text: {
-    fontSize: 12, // xhash1x
-    color: 'navy', // xhash2x
+    fontSize: 12, // xxxhash1
+    color: 'navy', // xxxhash2
   },
   size: {
-    width: 120, // xhash3x
+    width: 120, // xxxhash3
   },
 });
 
 const className = styles.$text; // (string)
-// className is "xhash1x xhash2x"
+// className is "xxxhash1 xxxhash2"
 
 const classNames = css.props(styles.text, styles.size); // (object to string)
-// classNames is "xhash1x xhash2x xhash3x"
+// classNames is "xxxhash1 xxxhash2 xxxhash3"
 ```
 
 ## 📦 Monorepo Structure
