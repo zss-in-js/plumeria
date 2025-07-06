@@ -15,16 +15,16 @@ import { css } from '@plumeria/core';
 
 const styles = css.create({
   text: {
-    fontSize: 12, // xhash1x
-    color: 'navy', // xhash2x
+    fontSize: 12, // xxxhash1
+    color: 'navy', // xxxhash2
   },
 });
 
 const className = styles.$text;
-// className is "xhash1x xhash2x"
+// className is "xxxhash1 xxxhash2"
 
 const classNames = css.props(styles.text); // if you want to apply more styles
-// classNames is "xhash1x xhash2x
+// classNames is "xxxhash1x xxxhash2
 ```
 
 The API will be the same as before, but the new hash of atoms may make the classes harder to find in development tools.
