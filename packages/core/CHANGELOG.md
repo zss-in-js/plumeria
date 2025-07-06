@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.13.3
+
+### Patch Changes
+
+- 310e0ff: fix: console output remove unnecessary lines
+
 ## 0.13.2
 
 ### Patch Changes
