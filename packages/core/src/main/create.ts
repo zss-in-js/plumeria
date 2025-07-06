@@ -54,7 +54,7 @@ function create<const T extends Record<string, CSSProperties>>(
     const injectIfNeeded = isServer ? injectServerCSS : injectClientCSS;
 
     if (typeof globalPromise_1 === 'undefined') initPromise_1();
-    resolvePromise_1([...allStyleSheets].join('\n'));
+    resolvePromise_1([...allStyleSheets].join(''));
 
     // Extract only non-duplicate styleSheets
     const uniqueStyleSheets = [...allStyleSheets].filter(
