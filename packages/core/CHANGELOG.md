@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.13.4
+
+### Patch Changes
+
+- 1d079e6: fix(core/create.ts): Improved output without post-processing
+
 ## 0.13.3
 
 ### Patch Changes
