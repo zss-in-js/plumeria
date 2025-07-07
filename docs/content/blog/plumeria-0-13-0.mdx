@@ -40,18 +40,19 @@ Below is an example of a comparison of style sizes between atomic and semantic:
 | Style                  | Size        | Version |
 |------------------------|-------------|----------|
 | Semantic (traditional) | 3,229 bytes |  v0.12.0 |
-| Atomic                 | 2,687 bytes |  v0.13.0 |
+| Atomic                 | 2,744 bytes |  v0.13.4 |
 
 
-In this case, a reuse effect of about 16.78% was observed.
+In this case, a reuse effect of about 15.02% was observed.
 As the number of styles in the entire project increases, atomicization will lead to further class reuse, and even greater size reduction effects can be expected.
 
 However, this only measures the bundle of the create function, and global is still the traditional semantic style, so it should be kept to a minimum.
 
+※: In order to improve the stability of the collision rate of the atomic class, the number of characters has been changed from 7 to 8 in **v0.13.2** and later. The actual measured values in this table are the values after the change to 8 characters.
 ## New Hash Improvements
 The distribution rate of hash generation has been greatly improved.
 
 The property-value set object is converted to a string using `MurmurHash3`'s `32-bit` string format and used for the hash.
-
+a
 The hash looks much cleaner because `toString(36)` is used.
 The uniqueness of atoms is guaranteed, eliminating most concerns about collisions.
