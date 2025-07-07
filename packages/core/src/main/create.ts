@@ -53,9 +53,6 @@ function create<const T extends Record<string, CSSProperties>>(
 
     const injectIfNeeded = isServer ? injectServerCSS : injectClientCSS;
 
-    if (typeof globalPromise_1 === 'undefined') initPromise_1();
-    resolvePromise_1([...allStyleSheets].join(''));
-
     // Extract only non-duplicate styleSheets
     const uniqueStyleSheets = [...allStyleSheets].filter(
       (sheet) => !injectedStyleSheets.has(sheet),
@@ -63,6 +60,10 @@ function create<const T extends Record<string, CSSProperties>>(
 
     // Add the new styleSheets to injectedStyleSheets.
     uniqueStyleSheets.forEach((sheet) => injectedStyleSheets.add(sheet));
+
+    // CSS part compilation by the Processor
+    if (typeof globalPromise_1 === 'undefined') initPromise_1();
+    resolvePromise_1(uniqueStyleSheets.join(''));
 
     const combinedClassName = [...atomicHashes].join(' ');
     objectToKeyHashMap.set(cssProperties, combinedClassName);
