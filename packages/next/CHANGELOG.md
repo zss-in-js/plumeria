@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.6.8
+
+### Patch Changes
+
+- d2965eb: feat(next): devDependencies update
+
 ## 0.6.7
 
 ### Patch Changes
