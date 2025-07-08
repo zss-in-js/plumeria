@@ -43,27 +43,61 @@ Example output:
 ```sh title="Terminal"
 ✅Generated global CSS
 
-@keyframes qot92n7o {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+:root {
+  --mini: 12px;
+  --medium: 16px;
+  --large: 24px;
 }
 
 ✅Generated global CSS
 
-::view-transition-old(ybrzha82) {
-  animation-name: ybrzha82;
-  animation-duration: 0.4s;
-  animation-timing-function: ease;
+:root {
+  --white: white;
+  --black: black;
+  --text-primary: #eaeaea;
+  --text-secondary: #333;
+  --link: lightblue;
+  --accent: purple;
 }
-::view-transition-new(qot92n7o) {
-  animation-name: qot92n7o;
-  animation-duration: 0.4s;
-  animation-timing-function: ease;
+
+✅Generated global CSS
+
+:root {
+  --text-primary: rgb(60,60,60);
 }
+:root[data-theme="light"] {
+  --text-primary: black;
+  --bg-primary: white;
+}
+:root[data-theme="dark"] {
+  --text-primary: white;
+  --bg-primary: black;
+}
+
+✅Generated global CSS
+
+h1 {
+  color: #ffa0a0;
+}
+
+✅Generated create CSS
+
+.s1dc3zs0 { color: orange; }
+
+✅Generated create CSS
+
+.s13vu618 { color: pink; }
+@media (max-width: 1024px) { .y1ndonkg { color: aqua; } }
+
+✅Generated create CSS
+
+.s1x6w4y4 { font-size: 14px; }
+.a14a2jwa { line-height: var(--mini); }
+
+✅Generated create CSS
+
+.k1f4cjxk { color: green; }
+
  ✓ Compiled... 
 ```
 
