@@ -52,8 +52,9 @@ const styles = css.create({
   button: {
     position: 'relative',
     zIndex: 1,
-    width: '180px',
-    padding: '12px 26px',
+    width: '160px',
+    padding: '8px 26px',
+    marginTop: 8,
     fontSize: 15,
     fontWeight: '600',
     textAlign: 'center',
@@ -69,6 +70,8 @@ const styles = css.create({
       position: 'relative',
       left: -10,
       width: 180,
+      padding: '10px 26px',
+      marginTop: 0,
       marginRight: -20,
       whiteSpace: 'nowrap',
       scale: 0.8,
@@ -90,10 +93,10 @@ const styles = css.create({
   },
 });
 
-const demoCode = ` text: { fontSize: 16, color: 'pink' }
+const demoCode = ` text: { fontSize: 16, color: "pink" }
  ↓
-.text_lgulad { font-size: 16px; color: pink; }`;
-
+.aftshu08 { font-size: 16px; }
+.s13vu618 { color: pink }`;
 export const HomeComponent = () => {
   return (
     <main className={styles.$container}>
