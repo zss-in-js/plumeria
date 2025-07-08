@@ -5,26 +5,29 @@ description: "Learn more about Plumeria's CSS-in-JS design principles"
 import { Step, Steps } from "fumadocs-ui/components/steps";
 
 
-Plumeria’s compiler behaves like CSS: selectors declared later always take precedence.  
-The final CSS respects the declaration order inside your function, preserving source code structure.
-
 
 
 <Steps>
 <Step>
-## AOT (Ahead-Of-Time) Compiler
+## Conflicts
 
-Plumeria compiles styles independently from your framework’s build system.  
-This allows it to safely and deterministically emit CSS ahead of time,  
+Property conflicts occur when multiple classes target the same CSS property. All atomic CSS classes and selector classes have the same specificity, so later-declared properties take precedence.
+When multiple classes target the same CSS property, resolve conflicts by removing conflicting properties. 
+The final CSS respects the declaration order inside your function, preserving source code structure.
+</Step>
+
+<Step>
+## Compiler
+
+Plumeria uses an **AOT (Ahead-Of-Time) compiler** that compiles styles independently from your framework’s build system. This allows it to safely and deterministically emit CSS ahead of time,  
 with no runtime style generation and no interference with your app’s bundling pipeline.
 </Step>
 
 <Step>
 ## Compilation Speed
 
-Built on SWC, Plumeria’s compiler is extremely fast—**0.0005s per file**, compiling up to **2000 style files per second**.  
-It runs in parallel with your dev server (like Next.js), finishing before your app even starts.  
-There’s **zero delay** in your development flow.
+Built on SWC, Plumeria’s compiler is extremely fast—**0.0005s per file**, compiling up to **2000 style files per second**.
+It runs in parallel with your dev server (like Next.js), finishing before your app even starts. There’s **zero delay** in your development flow.
 </Step>
 
 <Step>
@@ -38,15 +41,15 @@ You’ll catch all styling issues statically, before they hit production.
 <Step>
 ## Performance
 
-Plumeria avoids unnecessary DOM pollution by promoting semantic styling.  
-Short class hashes reduce CSS payload, and post-processing via **lightningcss** and **PostCSS** ensures  
-that production styles are fully minified and compressed—**without adding any initial cost**.
+Plumeria provides a create method with an atomic class as its main API.
+`create()` reduces the bundle size of unnecessary CSS in production by more than 15%.
+Short class hashes reduce CSS payload, and post-processing via **lightningcss** and **PostCSS** fully minifies and compresses production styles—**without adding any initial cost**.
 </Step>
 
 <Step>
 ## Optimization
 
-Unused style objects are automatically tree-shaken at build time.  
+Style objects are automatically tree-shaken at build time.  
 Because styles are declared outside components, they never run at runtime.  
 Your production bundle contains only the final CSS, not style declarations.
 </Step>
