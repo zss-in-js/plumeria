@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.13.6
+
+### Patch Changes
+
+- 2fdfae5: fix: Fixed an issue in 0.13.4 and below where flat atom classes in media queries would conflict with regular atom classes
+
 ## 0.13.5
 
 ### Patch Changes
