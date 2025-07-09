@@ -4,7 +4,16 @@
 
 ### Patch Changes
 
-- 2fdfae5: fix: Fixed an issue in 0.13.4 and below where flat atom classes in media queries would conflict with regular atom classes
+- 2fdfae5: fix: Fixed an issue in 0.13.4 and below where flat atom classes in media queries would conflict with regular atom classes.
+
+This was resolved by hashing media as an object.
+
+```ts
+const hashInput = parentAtRule
+  ? { [parentAtRule]: singlePropObj }
+  : singlePropObj;
+const atomicHash = genBase36Hash(hashInput, 1, 8);
+```
 
 ## 0.13.5
 
