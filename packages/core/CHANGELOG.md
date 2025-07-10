@@ -4,7 +4,43 @@
 
 ### Patch Changes
 
-- 6fb1843: fix(deps): add px exception list: dependencies update
+- 6fb1843: fix(deps): add px exception list: dependencies update.
+
+These are lists that contain numbers as type number but are not converted to pixels.
+
+```ts
+const exception = [
+  'animation-iteration-count',
+  'column-count',
+  'columns',
+  'fill-opacity',
+  'flex',
+  'flex-grow',
+  'flex-shrink',
+  'flood-opacity',
+  'font-size-adjust',
+  'font-weight',
+  'grid-column',
+  'grid-column-end',
+  'grid-column-start',
+  'grid-row',
+  'grid-row-end',
+  'grid-row-start',
+  'initial-letter',
+  'line-height',
+  'opacity',
+  'order',
+  'orphans',
+  'scale',
+  'shape-image-threshold',
+  'stop-opacity',
+  'stroke-opacity',
+  'tab-size',
+  'widows',
+  'z-index',
+  'zoom',
+];
+```
 
 ## 0.13.6
 
