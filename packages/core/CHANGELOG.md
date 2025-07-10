@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.13.7
+
+### Patch Changes
+
+- 6fb1843: fix(deps): add px exception list: dependencies update
+
 ## 0.13.6
 
 ### Patch Changes
