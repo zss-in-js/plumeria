@@ -84,8 +84,8 @@ importers:
   packages/core:
     dependencies:
       zss-engine:
-        specifier: 0.2.62
-        version: 0.2.62
+        specifier: 0.2.63
+        version: 0.2.63
       zss-utils:
         specifier: 0.2.4
         version: 0.2.4
@@ -102,8 +102,8 @@ importers:
         specifier: 15.2.4
         version: 15.2.4(@babel/core@7.26.10)(@playwright/test@1.51.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       zss-engine:
-        specifier: 0.2.62
-        version: 0.2.62
+        specifier: 0.2.63
+        version: 0.2.63
 
   packages/vite:
     devDependencies:
@@ -3011,8 +3011,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zss-engine@0.2.62:
-    resolution: {integrity: sha512-N2OvEsgCqPLy93S/VhhbrDCOMAlct73kmhZ0BzmQryU8A6BK+35vuyQ6okleRet0TPJ09MEZDlssP9kvMsYnSw==}
+  zss-engine@0.2.63:
+    resolution: {integrity: sha512-6XsnIzdCj0qhDLAwOQRByG2I3LXV5EzuywGjDCGSMf/LNuyh8Dqt3WnWVvziBg8SMB1aMetPEsOhNw4Dw2gz/Q==}
 
   zss-utils@0.2.4:
     resolution: {integrity: sha512-FPgERlp/upSkQ20XEgHCperRzVi+IIzBGYDzq9eK3ORvRhrmWbhoYxx/ulXU/fFTbuHOu319aOQAmBO00X23ew==}
@@ -6063,7 +6063,7 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zss-engine@0.2.62:
+  zss-engine@0.2.63:
     dependencies:
       csstype: 3.1.3
 
