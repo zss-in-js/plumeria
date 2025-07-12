@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.13.8
+
+### Patch Changes
+
+- cc91683: feat: README.md update
+
 ## 0.13.7
 
 ### Patch Changes
