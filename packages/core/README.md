@@ -1,6 +1,6 @@
 # @plumeria/core
 
-**Zero-runtime, expressive CSS-in-JS library for TypeScript.**
+**Scalable and intuitive styling in design systems.**
 
 ## 🌱 Installation
 
