@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.7.0
+
+### Minor Changes
+
+- 75ae36d: feat: Repeated devDependencies updates
+
 ## 0.6.7
 
 ### Patch Changes
