@@ -1,6 +1,6 @@
 import type { CreateValues } from 'zss-engine';
 
-const defineConsts = <const T extends CreateValues>(constants: T) => {
+const defineConsts = <const T extends CreateValues>(constants: T): T => {
   return constants;
 };
 
