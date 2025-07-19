@@ -1,10 +1,5 @@
-import type { Join } from 'zss-engine';
 import type { CSSProperties, RxVariableSet } from 'zss-engine';
-import { props } from './props';
-
-const px = <T extends readonly string[]>(...pseudos: T): Join<T> => {
-  return pseudos.filter(Boolean).join('') as Join<T>;
-};
+import { props } from '../../api/props';
 
 const rx = (
   styleProps: string | Readonly<CSSProperties>,
@@ -21,4 +16,4 @@ const rx = (
   };
 };
 
-export { px, rx };
+export { rx };
