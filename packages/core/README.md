@@ -1,6 +1,6 @@
 # @plumeria/core
 
-**Scalable and intuitive styling in design systems.**
+Plumeria is a JavaScript library for Scalable and optimized styling.
 
 ## 🌱 Installation
 
@@ -35,7 +35,7 @@ import '@plumeria/core/stylesheet.css';
 Define a set of atomic styles:
 
 ```ts
-import { css, ps } from '@plumeria/core';
+import { css } from '@plumeria/core';
 
 const styles = css.create({
   text: {
@@ -46,19 +46,13 @@ const styles = css.create({
     background: 'rgb(60,60,60)', // xxxhash3
   },
 });
-
-const className = css.props(styles.text, styles.box);
-// className is "xxxhash1 xxxhash2 xxxhash3"
 ```
 
-If you only have one style, you can get the class name directly with the $ accessor:
+## `css.props()`
 
-```jsx
-<div className={styles.$text} />
-// className is "xxxhash1"
-```
-
-Use `css.props()` to combine multiple styles or switch between them conditionally.
+Use `css.props()` to combine multiple styles or switch between them conditionally.  
+css.props is compiled and style properties to the right take precedence.  
+The same goes for shorthand and longhand rules.
 
 ```jsx
 <div className={css.props(styles.text, styles.box)} />
@@ -68,9 +62,11 @@ Use `css.props()` to combine multiple styles or switch between them conditionall
 Supports pseudo/media queries inline:
 
 ```ts
+import { css, ps, media } from '@plumeria/core';
+
 const styles = css.create({
   box: {
-    [css.media.maxWidth(900)]: {
+    [media.maxWidth(900)]: {
       width: '100%',
     },
   },
@@ -80,28 +76,6 @@ const styles = css.create({
       color: 'skyblue',
       opacity: 0.9,
     },
-  },
-});
-```
-
-### `css.global()`
-
-Define global styles:
-
-```ts
-css.global({
-  html: {
-    width: '100%',
-    height: '100%',
-    padding: 0,
-    margin: 0,
-  },
-  body: {
-    position: 'relative',
-    width: 600,
-  },
-  h1: {
-    fontSize: 32,
   },
 });
 ```
@@ -134,11 +108,11 @@ Define reusable constant values with type safety:
 
 ```ts
 const breakpoints = css.defineConsts({
-  xs: css.media.maxWidth(480),
-  sm: css.media.maxWidth(640),
-  md: css.media.maxWidth(768),
-  lg: css.media.maxWidth(1024),
-  xl: css.media.maxWidth(1280),
+  xs: media.maxWidth(480),
+  sm: media.maxWidth(640),
+  md: media.maxWidth(768),
+  lg: media.maxWidth(1024),
+  xl: media.maxWidth(1280),
 });
 ```
 
@@ -193,32 +167,57 @@ const themes = css.defineTheme({
 });
 ```
 
-### `css.color`
+### `css.global()`
 
-Color utility:
+Define global styles:
 
 ```ts
-color: css.color.darken('skyblue', 0.12),
-color: css.color.lighten('navy', 0.6),
+css.global({
+  html: {
+    width: '100%',
+    height: '100%',
+    padding: 0,
+    margin: 0,
+  },
+  body: {
+    position: 'relative',
+    width: 600,
+  },
+  h1: {
+    fontSize: 32,
+  },
+});
+```
 
-color: css.color.skyblue,
-color: css.color.aqua,
+### `color`
+
+To use `color`, import it:
+
+```ts
+import { color } from '@plumeria/core';
+```
+
+```ts
+backgroundColor: color.darken('skyblue', 0.12),
+backgroundColor: color.lighten('navy', 0.6),
+backgroundColor: color.skyblue,
+backgroundColor: color.aqua,
 // and many more
 ```
 
-### `css.px`
+### `px`
+
+To use `px`, import it:
+
+```ts
+import { px } from '@plumeria/core';
+```
 
 Pseudo expand helper:
 
 ```tsx
-css.px(ps.hover, ps.after);
+px(ps.hover, ps.after);
 // => ":hover::after"
-```
-
-`px` is also available as an export function.
-
-```ts
-import { px } from '@plumeria/core';
 ```
 
 ## 🧹 ESLint Support
