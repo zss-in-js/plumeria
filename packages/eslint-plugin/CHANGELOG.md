@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.2.5
+
+### Patch Changes
+
+- 5770f07: feat: update as props are compiled
+
 ## 0.2.4
 
 ### Patch Changes
