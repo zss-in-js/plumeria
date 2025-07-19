@@ -10,7 +10,7 @@ module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow destructuring css.create and css.global',
+      description: 'Disallow destructuring css.props and css.global',
       recommended: true,
     },
     messages: {
@@ -30,7 +30,7 @@ module.exports = {
           node.init &&
           isCssIdentifier(node.init)
         ) {
-          const forbiddenKeys = ['create', 'global'];
+          const forbiddenKeys = ['props', 'global'];
           const violated = node.id.properties.filter(
             (prop) =>
               prop.type === 'Property' &&
