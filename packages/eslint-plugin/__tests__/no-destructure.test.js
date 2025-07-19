@@ -22,11 +22,11 @@ ruleTester.run('no-destructure', rule, {
   ],
   invalid: [
     {
-      code: 'const { create } = css;',
+      code: 'const { props } = css;',
       errors: [
         {
           message:
-            'Do not destructure "create" from "css". Use dot notation instead.',
+            'Do not destructure "props" from "css". Use dot notation instead.',
         },
       ],
       settings: {
@@ -46,11 +46,11 @@ ruleTester.run('no-destructure', rule, {
       },
     },
     {
-      code: 'const { create, global } = css;',
+      code: 'const { props, global } = css;',
       errors: [
         {
           message:
-            'Do not destructure "create" from "css". Use dot notation instead.',
+            'Do not destructure "props" from "css". Use dot notation instead.',
         },
         {
           message:
