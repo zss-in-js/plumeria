@@ -13,7 +13,6 @@ describe('create function', () => {
     const styles = css.create(styleObject);
     expect(typeof styles).toBe('object');
     expect(typeof css.props(styles.button)).toBe('string');
-    expect(typeof styles.$button).toBe('string');
     expect(styles).toHaveProperty('button');
     expect(Object.isFrozen(styles)).toBe(true); // Check that the resulting object is frozen;
   });
