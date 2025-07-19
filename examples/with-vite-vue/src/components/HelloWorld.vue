@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { styles } from '../style';
+import { css } from '@plumeria/core';
+
+const styles = css.create({
+  color: {
+    WebkitTextFillColor: 'transparent',
+    background: 'linear-gradient(90deg, #58c6ff 0%, #076ad9 50%, #ff3bef 100%)',
+    backgroundClip: 'text',
+  },
+  text: {
+    textAlign: 'center',
+  },
+});
 
 defineProps<{ msg: string }>();
 
@@ -8,9 +19,9 @@ const count = ref(0);
 </script>
 
 <template>
-  <h1 :class="styles.$color">{{ msg }}</h1>
+  <h1 :class="css.props(styles.color)">{{ msg }}</h1>
 
-  <div class="card">
+  <div :class="css.props(styles.text)">
     <button type="button" @click="count++">count is {{ count }}</button>
     <p>
       Edit
