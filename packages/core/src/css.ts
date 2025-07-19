@@ -7,23 +7,18 @@ import type {
   CreateValues,
   CreateKeyframes,
   ReturnType,
-  Join,
   ReturnVariableType,
-  RxVariableSet,
-  ReturnRx,
 } from 'zss-engine';
 
-import { create } from './main/create';
-import { global } from './main/global';
-import { props } from './main/props';
-import { px, rx } from './main/utilities';
-import { keyframes } from './define/keyframes';
-import { defineVars } from './define/vars';
-import { defineTheme } from './define/theme';
-import { defineConsts } from './define/consts';
-import { media, container, color, ps } from 'zss-utils';
+import { create } from './api/create';
+import { props } from './api/props';
+import { keyframes } from './api/keyframes';
+import { defineVars } from './api/vars';
+import { defineTheme } from './api/theme';
+import { defineConsts } from './api/consts';
+import { global } from './api/global';
 
-class css {
+class StyleSheet {
   private constructor() {}
 
   static create<const T extends Record<string, CSSProperties>>(
@@ -32,8 +27,10 @@ class css {
     return create(object);
   }
 
-  static global(object: CSSHTML): void {
-    return global(object);
+  static props(
+    ...objects: (false | Readonly<CSSProperties> | null | undefined)[]
+  ): string {
+    return props(...objects);
   }
 
   static keyframes(object: CreateKeyframes): string {
@@ -56,27 +53,12 @@ class css {
     return defineTheme(object);
   }
 
-  static props(
-    ...objects: (false | Readonly<CSSProperties> | null | undefined)[]
-  ): string {
-    return props(...objects);
+  static global(object: CSSHTML): void {
+    return global(object);
   }
-
-  static rx(
-    cssProperties: Readonly<CSSProperties>,
-    varSet: RxVariableSet,
-  ): ReturnRx {
-    return rx(cssProperties, varSet);
-  }
-
-  static px<T extends readonly string[]>(...pseudos: T): Join<T> {
-    return px(...pseudos);
-  }
-
-  static media = media;
-  static container = container;
-  static color = color;
 }
 
-export { css, ps, px, rx };
+const css = StyleSheet;
+
+export { css };
 export type { CreateStyle, CSSHTML, CSSProperties };
