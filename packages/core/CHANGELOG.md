@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.14.0
+
+### Minor Changes
+
+- bded796: feat: Props are now compiled, so only the CSS you use is generated.
+
 ## 0.13.8
 
 ### Patch Changes
