@@ -37,7 +37,7 @@ class StyleSheet {
     return keyframes(object);
   }
 
-  static defineConsts<const T extends CreateValues>(object: T): CreateValues {
+  static defineConsts<const T extends CreateValues>(object: T): T {
     return defineConsts(object);
   }
 
