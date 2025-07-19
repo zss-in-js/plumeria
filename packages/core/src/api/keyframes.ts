@@ -1,6 +1,6 @@
 import type { CreateKeyframes } from 'zss-engine';
 import { genBase36Hash } from 'zss-engine';
-import { global } from '../main/global';
+import { global } from './global';
 
 const keyframes = (object: CreateKeyframes): string => {
   const prefix = genBase36Hash(object, 1, 8);

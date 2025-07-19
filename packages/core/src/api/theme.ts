@@ -1,6 +1,6 @@
 import type { CreateTheme, ReturnVariableType } from 'zss-engine';
 import { camelToKebabCase } from 'zss-engine';
-import { global } from '../main/global';
+import { global } from './global';
 
 const defineTheme = <const T extends CreateTheme>(object: T) => {
   const styles: Record<string, Record<string, string | number | object>> = {};
