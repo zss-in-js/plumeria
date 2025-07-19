@@ -14,6 +14,7 @@
     "@plumeria/vite": "^0.1.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tsconfig/svelte": "^5.0.4",
+    "prettier-plugin-svelte": "^3.4.0",
     "svelte": "^5.28.1",
     "svelte-check": "^4.1.6",
     "typescript": "~5.8.3",
