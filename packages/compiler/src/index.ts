@@ -9,6 +9,11 @@ const { execute } = require('rscute/execute');
 const { transform } = require('lightningcss');
 const { parseSync } = require('@swc/core');
 const { buildGlobal, buildCreate } = require('@plumeria/core/processors');
+const {
+  extractAndInjectStyleProps,
+  restoreAllOriginals,
+  extractVueAndSvelte,
+} = require('./extract');
 
 const projectRoot = process.cwd().split('node_modules')[0];
 const directPath = path.join(projectRoot, 'node_modules/@plumeria/core');
@@ -41,7 +46,7 @@ function isCSS(filePath: string): boolean {
     if (node.type === 'MemberExpression' && node.property?.value) {
       if (node.object?.type === 'Identifier' && node.object.value === 'css') {
         if (
-          node.property.value === 'create' ||
+          node.property.value === 'props' ||
           node.property.value === 'global'
         ) {
           found = true;
@@ -96,7 +101,7 @@ async function optimizeCSS(): Promise<void> {
 (async () => {
   await cleanUp();
   const files: string[] = await glob(
-    path.join(projectRoot, '**/*.{js,jsx,ts,tsx}'),
+    path.join(projectRoot, '**/*.{js,jsx,ts,tsx,vue,svelte}'),
     {
       exclude: [
         '**/node_modules/**',
@@ -107,17 +112,30 @@ async function optimizeCSS(): Promise<void> {
       cwd: projectRoot,
     },
   );
-  const styleFiles = files.filter(isCSS).sort();
+
+  // paths arguments display project root folder
+  const projectName = path.basename(projectRoot);
+
+  const filesSupportExtensions = files.map((file) => extractVueAndSvelte(file));
+  const styleFiles = filesSupportExtensions.filter(isCSS).sort();
+  for (let i = 0; i < styleFiles.length; i++) {
+    await extractAndInjectStyleProps(path.resolve(styleFiles[i]));
+  }
   for (let i = 0; i < styleFiles.length; i++) {
     await execute(path.resolve(styleFiles[i]));
     if (process.argv.includes('--paths'))
-      console.log(path.relative(projectRoot, styleFiles[i]));
+      console.log(
+        `✅: ${projectName}/${path.relative(projectRoot, styleFiles[i])}`,
+      );
   }
   for (let i = 0; i < styleFiles.length; i++) {
     await buildGlobal(coreFilePath);
   }
+
   for (let i = 0; i < styleFiles.length; i++) {
     await buildCreate(coreFilePath);
   }
+
   await optimizeCSS();
+  await restoreAllOriginals();
 })();
