@@ -1,8 +1,8 @@
 [![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@plumeria/core.svg?color=brightgreen)](https://www.npmjs.com/package/@plumeria/core) [![tests](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml/badge.svg)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml)
 
-# Plumeria — Zero-Runtime CSS-in-JS
+# Plumeria
 
-Scalable and intuitive styling in design systems.
+Plumeria is a JavaScript library for Scalable and optimized styling.
 
 ## Features
 
@@ -32,10 +32,7 @@ const styles = css.create({
   },
 });
 
-const className = styles.$text; // (string)
-// className is "xxxhash1 xxxhash2"
-
-const classNames = css.props(styles.text, styles.size); // (object to string)
+const classNames = css.props(styles.text, styles.size);
 // classNames is "xxxhash1 xxxhash2 xxxhash3"
 ```
 
