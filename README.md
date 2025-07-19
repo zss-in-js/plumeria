@@ -57,6 +57,14 @@ We welcome contributions of all kinds — bug reports, feature ideas, pull reque
 
 📄 [Contributing Guide](https://github.com/zss-in-js/plumeria/blob/main/.github/CONTRIBUTING.md)
 
+## 🌟 Acknowledgement
+
+- [Linaria](https://linaria.dev/) - for inspiring the Zero-Runtime architecture
+- [ReactNative](https://reactnative.dev/docs/stylesheet) - for inspiring the class API and inline styling
+- [StyleX](https://stylexjs.com/) - for inspiring the optimization of atomic CSS-in-JS
+- [Tailwind CSS](https://tailwindcss.com/) - for inspiring the utility approach
+- [Uno CSS](https://unocss.dev/) - for inspiring the core concepts
+
 ## ⚖️ License
 
 Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/license).
