@@ -1,11 +1,11 @@
 'use client';
 
-import { css } from '@plumeria/core';
+import { css, media } from '@plumeria/core';
 
 const styles = css.create({
   e2e: {
     color: 'pink',
-    [css.media.maxWidth(1024)]: {
+    [media.maxWidth(1024)]: {
       color: 'aqua',
     },
   },
