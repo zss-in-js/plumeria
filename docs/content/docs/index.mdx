@@ -3,107 +3,53 @@ title: 'Introduction'
 description: 'Introduction Plumeria - A CSS-in-JS framework for fast, type-safe, zero-runtime styling.'
 ---
 
-# Welcome to Plumeria
+<br/>
 
-Plumeria is a **zero-runtime CSS-in-JS library** that delivers blazing-fast performance with full type safety.
-Style at the speed of thought — build faster, debug less, scale effortlessly.
 
+Welcome to the Plumeria documentation!
+
+---
+
+
+Plumeria is a atomic Zero-Runtime CSS-in-JS library, efficient style — build optimized styles using collision-free atomic CSS, refactoring less and scaling the number of components optimistically.
 
 It helps developers focus on **what** to style, not **how** to style it.
 
 ---
 
-## ✨ Why Plumeria?
+## Features at a overview
 
-Plumeria was built with a vision:  
-To become the go-to solution for styling in modern front-end development powered by frameworks like React, Vite, and Next.js.
+### Scalable
+- Efficient and minimal output with atomic CSS.
+- The CSS size it will be constant even if the number of components increases.
+- Styles are maintained by the CLI, making them easy to read and maintainable.
 
-**Plumeria focuses on the following principles:**
+### Predictable
+- The last style applied always takes precedence.
+- All specificity levels are 1, determined only by the left right order in which they are applied.
+- Therefore, there are no special rules other than that the right wins.
 
-- ✅ **Developer Productivity**: Write, compile, and test styles in rapid cycles.
-- ✅ **Type-Safe Styling**: Avoid runtime bugs with fully type-checked class names.
-- ✅ **Zero Runtime**: No overhead at runtime. All styles are generated at build time.
+### Fast
+- No runtime style injection.
+- All styles are collocated at compile-time into a single CSS file.
+- Optimized function for merging class names.
+
+### Type-Safe
+- Type-safe APIs.
+- Type-safe styles.
+- Type-safe values.
+
 
 ---
-
-## 🧩 The Problem with CSS Modules
-
-While CSS Modules offer encapsulation, they lack type safety — leading to:
-
-- Runtime errors from typos
-- Difficult refactoring
-- Delayed feedback during build
-
-```
-[CSS Modules]
-──────────────────────────────────────────────────────────
-┌──────────────────────┐
-│ Component            │  ← CSS Module is imported in a JSX file  
-│ (JSX importing)      │     (e.g., `import styles from './button.module.css'`)  
-└──────────────────────┘
-            │
-            │  CSS is written in an external file
-            ▼
-┌────────────────────────┐
-│ CSS File (.module.css) │  ← Styles are statically defined  
-└────────────────────────┘
-            │
-            │  ※ The bundler (e.g., Webpack) processes  
-            │     and hashes class names at build time  
-            ▼
-┌─────────────────────────┐
-│ Build Process (Webpack) │  ← Class names are determined during build  
-└─────────────────────────┘
-            │
-            ▼
-┌──────────────────────┐
-│ Generated CSS Output │  ← Hashed class names are output  
-│ (Only visible after  │     ※ The final result is unknown until build  
-│ building)            │  
-└──────────────────────┘
-
-```
----
-
-## 🧪 The Plumeria Solution
-
-Plumeria decouples CSS compilation from your dev workflow via a CLI, giving you **instant feedback** and static CSS files.
-
-```
-[CSS-in-JS (Plumeria)]
-──────────────────────────────────────────────────────────
-┌──────────────────────┐       ┌─────────────────────────┐
-│ Component            │───1──▶│ CLI Command Execution   │
-│ (JSX with CSS in JS) │       │ (Precompilation)        │
-└──────────────────────┘       └─────────────────────────┘
-     ▲         ┌─────────────────────────┐           │
-     │         │ Generated CSS File      │           │
-   3 └─────────│ (Static CSS available)  │ ◀─────────┘ 2
-               └─────────────────────────┘  ※ The final result is known at this time
-                  │
-                4 │
-                  │  ※ The following process happens in production builds  
-                  ▼
-┌───────────────────────────────┐
-│ Production Build Process      │  ← e.g., Webpack, Vite  
-│ (Tree-shaking & Minification) │     ※ Removes used styles  
-└───────────────────────────────┘
-```
-
-
 
 Unlike traditional solutions, you **know exactly what CSS is generated** at authoring time.
+- Clean, high-quality code that adheres to the DRY principle
+- Focus on building beautiful UIs — not wrestling with your styles
 
 ---
 
-## 🏁 Fast Iteration
 
-Plumeria enables a fast write → compile → test cycle.  
-This leads to:
 
-- Shorter feedback loops
-- Faster debugging
-- Higher code quality
 
-> Focus on building beautiful UIs — not wrestling with your styles.
+
 

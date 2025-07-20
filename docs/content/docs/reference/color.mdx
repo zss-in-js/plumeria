@@ -1,5 +1,5 @@
 ---
-title: 'Color Utilities'
+title: 'color'
 description: 'Comprehensive API reference for the `color` utilities in the @plumeria/core package, covering all standard colors, theme colors, and lighten/darken utilities.'
 ---
 
@@ -19,18 +19,9 @@ The `color` utilities simplifies color management in your styles by providing:
 
 These utilities integrate seamlessly with `@plumeria/core` and can be combined with other utilities like `pseudo` for dynamic and responsive styling.
 
-```ts
-export const color = {
-  ...colors, // Standard named colors
-  ...themeColors, // Framework-specific colors
-  lighten, // Lighten a color by a specified proportion
-  darken, // Darken a color by a specified proportion
-};
-```
-
 ## Standard Colors
 
-The `colors` object provides a complete set of 141 CSS named colors, supporting autocomplete in modern IDEs. Below is a curated list of commonly used colors, with the full list available in the expandable section.
+The `colors` object provides a complete set of 141 CSS named colors, supporting autocomplete in modern IDEs. Under is a all list of colors.
 
 | Color Name             | Hex Code                                         | Description                                                |
 | ---------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
@@ -204,85 +195,6 @@ The `lighten` and `darken` utilities adjust a color's brightness by mixing it wi
 | `lighten(color, proportion)` | Lightens a color by mixing with white. | `color`: A color name or hex code<br/>`proportion`: A number (0 to 1) or percentage string (e.g., `'20%'`) | `<color>` (hex code) |
 | `darken(color, proportion)`  | Darkens a color by mixing with black.  | `color`: A color name or hex code<br/>`proportion`: A number (0 to 1) or percentage string (e.g., `'20%'`) | `<color>` (hex code) |
 
-### Notes
-
-- A `proportion` of `0` (or `'0%'`) leaves the color unchanged; `1` (or `'100%'`) results in pure white (`lighten`) or black (`darken`).
-- Works with named colors (e.g., `navy`) and hex codes (e.g., `#000080`).
-
-## Usage Examples
-
-Below are practical examples demonstrating how to use the `color` utilities with `@plumeria/core`.
-
-### Example 1: Using Standard Colors
-
-```ts
-import { css } from '@plumeria/core';
-
-const styles = css.create({
-  background: {
-    backgroundColor: css.color.wheat, // Warm beige background
-    color: css.color.black, // Black text for contrast
-  },
-  highlight: {
-    backgroundColor: css.color.crimson, // Deep red for alerts
-  },
-});
-```
-
-### Example 2: Using Theme Colors
-
-```ts
-import { css } from '@plumeria/core';
-
-const buttonStyles = css.create({
-  primaryButton: {
-    backgroundColor: css.color.primary, // Vibrant blue for primary buttons
-    color: css.color.white,
-    padding: '10px 20px',
-  },
-  errorMessage: {
-    backgroundColor: css.color.error, // Red for error alerts
-    color: css.color.white,
-    borderRadius: '4px',
-  },
-});
-```
-
-### Example 3: Using Lighten and Darken
-
-```ts
-import { css } from '@plumeria/core';
-
-const styles = css.create({
-  button: {
-    backgroundColor: css.color.primary, // #0070F3
-    color: css.color.white,
-    [css.pseudo.hover]: {
-      backgroundColor: css.color.lighten('primary', 0.2), // Lighter blue on hover
-    },
-    [css.pseudo.active]: {
-      backgroundColor: css.color.darken('primary', 0.2), // Darker blue on click
-    },
-  },
-});
-```
-
-### Example 4: Combining Colors with Pseudo-Classes
-
-```ts
-import { css } from '@plumeria/core';
-
-const styles = css.create({
-  alert: {
-    backgroundColor: css.color.warning, // Orange for warnings
-    color: css.color.white,
-    padding: '10px',
-    [css.pseudo.hover]: {
-      backgroundColor: css.color.lighten('warning', 0.3), // Lighter orange on hover
-    },
-  },
-});
-```
 
 ## 🔗 Related
 

@@ -9,7 +9,7 @@ The `defineConsts` function defines **static constant values** (not CSS variable
 
 It is useful for creating values such as **breakpoints**, spacing scales, or other fixed design constants that don't rely on CSS variable resolution.
 
-## 🎯 Example: Creating breakpoints
+## Example: Creating breakpoints
 
 ```ts title="TypeScript"
 // breakpoints.ts
@@ -23,7 +23,7 @@ export const breakpoints = css.defineConsts({
 ```
 These constants are fully **type-safe, readonly,** and enforced as **as const**.
 
-## 🎨 Using constants in styles
+## Using constants in styles
 ```ts
 import { css } from "@plumeria/core";
 import { breakpoints } from "./breakpoints";
