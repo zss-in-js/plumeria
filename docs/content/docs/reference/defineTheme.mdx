@@ -64,7 +64,7 @@ export const theme = css.defineTheme({
 
 ---
 
-## 🎨 Consuming themes in components
+## Consuming themes in components
 Use theme tokens in your components just like any other CSS variable.
 
 <Tabs items={["tsx", "css"]}>
@@ -92,14 +92,14 @@ Use theme tokens in your components just like any other CSS variable.
   </Tab>
 </Tabs>
 
-## 📦 Output summary
+## Output summary
 Plumeria will generate:
 - `var(--token-name)` references in CSS
 - Theme-specific overrides in data attributes
 - (Optional) integration with `css.media` or `css.container`
 This allows for **light/dark mode switching, theming via props**, and **custom container queries.**
 
-## 💡 Tips
+## Tips
 - Use  together with defineVars() to separate tokens from themes
 - Themes are **resolved at runtime** via the data-theme attribute
 - You can dynamically switch themes by toggling document.documentElement.dataset.theme = 'dark'
