@@ -11,5 +11,5 @@ const styles = css.create({
 });
 
 export const Color = ({ color }: { color: string }) => {
-  return <span {...rx(styles.colorName, { '--color': color })} />;
+  return <span {...rx(css.props(styles.colorName), { '--color': color })} />;
 };

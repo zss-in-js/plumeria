@@ -11,7 +11,7 @@ const stylesCode = css.create({
     padding: '18px 28px',
     marginBottom: 10,
     fontSize: 12,
-    background: '#F5F5F5',
+    background: '#ffffff',
     borderRadius: '8px',
     [breakpoints.md]: {
       width: '317px',
@@ -37,4 +37,3 @@ export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) 
     </figure>
   );
 };
-
