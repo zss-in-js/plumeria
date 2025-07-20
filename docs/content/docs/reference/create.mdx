@@ -6,9 +6,9 @@ description: 'Define local component-scoped styles with full type-safety and sta
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 The `create` method defines static, component-scoped styles using plain JavaScript objects.  
-It ensures **type-safe keys**, **compile-time validation**, and **scoped class names** through automatic hashing.
+It is **type-safe keys**, **compile-time validation**, and **scoped class names** through automatic hashing.
 
-Plumeria statically extracts styles at build time, so there's **no runtime cost** or CSS injection overhead.
+Only the styles you use in `css.props()` will be compiled.
 
 <Callout title="Atomic API">
 Even when used repeatedly, it has almost no impact on CSS bundle size.
@@ -48,16 +48,17 @@ const styles = css.create({
 </Tab>
 </Tabs>
 
-## ⚙️ Usage
+## Usage
 
 ```jsx title="JSX"
-<h2 className={styles.$text}>heading</h2>
-// $text is "xxxhash3 xxxhash4"
-
 <div className={css.props(styles.container, styles.text)}>text</div> // object to string
 // css.props of return "xxxhash1 xxxhash2 xxxhash3 xxxhash4"
 ```
 
-## ⚠️ Beware of circular references
+<Cards>
+  <Card title="See more about css.props" href="/docs/reference/props" />
+</Cards>
+
+## Circular references
 If modules reference each other circularly, the compiler will fail to compile them correctly.
 This design encourages a local, linear style structure that's easier to understand, faster to compile, and less error-prone across large codebases and bundlers like **rscute**.
