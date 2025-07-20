@@ -1,5 +1,5 @@
 const path = require('path');
-const { unlinkSync, existsSync, readFileSync } = require('fs');
+const { unlinkSync, existsSync, readFileSync, statSync } = require('fs');
 const { readFile, writeFile } = require('fs/promises');
 const { glob } = require('@rust-gear/glob');
 const postcss = require('postcss');
@@ -31,7 +31,10 @@ const cleanUp = async (): Promise<void> => {
   }
 };
 
-function isCSS(filePath: string): boolean {
+function isCSS(filePath: string, target: string) {
+  if (statSync(filePath).isDirectory()) {
+    return false;
+  }
   const code = readFileSync(filePath, 'utf8');
   const ast = parseSync(code, {
     syntax: 'typescript',
@@ -45,7 +48,11 @@ function isCSS(filePath: string): boolean {
   function visit(node: any) {
     if (node.type === 'MemberExpression' && node.property?.value) {
       if (node.object?.type === 'Identifier' && node.object.value === 'css') {
-        if (
+        if (target === 'props') {
+          if (node.property.value === 'props') {
+            found = true;
+          }
+        } else if (
           node.property.value === 'props' ||
           node.property.value === 'global'
         ) {
@@ -69,7 +76,6 @@ function isCSS(filePath: string): boolean {
   }
 
   visit(ast);
-
   return found;
 }
 
@@ -100,7 +106,7 @@ async function optimizeCSS(): Promise<void> {
 
 (async () => {
   await cleanUp();
-  const files: string[] = await glob(
+  const files = await glob(
     path.join(projectRoot, '**/*.{js,jsx,ts,tsx,vue,svelte}'),
     {
       exclude: [
@@ -116,11 +122,21 @@ async function optimizeCSS(): Promise<void> {
   // paths arguments display project root folder
   const projectName = path.basename(projectRoot);
 
-  const filesSupportExtensions = files.map((file) => extractVueAndSvelte(file));
+  // Supports other React frameworks
+  const filesSupportExtensions = files.map((file: string) =>
+    extractVueAndSvelte(file),
+  );
+
   const styleFiles = filesSupportExtensions.filter(isCSS).sort();
-  for (let i = 0; i < styleFiles.length; i++) {
-    await extractAndInjectStyleProps(path.resolve(styleFiles[i]));
+
+  const cssPropsFiles = styleFiles.filter((file: string) =>
+    isCSS(file, 'props'),
+  );
+
+  for (let i = 0; i < cssPropsFiles.length; i++) {
+    await extractAndInjectStyleProps(path.resolve(cssPropsFiles[i]));
   }
+
   for (let i = 0; i < styleFiles.length; i++) {
     await execute(path.resolve(styleFiles[i]));
     if (process.argv.includes('--paths'))
@@ -128,6 +144,7 @@ async function optimizeCSS(): Promise<void> {
         `✅: ${projectName}/${path.relative(projectRoot, styleFiles[i])}`,
       );
   }
+
   for (let i = 0; i < styleFiles.length; i++) {
     await buildGlobal(coreFilePath);
   }
