@@ -4,13 +4,6 @@
 
 Plumeria is a JavaScript library for Scalable and optimized styling.
 
-## Features
-
-- ⚡ Atomic CSS generation for scalability
-- ✨ Minimal and optimized CSS output
-- 🎨 Ergonomic API for expressive design systems
-- ⚜️ Works with most JavaScript frameworks
-
 ## 📘 Documentation
 
 📖 [plumeria.dev](https://plumeria.dev) — Full guides and API references
@@ -32,8 +25,8 @@ const styles = css.create({
   },
 });
 
-const classNames = css.props(styles.text, styles.size);
-// classNames is "xxxhash1 xxxhash2 xxxhash3"
+const className = css.props(styles.text, styles.size);
+// className is "xxxhash1 xxxhash2 xxxhash3"
 ```
 
 ## 📦 Monorepo Structure
