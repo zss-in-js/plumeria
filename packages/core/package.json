@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "description": "A library for Scalable and optimized styling",
   "keywords": [
     "css",
