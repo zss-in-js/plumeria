@@ -31,13 +31,14 @@ function create<const T extends Record<string, CSSProperties>>(
       sheet: string;
     }> = [];
 
-    Object.entries(flat).forEach(([prop, val]) => {
+    // Processing flat atoms and atoms in media
+    Object.entries(flat).forEach(([prop]) => {
       const hashes = new Set<string>();
       const sheets = new Set<string>();
-      processAtomicProps({ [prop]: val }, hashes, sheets);
+      processAtomicProps(flat, hashes, sheets);
 
-      const hash = hashes.values().next().value as string;
-      const sheet = sheets.values().next().value as string;
+      const hash = [...hashes].join(' ');
+      const sheet = [...sheets].join('\n');
 
       records.push({
         key: prop,
@@ -46,6 +47,7 @@ function create<const T extends Record<string, CSSProperties>>(
       });
     });
 
+    // Handling nested objects such as pseudos to atom by key is atRule + prop
     if (Object.keys(nonFlat).length > 0) {
       const nonFlatObj = { [key]: nonFlat };
       const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
@@ -53,10 +55,8 @@ function create<const T extends Record<string, CSSProperties>>(
       Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
         Object.entries(nestedObj as Record<string, unknown>).forEach(
           ([prop]) => {
-            // Only key is converted to atom by atRule+prop
-            const recordKey = `${atRule}|${prop}`;
             records.push({
-              key: recordKey,
+              key: atRule + prop,
               hash: nonFlatHash,
               sheet: styleSheet,
             });
