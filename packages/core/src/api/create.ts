@@ -37,8 +37,19 @@ function create<const T extends Record<string, CSSProperties>>(
       const sheets = new Set<string>();
       processAtomicProps(flat, hashes, sheets);
 
+      const baseSheets: string[] = [];
+      const querySheets: string[] = [];
+
+      for (const sheet of sheets) {
+        if (sheet.includes('@media') || sheet.includes('@container')) {
+          querySheets.push(sheet);
+        } else {
+          baseSheets.push(sheet);
+        }
+      }
+
       const hash = [...hashes].join(' ');
-      const sheet = [...sheets].join('\n');
+      const sheet = [...baseSheets, ...querySheets].join('\n');
 
       records.push({
         key: prop,
