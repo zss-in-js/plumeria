@@ -1,4 +1,4 @@
-import { css } from '@plumeria/core'
+import { css } from '@plumeria/core';
 
 export const rotateHover = css.keyframes({
   from: {
