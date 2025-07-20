@@ -1,57 +1,21 @@
 ---
-title: 'Nesting rule'
+title: 'Selector rules'
 description: 'Learn more about `nesting rule` syntax'
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-In plumeria, multiple tags in a list can be defined at once `using &`.
+## Nesting
+Style to attach to parent elements such as ul. The following example is acceptable:
 
-<Tabs  items={[ 'ts', 'css' ]}>
-<Tab>
-```ts title="TypeScript"
-import { css } from '@plumeria/core';
-
-const styles = css.create({
-  list: {
-    // [!code ++]
-    '& li': {
-      listStyleType: 'none',
-    },
-  },
-});
-```
-</Tab>
-<Tab>
-```css title="CSS"
-.list_ep1r34 li {
-  list-style-type: none;
-}
-```
-</Tab>
-</Tabs>
-
-```tsx title="JSX"
-<ul className={css.props(styles.list)}>
-  <li></li>
-  <li></li>
-  <li></li>
-</ul>
-```
-
-### Nesting Rules
-
-The following example is acceptable:
-<Tabs items={[ 'ts', 'css' ]}>
-<Tab>
 ```ts title="TypeScript" {1}
-import { css } from '@plumeria/core';
+import { css, media } from '@plumeria/core';
 
 const styles = css.create({
   list: {
-    // 800px
+    // "@media (max-width: 768px)"
     // [!code ++]
-    [css.media.maxWidth(800)]: {
+    [media.maxWidth(768)]: {
       '& li': {
         listStyleType: 'none',
       },
@@ -59,17 +23,7 @@ const styles = css.create({
   },
 });
 ```
-</Tab>
-<Tab>
-```css title="CSS"
-@media (max-width: 800px) {
-  .list_wntean li {
-    list-style-type: none;
-  }
-}
-```
-</Tab>
-</Tabs>
+
 
 
 <Callout type="error" title="error cases">
@@ -77,13 +31,13 @@ const styles = css.create({
 </Callout>
 
 ```ts title="TypeScript" {1}
-import { css, cx } from '@plumeria/core';
+import { css, media } from '@plumeria/core';
 
 const styles = css.create({
   list: {
     '& li': {
       // [!code --]
-      [css.media.maxWidth(800)]: {
+      [css.media.maxWidth(768)]: {
         listStyleType: 'none',
       },
     },
@@ -92,13 +46,13 @@ const styles = css.create({
 ```
 
 ```ts title="TypeScript" {1}
-import { css, cx } from '@plumeria/core';
+import { css, media } from '@plumeria/core';
 
 const styles = css.create({
   list: {
     ':hover': {
       // [!code --]
-      [css.media.maxWidth(800)]: {
+      [media.maxWidth(768)]: {
         background: 'skyblue',
       },
     },
@@ -112,9 +66,9 @@ They have different safety at the type level, but have the same meaning as a res
 ```ts title="TypeScript"
 const styles = css.create({
   list: {
-    [css.pseudo.hover]: {
+    [ps.hover]: {
       // [!code --]
-      [css.media.maxWidth(800)]: {
+      [media.maxWidth(768)]: {
         background: 'skyblue',
       },
     },

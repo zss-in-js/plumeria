@@ -13,7 +13,7 @@ Keep global styles to a minimum to reduce bundle size.
 </Callout>
 
 
-## 🌍 Example
+## Example
 
 <Tabs items={['ts', 'css']}>
   <Tab>
@@ -22,20 +22,25 @@ Keep global styles to a minimum to reduce bundle size.
 import { css } from '@plumeria/core'
 
 css.global({
+  ":root": {
+    '--main-color': '#333',
+  },
+  "*": {
+    boxSizing: "border-box"
+  },
+  html: {
+    margin: 0,
+    padding: 0,
+  },
   body: {
     margin: '0 auto',
     color: 'white',
     background: '#303030',
   },
   h2: {
-    fontSize: '32px',
-    fontWeight: '500',
+    fontSize: '22px',
+    fontWeight: '550',
     color: 'white',
-  },
-  '.highlighted': {
-    fontSize: '24px',
-    fontWeight: '450',
-    color: 'aqua',
   },
 });
 ```
