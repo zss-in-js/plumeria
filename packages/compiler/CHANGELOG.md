@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.14.1
+
+### Patch Changes
+
+- b4ec46a: · fix: fix and improved props extraction
+
 ## 0.14.0
 
 ### Minor Changes

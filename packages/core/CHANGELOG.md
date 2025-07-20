@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.14.1
+
+### Patch Changes
+
+- 08dd766: fix: generate atoms in media
+
 ## 0.14.0
 
 ### Minor Changes
