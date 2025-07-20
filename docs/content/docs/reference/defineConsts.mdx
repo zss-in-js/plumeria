@@ -12,13 +12,15 @@ It is useful for creating values such as **breakpoints**, spacing scales, or oth
 ## Example: Creating breakpoints
 
 ```ts title="TypeScript"
-// breakpoints.ts
+// mediaQuery.ts
+import { css, media } from '@plumeria/core';
+
 export const breakpoints = css.defineConsts({
-  xs: css.media.maxWidth(480),
-  sm: css.media.maxWidth(640),
-  md: css.media.maxWidth(768),
-  lg: css.media.maxWidth(1024),
-  xl: css.media.maxWidth(1280),
+  xs: media.maxWidth(480),
+  sm: media.maxWidth(640),
+  md: media.maxWidth(768),
+  lg: media.maxWidth(1024),
+  xl: media.maxWidth(1280),
 });
 ```
 These constants are fully **type-safe, readonly,** and enforced as **as const**.
@@ -41,7 +43,7 @@ export const styles = css.create({
 ```
 You can use these constants for any static keys inside styles or themes.
 
-## ✅ Type enforcement benefits
+## Type enforcement
 
 - Enforces **as const** automatically
 - Restricts to **string | number** values only
