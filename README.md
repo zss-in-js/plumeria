@@ -4,13 +4,13 @@
 
 Plumeria is a JavaScript library for Scalable and optimized styling.
 
-## 📘 Documentation
+## Documentation
 
-📖 [plumeria.dev](https://plumeria.dev) — Full guides and API references
+[plumeria.dev](https://plumeria.dev) — Full guides and API references
 
-Each package has its own README, such as [@plumeria/core](https://github.com/zss-in-js/plumeria/tree/main/packages/core).
+There is also a small documentation in [@plumeria/core](https://github.com/zss-in-js/plumeria/tree/main/packages/core).
 
-## ✨ Quick Example
+## Quick Example
 
 ```ts
 import { css } from '@plumeria/core';
@@ -29,7 +29,7 @@ const className = css.props(styles.text, styles.size);
 // className is "xxxhash1 xxxhash2 xxxhash3"
 ```
 
-## 📦 Monorepo Structure
+## Structure
 
 ```
 plumeria/
@@ -44,13 +44,13 @@ plumeria/
 
 ```
 
-## 🧑‍💻 Contributing
+## Contributing
 
 We welcome contributions of all kinds — bug reports, feature ideas, pull requests.
 
-📄 [Contributing Guide](https://github.com/zss-in-js/plumeria/blob/main/.github/CONTRIBUTING.md)
+[Contributing Guide](https://github.com/zss-in-js/plumeria/blob/main/.github/CONTRIBUTING.md)
 
-## 🌟 Acknowledgement
+## Acknowledgement
 
 - [Linaria](https://linaria.dev/) - for inspiring the Zero-Runtime architecture
 - [ReactNative](https://reactnative.dev/docs/stylesheet) - for inspiring the class API and inline styling
@@ -58,6 +58,6 @@ We welcome contributions of all kinds — bug reports, feature ideas, pull reque
 - [Tailwind CSS](https://tailwindcss.com/) - for inspiring the utility approach
 - [Uno CSS](https://unocss.dev/) - for inspiring the core concepts
 
-## ⚖️ License
+## License
 
 Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/license).
