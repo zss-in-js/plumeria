@@ -1,4 +1,4 @@
-import { HomeComponent } from '@/component/HomeComponent';
+import { HomeComponent } from 'component/HomeComponent';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

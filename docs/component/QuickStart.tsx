@@ -1,22 +1,6 @@
 import { css, ps } from '@plumeria/core';
-
-const rotateHover = css.keyframes({
-  from: {
-    transform: 'rotate(0deg)',
-  },
-  to: {
-    transform: 'rotate(360deg)',
-  },
-});
-
-const rotateFocus = css.keyframes({
-  from: {
-    transform: 'rotateY(0deg) rotateX(0deg)',
-  },
-  to: {
-    transform: 'rotateY(360deg) rotateX(90deg)',
-  },
-});
+import { rotateFocus, rotateHover } from 'lib/animation';
+import { breakpoints } from 'lib/mediaQuery';
 
 const styles = css.create({
   container: {
@@ -36,7 +20,7 @@ const styles = css.create({
     borderRadius: '2rem',
     boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
     transition: 'transform 0.4s ease, box-shadow 0.4s ease',
-    [css.media.maxWidth(764)]: {
+    [breakpoints.md]: {
       width: '120px',
       height: '120px',
     },
@@ -46,7 +30,7 @@ const styles = css.create({
 const animated = css.create({
   hover: {
     [ps.hover]: {
-      background: css.color.azure,
+      background: 'azure',
       boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
       animationName: rotateHover,
       animationDuration: '1s',
@@ -66,7 +50,7 @@ const animated = css.create({
 
 export const Box = () => {
   return (
-    <div className={styles.$container}>
+    <div className={css.props(styles.container)}>
       <span>
         hover
         <span tabIndex={0} className={css.props(styles.card, animated.hover)} />

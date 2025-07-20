@@ -1,7 +1,5 @@
-'use client';
-
 import { css, rx } from '@plumeria/core';
-import { TimeCount } from './timeHooks';
+import { breakpoints } from 'lib/mediaQuery';
 
 const styles = css.create({
   headings: {
@@ -15,21 +13,22 @@ const styles = css.create({
     WebkitTextFillColor: 'transparent',
     textAlign: 'left',
     background: 'var(--bg)',
-    backgroundClip: 'text',
-    [css.media.maxWidth(804)]: {
+    WebkitBackgroundClip: 'text',
+    [breakpoints.md]: {
       top: 20,
       right: 18,
-      marginTop: '54px',
+      marginTop: '20px',
+      marginBottom: 30,
       fontSize: '46px',
-    },
-  },
+    }
+},
 });
 
 export const Plumeria = () => {
-  const time = TimeCount();
+    // const time = TimeCount()
   const generateGradualHsl = (offset = 0) => {
-    const hue = (time + offset) % 360;
-    return `hsl(${hue.toFixed(100)}deg, 65%, 65%)`;
+    const hue = (111 + offset) % 360;
+    return `hsl(${hue.toFixed(100)}deg, 50%, 65%)`;
   };
 
   const color1 = generateGradualHsl(0);
@@ -38,11 +37,15 @@ export const Plumeria = () => {
   const dynamicStyle = {
     '--bg': `
     linear-gradient(45deg,
-    ${color1} 0%,
+    ${color1} -120%,
     ${color2} 50%,
-    ${color3} 100%)
+    ${color3} 120%)
     `,
   };
 
-  return <div {...rx(styles.headings, dynamicStyle)}>Plumeria</div>;
+  return (
+    <>
+        <div {...rx(css.props(styles.headings), dynamicStyle)}>Plumeria</div>
+    </>
+    )
 };
