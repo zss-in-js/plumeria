@@ -38,14 +38,14 @@ const styles = css.create({
     wordBreak: 'break-all',
     [breakpoints.md]: {
       maxWidth: 300,
-      fontSize: 20
-},
+      fontSize: 20,
+    },
   },
   link_box: {
     display: 'flex',
     flexDirection: 'row',
     gridGap: 20,
-    ["@media (max-width: 768px)"]: {
+    ['@media (max-width: 768px)']: {
       gridGap: 14,
     },
   },
@@ -106,9 +106,9 @@ const gradi = css.create({
     background: 'radial-gradient(circle, rgba(0,255,255,0.2), rgba(0,128,128,0) 70%)',
     borderRadius: '50%',
     transform: 'translate(-50%, -50%)',
-    ["@media (max-width: 768px)"]: {
+    ['@media (max-width: 768px)']: {
       width: '100%',
-      height: 600,
+      height: 320,
     },
   },
 });
