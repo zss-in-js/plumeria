@@ -4,6 +4,79 @@ const path = require('path');
 const originalCodeMap = new Map<string, string>();
 const generatedTsMap = new Map<string, string>();
 
+// css.props extractor function that supports conditional expressions
+function extractCssProps(code: string) {
+  const propsMatches = [];
+  const regex = /css\.props\s*\(/g;
+  let match;
+
+  while ((match = regex.exec(code))) {
+    const startIndex = match.index + match[0].length;
+    let parenCount = 1;
+    let currentIndex = startIndex;
+    let args = '';
+
+    // Find the matching closing bracket
+    while (parenCount > 0 && currentIndex < code.length) {
+      const char = code[currentIndex];
+      if (char === '(') {
+        parenCount++;
+      } else if (char === ')') {
+        parenCount--;
+      }
+
+      // Collect the argument parts (not including the closing bracket)
+      if (parenCount > 0 || char !== ')') {
+        args += char;
+      }
+      currentIndex++;
+    }
+
+    if (parenCount === 0) {
+      // Get the pure argument list with the conditional expressions removed
+      const cleanArgs = parseCssPropsArguments(args);
+      if (cleanArgs.length > 0) {
+        // Reconstruction preserving the original calling format
+        propsMatches.push(`css.props(${cleanArgs.join(', ')})`);
+      }
+    }
+  }
+
+  return propsMatches;
+}
+
+function parseCssPropsArguments(args: string) {
+  const results = [];
+  const splitArgs = args.split(/\s*,\s*(?![^(]*\))/);
+
+  for (const arg of splitArgs) {
+    // Handle logical AND expressions (&&)
+    if (arg.includes('&&')) {
+      const match = arg.match(/&&\s*([^\s,]+)/);
+      if (match) {
+        results.push(match[1]);
+        continue;
+      }
+    }
+
+    // Handle ternary expressions (?:)
+    if (arg.includes('?')) {
+      const match = arg.match(/([^?]+)\?([^:]+):(.+)$/);
+      if (match) {
+        // match[2] = then, match[3] = else
+        results.push(match[2].trim());
+        results.push(match[3].trim());
+        continue;
+      }
+    }
+
+    // Default case (simple argument)
+    results.push(arg.trim());
+  }
+
+  return results;
+}
+
 function extractVueAndSvelte(filePath: string): string {
   const ext = path.extname(filePath);
   if (!(ext === '.svelte' || ext === '.vue')) return filePath;
@@ -31,25 +104,12 @@ function extractVueAndSvelte(filePath: string): string {
   const tsCode = contentLines.join('\n');
 
   // Search for css.props in the original code (as it may be in a HTML tags)
-  const propsRegex = /css\.props\s*\(([^)]*)\)\s*;?/g;
-  const propsMatches = [];
-  let match;
-
-  // Search for css.props in tsCode
-  while ((match = propsRegex.exec(tsCode))) {
-    propsMatches.push(match[1].trim());
-  }
-
-  // Search for css.props in the entire original code
-  propsRegex.lastIndex = 0; // reset index
-  while ((match = propsRegex.exec(code))) {
-    propsMatches.push(match[1].trim());
-  }
-
-  const allArgs = propsMatches.filter(Boolean);
-  const mergedCall = allArgs.length
-    ? `css.props(${[...new Set(allArgs)].join(', ')});\n`
-    : '';
+  // extract css.props
+  const propsMatches = [...extractCssProps(tsCode), ...extractCssProps(code)];
+  const calls = propsMatches
+    .filter(Boolean)
+    .map((call) => `${call};`)
+    .join('\n');
 
   // extract import section
   const importRegex = /^(\s*import\s[^;]+;\s*)+/m;
@@ -75,9 +135,9 @@ function extractVueAndSvelte(filePath: string): string {
     finalCode += stylesSection + '\n';
   }
 
-  // add mergedCall
-  if (mergedCall) {
-    finalCode += mergedCall;
+  // add calls as they are
+  if (calls) {
+    finalCode += calls + '\n';
   }
 
   // console.log('=== Debug Info ===');
@@ -98,42 +158,28 @@ async function extractAndInjectStyleProps(filePath: string) {
   const original = fs.readFileSync(filePath, 'utf8');
   originalCodeMap.set(filePath, original);
 
-  const regex = /css\.props\s*\(([^)]*)\)/g;
-  const matches = [...original.matchAll(regex)];
-
-  if (matches.length === 0) {
-    console.log('No css.props found.');
-    return;
-  }
-
-  const allArgs = matches.map((m) => m[1].trim()).filter(Boolean);
-  const mergedCall = `css.props(${[...new Set(allArgs)].join(', ')});\n`;
-
-  // Find all css.create
-  const stylesRegex =
-    /const\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*css\.create\([\s\S]*?\);\s*/g;
-  const stylesMatches = [...original.matchAll(stylesRegex)];
-
-  const importRegex = /^(import\s[^()]+;\s*)+/m;
+  // extract import section
+  const importRegex = /^(?:\s*import\s[^;]+;\s*)+/m;
   const importMatch = original.match(importRegex);
+  const importSection = importMatch ? importMatch[0] : '';
 
-  let insertIndex = 0;
+  // extract css.create section
+  const cssCreateRegex =
+    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.create\([\s\S]*?\);\s*))/g;
+  const cssCreateSection = (original.match(cssCreateRegex) || []).join('\n');
 
-  // If css.create is found, insert after the last css.create
-  if (stylesMatches.length > 0) {
-    const lastStylesMatch = stylesMatches[stylesMatches.length - 1];
-    insertIndex = (lastStylesMatch.index as number) + lastStylesMatch[0].length;
-  }
-  // If css.create is not found, insert it immediately after the import statement.
-  else if (importMatch) {
-    insertIndex = importMatch[0].length;
-  }
+  // extract css.props
+  const propsMatches = extractCssProps(original);
+  const calls = propsMatches
+    .filter(Boolean)
+    .map((call) => `${call};`)
+    .join('\n');
 
-  const finalCode =
-    original.slice(0, insertIndex) +
-    '\n' +
-    mergedCall +
-    original.slice(insertIndex);
+  // Assembly
+  let finalCode = '';
+  if (importSection) finalCode += importSection + '\n';
+  if (cssCreateSection) finalCode += cssCreateSection + '\n';
+  finalCode += calls;
 
   fs.writeFileSync(filePath, finalCode, 'utf8');
 }
@@ -152,6 +198,19 @@ async function restoreAllOriginals() {
   }
   originalCodeMap.clear();
 }
+
+// Process-wide error handling (for recovery)
+process.on('uncaughtException', async (error) => {
+  console.error('Uncaught Exception:', error);
+  await restoreAllOriginals();
+  process.exit(1);
+});
+
+process.on('unhandledRejection', async (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  await restoreAllOriginals();
+  process.exit(1);
+});
 
 module.exports = {
   extractAndInjectStyleProps,
