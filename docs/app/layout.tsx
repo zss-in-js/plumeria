@@ -28,7 +28,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         }}
       >
         <RootProvider>{children}</RootProvider>
-        <Analytics mode="production" />;
+        <Analytics mode="production" />
       </body>
     </html>
   );

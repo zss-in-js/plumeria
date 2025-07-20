@@ -1,4 +1,5 @@
 import { css } from '@plumeria/core';
+import { breakpoints } from 'lib/mediaQuery';
 
 export const styles = css.create({
   article: {
@@ -8,7 +9,7 @@ export const styles = css.create({
     marginInline: 'auto',
     marginBottom: '40px',
     lineHeight: 1.7,
-    [css.media.maxWidth(764)]: {
+    [breakpoints.md]: {
       width: '100%',
     },
   },
