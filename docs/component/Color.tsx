@@ -1,4 +1,4 @@
-import { css, rx } from '@plumeria/core';
+import { css, rx, ps } from '@plumeria/core';
 
 const styles = css.create({
   colorName: {
@@ -7,6 +7,9 @@ const styles = css.create({
     height: 12,
     background: 'var(--color)',
     border: 'solid 0.4px black',
+    [ps.hover]: {
+      scale: 1.5,
+    },
   },
 });
 
