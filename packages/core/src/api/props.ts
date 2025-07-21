@@ -87,12 +87,12 @@ export function props(
   if (typeof globalPromise_1 === 'undefined') initPromise_1();
   resolvePromise_1(uniqueStyleSheets.join(''));
 
-  const combinedClassName = classList.join(' ');
+  const classNameHashes = classList.join(' ');
 
   // CSS injection only in test development environment
   if (isTestingDevelopment) {
-    injectIfNeeded(combinedClassName, uniqueStyleSheets.join(''));
+    injectIfNeeded(classNameHashes, uniqueStyleSheets.join(''));
   }
 
-  return classList.join(' ');
+  return classNameHashes;
 }
