@@ -1,0 +1,62 @@
+---
+title: 'Plumeria 0.14.4'
+description: 'It includes large refactorings and other changes. (3 min read)'
+date: '2025/07/21'
+---
+
+## Changes
+- $ accessor has been deprecated (deleted)
+- Compilation target changed from `css.create` to `css.props()`
+
+Previously, calls to `css.create` were compiled, but now they are not compiled and the `css.props` argument is compiled instead. With this change, only the styles you put into `css.props()` will be compiled, keeping the output to a minimum.
+
+## CSS specificity
+css.props() is statically compiled by the AOT compiler with a list of arguments.  
+Any property hashes from the left style that conflict with styles on the right are filtered and invalidated.
+
+Specificity has become stricter and simpler.
+When there is a property conflict, the property of the style on the right always takes precedence.
+This is the same behavior as [StyleX](https://stylexjs.com/).
+```ts
+css.props(styles.1, styles.2, styles.3) // 1 < 2 < 3 win
+```
+
+## Other Improvement
+
+### Type
+The following APIs have been typed:
+- `css`
+- `defineConsts`
+```ts
+const css: {
+    prototype: StyleSheet;
+    create: (object: CreateStyleType<T>) => ReturnType<T>;
+    props: (...objects: (false | Readonly<CommonProperties> | Readonly<AndSelector> | Readonly<ColonSelector> | Readonly<QuerySelector> | Readonly<CSSVariableProperty> | null | undefined)[]) => string;
+    keyframes: (object: CreateKeyframes) => string;
+    defineConsts: (object: T) => T;
+    defineVars: (object: T) => ReturnVariableType<T>;
+    defineTheme: (object: T) => ReturnVariableType<T>;
+    global: (object: HTMLSelector | ClassNameSelector | AttributeSelector | ConsecutiveSelector | PseudoClassSelector | PseudoElementSelector | KeyframesSelector | QuerySelectorHTML) => void;
+}
+```
+
+```ts
+const defineConsts = <const T extends CreateValues>(constants: T): T => {
+  return constants;
+};
+```
+
+
+### Import
+`rx`, `px`, `ps`, `media`, `container`, `color`, these objects and functions now require imports rather than chaining them from css classes.
+In the future the color object and px may be removed as needed.
+
+```ts
+import { rx, px, ps, media, container, color } from '@plumeria/core';
+```
+
+### Others
+
+We have introduced API that may be deprecated in the future.
+Because Atomic is focused on optimization, we plan to decide what to do with the `global()` API in the future.
+We can't make any decisions without your actual opinions, so please share your thoughts through the discussion.
