@@ -129,11 +129,11 @@ export const HomeComponent = () => {
       </div>
       <CodeBlock code={demoCode} lang="text" />
       <div className={css.props(styles.link_box)}>
-        <Link href="/docs/getting-started/installation" className={css.props(styles.button, styles.getStarted)}>
+        <Link href="/docs" className={css.props(styles.button, styles.getStarted)}>
           GET STARTED
         </Link>
-        <Link href="/docs" className={css.props(styles.button)}>
-          THINKING
+        <Link href="/docs/getting-started/installation" className={css.props(styles.button)}>
+          INSTALLATION
         </Link>
       </div>
     </main>
