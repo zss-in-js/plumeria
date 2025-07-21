@@ -49,7 +49,7 @@ function create<const T extends Record<string, CSSProperties>>(
       }
 
       const hash = [...hashes].join(' ');
-      const sheet = [...baseSheets, ...querySheets].join('\n');
+      const sheet = [...baseSheets, ...querySheets].join('');
 
       records.push({
         key: prop,
