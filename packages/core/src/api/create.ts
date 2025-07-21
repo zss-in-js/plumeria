@@ -32,10 +32,10 @@ function create<const T extends Record<string, CSSProperties>>(
     }> = [];
 
     // Processing flat atoms and atoms in media
-    Object.entries(flat).forEach(([prop]) => {
+    Object.entries(flat).forEach(([prop, value]) => {
       const hashes = new Set<string>();
       const sheets = new Set<string>();
-      processAtomicProps(flat, hashes, sheets);
+      processAtomicProps({ [prop]: value }, hashes, sheets);
 
       const baseSheets: string[] = [];
       const querySheets: string[] = [];
