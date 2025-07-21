@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.14.5
+
+### Patch Changes
+
+- 0aa07e8: refactor: fix atom duplication without post-processing
+
 ## 0.14.4
 
 ### Patch Changes
