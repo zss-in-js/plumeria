@@ -19,22 +19,22 @@ const styles = css.create({
   },
 });
 
-const className = css.props(styles.one, styles.two);  // [!code ++] →  "one_ocpc7u two_ocpc7u"
+const className = css.props(styles.one, styles.two);  // [!code ++]
 ```
 
-> 💡 className will be something like "one_ocpc7u two_ocpc7u"  
-> Only truthy values are preserved.
 
 ## Usage Patterns
 
 ### Conditional styles
+
+Only truthy values are preserved.
 
 ```ts
 const isActive = true;
 
 const className = css.props(
   styles.one,
-  isActive && styles.two // 'styles.two' is only added when isActive is true
+  isActive && styles.two
 );
 ```
 
@@ -50,10 +50,10 @@ const className = css.props(
 ---
 
 ## Return value
-Returns a single string of space-separated styleObject, ignoring falsy inputs:
+Returns a single hashes string of space-separated styleObject, ignoring falsy inputs:
 
 ```ts
-css.props(styles.one, false, undefined, styles.two); // → "one_ocpc7u two_ocpc7u"
+css.props(styles.one, false, undefined, styles.two);
 ```
 
 
@@ -61,7 +61,8 @@ css.props(styles.one, false, undefined, styles.two); // → "one_ocpc7u two_ocpc
 
 <Callout title="Good to know">
   Since falsy values are filtered out, you can use logical and, ternary
-  operators, etc. in argument expressions.
+  operators, etc. in argument expressions.  
+  Nested ternary operators are not supported as this would require complex parsing.
 </Callout>
 
 ### More
