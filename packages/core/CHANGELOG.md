@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.14.4
+
+### Patch Changes
+
+- 9debd82: fix: mini fix console --view unnecesary line and rx argment now takes className
+
 ## 0.14.3
 
 ### Patch Changes
