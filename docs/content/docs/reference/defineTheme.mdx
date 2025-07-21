@@ -4,7 +4,6 @@ description: 'API reference for the `defineTheme` method'
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-import Link from 'next/link';
 
 The `defineTheme` function allows you to define **semantic design tokens** that respond to themes such as `"light"` or `"dark"`, and can optionally fall back to a `default` value.
 
@@ -104,7 +103,10 @@ This allows for **light/dark mode switching, theming via props**, and **custom c
 - Themes are **resolved at runtime** via the data-theme attribute
 - You can dynamically switch themes by toggling document.documentElement.dataset.theme = 'dark'
 
-## 📚 Related APIs
-- <Link href="/docs/reference/defineConsts">defineConsts()</Link> — define static constants like breakpoints  
-- <Link href="/docs/reference/defineVars">defineVars()</Link> — define base variables to reuse in themes  
-- <Link href="/docs/reference/create">create()</Link> — style components using theme tokens
+## 🔗 Related
+
+<Cards>
+  <Card title="defineConsts" href="/docs/reference/defineConsts" description=" — define static constants like breakpoints" />
+  <Card title="defineVars" href="/docs/reference/defineVars" description=" — define base variables to reuse in themes" />
+  <Card title="create" href="/docs/reference/create" description=" — style components using theme tokens" />
+</Cards>
