@@ -22,6 +22,95 @@ const styles = css.create({
 const className = css.props(styles.one, styles.two);  // [!code ++]
 ```
 
+## Prohibit intermediate code
+Props compilation is performed by strictly deleting all intermediate code except `import` `css.create()` `css.props()`.
+For example, if you define and use a global variable like the following, a reference error will occur because the variable will be deleted during the compilation phase.
+
+```tsx
+const MD = "@media (max-width: 768px)" // [!code --] removed at compile time
+
+const styles = css.create({
+  responsive: {
+    [MD]: {  // [!code --] Reference Error
+      scale: 0.8,
+    },
+  },
+});
+
+return (
+    <div className={css.props(styles.responsive)} />
+)
+```
+If you want to define a variable and use intermediate code, you can assign a value directly or via an import statement.
+
+```tsx
+const styles = css.create({
+  responsive: {
+    ["@media (max-width: 768px)"]: {  // [!code ++] Work
+      scale: 0.8,
+    },
+  },
+});
+
+return (
+    <div className={css.props(styles.responsive)} />
+)
+```
+or
+```tsx
+import { css, media } from "@plumeria/core";
+
+const styles = css.create({
+  responsive: {
+    [media.maxWidth(768)]: {  // [!code ++] Work
+      scale: 0.8,
+    },
+  },
+});
+
+return (
+    <div className={css.props(styles.responsive)} />
+)
+```
+
+or
+
+```tsx
+import { css } from "@plumeria/core";
+import { breakpoints } from "lib/mediaQuery";
+
+const styles = css.create({
+  responsive: {
+    [breakpoints.md]: {  // [!code ++] Work
+      scale: 0.8,
+    },
+  },
+});
+
+return (
+    <div className={css.props(styles.responsive)} />
+)
+```
+
+Therefore, `keyframes()` etc. cannot be defined in the same file scope as props and must be saved as files and used via import.
+
+## Extract
+
+The following is extracted at compile time and executed as ts code. (Vue and Svelte also execute as ts.)
+
+```tsx
+import { css } from "@plumeria/core";
+
+const styless = css.create({
+  responsive: {
+    ["@media (max-width: 768px)"]: {
+      scale: 0.8,
+    },
+  },
+});
+
+css.props(styless.responsive);
+```
 
 ## Usage Patterns
 
