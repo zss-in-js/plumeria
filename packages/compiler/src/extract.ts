@@ -4,6 +4,37 @@ const path = require('path');
 const originalCodeMap = new Map<string, string>();
 const generatedTsMap = new Map<string, string>();
 
+// Helper function to check if a position is within a comment
+function isInComment(code: string, position: number): boolean {
+  const beforePosition = code.substring(0, position);
+
+  // Check for single-line comments
+  const lines = beforePosition.split('\n');
+  const currentLine = lines[lines.length - 1];
+  const singleLineCommentIndex = currentLine.indexOf('//');
+  if (singleLineCommentIndex !== -1) {
+    return true;
+  }
+
+  // Check for multi-line comments
+  let inMultiLineComment = false;
+  let i = 0;
+
+  while (i < position) {
+    if (code.substring(i, i + 2) === '/*') {
+      inMultiLineComment = true;
+      i += 2;
+    } else if (code.substring(i, i + 2) === '*/') {
+      inMultiLineComment = false;
+      i += 2;
+    } else {
+      i++;
+    }
+  }
+
+  return inMultiLineComment;
+}
+
 // css.props extractor function that supports conditional expressions
 function extractCssProps(code: string) {
   const propsMatches = [];
@@ -11,6 +42,11 @@ function extractCssProps(code: string) {
   let match;
 
   while ((match = regex.exec(code))) {
+    // Skip if this match is within a comment
+    if (isInComment(code, match.index)) {
+      continue;
+    }
+
     const startIndex = match.index + match[0].length;
     let parenCount = 1;
     let currentIndex = startIndex;
@@ -33,8 +69,11 @@ function extractCssProps(code: string) {
     }
 
     if (parenCount === 0) {
+      // Normalize whitespace and newlines in args for better parsing
+      const normalizedArgs = args.replace(/\s+/g, ' ').trim();
+
       // Get the pure argument list with the conditional expressions removed
-      const cleanArgs = parseCssPropsArguments(args);
+      const cleanArgs = parseCssPropsArguments(normalizedArgs);
       if (cleanArgs.length > 0) {
         // Reconstruction preserving the original calling format
         propsMatches.push(`css.props(${cleanArgs.join(', ')})`);
@@ -43,6 +82,25 @@ function extractCssProps(code: string) {
   }
 
   return propsMatches;
+}
+
+// Enhanced css.create extractor that skips commented code
+function extractCssCreate(code: string) {
+  const cssCreateMatches = [];
+  const regex =
+    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.create\([\s\S]*?\);\s*))/g;
+  let match;
+
+  while ((match = regex.exec(code))) {
+    // Skip if this match is within a comment
+    if (isInComment(code, match.index)) {
+      continue;
+    }
+
+    cssCreateMatches.push(match[0]);
+  }
+
+  return cssCreateMatches.join('\n');
 }
 
 function parseCssPropsArguments(args: string) {
@@ -116,11 +174,8 @@ function extractVueAndSvelte(filePath: string): string {
   const importMatch = tsCode.match(importRegex);
   const importSection = importMatch ? importMatch[0] : '';
 
-  // extract style.create section
-  const stylesRegex =
-    /const\s+([A-Za-z_$][\w$]*)\s*=\s*css\.create\([\s\S]*?\);\s*/g;
-  const stylesMatch = tsCode.match(stylesRegex);
-  const stylesSection = stylesMatch ? stylesMatch[0] : '';
+  // extract style.create section using the new function
+  const stylesSection = extractCssCreate(tsCode);
 
   // finale ts code
   let finalCode = '';
@@ -140,14 +195,6 @@ function extractVueAndSvelte(filePath: string): string {
     finalCode += calls + '\n';
   }
 
-  // console.log('=== Debug Info ===');
-  // console.log('File:', filePath);
-  // console.log('Found props matches:', propsMatches);
-  // console.log('Merged call:', mergedCall);
-  // console.log('Final code:');
-  // console.log(finalCode);
-  // console.log('==================');
-
   const tsPath = filePath.replace(ext, '.ts');
   fs.writeFileSync(tsPath, finalCode, 'utf8');
   generatedTsMap.set(filePath, tsPath);
@@ -163,10 +210,8 @@ async function extractAndInjectStyleProps(filePath: string) {
   const importMatch = original.match(importRegex);
   const importSection = importMatch ? importMatch[0] : '';
 
-  // extract css.create section
-  const cssCreateRegex =
-    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.create\([\s\S]*?\);\s*))/g;
-  const cssCreateSection = (original.match(cssCreateRegex) || []).join('\n');
+  // extract css.create section using the new function
+  const cssCreateSection = extractCssCreate(original);
 
   // extract css.props
   const propsMatches = extractCssProps(original);
@@ -181,6 +226,7 @@ async function extractAndInjectStyleProps(filePath: string) {
   if (cssCreateSection) finalCode += cssCreateSection + '\n';
   finalCode += calls;
 
+  console.log(finalCode);
   fs.writeFileSync(filePath, finalCode, 'utf8');
 }
 
