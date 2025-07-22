@@ -1,12 +1,13 @@
 ---
-title: 'Plumeria 0.14.4'
+title: 'Plumeria 0.14.6'
 description: 'It includes large refactorings and other changes. (3 min read)'
-date: '2025/07/21'
+date: '2025/07/22'
 ---
 
 ## Changes
 - $ accessor has been deprecated (deleted)
 - Compilation target changed from `css.create` to `css.props()`
+- The documentation has been significantly updated
 
 Previously, calls to `css.create` were compiled, but now they are not compiled and the `css.props` argument is compiled instead. With this change, only the styles you put into `css.props()` will be compiled, keeping the output to a minimum.
 
