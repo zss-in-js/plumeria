@@ -2,7 +2,7 @@
 
 Plumeria is a JavaScript library for Scalable and optimized styling.
 
-## 🌱 Installation
+## Installation
 
 To get started with Plumeria, install the core package:
 
@@ -39,11 +39,11 @@ import { css } from '@plumeria/core';
 
 const styles = css.create({
   text: {
-    color: 'yellow', // xxxhash1
+    color: 'yellow', // zxxxxxx1
   },
   box: {
-    width: '100%', // xxxhash2
-    background: 'rgb(60,60,60)', // xxxhash3
+    width: '100%', // zxxxxxx2
+    background: 'rgb(60,60,60)', // zxxxxxx3
   },
 });
 ```
@@ -56,7 +56,7 @@ The same goes for shorthand and longhand rules.
 
 ```jsx
 <div className={css.props(styles.text, styles.box)} />
-//   className="xxxhash1 xxxhash2 xxxhash3"
+//   className="zxxxxxx1 zxxxxxx2 zxxxxxx3"
 ```
 
 Supports pseudo/media queries inline:
@@ -66,7 +66,7 @@ import { css, ps, media } from '@plumeria/core';
 
 const styles = css.create({
   box: {
-    [media.maxWidth(900)]: {
+    [media.maxWidth(768)]: {
       width: '100%',
     },
   },
