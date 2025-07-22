@@ -1,13 +1,21 @@
 # @plumeria/core
 
+## 0.14.6
+
+### Patch Changes
+
+- 1c9e62b: feat: dependencies update
+
 ## 0.14.5
 
 ### Patch Changes
 
 - 0aa07e8: refactor: fix atom duplication without post-processing
 
-####  dev mode injection bug
+#### dev mode injection bug
+
 Fixed an issue where media queries would not go below when the same atom was used above and below.
+
 ## 0.14.4
 
 ### Patch Changes
