@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.14.2
+
+### Patch Changes
+
+- 4d9ced7: fix: Support for breaking lines in css.props conditionals and not capturing commented out css.create
+
 ## 0.14.1
 
 ### Patch Changes
