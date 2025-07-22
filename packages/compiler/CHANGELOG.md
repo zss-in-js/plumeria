@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.14.6
+
+### Patch Changes
+
+- 1b6b4eb: feat: dependencies update
+
 ## 0.14.1
 
 ### Patch Changes
