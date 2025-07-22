@@ -1,13 +1,24 @@
 # @plumeria/core
 
+## 0.14.6
+
+### Patch Changes
+
+- 1b6b4eb: feat: dependencies update
+
+large fixes: comprehensively updated the list of integers that are not converted to px.  
+This version 0.14.6 is considered LTS.
+
 ## 0.14.5
 
 ### Patch Changes
 
 - 0aa07e8: refactor: fix atom duplication without post-processing
 
-####  dev mode injection bug
+#### dev mode injection bug
+
 Fixed an issue where media queries would not go below when the same atom was used above and below.
+
 ## 0.14.4
 
 ### Patch Changes
