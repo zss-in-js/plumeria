@@ -17,16 +17,16 @@ import { css } from '@plumeria/core';
 
 const styles = css.create({
   text: {
-    fontSize: 12, // xxxhash1
-    color: 'navy', // xxxhash2
+    fontSize: 12, // zxxxxxx1
+    color: 'navy', // zxxxxxx2
   },
   size: {
-    width: 120, // xxxhash3
+    width: 120, // zxxxxxx3
   },
 });
 
 const className = css.props(styles.text, styles.size);
-// className is "xxxhash1 xxxhash2 xxxhash3"
+// className is "zxxxxxx1 zxxxxxx2 zxxxxxx3"
 ```
 
 ## Structure
