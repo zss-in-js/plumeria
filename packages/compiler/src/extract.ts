@@ -226,7 +226,6 @@ async function extractAndInjectStyleProps(filePath: string) {
   if (cssCreateSection) finalCode += cssCreateSection + '\n';
   finalCode += calls;
 
-  console.log(finalCode);
   fs.writeFileSync(filePath, finalCode, 'utf8');
 }
 
