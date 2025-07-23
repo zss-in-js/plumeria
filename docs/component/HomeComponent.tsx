@@ -102,7 +102,6 @@ const gradi = css.create({
     width: 600,
     height: 600,
     pointerEvents: 'none',
-    // eslint-disable-next-line @plumeria/validate-values
     background: 'radial-gradient(circle, rgba(0,255,255,0.2), rgba(0,128,128,0) 70%)',
     borderRadius: '50%',
     transform: 'translate(-50%, -50%)',
