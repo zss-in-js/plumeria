@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.2.6
+
+### Patch Changes
+
+- a3e73e4: feat: gradient add conic and radial
+
 ## 0.2.5
 
 ### Patch Changes
