@@ -129,7 +129,8 @@ const calcString = 'calc\\(.*?\\)';
 const anchorString = 'anchor\\([^()]*\\)';
 const anchorSizeString = 'anchor-size\\([^()]*\\)';
 const clampString = 'clamp\\([^()]*\\)';
-const linearGradientString = '(?:repeating-)?linear-gradient\\(.*\\)';
+const gradientString =
+  '(?:repeating-)?(?:linear|radial|conic)-gradient\\(.*\\)';
 const urlString = 'url\\([^\\)]+\\)';
 const imageSetString = 'image-set\\([^\\)]+\\)';
 const attrString = 'attr\\([^\\)]+\\)';
@@ -169,7 +170,7 @@ const colorRegex = new RegExp(
 );
 const colorSource = colorRegex.source.slice(1, -1);
 
-const imageRegex = new RegExp(`^(${linearGradientString}|${urlString})$`);
+const imageRegex = new RegExp(`^(${gradientString}|${urlString})$`);
 const urlRegex = new RegExp(`^(${urlString})$`);
 
 const sliceValuePattern =
@@ -672,7 +673,7 @@ module.exports = {
               );
 
               const backgroundImageRegex = new RegExp(
-                `^(${linearGradientString}|${urlString}|${varString}|none)(\\s*,\\s*(${linearGradientString}|${urlString}|${varString}|none))*$`,
+                `^(${gradientString}|${urlString}|${varString}|none)(\\s*,\\s*(${gradientString}|${urlString}|${varString}|none))*$`,
               );
               const backgroundImageProperties = ['backgroundImage'];
 
@@ -690,7 +691,7 @@ module.exports = {
               const positionKeyword = `top|bottom|center|left|right|${varString}`;
               const sizeKeyword = 'cover|contain';
 
-              const urlPattern = `(?:${urlString}|${linearGradientString}|${varString}\\s*)?`;
+              const urlPattern = `(?:${urlString}|${gradientString}|${varString}\\s*)?`;
               const positionPattern = `(?:${positionKeyword})(?:\\s+${positionKeyword})?`;
               const singleValuePattern = `(${lengthValuePattern})( (?!\\s)(${lengthValuePattern})){0,2}?`;
               const sizePattern = `(?:\\s*/\\s*(?:${sizeKeyword}|${singleValuePattern}))?`;
@@ -998,7 +999,7 @@ module.exports = {
               const columnsProperties = ['columns'];
 
               const contentValueRegex = new RegExp(
-                `^(${urlString}|${linearGradientString}|${imageSetString}|${attrString}|${counterString}|${countersString}|${stringString})$`,
+                `^(${urlString}|${gradientString}|${imageSetString}|${attrString}|${counterString}|${countersString}|${stringString})$`,
               );
 
               const contentProperty = ['content'];
@@ -1630,7 +1631,7 @@ module.exports = {
               );
 
               const maskBorderRegex = new RegExp(
-                `^(?:${linearGradientString}|${urlString})` +
+                `^(?:${gradientString}|${urlString})` +
                   `(?:\\s+${maskBorderSliceSource})?` +
                   `(?:\\s?/\\s?${maskBorderWidthSource})?` +
                   `(?:\\s?/\\s?${maskBorderOutsetSource})?` +
@@ -1696,7 +1697,7 @@ module.exports = {
               const bgSizePair = `(${bgSize})( (?!\\s)(${bgSize})){0,1}?`;
 
               const maskLayerRegex =
-                `(?:${linearGradientString}|${urlString})` +
+                `(?:${gradientString}|${urlString})` +
                 `(?:\\s+${positionPair})?` +
                 `(?:\\s?/\\s?${bgSizePair})?` +
                 `(?:\\s+${backgroundRepeatSource})?` +
@@ -1824,13 +1825,13 @@ module.exports = {
                 `^(?:` +
                   `(?:${outsideShape}(?:\\s+${shapeVisualBox})?)|` +
                   `(?:${shapeVisualBox}(?:\\s+${outsideShape})?)|` +
-                  `${linearGradientString}|${urlString}|${varString}` +
+                  `${gradientString}|${urlString}|${varString}` +
                   `)$`,
               );
               const shapeOutsideProperties = ['shapeOutside'];
 
               const strokeRegex = new RegExp(
-                `^${linearGradientString}|${urlString}|${colorSource}$`,
+                `^${gradientString}|${urlString}|${colorSource}$`,
               );
               const strokeProperties = ['stroke'];
 
