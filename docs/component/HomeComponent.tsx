@@ -23,7 +23,7 @@ const styles = css.create({
       width: '100%',
       height: 'auto',
       margin: '0 auto',
-      transform: 'translate(0%, 30%)',
+      transform: 'translate(0%, 50%)',
     },
   },
 
@@ -105,7 +105,7 @@ const gradi = css.create({
     background: 'radial-gradient(circle, rgba(0,255,255,0.2), rgba(0,128,128,0) 70%)',
     borderRadius: '50%',
     transform: 'translate(-50%, -50%)',
-    ['@media (max-width: 768px)']: {
+    [breakpoints.md]: {
       width: '100%',
       height: 320,
     },
