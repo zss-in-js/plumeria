@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/next';
 import type { ReactNode } from 'react';
 import { ServerCSS } from '@plumeria/next';
 
+export const dynamicParams = false;
 export const dynamic = 'force-static';
 
 export default function Layout({ children }: { children: ReactNode }) {
