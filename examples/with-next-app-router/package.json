@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@plumeria/core": "^0.13.7",
+    "@plumeria/core": "^0.14.6",
     "@plumeria/eslint-plugin": "^0.2.4",
     "next": "15.2.4",
     "react": "^19.0.0",
@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@plumeria/compiler": "^0.13.0",
+    "@plumeria/compiler": "^0.14.6",
     "@plumeria/next": "^0.6.7",
     "@types/node": "^22.10.7",
     "@types/react": "^19",
