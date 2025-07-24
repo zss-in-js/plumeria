@@ -1,4 +1,4 @@
-import { css, rx } from '@plumeria/core';
+import { css } from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 
 const styles = css.create({
@@ -12,7 +12,7 @@ const styles = css.create({
     fontWeight: 600,
     WebkitTextFillColor: 'transparent',
     textAlign: 'left',
-    background: 'var(--bg)',
+    background: 'linear-gradient(90deg, #6dd7ae 0%, #74dbb5 50%, #6bbfcc 100%)',
     WebkitBackgroundClip: 'text',
     [breakpoints.md]: {
       top: 20,
@@ -20,32 +20,10 @@ const styles = css.create({
       marginTop: '20px',
       marginBottom: 30,
       fontSize: '46px',
-    }
-},
+    },
+  },
 });
 
 export const Plumeria = () => {
-    // const time = TimeCount()
-  const generateGradualHsl = (offset = 0) => {
-    const hue = (111 + offset) % 360;
-    return `hsl(${hue.toFixed(100)}deg, 50%, 65%)`;
-  };
-
-  const color1 = generateGradualHsl(0);
-  const color2 = generateGradualHsl(50);
-  const color3 = generateGradualHsl(100);
-  const dynamicStyle = {
-    '--bg': `
-    linear-gradient(45deg,
-    ${color1} -120%,
-    ${color2} 50%,
-    ${color3} 120%)
-    `,
-  };
-
-  return (
-    <>
-        <div {...rx(css.props(styles.headings), dynamicStyle)}>Plumeria</div>
-    </>
-    )
+  return <div className={css.props(styles.headings)}>Plumeria</div>;
 };
