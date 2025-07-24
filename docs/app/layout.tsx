@@ -5,9 +5,18 @@ import { GeistMono } from 'geist/font/mono';
 import { Analytics } from '@vercel/analytics/next';
 import type { ReactNode } from 'react';
 import { ServerCSS } from '@plumeria/next';
+import { css } from '@plumeria/core';
 
 export const dynamicParams = false;
 export const dynamic = 'force-static';
+
+const styles = css.create({
+  body: {
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100vh',
+  },
+});
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
@@ -16,13 +25,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <ServerCSS />
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
-      <body
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100vh',
-        }}
-      >
+      <body className={css.props(styles.body)}>
         <RootProvider>{children}</RootProvider>
         <Analytics mode="production" />
       </body>
