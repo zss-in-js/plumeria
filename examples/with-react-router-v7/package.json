@@ -9,7 +9,7 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@plumeria/core": "^0.13.7",
+    "@plumeria/core": "^0.14.6",
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",
     "isbot": "^5.1.27",
@@ -18,7 +18,7 @@
     "react-router": "^7.5.3"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.13.0",
+    "@plumeria/compiler": "^0.14.6",
     "@plumeria/vite": "^0.1.0",
     "@react-router/dev": "^7.5.3",
     "@tailwindcss/vite": "^4.1.4",
