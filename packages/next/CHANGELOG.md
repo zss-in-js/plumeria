@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.7.2
+
+### Patch Changes
+
+- ddff105: fix: dependencies update
+
 ## 0.7.1
 
 ### Patch Changes
