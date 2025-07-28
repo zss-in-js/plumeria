@@ -11,7 +11,6 @@ export default function plumeria(): Plugin {
           external: [
             ...((build.rollupOptions?.external || []) as string[]),
             'fs',
-            'util',
           ],
         },
       },
