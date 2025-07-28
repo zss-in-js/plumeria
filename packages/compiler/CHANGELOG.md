@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.14.8
+
+### Patch Changes
+
+- cfd67b3: fix(compiler/extract.ts): Fixed to pick up Vue attributes
+
 ## 0.14.7
 
 ### Patch Changes

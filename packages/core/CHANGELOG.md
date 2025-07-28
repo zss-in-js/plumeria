@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.14.8
+
+### Patch Changes
+
+- 5a2b9e0: feat: Upgrade to match the compiler
+
 ## 0.14.7
 
 ### Patch Changes
