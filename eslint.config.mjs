@@ -7,13 +7,7 @@ const eslintConfig = tseslint.config(
   ...tseslint.configs.strict,
   plumeria.flatConfigs.recommended,
   {
-    ignores: [
-      '**/dist/**',
-      '**/.next/**',
-      '**/.astro/**',
-      '**/*.js',
-      '**/.react-router/types/**',
-    ],
+    ignores: ['**/dist/**', '**/.*/**', '**/*.js'],
   },
   {
     files: ['**/*.{ts,tsx}'],
