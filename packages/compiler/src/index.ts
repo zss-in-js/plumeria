@@ -8,7 +8,7 @@ const combineMediaQuery = require('postcss-combine-media-query');
 const { execute } = require('rscute/execute');
 const { transform } = require('lightningcss');
 const { parseSync } = require('@swc/core');
-const { buildGlobal, buildCreate } = require('@plumeria/core/processors');
+const { buildGlobal, buildProps } = require('@plumeria/core/processors');
 const {
   extractAndInjectStyleProps,
   restoreAllOriginals,
@@ -123,15 +123,31 @@ async function optimizeCSS(): Promise<void> {
   const projectName = path.basename(projectRoot);
 
   // Supports other React frameworks
-  const filesSupportExtensions = files.map((file: string) =>
-    extractVueAndSvelte(file),
-  );
+  const filesSupportExtensions: string[] = [];
+  for (const file of files) {
+    const tsFile = await extractVueAndSvelte(file);
+    filesSupportExtensions.push(tsFile);
+  }
 
-  const styleFiles = filesSupportExtensions.filter(isCSS).sort();
+  const styleFiles = filesSupportExtensions
+    .filter((file) => isCSS(file, ''))
+    .sort();
 
-  const cssPropsFiles = styleFiles.filter((file: string) =>
-    isCSS(file, 'props'),
-  );
+  const cssPropsFiles = styleFiles.filter((file) => {
+    // Check if it's a .ts file and has a corresponding .vue or .svelte file
+    if (file.endsWith('.ts')) {
+      const vueFile = file.replace('.ts', '.vue');
+      const svelteFile = file.replace('.ts', '.svelte');
+      const isGeneratedFromVue = existsSync(vueFile);
+      const isGeneratedFromSvelte = existsSync(svelteFile);
+
+      // Exclude if it is a generated file
+      if (isGeneratedFromVue || isGeneratedFromSvelte) {
+        return false;
+      }
+    }
+    return isCSS(file, 'props');
+  });
 
   for (let i = 0; i < cssPropsFiles.length; i++) {
     await extractAndInjectStyleProps(path.resolve(cssPropsFiles[i]));
@@ -150,7 +166,7 @@ async function optimizeCSS(): Promise<void> {
   }
 
   for (let i = 0; i < styleFiles.length; i++) {
-    await buildCreate(coreFilePath);
+    await buildProps(coreFilePath);
   }
 
   await optimizeCSS();
