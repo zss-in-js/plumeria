@@ -9,11 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plumeria/compiler": "^0.14.8",
     "@plumeria/core": "^0.14.8",
     "preact": "^10.26.9"
   },
   "devDependencies": {
+    "@plumeria/compiler": "^0.14.8",
+    "@plumeria/vite": "^0.2.0",
     "@preact/preset-vite": "^2.10.2",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
