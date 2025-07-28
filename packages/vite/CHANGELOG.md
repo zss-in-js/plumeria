@@ -1,5 +1,11 @@
 # @plumeria/vite
 
+## 0.1.1
+
+### Patch Changes
+
+- 238eed2: fix: remove util
+
 ## 0.1.0
 
 ### Minor Changes
