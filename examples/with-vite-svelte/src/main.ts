@@ -3,8 +3,13 @@ import './app.css';
 import App from './App.svelte';
 import '@plumeria/core/stylesheet.css';
 
+const appElement = document.getElementById('app');
+if (!appElement) {
+  throw new Error('App element not found');
+}
+
 const app = mount(App, {
-  target: document.getElementById('app') as HTMLElement,
+  target: appElement,
 });
 
 export default app;
