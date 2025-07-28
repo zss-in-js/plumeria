@@ -35,6 +35,32 @@ function isInComment(code: string, position: number): boolean {
   return inMultiLineComment;
 }
 
+function isInVueAttribute(code: string, position: number): boolean {
+  // positionから逆方向に検索して、最近のクォートを探す
+  let quotePosition = -1;
+
+  for (let i = position - 1; i >= 0; i--) {
+    const char = code[i];
+    if (char === '"' || char === "'") {
+      quotePosition = i;
+      break;
+    }
+  }
+
+  if (quotePosition === -1) return false;
+
+  // そのクォートの前にVue属性パターンがあるかチェック
+  const beforeQuote = code.substring(
+    Math.max(0, quotePosition - 30),
+    quotePosition,
+  );
+
+  // Vue属性パターン（CSS関連のもののみ）
+  const vueAttributePattern = /(:|v-bind:)(class|style)\s*=\s*$/;
+
+  return vueAttributePattern.test(beforeQuote);
+}
+
 function isInString(code: string, position: number) {
   let inSingleQuote = false;
   let inDoubleQuote = false;
@@ -73,7 +99,12 @@ function isInString(code: string, position: number) {
     }
   }
 
-  return inSingleQuote || inDoubleQuote || inBacktick;
+  const inStringLiteral = inSingleQuote || inDoubleQuote || inBacktick;
+
+  // Vue attributes are picked up
+  if (inStringLiteral && isInVueAttribute(code, position)) return false;
+
+  return inStringLiteral;
 }
 
 function isInHtmlText(code: string, position: number): boolean {
