@@ -4,7 +4,9 @@
 
 ### Patch Changes
 
-- ddff105: fix: dependencies update
+- d51fb5b: feat(compiler/extract.ts): Skip processing of strings and HTML tags
+
+Fixed an issue where unnecessary ts files were generated in vue and svelte.
 
 ## 0.14.6
 
