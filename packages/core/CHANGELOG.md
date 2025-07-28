@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - ddff105: fix: dependencies update
+- 567a381: fix(core/processors/css.ts): buildCreate to buildProps
 
 ## 0.14.6
 
