@@ -1,0 +1,24 @@
+{
+  "name": "example-basic",
+  "type": "module",
+  "scripts": {
+    "dev": "css & vinxi dev",
+    "build": "css && vinxi build",
+    "start": "vinxi start",
+    "version": "vinxi version"
+  },
+  "dependencies": {
+    "@plumeria/core": "^0.14.8",
+    "@solidjs/meta": "^0.29.4",
+    "@solidjs/router": "^0.15.0",
+    "@solidjs/start": "^1.1.0",
+    "solid-js": "^1.9.5",
+    "vinxi": "^0.5.7"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@plumeria/compiler": "^0.14.8"
+  }
+}
