@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- ddff105: fix: dependencies update
+- ddff105: fix: devDependencies update
 
 ## 0.7.1
 
