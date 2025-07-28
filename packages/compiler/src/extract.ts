@@ -35,6 +35,76 @@ function isInComment(code: string, position: number): boolean {
   return inMultiLineComment;
 }
 
+function isInString(code: string, position: number) {
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+  let inBacktick = false;
+  let escape = false;
+
+  for (let i = 0; i < position; i++) {
+    const char = code[i];
+
+    if (escape) {
+      escape = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      escape = true;
+      continue;
+    }
+
+    if (!inSingleQuote && !inDoubleQuote && !inBacktick) {
+      if (char === "'") {
+        inSingleQuote = true;
+      } else if (char === '"') {
+        inDoubleQuote = true;
+      } else if (char === '`') {
+        inBacktick = true;
+      }
+    } else {
+      if (inSingleQuote && char === "'") {
+        inSingleQuote = false;
+      } else if (inDoubleQuote && char === '"') {
+        inDoubleQuote = false;
+      } else if (inBacktick && char === '`') {
+        inBacktick = false;
+      }
+    }
+  }
+
+  return inSingleQuote || inDoubleQuote || inBacktick;
+}
+
+function isInHtmlText(code: string, position: number): boolean {
+  // Find the last occurrence of < and > before position
+  let lastOpenTag = -1;
+  let lastCloseTag = -1;
+
+  for (let i = position - 1; i >= 0; i--) {
+    if (code[i] === '>' && lastCloseTag === -1) {
+      lastCloseTag = i;
+    }
+    if (code[i] === '<') {
+      lastOpenTag = i;
+      break;
+    }
+  }
+
+  // Find the first occurrence of < after position
+  let nextOpenTag = -1;
+  for (let i = position; i < code.length; i++) {
+    if (code[i] === '<') {
+      nextOpenTag = i;
+      break;
+    }
+  }
+
+  // Conditions for text within HTML tags:
+  // If there is a > immediately before and a < immediately after
+  return lastCloseTag > lastOpenTag && nextOpenTag > position;
+}
+
 // css.props extractor function that supports conditional expressions
 function extractCssProps(code: string) {
   const propsMatches = [];
@@ -43,7 +113,11 @@ function extractCssProps(code: string) {
 
   while ((match = regex.exec(code))) {
     // Skip if this match is within a comment
-    if (isInComment(code, match.index)) {
+    if (
+      isInComment(code, match.index) ||
+      isInString(code, match.index) ||
+      isInHtmlText(code, match.index)
+    ) {
       continue;
     }
 
@@ -93,7 +167,11 @@ function extractCssCreate(code: string) {
 
   while ((match = regex.exec(code))) {
     // Skip if this match is within a comment
-    if (isInComment(code, match.index)) {
+    if (
+      isInComment(code, match.index) ||
+      isInString(code, match.index) ||
+      isInHtmlText(code, match.index)
+    ) {
       continue;
     }
 
@@ -135,7 +213,7 @@ function parseCssPropsArguments(args: string) {
   return results;
 }
 
-function extractVueAndSvelte(filePath: string): string {
+async function extractVueAndSvelte(filePath: string) {
   const ext = path.extname(filePath);
   if (!(ext === '.svelte' || ext === '.vue')) return filePath;
 
