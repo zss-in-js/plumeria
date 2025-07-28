@@ -22,7 +22,7 @@ async function processQueue_1(filePath: string) {
   isProcessing_1 = false;
 }
 
-export async function buildCreate(filePath: string): Promise<void> {
+export async function buildProps(filePath: string): Promise<void> {
   if (typeof globalPromise_1 === 'undefined') initPromise_1();
   if (!isProcessing_1 && sheetQueue_1.length > 0) {
     isProcessing_1 = true;
