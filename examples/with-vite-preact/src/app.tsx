@@ -2,7 +2,6 @@ import { useState } from 'preact/hooks';
 import preactLogo from './assets/preact.svg';
 import viteLogo from '/vite.svg';
 import './app.css';
-import '@plumeria/core/stylesheet.css';
 import { css } from '@plumeria/core';
 
 const styles = css.create({
