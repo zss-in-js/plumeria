@@ -1,15 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App from './App.tsx';
 import '@plumeria/core/stylesheet.css';
+import App from './App.tsx';
 
-const appElement = document.getElementById('app');
-if (!appElement) {
-  throw new Error('App element not found');
-}
-
-createRoot(appElement).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
   </StrictMode>,
