@@ -4,8 +4,12 @@ import './index.css';
 import '@plumeria/core/stylesheet.css';
 import App from './App.tsx';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+const appElement = document.getElementById('root');
+
+if (appElement) {
+  createRoot(appElement).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}
