@@ -21,6 +21,6 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
-    "@plumeria/core": "^0.14.8"
+    "@plumeria/core": "^0.14.9"
   }
 }
