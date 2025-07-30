@@ -87,12 +87,14 @@ export function props(
   if (typeof globalPromise_1 === 'undefined') initPromise_1();
   resolvePromise_1(uniqueStyleSheets.join(''));
 
-  const classNameHashes = classList.join(' ');
-
   // CSS injection only in test development environment
   if (isTestingDevelopment) {
-    injectIfNeeded(classNameHashes, uniqueStyleSheets.join(''));
+    for (const { hash, sheet } of [...orderedKeys, ...rightmostKeys]) {
+      if (uniqueStyleSheets.includes(sheet)) {
+        injectIfNeeded(hash, sheet);
+      }
+    }
   }
 
-  return classNameHashes;
+  return classList.join(' ');
 }
