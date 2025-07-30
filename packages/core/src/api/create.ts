@@ -37,6 +37,7 @@ function create<const T extends Record<string, CSSProperties>>(
       const sheets = new Set<string>();
       processAtomicProps({ [prop]: value }, hashes, sheets);
 
+      // Organize media and containers by sheet
       const baseSheets: string[] = [];
       const querySheets: string[] = [];
 
