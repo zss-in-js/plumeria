@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.8.0
+
+### Minor Changes
+
+- ac283c4: fix(next/RefreshOn.tsx): Improved to share refresh status globally
+
 ## 0.7.2
 
 ### Patch Changes
