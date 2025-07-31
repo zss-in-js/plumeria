@@ -1,26 +1,34 @@
 'use client';
-import { useEffect, useRef } from 'react';
+
+import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { isDevTools } from './isDevtools';
+
+const globalRefreshState = {
+  isRefreshing: false,
+  timeoutId: undefined as ReturnType<typeof setTimeout> | undefined,
+};
 
 export const RefreshOn = (): null => {
   const router = useRouter();
   const pathname = usePathname();
-  const isRefreshing = useRef(false);
-  const timeoutId = useRef<ReturnType<typeof setTimeout>>(undefined);
   const timeout = isDevTools() ? 2200 : 120;
 
   useEffect(() => {
     const originalFetch = window.fetch;
     window.fetch = async function (...args) {
       const response = await originalFetch.apply(this, args);
-      if (pathname && response.status === 200 && !isRefreshing.current) {
-        isRefreshing.current = true;
+      if (
+        pathname &&
+        response.status === 200 &&
+        !globalRefreshState.isRefreshing
+      ) {
+        globalRefreshState.isRefreshing = true;
         queueMicrotask(() => {
           process.nextTick(() => {
             router.refresh();
-            timeoutId.current = setTimeout(() => {
-              isRefreshing.current = false;
+            globalRefreshState.timeoutId = setTimeout(() => {
+              globalRefreshState.isRefreshing = false;
             }, timeout);
           });
         });
@@ -29,7 +37,9 @@ export const RefreshOn = (): null => {
     };
     return () => {
       window.fetch = originalFetch;
-      clearTimeout(timeoutId.current);
+      if (globalRefreshState.timeoutId) {
+        clearTimeout(globalRefreshState.timeoutId);
+      }
     };
   }, [pathname, router, timeout]);
 
