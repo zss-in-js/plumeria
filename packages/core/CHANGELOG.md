@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.14.10
+
+### Patch Changes
+
+- 22cf86e: fix: types rollback changed from brand type to normal object type, compatible with inline style.
+
 ## 0.14.9
 
 ### Patch Changes
