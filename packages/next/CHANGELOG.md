@@ -1,5 +1,11 @@
 # @plumeria/next
 
+## 0.8.1
+
+### Patch Changes
+
+- 1c8e319: fix: fixed to allow updates in non-mobile styles
+
 ## 0.8.0
 
 ### Minor Changes
