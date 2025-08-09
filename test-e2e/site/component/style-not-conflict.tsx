@@ -1,11 +1,9 @@
-'use client';
-
 import { css } from '@plumeria/core';
 import { utils } from 'component/vars';
 
 const styles = css.create({
   test_conflict: {
-    fontSize: 14,
+    fontSize: 140,
     lineHeight: utils.mini,
     color: 'pink',
   },
