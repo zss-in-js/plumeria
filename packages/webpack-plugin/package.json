@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/webpack-plugin",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Plumeria Webpack plugin",
   "repository": {
     "type": "git",
@@ -20,18 +20,18 @@
   },
   "dependencies": {
     "@babel/core": "^7.28.0",
-    "@babel/types": "^7.28.2",
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",
+    "@babel/types": "^7.28.2",
     "loader-utils": "^3.3.1",
     "webpack-virtual-modules": "^0.6.2"
   },
   "devDependencies": {
+    "@rust-gear/glob": "^0.2.2",
     "@types/babel__core": "^7.20.5",
     "@types/loader-utils": "^2.0.6",
-    "@rust-gear/glob": "^0.2.2",
     "webpack": "^5.101.0",
-    "zss-engine": "^0.2.73"
+    "zss-engine": "^0.2.75"
   },
   "publishConfig": {
     "access": "public"
