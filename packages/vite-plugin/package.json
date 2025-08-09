@@ -1,15 +1,13 @@
 {
-  "name": "@plumeria/vite",
+  "name": "@plumeria/vite-plugin",
   "version": "0.2.0",
   "type": "module",
-  "description": "Vite plugin for Plumeria",
-  "keywords": [
-    "react",
-    "css",
-    "css-in-js",
-    "plumeria",
-    "styling"
-  ],
+  "description": "Plumeria Vite plugin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/vite-plugin"
+  },
   "main": "dist/index.js",
   "types": "types/index.d.ts",
   "license": "MIT",
