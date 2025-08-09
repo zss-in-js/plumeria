@@ -109,7 +109,7 @@ importers:
         specifier: 15.4.6
         version: 15.4.6(@babel/core@7.28.0)(@playwright/test@1.51.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
 
-  packages/vite:
+  packages/vite-plugin:
     devDependencies:
       vite:
         specifier: 6.2.4
