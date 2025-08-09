@@ -3,7 +3,7 @@ import { utils } from 'component/vars';
 
 const styles = css.create({
   test_conflict: {
-    fontSize: 140,
+    fontSize: 14,
     lineHeight: utils.mini,
     color: 'pink',
   },
