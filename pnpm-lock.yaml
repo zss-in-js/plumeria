@@ -70,13 +70,13 @@ importers:
         version: 1.29.3
       postcss:
         specifier: ^8.5.3
-        version: 8.5.3
+        version: 8.5.6
       postcss-combine-duplicated-selectors:
         specifier: ^10.0.3
-        version: 10.0.3(postcss@8.5.3)
+        version: 10.0.3(postcss@8.5.6)
       postcss-combine-media-query:
         specifier: ^2.0.0
-        version: 2.0.0(postcss@8.5.3)
+        version: 2.0.0(postcss@8.5.6)
       rscute:
         specifier: ^0.2.7
         version: 0.2.7
@@ -84,11 +84,8 @@ importers:
   packages/core:
     dependencies:
       zss-engine:
-        specifier: 0.2.72
-        version: 0.2.72
-      zss-utils:
-        specifier: 0.2.4
-        version: 0.2.4
+        specifier: 0.2.75
+        version: 0.2.75
 
   packages/eslint-plugin:
     devDependencies:
@@ -149,8 +146,8 @@ importers:
         specifier: ^5.101.0
         version: 5.101.0
       zss-engine:
-        specifier: ^0.2.73
-        version: 0.2.73
+        specifier: ^0.2.75
+        version: 0.2.75
 
 packages:
 
@@ -2824,10 +2821,6 @@ packages:
     resolution: {integrity: sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ==}
     engines: {node: ^10 || ^12 || >=14}
 
-  postcss@8.5.3:
-    resolution: {integrity: sha512-dle9A3yYxlBSrt8Fu+IpjGT8SY8hN0mlaA6GY8t0P5PjIOZemULz/E2Bnm/2dcUOena75OTNkHI76uZBNUUq3A==}
-    engines: {node: ^10 || ^12 || >=14}
-
   postcss@8.5.6:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
@@ -3388,14 +3381,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zss-engine@0.2.72:
-    resolution: {integrity: sha512-CdIAsTsiJX5klcmjioXtt7nvmbiAlHJB1UvxPSE1UYJn8LWFlsZx21TXZvnicDh7SzhP7DFAvLRSqajnjcLbGg==}
-
-  zss-engine@0.2.73:
-    resolution: {integrity: sha512-EtzkkWQqx7Qe2pmo3abvFgDBKoCMQVXbLujtXxoadZtwhsdjxYDlPXJN5ELXJVggKKfBKmlyMi/XOVWUtpm5yQ==}
-
-  zss-utils@0.2.4:
-    resolution: {integrity: sha512-FPgERlp/upSkQ20XEgHCperRzVi+IIzBGYDzq9eK3ORvRhrmWbhoYxx/ulXU/fFTbuHOu319aOQAmBO00X23ew==}
+  zss-engine@0.2.75:
+    resolution: {integrity: sha512-jzREUKJPdchUH8NOsrizsdzm8gCZhQozM+Mtd0XcwU9jr3thWEYgRxDA7ZEgTqOzdN6oD6Y+zN9i8CUOi6XHJw==}
 
 snapshots:
 
@@ -6282,14 +6269,14 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  postcss-combine-duplicated-selectors@10.0.3(postcss@8.5.3):
+  postcss-combine-duplicated-selectors@10.0.3(postcss@8.5.6):
     dependencies:
-      postcss: 8.5.3
+      postcss: 8.5.6
       postcss-selector-parser: 6.1.2
 
-  postcss-combine-media-query@2.0.0(postcss@8.5.3):
+  postcss-combine-media-query@2.0.0(postcss@8.5.6):
     dependencies:
-      postcss: 8.5.3
+      postcss: 8.5.6
 
   postcss-selector-parser@6.1.2:
     dependencies:
@@ -6297,12 +6284,6 @@ snapshots:
       util-deprecate: 1.0.2
 
   postcss@8.4.31:
-    dependencies:
-      nanoid: 3.3.11
-      picocolors: 1.1.1
-      source-map-js: 1.2.1
-
-  postcss@8.5.3:
     dependencies:
       nanoid: 3.3.11
       picocolors: 1.1.1
@@ -6866,12 +6847,6 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zss-engine@0.2.72:
+  zss-engine@0.2.75:
     dependencies:
       csstype: 3.1.3
-
-  zss-engine@0.2.73:
-    dependencies:
-      csstype: 3.1.3
-
-  zss-utils@0.2.4: {}
