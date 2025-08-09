@@ -16,6 +16,7 @@ import { keyframes } from './api/keyframes';
 import { defineVars } from './api/vars';
 import { defineTheme } from './api/theme';
 import { defineConsts } from './api/consts';
+import { rx } from './api/rx';
 import { global } from './api/global';
 
 class StyleSheet {
@@ -60,5 +61,5 @@ class StyleSheet {
 
 const css = StyleSheet;
 
-export { css };
+export { css, rx };
 export type { CreateStyle, CSSHTML, CSSProperties };
