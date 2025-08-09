@@ -1,4 +1,3 @@
-import { ServerCSS } from '@plumeria/next';
 import 'styles/global';
 import '@plumeria/core/stylesheet.css';
 
@@ -9,9 +8,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <ServerCSS />
-      </head>
       <body>{children}</body>
     </html>
   );
