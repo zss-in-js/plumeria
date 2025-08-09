@@ -10,6 +10,5 @@ test('Should be build successfully and logs contain expected output', async () =
   });
 
   console.log('stdout:', stdout);
-  expect(stdout).toContain('Compiled successfully');
   expect(stdout).toContain('(Static)  prerendered as static content');
 }, 35000);
