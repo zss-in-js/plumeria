@@ -1,0 +1,30 @@
+{
+  "name": "@plumeria/next-plugin",
+  "version": "0.1.0",
+  "description": "Plumeria Next.js plugin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/next-plugin"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "rimraf dist types && pnpm cjs",
+    "cjs": "tsc --project tsconfig.cjs.json"
+  },
+  "dependencies": {
+    "@plumeria/webpack-plugin": "^0.4.0"
+  },
+  "devDependencies": {
+    "@types/webpack": "^5.28.5",
+    "next": "15.4.6"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
