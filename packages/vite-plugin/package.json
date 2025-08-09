@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/vite-plugin",
-  "version": "0.2.0",
+  "version": "0.5.0",
   "type": "module",
   "description": "Plumeria Vite plugin",
   "repository": {
@@ -9,18 +9,17 @@
     "directory": "packages/vite-plugin"
   },
   "main": "dist/index.js",
-  "types": "types/index.d.ts",
+  "types": "dist/index.d.ts",
   "license": "MIT",
   "files": [
-    "dist/",
-    "types/"
+    "dist/"
   ],
   "scripts": {
-    "build": "pnpm esm",
+    "build": "rimraf dist && pnpm esm",
     "esm": "tsc --project tsconfig.esm.json"
   },
   "devDependencies": {
-    "vite": "6.2.4"
+    "vite": "7.1.1"
   },
   "publishConfig": {
     "access": "public"
