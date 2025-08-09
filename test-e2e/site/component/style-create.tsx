@@ -1,11 +1,10 @@
-'use client';
-
-import { css, media } from '@plumeria/core';
+import { css } from '@plumeria/core';
+import { breakpoints } from './vars';
 
 const styles = css.create({
   e2e: {
     color: 'pink',
-    [media.maxWidth(1024)]: {
+    [breakpoints.lg]: {
       color: 'aqua',
     },
   },

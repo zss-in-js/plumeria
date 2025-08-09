@@ -1,5 +1,9 @@
 import { css } from '@plumeria/core';
 
+export const breakpoints = css.defineConsts({
+  lg: '@media (max-width: 1024px)',
+});
+
 export const utils = css.defineVars({
   mini: '12px',
   medium: '16px',
