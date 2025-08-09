@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.14.9
+
+### Patch Changes
+
+- e8ade69: fix: vulnerability fixes
+
 ## 0.14.8
 
 ### Patch Changes
