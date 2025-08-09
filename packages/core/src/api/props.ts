@@ -1,6 +1,5 @@
 import {
   injectClientCSS,
-  injectServerCSS,
   isServer,
   isTestingDevelopment,
   type CSSProperties,
@@ -20,8 +19,6 @@ export function props(
   const seenSheets = new Set<string>();
   const allStyleSheets: string[] = [];
   const classList: string[] = [];
-  const injectIfNeeded = isServer ? injectServerCSS : injectClientCSS;
-
   const chosen = new Map(); // key -> {hash, sheet, propsIdx}
   const rightmostKeys = []; // Keys from the rightmost props
   const orderedKeys = []; // Other keys to be displayed in the order of left props
@@ -88,10 +85,10 @@ export function props(
   resolvePromise_1(uniqueStyleSheets.join(''));
 
   // CSS injection only in test development environment
-  if (isTestingDevelopment) {
+  if (isTestingDevelopment && !isServer) {
     for (const { hash, sheet } of [...orderedKeys, ...rightmostKeys]) {
       if (uniqueStyleSheets.includes(sheet)) {
-        injectIfNeeded(hash, sheet);
+        injectClientCSS(hash, sheet);
       }
     }
   }
