@@ -17,31 +17,77 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
 ): string {
   const baseSheets: string[] = [];
   const querySheets: string[] = [];
-  const atomicHashes = new Set<string>();
+  const processedHashes = new Set<string>(); // 重複チェック用
 
   Object.entries(object).forEach(([key, styleObj]) => {
     const flat: Record<string, any> = {};
     const nonFlat: Record<string, any> = {};
     splitAtomicAndNested(styleObj, flat, nonFlat);
 
-    if (Object.keys(flat).length > 0) {
+    const records: Array<{
+      key: string;
+      hash: string;
+      sheet: string;
+    }> = [];
+
+    // Processing flat atoms and atoms in media
+    Object.entries(flat).forEach(([prop, value]) => {
+      const hashes = new Set<string>();
       const sheets = new Set<string>();
-      processAtomicProps(flat, atomicHashes, sheets);
+      processAtomicProps({ [prop]: value }, hashes, sheets);
+
+      // Organize media and containers by sheet
+      const propBaseSheets: string[] = [];
+      const propQuerySheets: string[] = [];
 
       for (const sheet of sheets) {
+        if (sheet.includes('@media') || sheet.includes('@container')) {
+          propQuerySheets.push(sheet);
+        } else {
+          propBaseSheets.push(sheet);
+        }
+      }
+
+      const hash = [...hashes].join(' ');
+      const sheet = [...propBaseSheets, ...propQuerySheets].join('');
+
+      records.push({
+        key: prop,
+        hash,
+        sheet,
+      });
+    });
+
+    // Handling nested objects such as pseudos to atom by key is atRule + prop
+    if (Object.keys(nonFlat).length > 0) {
+      const nonFlatObj = { [key]: nonFlat };
+      const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
+      const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
+      Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
+        Object.entries(nestedObj as Record<string, unknown>).forEach(
+          ([prop]) => {
+            records.push({
+              key: atRule + prop,
+              hash: nonFlatHash,
+              sheet: styleSheet,
+            });
+          },
+        );
+      });
+    }
+
+    // Collect sheets from records and avoid duplicates
+    records.forEach(({ hash, sheet }) => {
+      if (!processedHashes.has(hash)) {
+        processedHashes.add(hash);
+
         if (sheet.includes('@media') || sheet.includes('@container')) {
           querySheets.push(sheet);
         } else {
           baseSheets.push(sheet);
         }
       }
-    }
-
-    if (Object.keys(nonFlat).length > 0) {
-      const nonFlatHash = genBase36Hash({ [key]: nonFlat }, 1, 7);
-      const { styleSheet } = transpile({ [key]: nonFlat }, nonFlatHash);
-      baseSheets.push(styleSheet);
-    }
+    });
   });
 
   return [...baseSheets, ...querySheets].join('\n');
