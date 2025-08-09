@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/next-plugin",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Plumeria Next.js plugin",
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
     "dist/"
   ],
   "scripts": {
-    "build": "rimraf dist types && pnpm cjs",
+    "build": "rimraf dist && pnpm cjs",
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
