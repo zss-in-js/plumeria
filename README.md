@@ -33,14 +33,15 @@ const className = css.props(styles.text, styles.size);
 
 ```
 plumeria/
-├── docs/             → Documentation website (Next.js + fuma-docs)
-├── examples/         → Example apps and integrations
+├── docs/               → Documentation website (Next.js + fuma-docs)
+├── examples/           → Example apps and integrations
 └── packages/
-    ├── compiler/     → Style compiler and static extraction
-    ├── core/         → Core runtime utilities (css, ps, etc.)
-    ├── eslint-plugin/→ Lint rules for Plumeria conventions
-    ├── next/         → Integration with Next.js
-    └── vite/         → Plugin for Vite builds
+    ├── compiler/       → Style compiler and static extraction
+    ├── core/           → Core runtime utilities (css, ps, etc.)
+    ├── eslint-plugin/  → Lint rules for Plumeria conventions
+    ├── next-plugin/    → Integration with Next.js
+    ├── vite-plugin/    → Plugin for Vite build
+    └── webpack-plugin/ → Plugin for Webpack
 
 ```
 
