@@ -17,7 +17,9 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
           enforce: 'pre',
           test: /\.(tsx|ts|jsx|js)$/,
           exclude: [/node_modules/, /\.next/, /\.git/],
-          use: [require.resolve('./virtual-css-loader')],
+          use: require.resolve(
+            '@plumeria/webpack-plugin/dist/virtual-css-loader',
+          ),
         });
       }
 
