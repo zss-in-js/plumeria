@@ -1,5 +1,5 @@
 /* eslint-disable @plumeria/validate-values */
-import { css } from '../src/css';
+import { css } from '../dist/index.js';
 
 const result = css.defineVars({
   fontSize: '',
@@ -29,4 +29,5 @@ test('cx returns a string', () => {
   expect(result.testHTMLTest).toBe('var(--test-html-test)');
   expect(result.testHTML2Test).toBe('var(--test-html2-test)');
   expect(result.testAPIResponse).toBe('var(--test-api-response)');
+  console.log(result.testAPIResponse);
 });
