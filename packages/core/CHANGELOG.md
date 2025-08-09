@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.15.0
+
+### Minor Changes
+
+- 8ea5d65: feat: An official next-plugin has been developed.
+
 ## 0.14.10
 
 ### Patch Changes
