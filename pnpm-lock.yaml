@@ -96,8 +96,8 @@ importers:
   packages/next-plugin:
     dependencies:
       '@plumeria/webpack-plugin':
-        specifier: ^0.7.1
-        version: 0.7.1
+        specifier: ^0.8.0
+        version: 0.8.0
     devDependencies:
       next:
         specifier: 15.4.6
@@ -994,8 +994,8 @@ packages:
   '@plumeria/eslint-plugin@0.2.6':
     resolution: {integrity: sha512-RV1x4ZjKh4Dts0DP2JW7WBdBdk9lgB1mg9LBzb1LX3tSde9cMu7E5lRW3reZ8ljbrZiXEEzaMLE6izy+kwCwig==}
 
-  '@plumeria/webpack-plugin@0.7.1':
-    resolution: {integrity: sha512-zi0uVHIJRboUiI7bdG1HI6DOKS07eyalVM7bIcHKBBjcwa+9qhZZy5+kERq6XBa/mhjbTQFpgHkrY6X2Je6JAw==}
+  '@plumeria/webpack-plugin@0.8.0':
+    resolution: {integrity: sha512-zBhcsFNpWpzYlwYMvV88WXOfY/06PvingM8xdS2q/VqRSmk8xtS44hCsk69C8JOIV7ph8ULt1L5KYxVqAIhRqA==}
 
   '@quansync/fs@0.1.3':
     resolution: {integrity: sha512-G0OnZbMWEs5LhDyqy2UL17vGhSVHkQIfVojMtEWVenvj0V5S84VBgy86kJIuNsGDp2p7sTKlpSIpBUWdC35OKg==}
@@ -4365,7 +4365,7 @@ snapshots:
 
   '@plumeria/eslint-plugin@0.2.6': {}
 
-  '@plumeria/webpack-plugin@0.7.1':
+  '@plumeria/webpack-plugin@0.8.0':
     dependencies:
       '@babel/core': 7.28.0
       '@babel/preset-react': 7.27.1(@babel/core@7.28.0)
