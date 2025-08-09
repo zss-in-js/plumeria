@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import type { Configuration } from 'webpack';
+import type { WebpackConfigContext } from 'next/dist/server/config-shared';
 import { PlumeriaPlugin } from '@plumeria/webpack-plugin';
 
 export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
@@ -7,7 +8,7 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
 
   return {
     ...nextConfig,
-    webpack(config: Configuration, context) {
+    webpack(config: Configuration, context: WebpackConfigContext) {
       if (typeof originalWebpack === 'function') {
         config = originalWebpack(config, context);
       }
