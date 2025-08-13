@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.15.1
+
+### Patch Changes
+
+- ba5550e: fix: readme update v0.15.1
+
 ## 0.15.0
 
 ### Minor Changes
