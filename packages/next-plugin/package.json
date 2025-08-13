@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/next-plugin",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Plumeria Next.js plugin",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@plumeria/webpack-plugin": "^0.10.0"
+    "@plumeria/webpack-plugin": "^0.11.0"
   },
   "devDependencies": {
     "next": "15.4.6",
