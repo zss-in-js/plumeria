@@ -23,14 +23,8 @@ import path from 'path';
 import fs from 'fs';
 import { createCSS, createTheme, createVars } from './create';
 import { globSync } from '@rust-gear/glob';
-import {
-  CreateTheme,
-  CreateValues,
-  CSSHTML,
-  genBase36Hash,
-  transpile,
-  camelToKebabCase,
-} from 'zss-engine';
+import type { CreateTheme, CreateValues, CSSHTML } from 'zss-engine';
+import { genBase36Hash, transpile, camelToKebabCase } from 'zss-engine';
 
 interface PlumeriaPlugin extends WebpackPluginInstance {
   registerFileStyles(fileName: string, style: CSSObject): void;
