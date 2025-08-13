@@ -96,8 +96,8 @@ importers:
   packages/next-plugin:
     dependencies:
       '@plumeria/webpack-plugin':
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: ^0.11.0
+        version: 0.11.0
     devDependencies:
       next:
         specifier: 15.4.6
@@ -991,8 +991,8 @@ packages:
   '@plumeria/eslint-plugin@0.2.6':
     resolution: {integrity: sha512-RV1x4ZjKh4Dts0DP2JW7WBdBdk9lgB1mg9LBzb1LX3tSde9cMu7E5lRW3reZ8ljbrZiXEEzaMLE6izy+kwCwig==}
 
-  '@plumeria/webpack-plugin@0.10.0':
-    resolution: {integrity: sha512-nmgkwaOsAR6WJKcx9WG+dpygfUedbDjnQiKXRitYPI06sZWWWSndc6f88rjXfBUfOCgfYoGGO6j/dAiLEfB/og==}
+  '@plumeria/webpack-plugin@0.11.0':
+    resolution: {integrity: sha512-74xCk0NC69r716qaK0JWKfHM8R+kS84ZASDR9tErebe1LtqtcN7JUxEGSJbpvOUJmYvmVvlRI/5/w9phTc3Rmw==}
 
   '@quansync/fs@0.1.3':
     resolution: {integrity: sha512-G0OnZbMWEs5LhDyqy2UL17vGhSVHkQIfVojMtEWVenvj0V5S84VBgy86kJIuNsGDp2p7sTKlpSIpBUWdC35OKg==}
@@ -4357,12 +4357,14 @@ snapshots:
 
   '@plumeria/eslint-plugin@0.2.6': {}
 
-  '@plumeria/webpack-plugin@0.10.0':
+  '@plumeria/webpack-plugin@0.11.0':
     dependencies:
       '@babel/core': 7.28.0
       '@babel/preset-react': 7.27.1(@babel/core@7.28.0)
       '@babel/preset-typescript': 7.27.1(@babel/core@7.28.0)
       '@babel/types': 7.28.2
+      loader-utils: 3.3.1
+      webpack-virtual-modules: 0.6.2
     transitivePeerDependencies:
       - supports-color
 
