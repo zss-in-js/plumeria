@@ -8,7 +8,7 @@
   "author": "refirst",
   "license": "MIT",
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "pnpm -r build",
     "test": "jest",
     "dev": "cd docs && npm run dev",
     "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
