@@ -31,7 +31,6 @@ import {
   transpile,
   camelToKebabCase,
 } from 'zss-engine';
-import loaderUtils from 'loader-utils';
 
 interface PlumeriaPlugin extends WebpackPluginInstance {
   registerFileStyles(fileName: string, style: CSSObject): void;
@@ -618,7 +617,6 @@ function scanForDefineTheme(this: LoaderContext<unknown>): {
   for (const filePath of files) {
     if (!isCSSDefineFile(filePath, 'defineTheme')) continue;
     this.addDependency(filePath);
-
     const source = fs.readFileSync(filePath, 'utf8');
     const ast = parseSync(source, {
       sourceType: 'module',
@@ -714,8 +712,12 @@ function isCSSDefineFile(filePath: string, target: string): boolean {
 
 export default function loader(this: LoaderContext<unknown>, source: string) {
   const callback = this.async();
-  this.clearDependencies();
   this.addDependency(this.resourcePath);
+
+  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
+  for (const file of files) {
+    this.addDependency(file);
+  }
 
   constTable = scanForDefineConsts.call(this);
 
@@ -848,18 +850,44 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
 
   // --- Register it in the plugin (this is the only point of contact between the loader and the plugin)
 
-  const virtualCssFileName = loaderUtils.interpolateName(
-    this as any,
-    '[path][name].[hash:base64:8].virtual.css',
-    {
-      content: JSON.stringify(fileStyles),
-      context: this.rootContext,
-    },
+  const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
+  const VIRTUAL_CSS_PATH = require.resolve(VIRTUAL_FILE_PATH);
+
+  function stringifyRequest(
+    loaderContext: LoaderContext<unknown>,
+    request: string,
+  ) {
+    return JSON.stringify(
+      loaderContext.utils.contextify(
+        loaderContext.context || loaderContext.rootContext,
+        request,
+      ),
+    );
+  }
+
+  const virtualCssImportPath = path.posix.join(
+    path.posix.relative(
+      path.dirname(this.resourcePath),
+      path.resolve(__dirname, '..', VIRTUAL_CSS_PATH),
+    ),
   );
-  const absVirtualCssFileName = path.resolve(
-    this.rootContext,
-    virtualCssFileName,
+
+  let importPath = virtualCssImportPath;
+  if (!importPath.startsWith('.')) {
+    importPath = './' + importPath;
+  }
+
+  const serializedStyleRules = JSON.stringify(fileStyles);
+  const urlParams = new URLSearchParams({
+    from: this.resourcePath,
+    plumeria: serializedStyleRules,
+  });
+
+  const virtualCssRequest = stringifyRequest(
+    this,
+    `${VIRTUAL_CSS_PATH}?${urlParams.toString()}`,
   );
+  const postfix = `\nimport ${virtualCssRequest};`;
 
   const pluginInstance = this._compiler?.options?.plugins.find(
     (p): p is PlumeriaPlugin => p?.constructor?.name === 'PlumeriaPlugin',
@@ -874,22 +902,12 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     const cache = pluginInstance.__plumeriaRegistered as Set<string>;
 
     // Skip if file is already registered
-    if (!cache.has(absVirtualCssFileName)) {
-      cache.add(absVirtualCssFileName);
-      pluginInstance.registerStyle(absVirtualCssFileName, fileStyles);
+    if (!cache.has(virtualCssRequest)) {
+      cache.add(virtualCssRequest);
+      pluginInstance?.registerFileStyles(virtualCssRequest, fileStyles);
     }
   }
 
-  let importPath = path.posix.relative(
-    path.dirname(this.resourcePath),
-    absVirtualCssFileName,
-  );
-  if (!importPath.startsWith('.')) {
-    importPath = './' + importPath;
-  }
-  importPath = importPath.replace(/\\/g, '/');
-
-  const resultSource = source + `\nimport ${JSON.stringify(importPath)};`;
-  if (callback) return callback(null, resultSource);
-  return resultSource;
+  if (callback) callback(null, source + postfix);
+  return source + postfix;
 }
