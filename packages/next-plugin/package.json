@@ -18,7 +18,7 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@plumeria/webpack-plugin": "^0.14.0"
+    "@plumeria/webpack-plugin": "workspace:^"
   },
   "devDependencies": {
     "next": "15.4.6",
