@@ -1,5 +1,12 @@
 # @plumeria/next-plugin
 
+## 0.10.2
+
+### Patch Changes
+
+- Updated dependencies [cefae5b]
+  - @plumeria/webpack-plugin@0.16.0
+
 ## 0.10.1
 
 ### Patch Changes
