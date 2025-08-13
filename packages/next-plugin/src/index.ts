@@ -24,7 +24,9 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
         });
       }
 
-      config.plugins?.push(new PlumeriaPlugin());
+      if (!config.plugins?.some((p) => p instanceof PlumeriaPlugin)) {
+        config.plugins?.push(new PlumeriaPlugin());
+      }
 
       return config;
     },
