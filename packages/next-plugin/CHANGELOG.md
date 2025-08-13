@@ -1,5 +1,11 @@
 # @plumeria/next-plugin
 
+## 0.11.0
+
+### Minor Changes
+
+- 922474f: fix(next-plugin): fix to prevent mixing into build
+
 ## 0.10.1
 
 ### Patch Changes
