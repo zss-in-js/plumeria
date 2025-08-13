@@ -7,7 +7,9 @@ import type {
   KeyframesObjectTable,
   DefineVarsObjectTable,
   DefineThemeObjectTable,
-} from './types-table';
+  CSSValue,
+  ThemeTable,
+} from './types';
 
 import {
   parseSync,
@@ -16,10 +18,10 @@ import {
   type PluginObj,
 } from '@babel/core';
 import * as t from '@babel/types';
-import loaderUtils from 'loader-utils';
+
 import path from 'path';
 import fs from 'fs';
-import { createCSS, createTheme, createVars } from './create-css';
+import { createCSS, createTheme, createVars } from './create';
 import { globSync } from '@rust-gear/glob';
 import {
   CreateTheme,
@@ -27,10 +29,11 @@ import {
   CSSHTML,
   genBase36Hash,
   transpile,
+  camelToKebabCase,
 } from 'zss-engine';
 
 interface PlumeriaPlugin extends WebpackPluginInstance {
-  registerStyle(fileName: string, css: string): void;
+  registerFileStyles(fileName: string, style: CSSObject): void;
 }
 
 const PROJECT_ROOT = process.cwd().split('node_modules')[0];
@@ -42,6 +45,7 @@ const GLOB_OPTIONS = {
 
 let constTable: ConstTable = {};
 let variableTable: VariableTable = {};
+let themeTable: ThemeTable = {};
 
 let keyframesHashTable: KeyframesHashTable = {};
 let keyframesObjectTable: KeyframesObjectTable = {};
@@ -53,6 +57,7 @@ function objectExpressionToObject(
   constTable: ConstTable,
   keyframesHashTable: KeyframesHashTable,
   variableTable: VariableTable,
+  themeTable: ThemeTable,
 ): CSSObject {
   const obj: CSSObject = {};
 
@@ -81,6 +86,14 @@ function objectExpressionToObject(
         obj[key] = resolvedVariable;
         return;
       }
+      const resolvedTheme = resolveThemeTableMemberExpressionByNode(
+        val,
+        themeTable,
+      );
+      if (resolvedTheme !== undefined) {
+        obj[key] = resolvedTheme;
+        return;
+      }
     }
 
     if (
@@ -97,6 +110,7 @@ function objectExpressionToObject(
         constTable,
         keyframesHashTable,
         variableTable,
+        themeTable,
       );
     } else if (t.isMemberExpression(val)) {
       const resolved = resolveConstTableMemberExpression(val, constTable);
@@ -253,6 +267,14 @@ function evaluateExpression(
       return resolvedVar;
     }
 
+    const resolvedTheme = resolveThemeTableMemberExpressionByNode(
+      node,
+      themeTable,
+    );
+    if (resolvedTheme !== undefined) {
+      return resolvedTheme;
+    }
+
     return `[unresolved member expression]`;
   }
 
@@ -304,7 +326,7 @@ function resolveKeyframesTableMemberExpression(
 function resolveConstTableMemberExpression(
   node: t.MemberExpression,
   constTable: ConstTable,
-): any {
+): CSSValue | undefined {
   if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
     const varName = node.object.name;
     const key = node.property.name;
@@ -324,34 +346,76 @@ function resolveConstTableMemberExpression(
 function resolveVariableTableMemberExpressionByNode(
   node: t.Identifier | t.MemberExpression,
   variableTable: VariableTable,
-): any | undefined {
+  asObject: boolean = false,
+): CSSValue | undefined {
+  // Two processes: single variable and chain variable
   if (t.isIdentifier(node)) {
-    return variableTable[node.name];
+    if (asObject && typeof variableTable[node.name] === 'object') {
+      return { ...variableTable[node.name] };
+    }
+
+    const cssVarName = camelToKebabCase(node.name);
+    return `var(--${cssVarName})`;
   }
-  if (t.isMemberExpression(node)) {
-    if (t.isIdentifier(node.object)) {
-      const varName = node.object.name;
-      let key: string | undefined;
-      if (t.isIdentifier(node.property)) {
-        key = node.property.name;
-      } else if (t.isStringLiteral(node.property)) {
-        key = node.property.value;
+  // The MemberExpression part also branches
+  if (t.isMemberExpression(node) && t.isIdentifier(node.object)) {
+    const varName = node.object.name;
+    let key: string | undefined;
+    if (t.isIdentifier(node.property)) {
+      key = node.property.name;
+    } else if (t.isStringLiteral(node.property)) {
+      key = node.property.value;
+    }
+    if (
+      key &&
+      variableTable[varName] &&
+      variableTable[varName][key] !== undefined
+    ) {
+      if (asObject) {
+        return { [key]: variableTable[varName][key] };
       }
-      if (
-        key &&
-        variableTable[varName] &&
-        variableTable[varName][key] !== undefined
-      ) {
-        return variableTable[varName][key];
+      const cssVarName = camelToKebabCase(key);
+      return `var(--${cssVarName})`;
+    }
+  }
+  return undefined;
+}
+
+function resolveThemeTableMemberExpressionByNode(
+  node: t.Identifier | t.MemberExpression,
+  themeTable: ThemeTable,
+  asObject: boolean = false,
+): CSSValue | undefined {
+  if (t.isIdentifier(node)) {
+    if (asObject && typeof themeTable[node.name] === 'object') {
+      return { ...themeTable[node.name] };
+    }
+    const cssVarName = camelToKebabCase(node.name);
+    return `var(--${cssVarName})`;
+  }
+  // The MemberExpression part also branches
+  if (t.isMemberExpression(node) && t.isIdentifier(node.object)) {
+    const varName = node.object.name;
+    let key: string | undefined;
+    if (t.isIdentifier(node.property)) {
+      key = node.property.name;
+    } else if (t.isStringLiteral(node.property)) {
+      key = node.property.value;
+    }
+    if (key && themeTable[varName] && themeTable[varName][key] !== undefined) {
+      if (asObject) {
+        return { [key]: themeTable[varName][key] };
       }
+      const cssVarName = camelToKebabCase(key);
+      return `var(--${cssVarName})`;
     }
   }
   return undefined;
 }
 
 function scanForDefineConsts(this: LoaderContext<unknown>): ConstTable {
-  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
   const constTableLocal: ConstTable = {};
+  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
     if (!isCSSDefineFile(filePath, 'defineConsts')) continue;
@@ -398,6 +462,7 @@ function scanForDefineConsts(this: LoaderContext<unknown>): ConstTable {
             constTableLocal,
             keyframesHashTable,
             variableTable,
+            themeTable,
           );
           constTableLocal[varName] = obj;
         }
@@ -411,9 +476,9 @@ function scanForKeyframes(this: LoaderContext<unknown>): {
   keyframesHashTableLocal: KeyframesHashTable;
   keyframesObjectTableLocal: KeyframesObjectTable;
 } {
-  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
   const keyframesHashTableLocal: KeyframesHashTable = {};
   const keyframesObjectTableLocal: KeyframesObjectTable = {};
+  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
     if (!isCSSDefineFile(filePath, 'keyframes')) continue;
@@ -460,6 +525,7 @@ function scanForKeyframes(this: LoaderContext<unknown>): {
             constTable,
             keyframesHashTableLocal,
             variableTable,
+            themeTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
 
@@ -478,11 +544,11 @@ function scanForKeyframes(this: LoaderContext<unknown>): {
 
 function scanForDefineVars(this: LoaderContext<unknown>): {
   variableTableLocal: VariableTable;
-  defineVarsObjectTableLocal: DefineThemeObjectTable;
+  defineVarsObjectTableLocal: DefineVarsObjectTable;
 } {
-  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
   const variableTableLocal: VariableTable = {};
-  const defineVarsObjectTableLocal: DefineThemeObjectTable = {};
+  const defineVarsObjectTableLocal: DefineVarsObjectTable = {};
+  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
     if (!isCSSDefineFile(filePath, 'defineVars')) continue;
@@ -528,6 +594,7 @@ function scanForDefineVars(this: LoaderContext<unknown>): {
             constTable,
             keyframesHashTable,
             variableTableLocal,
+            themeTable,
           );
           variableTableLocal[varName] = obj;
           defineVarsObjectTableLocal[varName] = obj;
@@ -540,17 +607,16 @@ function scanForDefineVars(this: LoaderContext<unknown>): {
 }
 
 function scanForDefineTheme(this: LoaderContext<unknown>): {
-  variableTableLocal: Record<string, Record<string, any>>;
+  themeTableLocal: Record<string, Record<string, any>>;
   defineThemeObjectTableLocal: Record<string, any>;
 } {
-  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
-  const variableTableLocal: Record<string, Record<string, any>> = {};
+  const themeTableLocal: Record<string, Record<string, any>> = {};
   const defineThemeObjectTableLocal: Record<string, any> = {};
+  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
     if (!isCSSDefineFile(filePath, 'defineTheme')) continue;
     this.addDependency(filePath);
-
     const source = fs.readFileSync(filePath, 'utf8');
     const ast = parseSync(source, {
       sourceType: 'module',
@@ -590,16 +656,17 @@ function scanForDefineTheme(this: LoaderContext<unknown>): {
             decl.init.arguments[0],
             constTable,
             keyframesHashTable,
-            variableTableLocal,
+            variableTable,
+            themeTableLocal,
           );
-          variableTableLocal[varName] = obj;
+          themeTableLocal[varName] = obj;
           defineThemeObjectTableLocal[varName] = obj;
         }
       }
     }
   }
 
-  return { variableTableLocal, defineThemeObjectTableLocal };
+  return { themeTableLocal, defineThemeObjectTableLocal };
 }
 
 function isCSSDefineFile(filePath: string, target: string): boolean {
@@ -654,23 +721,19 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   keyframesHashTable = keyframesHashTableLocal;
   keyframesObjectTable = keyframesObjectTableLocal;
 
-  const { variableTableLocal: varsTable, defineVarsObjectTableLocal } =
+  const { variableTableLocal, defineVarsObjectTableLocal } =
     scanForDefineVars.call(this);
 
-  const { variableTableLocal: themeTable, defineThemeObjectTableLocal } =
+  const { themeTableLocal, defineThemeObjectTableLocal } =
     scanForDefineTheme.call(this);
 
-  variableTable = varsTable;
-  for (const k in themeTable) {
-    variableTable[k] = themeTable[k];
-  }
-
+  variableTable = variableTableLocal;
+  themeTable = themeTableLocal;
   defineVarsObjectTable = defineVarsObjectTableLocal;
   defineThemeObjectTable = defineThemeObjectTableLocal;
 
   let extractedObject: CSSObject | null = null;
   const extractedGlobalObjects: CSSObject[] = [];
-
   let ast;
   try {
     ast = parseSync(source, {
@@ -680,76 +743,52 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
         '@babel/preset-react',
       ],
     });
-  } catch (e) {
-    console.warn('[virtual-css-loader] parseSync error:', e);
-    if (callback) return callback(null, source);
-    return source;
+  } catch (err) {
+    console.log(err);
+    return callback(null, source);
   }
-
-  if (!ast) {
-    console.warn('[virtual-css-loader] parseSync returned null');
-    if (callback) return callback(null, source);
-    return source;
-  }
+  if (!ast) return callback(null, source);
 
   const localConsts = collectLocalConsts(ast);
-  if (Object.keys(localConsts).length !== 0) {
-    for (const k in localConsts) {
-      constTable[k] = localConsts[k];
-    }
-  }
+  Object.assign(constTable, localConsts);
 
-  const plugin: PluginObj = {
+  const pluginAst: PluginObj = {
     visitor: {
       CallExpression(path) {
         const callee = path.node.callee;
-
         if (
           t.isMemberExpression(callee) &&
-          t.isIdentifier(callee.object) &&
-          callee.object.name === 'css' &&
+          t.isIdentifier(callee.object, { name: 'css' }) &&
           t.isIdentifier(callee.property)
         ) {
           const args = path.node.arguments;
-
           if (
             callee.property.name === 'create' &&
             args.length === 1 &&
             t.isObjectExpression(args[0])
           ) {
-            try {
-              extractedObject = objectExpressionToObject(
-                args[0],
-                constTable,
-                keyframesHashTable,
-                variableTable,
-              );
-            } catch (e) {
-              console.warn(
-                '[virtual-css-loader] Failed to build object from AST:',
-                e,
-              );
-            }
+            extractedObject = objectExpressionToObject(
+              args[0],
+              constTable,
+              keyframesHashTable,
+              variableTable,
+              themeTable,
+            );
           }
           if (
             callee.property.name === 'global' &&
             args.length === 1 &&
             t.isObjectExpression(args[0])
           ) {
-            try {
-              const globalObj = objectExpressionToObject(
+            extractedGlobalObjects.push(
+              objectExpressionToObject(
                 args[0],
                 constTable,
                 keyframesHashTable,
                 variableTable,
-              );
-              extractedGlobalObjects.push(globalObj);
-            } catch (e) {
-              console.warn(
-                '[virtual-css-loader] Failed to build global object from AST:',
-                e,
-              );
-            }
+                themeTable,
+              ),
+            );
           }
         }
       },
@@ -758,90 +797,112 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
 
   transformFromAstSync(ast, source, {
     code: false,
-    plugins: [plugin],
+    plugins: [pluginAst],
     configFile: false,
   });
 
-  if (!extractedObject && extractedGlobalObjects.length === 0) {
-    if (callback) return callback(null, source);
-    return source;
+  const fileStyles: CSSObject = {};
+  if (extractedObject) {
+    const base = createCSS(extractedObject);
+    if (base) fileStyles.baseStyles = base;
   }
 
-  const css = extractedObject ? createCSS(extractedObject) : '';
-
-  let globalCss = '';
-  for (const obj of extractedGlobalObjects) {
-    globalCss +=
-      transpile(obj as CSSHTML, undefined, '--global').styleSheet + '\n';
+  if (extractedGlobalObjects.length > 0) {
+    fileStyles.globalStyles = extractedGlobalObjects
+      .map((obj) => transpile(obj as CSSHTML, undefined, '--global').styleSheet)
+      .join('\n');
   }
 
-  let keyframeCss = '';
-  for (const [hash, obj] of Object.entries(keyframesObjectTable)) {
-    const keyframeWrapped = { [`@keyframes ${hash}`]: obj };
-    const { styleSheet } = transpile(keyframeWrapped, undefined, '--global');
-    keyframeCss += styleSheet + '\n';
+  if (Object.keys(keyframesObjectTable).length > 0) {
+    fileStyles.keyframeStyles = Object.entries(keyframesObjectTable)
+      .map(
+        ([hash, obj]) =>
+          transpile({ [`@keyframes ${hash}`]: obj }, undefined, '--global')
+            .styleSheet,
+      )
+      .join('\n');
   }
 
-  let varCss = '';
+  if (Object.keys(defineVarsObjectTable).length > 0) {
+    fileStyles.varStyles = Object.values(defineVarsObjectTable)
+      .map(
+        (obj) =>
+          transpile(createVars(obj as CreateValues), undefined, '--global')
+            .styleSheet,
+      )
+      .join('\n');
+  }
 
-  for (const [, obj] of Object.entries(defineVarsObjectTable)) {
-    const { styleSheet } = transpile(
-      createVars(obj as CreateValues),
-      undefined,
-      '--global',
+  if (Object.keys(defineThemeObjectTable).length > 0) {
+    fileStyles.themeStyles = Object.values(defineThemeObjectTable)
+      .map(
+        (obj) =>
+          transpile(createTheme(obj as CreateTheme), undefined, '--global')
+            .styleSheet,
+      )
+      .join('\n');
+  }
+
+  const VIRTUAL_CSS_PATH = require.resolve(
+    path.resolve(__dirname, '..', 'zero-virtual.css'),
+  );
+
+  function stringifyRequest(
+    loaderContext: LoaderContext<unknown>,
+    request: string,
+  ) {
+    return JSON.stringify(
+      loaderContext.utils.contextify(
+        loaderContext.context || loaderContext.rootContext,
+        request,
+      ),
     );
-    varCss += styleSheet + '\n';
   }
 
-  let themeCss = '';
-  for (const [, obj] of Object.entries(defineThemeObjectTable)) {
-    const { styleSheet } = transpile(
-      createTheme(obj as CreateTheme),
-      undefined,
-      '--global',
-    );
-    themeCss += styleSheet + '\n';
-  }
-
-  const finalCss =
-    globalCss +
-    '\n' +
-    keyframeCss +
-    '\n' +
-    varCss +
-    '\n' +
-    themeCss +
-    '\n' +
-    css;
-
-  const virtualCssFileName = loaderUtils.interpolateName(
-    this as any,
-    '[path][name].[hash:base64:8].virtual.css',
-    {
-      content: finalCss,
-      context: this.rootContext,
-    },
-  );
-  const absVirtualCssFileName = path.resolve(
-    this.rootContext,
-    virtualCssFileName,
+  const virtualCssImportPath = path.posix.join(
+    path.posix.relative(
+      path.dirname(this.resourcePath),
+      path.resolve(__dirname, '..', VIRTUAL_CSS_PATH),
+    ),
   );
 
-  const pluginInstance = this._compiler?.options?.plugins.find(
-    (p): p is PlumeriaPlugin => p?.constructor?.name === 'PlumeriaPlugin',
-  );
-  pluginInstance?.registerStyle?.(absVirtualCssFileName, finalCss);
-
-  let importPath = path.posix.relative(
-    path.dirname(this.resourcePath),
-    absVirtualCssFileName,
-  );
+  let importPath = virtualCssImportPath;
   if (!importPath.startsWith('.')) {
     importPath = './' + importPath;
   }
-  importPath = importPath.replace(/\\/g, '/');
 
-  const resultSource = source + `\nimport ${JSON.stringify(importPath)};`;
-  if (callback) return callback(null, resultSource);
-  return resultSource;
+  const serializedStyleRules = JSON.stringify(fileStyles);
+  const urlParams = new URLSearchParams({
+    from: this.resourcePath,
+    plumeria: serializedStyleRules,
+  });
+
+  const virtualCssRequest = stringifyRequest(
+    this,
+    `${VIRTUAL_CSS_PATH}?${urlParams.toString()}`,
+  );
+  const postfix = `\nimport ${virtualCssRequest};`;
+
+  // --- Register it in the plugin (this is the only point of contact between the loader and the plugin)
+  const pluginInstance = this._compiler?.options?.plugins.find(
+    (p): p is PlumeriaPlugin => p?.constructor?.name === 'PlumeriaPlugin',
+  );
+
+  if (pluginInstance) {
+    // Each plugin instance has its own cache
+    if (!pluginInstance.__plumeriaRegistered) {
+      pluginInstance.__plumeriaRegistered = new Set<string>();
+    }
+
+    const cache = pluginInstance.__plumeriaRegistered as Set<string>;
+
+    // Skip if file is already registered
+    if (!cache.has(virtualCssRequest)) {
+      cache.add(virtualCssRequest);
+      pluginInstance?.registerFileStyles(virtualCssRequest, fileStyles);
+    }
+  }
+
+  if (callback) callback(null, source + postfix);
+  return source + postfix;
 }
