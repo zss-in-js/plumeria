@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/webpack-plugin",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Plumeria Webpack plugin",
   "repository": {
     "type": "git",
@@ -12,7 +12,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/"
+    "dist/",
+    "zero-virtual.css"
   ],
   "scripts": {
     "build": "rimraf dist && pnpm cjs",
@@ -22,14 +23,11 @@
     "@babel/core": "^7.28.0",
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",
-    "@babel/types": "^7.28.2",
-    "loader-utils": "^3.3.1",
-    "webpack-virtual-modules": "^0.6.2"
+    "@babel/types": "^7.28.2"
   },
   "devDependencies": {
     "@rust-gear/glob": "^0.2.2",
     "@types/babel__core": "^7.20.5",
-    "@types/loader-utils": "^2.0.6",
     "webpack": "^5.101.0",
     "zss-engine": "^0.2.75"
   },
