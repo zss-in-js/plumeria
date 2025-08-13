@@ -10,7 +10,7 @@ type ParseErrorString =
   | `[unresolved member expression]`;
 
 // Nestable CSS value types for recursive structures
-type CSSValue = CSSPrimitive | CSSObject | ParseErrorString;
+export type CSSValue = CSSPrimitive | CSSObject | ParseErrorString;
 export type CSSObject = {
   [key: string]: CSSValue;
 };
@@ -18,6 +18,7 @@ export type CSSObject = {
 // Table types for various CSS constructs
 export type ConstTable = Record<string, CSSObject | string>; // varName -> object
 export type VariableTable = Record<string, CSSObject>; // varName -> object
+export type ThemeTable = Record<string, CSSObject>; // varName -> object
 export type KeyframesHashTable = Record<string, string>; // varName -> hash
 export type KeyframesObjectTable = Record<string, CSSObject>; // hashKey: { string: { string: string | number }, ... }
 export type DefineVarsObjectTable = Record<string, CSSObject>; // { string: { varName: value }, ... }
