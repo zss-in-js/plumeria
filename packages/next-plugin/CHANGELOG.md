@@ -1,5 +1,11 @@
 # @plumeria/next-plugin
 
+## 0.9.0
+
+### Minor Changes
+
+- 7e2458a: feat: core dependencies webpack-plugin update
+
 ## 0.7.0
 
 ### Minor Changes
