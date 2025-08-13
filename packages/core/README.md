@@ -1,6 +1,6 @@
 # @plumeria/core
 
-Plumeria is a JavaScript library for Scalable and optimized styling.
+Plumeria is a JavaScript library for scalable and optimized styling.
 
 ## Installation
 
@@ -10,15 +10,13 @@ To get started with Plumeria, install the core package:
 npm install @plumeria/core
 ```
 
-### Compiler (for static extraction)
+### Compiler
 
-If you want to extract styles at build time using commands like `npx css`, install:
+Install the `css` command to extract styles at build time:
 
 ```sh
 npm install --save-dev @plumeria/compiler
 ```
-
-More at: [@plumeria/compiler on npm](https://www.npmjs.com/package/@plumeria/compiler)
 
 ### Stylesheet Import
 
@@ -51,28 +49,31 @@ const styles = css.create({
 ### css.props()
 
 Use `css.props()` to combine multiple styles or switch between them conditionally.  
-css.props is compiled and style properties to the right take precedence.  
-The same goes for shorthand and longhand rules.
+css.props is compiled and style properties to the right take precedence.
 
 ```jsx
 <div className={css.props(styles.text, styles.box)} />
 //   className="zxxxxxx1 zxxxxxx2 zxxxxxx3"
 ```
 
-Supports pseudo/media queries inline:
+Shorthand and longhand property rules follow the same principles as CSS rules.
+
+---
+
+It supports media query pseudo-classes and elements in a familiar syntax.
 
 ```ts
-import { css, ps, media } from '@plumeria/core';
+import { css } from '@plumeria/core';
 
 const styles = css.create({
   box: {
-    [media.maxWidth(768)]: {
+    '@media (max-width: 768px)': {
       width: '100%',
     },
   },
   text: {
     color: '#333',
-    [ps.hover]: {
+    ':hover': {
       color: 'skyblue',
       opacity: 0.9,
     },
@@ -82,7 +83,7 @@ const styles = css.create({
 
 ## ESLint Support
 
-Use [@plumeria/eslint-plugin](https://www.npmjs.com/package/@plumeria/eslint-plugin) for recommended rules:
+The [@plumeria/eslint-plugin](https://www.npmjs.com/package/@plumeria/eslint-plugin) provides recommended rules:
 
 ### Rules: recommended
 
@@ -94,7 +95,7 @@ Use [@plumeria/eslint-plugin](https://www.npmjs.com/package/@plumeria/eslint-plu
 - validate-values: warn
 ```
 
-Plumeria is best used alongside TypeScript for excellent autocomplete and validation support.
+It plugin provides autocomplete and validation support.
 
 ## License
 
