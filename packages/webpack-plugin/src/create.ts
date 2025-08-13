@@ -17,7 +17,7 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
 ): string {
   const baseSheets: string[] = [];
   const querySheets: string[] = [];
-  const processedHashes = new Set<string>(); // 重複チェック用
+  const processedHashes = new Set<string>(); // For duplicate check
 
   Object.entries(object).forEach(([key, styleObj]) => {
     const flat: Record<string, any> = {};
