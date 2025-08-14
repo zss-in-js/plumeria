@@ -34,16 +34,13 @@ pnpm i @plumeria/core
 This includes APIs exposed as CSS-in-JS.
 
 ```ts
-export { rx } from './api/utils/rx';
-export { px } from './api/utils/px';
-export { ps, media, container, color } from 'zss-utils';
-export { css } from './css';
+export { css, rx } from './css';
 export type { CreateStyle, CSSHTML, CSSProperties } from './css';
 ```
 
 ## Use API
 ```ts
-import { css, ps, px, rx, media, container, color } from 'plumeria/core';
+import { css, rx } from 'plumeria/core';
 import type { CSSProperties, CSSHTML, CreateStyle } from 'plumeria/core';
 ```
 
