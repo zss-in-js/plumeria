@@ -10,7 +10,7 @@ const { transform } = require('lightningcss');
 const { parseSync } = require('@swc/core');
 const { buildGlobal, buildProps } = require('@plumeria/core/processors');
 const {
-  extractAndInjectStyleProps,
+  extractTSFile,
   restoreAllOriginals,
   extractVueAndSvelte,
 } = require('./extract');
@@ -106,6 +106,7 @@ async function optimizeCSS(): Promise<void> {
 
 (async () => {
   await cleanUp();
+
   const files = await glob(
     path.join(projectRoot, '**/*.{js,jsx,ts,tsx,vue,svelte}'),
     {
@@ -119,39 +120,27 @@ async function optimizeCSS(): Promise<void> {
     },
   );
 
-  // paths arguments display project root folder
   const projectName = path.basename(projectRoot);
 
-  // Supports other React frameworks
   const filesSupportExtensions: string[] = [];
   for (const file of files) {
-    const tsFile = await extractVueAndSvelte(file);
-    filesSupportExtensions.push(tsFile);
+    const ext = path.extname(file);
+    if (ext === '.vue' || ext === '.svelte') {
+      const tsFile = await extractVueAndSvelte(file);
+      filesSupportExtensions.push(tsFile);
+    } else {
+      const tempFile = await extractTSFile(file);
+      filesSupportExtensions.push(tempFile);
+    }
   }
 
   const styleFiles = filesSupportExtensions
     .filter((file) => isCSS(file, ''))
     .sort();
 
-  const cssPropsFiles = styleFiles.filter((file) => {
-    // Check if it's a .ts file and has a corresponding .vue or .svelte file
-    if (file.endsWith('.ts')) {
-      const vueFile = file.replace('.ts', '.vue');
-      const svelteFile = file.replace('.ts', '.svelte');
-      const isGeneratedFromVue = existsSync(vueFile);
-      const isGeneratedFromSvelte = existsSync(svelteFile);
-
-      // Exclude if it is a generated file
-      if (isGeneratedFromVue || isGeneratedFromSvelte) {
-        return false;
-      }
-    }
+  const propsFiles = styleFiles.filter((file) => {
     return isCSS(file, 'props');
   });
-
-  for (let i = 0; i < cssPropsFiles.length; i++) {
-    await extractAndInjectStyleProps(path.resolve(cssPropsFiles[i]));
-  }
 
   for (let i = 0; i < styleFiles.length; i++) {
     await execute(path.resolve(styleFiles[i]));
@@ -160,12 +149,11 @@ async function optimizeCSS(): Promise<void> {
         `✅: ${projectName}/${path.relative(projectRoot, styleFiles[i])}`,
       );
   }
-
   for (let i = 0; i < styleFiles.length; i++) {
     await buildGlobal(coreFilePath);
   }
 
-  for (let i = 0; i < styleFiles.length; i++) {
+  for (let i = 0; i < propsFiles.length; i++) {
     await buildProps(coreFilePath);
   }
 
