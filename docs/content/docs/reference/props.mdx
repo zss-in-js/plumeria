@@ -24,45 +24,15 @@ const className = css.props(styles.one, styles.two);  // [!code ++]
 
 ## Prohibit intermediate code
 Props compilation is performed by strictly deleting all intermediate code except `import` `css.create()` `css.props()`.
-For example, if you define and use a global variable like the following, a reference error will occur because the variable will be deleted during the compilation phase.
+For example, static string literals like the one below will remain when the file in which css.props exists is compiled.
 
 ```tsx
-const MD = "@media (max-width: 768px)" // [!code --] removed at compile time
+// Allowed static string literal variables
+const MD = "@media (max-width: 768px)"
 
 const styles = css.create({
   responsive: {
-    [MD]: {  // [!code --] Reference Error
-      scale: 0.8,
-    },
-  },
-});
-
-return (
-    <div className={css.props(styles.responsive)} />
-)
-```
-If you want to define a variable and use intermediate code, you can assign a value directly or via an import statement.
-
-```tsx
-const styles = css.create({
-  responsive: {
-    ["@media (max-width: 768px)"]: {  // [!code ++] Work
-      scale: 0.8,
-    },
-  },
-});
-
-return (
-    <div className={css.props(styles.responsive)} />
-)
-```
-or
-```tsx
-import { css, media } from "@plumeria/core";
-
-const styles = css.create({
-  responsive: {
-    [media.maxWidth(768)]: {  // [!code ++] Work
+    [MD]: {
       scale: 0.8,
     },
   },
@@ -73,8 +43,7 @@ return (
 )
 ```
 
-or
-
+The easiest way to follow the DRY principle is to make it a constant using defineConsts.
 ```tsx
 import { css } from "@plumeria/core";
 import { breakpoints } from "lib/mediaQuery";
@@ -91,8 +60,12 @@ return (
     <div className={css.props(styles.responsive)} />
 )
 ```
+API calls such as `keyframes` and `defineConsts` (excluding global) must be created in separate files and cannot be written in the same file scope as css.props. Therefore, `defineConsts` `defineVars` `defineTheme` `keyframes` require imports.
 
-Therefore, `keyframes()` etc. cannot be defined in the same file scope as props and must be saved as files and used via import.
+<Callout title="Good to know">
+If you create a separate styles file, these compilation restrictions do not apply and you can freely place APIs in the file. This is the difference between writing them in the same file and creating a separate file.
+</Callout>
+
 
 ## Extract
 
