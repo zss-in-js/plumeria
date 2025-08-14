@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { css, ps } from '@plumeria/core';
+import { css } from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
+import { ps } from 'lib/pseudos';
 import { Plumeria } from './Plumeria';
 import { CodeBlock } from './CodeBlock';
 
