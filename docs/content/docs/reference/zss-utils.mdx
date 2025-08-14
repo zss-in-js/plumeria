@@ -6,7 +6,11 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import Link from 'next/link';
 
 It is the plumeria [Utility `zss-utils` package](https://www.npmjs.com/package/zss-utils)  
-This is managed in the zss-in-js project and included in the <Link href="/docs/reference/core">`core package`</Link>, along with <Link href="/docs/reference/engine">`zss-engine`</Link>.  
+
+<Callout title="Available to clients only">
+  If your project is client-only, this library makes it easy to specify key properties.
+In examples like Next.js, which handle both client and server functions, you'll need to register static literal values using defineConsts.
+</Callout>
 
 
 ## Installation
@@ -32,21 +36,23 @@ pnpm i zss-utils
 ## Overview
 
 ```js
-export { ps } from './utils/pseudo.js';
-export { media } from './utils/media.js';
-export { container } from './utils/container.js';
-export { color } from './utils/color.js';
+export { media } from './utils/media';
+export { container } from './utils/container';
+export { color } from './utils/color';
+export { ps } from './utils/pseudo';
+export { px } from './utils/px';
 ```
 
 ## API
 
 ```ts
-import { ps, media container, color } from 'zss-utils';
+import { ps, px, media, container, color } from 'zss-utils';
 
 media
 container
-ps
 color
+ps
+px
 ```
 
 <Cards>

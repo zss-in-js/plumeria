@@ -12,15 +12,15 @@ It is useful for creating values such as **breakpoints**, spacing scales, or oth
 ## Example: Creating breakpoints
 
 ```ts title="TypeScript"
-// mediaQuery.ts
-import { css, media } from '@plumeria/core';
+// lib/mediaQuery.ts
+import { css } from '@plumeria/core';
 
 export const breakpoints = css.defineConsts({
-  xs: media.maxWidth(480),
-  sm: media.maxWidth(640),
-  md: media.maxWidth(768),
-  lg: media.maxWidth(1024),
-  xl: media.maxWidth(1280),
+  xs: '@media (max-width: 480px)',
+  sm: '@media (max-width: 640px)',
+  md: '@media (max-width: 768px)',
+  lg: '@media (max-width: 1024px)',
+  xl: '@media (max-width: 1280px)',
 });
 ```
 These constants are fully **type-safe, readonly,** and enforced as **as const**.
@@ -51,3 +51,7 @@ You can use these constants for any static keys inside styles or themes.
 - Produces a **readonly** type automatically
 
 This helps reduce bugs and keeps your design tokens **predictable**.
+
+<Callout title="Good to know">
+  When using RSC with Next.js etc., webpack-plugin is used inside next-plugin, and variables are AST analyzed and inlined.
+</Callout>
