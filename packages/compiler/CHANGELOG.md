@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.15.1
+
+### Patch Changes
+
+- edea0d1: fix(release): version bump only
+
 ## 0.15.0
 
 ### Minor Changes
