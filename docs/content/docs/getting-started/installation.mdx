@@ -78,9 +78,8 @@ In Vite, only the client is referenced, so there is no need to compile at the sa
 <Tab>
 ```json title="package.json"
   "scripts": {
-    "dev": "css & next dev",
+    "dev": "next dev",
     "build": "css --type-check && next build",
-    // ...
   }
 ```
 </Tab>
@@ -89,7 +88,6 @@ In Vite, only the client is referenced, so there is no need to compile at the sa
   "scripts": {
     "dev": "vite",
     "build": "css --type-check && tsc -b && vite build", 
-    // ...
   },
 ```
 </Tab>
@@ -114,16 +112,14 @@ Plumeira can be integrated with Vite and Next.js.
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    npm i -D @plumeria/next
-    # Add <ServerCSS /> for layout.tsx
+    npm i -D @plumeria/next-plugin
     ```
 
   </Tab>
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    npm i -D @plumeria/vite
-    # Add plumeria() for vite.config.ts
+    npm i -D @plumeria/vite-plugin
     ```
   </Tab>
 </Tabs>
@@ -131,32 +127,23 @@ Plumeira can be integrated with Vite and Next.js.
 <Step>
 ## Next.js
 
-You can statically preview a Next.js's ServerComponent using `<ServerCSS \>`.  
-This ServerCSS is a headless component and is not included in the production environment.
+Plugin is compiling Server Components and Inject virtual CSS imports for HMR.  
+Client components are injected by the runtime inside @plumeria/core.
+```ts title="next.config.ts"
+import type { NextConfig } from "next";
+import { withPlumeria } from "@plumeria/next-plugin";
 
+const nextConfig: NextConfig = withPlumeria({
+  /* config options here */
+});
 
-
-```tsx title="layout.tsx"
-import { ServerCSS } from '@plumeria/next'
-// const { ServerCSS } = require('@plumeria/next'); // next dev --turbo
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html>
-      <head>
-        <ServerCSS /> // [!code ++]
-      </head> 
-      <body>
-        <main>{children}</main>
-      </body>
-    </html>
-  )
-}
+export default nextConfig;
 ```
+
 </Step>
 <Step>
 ## Vite
-It will display warnings and errors when it is possible to execute the command, but by installing a plugin you can externalize Node.js smartly.
+Vite is a client-based bundler, so it externalizes fs with plugins.
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
