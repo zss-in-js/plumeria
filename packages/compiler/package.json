@@ -1,15 +1,12 @@
 {
   "name": "@plumeria/compiler",
   "version": "0.14.9",
-  "description": "A faster compiler for Plumeria",
-  "keywords": [
-    "css",
-    "css-in-js",
-    "plumeria",
-    "rscute",
-    "compiler"
-  ],
-  "repository": "github:zss-in-js/plumeria",
+  "description": "Plumeria Rust-based compiler",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/compiler"
+  },
   "license": "MIT",
   "files": [
     "bin/",
@@ -22,13 +19,13 @@
     "build": "rimraf dist && tsc"
   },
   "dependencies": {
-    "@rust-gear/glob": "^0.2.2",
     "@swc/core": "^1.11.24",
+    "@rust-gear/glob": "^0.2.2",
+    "rscute": "^0.2.7",
     "lightningcss": "^1.29.3",
     "postcss": "^8.5.3",
     "postcss-combine-duplicated-selectors": "^10.0.3",
-    "postcss-combine-media-query": "^2.0.0",
-    "rscute": "^0.2.7"
+    "postcss-combine-media-query": "^2.0.0"
   },
   "publishConfig": {
     "access": "public"
