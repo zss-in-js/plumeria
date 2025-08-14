@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.15.1
+
+### Patch Changes
+
+- 659c4a4: fix(release): version bump only
+
 ## 0.2.6
 
 ### Patch Changes
