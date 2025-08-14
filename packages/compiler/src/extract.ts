@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-const originalCodeMap = new Map<string, string>();
 const generatedTsMap = new Map<string, string>();
 
 // Helper function to check if a position is within a comment
@@ -33,6 +32,32 @@ function isInComment(code: string, position: number): boolean {
   }
 
   return inMultiLineComment;
+}
+
+function isInVueAttribute(code: string, position: number): boolean {
+  // Search backward from position to find the most recent quote
+  let quotePosition = -1;
+
+  for (let i = position - 1; i >= 0; i--) {
+    const char = code[i];
+    if (char === '"' || char === "'") {
+      quotePosition = i;
+      break;
+    }
+  }
+
+  if (quotePosition === -1) return false;
+
+  // Check if there is a Vue attribute pattern before the quote
+  const beforeQuote = code.substring(
+    Math.max(0, quotePosition - 30),
+    quotePosition,
+  );
+
+  // Vue attribute pattern (CSS related only)
+  const vueAttributePattern = /(:|v-bind:)(class|style)\s*=\s*$/;
+
+  return vueAttributePattern.test(beforeQuote);
 }
 
 function isInString(code: string, position: number) {
@@ -73,7 +98,12 @@ function isInString(code: string, position: number) {
     }
   }
 
-  return inSingleQuote || inDoubleQuote || inBacktick;
+  const inStringLiteral = inSingleQuote || inDoubleQuote || inBacktick;
+
+  // Vue attributes are picked up
+  if (inStringLiteral && isInVueAttribute(code, position)) return false;
+
+  return inStringLiteral;
 }
 
 function isInHtmlText(code: string, position: number): boolean {
@@ -149,7 +179,7 @@ function extractCssProps(code: string) {
       // Get the pure argument list with the conditional expressions removed
       const cleanArgs = parseCssPropsArguments(normalizedArgs);
       if (cleanArgs.length > 0) {
-        // Reconstruction preserving the original calling format
+        // Reconstruction preserving the code calling format
         propsMatches.push(`css.props(${cleanArgs.join(', ')})`);
       }
     }
@@ -158,11 +188,59 @@ function extractCssProps(code: string) {
   return propsMatches;
 }
 
+function extractStaticStringLiteralVariable(code: string) {
+  const matches: string[] = [];
+
+  const regex =
+    /\b(?:var|let|const)\s+[a-zA-Z_$][\w$]*\s*=\s*(['"])(.*?)\1\s*;?/gm;
+
+  let match;
+  while ((match = regex.exec(code))) {
+    const index = match.index;
+
+    if (
+      isInComment(code, index) ||
+      isInString(code, index) ||
+      isInHtmlText(code, index)
+    ) {
+      continue;
+    }
+
+    matches.push(match[0]);
+  }
+
+  return matches.join('\n');
+}
+
 // Enhanced css.create extractor that skips commented code
 function extractCssCreate(code: string) {
   const cssCreateMatches = [];
   const regex =
     /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.create\([\s\S]*?\);\s*))/g;
+  let match;
+
+  while ((match = regex.exec(code))) {
+    // Skip if this match is within a comment
+    if (
+      isInComment(code, match.index) ||
+      isInString(code, match.index) ||
+      isInHtmlText(code, match.index)
+    ) {
+      continue;
+    }
+
+    cssCreateMatches.push(match[0]);
+  }
+
+  return cssCreateMatches.join('\n');
+}
+
+// Enhanced css.global extractor that skips commented code
+function extractCssGlobal(code: string) {
+  const cssCreateMatches = [];
+  // const regex = /(?:(?:\s*\s*=\s*css\.global\([\s\S]*?\);\s*))/g;
+  const regex = /\bcss\.global\(\s*([\s\S]*?)\s*\);/g;
+
   let match;
 
   while ((match = regex.exec(code))) {
@@ -218,7 +296,6 @@ async function extractVueAndSvelte(filePath: string) {
   if (!(ext === '.svelte' || ext === '.vue')) return filePath;
 
   const code = fs.readFileSync(filePath, 'utf8');
-  originalCodeMap.set(filePath, code);
 
   const lines = code.split(/\r?\n/);
   let inScript = false;
@@ -239,7 +316,7 @@ async function extractVueAndSvelte(filePath: string) {
   }
   const tsCode = contentLines.join('\n');
 
-  // Search for css.props in the original code (as it may be in a HTML tags)
+  // Search for css.props in the code code (as it may be in a HTML tags)
   // extract css.props
   const propsMatches = [...extractCssProps(tsCode), ...extractCssProps(code)];
   const calls = propsMatches
@@ -252,8 +329,10 @@ async function extractVueAndSvelte(filePath: string) {
   const importMatch = tsCode.match(importRegex);
   const importSection = importMatch ? importMatch[0] : '';
 
-  // extract style.create section using the new function
-  const stylesSection = extractCssCreate(tsCode);
+  // extract css.create and css.global section using the new function
+  const staticVariableSection = extractStaticStringLiteralVariable(tsCode);
+  const cssCreateSection = extractCssCreate(tsCode);
+  const cssGlobalSection = extractCssGlobal(tsCode);
 
   // finale ts code
   let finalCode = '';
@@ -263,9 +342,18 @@ async function extractVueAndSvelte(filePath: string) {
     finalCode += importSection + '\n';
   }
 
+  if (staticVariableSection) {
+    finalCode += staticVariableSection + '\n';
+  }
+
+  // add css.global section
+  if (cssGlobalSection) {
+    finalCode += cssGlobalSection + '\n';
+  }
+
   // add style.create section
-  if (stylesSection) {
-    finalCode += stylesSection + '\n';
+  if (cssCreateSection) {
+    finalCode += cssCreateSection + '\n';
   }
 
   // add calls as they are
@@ -279,20 +367,25 @@ async function extractVueAndSvelte(filePath: string) {
   return tsPath;
 }
 
-async function extractAndInjectStyleProps(filePath: string) {
-  const original = fs.readFileSync(filePath, 'utf8');
-  originalCodeMap.set(filePath, original);
+async function extractTSFile(filePath: string) {
+  const code = fs.readFileSync(filePath, 'utf8');
 
   // extract import section
   const importRegex = /^(?:\s*import\s[^;]+;\s*)+/m;
-  const importMatch = original.match(importRegex);
+  const importMatch = code.match(importRegex);
   const importSection = importMatch ? importMatch[0] : '';
 
+  // extract static string literal variables
+  const staticVariableSection = extractStaticStringLiteralVariable(code);
+
   // extract css.create section using the new function
-  const cssCreateSection = extractCssCreate(original);
+  const cssCreateSection = extractCssCreate(code);
+
+  // extract css.global section using the new function
+  const cssGlobalSection = extractCssGlobal(code);
 
   // extract css.props
-  const propsMatches = extractCssProps(original);
+  const propsMatches = extractCssProps(code);
   const calls = propsMatches
     .filter(Boolean)
     .map((call) => `${call};`)
@@ -301,10 +394,17 @@ async function extractAndInjectStyleProps(filePath: string) {
   // Assembly
   let finalCode = '';
   if (importSection) finalCode += importSection + '\n';
+  if (staticVariableSection) finalCode += staticVariableSection + '\n';
+  if (cssGlobalSection) finalCode += cssGlobalSection + '\n';
   if (cssCreateSection) finalCode += cssCreateSection + '\n';
   finalCode += calls;
 
-  fs.writeFileSync(filePath, finalCode, 'utf8');
+  const ext = path.extname(filePath);
+  const tempFilePath = filePath.replace(ext, '-temp.ts');
+  fs.writeFileSync(tempFilePath, finalCode, 'utf8');
+  generatedTsMap.set(filePath, tempFilePath);
+
+  return tempFilePath;
 }
 
 async function restoreAllOriginals() {
@@ -314,12 +414,6 @@ async function restoreAllOriginals() {
     }
   }
   generatedTsMap.clear();
-
-  // Write all originalCodeMaps back to the original files from JSX/TSX/JS/TS
-  for (const [filePath, backup] of originalCodeMap.entries()) {
-    fs.writeFileSync(filePath, backup, 'utf8');
-  }
-  originalCodeMap.clear();
 }
 
 // Process-wide error handling (for recovery)
@@ -336,8 +430,7 @@ process.on('unhandledRejection', async (reason, promise) => {
 });
 
 module.exports = {
-  extractAndInjectStyleProps,
+  extractTSFile,
   restoreAllOriginals,
   extractVueAndSvelte,
-  originalCodeMap,
 };
