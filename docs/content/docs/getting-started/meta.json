@@ -1,4 +1,4 @@
 {
   "defaultOpen": true,
-  "pages": ["installation", "define-styles", "nesting", "editor-integration"]
+  "pages": ["installation", "define-styles", "selector-rules", "editor-integration"]
 }
