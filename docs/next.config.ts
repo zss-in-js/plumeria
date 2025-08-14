@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 import { createMDX } from 'fumadocs-mdx/next';
+import { withPlumeria } from '@plumeria/next-plugin';
 
 const withMDX = createMDX();
 
@@ -30,7 +31,7 @@ const securityHeaders = [
   },
 ];
 
-const config: NextConfig = {
+const config: NextConfig = withPlumeria({
   reactStrictMode: true,
   async headers() {
     return [
@@ -40,6 +41,6 @@ const config: NextConfig = {
       },
     ];
   },
-};
+});
 
 export default withMDX(config);
