@@ -1,17 +1,13 @@
 {
   "name": "@plumeria/eslint-plugin",
   "version": "0.2.6",
-  "description": "Zero-runtime, expressive CSS-in-JS library for TypeScript.",
-  "repository": "github:zss-in-js/plumeria",
+  "description": "Plumeria ESLint plugin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/eslint-plugin"
+  },
   "license": "MIT",
-  "keywords": [
-    "css",
-    "css-in-js",
-    "plumeria",
-    "react",
-    "next",
-    "vite"
-  ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
