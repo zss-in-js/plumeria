@@ -1,16 +1,21 @@
 ---
-title: 'Pseudo'
+title: 'ps'
 description: 'Comprehensive API reference for the `pseudo` utility in the zss-utils package, covering all pseudo-classes, pseudo-elements, and functional pseudo selectors.'
 ---
 
-The `ps(Pseudo)` utility in the `@plumeria/core` package provides a powerful way to apply CSS pseudo-classes and pseudo-elements programmatically. You can use these utilities as selectors within an array or combine multiple pseudo states using the `cx` function. This reference covers all available pseudo-classes, pseudo-elements, and functional pseudo selectors, with detailed descriptions and usage examples.
-
 ## Overview
 
-The `ps(Pseudo)` utility allows developers to apply CSS pseudo-classes and pseudo-elements directly within JavaScript or TypeScript code using `@plumeria/core`. This is particularly useful for dynamic styling in modern web applications, such as single-page apps or component-based frameworks. By leveraging these utilities, you can create responsive and interactive styles with minimal CSS boilerplate.
+The `ps(pseudo selector)` utility allows developers to apply CSS pseudo-classes and pseudo-elements directly within JavaScript or TypeScript code using `@plumeria/core`. This is particularly useful for dynamic styling in modern web applications, such as single-page apps or component-based frameworks. By leveraging these utilities, you can create responsive and interactive styles with minimal CSS boilerplate.
+
+<Callout title="Available to clients only">
+  If you require AST parsing and compilation for an RSC preview such as Next.js, you cannot use these zss-utils libraries and must instead define static variables using the defineConsts API.
+</Callout>
+
+
+
 ## Usage
 ```ts
-import { ps } from '@plumeria/core';
+import { ps } from 'zss-utils';
 ```
 ---
 
@@ -150,7 +155,8 @@ Below are practical examples demonstrating how to use the `pseudo` utility with 
 ### Example 1: Styling a Button with Hover and Focus
 
 ```ts title="TypeScript Example"
-import { css, ps } from '@plumeria/core';
+import { css } from '@plumeria/core';
+import { ps } from 'zss-utils';
 
 const buttonStyles = css.create({
   button: {
@@ -170,7 +176,7 @@ const buttonStyles = css.create({
 ## Example 2: Combining Pseudo-Classes with px
 
 ```ts
-import { px } from '@plumeria/core';
+import { ps, px } from 'zss-utils';
 
 const combinedStyles = px(ps.active, ps.focusVisible, ps.fn.has('div'));
 ```
@@ -178,7 +184,8 @@ const combinedStyles = px(ps.active, ps.focusVisible, ps.fn.has('div'));
 ## Example 3: Using Functional Pseudo-Classes
 
 ```ts
-import { css, ps } from '@plumeria/core';
+import { css } from '@plumeria/core';
+import { ps } from 'zss-utils';
 
 const listStyles = css.create({
   list: {
@@ -195,7 +202,8 @@ const listStyles = css.create({
 ## Example 4: Styling Pseudo-Elements
 
 ```ts
-import { css, ps } from '@plumeria/core';
+import { css } from '@plumeria/core';
+import { ps } from 'zss-utils';
 
 const textStyles = css.create({
   text: {

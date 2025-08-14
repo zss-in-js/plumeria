@@ -1,6 +1,6 @@
 ---
-title: '@plumeria/next'
-description:  'Learn more about @plumeria/next.'
+title: '@plumeria/next-plugin'
+description:  'Learn more about @plumeria/next-plugin.'
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
@@ -28,16 +28,20 @@ pnpm i --save-dev @plumeria/next
 
 ## Overview
 ```ts
-export { ServerCSS } from './component/ServerCSS';
+import type { NextConfig } from 'next';
+export declare function withPlumeria(nextConfig?: NextConfig): NextConfig;
 ```
 
 ## API
-```jsx
-import { ServerCSS } from '@plumeria/next';
-...
-<head>
-  <ServerCSS>
-</head>
+```ts title="next.config.ts"
+import type { NextConfig } from "next";
+import { withPlumeria } from "@plumeria/next-plugin";
+
+const nextConfig: NextConfig = withPlumeria({
+  /* config options here */
+});
+
+export default nextConfig;
 ```
 
 <Cards>

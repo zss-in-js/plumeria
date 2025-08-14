@@ -32,16 +32,16 @@ pnpm i zss-engine
 export type { CSSProperties } from './types/common/css-properties';
 export type { CreateStyleType, ReturnType, CreateStyle } from './types/main/create';
 export type { CSSHTML, CreateKeyframes } from './types/main/global';
-export type { CreateValues, CreateTheme } from './types/main/vars';
-export type { Join } from './types/main/join';
-export { isServer, isDevelopment, isDevAndTest } from './utils/helper.js';
+export type { CreateValues, CreateTheme, ReturnVariableType, RxVariableSet, ReturnRx } from './types/main/vars';
+export { isServer, isDevelopment, isTestingDevelopment } from './utils/helper.js';
 export { genBase36Hash } from './utils/hash.js';
-export { transpiler } from './utils/transpiler.js';
+export { transpile } from './utils/transpile.js';
+export { transpileAtomic } from './utils/transpile-atomic.js';
+export { splitAtomicAndNested, processAtomicProps } from './utils/processor-atomic.js';
 export { build } from './utils/build.js';
-export { camelToKebabCase } from './utils/helper.js';
+export { camelToKebabCase, applyCssValue } from './utils/helper.js';
 export { injectClientCSS } from './utils/inject-client-css.js';
 export { injectClientGlobalCSS } from './utils/inject-client-global-css.js';
-export { injectServerCSS, getServerCSS } from './utils/inject-server-css.js';
 ```
 
 ## API
@@ -78,6 +78,14 @@ Returns: `styleSheet: string    `
   const { styleSheet } = transpiler(object, base36Hash);
 ```
 
+### `transpilerAtomic`
+Argments: `object: style object, value: string | number, hash: string`  
+Returns: `styleSheet: string    `
+
+```ts title="TypeScript" 
+  const { styleSheet } = transpilerAtomic(object, property, atomichash);
+```
+
 ### `build`
 Argments: `styleSheet: string, filePath: string`  
 Returns: `void`
@@ -97,20 +105,6 @@ Argments: `styleSheet: string, scoped: string`
 Returns: `void`
 ```ts title="TypeScript" 
   injectClientGlobalCSS(styleSheet, 'global');
-```
-
-### `injectServerCSS`
-Argments: `hash: string, styleSheet: string`  
-Returns: `void`
-```ts title="TypeScript" 
-  injectServerCSS(base36Hash, styleSheet);
-```
-
-### `getServerCSS`
-Argments: `void`
-Returns: `styleSheet: string`
-```ts title="TypeScript"
-  const serverCSS = getServerCSS();
 ```
 
 ## Types
