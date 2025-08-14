@@ -34,4 +34,7 @@ css.global({
     fontSize: 36,
     fontWeight: 550,
   },
+  '.dark span.line.diff.remove': {
+    background: 'rgba(255, 83, 252, 0.14)',
+  },
 });
