@@ -5,7 +5,7 @@ description: 'API reference for the `rx` function'
 
 ## React only features
 
-The `rx()` function — short for **React Expand** — function allows you to inject **dynamic inline variables** into your React components.  
+The `rx()` function — short for React Expand, function allows you to inject **dynamic inline variables** into your React components.  
 It enables variable-based styling without breaking static CSS extraction.
 
 
@@ -49,7 +49,7 @@ export const Component = () => {
 You can apply as many CSS variables as you need:
 
 ```tsx
-<div {...rx(styles.bar, {
+<div {...rx(css.props(styles.bar), {
   '--width': state + 'px',
   '--height': state + 'px'
 })} />
@@ -59,7 +59,7 @@ You can also use expressions directly:
 
 ```tsx
 <div
-  {...rx(styles.bar, {
+  {...rx(css.props(styles.bar), {
     '--width': isActive ? '100px' : '50px',
     '--height': isActive ? '200px' : '100px',
   })}
@@ -74,8 +74,8 @@ const dynamicVars = {
   '--height': state + 'px',
 };
 
-<div {...rx(styles.bar, dynamicVars)} />
-<div {...rx(styles.other, dynamicVars)} />
+<div {...rx(css.props(styles.bar), dynamicVars)} />
+<div {...rx(css.props(styles.other), dynamicVars)} />
 ```
 
 ## Return value
@@ -84,7 +84,7 @@ Returns an object with:
 - style: dynamic inline variable map
 
 ```tsx
-const props = rx(styles.bar, { '--width': '100px' });
+const props = rx(css.props(styles.bar), { '--width': '100px' });
 /*
 {
   className: 'zxxxxxxx',
@@ -96,7 +96,7 @@ const props = rx(styles.bar, { '--width': '100px' });
 ```
 
 <Callout title="Use sparingly">
-There is a runtime cost to inline styles. Prefer static styles with `css.create()` + `cx()` where possible. 
+There is a runtime cost to inline styles. Prefer static styles with `css.create()` + `css.props()` where possible. 
 </Callout>
 
 
