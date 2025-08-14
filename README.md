@@ -1,14 +1,10 @@
-[![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@plumeria/core.svg?color=brightgreen)](https://www.npmjs.com/package/@plumeria/core) [![tests](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml/badge.svg)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml)
+# Plumeria &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@plumeria/core.svg?color=brightgreen)](https://www.npmjs.com/package/@plumeria/core) [![tests](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml/badge.svg)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml)
 
-# Plumeria
-
-Plumeria is a JavaScript library for Scalable and optimized styling.
+Plumeria is a JavaScript library for scalable and optimized styling.
 
 ## Documentation
 
-[plumeria.dev](https://plumeria.dev) — Full guides and API references
-
-There is also a small documentation in [@plumeria/core](https://github.com/zss-in-js/plumeria/tree/main/packages/core).
+Visit our [official documentation](https://plumeria.dev).
 
 ## Quick Example
 
@@ -33,12 +29,12 @@ const className = css.props(styles.text, styles.size);
 
 ```
 plumeria/
-├── docs/               → Documentation website (Next.js + fuma-docs)
+├── docs/               → Documentation website
 ├── examples/           → Example apps and integrations
 └── packages/
-    ├── compiler/       → Style compiler and static extraction
-    ├── core/           → Core runtime utilities (css, ps, etc.)
-    ├── eslint-plugin/  → Lint rules for Plumeria conventions
+    ├── compiler/       → Rust-based static extraction
+    ├── core/           → Core package
+    ├── eslint-plugin/  → Plugin for ESLint
     ├── next-plugin/    → Integration with Next.js
     ├── vite-plugin/    → Plugin for Vite build
     └── webpack-plugin/ → Plugin for Webpack
