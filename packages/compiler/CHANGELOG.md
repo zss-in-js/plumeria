@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.15.0
+
+### Minor Changes
+
+- 1d65473: feat: support static string literal variables
+
 ## 0.14.9
 
 ### Patch Changes
