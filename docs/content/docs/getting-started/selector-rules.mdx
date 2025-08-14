@@ -9,13 +9,12 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 Style to attach to parent elements such as ul. The following example is acceptable:
 
 ```ts title="TypeScript" {1}
-import { css, media } from '@plumeria/core';
+import { css } from '@plumeria/core';
 
 const styles = css.create({
   list: {
-    // "@media (max-width: 768px)"
     // [!code ++]
-    [media.maxWidth(768)]: {
+    '@media (max-width: 768px)': {
       '& li': {
         listStyleType: 'none',
       },
@@ -31,13 +30,13 @@ const styles = css.create({
 </Callout>
 
 ```ts title="TypeScript" {1}
-import { css, media } from '@plumeria/core';
+import { css } from '@plumeria/core';
 
 const styles = css.create({
   list: {
     '& li': {
       // [!code --]
-      [css.media.maxWidth(768)]: {
+      '@media (max-width: 768px)': {
         listStyleType: 'none',
       },
     },
@@ -46,13 +45,13 @@ const styles = css.create({
 ```
 
 ```ts title="TypeScript" {1}
-import { css, media } from '@plumeria/core';
+import { css } from '@plumeria/core';
 
 const styles = css.create({
   list: {
     ':hover': {
       // [!code --]
-      [media.maxWidth(768)]: {
+      '@media (max-width: 768px)': {
         background: 'skyblue',
       },
     },
@@ -60,27 +59,12 @@ const styles = css.create({
 });
 ```
 
-And of course the following example also not acceptable.
-They have different safety at the type level, but have the same meaning as a result: hover.
-
-```ts title="TypeScript"
-const styles = css.create({
-  list: {
-    [ps.hover]: {
-      // [!code --]
-      [media.maxWidth(768)]: {
-        background: 'skyblue',
-      },
-    },
-  },
-});
-```
 
 <Callout type="info" title="Nesting Restrictions">
   Media can only be nested once with pseudo and &, but pseudo and & cannot nest media.
 </Callout>
 
 <Cards>
-  <Card title="See more about media" href="/docs/reference/media" />
-  <Card title="See more about pseudo" href="/docs/reference/pseudo" />
+  <Card title="See more about API css.create" href="/docs/reference/create" />
+  <Card title="See more about API css.global" href="/docs/reference/global" />
 </Cards>
