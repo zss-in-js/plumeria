@@ -3,7 +3,16 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [],
+  "linked": [
+    [
+      "@plumeria/compiler",
+      "@plumeria/core",
+      "@plumeria/eslint-plugin",
+      "@plumeria/next-plugin",
+      "@plumeria/vite-plugin",
+      "@plumeria/webpack-plugin"
+    ]
+  ],
   "access": "restricted",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
