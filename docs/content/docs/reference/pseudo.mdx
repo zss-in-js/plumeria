@@ -148,80 +148,9 @@ Functional pseudo-elements allow styling specific parts of an element with argum
 
 ---
 
-## Usage Examples
-
-Below are practical examples demonstrating how to use the `pseudo` utility with `@plumeria/core`.
-
-### Example 1: Styling a Button with Hover and Focus
-
-```ts title="TypeScript Example"
-import { css } from '@plumeria/core';
-import { ps } from 'zss-utils';
-
-const buttonStyles = css.create({
-  button: {
-    background: 'blue',
-    color: 'white',
-    padding: '10px 20px',
-    [ps.hover]: {
-      background: 'darkblue',
-    },
-    [ps.focus]: {
-      outline: '2px solid yellow',
-    },
-  },
-});
-```
-
-## Example 2: Combining Pseudo-Classes with px
-
-```ts
-import { ps, px } from 'zss-utils';
-
-const combinedStyles = px(ps.active, ps.focusVisible, ps.fn.has('div'));
-```
-
-## Example 3: Using Functional Pseudo-Classes
-
-```ts
-import { css } from '@plumeria/core';
-import { ps } from 'zss-utils';
-
-const listStyles = css.create({
-  list: {
-    [ps.fn.nthChild('2n')]: {
-      background: 'lightgray',
-    },
-    [ps.fn.has('img')]: {
-      border: '1px solid black',
-    },
-  },
-});
-```
-
-## Example 4: Styling Pseudo-Elements
-
-```ts
-import { css } from '@plumeria/core';
-import { ps } from 'zss-utils';
-
-const textStyles = css.create({
-  text: {
-    [ps.firstLetter]: {
-      fontSize: '1.5em',
-      color: 'red',
-    },
-    [ps.before]: {
-      content: '"★ "',
-      color: 'gold',
-    },
-  },
-});
-```
-
 ## 🔗 Related
 
 <Cards>
-  <Card title="zss-utils Package" href="/docs/reference/utils" description="Explore other utilities in the zss-utils package." />
+  <Card title="zss-utils Package" href="/docs/reference/zss-utils" description="Explore other utilities in the zss-utils package." />
   <Card title="Plumeria Core Documentation" href="/docs/reference/core" description="Learn more about the @plumeria/core package." />
 </Cards>
