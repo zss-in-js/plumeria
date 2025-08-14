@@ -12,8 +12,9 @@ Get started with **Plumeria** using `css.create()` and `css.props()` to build st
 
 Use `css.create()` to define reusable style objects:
 
-```tsx
-import { css, ps } from '@plumeria/core';
+```tsx title="TypeScript"
+import { css } from '@plumeria/core';
+import { ps } from 'lib/pseudos';
 
 const rotateHover = css.keyframes({
   from: {
@@ -76,7 +77,7 @@ const animated = css.create({
 });
 ```
 
-```tsx title="JSX"
+```tsx title="TSX"
 export const Box = () => {
   return (
     <div className={css.props(styles.container)}>
@@ -100,8 +101,9 @@ export const Box = () => {
 
 Use `css.create()` to define reusable style objects:
 
-```ts
-import { css, ps } from '@plumeria/core';
+```ts  title="TypeScript"
+import { css } from '@plumeria/core';
+import { ps } from 'lib/pseudos';
 
 const styles = css.create({
   stack: {
@@ -163,7 +165,7 @@ const buttons = css.create({
 })
 ```
 
-```tsx title="JSX"
+```tsx title="TSX"
 export function FancyButtons() {
   return (
     <div className={css.props(styles.stack)}>

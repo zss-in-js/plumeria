@@ -11,23 +11,23 @@ ServerCSS is rendered using `router.refresh()`.
 <Tabs items={['npm',  'yarn', 'pnpm']}>
 <Tab>
 ```sh title="Terminal"
-npm i --save-dev @plumeria/next
+npm i --save-dev @plumeria/next-plugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-yarn add -D @plumeria/next
+yarn add -D @plumeria/next-plugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-pnpm i --save-dev @plumeria/next
+pnpm i --save-dev @plumeria/next-plugin
 ```
 </Tab>
 </Tabs>
 
 ## Overview
-```ts
+```ts title="TypeScript"
 import type { NextConfig } from 'next';
 export declare function withPlumeria(nextConfig?: NextConfig): NextConfig;
 ```

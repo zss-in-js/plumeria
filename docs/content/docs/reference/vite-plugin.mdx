@@ -11,29 +11,29 @@ Vite runs on the client, but Plumeria uses Node.js, so this is a plugin to preve
 <Tabs items={['npm',  'yarn', 'pnpm']}>
 <Tab>
 ```sh title="Terminal"
-npm i -D @plumeria/vite
+npm i -D @plumeria/vite-plugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-yarn add -D @plumeria/vite
+yarn add -D @plumeria/vite-plugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-pnpm i -D @plumeria/vite
+pnpm i -D @plumeria/vite-plugin
 ```
 </Tab>
 </Tabs>
 
 ## Overview
-```ts
+```ts title="TypeScript"
 import type { Plugin } from 'vite';
 export default function plumeria(): Plugin;
 ```
 
 ## API
-```ts
+```ts title="vite.config.ts"
 import plumeria from '@plumeria/vite';
 
 export default defineConfig({

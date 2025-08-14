@@ -7,22 +7,19 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import { Card, Cards } from 'fumadocs-ui/components/card';
 import { Color } from 'component/Color';
 
-The `color` utilities in the `zss-utils` package provides a comprehensive set of tools for applying colors in your styles. It includes a complete collection of 141 CSS named colors, framework-specific theme colors, and utilities to lighten or darken colors programmatically. This reference details all available colors and utilities, with examples to demonstrate their usage.
+
+
+## Overview
+The `color` utilities in the `zss-utils` package provides a comprehensive set of tools for applying colors in your styles. It includes a complete collection of 141 CSS named colors, framework-specific theme colors, and utilities to lighten or darken colors programmatically.
 
 <Callout title="Available to clients only">
   If you require AST parsing and compilation for an RSC preview such as Next.js, you cannot use these zss-utils libraries and must instead define static variables using the defineConsts API.
 </Callout>
 
-
-## Overview
-
-The `color` utilities simplifies color management in your styles by providing:
-
-- **Standard Colors**: A complete set of 141 CSS named colors with autocomplete support.
-- **Theme Colors**: Predefined colors for common UI states (e.g., `primary`, `success`).
-- **Lighten/Darken Utilities**: Functions to adjust color brightness dynamically.
-
-These utilities integrate seamlessly with `@plumeria/core` and can be combined with other utilities like `pseudo` for dynamic and responsive styling.
+## Usage
+```ts title="TypeScript"
+import { color } from 'zss-utils';
+```
 
 ## Standard Colors
 
