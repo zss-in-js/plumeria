@@ -1,5 +1,11 @@
 # @plumeria/next-plugin
 
+## 0.14.0
+
+### Minor Changes
+
+- 16de587: chore(release): version bump only
+
 ## 0.13.0
 
 ### Minor Changes
