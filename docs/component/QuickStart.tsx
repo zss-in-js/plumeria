@@ -1,6 +1,7 @@
-import { css, ps } from '@plumeria/core';
+import { css } from '@plumeria/core';
 import { rotateFocus, rotateHover } from 'lib/animation';
 import { breakpoints } from 'lib/mediaQuery';
+import { ps } from 'lib/pseudos';
 
 const styles = css.create({
   container: {
