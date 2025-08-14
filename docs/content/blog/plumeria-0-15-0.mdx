@@ -1,0 +1,72 @@
+---
+title: 'Plumeria 0.15.0'
+description: 'It includes important changes, large fixes, and new plugins. (3 min read)'
+date: '2025/08/14'
+---
+
+## Changes
+This change is a large change for Zero-Runtime and includes large imporvement for Next.js.
+
+These utility APIs have been removed from the core package.
+
+```ts
+import { media, ps, px, color } from "@plumeria/core" // [!code --]
+```
+These can still be imported from the zss-utils package.
+```sh
+npm i --save-dev zss-utils
+```
+```ts
+import { media, ps, px, color } from "zss-utils" // [!code ++]
+```
+When using these utilities, it is assumed that you are using a library framework that runs on the client.
+
+
+--- 
+
+## @plumeria/next-plugin has been officially developed.
+
+When developing a plugin that supports SSR, inlining with AST analysis was required. `defineConsts` `defineVars` `defineTheme` `keyframes`.
+If you use Next.js you can **register static variables** with **defineConsts** or you can declare variables in the same file to hold media, hover, etc.
+In this case, the variable value must be a pure static string literal, and defineConsts also supports inlining of numeric values.
+
+## @plumeria/next has been removed.
+With the introduction of 「@plumeria/next-plugin」 , @plumeria/next has now been removed.  
+As mentioned in the documentation, you can use next-plugin as follows:
+
+```ts title="next.config.ts"
+import type { NextConfig } from "next";
+import { withPlumeria } from "@plumeria/next-plugin";
+
+const nextConfig: NextConfig = withPlumeria({
+  /* config options here */
+});
+
+export default nextConfig;
+```
+The plugin invokes the virtual-css-loader and injects the virtual CSS corresponding to HMR into the RSC components.
+
+
+## Added
+「[@plumeria/webpack-plugin](https://npmjs.com/package/@plumeria/webpack-plugin)」 has been added.
+It can be used for frameworks that mainly use SSR in a webpack environment.
+It is a core dependency of 「[@plumeria/next-plugin](https://npmjs.com/package/@plumeria/next-plugin)」.
+
+
+## BugFix
+Previously, @plumeria/next was used to inject style into both the server and client environments, but there was a bug that caused the atom generated on the client to be constructed later, destroying the order defined on the server side.  
+@plumeria/next-plugin virtually injects pure CSS on the server side, eliminating style conflicts.
+
+## Other
+- Starting with 0.15.0, css.props in @plumeria/core has been modified to only perform client-side injection. This can be used with client-based such as Vite, and SSR can be supported primarily through plugins.
+- All package versions are now consistent. From now on, we will update them using unified version control.
+- Github and npm The documentation readme has been improved.  
+
+
+## Acknowledgments
+- [@stylexswc/webpack-plugin](https://www.npmjs.com/package/@stylexswc/webpack-plugin) and [@stylexswc/nextjs-plugin](https://www.npmjs.com/package/@stylexswc/nextjs-plugin)
+ as well as 
+ - [@pigment-css/unplugin](https://www.npmjs.com/package/@pigment-css/unplugin) and [@pigment-css/nextjs-plugin](https://www.npmjs.com/package/@pigment-css/nextjs-plugin)
+
+These source codes were very helpful in creating the webpack-plugin.  
+Thanks to `stylex`, `@Dwlad90` and `@mui`.
