@@ -30,8 +30,8 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
     ```
   </Tab>
 </Tabs>
-At this point you can start writing your styles.  
-If you like plumeria's runtime, such as hot reloading, You can set up the compiler in stages.
+If you are using Next.js, you need to configure next-plugin, and if you are using Vite, you need to configure vite-plugin.
+You can install the compiler in stages.
 
 </Step>
 <Step>
@@ -70,10 +70,7 @@ Display the compile target paths list is output during compilation.
 
 ## Integration with build
 
-Next.js recommends generating SSR CSS by compiling with next dev.  
-In Vite, only the client is referenced, so there is no need to compile at the same time as dev.
-
-
+Like Vite and Next, there is no need to compile at the same time as dev.
 <Tabs items={["Next.js", "Vite"]}>
 <Tab>
 ```json title="package.json"
@@ -128,7 +125,7 @@ Plumeira can be integrated with Vite and Next.js.
 ## Next.js
 
 Plugin is compiling Server Components and Inject virtual CSS imports for HMR.  
-Client components are injected by the runtime inside @plumeria/core.
+The client component is injected by the runtime from @plumeria/core.
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
 import { withPlumeria } from "@plumeria/next-plugin";

@@ -1,0 +1,54 @@
+---
+title: '@plumeria/webpack-plugin'
+description:  'Learn more about @plumeria/webpack-plugin.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+It is the plumeria [Server Component `@plumeria/webpack-plugin` package](https://www.npmjs.com/package/@plumeria/webpack-plugin)  
+ServerCSS is rendered using `router.refresh()`.
+
+## Installation
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i --save-dev @plumeria/webpack-plugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/webpack-plugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i --save-dev @plumeria/webpack-plugin
+```
+</Tab>
+</Tabs>
+
+## Overview
+```ts title="TypeScript"
+import type { Compiler } from 'webpack';
+export declare class PlumeriaPlugin {
+    private outputFileName;
+    private stylesByFile;
+    private outFile;
+    constructor(outputFileName?: string);
+    apply(compiler: Compiler): void;
+    registerFileStyles(filePath: string, styles: Partial<any>): void;
+    private generateOrderedCSS;
+    private writeCSS;
+}
+```
+
+
+## API
+```ts title="webpack.config.js"
+const { PlumeriaPlugin } = require("@plumeria/webpack-plugin");
+ 
+module.exports = {
+  plugins: [
+    new PlumeriaPlugin(),
+  ],
+};
+```
