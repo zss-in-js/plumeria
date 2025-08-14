@@ -3,7 +3,7 @@
 ESLint plugin for Plumeria.  
 Below are the available rules and the recommended configuration.
 
-## Recommended Configuration
+## Recommended configuration
 
 The `plugin:@plumeria/recommended` config enables the following:
 
