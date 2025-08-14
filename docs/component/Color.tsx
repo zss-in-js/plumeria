@@ -1,4 +1,5 @@
-import { css, rx, ps } from '@plumeria/core';
+import { css, rx } from '@plumeria/core';
+import { ps } from 'lib/pseudos';
 
 const styles = css.create({
   colorName: {

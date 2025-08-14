@@ -1,9 +1,9 @@
-import { css, media } from '@plumeria/core';
+import { css } from '@plumeria/core';
 
 export const breakpoints = css.defineConsts({
-  xs: media.maxWidth(480),
-  sm: media.maxWidth(640),
-  md: media.maxWidth(768),
-  lg: media.maxWidth(1024),
-  xl: media.maxWidth(1280),
+  xs: '@media (max-width: 480px)',
+  sm: '@media (max-width: 640px)',
+  md: '@media (max-width: 768px)',
+  lg: '@media (max-width: 1024px)',
+  xl: '@media (max-width: 1280px)',
 });
