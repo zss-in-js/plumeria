@@ -6,15 +6,13 @@ const ruleTester = new RuleTester();
 ruleTester.run('no-destructure', rule, {
   valid: [
     {
-      code: 'const { keyframes } = css',
-      code: 'const { defineConsts } = css',
-      code: 'const { defineVars } = css',
-      code: 'const { defineTheme } = css',
-      code: 'const { rx } = css',
-      code: 'const { px } = css',
-      code: 'const { media } = css',
-      code: 'const { container } = css',
-      code: 'const { color } = css;',
+      code: 'const styles = css.create({})',
+      code: 'css.props()',
+      code: 'const breakpoints = css.defineConsts({})',
+      code: 'const tokens = css.defineVars({})',
+      code: 'const theme = css.defineTheme({})',
+      code: 'const animate = css.keyframes({})',
+      code: 'css.global({})',
       settings: {
         ecmaVersion: 2021,
       },
@@ -22,11 +20,71 @@ ruleTester.run('no-destructure', rule, {
   ],
   invalid: [
     {
+      code: 'const { create } = css;',
+      errors: [
+        {
+          message:
+            'Do not destructure "create" from "css". Use dot notation instead.',
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
       code: 'const { props } = css;',
       errors: [
         {
           message:
             'Do not destructure "props" from "css". Use dot notation instead.',
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: 'const { keyframes } = css;',
+      errors: [
+        {
+          message:
+            'Do not destructure "keyframes" from "css". Use dot notation instead.',
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: 'const { defineConsts } = css;',
+      errors: [
+        {
+          message:
+            'Do not destructure "defineConsts" from "css". Use dot notation instead.',
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: 'const { defineVars } = css;',
+      errors: [
+        {
+          message:
+            'Do not destructure "defineVars" from "css". Use dot notation instead.',
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: 'const { defineTheme } = css;',
+      errors: [
+        {
+          message:
+            'Do not destructure "defineTheme" from "css". Use dot notation instead.',
         },
       ],
       settings: {
@@ -46,11 +104,31 @@ ruleTester.run('no-destructure', rule, {
       },
     },
     {
-      code: 'const { props, global } = css;',
+      code: 'const { create, props, defineConsts, defineVars, defineTheme, keyframes, global } = css;',
       errors: [
         {
           message:
+            'Do not destructure "create" from "css". Use dot notation instead.',
+        },
+        {
+          message:
             'Do not destructure "props" from "css". Use dot notation instead.',
+        },
+        {
+          message:
+            'Do not destructure "defineConsts" from "css". Use dot notation instead.',
+        },
+        {
+          message:
+            'Do not destructure "defineVars" from "css". Use dot notation instead.',
+        },
+        {
+          message:
+            'Do not destructure "defineTheme" from "css". Use dot notation instead.',
+        },
+        {
+          message:
+            'Do not destructure "keyframes" from "css". Use dot notation instead.',
         },
         {
           message:
