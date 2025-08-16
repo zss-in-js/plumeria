@@ -14,6 +14,9 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
       }
 
       if (context.dev && context.isServer) {
+        config.watchOptions = {
+          ignored: ['node_modules', '.next', '.git'],
+        };
         config.module?.rules?.unshift({
           enforce: 'pre',
           test: /\.(tsx|ts|jsx|js)$/,
