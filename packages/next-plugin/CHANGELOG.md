@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 0.15.2
+
+### Patch Changes
+
+- 10e5316: feat: update no-destructure rule. support next-plugin pnpm
+- Updated dependencies [10e5316]
+  - @plumeria/webpack-plugin@0.15.2
+
 ## 0.15.1
 
 ### Patch Changes
