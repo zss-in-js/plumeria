@@ -442,12 +442,10 @@ function scanForDefineConsts(this: LoaderContext<unknown>): ConstTable {
         if (
           t.isVariableDeclarator(decl) &&
           t.isIdentifier(decl.id) &&
-          decl.init &&
           t.isCallExpression(decl.init) &&
           t.isMemberExpression(decl.init.callee) &&
           t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
           t.isIdentifier(decl.init.callee.property, { name: 'defineConsts' }) &&
-          decl.init.arguments.length === 1 &&
           t.isObjectExpression(decl.init.arguments[0])
         ) {
           const varName = decl.id.name;
@@ -505,12 +503,10 @@ function scanForKeyframes(this: LoaderContext<unknown>): {
         if (
           t.isVariableDeclarator(decl) &&
           t.isIdentifier(decl.id) &&
-          decl.init &&
           t.isCallExpression(decl.init) &&
           t.isMemberExpression(decl.init.callee) &&
           t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
           t.isIdentifier(decl.init.callee.property, { name: 'keyframes' }) &&
-          decl.init.arguments.length === 1 &&
           t.isObjectExpression(decl.init.arguments[0])
         ) {
           const varName = decl.id.name;
@@ -574,12 +570,10 @@ function scanForDefineVars(this: LoaderContext<unknown>): {
         if (
           t.isVariableDeclarator(decl) &&
           t.isIdentifier(decl.id) &&
-          decl.init &&
           t.isCallExpression(decl.init) &&
           t.isMemberExpression(decl.init.callee) &&
           t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
           t.isIdentifier(decl.init.callee.property, { name: 'defineVars' }) &&
-          decl.init.arguments.length === 1 &&
           t.isObjectExpression(decl.init.arguments[0])
         ) {
           const varName = decl.id.name;
@@ -637,12 +631,10 @@ function scanForDefineTheme(this: LoaderContext<unknown>): {
         if (
           t.isVariableDeclarator(decl) &&
           t.isIdentifier(decl.id) &&
-          decl.init &&
           t.isCallExpression(decl.init) &&
           t.isMemberExpression(decl.init.callee) &&
           t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
           t.isIdentifier(decl.init.callee.property, { name: 'defineTheme' }) &&
-          decl.init.arguments.length === 1 &&
           t.isObjectExpression(decl.init.arguments[0])
         ) {
           const varName = decl.id.name;
@@ -673,7 +665,6 @@ function isCSSDefineFile(filePath: string, target: string): boolean {
       sourceType: 'module',
       presets: [
         ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-        '@babel/preset-react',
       ],
     });
   } catch (err) {
@@ -705,13 +696,9 @@ function isCSSDefineFile(filePath: string, target: string): boolean {
 }
 
 export default function loader(this: LoaderContext<unknown>, source: string) {
-  const callback = this.async();
+  this.clearDependencies();
   this.addDependency(this.resourcePath);
-
-  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
-  for (const file of files) {
-    this.addDependency(file);
-  }
+  const callback = this.async();
 
   constTable = scanForDefineConsts.call(this);
 
@@ -739,7 +726,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
       sourceType: 'module',
       presets: [
         ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-        '@babel/preset-react',
       ],
     });
   } catch (err) {
@@ -886,19 +872,20 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   const pluginInstance = this._compiler?.options?.plugins.find(
     (p): p is PlumeriaPlugin => p?.constructor?.name === 'PlumeriaPlugin',
   );
+  const fileKey = this.resourcePath;
 
   if (pluginInstance) {
-    // Each plugin instance has its own cache
-    if (!pluginInstance.__plumeriaRegistered) {
-      pluginInstance.__plumeriaRegistered = new Set<string>();
+    if (!pluginInstance?.__plumeriaRegistered) {
+      pluginInstance.__plumeriaRegistered = new Map<string, string>();
     }
 
-    const cache = pluginInstance.__plumeriaRegistered as Set<string>;
+    const cache = pluginInstance.__plumeriaRegistered;
+    const previousRequest = cache.get(fileKey);
 
-    // Skip if file is already registered
-    if (!cache.has(virtualCssRequest)) {
-      cache.add(virtualCssRequest);
-      pluginInstance?.registerFileStyles(virtualCssRequest, fileStyles);
+    // Replace if previous request is different
+    if (previousRequest !== virtualCssRequest) {
+      cache.set(fileKey, virtualCssRequest);
+      pluginInstance.registerFileStyles(fileKey, fileStyles);
     }
   }
 
