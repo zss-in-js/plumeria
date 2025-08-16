@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.15.2
+
+### Patch Changes
+
+- 8d44623: feat: update no-destructure rule. support next-plugin pnpm
+
 ## 0.15.1
 
 ### Patch Changes
