@@ -1,4 +1,5 @@
 import type { Compiler } from 'webpack';
+import { CSSObject } from './types';
 import path from 'path';
 import fs from 'fs';
 
@@ -12,8 +13,11 @@ export class PlumeriaPlugin {
   apply(compiler: Compiler) {
     this.outFile = path.resolve(__dirname, '..', this.outputFileName);
 
-    compiler.hooks.compile.tap(PLUGIN_NAME, () => {
-      this.stylesByFile.clear();
+    compiler.hooks.invalid.tap(PLUGIN_NAME, (filename) => {
+      if (filename) {
+        const absPath = path.resolve(filename);
+        this.stylesByFile.delete(absPath);
+      }
     });
 
     compiler.hooks.normalModuleFactory.tap(PLUGIN_NAME, (nmf) => {
@@ -23,14 +27,15 @@ export class PlumeriaPlugin {
 
         if (modPath && modPath.includes('zero-virtual.css')) {
           createData.settings ??= {};
-          createData.settings.sideEffects = true; // Now webpack won't tree-shake
+          createData.settings.sideEffects = true;
         }
       });
     });
   }
 
-  registerFileStyles(filePath: string, styles: Partial<any>) {
-    const prev = this.stylesByFile.get(filePath) || {
+  registerFileStyles(filePath: string, styles: CSSObject) {
+    const absPath = path.resolve(filePath);
+    const prev = this.stylesByFile.get(absPath) || {
       filePath,
       globalStyles: '',
       keyframeStyles: '',
@@ -38,7 +43,8 @@ export class PlumeriaPlugin {
       themeStyles: '',
       baseStyles: '',
     };
-    this.stylesByFile.set(filePath, { ...prev, ...styles });
+
+    this.stylesByFile.set(absPath, { ...prev, ...styles });
     this.writeCSS();
   }
 
@@ -52,11 +58,12 @@ export class PlumeriaPlugin {
     const baseStylesSet = new Set<string>();
 
     for (const s of allStyles) {
-      if (s.globalStyles) globalStylesSet.add(s.globalStyles);
-      if (s.keyframeStyles) keyframeStylesSet.add(s.keyframeStyles);
-      if (s.varStyles) varStylesSet.add(s.varStyles);
-      if (s.themeStyles) themeStylesSet.add(s.themeStyles);
-      if (s.baseStyles) baseStylesSet.add(s.baseStyles);
+      if (s.globalStyles.trim().length > 0) globalStylesSet.add(s.globalStyles);
+      if (s.keyframeStyles.trim().length > 0)
+        keyframeStylesSet.add(s.keyframeStyles);
+      if (s.varStyles.trim().length > 0) varStylesSet.add(s.varStyles);
+      if (s.themeStyles.trim().length > 0) themeStylesSet.add(s.themeStyles);
+      if (s.baseStyles.trim().length > 0) baseStylesSet.add(s.baseStyles);
     }
 
     return [
@@ -72,9 +79,8 @@ export class PlumeriaPlugin {
 
   private writeCSS() {
     const css = this.generateOrderedCSS();
-    if (css.trim().length > 0) {
-      fs.mkdirSync(path.dirname(this.outFile), { recursive: true });
-      fs.writeFileSync(this.outFile, css, 'utf-8');
-    }
+
+    fs.mkdirSync(path.dirname(this.outFile), { recursive: true });
+    fs.writeFileSync(this.outFile, css, 'utf-8');
   }
 }
