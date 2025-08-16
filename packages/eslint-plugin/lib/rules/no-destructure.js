@@ -20,26 +20,24 @@ module.exports = {
     schema: [],
   },
   create(context) {
-    const isCssIdentifier = (node) =>
-      node.type === 'Identifier' && node.name === 'css';
-
     return {
       VariableDeclarator(node) {
         if (
           node.id.type === 'ObjectPattern' &&
           node.init &&
-          isCssIdentifier(node.init)
+          node.init.type === 'Identifier' &&
+          node.init.name === 'css'
         ) {
-          const forbiddenKeys = ['props', 'global'];
-          const violated = node.id.properties.filter(
-            (prop) =>
+          for (const prop of node.id.properties) {
+            if (
               prop.type === 'Property' &&
               prop.key.type === 'Identifier' &&
-              forbiddenKeys.includes(prop.key.name),
-          );
-
-          if (violated.length > 0) {
-            for (const prop of violated) {
+              (prop.key.name.startsWith('create') ||
+                prop.key.name.startsWith('props') ||
+                prop.key.name.startsWith('define') ||
+                prop.key.name.startsWith('keyframes') ||
+                prop.key.name.startsWith('global'))
+            ) {
               context.report({
                 node: prop,
                 messageId: 'noDestructure',
