@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.15.2
+
+### Patch Changes
+
+- cdc620e: fix: version bump only
+
 ## 0.15.1
 
 ### Patch Changes
