@@ -1,5 +1,6 @@
 import {
   injectClientCSS,
+  isHashInStyleSheets,
   isServer,
   isTestingDevelopment,
   type CSSProperties,
@@ -87,7 +88,7 @@ export function props(
   // CSS injection only in test development environment
   if (isTestingDevelopment && !isServer) {
     for (const { hash, sheet } of [...orderedKeys, ...rightmostKeys]) {
-      if (uniqueStyleSheets.includes(sheet)) {
+      if (uniqueStyleSheets.includes(sheet) && !isHashInStyleSheets(hash)) {
         injectClientCSS(hash, sheet);
       }
     }
