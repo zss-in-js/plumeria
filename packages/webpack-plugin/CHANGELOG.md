@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 878c4e0: fix: core update fix client injection to not overwrite atoms when using nextjs and webpack plugin update add plugin instance type
+- 878c4e0: feat: webpack plugin update add plugin instance type
 
 ## 0.15.2
 
