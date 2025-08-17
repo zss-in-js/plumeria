@@ -28,6 +28,7 @@ import { genBase36Hash, transpile, camelToKebabCase } from 'zss-engine';
 
 interface PlumeriaPlugin extends WebpackPluginInstance {
   registerFileStyles(fileName: string, style: CSSObject): void;
+  __plumeriaRegistered?: Map<string, string>;
 }
 
 const PROJECT_ROOT = process.cwd().split('node_modules')[0];
