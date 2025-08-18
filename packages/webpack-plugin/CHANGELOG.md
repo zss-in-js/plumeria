@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.15.4
+
+### Patch Changes
+
+- e25131d: fix: support page transitions
+
 ## 0.15.3
 
 ### Patch Changes
