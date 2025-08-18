@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 0.15.4
+
+### Patch Changes
+
+- 9079f4d: feat: support page transitions
+- Updated dependencies [e25131d]
+  - @plumeria/webpack-plugin@0.15.4
+
 ## 0.15.3
 
 ### Patch Changes

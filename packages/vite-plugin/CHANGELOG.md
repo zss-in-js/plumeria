@@ -1,5 +1,11 @@
 # @plumeria/vite
 
+## 0.15.4
+
+### Patch Changes
+
+- 488a916: feat: version bump only
+
 ## 0.15.3
 
 ### Patch Changes
