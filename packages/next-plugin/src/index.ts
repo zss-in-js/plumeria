@@ -26,7 +26,7 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
           ),
         });
         if (!config.plugins?.some((p) => p instanceof PlumeriaPlugin)) {
-          config.plugins?.push(new PlumeriaPlugin());
+          config.plugins?.push(new PlumeriaPlugin({ entryPaths: 'pages/' }));
         }
       }
 
