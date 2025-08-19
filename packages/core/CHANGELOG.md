@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.15.5
+
+### Patch Changes
+
+- e17b3b6: fix: fix to inject media hashes and styles separately instead of combining them
+
 ## 0.15.4
 
 ### Patch Changes
