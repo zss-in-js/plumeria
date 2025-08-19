@@ -10,8 +10,8 @@ const styleAtomMap = new WeakMap<
   CSSProperties,
   Array<{
     key: string;
-    hash: string;
-    sheet: string;
+    hash: string[];
+    sheet: string[];
   }>
 >();
 
@@ -27,8 +27,8 @@ function create<const T extends Record<string, CSSProperties>>(
 
     const records: Array<{
       key: string;
-      hash: string;
-      sheet: string;
+      hash: string[];
+      sheet: string[];
     }> = [];
 
     // Processing flat atoms and atoms in media
@@ -49,13 +49,10 @@ function create<const T extends Record<string, CSSProperties>>(
         }
       }
 
-      const hash = [...hashes].join(' ');
-      const sheet = [...baseSheets, ...querySheets].join('');
-
       records.push({
         key: prop,
-        hash,
-        sheet,
+        hash: [...hashes],
+        sheet: [...baseSheets, ...querySheets],
       });
     });
 
@@ -69,8 +66,8 @@ function create<const T extends Record<string, CSSProperties>>(
           ([prop]) => {
             records.push({
               key: atRule + prop,
-              hash: nonFlatHash,
-              sheet: styleSheet,
+              hash: [nonFlatHash],
+              sheet: [styleSheet],
             });
           },
         );
