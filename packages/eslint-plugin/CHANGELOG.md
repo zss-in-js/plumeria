@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.15.6
+
+### Patch Changes
+
+- c803703: feat: update readme.md
+
 ## 0.15.5
 
 ### Patch Changes
