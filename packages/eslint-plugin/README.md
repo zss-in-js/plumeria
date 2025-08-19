@@ -23,7 +23,7 @@ export default [plumeria.flatConfigs.recommended];
 
 ### no-destructure
 
-Disallow destructuring `css.props` and `css.global`.
+Disallow destructuring `css.create` and `css.props`, etc.
 
 ### no-inner-call
 
