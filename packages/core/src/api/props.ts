@@ -56,8 +56,25 @@ export function props(
     }
   }
 
+  type Entry = { hash: string; sheet: string };
+  const orderedEntries: Entry[] = [];
+  const rightmostEntries: Entry[] = [];
+
+  // Expand orderedKeys to orderedEntries
+  for (const { hash: hashes, sheet: sheets } of orderedKeys) {
+    for (let j = 0; j < hashes.length; j++) {
+      orderedEntries.push({ hash: hashes[j], sheet: sheets[j] });
+    }
+  }
+  // Expand rightmostKeys to rightmostEntries
+  for (const { hash: hashes, sheet: sheets } of rightmostKeys) {
+    for (let j = 0; j < hashes.length; j++) {
+      rightmostEntries.push({ hash: hashes[j], sheet: sheets[j] });
+    }
+  }
+
   // Output from key in props order
-  for (const { hash, sheet } of orderedKeys) {
+  for (const { hash, sheet } of orderedEntries) {
     if (!seenSheets.has(sheet)) {
       seenSheets.add(sheet);
       classList.push(hash);
@@ -65,7 +82,7 @@ export function props(
     }
   }
   // Those that are only used in the rightmost props are output last
-  for (const { hash, sheet } of rightmostKeys) {
+  for (const { hash, sheet } of rightmostEntries) {
     if (!seenSheets.has(sheet)) {
       seenSheets.add(sheet);
       classList.push(hash);
@@ -87,7 +104,8 @@ export function props(
 
   // CSS injection only in test development environment
   if (isTestingDevelopment && !isServer) {
-    for (const { hash, sheet } of [...orderedKeys, ...rightmostKeys]) {
+    injectedStyleSheets.clear();
+    for (const { hash, sheet } of [...orderedEntries, ...rightmostEntries]) {
       if (uniqueStyleSheets.includes(sheet) && !isHashInStyleSheets(hash)) {
         injectClientCSS(hash, sheet);
       }
