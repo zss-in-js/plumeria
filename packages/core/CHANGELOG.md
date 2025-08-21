@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.15.7
+
+### Patch Changes
+
+- de49b0a: fix: client inject specificity
+
 ## 0.15.6
 
 ### Patch Changes
