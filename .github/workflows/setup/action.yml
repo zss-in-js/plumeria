@@ -9,13 +9,10 @@ runs:
       run: |
         pnpm rimraf test-e2e/site/node_modules/@plumeria/compiler/*
         pnpm rimraf test-e2e/site/node_modules/@plumeria/core/*
-        pnpm rimraf test-e2e/site/node_modules/@plumeria/next-plugin/*
-        pnpm rimraf test-e2e/site/node_modules/@plumeria/webpack-plugin/*
+       
 
     - name: Copy test-env
       shell: bash
       run: |
         pnpm cpy "packages/compiler/**" "test-e2e/site/node_modules/@plumeria/compiler"
         pnpm cpy "packages/core/**" "test-e2e/site/node_modules/@plumeria/core"
-        pnpm cpy "packages/next-plugin/**" "test-e2e/site/node_modules/@plumeria/next-plugin"
-        pnpm cpy "packages/webpack-plugin/**" "test-e2e/site/node_modules/@plumeria/webpack-plugin"
