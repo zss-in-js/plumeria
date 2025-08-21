@@ -134,8 +134,8 @@ importers:
         specifier: ^5.101.0
         version: 5.101.0
       zss-engine:
-        specifier: ^0.2.75
-        version: 0.2.77
+        specifier: ^0.2.80
+        version: 0.2.80
 
 packages:
 
@@ -3285,11 +3285,11 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zss-engine@0.2.77:
-    resolution: {integrity: sha512-u7ZKJiAZdq6JWloVel3Qf2RTNIohSpHpncQa/ghAkB7EYaFe56TcO3PONinF1ZZUWhBOXz6isFJnb5VPVIO2WQ==}
-
   zss-engine@0.2.78:
     resolution: {integrity: sha512-CfXYC5KfrGZCPbPoYLiKKTBpCKL0cIbTQkn+vl+jXbUgBGqchM7tw4yd5uzuMXJUWjxpB+Gx8r4h2tjaj2JTRA==}
+
+  zss-engine@0.2.80:
+    resolution: {integrity: sha512-EsuVJamDfjB5v5tA+/hsaU66NL9UUq/fjL2AodI0pv6VyqvAkJBlxjACtk3MAAkE8kjwEDz5NjI3HLktxuVwfQ==}
 
 snapshots:
 
@@ -6652,10 +6652,10 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zss-engine@0.2.77:
+  zss-engine@0.2.78:
     dependencies:
       csstype: 3.1.3
 
-  zss-engine@0.2.78:
+  zss-engine@0.2.80:
     dependencies:
       csstype: 3.1.3
