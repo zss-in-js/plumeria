@@ -10,8 +10,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.14.8",
-    "@plumeria/vite": "^0.2.0",
+    "@plumeria/compiler": "^0.15.6",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tsconfig/svelte": "^5.0.4",
     "prettier-plugin-svelte": "^3.4.0",
@@ -21,6 +20,7 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
-    "@plumeria/core": "^0.14.9"
+    "@plumeria/core": "^0.15.6",
+    "@plumeria/vite-plugin": "^0.15.6"
   }
 }

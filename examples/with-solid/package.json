@@ -8,7 +8,7 @@
     "version": "vinxi version"
   },
   "dependencies": {
-    "@plumeria/core": "^0.14.9",
+    "@plumeria/core": "^0.15.6",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
@@ -19,6 +19,6 @@
     "node": ">=22"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.14.8"
+    "@plumeria/compiler": "^0.15.6"
   }
 }
