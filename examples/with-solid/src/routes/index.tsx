@@ -5,7 +5,7 @@ import { css } from '@plumeria/core';
 const styles = css.create({
   highlighted: {
     fontSize: 120,
-    color: '#ff0077',
+    color: '#ff077b',
   },
 });
 
