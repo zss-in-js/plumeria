@@ -6,8 +6,8 @@ const styles = css.create({
   color: {
     fontSize: '2rem',
     WebkitTextFillColor: 'transparent',
-    background: 'linear-gradient(90deg, #58c6ff 0%, #076ad9 50%, #ff3bef 100%)',
-    backgroundClip: 'text',
+    background: 'linear-gradient(90deg, #58c6ff 0%, #0d6fe0 50%, #ff3bef 100%)',
+    WebkitBackgroundClip: 'text',
   },
 });
 

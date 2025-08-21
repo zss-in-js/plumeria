@@ -4,16 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "css & vite",
+    "dev": "css && vite",
     "build": "css && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plumeria/core": "^0.15.6",
+    "@plumeria/core": "^0.15.7",
     "preact": "^10.26.9"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.15.6",
+    "@plumeria/compiler": "^0.15.7",
     "@plumeria/vite-plugin": "^0.15.6",
     "@preact/preset-vite": "^2.10.2",
     "typescript": "~5.8.3",

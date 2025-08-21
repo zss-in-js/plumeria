@@ -3,22 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "css && next dev",
     "build": "css --type-check && next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@plumeria/core": "^0.15.6",
+    "@plumeria/core": "^0.15.7",
     "next": "15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@plumeria/compiler": "^0.15.6",
-    "@plumeria/eslint-plugin": "^0.15.6",
-    "@plumeria/next-plugin": "^0.15.6",
+    "@plumeria/compiler": "^0.15.7",
+    "@plumeria/eslint-plugin": "^0.15.7",
+    "@plumeria/next-plugin": "^0.15.7",
     "@types/node": "^22.10.7",
     "@types/react": "^19",
     "@types/react-dom": "^19",
