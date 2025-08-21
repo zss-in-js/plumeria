@@ -1,5 +1,6 @@
 import {
   injectClientCSS,
+  injectClientQuery,
   isHashInStyleSheets,
   isServer,
   isTestingDevelopment,
@@ -104,11 +105,25 @@ export function props(
 
   // CSS injection only in test development environment
   if (isTestingDevelopment && !isServer) {
-    injectedStyleSheets.clear();
+    const normalStyles: { hash: string; sheet: string }[] = [];
+    const queryStyles: { hash: string; sheet: string }[] = [];
+
     for (const { hash, sheet } of [...orderedEntries, ...rightmostEntries]) {
       if (uniqueStyleSheets.includes(sheet) && !isHashInStyleSheets(hash)) {
-        injectClientCSS(hash, sheet);
+        if (sheet.includes('@media') || sheet.includes('@container')) {
+          queryStyles.push({ hash, sheet });
+        } else {
+          normalStyles.push({ hash, sheet });
+        }
       }
+    }
+
+    for (const { hash, sheet } of normalStyles.reverse()) {
+      injectClientCSS(hash, sheet);
+    }
+
+    for (const { hash, sheet } of queryStyles) {
+      injectClientQuery(hash, sheet);
     }
   }
 
