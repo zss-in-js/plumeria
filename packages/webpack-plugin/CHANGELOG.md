@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.15.7
+
+### Patch Changes
+
+- 6ebebc2: feat: dependencies update
+
 ## 0.15.6
 
 ### Patch Changes
