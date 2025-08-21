@@ -28,7 +28,7 @@
     "@rust-gear/glob": "^0.2.2",
     "@types/babel__core": "^7.20.5",
     "webpack": "^5.101.0",
-    "zss-engine": "^0.2.75"
+    "zss-engine": "^0.2.80"
   },
   "publishConfig": {
     "access": "public"
