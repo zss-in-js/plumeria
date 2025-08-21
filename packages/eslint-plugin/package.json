@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/eslint-plugin",
-  "version": "0.15.6",
+  "version": "0.15.7",
   "description": "Plumeria ESLint plugin",
   "repository": {
     "type": "git",
