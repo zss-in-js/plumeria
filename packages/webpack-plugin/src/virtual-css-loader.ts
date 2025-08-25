@@ -890,6 +890,20 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     }
   }
 
+  const useClientRegex = /^(['"])use client\1;?$/;
+  const lines = source.split('\n');
+  const idx = lines.findIndex((line) => useClientRegex.test(line.trim()));
+
+  if (idx !== -1) {
+    lines.splice(
+      idx + 1,
+      0,
+      'import "@plumeria/webpack-plugin/zero-virtual.css";',
+    );
+
+    const newSource = lines.join('\n');
+    return callback(null, newSource);
+  }
   if (callback) callback(null, source + postfix);
   return source + postfix;
 }
