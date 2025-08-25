@@ -134,8 +134,6 @@ export class PlumeriaPlugin {
 
   private writeCSS() {
     const css = this.generateOrderedCSS();
-
-    fs.mkdirSync(path.dirname(this.outFile), { recursive: true });
     fs.writeFileSync(this.outFile, css, 'utf-8');
   }
 }
