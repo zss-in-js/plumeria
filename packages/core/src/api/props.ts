@@ -1,11 +1,4 @@
-import {
-  injectClientCSS,
-  injectClientQuery,
-  isHashInStyleSheets,
-  isServer,
-  isTestingDevelopment,
-  type CSSProperties,
-} from 'zss-engine';
+import type { CSSProperties } from 'zss-engine';
 import { styleAtomMap } from './create';
 import {
   globalPromise_1,
@@ -57,25 +50,8 @@ export function props(
     }
   }
 
-  type Entry = { hash: string; sheet: string };
-  const orderedEntries: Entry[] = [];
-  const rightmostEntries: Entry[] = [];
-
-  // Expand orderedKeys to orderedEntries
-  for (const { hash: hashes, sheet: sheets } of orderedKeys) {
-    for (let j = 0; j < hashes.length; j++) {
-      orderedEntries.push({ hash: hashes[j], sheet: sheets[j] });
-    }
-  }
-  // Expand rightmostKeys to rightmostEntries
-  for (const { hash: hashes, sheet: sheets } of rightmostKeys) {
-    for (let j = 0; j < hashes.length; j++) {
-      rightmostEntries.push({ hash: hashes[j], sheet: sheets[j] });
-    }
-  }
-
   // Output from key in props order
-  for (const { hash, sheet } of orderedEntries) {
+  for (const { hash, sheet } of orderedKeys) {
     if (!seenSheets.has(sheet)) {
       seenSheets.add(sheet);
       classList.push(hash);
@@ -83,7 +59,7 @@ export function props(
     }
   }
   // Those that are only used in the rightmost props are output last
-  for (const { hash, sheet } of rightmostEntries) {
+  for (const { hash, sheet } of rightmostKeys) {
     if (!seenSheets.has(sheet)) {
       seenSheets.add(sheet);
       classList.push(hash);
@@ -102,30 +78,6 @@ export function props(
   // CSS part compilation by the Processor
   if (typeof globalPromise_1 === 'undefined') initPromise_1();
   resolvePromise_1(uniqueStyleSheets.join(''));
-
-  // CSS injection only in test development environment
-  if (isTestingDevelopment && !isServer) {
-    const normalStyles: { hash: string; sheet: string }[] = [];
-    const queryStyles: { hash: string; sheet: string }[] = [];
-
-    for (const { hash, sheet } of [...orderedEntries, ...rightmostEntries]) {
-      if (uniqueStyleSheets.includes(sheet) && !isHashInStyleSheets(hash)) {
-        if (sheet.includes('@media') || sheet.includes('@container')) {
-          queryStyles.push({ hash, sheet });
-        } else {
-          normalStyles.push({ hash, sheet });
-        }
-      }
-    }
-
-    for (const { hash, sheet } of normalStyles.reverse()) {
-      injectClientCSS(hash, sheet);
-    }
-
-    for (const { hash, sheet } of queryStyles) {
-      injectClientQuery(hash, sheet);
-    }
-  }
 
   return classList.join(' ');
 }
