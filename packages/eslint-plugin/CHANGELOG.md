@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.16.1
+
+### Patch Changes
+
+- 6eef17b: feat: version bump only
+
 ## 0.16.0
 
 ### Minor Changes
