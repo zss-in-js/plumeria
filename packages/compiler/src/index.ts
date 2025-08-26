@@ -12,7 +12,7 @@ const { buildGlobal, buildProps } = require('@plumeria/core/processors');
 const {
   extractTSFile,
   restoreAllOriginals,
-  extractVueAndSvelte,
+  extractVueAndSvelteAndAstro,
 } = require('./extract');
 
 const projectRoot = process.cwd().split('node_modules')[0];
@@ -108,7 +108,7 @@ async function optimizeCSS(): Promise<void> {
   await cleanUp();
 
   const files = await glob(
-    path.join(projectRoot, '**/*.{js,jsx,ts,tsx,vue,svelte}'),
+    path.join(projectRoot, '**/*.{js,jsx,ts,tsx,vue,svelte,astro}'),
     {
       exclude: [
         '**/node_modules/**',
@@ -126,7 +126,7 @@ async function optimizeCSS(): Promise<void> {
   for (const file of files) {
     const ext = path.extname(file);
     if (ext === '.vue' || ext === '.svelte') {
-      const tsFile = await extractVueAndSvelte(file);
+      const tsFile = await extractVueAndSvelteAndAstro(file);
       filesSupportExtensions.push(tsFile);
     } else {
       const tempFile = await extractTSFile(file);
