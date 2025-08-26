@@ -9,7 +9,7 @@ import type {
   DefineThemeObjectTable,
   CSSValue,
   ThemeTable,
-} from './types';
+} from './types.js';
 
 import {
   parseSync,
@@ -21,7 +21,7 @@ import * as t from '@babel/types';
 
 import path from 'path';
 import fs from 'fs';
-import { createCSS, createTheme, createVars } from './create';
+import { createCSS, createTheme, createVars } from './create.js';
 import { genBase36Hash, transpile, camelToKebabCase } from 'zss-engine';
 import { globSync } from '@rust-gear/glob';
 
@@ -620,7 +620,7 @@ function scanForDefineTheme(): {
 export function plumeria(): Plugin {
   const stylesByFile = new Map<string, any>();
   let hasScanned = false;
-  const outputPath = path.join(import.meta.dirname, '..', 'zero-virtual.css');
+  const outputPath = path.join(PROJECT_ROOT, 'zero-virtual.css');
 
   return {
     name: 'plumeria-vite-plugin',
@@ -840,8 +840,12 @@ export function plumeria(): Plugin {
 
           fs.writeFileSync(outputPath, css);
 
+          const importStatement = fs.existsSync(outputPath)
+            ? `import '${outputPath}';`
+            : '// zero-virtual.css not found';
+
           return {
-            code: `${source}\nimport '${path.relative(path.dirname(id), outputPath)}';`,
+            code: `${source}\n${importStatement}`,
             map: null,
           };
         }
@@ -871,6 +875,20 @@ export function plumeria(): Plugin {
           }
         }
       });
+
+      const cleanup = () => {
+        if (fs.existsSync(outputPath)) {
+          try {
+            fs.unlinkSync(outputPath);
+          } catch (error) {
+            error;
+          }
+        }
+        process.exit(0);
+      };
+
+      process.on('SIGINT', cleanup);
+      process.on('SIGTERM', cleanup);
 
       server.watcher.on('unlink', (filePath) => {
         stylesByFile.delete(filePath);
