@@ -1,5 +1,23 @@
 # @plumeria/webpack-plugin
 
+## 0.16.2
+
+### Patch Changes
+
+- b533471: feat: version bump only
+
+## 0.16.1
+
+### Patch Changes
+
+- beadbde: feat: core dependencies update
+
+## 0.16.0
+
+### Minor Changes
+
+- b1031e9: feat: the client and server will have a consistent style managed by plugins.
+
 ## 0.15.7
 
 ### Patch Changes
