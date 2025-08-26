@@ -1,5 +1,31 @@
 # @plumeria/next-plugin
 
+## 0.16.2
+
+### Patch Changes
+
+- b533471: feat: version bump only
+- Updated dependencies [b533471]
+  - @plumeria/webpack-plugin@0.16.2
+
+## 0.16.1
+
+### Patch Changes
+
+- Updated dependencies [beadbde]
+  - @plumeria/webpack-plugin@0.16.1
+
+## 0.16.0
+
+### Minor Changes
+
+- 78748bd: feat: Supported client components
+
+### Patch Changes
+
+- Updated dependencies [b1031e9]
+  - @plumeria/webpack-plugin@0.16.0
+
 ## 0.15.7
 
 ### Patch Changes
