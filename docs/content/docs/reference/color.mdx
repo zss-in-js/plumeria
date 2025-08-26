@@ -10,20 +10,15 @@ import { Color } from 'component/Color';
 
 
 ## Overview
-The `color` utilities in the `zss-utils` package provides a comprehensive set of tools for applying colors in your styles. It includes a complete collection of 141 CSS named colors, framework-specific theme colors, and utilities to lighten or darken colors programmatically.
+141 CSS named colors, supporting autocomplete in modern IDEs. Under is a all list of colors.
 
-<Callout title="Available to clients only">
-  If you require AST parsing and compilation for an RSC preview such as Next.js, you cannot use these zss-utils libraries and must instead define static variables using the defineConsts API.
-</Callout>
+
 
 ## Usage
 ```ts title="TypeScript"
-import { color } from 'zss-utils';
+color: "",
 ```
 
-## Standard Colors
-
-The `colors` object provides a complete set of 141 CSS named colors, supporting autocomplete in modern IDEs. Under is a all list of colors.
 
 | Color Name             | Hex Code                                         | Description                                                |
 | ---------------------- | ------------------------------------------------ | ---------------------------------------------------------- |
@@ -176,32 +171,9 @@ The `colors` object provides a complete set of 141 CSS named colors, supporting 
 | `yellow`               | <Color color="yellow" /> `#FFFF00`               | Bright yellow, perfect for highlights or warnings.         |
 | `yellowgreen`          | <Color color="yellowgreen" /> `#9ACD32`          | A medium yellow-green, great for fresh accents.            |
 
-## Theme Colors
-
-The `themeColors` object provides a set of predefined colors tailored for common UI states, such as buttons, alerts, or notifications. These colors are designed to align with modern framework conventions.
-
-| Color Name  | Hex Code                            | Description                                                          |
-| ----------- | ----------------------------------- | -------------------------------------------------------------------- |
-| `primary`   | <Color color="#0070F3" /> `#0070F3` | A vibrant blue, ideal for primary buttons or links.                  |
-| `secondary` | <Color color="#FF4081" /> `#FF4081` | A bold pink, suitable for secondary actions or highlights.           |
-| `success`   | <Color color="#2E7D32" /> `#2E7D32` | A rich green, used for success states (e.g., confirmation messages). |
-| `warning`   | <Color color="#ED6C02" /> `#ED6C02` | A warm orange, perfect for warning messages or alerts.               |
-| `error`     | <Color color="#D32F2F" /> `#D32F2F` | A deep red, ideal for error states or validation messages.           |
-
-## Lighten and Darken Utilities
-
-The `lighten` and `darken` utilities adjust a color's brightness by mixing it with white or black based on a proportion (0 to 1 or a percentage string like `'20%'`). Ideal for hover effects, focus states, or dynamic color variations.
-
-| Function                     | Description                            | Arguments                                                                                                  | Returns              |
-| ---------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------- |
-| `lighten(color, proportion)` | Lightens a color by mixing with white. | `color`: A color name or hex code<br/>`proportion`: A number (0 to 1) or percentage string (e.g., `'20%'`) | `<color>` (hex code) |
-| `darken(color, proportion)`  | Darkens a color by mixing with black.  | `color`: A color name or hex code<br/>`proportion`: A number (0 to 1) or percentage string (e.g., `'20%'`) | `<color>` (hex code) |
-
 
 ## 🔗 Related
 
 <Cards>
-  <Card title="zss-utils Package" href="/docs/reference/zss-utils" description="Explore other utilities in the zss-utils package." />
   <Card title="Plumeria Core Documentation" href="/docs/reference/core" description="Learn more about the @plumeria/core package." />
-  <Card title="Pseudo Utility" href="/docs/reference/pseudo" description="Discover how to combine colors with pseudo-classes and pseudo-elements." />
 </Cards>
