@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.16.1
+
+### Patch Changes
+
+- beadbde: feat: core dependencies update
+
 ## 0.16.0
 
 ### Minor Changes
