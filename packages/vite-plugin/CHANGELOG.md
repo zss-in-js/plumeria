@@ -1,5 +1,11 @@
 # @plumeria/vite
 
+## 0.16.0
+
+### Minor Changes
+
+- 4afabc3: feat: The plugin allows for conflict-free atomic css without client styles. Requires the use of defineConsts instead of zss-utils.
+
 ## 0.15.7
 
 ### Patch Changes

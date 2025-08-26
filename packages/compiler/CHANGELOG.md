@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.16.0
+
+### Minor Changes
+
+- 2525858: feat: Compatible with Astro
+
 ## 0.15.7
 
 ### Patch Changes
