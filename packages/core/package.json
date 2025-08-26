@@ -34,7 +34,7 @@
     "build": "tsdown && node strip-comments"
   },
   "dependencies": {
-    "zss-engine": "0.2.80"
+    "zss-engine": "0.2.82"
   },
   "publishConfig": {
     "access": "public"
