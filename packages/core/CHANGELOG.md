@@ -1,5 +1,23 @@
 # @plumeria/core
 
+## 0.16.2
+
+### Patch Changes
+
+- b533471: feat: version bump only
+
+## 0.16.1
+
+### Patch Changes
+
+- beadbde: feat: core dependencies update
+
+## 0.16.0
+
+### Minor Changes
+
+- c61d0a2: feat: Eliminate injection entirely and use plugins to inject static sheet import statements.
+
 ## 0.15.7
 
 ### Patch Changes
