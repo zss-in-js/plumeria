@@ -7,7 +7,7 @@ const eslintConfig = tseslint.config(
   ...tseslint.configs.strict,
   plumeria.flatConfigs.recommended,
   {
-    ignores: ['**/dist/**', '**/.*/**', '**/*.js'],
+    ignores: ['**/dist/**', '**/vite-plugin/**', '**/.*/**', '**/*.js'],
   },
   {
     files: ['**/*.{ts,tsx}'],
