@@ -1,5 +1,11 @@
 # @plumeria/vite
 
+## 0.16.2
+
+### Patch Changes
+
+- 63bcf0c: fix: Since vite cannot create and delete HMR files in node_modules, create and delete them in the project root
+
 ## 0.16.1
 
 ### Patch Changes
