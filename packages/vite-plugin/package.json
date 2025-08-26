@@ -12,8 +12,7 @@
   "types": "dist/index.d.ts",
   "license": "MIT",
   "files": [
-    "dist/",
-    "zero-virtual.css"
+    "dist/"
   ],
   "scripts": {
     "build": "rimraf dist && pnpm esm",
