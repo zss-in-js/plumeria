@@ -1,5 +1,5 @@
 /* eslint-disable @plumeria/no-inner-call */
-import { css } from '../dist/index.js';
+import { css } from '../src/index';
 
 describe('create function', () => {
   it('should correctly create and freeze the object', () => {
