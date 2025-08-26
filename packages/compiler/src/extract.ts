@@ -291,33 +291,65 @@ function parseCssPropsArguments(args: string) {
   return results;
 }
 
-async function extractVueAndSvelte(filePath: string) {
+async function extractVueAndSvelteAndAstro(filePath: string) {
   const ext = path.extname(filePath);
-  if (!(ext === '.svelte' || ext === '.vue')) return filePath;
+  // Astro ファイルを追加
+  if (!(ext === '.svelte' || ext === '.vue' || ext === '.astro'))
+    return filePath;
 
   const code = fs.readFileSync(filePath, 'utf8');
 
+  let tsCode = '';
   const lines = code.split(/\r?\n/);
-  let inScript = false;
-  const contentLines = [];
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!inScript && /^<script\b/.test(trimmed)) {
-      inScript = true;
-      continue;
-    }
-    if (inScript && /^<\/script>/.test(trimmed)) {
-      inScript = false;
-      continue;
-    }
-    if (inScript) {
-      contentLines.push(line);
-    }
-  }
-  const tsCode = contentLines.join('\n');
 
-  // Search for css.props in the code code (as it may be in a HTML tags)
-  // extract css.props
+  if (ext === '.astro') {
+    // Processing Astro files: Extracting front matter
+    let inFrontmatter = false;
+    const contentLines = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      // Detect the start of front matter
+      if (!inFrontmatter && trimmed === '---') {
+        inFrontmatter = true;
+        continue;
+      }
+
+      // Detect the end of front matter
+      if (inFrontmatter && trimmed === '---') {
+        inFrontmatter = false;
+        continue;
+      }
+
+      // Collect the lines in the front matter
+      if (inFrontmatter) {
+        contentLines.push(line);
+      }
+    }
+    tsCode = contentLines.join('\n');
+  } else {
+    // Vue and Svelte handling
+    let inScript = false;
+    const contentLines = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!inScript && /^<script\b/.test(trimmed)) {
+        inScript = true;
+        continue;
+      }
+      if (inScript && /^<\/script>/.test(trimmed)) {
+        inScript = false;
+        continue;
+      }
+      if (inScript) {
+        contentLines.push(line);
+      }
+    }
+    tsCode = contentLines.join('\n');
+  }
+
   const propsMatches = [...extractCssProps(tsCode), ...extractCssProps(code)];
   const calls = propsMatches
     .filter(Boolean)
@@ -334,7 +366,7 @@ async function extractVueAndSvelte(filePath: string) {
   const cssCreateSection = extractCssCreate(tsCode);
   const cssGlobalSection = extractCssGlobal(tsCode);
 
-  // finale ts code
+  // final ts code
   let finalCode = '';
 
   // add import section
@@ -432,5 +464,5 @@ process.on('unhandledRejection', async (reason, promise) => {
 module.exports = {
   extractTSFile,
   restoreAllOriginals,
-  extractVueAndSvelte,
+  extractVueAndSvelteAndAstro,
 };
