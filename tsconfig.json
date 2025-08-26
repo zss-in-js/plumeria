@@ -18,6 +18,7 @@
     "node_modules",
     "test-e2e/**",
     "website/**",
+    "examples/**",
     "packages/**/dist/**"
   ]
 }
