@@ -20,12 +20,7 @@
     "next-plugin",
     "webpack-plugin",
     "zss-engine",
-    "zss-utils",
-    "---zss-utils---",
-    "media",
-    "container",
-    "color",
-    "pseudo",
-    "px"
+    "---colors---",
+    "color"
   ]
 }
