@@ -4,7 +4,7 @@ type SeoData = {
   date?: string;
 };
 
-const generateSEOData = ({ title, subtitle, date }: SeoData) => {
+const generateSEOData = ({ title, subtitle, date = '' }: SeoData) => {
   return {
     title: title,
     description: subtitle,
