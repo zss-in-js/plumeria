@@ -10,13 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plumeria/core": "^0.15.7",
+    "@plumeria/core": "^0.16.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
-    "@plumeria/compiler": "^0.15.7",
+    "@plumeria/compiler": "^0.16.2",
     "@plumeria/vite-plugin": "^0.15.6",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",

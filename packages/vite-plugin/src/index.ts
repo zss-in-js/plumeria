@@ -890,6 +890,18 @@ export function plumeria(): Plugin {
       process.on('SIGINT', cleanup);
       process.on('SIGTERM', cleanup);
 
+      server.httpServer?.on('close', () => {
+        const filePath = path.join(PROJECT_ROOT, 'zero-virtual.css');
+        if (fs.existsSync(filePath)) {
+          try {
+            fs.unlinkSync(filePath);
+            console.log('🗑️ Deleted zero-virtual.css on server close');
+          } catch (error) {
+            console.error('❌ Failed to delete zero-virtual.css:', error);
+          }
+        }
+      });
+
       server.watcher.on('unlink', (filePath) => {
         stylesByFile.delete(filePath);
       });

@@ -8,7 +8,7 @@
     color: {
       WebkitTextFillColor: 'transparent',
       background:
-        'linear-gradient(90deg, #58c6ff 0%, #3e5875 50%, #ff3bef 100%)',
+        'linear-gradient(90deg, #B7E7FF 0%, #3e5875 50%, #ff3bef 100%)',
       backgroundClip: 'text',
     },
   });

@@ -1,12 +1,12 @@
 #!/bin/bash
 
 folders=(
-  "with-astro-react"
+  "with-astro"
   "with-next-app-router"
   "with-react-router-v7"
-  "with-solid"
   "with-vite-preact"
   "with-vite-react"
+  "with-vite-solid"
   "with-vite-svelte"
   "with-vite-vue"
 )

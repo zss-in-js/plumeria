@@ -1,22 +1,22 @@
 {
-  "name": "with-vite-preact",
+  "name": "with-vite-solid",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "css && vite",
-    "build": "css && tsc -b && vite build",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@plumeria/core": "^0.16.2",
-    "preact": "^10.26.9"
+    "solid-js": "^1.9.8"
   },
   "devDependencies": {
     "@plumeria/compiler": "^0.16.2",
-    "@plumeria/vite-plugin": "^0.15.6",
-    "@preact/preset-vite": "^2.10.2",
+    "@plumeria/vite-plugin": "^0.16.2",
     "typescript": "~5.8.3",
-    "vite": "^7.0.4"
+    "vite": "^7.1.2",
+    "vite-plugin-solid": "^2.11.8"
   }
 }
