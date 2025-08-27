@@ -9,10 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+<<<<<<< HEAD
     "@plumeria/core": "^0.15.7",
     "next": "15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
+=======
+    "@plumeria/core": "^0.16.2",
+    "next": "^15.5.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+>>>>>>> c4bf04c (examples(deps): update)
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -20,7 +27,7 @@
     "@plumeria/eslint-plugin": "^0.15.7",
     "@plumeria/next-plugin": "^0.15.7",
     "@types/node": "^22.10.7",
-    "@types/react": "^19",
+    "@types/react": "^19.1.11",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.1.5",
