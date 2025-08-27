@@ -4,13 +4,12 @@ import { blog } from 'lib/source';
 import { styles } from './styles';
 import { css } from '@plumeria/core';
 import { JSX } from 'react';
+import generateSEOData from 'lib/generateSEOData';
 
-export function generateMetadata(): Metadata {
-  return {
-    title: 'Blog',
-    description: 'Latest updates and news from our team.',
-  };
-}
+export const metadata: Metadata = generateSEOData({
+  title: 'Blog',
+  subtitle: 'Latest updates and news from our team.',
+});
 
 function Page(): JSX.Element {
   const posts = blog.getPages();
