@@ -2,7 +2,17 @@ import { source } from 'lib/source';
 import { DocsPage, DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
-import { metadataImage } from 'lib/metadata';
+import { Metadata } from 'next';
+import generateSEOData from 'lib/generateSEOData';
+
+export async function generateMetadata(props: { params: Promise<{ slug?: Array<string> }> }): Promise<Metadata> {
+  const params = await props.params;
+  const page = source.getPage(params.slug);
+  return generateSEOData({
+    title: page?.data.title as string,
+    subtitle: page?.data.description,
+  });
+}
 
 export default async function Page(props: { params: Promise<{ slug?: string[] }> }) {
   const params = await props.params;
@@ -38,15 +48,4 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
 
 export async function generateStaticParams() {
   return source.generateParams();
-}
-
-export async function generateMetadata(props: { params: Promise<{ slug?: string[] }> }) {
-  const params = await props.params;
-  const page = source.getPage(params.slug);
-  if (!page) notFound();
-
-  return metadataImage.withImage(page.slugs, {
-    title: page.data.title,
-    description: page.data.description,
-  });
 }

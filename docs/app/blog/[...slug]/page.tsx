@@ -6,11 +6,23 @@ import { DocsBody } from 'fumadocs-ui/page';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { styles } from './styles';
 import { css } from '@plumeria/core';
+import { Metadata } from 'next';
+import generateSEOData from 'lib/generateSEOData';
 
 export function generateStaticParams(): Array<{ slug: Array<string> }> {
   return blog.getPages().map((page) => ({
     slug: page.slugs,
   }));
+}
+
+export async function generateMetadata(props: { params: Promise<{ slug?: Array<string> }> }): Promise<Metadata> {
+  const params = await props.params;
+  const page = blog.getPage(params.slug);
+  return generateSEOData({
+    title: page?.data.title as string,
+    subtitle: page?.data.description,
+    date: page?.data.date,
+  });
 }
 
 export default async function Page(props: { params: Promise<{ slug?: Array<string> }> }): Promise<JSX.Element> {
