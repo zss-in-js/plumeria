@@ -1,0 +1,32 @@
+---
+title: 'Plumeria 0.17.0'
+description: 'We are now able to provide stable HMR and new OGP. (1 min read)'
+date: '2025/08/30'
+---
+import Image from 'next/image';
+import Link from 'next/link';
+
+## Stability: 2 - Stable
+
+This version can be considered an LTS.
+One of the reasons we haven't upgraded zss-engine is that it's easy to improve, but we plan to upgrade it to 0.3.0 within 0.2.130.
+
+The server component is handled by `@plumeria/next-plugin`, and the client injection is handled by `css.props` in `@plumeria/core`.
+
+We came up with two conflict-free approaches.
+One was to separate the server and client,
+and the other was to add a cartridge on the client side for atoms stacked on top and media queries stacked below, thereby achieving a conflict-free atomic class development screen.
+
+<Link href="/docs">
+<Image
+    src="/BACKGROUND.png"
+    width={1200}
+    height={630}
+    alt="installation"
+/>
+</Link>
+
+For the above reasons, Plumeria works normally with applications that allow client injection, so Vite does not actually require a plugin, but we distribute a plugin that excludes fs.
+
+0.16.0 was an experimental attempt, but it did not work well, so please use the stable 0.17.0 from now on.
+
