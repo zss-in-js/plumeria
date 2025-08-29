@@ -18,7 +18,7 @@ css.global({
   },
   figure: {
     background: 'white',
-    border: 'solid 1px #eeeeee',
+    border: 'solid 1px #E0E0E0',
   },
   '.dark figure': {
     background: 'black',

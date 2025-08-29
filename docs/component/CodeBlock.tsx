@@ -13,6 +13,7 @@ const stylesCode = css.create({
     fontSize: 12,
     background: '#ffffff',
     borderRadius: '8px',
+    opacity: 0.277,
     [breakpoints.md]: {
       width: '317px',
       padding: '12px 20px',
