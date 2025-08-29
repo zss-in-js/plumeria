@@ -9,7 +9,7 @@ const styles = css.create({
     display: 'inline',
     marginBottom: '12px',
     fontSize: 56,
-    fontWeight: 600,
+    fontWeight: 700,
     WebkitTextFillColor: 'transparent',
     textAlign: 'left',
     background: 'linear-gradient(90deg, #6dd7ae 0%, #74dbb5 50%, #6bbfcc 100%)',
@@ -25,5 +25,5 @@ const styles = css.create({
 });
 
 export const Plumeria = () => {
-  return <div className={css.props(styles.headings)}>Plumeria</div>;
+  return <div className={css.props(styles.headings)}>PLUMERIA</div>;
 };
