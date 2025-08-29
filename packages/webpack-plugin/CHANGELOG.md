@@ -1,5 +1,16 @@
 # @plumeria/webpack-plugin
 
+## 0.17.0
+
+### Minor Changes
+
+- 34884c5: feat: the client and server will have a consistent style managed by plugins.
+- e77b35a: feat: rollback to 0.15.7
+
+### Patch Changes
+
+- cd5c438: feat: core dependencies update
+
 ## 0.16.2
 
 ### Patch Changes
