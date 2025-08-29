@@ -25,5 +25,5 @@ const styles = css.create({
 });
 
 export const Plumeria = () => {
-  return <div className={css.props(styles.headings)}>PLUMERIA</div>;
+  return <div className={css.props(styles.headings)}>@plumeria</div>;
 };
