@@ -37,25 +37,41 @@ function create<const T extends Record<string, CSSProperties>>(
       const sheets = new Set<string>();
       processAtomicProps({ [prop]: value }, hashes, sheets);
 
-      // Organize media and containers by sheet
-      const baseSheets: string[] = [];
-      const querySheets: string[] = [];
+      const hashArray = [...hashes];
+      const sheetArray = [...sheets];
 
-      for (const sheet of sheets) {
+      const baseSheetParts: string[] = [];
+      const baseHashParts: string[] = [];
+      const querySheetParts: string[] = [];
+      const queryHashParts: string[] = [];
+
+      for (let i = 0; i < sheetArray.length; i++) {
+        const sheet = sheetArray[i];
+        const hash = hashArray[i];
         if (sheet.includes('@media') || sheet.includes('@container')) {
-          querySheets.push(sheet);
+          querySheetParts.push(sheet);
+          queryHashParts.push(hash);
         } else {
-          baseSheets.push(sheet);
+          baseSheetParts.push(sheet);
+          baseHashParts.push(hash);
         }
       }
-      const hash = [...hashes].join(' ');
-      const sheet = [...baseSheets, ...querySheets].join('');
 
-      records.push({
-        key: prop,
-        hash,
-        sheet,
-      });
+      if (baseSheetParts.length > 0) {
+        records.push({
+          key: prop,
+          hash: baseHashParts.join(' '),
+          sheet: baseSheetParts.join(' '),
+        });
+      }
+
+      if (querySheetParts.length > 0) {
+        records.push({
+          key: prop + '__queries__',
+          hash: queryHashParts.join(' '),
+          sheet: querySheetParts.join(' '),
+        });
+      }
     });
 
     // Handling nested objects such as pseudos to atom by key is atRule + prop
