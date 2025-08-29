@@ -22,7 +22,7 @@ export const baseOptions: BaseLayoutProps = {
     title: (
       <span className={css.props(styles.logo)}>
         <Image src="/zss.png" alt="Plumeria logo" height={24} width={24} className={css.props(styles.zss)} />
-        Plumeria
+        PLUMERIA
       </span>
     ),
     transparentMode: 'top',
