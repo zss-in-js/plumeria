@@ -1,4 +1,11 @@
-import type { CSSProperties } from 'zss-engine';
+import {
+  injectClientCSS,
+  injectClientQuery,
+  isHashInStyleSheets,
+  isServer,
+  isTestingDevelopment,
+  type CSSProperties,
+} from 'zss-engine';
 import { styleAtomMap } from './create';
 import {
   globalPromise_1,
@@ -78,6 +85,34 @@ export function props(
   // CSS part compilation by the Processor
   if (typeof globalPromise_1 === 'undefined') initPromise_1();
   resolvePromise_1(uniqueStyleSheets.join(''));
+
+  // CSS injection only in test development environment
+  if (isTestingDevelopment && !isServer) {
+    const normalStyles: { hash: string; sheet: string }[] = [];
+    const queryStyles: { hash: string; sheet: string }[] = [];
+
+    // Separate all styles adopted by props into base and query
+    for (const { hash, sheet } of [...orderedKeys, ...rightmostKeys]) {
+      if (isHashInStyleSheets(hash)) continue;
+      if (sheet.includes('@media') || sheet.includes('@container')) {
+        queryStyles.push({ hash, sheet });
+      } else {
+        normalStyles.push({ hash, sheet });
+      }
+    }
+
+    // Inject base styles (injectClientCSS does cache check internally)
+    for (const { hash, sheet } of normalStyles.reverse()) {
+      injectClientCSS(hash, sheet);
+    }
+
+    // Group media queries together and inject them only once (injectClientQuery does a cache check internally)
+    if (queryStyles.length > 0) {
+      const combinedSheet = queryStyles.map((s) => s.sheet).join('');
+      const combinedHashes = queryStyles.map((s) => s.hash).join(' ');
+      injectClientQuery(combinedHashes, combinedSheet);
+    }
+  }
 
   return classList.join(' ');
 }
