@@ -1,5 +1,15 @@
 # @plumeria/core
 
+## 0.17.0
+
+### Minor Changes
+
+- c61d0a2: feat: Eliminate injection entirely and use plugins to inject static sheet import statements.
+
+### Patch Changes
+
+- 95c7891: feat: core dependencies update
+
 ## 0.16.2
 
 ### Patch Changes

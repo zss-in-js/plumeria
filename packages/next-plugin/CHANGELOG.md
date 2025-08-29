@@ -1,5 +1,17 @@
 # @plumeria/next-plugin
 
+## 0.17.0
+
+### Minor Changes
+
+- 78748bd: feat: Supported client components
+
+### Patch Changes
+
+- Updated dependencies [b1031e9]
+- Updated dependencies [95c7891]
+  - @plumeria/webpack-plugin@0.17.0
+
 ## 0.16.2
 
 ### Patch Changes
