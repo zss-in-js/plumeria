@@ -9,11 +9,12 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@plumeria/core": "^0.15.7",
+    "@astrojs/react": "^4.3.0",
+    "@plumeria/core": "^0.17.0",
     "astro": "^5.13.3"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.15.7",
-    "@plumeria/vite-plugin": "^0.16.0"
+    "@plumeria/compiler": "^0.17.0",
+    "@plumeria/vite-plugin": "^0.17.0"
   }
 }
