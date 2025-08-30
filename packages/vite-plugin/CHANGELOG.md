@@ -1,5 +1,11 @@
 # @plumeria/vite
 
+## 0.17.1
+
+### Patch Changes
+
+- fb4d526: fix: fix types
+
 ## 0.17.0
 
 ### Minor Changes
