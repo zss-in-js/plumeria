@@ -67,11 +67,6 @@ jobs:
       - name: Build packages
         run: npm run build
 
-      - name: Install dependencies for test-e2e/site
-        run: |
-          cd test-e2e/site
-          npm install
-
       - name: Setup test environment
         uses: ./.github/workflows/setup
 
@@ -103,11 +98,6 @@ jobs:
 
       - name: Build packages
         run: npm run build
-
-      - name: Install dependencies for test-e2e/site
-        run: |
-          cd test-e2e/site
-          npm install
 
       - name: Setup test environment
         uses: ./.github/workflows/setup
