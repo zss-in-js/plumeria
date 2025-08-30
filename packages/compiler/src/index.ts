@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const { unlinkSync, existsSync, readFileSync, statSync } = require('fs');
 const { readFile, writeFile } = require('fs/promises');
 const { glob } = require('@rust-gear/glob');
@@ -6,8 +7,9 @@ const postcss = require('postcss');
 const combineSelectors = require('postcss-combine-duplicated-selectors');
 const combineMediaQuery = require('postcss-combine-media-query');
 const { execute } = require('rscute/execute');
-const { transform } = require('lightningcss');
+const { transform: lightningCSSTransform } = require('lightningcss');
 const { parseSync } = require('@swc/core');
+const { findUpSync } = require('find-up');
 const { buildGlobal, buildProps } = require('@plumeria/core/processors');
 const {
   extractTSFile,
@@ -15,9 +17,72 @@ const {
   extractVueAndSvelte,
 } = require('./extract');
 
-const projectRoot = process.cwd().split('node_modules')[0];
-const directPath = path.join(projectRoot, 'node_modules/@plumeria/core');
-const coreFilePath = path.join(directPath, 'stylesheet.css');
+let projectRoot;
+
+const workspaceRootFile = findUpSync((directory: string) => {
+  const pnpmWsPath = path.join(directory, 'pnpm-workspace.yaml');
+  if (fs.existsSync(pnpmWsPath)) {
+    return pnpmWsPath;
+  }
+
+  const pkgJsonPath = path.join(directory, 'package.json');
+  if (fs.existsSync(pkgJsonPath)) {
+    try {
+      const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+      if (pkgJson.workspaces) {
+        return pkgJsonPath;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+  return undefined;
+});
+
+if (workspaceRootFile) {
+  projectRoot = path.dirname(workspaceRootFile);
+} else {
+  const singleProjectRootFile = findUpSync('package.json');
+  if (singleProjectRootFile) {
+    projectRoot = path.dirname(singleProjectRootFile);
+  } else {
+    projectRoot = process.cwd();
+  }
+}
+
+let coreFilePath: string;
+
+if (workspaceRootFile) {
+  // For pnpm monorepos
+  // Read the version from packages/core/package.json
+  const coreSourcePackageJsonPath = path.join(
+    projectRoot,
+    'packages',
+    'core',
+    'package.json',
+  );
+  const coreSourcePackageJson = JSON.parse(
+    fs.readFileSync(coreSourcePackageJsonPath, 'utf-8'),
+  );
+  const coreVersion = coreSourcePackageJson.version;
+
+  // Build the target path in the .pnpm store of the monorepo root
+  coreFilePath = path.join(
+    projectRoot,
+    'node_modules',
+    '.pnpm',
+    `@plumeria+core@${coreVersion}`,
+    'node_modules',
+    '@plumeria',
+    'core',
+    'stylesheet.css',
+  );
+} else {
+  const coreInstalledPath = path.dirname(
+    require.resolve('@plumeria/core/package.json'),
+  );
+  coreFilePath = path.join(coreInstalledPath, 'stylesheet.css');
+}
 
 const cleanUp = async (): Promise<void> => {
   if (process.env.CI && existsSync(coreFilePath)) {
@@ -89,7 +154,7 @@ async function optimizeCSS(): Promise<void> {
     to: coreFilePath,
   });
 
-  const light = transform({
+  const light = lightningCSSTransform({
     filename: coreFilePath,
     code: Buffer.from(merged.css),
     minify: process.env.NODE_ENV === 'production',
@@ -107,18 +172,13 @@ async function optimizeCSS(): Promise<void> {
 (async () => {
   await cleanUp();
 
-  const files = await glob(
-    path.join(projectRoot, '**/*.{js,jsx,ts,tsx,vue,svelte}'),
-    {
-      exclude: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/build/**',
-        '**/.next/**',
-      ],
-      cwd: projectRoot,
-    },
-  );
+  const scanRoot = process.cwd();
+
+  const files = await glob('**/*.{js,jsx,ts,tsx,vue,svelte}', {
+    cwd: scanRoot,
+    absolute: true,
+    exclude: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**'],
+  });
 
   const projectName = path.basename(projectRoot);
 
