@@ -19,7 +19,7 @@
     "esm": "tsc --project tsconfig.esm.json"
   },
   "devDependencies": {
-    "vite": "7.1.1"
+    "vite": "^7.1.1"
   },
   "publishConfig": {
     "access": "public"
