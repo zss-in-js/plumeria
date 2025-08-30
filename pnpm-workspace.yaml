@@ -1,2 +1,5 @@
 packages:
   - 'packages/*'
+  - 'examples/*'
+  - 'test-e2e/site'
+  - 'docs'
