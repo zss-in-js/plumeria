@@ -1,0 +1,11 @@
+{
+  "installCommand": "pnpm install",
+  "buildCommand": "css --type-check && turbo run build --filter=docs",
+  "builds": [
+    {
+      "src": "docs/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "outputDirectory": "docs/.next"
+}
