@@ -1,6 +1,7 @@
 {
-  "name": "example-basic",
+  "name": "with-solid",
   "type": "module",
+  "version": "0.0.1",
   "scripts": {
     "dev": "css & vinxi dev",
     "build": "css && vinxi build",
