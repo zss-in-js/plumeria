@@ -1,6 +1,6 @@
-import type { Plugin } from 'vite';
+import type { PluginOption } from 'vite';
 
-export default function plumeria(): Plugin {
+export default function plumeria(): PluginOption {
   return {
     name: '@plumeria/vite',
     config: ({ build = {} }) => ({
