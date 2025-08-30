@@ -2,7 +2,7 @@
 title: 'css'
 description:  'API reference for the `css` command'
 ---
-
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 <Cards>
   <Card title="See more about @plumeria/compiler package" href="/docs/reference/compiler" />
@@ -13,9 +13,18 @@ The `@plumeria/compiler` package is required to run commands.
 
 
 ### Overview
+<Tabs items={['npm', 'pnpm']}>
+<Tab>
 ```sh title="Terminal"
 npx css
 ```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm exec css
+```
+</Tab>
+</Tabs>
 
 ### Success
 ```sh title="Terminal"
