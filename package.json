@@ -5,8 +5,7 @@
   "workspaces": [
     "packages/*",
     "examples/*",
-    "test-e2e/site",
-    "docs"
+    "test-e2e/site"
   ],
   "author": "refirst",
   "license": "MIT",
