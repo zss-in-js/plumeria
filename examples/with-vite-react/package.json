@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
-    "@plumeria/compiler": "^0.17.0",
+    "@plumeria/compiler": "^0.17.1",
     "@plumeria/vite-plugin": "^0.17.0",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",

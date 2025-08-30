@@ -19,7 +19,7 @@
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.17.0",
+    "@plumeria/compiler": "^0.17.1",
     "@plumeria/vite-plugin": "^0.17.0"
   }
 }

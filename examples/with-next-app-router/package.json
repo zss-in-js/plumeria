@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@plumeria/compiler": "^0.17.0",
+    "@plumeria/compiler": "^0.17.1",
     "@plumeria/eslint-plugin": "^0.17.0",
     "@plumeria/next-plugin": "^0.17.0",
     "@types/node": "^22.10.7",

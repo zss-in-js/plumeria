@@ -13,7 +13,7 @@
     "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.17.0",
+    "@plumeria/compiler": "^0.17.1",
     "@plumeria/vite-plugin": "^0.17.0",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/tsconfig": "^0.7.0",

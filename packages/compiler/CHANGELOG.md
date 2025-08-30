@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.17.1
+
+### Patch Changes
+
+- 07d05e9: fix: pnpm monorepo support.
+
 ## 0.17.0
 
 ### Minor Changes
@@ -171,7 +177,6 @@ Impact:
 ### Minor Changes
 
 - 7cfea3f: features: Minor update
-
   - Rename stylesheet/core.css to stylesheet.css
   - Major API changes: defineThemeVars split into defineVars and defineTheme
   - Stronger type safety for utility(media, eg.) return types

@@ -19,7 +19,7 @@
     "react-router": "^7.5.3"
   },
   "devDependencies": {
-    "@plumeria/compiler": "^0.17.0",
+    "@plumeria/compiler": "^0.17.1",
     "@plumeria/vite-plugin": "^0.17.0",
     "@react-router/dev": "^7.5.3",
     "@tailwindcss/vite": "^4.1.4",
