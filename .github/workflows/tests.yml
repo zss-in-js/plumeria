@@ -66,6 +66,8 @@ jobs:
 
       - name: Build packages
         run: npm run build
+        env:
+          PROD_URL: ${{ secrets.PROD_URL }}
 
       - name: Setup test environment
         uses: ./.github/workflows/setup
@@ -98,6 +100,8 @@ jobs:
 
       - name: Build packages
         run: npm run build
+        env:
+          PROD_URL: ${{ secrets.PROD_URL }}
 
       - name: Setup test environment
         uses: ./.github/workflows/setup

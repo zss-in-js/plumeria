@@ -32,6 +32,8 @@ jobs:
 
       - name: Build Packages
         run: pnpm build
+        env:
+          PROD_URL: ${{ secrets.PROD_URL }}
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
