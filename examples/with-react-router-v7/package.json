@@ -1,5 +1,6 @@
 {
   "name": "with-react-router-v7",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
