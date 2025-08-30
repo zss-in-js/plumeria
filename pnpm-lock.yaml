@@ -100,7 +100,7 @@ importers:
         specifier: ^9.20.0
         version: 9.34.0
       '@plumeria/compiler':
-        specifier: ^0.17.0
+        specifier: ^0.17.1
         version: 0.17.1
       '@plumeria/core':
         specifier: ^0.17.0
