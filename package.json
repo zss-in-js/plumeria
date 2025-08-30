@@ -11,7 +11,7 @@
   "author": "refirst",
   "license": "MIT",
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "turbo run build --filter=./packages/*",
     "test": "jest",
     "dev": "cd docs && npm run dev",
     "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
@@ -36,6 +36,7 @@
     "rimraf": "^6.0.1",
     "ts-jest": "^29.2.6",
     "tsdown": "^0.11.11",
+    "turbo": "^2.5.6",
     "typescript": "5.7.3",
     "typescript-eslint": "^8.26.1"
   },
