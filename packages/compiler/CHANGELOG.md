@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.17.1
+
+### Patch Changes
+
+- 933a7c6: fix: pnpm supports monorepo architecture
+
 ## 0.17.0
 
 ### Minor Changes
