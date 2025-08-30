@@ -1,6 +1,6 @@
 {
   "installCommand": "pnpm install",
-  "buildCommand": "css --type-check && turbo run build --filter=docs",
+  "buildCommand": "turbo run build --filter=@plumeria/compiler && turbo run build --filter=docs",
   "builds": [
     {
       "src": "docs/package.json",
