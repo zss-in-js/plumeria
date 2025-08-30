@@ -9,7 +9,6 @@
   "updateInternalDependencies": "patch",
   "ignore": [
     "site",
-    "plumeria-docs",
     "with-astro",
     "with-next-app-router",
     "with-react-router-v7",
