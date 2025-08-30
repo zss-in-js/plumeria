@@ -16,7 +16,12 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "*": ["./*"]
+      "*": ["./*"],
+      "@plumeria/core": ["../packages/core/dist"],
+      "@plumeria/compiler": ["../packages/compiler/dist"],
+      "@plumeria/eslint-plugin": ["../packages/eslint-plugin/dist"],
+      "@plumeria/next-plugin": ["../packages/next-plugin/dist"],
+      "@plumeria/webpack-plugin": ["../packages/webpack-plugin/dist"]
     },
     "plugins": [
       {
