@@ -462,10 +462,10 @@ importers:
         version: 0.17.1
       '@plumeria/core':
         specifier: '*'
-        version: 0.17.0
+        version: 0.17.1
       '@plumeria/next-plugin':
         specifier: '*'
-        version: 0.17.0
+        version: 0.17.1
       '@types/node':
         specifier: ^22.13.14
         version: 22.18.0
@@ -1850,14 +1850,14 @@ packages:
     resolution: {integrity: sha512-hQ8+9b1LhV0GkczVjk1zUKBT9ML1L6bS2JKnYaa8t7GwOOmuW/Dwe0oCOEqYOy99DBwD0lvZfeXvwKH7iqPCKw==}
     hasBin: true
 
-  '@plumeria/core@0.17.0':
-    resolution: {integrity: sha512-8SEjEc5IAXxvvpqk7dZ0nD795vWe/3AA3fZnCujV9ImLYNXlKmlarruDBJUButV9jgzhTNPROcvTFVNZs9wpcA==}
+  '@plumeria/core@0.17.1':
+    resolution: {integrity: sha512-8pePr2mcMQG2nwONQAI6ZCS4bP7600BtnZeh3ekwgWaFa4a+TH4/Zq9sIJdWzthzFxi2Zu05F9KJrQdNXH4BiA==}
 
-  '@plumeria/next-plugin@0.17.0':
-    resolution: {integrity: sha512-MWmHliJOSTC3kHpjZ55967doJqG9t8mEb6/L9fiObJ42XFiJQeoQkjeZvARRkHsRRoEZ4RvAIEjldx7p0vP3cQ==}
+  '@plumeria/next-plugin@0.17.1':
+    resolution: {integrity: sha512-DPeaSW90hwzyMrC2z+EYPSc0s0UjWVylt/mQ9tJJo4U9JebS1Pt0ueSzgn3Ns9UPGyjMPAt/apcivnbdqGx5eQ==}
 
-  '@plumeria/webpack-plugin@0.17.0':
-    resolution: {integrity: sha512-SPw0bYpr9Qf+1PbyDhCGPyJO2vkdGNHGpR0pog9NLoeKMTWsrf7iuiLTgCFXKyioXF8PeXsDPYSlnJIeQnx3Hg==}
+  '@plumeria/webpack-plugin@0.17.1':
+    resolution: {integrity: sha512-lvX9nrse03dQTO2tlMqbLlGd5OP3NwpneR4VBhjqobFSWp0eOzY0YizS2F1UhCPIl3Oy47WcWDvFvwQagz2uaw==}
 
   '@poppinss/colors@4.1.5':
     resolution: {integrity: sha512-FvdDqtcRCtz6hThExcFOgW0cWX+xwSMWcRuQe5ZEb2m7cVQOAVZOIMt+/v9RxGiD9/OY16qJBXK4CVKWAPalBw==}
@@ -9359,17 +9359,17 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
 
-  '@plumeria/core@0.17.0':
+  '@plumeria/core@0.17.1':
     dependencies:
       zss-engine: 0.2.83
 
-  '@plumeria/next-plugin@0.17.0':
+  '@plumeria/next-plugin@0.17.1':
     dependencies:
-      '@plumeria/webpack-plugin': 0.17.0
+      '@plumeria/webpack-plugin': 0.17.1
     transitivePeerDependencies:
       - supports-color
 
-  '@plumeria/webpack-plugin@0.17.0':
+  '@plumeria/webpack-plugin@0.17.1':
     dependencies:
       '@babel/core': 7.28.0
       '@babel/preset-typescript': 7.27.1(@babel/core@7.28.0)
