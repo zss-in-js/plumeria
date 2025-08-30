@@ -17,6 +17,6 @@
     "@plumeria/vite-plugin": "^0.17.0",
     "@preact/preset-vite": "^2.10.2",
     "typescript": "~5.8.3",
-    "vite": "^6.3.5"
+    "vite": "^7.1.1"
   }
 }
