@@ -20,8 +20,8 @@
     "@plumeria/eslint-plugin": "^0.17.0",
     "@plumeria/next-plugin": "^0.17.0",
     "@types/node": "^22.10.7",
-    "@types/react": "^19.1.11",
-    "@types/react-dom": "^19",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
     "eslint": "^9",
     "eslint-config-next": "15.1.5",
     "typescript": "^5"
