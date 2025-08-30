@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.17.1
+
+### Patch Changes
+
+- 9f7b0f3: feat: version bump only
+
 ## 0.17.0
 
 ### Minor Changes
@@ -429,7 +435,6 @@ const layoutStyles = css.create({
 ### Minor Changes
 
 - 7cfea3f: features: Minor update
-
   - Rename stylesheet/core.css to stylesheet.css
   - Major API changes: defineThemeVars split into defineVars and defineTheme
   - Stronger type safety for utility(media, eg.) return types
