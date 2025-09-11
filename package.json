@@ -16,7 +16,6 @@
     "dev": "cd docs && npm run dev",
     "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
     "test:e2e": "playwright test",
-    "update:examples": "./update_examples.sh",
     "prettier": "prettier --write \"**/*.js\" \"**/*.ts\"",
     "prettier:report": "prettier --check \"**/*.js\" \"**/*.ts\"",
     "lint:report": "eslint --fix"
@@ -28,7 +27,6 @@
     "@plumeria/eslint-plugin": "workspace:^",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.14",
-    "@types/react": "^19.0.10",
     "cpy-cli": "^5.0.0",
     "eslint": "^9.22.0",
     "jest": "^29.7.0",
