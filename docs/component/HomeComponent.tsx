@@ -64,8 +64,8 @@ const styles = css.create({
     transition: 'all 0.1s',
     [ps.hover]: {
       color: 'white',
-      background: '#ef2a86',
-      border: 'solid 2px #ef2a86',
+      background: '#2cc8c0',
+      border: 'solid 2px #2cc8c0',
     },
     [breakpoints.md]: {
       position: 'relative',
@@ -83,32 +83,13 @@ const styles = css.create({
   },
   getStarted: {
     color: 'white',
-    background: '#ef2a86',
-    border: 'solid 2px #ef2a86',
+    background: '#2cc8c0',
+    border: 'solid 2px #2cc8c0',
   },
   textSize: {
     fontSize: 16,
     [breakpoints.md]: {
       fontSize: 14,
-    },
-  },
-});
-
-const gradi = css.create({
-  gradient: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    zIndex: 0,
-    width: 600,
-    height: 600,
-    pointerEvents: 'none',
-    background: 'radial-gradient(circle, rgba(0,255,255,0.2), rgba(0,128,128,0) 70%)',
-    borderRadius: '50%',
-    transform: 'translate(-50%, -50%)',
-    [breakpoints.md]: {
-      width: '100%',
-      height: 320,
     },
   },
 });
@@ -120,7 +101,6 @@ const demoCode = ` text: { fontSize: 16, color: "navy" }
 export const HomeComponent = () => {
   return (
     <main className={css.props(styles.container)}>
-      <div className={css.props(gradi.gradient)} />
       <Plumeria />
       <div className={css.props(styles.inlineword)}>
         Atomic CSS-in-JS

@@ -12,7 +12,7 @@ const styles = css.create({
     fontWeight: 700,
     WebkitTextFillColor: 'transparent',
     textAlign: 'left',
-    background: 'linear-gradient(90deg, #6dd7ae 0%, #74dbb5 50%, #6bbfcc 100%)',
+    background: 'linear-gradient(90deg, #6dd7c9 0%, #6bccbf 50%, #6bbfcc 100%)',
     WebkitBackgroundClip: 'text',
     [breakpoints.md]: {
       top: 20,
@@ -25,5 +25,5 @@ const styles = css.create({
 });
 
 export const Plumeria = () => {
-  return <div className={css.props(styles.headings)}>@plumeria</div>;
+  return <div className={css.props(styles.headings)}>PLUMERIA</div>;
 };
