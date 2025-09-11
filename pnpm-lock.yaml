@@ -26,9 +26,6 @@ importers:
       '@types/node':
         specifier: ^22.13.14
         version: 22.18.0
-      '@types/react':
-        specifier: ^19.0.10
-        version: 19.1.12
       cpy-cli:
         specifier: ^5.0.0
         version: 5.0.0
