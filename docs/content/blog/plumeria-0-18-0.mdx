@@ -1,0 +1,31 @@
+---
+title: 'Plumeria 0.18.0'
+description: 'Breaking changes and compiler improvements. (2 min read)'
+date: '2025/09/12'
+---
+
+## Breaking changes
+
+### Removed css.global
+The global api was removed as it was unnecessary.  
+For example, in next.js you can add classes to bare HTML in layout.  
+For SPAs, you may need to write some reset CSS, but generally you don't need a global.css (at most, it's minimal).
+
+There was a bug in css.global and a problem that disrupted the concept.  
+When multiple globals are written, merging selectors, managing property conflicts, and being able to write globals anywhere can cause confusion. The best practice is to complete all styling using only the scoped CSS css.create API.
+
+The global api hasn't completely disappeared and is still used internally, in keyframes, defineVars, and defineTheme.
+However, there was no benefit to using the global API alone.
+
+Therefore, we decided to remove this API, as we felt that it would be simpler and easier for users to focus on styling on a component-by-component basis and to avoid writing global.css.
+
+To ensure backward compatibility, you can improve quality by replacing the existing css.global with global.css or by replacing the implementation with css.create.
+
+## Important Improvements
+### Compiler and Multiple APIs
+
+`create` `keyfarmes` `defineConsts` `defineVars` `defineTheme`
+
+The compiler has been improved to be able to interpret these APIs even when they are mixed in a single file.
+This allows for greater flexibility by allowing you to choose between collocation in a single file or management in multiple files.
+
