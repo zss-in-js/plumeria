@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.18.0
+
+### Minor Changes
+
+- 1ce6b9b: fix: exclude global api from lint
+
 ## 0.17.1
 
 ### Patch Changes

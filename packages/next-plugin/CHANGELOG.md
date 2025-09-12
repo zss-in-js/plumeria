@@ -1,5 +1,16 @@
 # @plumeria/next-plugin
 
+## 0.18.0
+
+### Minor Changes
+
+- bec0934: feat: devDependencies update
+
+### Patch Changes
+
+- Updated dependencies [4c5f22f]
+  - @plumeria/webpack-plugin@0.18.0
+
 ## 0.17.1
 
 ### Patch Changes
