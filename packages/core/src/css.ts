@@ -1,6 +1,5 @@
 import type {
   CSSProperties,
-  CSSHTML,
   CreateStyle,
   CreateStyleType,
   CreateTheme,
@@ -17,7 +16,6 @@ import { defineVars } from './api/vars';
 import { defineTheme } from './api/theme';
 import { defineConsts } from './api/consts';
 import { rx } from './api/rx';
-import { global } from './api/global';
 
 class StyleSheet {
   private constructor() {}
@@ -53,13 +51,9 @@ class StyleSheet {
   ): ReturnVariableType<T> {
     return defineTheme(object);
   }
-
-  static global(object: CSSHTML): void {
-    return global(object);
-  }
 }
 
 const css = StyleSheet;
 
 export { css, rx };
-export type { CreateStyle, CSSHTML, CSSProperties };
+export type { CreateStyle, CSSProperties };
