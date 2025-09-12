@@ -34,9 +34,8 @@ module.exports = {
               prop.key.type === 'Identifier' &&
               (prop.key.name.startsWith('create') ||
                 prop.key.name.startsWith('props') ||
-                prop.key.name.startsWith('define') ||
                 prop.key.name.startsWith('keyframes') ||
-                prop.key.name.startsWith('global'))
+                prop.key.name.startsWith('define'))
             ) {
               context.report({
                 node: prop,
