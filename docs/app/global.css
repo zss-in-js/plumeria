@@ -1,0 +1,46 @@
+body {
+  background: #fffaff;
+}
+
+.dark body {
+  background: black;
+}
+
+pre {
+  background: white;
+}
+
+pre span {
+  font-family: var(--font-geist-mono);
+}
+
+.dark pre {
+  background: black;
+}
+
+figure {
+  background: white;
+  border: solid 1px #e0e0e0;
+}
+
+.dark figure {
+  background: black;
+  border: solid 1px #272727;
+}
+
+code {
+  font-family: var(--font-geist-mono);
+}
+
+.dark aside {
+  background: #0b0b0b;
+}
+
+.text-3xl {
+  font-size: 36px;
+  font-weight: 550;
+}
+
+.dark span.line.diff.remove {
+  background: rgba(255, 83, 252, 0.14);
+}

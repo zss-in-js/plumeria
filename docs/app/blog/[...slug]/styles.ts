@@ -43,13 +43,3 @@ export const styles = css.create({
     fontSize: '14px',
   },
 });
-
-css.global({
-  h1: {
-    fontWeight: 200,
-  },
-  h2: {
-    padding: '20px 0',
-    fontSize: 24,
-  },
-});
