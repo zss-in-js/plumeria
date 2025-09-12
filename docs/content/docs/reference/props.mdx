@@ -3,7 +3,7 @@ title: 'props'
 description: 'API reference for the `props` function'
 ---
 
-The `css.props()` function returns `styleObject` as `hashedClassName` together while **filtering out falsy values** like `undefined`, `false`, or `null`. It is useful when conditionally combining styles.
+The css.props() function returns style object as hashed classes together while **filtering out falsy values** like **undefined**, **false**, or **null**. It is useful when conditionally combining styles.
 
 ```ts title="TypeScript"
 import { css } from '@plumeria/core';
@@ -22,9 +22,7 @@ const styles = css.create({
 const className = css.props(styles.one, styles.two);  // [!code ++]
 ```
 
-## Prohibit intermediate code
-Props compilation is performed by strictly deleting all intermediate code except `import` `css.create()` `css.props()`.
-For example, static string literals like the one below will remain when the file in which css.props exists is compiled.
+
 
 ```tsx
 // Allowed static string literal variables
@@ -43,14 +41,14 @@ return (
 )
 ```
 
-The easiest way to follow the DRY principle is to make it a constant using defineConsts.
+The easiest way to follow the DRY principle is to make it a constant using `defineConsts`.
 ```tsx
 import { css } from "@plumeria/core";
 import { breakpoints } from "lib/mediaQuery";
 
 const styles = css.create({
   responsive: {
-    [breakpoints.md]: {  // [!code ++] Work
+    [breakpoints.md]: {  // [!code ++]
       scale: 0.8,
     },
   },
@@ -60,7 +58,6 @@ return (
     <div className={css.props(styles.responsive)} />
 )
 ```
-API calls such as `keyframes` and `defineConsts` (excluding global) must be created in separate files and cannot be written in the same file scope as css.props. Therefore, `defineConsts` `defineVars` `defineTheme` `keyframes` require imports.
 
 <Callout title="Good to know">
 If you create a separate styles file, these compilation restrictions do not apply and you can freely place APIs in the file. This is the difference between writing them in the same file and creating a separate file.
@@ -131,4 +128,5 @@ css.props(styles.one, false, undefined, styles.two);
 
 <Cards>
   <Card title="See more about create" href="/docs/reference/create" />
+  <Card title="See more about defineConsts" href="/docs/reference/defineConsts" />
 </Cards>
