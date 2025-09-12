@@ -17,6 +17,7 @@ const eslintConfig = tseslint.config(
       '@typescript-eslint/no-unused-expressions': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/triple-slash-reference': 'off',
     },
   },
 );
