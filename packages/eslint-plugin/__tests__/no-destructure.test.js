@@ -12,7 +12,6 @@ ruleTester.run('no-destructure', rule, {
       code: 'const tokens = css.defineVars({})',
       code: 'const theme = css.defineTheme({})',
       code: 'const animate = css.keyframes({})',
-      code: 'css.global({})',
       settings: {
         ecmaVersion: 2021,
       },
@@ -92,19 +91,7 @@ ruleTester.run('no-destructure', rule, {
       },
     },
     {
-      code: 'const { global } = css;',
-      errors: [
-        {
-          message:
-            'Do not destructure "global" from "css". Use dot notation instead.',
-        },
-      ],
-      settings: {
-        ecmaVersion: 2021,
-      },
-    },
-    {
-      code: 'const { create, props, defineConsts, defineVars, defineTheme, keyframes, global } = css;',
+      code: 'const { create, props, defineConsts, defineVars, defineTheme, keyframes } = css;',
       errors: [
         {
           message:
@@ -129,10 +116,6 @@ ruleTester.run('no-destructure', rule, {
         {
           message:
             'Do not destructure "keyframes" from "css". Use dot notation instead.',
-        },
-        {
-          message:
-            'Do not destructure "global" from "css". Use dot notation instead.',
         },
       ],
       settings: {
