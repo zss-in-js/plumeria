@@ -67,9 +67,6 @@ jobs:
       - name: Build packages
         run: npm run build
 
-      - name: Setup test environment
-        uses: ./.github/workflows/setup
-
       - name: Run Jest tests with coverage
         run: pnpm exec jest --ci --coverage --reporters=github-actions --reporters=summary
 
@@ -98,9 +95,6 @@ jobs:
 
       - name: Build packages
         run: npm run build
-
-      - name: Setup test environment
-        uses: ./.github/workflows/setup
 
       - name: Install Playwright chromium
         run: pnpm exec playwright install chromium --with-deps
