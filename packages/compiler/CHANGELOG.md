@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.18.0
+
+### Minor Changes
+
+- c4e611e: feat: improved so that each api can be written in a file and compiled
+
 ## 0.17.1
 
 ### Patch Changes
