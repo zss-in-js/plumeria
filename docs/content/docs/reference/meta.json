@@ -8,7 +8,6 @@
     "defineConsts",
     "defineVars",
     "defineTheme",
-    "global",
     "rx",
     "---Commands---",
     "css",
