@@ -1,5 +1,7 @@
+'use client';
+
 import { css } from '@plumeria/core';
-import { breakpoints } from './vars';
+import { breakpoints } from './define';
 
 const styles = css.create({
   e2e: {
