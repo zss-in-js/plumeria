@@ -9,7 +9,6 @@ ruleTester.run('no-inner-call', rule, {
   valid: [
     {
       code: 'css.create();',
-      code: 'css.global();',
       code: 'css.keyframes();',
       code: 'css.defineConsts();',
       code: 'css.defineVars();',
@@ -25,18 +24,8 @@ ruleTester.run('no-inner-call', rule, {
       ...settings,
     },
     {
-      code: 'const globl = () => { css.global(); }',
-      errors: [{ message: 'Do not use css.global inside functions' }],
-      ...settings,
-    },
-    {
       code: 'function create() { css.create(); }',
       errors: [{ message: 'Do not use css.create inside functions' }],
-      ...settings,
-    },
-    {
-      code: 'function global() { css.global(); }',
-      errors: [{ message: 'Do not use css.global inside functions' }],
       ...settings,
     },
     {
