@@ -50,7 +50,6 @@ module.exports = {
               const fullName = `${objectName}.${propertyName}`;
               if (
                 propertyName === 'create' ||
-                propertyName === 'global' ||
                 propertyName === 'keyframes' ||
                 propertyName.startsWith('define')
               ) {
