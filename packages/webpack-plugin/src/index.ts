@@ -108,7 +108,6 @@ export class PlumeriaPlugin {
     const keyframeStylesSet = new Set<string>();
     const varStylesSet = new Set<string>();
     const themeStylesSet = new Set<string>();
-    const globalStylesSet = new Set<string>();
     const baseStylesSet = new Set<string>();
 
     for (const s of sortedStyles) {
@@ -116,8 +115,6 @@ export class PlumeriaPlugin {
         keyframeStylesSet.add(s.keyframeStyles);
       if (s.varStyles?.trim().length > 0) varStylesSet.add(s.varStyles);
       if (s.themeStyles?.trim().length > 0) themeStylesSet.add(s.themeStyles);
-      if (s.globalStyles?.trim().length > 0)
-        globalStylesSet.add(s.globalStyles);
       if (s.baseStyles?.trim().length > 0) baseStylesSet.add(s.baseStyles);
     }
 
@@ -125,7 +122,6 @@ export class PlumeriaPlugin {
       ...Array.from(keyframeStylesSet),
       ...Array.from(varStylesSet),
       ...Array.from(themeStylesSet),
-      ...Array.from(globalStylesSet),
       ...Array.from(baseStylesSet),
     ]
       .filter(Boolean)
