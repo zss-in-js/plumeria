@@ -1,4 +1,3 @@
-import 'styles/global';
 import '@plumeria/core/stylesheet.css';
 
 export default function RootLayout({
