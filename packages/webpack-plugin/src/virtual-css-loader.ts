@@ -23,7 +23,7 @@ import path from 'path';
 import fs from 'fs';
 import { createCSS, createTheme, createVars } from './create';
 import { globSync } from '@rust-gear/glob';
-import type { CreateTheme, CreateValues, CSSHTML } from 'zss-engine';
+import type { CreateTheme, CreateValues } from 'zss-engine';
 import { genBase36Hash, transpile, camelToKebabCase } from 'zss-engine';
 
 interface PlumeriaPlugin extends WebpackPluginInstance {
@@ -720,7 +720,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   defineThemeObjectTable = defineThemeObjectTableLocal;
 
   let extractedObject: CSSObject | null = null;
-  const extractedGlobalObjects: CSSObject[] = [];
   let ast;
   try {
     ast = parseSync(source, {
@@ -761,21 +760,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               themeTable,
             );
           }
-          if (
-            callee.property.name === 'global' &&
-            args.length === 1 &&
-            t.isObjectExpression(args[0])
-          ) {
-            extractedGlobalObjects.push(
-              objectExpressionToObject(
-                args[0],
-                constTable,
-                keyframesHashTable,
-                variableTable,
-                themeTable,
-              ),
-            );
-          }
         }
       },
     },
@@ -791,12 +775,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   if (extractedObject) {
     const base = createCSS(extractedObject);
     if (base) fileStyles.baseStyles = base;
-  }
-
-  if (extractedGlobalObjects.length > 0) {
-    fileStyles.globalStyles = extractedGlobalObjects
-      .map((obj) => transpile(obj as CSSHTML, undefined, '--global').styleSheet)
-      .join('\n');
   }
 
   if (Object.keys(keyframesObjectTable).length > 0) {
