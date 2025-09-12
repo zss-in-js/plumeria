@@ -4,7 +4,6 @@ const { unlinkSync, existsSync, readFileSync, statSync } = require('fs');
 const { readFile, writeFile } = require('fs/promises');
 const { glob } = require('@rust-gear/glob');
 const postcss = require('postcss');
-const combineSelectors = require('postcss-combine-duplicated-selectors');
 const combineMediaQuery = require('postcss-combine-media-query');
 const { execute } = require('rscute/execute');
 const { transform: lightningCSSTransform } = require('lightningcss');
@@ -146,10 +145,7 @@ function isCSS(filePath: string, target: string) {
 
 async function optimizeCSS(): Promise<void> {
   const cssCode = await readFile(coreFilePath, 'utf8');
-  const merged = postcss([
-    combineMediaQuery(),
-    combineSelectors({ removeDuplicatedProperties: true }),
-  ]).process(cssCode, {
+  const merged = postcss([combineMediaQuery()]).process(cssCode, {
     from: coreFilePath,
     to: coreFilePath,
   });
