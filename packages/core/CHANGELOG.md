@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.18.0
+
+### Minor Changes
+
+- 51f6ab0: feat: removed global api that is no longer needed
+
 ## 0.17.1
 
 ### Patch Changes

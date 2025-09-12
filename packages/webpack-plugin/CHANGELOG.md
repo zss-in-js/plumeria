@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.18.0
+
+### Minor Changes
+
+- 4c5f22f: fix: exclude global api from hmr
+
 ## 0.17.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @plumeria/vite
 
+## 0.18.0
+
+### Minor Changes
+
+- 290a68b: fix: plugin name field update
+
 ## 0.17.1
 
 ### Patch Changes
