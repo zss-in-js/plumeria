@@ -14,9 +14,9 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@plumeria/compiler": "*",
-    "@plumeria/core": "*",
-    "@plumeria/next-plugin": "*",
+    "@plumeria/compiler": "workspace:^",
+    "@plumeria/core": "workspace:^",
+    "@plumeria/next-plugin": "workspace:^",
     "@types/node": "^22.13.14",
     "@types/react": "^18",
     "@types/react-dom": "^18",
