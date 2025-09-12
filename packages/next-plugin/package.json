@@ -21,7 +21,7 @@
     "@plumeria/webpack-plugin": "workspace:^"
   },
   "devDependencies": {
-    "next": "15.4.6",
+    "next": "^15.5.2",
     "webpack": "^5.101.0"
   },
   "publishConfig": {
