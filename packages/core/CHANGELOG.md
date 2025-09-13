@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 09e40c8: feat: version bump only
+- 09e40c8: feat: readme update and add keywords
 
 ## 0.18.0
 
