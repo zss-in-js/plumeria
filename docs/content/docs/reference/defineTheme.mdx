@@ -5,13 +5,12 @@ description: 'API reference for the `defineTheme` method'
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-The `defineTheme` function allows you to define **semantic design tokens** that respond to themes such as `"light"` or `"dark"`, and can optionally fall back to a `default` value.
 
 These tokens are automatically turned into `CSS custom properties` (i.e. `--variables`) and placed into:
 
 - `:root` for defaults
 - `:root[data-theme="themeName"]` for per-theme overrides
-- or `@media`, `@container` selectors if used via `css.media` or `css.container`
+- or `@media`, `@container` selectors.
 
 ---
 
@@ -23,6 +22,7 @@ Define tokens with theme-aware values.
   <Tab>
 
 ```ts title="TypeScript"
+// lib/theme.ts
 import { css } from "@plumeria/core"
 
 export const theme = css.defineTheme({
@@ -70,7 +70,7 @@ Use theme tokens in your components just like any other CSS variable.
   <Tab>
     ```ts title="TypeScript"
     import { css } from "@plumeria/core"
-    import { theme } from "./colors"
+    import { theme } from "lib/theme"
     
     const styles = css.create({
       text: {
@@ -90,18 +90,6 @@ Use theme tokens in your components just like any other CSS variable.
     ```
   </Tab>
 </Tabs>
-
-## Output summary
-Plumeria will generate:
-- `var(--token-name)` references in CSS
-- Theme-specific overrides in data attributes
-- (Optional) integration with `css.media` or `css.container`
-This allows for **light/dark mode switching, theming via props**, and **custom container queries.**
-
-## Tips
-- Use  together with defineVars() to separate tokens from themes
-- Themes are **resolved at runtime** via the data-theme attribute
-- You can dynamically switch themes by toggling document.documentElement.dataset.theme = 'dark'
 
 ## 🔗 Related
 
