@@ -8,6 +8,14 @@
     "directory": "packages/core"
   },
   "license": "MIT",
+  "keywords": [
+    "plumeria",
+    "atomic-css",
+    "css-in-js",
+    "css",
+    "stylex",
+    "react-native-web"
+  ],
   "sideEffects": false,
   "exports": {
     "./package.json": "./package.json",
