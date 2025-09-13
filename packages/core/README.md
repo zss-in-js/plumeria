@@ -97,6 +97,17 @@ The [@plumeria/eslint-plugin](https://www.npmjs.com/package/@plumeria/eslint-plu
 
 It plugin provides autocomplete and validation support.
 
+## Acknowledgement
+
+Plumeria is made possible thanks to the valuable inspirations from the following projects:
+
+- [Linaria](https://linaria.dev/)
+- [React Native](https://reactnative.dev/docs/stylesheet)
+- [React Native for Web](https://necolas.github.io/react-native-web/)
+- [StyleX](https://stylexjs.com/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Uno CSS](https://unocss.dev/)
+
 ## License
 
 Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/LICENSE).
