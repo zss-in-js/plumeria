@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.18.4
+
+### Patch Changes
+
+- ade4bc0: fix: support for specifying pnpm monorepo version
+
 ## 0.18.3
 
 ### Patch Changes
