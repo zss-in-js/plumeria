@@ -32,12 +32,12 @@ plumeria/
 ├── docs/               → Documentation website
 ├── examples/           → Example apps and integrations
 └── packages/
-    ├── compiler/       → Rust-based static extraction
-    ├── core/           → Core package
+    ├── compiler/       → CLI for Rust-based static extraction
+    ├── core/           → API built on the zss-engine
     ├── eslint-plugin/  → Plugin for ESLint
-    ├── next-plugin/    → Integration with Next.js
-    ├── vite-plugin/    → Plugin for Vite build
-    └── webpack-plugin/ → Plugin for Webpack
+    ├── next-plugin/    → Plugin for Integration with Next.js
+    ├── vite-plugin/    → Plugin for integration with Vite
+    └── webpack-plugin/ → Plugin for integration with Webpack
 
 ```
 
