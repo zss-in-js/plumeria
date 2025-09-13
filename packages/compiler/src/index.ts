@@ -76,7 +76,7 @@ const cleanUp = async (): Promise<void> => {
   }
 };
 
-function isCSS(filePath: string, target: string) {
+function isCSS(filePath: string) {
   if (statSync(filePath).isDirectory()) {
     return false;
   }
@@ -93,14 +93,7 @@ function isCSS(filePath: string, target: string) {
   function visit(node: any) {
     if (node.type === 'MemberExpression' && node.property?.value) {
       if (node.object?.type === 'Identifier' && node.object.value === 'css') {
-        if (target === 'props') {
-          if (node.property.value === 'props') {
-            found = true;
-          }
-        } else if (
-          node.property.value === 'props' ||
-          node.property.value === 'global'
-        ) {
+        if (node.property.value === 'props') {
           found = true;
         }
       }
@@ -172,12 +165,8 @@ async function optimizeCSS(): Promise<void> {
   }
 
   const styleFiles = filesSupportExtensions
-    .filter((file) => isCSS(file, ''))
+    .filter((file) => isCSS(file))
     .sort();
-
-  const propsFiles = styleFiles.filter((file) => {
-    return isCSS(file, 'props');
-  });
 
   for (let i = 0; i < styleFiles.length; i++) {
     await execute(path.resolve(styleFiles[i]));
@@ -190,7 +179,7 @@ async function optimizeCSS(): Promise<void> {
     await buildGlobal(coreFilePath);
   }
 
-  for (let i = 0; i < propsFiles.length; i++) {
+  for (let i = 0; i < styleFiles.length; i++) {
     await buildProps(coreFilePath);
   }
 
