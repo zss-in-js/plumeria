@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.18.2
+
+### Patch Changes
+
+- 7e50c6c: refactor: removed the ability to directly handle css.global
+
 ## 0.18.1
 
 ### Patch Changes
