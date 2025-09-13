@@ -51,36 +51,17 @@ if (workspaceRootFile) {
 
 let coreFilePath: string;
 
-if (workspaceRootFile) {
-  // For pnpm monorepos
-  // Read the version from packages/core/package.json
-  const coreSourcePackageJsonPath = path.join(
-    projectRoot,
-    'packages',
-    'core',
-    'package.json',
+try {
+  const corePackageJsonPath = require.resolve('@plumeria/core/package.json', {
+    paths: [projectRoot, process.cwd()],
+  });
+  coreFilePath = path.join(path.dirname(corePackageJsonPath), 'stylesheet.css');
+} catch (error) {
+  console.error(
+    'Could not find "@plumeria/core/stylesheet.css". Please make sure it is installed.' +
+      error,
   );
-  const coreSourcePackageJson = JSON.parse(
-    fs.readFileSync(coreSourcePackageJsonPath, 'utf-8'),
-  );
-  const coreVersion = coreSourcePackageJson.version;
-
-  // Build the target path in the .pnpm store of the monorepo root
-  coreFilePath = path.join(
-    projectRoot,
-    'node_modules',
-    '.pnpm',
-    `@plumeria+core@${coreVersion}`,
-    'node_modules',
-    '@plumeria',
-    'core',
-    'stylesheet.css',
-  );
-} else {
-  const coreInstalledPath = path.dirname(
-    require.resolve('@plumeria/core/package.json'),
-  );
-  coreFilePath = path.join(coreInstalledPath, 'stylesheet.css');
+  process.exit(1);
 }
 
 const cleanUp = async (): Promise<void> => {
