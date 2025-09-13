@@ -35,25 +35,18 @@ This includes APIs exposed as CSS-in-JS.
 
 ```ts title="TypeScript"
 export { css, rx } from './css';
-export type { CreateStyle, CSSHTML, CSSProperties } from './css';
+export type { CreateStyle, CSSProperties } from './css';
 ```
 
 ## Use API
 ```ts title="TypeScript"
 import { css, rx } from 'plumeria/core';
-import type { CSSProperties, CSSHTML, CreateStyle } from 'plumeria/core';
+import type { CSSProperties, CreateStyle } from 'plumeria/core';
 ```
 
-## Types
-
-- `CSSProperties`
-- `CSSHTML`
-- `CreateStyle`
-
-## Type Reference
+## Types Reference
 
 ### `CSSProperties`
-A map of style definitions that can be used as an argument to `css.create()` and `css.global()`.
 
 ```ts
 import type { CSSProperties } from '@plumeria/core';
@@ -73,34 +66,7 @@ const styles: CSSProperties = {
 };
 ```
 
-### `CSSHTML`
-A map of style definitions that can be used as an argument to `css.global()`.
-```ts
-import type { CSSHTML } from '@plumeria/core';
-
-const styles: CSSHTML = {
-  html: {
-    boxSizing: 'border-box',
-    padding: 0,
-    margin: 0,
-  },
-  body: {
-    fontFamily: 'Arial, sans-serif',
-    lineHeight: 1.6,
-    color: '#333',
-    backgroundColor: '#f4f4f4',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '1rem',
-  },
-};
-```
-
 ### `CreateStyle`
-A map of style definitions that can be used as an argument to `css.create()`.
 ```ts
 import type { CreateStyle } from '@plumeria/core';
 
