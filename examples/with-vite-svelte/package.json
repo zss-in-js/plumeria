@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@plumeria/compiler": "workspace:^",
+    "@plumeria/vite-plugin": "workspace:^",
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tsconfig/svelte": "^5.0.4",
     "prettier-plugin-svelte": "^3.4.0",
@@ -20,7 +21,6 @@
     "vite": "^7.1.1"
   },
   "dependencies": {
-    "@plumeria/core": "workspace:^",
-    "@plumeria/vite-plugin": "workspace:^"
+    "@plumeria/core": "workspace:^"
   }
 }
