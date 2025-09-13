@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.18.3
+
+### Patch Changes
+
+- 75f35ab: feat: devDependencies update
+
 ## 0.18.2
 
 ### Patch Changes
