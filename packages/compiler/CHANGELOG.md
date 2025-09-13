@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.18.1
+
+### Patch Changes
+
+- a64f808: fix: workspace to correspond
+
 ## 0.18.0
 
 ### Minor Changes
