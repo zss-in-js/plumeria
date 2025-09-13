@@ -50,18 +50,48 @@ if (workspaceRootFile) {
 }
 
 let coreFilePath: string;
-
-try {
-  const corePackageJsonPath = require.resolve('@plumeria/core/package.json', {
+const coreSourcePackageJsonPath = path.join(process.cwd(), 'package.json');
+const coreSourcePackageJson = JSON.parse(
+  fs.readFileSync(coreSourcePackageJsonPath, 'utf-8'),
+);
+const dependencies = {
+  ...coreSourcePackageJson.dependencies,
+  ...coreSourcePackageJson.devDependencies,
+};
+const coreVersion = dependencies['@plumeria/core'];
+const resolvedCorePackageJsonPath = require.resolve(
+  '@plumeria/core/package.json',
+  {
     paths: [projectRoot, process.cwd()],
-  });
-  coreFilePath = path.join(path.dirname(corePackageJsonPath), 'stylesheet.css');
-} catch (error) {
-  console.error(
-    'Could not find "@plumeria/core/stylesheet.css". Please make sure it is installed.' +
-      error,
+  },
+);
+if (workspaceRootFile) {
+  if (coreVersion.includes('workspace')) {
+    coreFilePath = path.join(
+      path.dirname(resolvedCorePackageJsonPath),
+      'stylesheet.css',
+    );
+  } else {
+    const corePackageJson = JSON.parse(
+      fs.readFileSync(resolvedCorePackageJsonPath, 'utf-8'),
+    );
+    const exactCoreVersion = corePackageJson.version;
+    coreFilePath = path.join(
+      projectRoot,
+      'node_modules',
+      '.pnpm',
+      `@plumeria+core@${exactCoreVersion}`,
+      'node_modules',
+      '@plumeria',
+      'core',
+      'stylesheet.css',
+    );
+  }
+} else {
+  coreFilePath = path.join(
+    path.dirname(resolvedCorePackageJsonPath),
+    'stylesheet.css',
   );
-  process.exit(1);
 }
 
 const cleanUp = async (): Promise<void> => {
