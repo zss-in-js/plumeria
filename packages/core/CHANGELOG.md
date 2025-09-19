@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.18.5
+
+### Patch Changes
+
+- 29bc777: feat: add warning detection logic for defines api
+
 ## 0.18.4
 
 ### Patch Changes
