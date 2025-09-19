@@ -25,10 +25,15 @@
       "import": "./dist/index.mjs",
       "default": "./dist/index.js"
     },
-    "./processors": {
+    "./dist/processors": {
       "types": "./dist/processors/css.d.ts",
       "import": "./dist/processors/css.mjs",
       "default": "./dist/processors/css.js"
+    },
+    "./dist/checker": {
+      "types": "./dist/checker/index.d.ts",
+      "import": "./dist/checker/index.mjs",
+      "default": "./dist/checker/index.js"
     }
   },
   "main": "dist/index.js",
