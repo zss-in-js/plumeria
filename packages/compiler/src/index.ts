@@ -4,12 +4,18 @@ const { unlinkSync, existsSync, readFileSync, statSync } = require('fs');
 const { readFile, writeFile } = require('fs/promises');
 const { glob } = require('@rust-gear/glob');
 const postcss = require('postcss');
+const combineSelectors = require('postcss-combine-duplicated-selectors');
 const combineMediaQuery = require('postcss-combine-media-query');
 const { execute } = require('rscute/execute');
 const { transform: lightningCSSTransform } = require('lightningcss');
 const { parseSync } = require('@swc/core');
 const { findUpSync } = require('find-up');
-const { buildGlobal, buildProps } = require('@plumeria/core/processors');
+const { buildGlobal, buildProps } = require('@plumeria/core/dist/processors');
+const {
+  setCurrentlyExecutingFile,
+  checkVarDuplications,
+  clearVarDefinitions,
+} = require('@plumeria/core/dist/checker');
 const {
   extractTSFile,
   restoreAllOriginals,
@@ -106,9 +112,12 @@ const cleanUp = async (): Promise<void> => {
   }
 };
 
-function isCSS(filePath: string) {
+function analyzeFileApis(filePath: string): {
+  hasProps: boolean;
+  hasGlobals: boolean;
+} {
   if (statSync(filePath).isDirectory()) {
-    return false;
+    return { hasProps: false, hasGlobals: false };
   }
   const code = readFileSync(filePath, 'utf8');
   const ast = parseSync(code, {
@@ -118,13 +127,21 @@ function isCSS(filePath: string) {
     dynamicImport: true,
   });
 
-  let found = false;
+  let hasProps = false;
+  let hasGlobals = false;
 
   function visit(node: any) {
+    if (hasProps && hasGlobals) return;
+
     if (node.type === 'MemberExpression' && node.property?.value) {
       if (node.object?.type === 'Identifier' && node.object.value === 'css') {
-        if (node.property.value === 'props') {
-          found = true;
+        const propertyValue = node.property.value;
+        if (propertyValue === 'props') {
+          hasProps = true;
+        } else if (
+          ['defineVars', 'defineTheme', 'keyframes'].includes(propertyValue)
+        ) {
+          hasGlobals = true;
         }
       }
     }
@@ -144,12 +161,15 @@ function isCSS(filePath: string) {
   }
 
   visit(ast);
-  return found;
+  return { hasProps, hasGlobals };
 }
 
 async function optimizeCSS(): Promise<void> {
   const cssCode = await readFile(coreFilePath, 'utf8');
-  const merged = postcss([combineMediaQuery()]).process(cssCode, {
+  const merged = postcss([
+    combineMediaQuery(),
+    combineSelectors({ removeDuplicatedProperties: true }),
+  ]).process(cssCode, {
     from: coreFilePath,
     to: coreFilePath,
   });
@@ -170,6 +190,7 @@ async function optimizeCSS(): Promise<void> {
 }
 
 (async () => {
+  clearVarDefinitions();
   await cleanUp();
 
   const scanRoot = process.cwd();
@@ -194,17 +215,28 @@ async function optimizeCSS(): Promise<void> {
     }
   }
 
-  const styleFiles = filesSupportExtensions
-    .filter((file) => isCSS(file))
-    .sort();
+  const styleFiles: string[] = [];
+  for (const file of filesSupportExtensions) {
+    const { hasProps, hasGlobals } = analyzeFileApis(file);
+    if (hasProps || hasGlobals) {
+      styleFiles.push(file);
+    }
+  }
+  styleFiles.sort();
 
   for (let i = 0; i < styleFiles.length; i++) {
-    await execute(path.resolve(styleFiles[i]));
+    const filePath = path.resolve(styleFiles[i]);
+    setCurrentlyExecutingFile(filePath);
+    await execute(filePath);
+    setCurrentlyExecutingFile(null);
     if (process.argv.includes('--paths'))
       console.log(
         `✅: ${projectName}/${path.relative(projectRoot, styleFiles[i])}`,
       );
   }
+
+  checkVarDuplications(projectRoot);
+
   for (let i = 0; i < styleFiles.length; i++) {
     await buildGlobal(coreFilePath);
   }
