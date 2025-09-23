@@ -8,9 +8,11 @@ ruleTester.run('no-destructure', rule, {
     {
       code: 'const styles = css.create({})',
       code: 'css.props()',
+      code: 'const animate = css.keyframes({})',
+      code: 'const transitionName = css.viewTransition({})',
       code: 'const breakpoints = css.defineConsts({})',
       code: 'const tokens = css.defineTokens({})',
-      code: 'const animate = css.keyframes({})',
+
       settings: {
         ecmaVersion: 2021,
       },
@@ -47,6 +49,18 @@ ruleTester.run('no-destructure', rule, {
         {
           message:
             'Do not destructure "keyframes" from "css". Use dot notation instead.',
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: 'const { viewTransition } = css;',
+      errors: [
+        {
+          message:
+            'Do not destructure "viewTransition" from "css". Use dot notation instead.',
         },
       ],
       settings: {
