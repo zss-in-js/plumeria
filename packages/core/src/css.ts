@@ -7,11 +7,13 @@ import type {
   CreateKeyframes,
   ReturnType,
   ReturnVariableType,
+  ViewTransitionOptions,
 } from 'zss-engine';
 
 import { create } from './api/create';
 import { props } from './api/props';
 import { keyframes } from './api/keyframes';
+import { viewTransition } from './api/viewTransition';
 import { defineTokens } from './api/tokens';
 import { defineConsts } from './api/consts';
 import { rx } from './api/rx';
@@ -33,6 +35,10 @@ class StyleSheet {
 
   static keyframes(object: CreateKeyframes): string {
     return keyframes(object);
+  }
+
+  static viewTransition(object: ViewTransitionOptions): string {
+    return viewTransition(object);
   }
 
   static defineConsts<const T extends CreateValues>(object: T): T {
