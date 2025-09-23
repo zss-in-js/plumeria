@@ -82,4 +82,4 @@ We welcome contributions of all kinds — bug reports, feature ideas, pull reque
 
 ## License
 
-Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/license).
+[MIT](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) License &copy; 2023-PRESENT [Refirst 11](https://github.com/refirst11)
