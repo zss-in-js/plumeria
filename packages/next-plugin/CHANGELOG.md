@@ -1,5 +1,16 @@
 # @plumeria/next-plugin
 
+## 0.19.0
+
+### Minor Changes
+
+- d7689f9: fix: removed context.isServer(handled internally)
+
+### Patch Changes
+
+- Updated dependencies [f526084]
+  - @plumeria/webpack-plugin@0.19.0
+
 ## 0.18.4
 
 ### Patch Changes
