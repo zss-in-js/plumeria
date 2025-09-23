@@ -257,6 +257,28 @@ function extractCssKeyframes(code: string) {
   return cssCreateMatches.join('\n');
 }
 
+function extractCssViewTransition(code: string) {
+  const cssCreateMatches = [];
+  const regex =
+    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.viewTransition\([\s\S]*?\);\s*))/g;
+  let match;
+
+  while ((match = regex.exec(code))) {
+    // Skip if this match is within a comment
+    if (
+      isInComment(code, match.index) ||
+      isInString(code, match.index) ||
+      isInHtmlText(code, match.index)
+    ) {
+      continue;
+    }
+
+    cssCreateMatches.push(match[0]);
+  }
+
+  return cssCreateMatches.join('\n');
+}
+
 function extractCssDefineConsts(code: string) {
   const cssCreateMatches = [];
   const regex =
@@ -375,6 +397,7 @@ async function extractVueAndSvelte(filePath: string) {
   const staticVariableSection = extractStaticStringLiteralVariable(tsCode);
   const cssCreateSection = extractCssCreate(tsCode);
   const cssKeyframesSection = extractCssKeyframes(tsCode);
+  const cssViewTransitionSection = extractCssViewTransition(tsCode);
   const cssDefineConstsSection = extractCssDefineConsts(tsCode);
   const cssDefineTokensSection = extractCssDefineTokens(tsCode);
 
@@ -392,6 +415,10 @@ async function extractVueAndSvelte(filePath: string) {
 
   if (cssKeyframesSection) {
     finalCode += cssKeyframesSection + '\n';
+  }
+
+  if (cssViewTransitionSection) {
+    finalCode += cssViewTransitionSection + '\n';
   }
 
   if (cssDefineConstsSection) {
@@ -432,6 +459,7 @@ async function extractTSFile(filePath: string) {
   // extract css.create section using the new function
   const cssCreateSection = extractCssCreate(code);
   const cssKeyframesSection = extractCssKeyframes(code);
+  const cssViewTransitionSection = extractCssViewTransition(code);
   const cssDefineConstsSection = extractCssDefineConsts(code);
   const cssDefineTokensSection = extractCssDefineTokens(code);
 
@@ -447,6 +475,7 @@ async function extractTSFile(filePath: string) {
   if (importSection) finalCode += importSection + '\n';
   if (staticVariableSection) finalCode += staticVariableSection + '\n';
   if (cssKeyframesSection) finalCode += cssKeyframesSection + '\n';
+  if (cssViewTransitionSection) finalCode += cssViewTransitionSection + '\n';
   if (cssDefineConstsSection) finalCode += cssDefineConstsSection + '\n';
   if (cssDefineTokensSection) finalCode += cssDefineTokensSection + '\n';
   if (cssCreateSection) finalCode += cssCreateSection + '\n';
