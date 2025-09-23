@@ -279,32 +279,10 @@ function extractCssDefineConsts(code: string) {
   return cssCreateMatches.join('\n');
 }
 
-function extractCssDefineVars(code: string) {
+function extractCssDefineTokens(code: string) {
   const cssCreateMatches = [];
   const regex =
-    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.defineVars\([\s\S]*?\);\s*))/g;
-  let match;
-
-  while ((match = regex.exec(code))) {
-    // Skip if this match is within a comment
-    if (
-      isInComment(code, match.index) ||
-      isInString(code, match.index) ||
-      isInHtmlText(code, match.index)
-    ) {
-      continue;
-    }
-
-    cssCreateMatches.push(match[0]);
-  }
-
-  return cssCreateMatches.join('\n');
-}
-
-function extractCssDefineTheme(code: string) {
-  const cssCreateMatches = [];
-  const regex =
-    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.defineTheme\([\s\S]*?\);\s*))/g;
+    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.defineTokens\([\s\S]*?\);\s*))/g;
   let match;
 
   while ((match = regex.exec(code))) {
@@ -398,8 +376,7 @@ async function extractVueAndSvelte(filePath: string) {
   const cssCreateSection = extractCssCreate(tsCode);
   const cssKeyframesSection = extractCssKeyframes(tsCode);
   const cssDefineConstsSection = extractCssDefineConsts(tsCode);
-  const cssDefineVarsSection = extractCssDefineVars(tsCode);
-  const cssDefineThemeSection = extractCssDefineTheme(tsCode);
+  const cssDefineTokensSection = extractCssDefineTokens(tsCode);
 
   // finale ts code
   let finalCode = '';
@@ -421,12 +398,8 @@ async function extractVueAndSvelte(filePath: string) {
     finalCode += cssDefineConstsSection + '\n';
   }
 
-  if (cssDefineVarsSection) {
-    finalCode += cssDefineVarsSection + '\n';
-  }
-
-  if (cssDefineThemeSection) {
-    finalCode += cssDefineThemeSection + '\n';
+  if (cssDefineTokensSection) {
+    finalCode += cssDefineTokensSection + '\n';
   }
 
   // add style.create section
@@ -460,8 +433,7 @@ async function extractTSFile(filePath: string) {
   const cssCreateSection = extractCssCreate(code);
   const cssKeyframesSection = extractCssKeyframes(code);
   const cssDefineConstsSection = extractCssDefineConsts(code);
-  const cssDefineVarsSection = extractCssDefineVars(code);
-  const cssDefineThemeSection = extractCssDefineTheme(code);
+  const cssDefineTokensSection = extractCssDefineTokens(code);
 
   // extract css.props
   const propsMatches = extractCssProps(code);
@@ -476,8 +448,7 @@ async function extractTSFile(filePath: string) {
   if (staticVariableSection) finalCode += staticVariableSection + '\n';
   if (cssKeyframesSection) finalCode += cssKeyframesSection + '\n';
   if (cssDefineConstsSection) finalCode += cssDefineConstsSection + '\n';
-  if (cssDefineVarsSection) finalCode += cssDefineVarsSection + '\n';
-  if (cssDefineThemeSection) finalCode += cssDefineThemeSection + '\n';
+  if (cssDefineTokensSection) finalCode += cssDefineTokensSection + '\n';
   if (cssCreateSection) finalCode += cssCreateSection + '\n';
   finalCode += calls;
 
