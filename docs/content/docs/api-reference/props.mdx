@@ -5,6 +5,7 @@ description: 'API reference for the `props` function'
 
 The css.props() function returns style object as hashed classes together while **filtering out falsy values** like **undefined**, **false**, or **null**. It is useful when conditionally combining styles.
 
+## Example
 ```ts title="TypeScript"
 import { css } from '@plumeria/core';
 
@@ -18,64 +19,17 @@ const styles = css.create({
     color: '#606060',
   },
 });
-
-const className = css.props(styles.one, styles.two);  // [!code ++]
 ```
 
-
-
-```tsx
-// Allowed static string literal variables
-const MD = "@media (max-width: 768px)"
-
-const styles = css.create({
-  responsive: {
-    [MD]: {
-      scale: 0.8,
-    },
-  },
-});
-
-return (
-    <div className={css.props(styles.responsive)} />
-)
+```jsx
+<div className={css.props(styles.one, styles.two)}> // [!code ++]
+  {/* ... */}
+</div>
 ```
 
-The easiest way to follow the DRY principle is to make it a constant using `defineConsts`.
-```tsx
-import { css } from "@plumeria/core";
-import { breakpoints } from "lib/mediaQuery";
-
-const styles = css.create({
-  responsive: {
-    [breakpoints.md]: {  // [!code ++]
-      scale: 0.8,
-    },
-  },
-});
-
-return (
-    <div className={css.props(styles.responsive)} />
-)
-```
-
-## Extract
-
-The following is extracted at compile time and executed as ts code. (Vue and Svelte also execute as ts.)
-
-```tsx
-import { css } from "@plumeria/core";
-
-const styless = css.create({
-  responsive: {
-    ["@media (max-width: 768px)"]: {
-      scale: 0.8,
-    },
-  },
-});
 
 css.props(styless.responsive);
-```
+
 
 ## Usage Patterns
 

@@ -1,0 +1,5 @@
+{
+  "defaultOpen": true,
+  "title": "API reference",
+  "pages": ["create", "props", "keyframes", "viewTransition", "defineConsts", "defineTokens", "rx"]
+}

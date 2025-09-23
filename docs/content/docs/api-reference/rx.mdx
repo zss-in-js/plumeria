@@ -1,0 +1,32 @@
+---
+title: 'rx'
+description: 'API reference for the `rx` (React Expand) function, used for dynamic styling.'
+---
+
+Pass dynamic variables such as useState to static css variables from inline styles and reference the dynamic values from your static stylesheet.
+
+To use `rx`, pass your static `css.props()` result as the first argument, and an object of CSS variables as the second.
+## Example
+
+```ts title="Component.tsx"
+import { useState } from 'react';
+import { css, rx } from '@plumeria/core';
+
+const styles = css.create({
+  bar: {
+    width: 'var(--width)',
+    background: 'aqua',
+  },
+});
+
+export const Component = () => {
+  const [state, setState] = useState(0);
+  return (
+    <div {...rx(css.props(styles.bar), { '--width': state + 'px' })} />
+  )
+}
+```
+
+<Callout title="Use sparingly">
+`rx()` is powerful, but it comes with a small runtime cost due to inline styles. For styles that are not dynamic, prefer using static variants with `css.create()` and `css.props()` wherever possible.
+</Callout>
