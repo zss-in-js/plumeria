@@ -71,9 +71,7 @@ export class PlumeriaPlugin {
     const prev = this.stylesByFile.get(absPath) || {
       filePath,
       keyframeStyles: '',
-      varStyles: '',
-      themeStyles: '',
-      globalStyles: '',
+      tokenStyles: '',
       baseStyles: '',
     };
 
@@ -106,22 +104,19 @@ export class PlumeriaPlugin {
     );
 
     const keyframeStylesSet = new Set<string>();
-    const varStylesSet = new Set<string>();
-    const themeStylesSet = new Set<string>();
+    const tokenStylesSet = new Set<string>();
     const baseStylesSet = new Set<string>();
 
     for (const s of sortedStyles) {
       if (s.keyframeStyles?.trim().length > 0)
         keyframeStylesSet.add(s.keyframeStyles);
-      if (s.varStyles?.trim().length > 0) varStylesSet.add(s.varStyles);
-      if (s.themeStyles?.trim().length > 0) themeStylesSet.add(s.themeStyles);
+      if (s.tokenStyles?.trim().length > 0) tokenStylesSet.add(s.tokenStyles);
       if (s.baseStyles?.trim().length > 0) baseStylesSet.add(s.baseStyles);
     }
 
     return [
       ...Array.from(keyframeStylesSet),
-      ...Array.from(varStylesSet),
-      ...Array.from(themeStylesSet),
+      ...Array.from(tokenStylesSet),
       ...Array.from(baseStylesSet),
     ]
       .filter(Boolean)
