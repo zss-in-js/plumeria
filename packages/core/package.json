@@ -2,6 +2,7 @@
   "name": "@plumeria/core",
   "version": "0.18.4",
   "description": "A library for scalable and optimized styling.",
+  "author": "Refirst 11",
   "license": "MIT",
   "funding": "https://github.com/sponsors/refirst11",
   "homepage": "https://plumeria.dev",
