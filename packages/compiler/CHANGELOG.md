@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.19.0
+
+### Minor Changes
+
+- cebdf21: feat: updated compiler to recognize css.viewTransition
+
 ## 0.18.4
 
 ### Patch Changes

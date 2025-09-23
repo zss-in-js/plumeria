@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.19.0
+
+### Minor Changes
+
+- 3235957: feat: add viewTransition api binding rule
+
 ## 0.18.4
 
 ### Patch Changes
