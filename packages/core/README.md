@@ -30,76 +30,61 @@ import '@plumeria/core/stylesheet.css';
 
 ### css.create()
 
-Define a set of atomic styles:
-
 ```ts
 import { css } from '@plumeria/core';
 
 const styles = css.create({
   text: {
-    color: 'yellow', // zxxxxxx1
+    color: 'yellow',
   },
   box: {
-    width: '100%', // zxxxxxx2
-    background: 'rgb(60,60,60)', // zxxxxxx3
+    width: '100%',
+    background: 'rgb(60,60,60)',
   },
 });
+
+const className = css.props(styles.text, styles.box);
 ```
 
-### css.props()
+Plumeria compiles each style property into a unique, **atomic**, and **hashed** class name. This prevents style collisions and maximizes reusability.
 
-Use `css.props()` to combine multiple styles or switch between them conditionally.  
-css.props is compiled and style properties to the right take precedence.
+**Generated CSS:**
 
-```jsx
-<div className={css.props(styles.text, styles.box)} />
-//   className="zxxxxxx1 zxxxxxx2 zxxxxxx3"
+```css
+.xxr7afjw {
+  color: yellow;
+}
+.xq97ksf4 {
+  width: 100%;
+}
+.xk450ff8 {
+  background: rgb(60, 60, 60);
+}
 ```
 
-Shorthand and longhand property rules follow the same principles as CSS rules.
-
----
-
-It supports media query pseudo-classes and elements in a familiar syntax.
-
-```ts
-import { css } from '@plumeria/core';
-
-const styles = css.create({
-  box: {
-    '@media (max-width: 768px)': {
-      width: '100%',
-    },
-  },
-  text: {
-    color: '#333',
-    ':hover': {
-      color: 'skyblue',
-      opacity: 0.9,
-    },
-  },
-});
-```
-
-## ESLint Support
-
-The [@plumeria/eslint-plugin](https://www.npmjs.com/package/@plumeria/eslint-plugin) provides recommended rules:
-
-### Rules: recommended
+**Resulting:**
 
 ```
-- no-destructure: error
-- no-inner-call: error
-- no-unused-keys: warn
-- sort-properties: warn
-- validate-values: warn
+className: "xxr7afjw xq97ksf4 xk450ff8"
 ```
 
-It plugin provides autocomplete and validation support.
+## Documentation
+
+Read the [documentation](https://plumeria.dev/) for more details.
+
+## Integration
+
+- [Vite](https://plumeria.dev/docs/integration/vite)
+- [Next](https://plumeria.dev/docs/integration/next)
+- [Webpack](https://plumeria.dev/docs/integration/webpack)
+- [CLI](https://plumeria.dev/docs/integration/cli)
+- [ESLint](https://plumeria.dev/docs/integration/eslint)
 
 ## Acknowledgement
 
-Plumeria is made possible thanks to the valuable inspirations from the following projects:
+Plumeria is made possible thanks to the inspirations from the following projects:
+
+> in alphabetical order
 
 - [Linaria](https://linaria.dev/)
 - [React Native](https://reactnative.dev/docs/stylesheet)
@@ -110,4 +95,4 @@ Plumeria is made possible thanks to the valuable inspirations from the following
 
 ## License
 
-Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/LICENSE).
+[MIT](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) License &copy; 2023-PRESENT [Refirst 11](https://github.com/refirst11)
