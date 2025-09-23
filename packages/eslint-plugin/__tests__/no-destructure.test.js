@@ -9,8 +9,7 @@ ruleTester.run('no-destructure', rule, {
       code: 'const styles = css.create({})',
       code: 'css.props()',
       code: 'const breakpoints = css.defineConsts({})',
-      code: 'const tokens = css.defineVars({})',
-      code: 'const theme = css.defineTheme({})',
+      code: 'const tokens = css.defineTokens({})',
       code: 'const animate = css.keyframes({})',
       settings: {
         ecmaVersion: 2021,
@@ -67,11 +66,11 @@ ruleTester.run('no-destructure', rule, {
       },
     },
     {
-      code: 'const { defineVars } = css;',
+      code: 'const { defineTokens } = css;',
       errors: [
         {
           message:
-            'Do not destructure "defineVars" from "css". Use dot notation instead.',
+            'Do not destructure "defineTokens" from "css". Use dot notation instead.',
         },
       ],
       settings: {
@@ -79,19 +78,7 @@ ruleTester.run('no-destructure', rule, {
       },
     },
     {
-      code: 'const { defineTheme } = css;',
-      errors: [
-        {
-          message:
-            'Do not destructure "defineTheme" from "css". Use dot notation instead.',
-        },
-      ],
-      settings: {
-        ecmaVersion: 2021,
-      },
-    },
-    {
-      code: 'const { create, props, defineConsts, defineVars, defineTheme, keyframes } = css;',
+      code: 'const { create, props, defineConsts, defineTokens, keyframes } = css;',
       errors: [
         {
           message:
@@ -107,11 +94,7 @@ ruleTester.run('no-destructure', rule, {
         },
         {
           message:
-            'Do not destructure "defineVars" from "css". Use dot notation instead.',
-        },
-        {
-          message:
-            'Do not destructure "defineTheme" from "css". Use dot notation instead.',
+            'Do not destructure "defineTokens" from "css". Use dot notation instead.',
         },
         {
           message:

@@ -8,9 +8,7 @@ ruleTester.run('no-unused-keys', rule, {
     {
       code: 'const styles = { key: {} };',
       code: 'const styles = css.keyframes({ from: {}, to: {} })',
-      code: 'const styles = css.global({ html: {}, body: {} })',
-      code: 'const token = css.defineVars({ white: "white" })',
-      code: 'const theme = css.defineTheme({ primary: {} })',
+      code: 'const tokens = css.defineTokens({ primary: {} })',
       settings: {
         ecmaVersion: 2021,
       },
