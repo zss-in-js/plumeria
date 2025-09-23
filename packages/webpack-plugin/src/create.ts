@@ -1,7 +1,7 @@
 import type {
   CSSProperties,
   CreateStyleType,
-  CreateTheme,
+  CreateTokens,
   CreateValues,
   ReturnType,
 } from 'zss-engine';
@@ -122,7 +122,7 @@ const createVars = <const T extends CreateValues>(object: T) => {
   return styles;
 };
 
-const createTheme = <const T extends CreateTheme>(object: T) => {
+const createTokens = <const T extends CreateTokens>(object: T) => {
   const styles: Record<string, Record<string, string | number | object>> = {};
 
   Object.entries(object).forEach(([key, value]) => {
@@ -145,4 +145,4 @@ const createTheme = <const T extends CreateTheme>(object: T) => {
   return styles;
 };
 
-export { createCSS, createVars, createTheme };
+export { createCSS, createVars, createTokens };
