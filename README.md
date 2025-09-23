@@ -32,13 +32,13 @@ maximizes reusability.
 **Generated CSS:**
 
 ```css
-.z1p2jzyu {
+.x1p2jzyu {
   font-size: 12px;
 }
-.zzie71ek {
+.xzie71ek {
   color: navy;
 }
-.zgpw2mmc {
+.xgpw2mmc {
   width: 120px;
 }
 ```
@@ -46,7 +46,7 @@ maximizes reusability.
 **Resulting:**
 
 ```
-className: "z1p2jzyu zzie71ek zgpw2mmc"
+className: "x1p2jzyu xzie71ek xgpw2mmc"
 ```
 
 ## Structure
