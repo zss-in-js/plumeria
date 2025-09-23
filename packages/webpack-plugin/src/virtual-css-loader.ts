@@ -2,13 +2,11 @@ import type { LoaderContext, WebpackPluginInstance } from 'webpack';
 import type {
   CSSObject,
   ConstTable,
-  VariableTable,
   KeyframesHashTable,
   KeyframesObjectTable,
-  DefineVarsObjectTable,
-  DefineThemeObjectTable,
+  DefineTokensObjectTable,
   CSSValue,
-  ThemeTable,
+  TokensTable,
 } from './types';
 
 import {
@@ -21,9 +19,9 @@ import * as t from '@babel/types';
 
 import path from 'path';
 import fs from 'fs';
-import { createCSS, createTheme, createVars } from './create';
+import { createCSS, createTokens } from './create';
 import { globSync } from '@rust-gear/glob';
-import type { CreateTheme, CreateValues } from 'zss-engine';
+import type { CreateTokens } from 'zss-engine';
 import { genBase36Hash, transpile, camelToKebabCase } from 'zss-engine';
 
 interface PlumeriaPlugin extends WebpackPluginInstance {
@@ -39,27 +37,24 @@ const GLOB_OPTIONS = {
 };
 
 let constTable: ConstTable = {};
-let variableTable: VariableTable = {};
-let themeTable: ThemeTable = {};
+let tokensTable: TokensTable = {};
 
 let keyframesHashTable: KeyframesHashTable = {};
 let keyframesObjectTable: KeyframesObjectTable = {};
-let defineVarsObjectTable: DefineVarsObjectTable = {};
-let defineThemeObjectTable: DefineThemeObjectTable = {};
+let defineTokensObjectTable: DefineTokensObjectTable = {};
 
 function objectExpressionToObject(
   node: t.ObjectExpression,
   constTable: ConstTable,
   keyframesHashTable: KeyframesHashTable,
-  variableTable: VariableTable,
-  themeTable: ThemeTable,
+  tokensTable: TokensTable,
 ): CSSObject {
   const obj: CSSObject = {};
 
   node.properties.forEach((prop) => {
     if (!t.isObjectProperty(prop)) return;
 
-    const key = getPropertyKey(prop.key, constTable, variableTable);
+    const key = getPropertyKey(prop.key, constTable);
     if (!key) return;
 
     const val = prop.value;
@@ -73,17 +68,9 @@ function objectExpressionToObject(
         obj[key] = resolvedKeyframe;
         return;
       }
-      const resolvedVariable = resolveVariableTableMemberExpressionByNode(
+      const resolvedTheme = resolveTokensTableMemberExpressionByNode(
         val,
-        variableTable,
-      );
-      if (resolvedVariable !== undefined) {
-        obj[key] = resolvedVariable;
-        return;
-      }
-      const resolvedTheme = resolveThemeTableMemberExpressionByNode(
-        val,
-        themeTable,
+        tokensTable,
       );
       if (resolvedTheme !== undefined) {
         obj[key] = resolvedTheme;
@@ -104,8 +91,7 @@ function objectExpressionToObject(
         val,
         constTable,
         keyframesHashTable,
-        variableTable,
-        themeTable,
+        tokensTable,
       );
     } else if (t.isMemberExpression(val)) {
       const resolved = resolveConstTableMemberExpression(val, constTable);
@@ -146,7 +132,6 @@ function collectLocalConsts(ast: t.File): Record<string, string> {
 function getPropertyKey(
   node: t.Expression | t.PrivateName,
   constTable: ConstTable,
-  variableTable: VariableTable,
 ): string {
   if (t.isIdentifier(node)) {
     if (constTable[node.name] && typeof constTable[node.name] === 'string') {
@@ -162,11 +147,11 @@ function getPropertyKey(
   }
 
   if (t.isTemplateLiteral(node)) {
-    return evaluateTemplateLiteral(node, constTable, variableTable);
+    return evaluateTemplateLiteral(node, constTable);
   }
 
   if (t.isBinaryExpression(node)) {
-    return evaluateBinaryExpression(node, constTable, variableTable);
+    return evaluateBinaryExpression(node, constTable);
   }
 
   throw new Error(`Unsupported property key type: ${node.type}`);
@@ -175,7 +160,6 @@ function getPropertyKey(
 function evaluateTemplateLiteral(
   node: t.TemplateLiteral,
   constTable: ConstTable,
-  variableTable: VariableTable,
 ): string {
   let result = '';
 
@@ -187,7 +171,6 @@ function evaluateTemplateLiteral(
       const evaluatedExpr = evaluateExpression(
         expr as t.Expression,
         constTable,
-        variableTable,
       );
       result += String(evaluatedExpr);
     }
@@ -199,14 +182,9 @@ function evaluateTemplateLiteral(
 function evaluateBinaryExpression(
   node: t.BinaryExpression,
   constTable: ConstTable,
-  variableTable: VariableTable,
 ): string {
-  const left = evaluateExpression(
-    node.left as t.Expression,
-    constTable,
-    variableTable,
-  );
-  const right = evaluateExpression(node.right, constTable, variableTable);
+  const left = evaluateExpression(node.left as t.Expression, constTable);
+  const right = evaluateExpression(node.right, constTable);
 
   if (node.operator === '+') {
     return String(left) + String(right);
@@ -218,7 +196,6 @@ function evaluateBinaryExpression(
 function evaluateExpression(
   node: t.Expression,
   constTable: ConstTable,
-  variableTable: VariableTable,
 ): string | number | boolean | null | CSSObject {
   if (t.isStringLiteral(node)) {
     return node.value;
@@ -254,17 +231,9 @@ function evaluateExpression(
       return resolved;
     }
 
-    const resolvedVar = resolveVariableTableMemberExpressionByNode(
+    const resolvedTheme = resolveTokensTableMemberExpressionByNode(
       node,
-      variableTable,
-    );
-    if (resolvedVar !== undefined) {
-      return resolvedVar;
-    }
-
-    const resolvedTheme = resolveThemeTableMemberExpressionByNode(
-      node,
-      themeTable,
+      tokensTable,
     );
     if (resolvedTheme !== undefined) {
       return resolvedTheme;
@@ -274,11 +243,11 @@ function evaluateExpression(
   }
 
   if (t.isBinaryExpression(node)) {
-    return evaluateBinaryExpression(node, constTable, variableTable);
+    return evaluateBinaryExpression(node, constTable);
   }
 
   if (t.isTemplateLiteral(node)) {
-    return evaluateTemplateLiteral(node, constTable, variableTable);
+    return evaluateTemplateLiteral(node, constTable);
   }
 
   if (t.isUnaryExpression(node)) {
@@ -338,17 +307,15 @@ function resolveConstTableMemberExpression(
   return undefined;
 }
 
-function resolveVariableTableMemberExpressionByNode(
+function resolveTokensTableMemberExpressionByNode(
   node: t.Identifier | t.MemberExpression,
-  variableTable: VariableTable,
+  tokensTable: TokensTable,
   asObject: boolean = false,
 ): CSSValue | undefined {
-  // Two processes: single variable and chain variable
   if (t.isIdentifier(node)) {
-    if (asObject && typeof variableTable[node.name] === 'object') {
-      return { ...variableTable[node.name] };
+    if (asObject && typeof tokensTable[node.name] === 'object') {
+      return { ...tokensTable[node.name] };
     }
-
     const cssVarName = camelToKebabCase(node.name);
     return `var(--${cssVarName})`;
   }
@@ -363,43 +330,11 @@ function resolveVariableTableMemberExpressionByNode(
     }
     if (
       key &&
-      variableTable[varName] &&
-      variableTable[varName][key] !== undefined
+      tokensTable[varName] &&
+      tokensTable[varName][key] !== undefined
     ) {
       if (asObject) {
-        return { [key]: variableTable[varName][key] };
-      }
-      const cssVarName = camelToKebabCase(key);
-      return `var(--${cssVarName})`;
-    }
-  }
-  return undefined;
-}
-
-function resolveThemeTableMemberExpressionByNode(
-  node: t.Identifier | t.MemberExpression,
-  themeTable: ThemeTable,
-  asObject: boolean = false,
-): CSSValue | undefined {
-  if (t.isIdentifier(node)) {
-    if (asObject && typeof themeTable[node.name] === 'object') {
-      return { ...themeTable[node.name] };
-    }
-    const cssVarName = camelToKebabCase(node.name);
-    return `var(--${cssVarName})`;
-  }
-  // The MemberExpression part also branches
-  if (t.isMemberExpression(node) && t.isIdentifier(node.object)) {
-    const varName = node.object.name;
-    let key: string | undefined;
-    if (t.isIdentifier(node.property)) {
-      key = node.property.name;
-    } else if (t.isStringLiteral(node.property)) {
-      key = node.property.value;
-    }
-    if (key && themeTable[varName] && themeTable[varName][key] !== undefined) {
-      if (asObject) {
-        return { [key]: themeTable[varName][key] };
+        return { [key]: tokensTable[varName][key] };
       }
       const cssVarName = camelToKebabCase(key);
       return `var(--${cssVarName})`;
@@ -454,8 +389,7 @@ function scanForDefineConsts(this: LoaderContext<unknown>): ConstTable {
             decl.init.arguments[0],
             constTableLocal,
             keyframesHashTable,
-            variableTable,
-            themeTable,
+            tokensTable,
           );
           constTableLocal[varName] = obj;
         }
@@ -515,8 +449,7 @@ function scanForKeyframes(this: LoaderContext<unknown>): {
             decl.init.arguments[0],
             constTable,
             keyframesHashTableLocal,
-            variableTable,
-            themeTable,
+            tokensTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
 
@@ -533,78 +466,16 @@ function scanForKeyframes(this: LoaderContext<unknown>): {
   };
 }
 
-function scanForDefineVars(this: LoaderContext<unknown>): {
-  variableTableLocal: VariableTable;
-  defineVarsObjectTableLocal: DefineVarsObjectTable;
+function scanForDefineTokens(this: LoaderContext<unknown>): {
+  tokensTableLocal: Record<string, Record<string, any>>;
+  defineTokensObjectTableLocal: Record<string, any>;
 } {
-  const variableTableLocal: VariableTable = {};
-  const defineVarsObjectTableLocal: DefineVarsObjectTable = {};
+  const tokensTableLocal: Record<string, Record<string, any>> = {};
+  const defineTokensObjectTableLocal: Record<string, any> = {};
   const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
-    if (!isCSSDefineFile(filePath, 'defineVars')) continue;
-    this.addDependency(filePath);
-
-    const source = fs.readFileSync(filePath, 'utf8');
-    const ast = parseSync(source, {
-      sourceType: 'module',
-      presets: [
-        ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-      ],
-    });
-
-    if (!ast) continue;
-
-    for (const node of ast.program.body as t.Statement[]) {
-      let declarations: t.VariableDeclarator[] = [];
-      if (t.isVariableDeclaration(node)) {
-        declarations = node.declarations;
-      } else if (
-        t.isExportNamedDeclaration(node) &&
-        node.declaration &&
-        t.isVariableDeclaration(node.declaration)
-      ) {
-        declarations = node.declaration.declarations;
-      }
-
-      for (const decl of declarations) {
-        if (
-          t.isVariableDeclarator(decl) &&
-          t.isIdentifier(decl.id) &&
-          t.isCallExpression(decl.init) &&
-          t.isMemberExpression(decl.init.callee) &&
-          t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
-          t.isIdentifier(decl.init.callee.property, { name: 'defineVars' }) &&
-          t.isObjectExpression(decl.init.arguments[0])
-        ) {
-          const varName = decl.id.name;
-          const obj = objectExpressionToObject(
-            decl.init.arguments[0],
-            constTable,
-            keyframesHashTable,
-            variableTableLocal,
-            themeTable,
-          );
-          variableTableLocal[varName] = obj;
-          defineVarsObjectTableLocal[varName] = obj;
-        }
-      }
-    }
-  }
-
-  return { variableTableLocal, defineVarsObjectTableLocal };
-}
-
-function scanForDefineTheme(this: LoaderContext<unknown>): {
-  themeTableLocal: Record<string, Record<string, any>>;
-  defineThemeObjectTableLocal: Record<string, any>;
-} {
-  const themeTableLocal: Record<string, Record<string, any>> = {};
-  const defineThemeObjectTableLocal: Record<string, any> = {};
-  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
-
-  for (const filePath of files) {
-    if (!isCSSDefineFile(filePath, 'defineTheme')) continue;
+    if (!isCSSDefineFile(filePath, 'defineTokens')) continue;
     this.addDependency(filePath);
     const source = fs.readFileSync(filePath, 'utf8');
     const ast = parseSync(source, {
@@ -635,7 +506,7 @@ function scanForDefineTheme(this: LoaderContext<unknown>): {
           t.isCallExpression(decl.init) &&
           t.isMemberExpression(decl.init.callee) &&
           t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
-          t.isIdentifier(decl.init.callee.property, { name: 'defineTheme' }) &&
+          t.isIdentifier(decl.init.callee.property, { name: 'defineTokens' }) &&
           t.isObjectExpression(decl.init.arguments[0])
         ) {
           const varName = decl.id.name;
@@ -643,17 +514,16 @@ function scanForDefineTheme(this: LoaderContext<unknown>): {
             decl.init.arguments[0],
             constTable,
             keyframesHashTable,
-            variableTable,
-            themeTableLocal,
+            tokensTableLocal,
           );
-          themeTableLocal[varName] = obj;
-          defineThemeObjectTableLocal[varName] = obj;
+          tokensTableLocal[varName] = obj;
+          defineTokensObjectTableLocal[varName] = obj;
         }
       }
     }
   }
 
-  return { themeTableLocal, defineThemeObjectTableLocal };
+  return { tokensTableLocal, defineTokensObjectTableLocal };
 }
 
 function isCSSDefineFile(filePath: string, target: string): boolean {
@@ -708,16 +578,11 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   keyframesHashTable = keyframesHashTableLocal;
   keyframesObjectTable = keyframesObjectTableLocal;
 
-  const { variableTableLocal, defineVarsObjectTableLocal } =
-    scanForDefineVars.call(this);
+  const { tokensTableLocal, defineTokensObjectTableLocal } =
+    scanForDefineTokens.call(this);
 
-  const { themeTableLocal, defineThemeObjectTableLocal } =
-    scanForDefineTheme.call(this);
-
-  variableTable = variableTableLocal;
-  themeTable = themeTableLocal;
-  defineVarsObjectTable = defineVarsObjectTableLocal;
-  defineThemeObjectTable = defineThemeObjectTableLocal;
+  tokensTable = tokensTableLocal;
+  defineTokensObjectTable = defineTokensObjectTableLocal;
 
   let extractedObject: CSSObject | null = null;
   let ast;
@@ -756,8 +621,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               args[0],
               constTable,
               keyframesHashTable,
-              variableTable,
-              themeTable,
+              tokensTable,
             );
           }
         }
@@ -787,21 +651,11 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
       .join('\n');
   }
 
-  if (Object.keys(defineVarsObjectTable).length > 0) {
-    fileStyles.varStyles = Object.values(defineVarsObjectTable)
+  if (Object.keys(defineTokensObjectTable).length > 0) {
+    fileStyles.tokenStyles = Object.values(defineTokensObjectTable)
       .map(
         (obj) =>
-          transpile(createVars(obj as CreateValues), undefined, '--global')
-            .styleSheet,
-      )
-      .join('\n');
-  }
-
-  if (Object.keys(defineThemeObjectTable).length > 0) {
-    fileStyles.themeStyles = Object.values(defineThemeObjectTable)
-      .map(
-        (obj) =>
-          transpile(createTheme(obj as CreateTheme), undefined, '--global')
+          transpile(createTokens(obj as CreateTokens), undefined, '--global')
             .styleSheet,
       )
       .join('\n');
