@@ -1,18 +1,17 @@
-/* eslint-disable @plumeria/validate-values */
 import { css } from '../dist/index.js';
 
-const result = css.defineVars({
-  fontSize: '',
-  textAlign: '',
-  testPrimary222HtmlTest: '',
-  HTML222Test: '',
-  HTMLTest: '',
-  HTML2HTMLTest: '',
-  HTML2: '',
-  test2Test: '',
-  testHTMLTest: '',
-  testHTML2Test: '',
-  testAPIResponse: '',
+const result = css.defineTokens({
+  fontSize: {},
+  textAlign: {},
+  testPrimary222HtmlTest: {},
+  HTML222Test: {},
+  HTMLTest: {},
+  HTML2HTMLTest: {},
+  HTML2: {},
+  test2Test: {},
+  testHTMLTest: {},
+  testHTML2Test: {},
+  testAPIResponse: {},
 });
 
 test('cx returns a string', () => {
