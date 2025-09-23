@@ -1,0 +1,93 @@
+---
+title: 'viewTransition'
+description: 'API reference for the `viewTransition` method'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+Use this when you want to customize the default cross-fade of a View Transition. It returns a unique `view-transition-name`.
+
+## Example
+
+<Tabs items={["tsx", "css"]}>
+  <Tab>
+    ```ts title="TypeScript"
+    import { css } from '@plumeria/core';
+
+    const fadeIn = css.keyframes({
+      from: { opacity: 0 },
+      to: { opacity: 1 },
+    });
+
+    const fadeOut = css.keyframes({
+      from: { opacity: 1 },
+      to: { opacity: 0 },
+    });
+
+    const longCrossFade = css.viewTransition({
+      old: {
+        animationName: fadeOut,
+        animationDuration: '1.2s',
+      },
+      new: {
+        animationName: fadeIn,
+        animationDuration: '1.2s',
+      },
+    });
+
+    export const transition = css.create({
+      name: {
+        viewTransitionName: longCrossFade,
+      },
+    });
+    ```
+  </Tab>
+  <Tab>
+    ```css title="CSS"
+    /* The keyframes for fadeIn and fadeOut are also generated */
+    @keyframes kf-xa1rkjwc {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes kf-x1b77wlr {
+      from {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+      }
+    }
+
+    ::view-transition-old(vt-x164pf11) {
+      animation: 1.2s ease-in-out kf-x1b77wlr; /* from fadeOut */
+    }
+
+    ::view-transition-new(vt-x164pf11) {
+      animation: 1.2s ease-in-out kf-xa1rkjwc; /* from fadeIn */
+    }
+    ```
+  </Tab>
+</Tabs>
+
+```jsx  title="React ViewTransition"
+import { unstable_ViewTransition as ViewTransition } from 'react';
+
+<ViewTransition name={transition.name}>
+  {/* ... */}
+</ViewTransition>
+```
+
+```jsx  title="Next next-link-transitions"
+import { Link } from 'next-link-transitions';
+
+<Link href={href} viewTransitionName={transition.name}>
+  {name}
+</Link>
+```
