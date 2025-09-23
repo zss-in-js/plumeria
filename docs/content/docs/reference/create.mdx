@@ -16,49 +16,59 @@ Even when used repeatedly, it has almost no impact on CSS bundle size.
 
 ## Example
 
-<Tabs items={['tsx', 'css']}>
-  <Tab>
+**Input (e.g., your component file):**
 
 ```tsx title="TypeScript"
 import { css } from '@plumeria/core'
 
 const styles = css.create({
   container: {
-    display: 'flex', // zxxxxxx1
-    justifyContent: 'space-between', // zxxxxxx2
+    display: 'flex',
+    justifyContent: 'space-between',
   },
   text: {
-    fontSize: '14px', // zxxxxxx3
-    textDecoration: 'none', // zxxxxxx4
+    fontSize: '14px',
+    textDecoration: 'none',
   },
 })
+
+// css.props combines styles into a single className string
+const className = css.props(styles.container, styles.text)
 ```
-</Tab>
-<Tab>
-```css title="css"
-.container_ibxiag {
+
+**Output:**
+
+Plumeria compiles each style property into a unique, **atomic**, and **hashed** class name. This prevents style collisions and maximizes reusability.
+
+**Generated CSS:**
+
+```css
+.z1x6w4y4 {
   display: flex;
+}
+.z1hayll7 {
   justify-content: space-between;
 }
-.text_ibxiag {
+.z17c3vyy {
   font-size: 14px;
+}
+.zhjydpd0 {
   text-decoration: none;
 }
 ```
-</Tab>
-</Tabs>
 
-## Usage
+**Resulting:**
 
-```jsx title="JSX"
-<div className={css.props(styles.container, styles.text)}>text</div> // object to string
-//   className="zxxxxxx1 zxxxxxx2 zxxxxxx3 zxxxxxx4"
+```
+className: "z1x6w4y4 z1hayll7 z17c3vyy zhjydpd0"
 ```
 
 <Cards>
   <Card title="See more about css.props" href="/docs/reference/props" />
 </Cards>
 
-## Circular references
+
+<Callout title="Circular references">
 If modules reference each other circularly, the compiler will fail to compile them correctly.
 This design encourages a local, linear style structure that's easier to understand, faster to compile, and less error-prone across large codebases and bundlers like **rscute**.
+</Callout>
