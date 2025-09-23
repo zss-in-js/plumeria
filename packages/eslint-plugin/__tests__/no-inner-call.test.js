@@ -10,6 +10,7 @@ ruleTester.run('no-inner-call', rule, {
     {
       code: 'css.create();',
       code: 'css.keyframes();',
+      code: 'css.viewTransition();',
       code: 'css.defineConsts();',
       code: 'css.defineTokens();',
       code: 'const styles = css.create();',
@@ -30,6 +31,11 @@ ruleTester.run('no-inner-call', rule, {
     {
       code: '(() => { css.keyframes(); })();',
       errors: [{ message: 'Do not use css.keyframes inside functions' }],
+      ...settings,
+    },
+    {
+      code: '(() => { css.viewTransition(); })();',
+      errors: [{ message: 'Do not use css.viewTransition inside functions' }],
       ...settings,
     },
     {
