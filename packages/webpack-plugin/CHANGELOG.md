@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.19.0
+
+### Minor Changes
+
+- f526084: feat: removed old API functions and supported viewTransition
+
 ## 0.18.4
 
 ### Patch Changes

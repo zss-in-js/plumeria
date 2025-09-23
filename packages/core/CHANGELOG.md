@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.19.0
+
+### Minor Changes
+
+- 77589dc: feat: added viewTransition and defineVars was removed and defineTheme was renamed to defineTokens
+
 ## 0.18.4
 
 ### Patch Changes
