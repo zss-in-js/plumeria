@@ -1,0 +1,98 @@
+---
+title: 'defineTokens'
+description: 'API reference for the `defineTokens` method'
+---
+
+`defineTokens` is a method for defining CSS variables for each theme.
+
+## Usage
+
+
+
+### Import
+
+```ts
+import { css } from '@plumeria/core'
+```
+
+### Define Tokens
+
+Define the tokens using `css.defineTokens`.
+
+```ts
+export const theme = css.defineTokens({
+  colors: {
+    default: 'black',
+    dark: 'white'
+  },
+  bg: {
+    default: 'white',
+    dark: 'black'
+  }
+})
+```
+
+This will generate the following CSS
+
+```css
+:root {
+  --colors: black;
+  --bg: white;
+}
+
+[data-theme="dark"] {
+  --colors: white;
+  --bg: black;
+}
+```
+
+### Using Themes
+
+To use themes, you need to add the `data-theme` attribute to the root element.
+
+```tsx
+<html data-theme="dark">
+  <body>
+    ...
+  </body>
+</html>
+```
+
+
+
+## Media Queries
+
+`defineTokens` can also be used with media queries.
+
+```ts
+export const theme = css.defineTokens({
+  colors: {
+    default: 'black',
+    dark: 'white',
+    '@media (prefers-color-scheme: dark)': 'white'
+  }
+})
+```
+
+This will generate the following CSS
+
+```css
+:root {
+  --colors: black;
+}
+
+[data-theme="dark"] {
+  --colors: white;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --colors: white;
+  }
+}
+```
+
+
+<Callout title="Good to know">
+`defineTokens` is not compiled until the variable is used.
+</Callout >
