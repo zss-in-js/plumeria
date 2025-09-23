@@ -9,7 +9,7 @@ The `defineConsts` function defines **static constant values** (not CSS variable
 
 It is useful for creating values such as **breakpoints**, spacing scales, or other fixed design constants that don't rely on CSS variable resolution.
 
-## Example: Creating breakpoints
+## Example
 
 ```ts title="TypeScript"
 // lib/mediaQuery.ts
@@ -41,16 +41,7 @@ export const styles = css.create({
   },
 });
 ```
-You can use these constants for any static keys inside styles or themes.
-
-## Type enforcement
-
-- Enforces **as const** automatically
-- Restricts to **string | number** values only
-- Disallows object **nesting**
-- Produces a **readonly** type automatically
-
-This helps reduce bugs and keeps your design tokens **predictable**.
+You can use these constants for any static keys inside styles or tokens.
 
 <Callout title="Good to know">
   When using RSC with Next.js etc., webpack-plugin is used inside next-plugin, and variables are AST analyzed and inlined.

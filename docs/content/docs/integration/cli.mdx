@@ -1,16 +1,30 @@
 ---
-title: 'css'
-description:  'API reference for the `css` command'
+title: 'CLI'
+description: 'Learn more about @plumeria/compiler.'
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-<Cards>
-  <Card title="See more about @plumeria/compiler package" href="/docs/reference/compiler" />
-</Cards>
+It is the plumeria [Compiler `@plumeria/compiler` package](https://www.npmjs.com/package/@plumeria/compiler).  
+A Rust-based compiler with static extraction in the style of Plumeria.
+## Installation
 
-Run compile the plumeria styles, easily integrated into framework build process.  
-The `@plumeria/compiler` package is required to run commands.
-
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i --save-dev @plumeria/compiler
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/compiler
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i --save-dev @plumeria/compiler
+```
+</Tab>
+</Tabs>
 
 ### Overview
 <Tabs items={['npm', 'pnpm']}>
@@ -50,37 +64,22 @@ npx css --view
 ```
 Example output:
 ```sh title="Terminal"
-defines💫:
+props💫:
 
-@keyframes zkwt3li4 {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-defines💫:
-
-@keyframes z19rro1a {
-  from {
-    transform: rotateY(0deg) rotateX(0deg);
-  }
-  to {
-    transform: rotateY(360deg) rotateX(90deg);
-  }
-}
+.x1dc3zs0 { color: orange; }
 
 props💫:
 
-.z7akbr5w { width: 800px; }
-.z1pokn5x { padding-inline: 24px; }
-.z16ywczg { padding-top: 24px; }
-.zaibf17c { margin-inline: auto; }
-.z105dlb5 { margin-bottom: 40px; }
-.z1ka58ui { line-height: 1.7; }
-@media (max-width: 768px) { .z1rzn8t7 { width: 100%; } }
+.x13vu618 { color: pink; }
+@media (max-width: 1024px) { .x15qdpgc { color: aqua; } }
+
+props💫:
+
+.x1x6w4y4 { font-size: 14px; }
+
+props💫:
+
+.x1f4cjxk { color: green; }
 
  ✓ Compiled... 
 ```
@@ -92,9 +91,6 @@ npx css --paths
 ```
 Example output:
 ```sh title="Terminal"
-app/(home)/global.ts
-app/layout.config.tsx
-app/not-found.tsx
 component/CodeBlock.tsx
 component/HomeComponent.tsx
 component/Plumeria.tsx
@@ -111,3 +107,10 @@ npx css --type-check
 ```sh
  ✓ Compiled... Type-check completed
 ```
+
+
+
+
+<Cards>
+  <Card title="See more about Installation" href="/docs/getting-started/installation" />
+</Cards>

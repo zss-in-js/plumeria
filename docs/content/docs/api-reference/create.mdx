@@ -11,12 +11,10 @@ It is **type-safe keys**, **compile-time validation**, and **scoped class names*
 Only the styles you use in `css.props()` will be compiled.
 
 <Callout title="Atomic API">
-Even when used repeatedly, it has almost no impact on CSS bundle size.
+Unique atom classes are reused without duplication, keeping the amount of class names constant.
 </Callout>
 
 ## Example
-
-**Input (e.g., your component file):**
 
 ```tsx title="TypeScript"
 import { css } from '@plumeria/core'
@@ -62,11 +60,6 @@ Plumeria compiles each style property into a unique, **atomic**, and **hashed** 
 ```
 className: "x1x6w4y4 x1hayll7 x17c3vyy xhjydpd0"
 ```
-
-<Cards>
-  <Card title="See more about css.props" href="/docs/reference/props" />
-</Cards>
-
 
 <Callout title="Circular references">
 If modules reference each other circularly, the compiler will fail to compile them correctly.
