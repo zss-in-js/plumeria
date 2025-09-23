@@ -13,16 +13,40 @@ import { css } from '@plumeria/core';
 
 const styles = css.create({
   text: {
-    fontSize: 12, // zxxxxxx1
-    color: 'navy', // zxxxxxx2
+    fontSize: 12,
+    color: 'navy',
   },
   size: {
-    width: 120, // zxxxxxx3
+    width: 120,
   },
 });
 
 const className = css.props(styles.text, styles.size);
-// className is "zxxxxxx1 zxxxxxx2 zxxxxxx3"
+```
+
+**Output:**
+
+Plumeria compiles each style property into a unique, **atomic**, and **hashed** class name. This prevents style collisions and
+maximizes reusability.
+
+**Generated CSS:**
+
+```css
+.z1p2jzyu {
+  font-size: 12px;
+}
+.zzie71ek {
+  color: navy;
+}
+.zgpw2mmc {
+  width: 120px;
+}
+```
+
+**Resulting:**
+
+```
+className: "z1p2jzyu zzie71ek zgpw2mmc"
 ```
 
 ## Structure
