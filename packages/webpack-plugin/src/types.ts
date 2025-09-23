@@ -21,4 +21,6 @@ export type VariableTable = Record<string, CSSObject>; // varName -> object
 export type TokensTable = Record<string, CSSObject>; // varName -> object
 export type KeyframesHashTable = Record<string, string>; // varName -> hash
 export type KeyframesObjectTable = Record<string, CSSObject>; // hashKey: { string: { string: string | number }, ... }
+export type ViewTransitionHashTable = Record<string, string>; // varName -> hash
+export type ViewTransitionObjectTable = Record<string, CSSObject>; // hashKey: { new: { string: string| number }, old: { string: string| number } }
 export type DefineTokensObjectTable = Record<string, CSSObject>; // { string: { varName: { varName: value }, ... } }
