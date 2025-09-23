@@ -51,6 +51,7 @@ module.exports = {
               if (
                 propertyName === 'create' ||
                 propertyName === 'keyframes' ||
+                propertyName === 'viewTransition' ||
                 propertyName.startsWith('define')
               ) {
                 context.report({
