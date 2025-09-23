@@ -32,9 +32,10 @@ module.exports = {
             if (
               prop.type === 'Property' &&
               prop.key.type === 'Identifier' &&
-              (prop.key.name.startsWith('create') ||
-                prop.key.name.startsWith('props') ||
-                prop.key.name.startsWith('keyframes') ||
+              (prop.key.name === 'create' ||
+                prop.key.name === 'props' ||
+                prop.key.name === 'keyframes' ||
+                prop.key.name === 'viewTransition' ||
                 prop.key.name.startsWith('define'))
             ) {
               context.report({
