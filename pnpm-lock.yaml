@@ -459,8 +459,8 @@ importers:
   packages/core:
     dependencies:
       zss-engine:
-        specifier: 0.2.87
-        version: 0.2.87
+        specifier: 0.2.88
+        version: 0.2.88
 
   packages/eslint-plugin:
     devDependencies:
@@ -509,8 +509,8 @@ importers:
         specifier: ^5.101.0
         version: 5.101.3
       zss-engine:
-        specifier: ^0.2.87
-        version: 0.2.87
+        specifier: ^0.2.88
+        version: 0.2.88
 
   test-e2e/site:
     dependencies:
@@ -7764,8 +7764,8 @@ packages:
   zod@4.1.8:
     resolution: {integrity: sha512-5R1P+WwQqmmMIEACyzSvo4JXHY5WiAFHRMg+zBZKgKS+Q1viRa0C1hmUKtHltoIFKtIdki3pRxkmpP74jnNYHQ==}
 
-  zss-engine@0.2.87:
-    resolution: {integrity: sha512-N54o9tcwVCu68+0c687UKcYr0CLaP69tYl+RMBBnRdkRw8Iy40mEFKq+tPgbfTbRIxcbnG0w4jmQypRJwkWRlQ==}
+  zss-engine@0.2.88:
+    resolution: {integrity: sha512-fwi9YtdLSyPDpq6zk7oJsdEy9tbKzN+yHzn5JB1Q6IirAypdIimtFGN/R7xU0Oj3viFORe6TWCHlY7tk3MDzAQ==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -16683,7 +16683,7 @@ snapshots:
 
   zod@4.1.8: {}
 
-  zss-engine@0.2.87:
+  zss-engine@0.2.88:
     dependencies:
       csstype: 3.1.3
 
