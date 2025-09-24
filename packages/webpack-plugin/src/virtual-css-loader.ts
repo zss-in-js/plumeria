@@ -782,6 +782,12 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
         ([hash, obj]) =>
           transpile(
             {
+              [`::view-transition-group(vt-${hash})`]: (
+                obj as ViewTransitionOptions
+              ).group,
+              [`::view-transition-image-pair(vt-${hash})`]: (
+                obj as ViewTransitionOptions
+              ).imagePair,
               [`::view-transition-old(vt-${hash})`]: (
                 obj as ViewTransitionOptions
               ).old,
