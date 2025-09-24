@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.19.2
+
+### Patch Changes
+
+- f0d3023: feat: zss-engine@latest update
+
 ## 0.19.1
 
 ### Patch Changes
