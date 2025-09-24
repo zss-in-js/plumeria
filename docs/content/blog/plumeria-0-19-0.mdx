@@ -1,0 +1,64 @@
+---
+title: 'Plumeria 0.19.0'
+description: 'Plumeria 0.19.0 introduces new APIs and some API changes. (2 min read)'
+date: '2025/09/12'
+---
+
+## New features
+### API: `viewTransition`
+Can be used to customize CSS view transitions.  
+Returns a unique string value to assign to `view-transition-name`.
+```ts title="TypeScript"
+type ViewTransitionOptions = {
+  group: CSSProperties;
+  imagePair: CSSProperties;
+  new: CSSProperties;
+  old: CSSProperties;
+};
+ 
+function viewTransition(options: ViewTransitionOptions): string;
+```
+
+```tsx
+import { css } from '@plumeria/core';
+
+const fadeOut = css.keyframes({
+  to: { opacity: 0 },
+});
+
+const fadeIn = css.keyframes({
+  from: { opacity: 0 },
+});
+
+const longCrossFade = css.viewTransition({
+  old: {
+    animation: fadeOut,
+    animationDuration: '2s',
+  },
+  new: {
+    animation: fadeIn,
+    animationDuration: '2s',
+  },
+});
+
+export const transition = css.create({
+  name: {
+    viewTransitionName: longCrossFade,
+  },
+});
+
+<ViewTransition name={transition.name}>
+  {/* ... */}
+</ViewTransition>
+```
+
+## Changes
+- defineVars has been removed because it was also defined by defineTheme.
+- defineTheme has been changed to name defineTokens.
+
+※ The properties `group` and `imagePair` were added in **v0.19.1**.
+
+<Cards>
+  <Card title="API reference viewTransition" href="/docs/api-reference/viewTransition" description="Learn more about the viewTransition" />
+  <Card title="API reference defineTokens" href="/docs/api-reference/defineTokens" description="Learn more about the defineTokens" />
+</Cards>
