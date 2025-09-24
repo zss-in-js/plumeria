@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.19.1
+
+### Patch Changes
+
+- 33783c2: feat: add view-transition-group and view-transition-image-pair
+
 ## 0.19.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.19.1
+
+### Patch Changes
+
+- f5eb6c7: feat: version bump only
+
 ## 0.19.0
 
 ### Minor Changes
