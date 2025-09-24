@@ -7,6 +7,8 @@ const viewTransition = (object: ViewTransitionOptions): string => {
   const transitionName = `vt-${hash}`;
 
   global({
+    [`::view-transition-group(${transitionName})`]: object.group,
+    [`::view-transition-image-pair(${transitionName})`]: object.imagePair,
     [`::view-transition-old(${transitionName})`]: object.old,
     [`::view-transition-new(${transitionName})`]: object.new,
   });
