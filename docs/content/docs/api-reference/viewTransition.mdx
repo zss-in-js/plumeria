@@ -7,6 +7,17 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 Use this when you want to customize the default cross-fade of a View Transition. It returns a unique `view-transition-name`.
 
+```ts
+type ViewTransitionOptions = {
+  group: CSSProperties;
+  imagePair: CSSProperties;
+  new: CSSProperties;
+  old: CSSProperties;
+};
+
+function viewTransition(options: ViewTransitionOptions): string;
+```
+
 ## Example
 
 <Tabs items={["tsx", "css"]}>
