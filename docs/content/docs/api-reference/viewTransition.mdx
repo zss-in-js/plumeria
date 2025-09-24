@@ -9,10 +9,10 @@ Use this when you want to customize the default cross-fade of a View Transition.
 
 ```ts
 type ViewTransitionOptions = {
-  group: CSSProperties;
-  imagePair: CSSProperties;
-  new: CSSProperties;
-  old: CSSProperties;
+  group?: CSSProperties;
+  imagePair?: CSSProperties;
+  new?: CSSProperties;
+  old?: CSSProperties;
 };
 
 function viewTransition(options: ViewTransitionOptions): string;
