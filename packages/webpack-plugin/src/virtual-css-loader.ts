@@ -23,7 +23,7 @@ import path from 'path';
 import fs from 'fs';
 import { createCSS, createTokens } from './create';
 import { globSync } from '@rust-gear/glob';
-import type { CreateTokens, ViewTransitionOptions } from 'zss-engine';
+import type { CreateTokens, CSSProperties } from 'zss-engine';
 import { genBase36Hash, transpile, camelToKebabCase } from 'zss-engine';
 
 interface PlumeriaPlugin extends WebpackPluginInstance {
@@ -782,18 +782,12 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
         ([hash, obj]) =>
           transpile(
             {
-              [`::view-transition-group(vt-${hash})`]: (
-                obj as ViewTransitionOptions
-              ).group,
-              [`::view-transition-image-pair(vt-${hash})`]: (
-                obj as ViewTransitionOptions
-              ).imagePair,
-              [`::view-transition-old(vt-${hash})`]: (
-                obj as ViewTransitionOptions
-              ).old,
-              [`::view-transition-new(vt-${hash})`]: (
-                obj as ViewTransitionOptions
-              ).new,
+              [`::view-transition-group(vt-${hash})`]:
+                obj.group as CSSProperties,
+              [`::view-transition-image-pair(vt-${hash})`]:
+                obj.imagePair as CSSProperties,
+              [`::view-transition-old(vt-${hash})`]: obj.old as CSSProperties,
+              [`::view-transition-new(vt-${hash})`]: obj.new as CSSProperties,
             },
             undefined,
             '--global',
