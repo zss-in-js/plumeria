@@ -10,10 +10,10 @@ Can be used to customize CSS view transitions.
 Returns a unique string value to assign to `view-transition-name`.
 ```ts title="TypeScript"
 type ViewTransitionOptions = {
-  group: CSSProperties;
-  imagePair: CSSProperties;
-  new: CSSProperties;
-  old: CSSProperties;
+  group?: CSSProperties;
+  imagePair?: CSSProperties;
+  new?: CSSProperties;
+  old?: CSSProperties;
 };
  
 function viewTransition(options: ViewTransitionOptions): string;
@@ -56,7 +56,7 @@ export const transition = css.create({
 - defineVars has been removed because it was also defined by defineTheme.
 - defineTheme has been changed to name defineTokens.
 
-※ The properties `group` and `imagePair` were added in **v0.19.1**.
+※ The properties `group` and `imagePair` were officially added in **v0.19.2**.
 
 <Cards>
   <Card title="API reference viewTransition" href="/docs/api-reference/viewTransition" description="Learn more about the viewTransition" />
