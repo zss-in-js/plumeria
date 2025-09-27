@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.19.3
+
+### Patch Changes
+
+- c59e25b: refactor: the language has changed from JS to TypeScript and default export has been changed to named export
+
 ## 0.19.2
 
 ### Patch Changes
