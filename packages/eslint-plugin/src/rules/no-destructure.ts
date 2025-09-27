@@ -3,15 +3,16 @@
  * Compatible with eslint 8 and below or 9 and above
  */
 
-'use strict';
+import { ESLintUtils } from '@typescript-eslint/utils';
 
-/** @type {import('eslint').Rule.RuleModule} */
-module.exports = {
+const createRule = ESLintUtils.RuleCreator((name) => name);
+
+export const noDestructure = createRule({
+  name: 'no-destructure',
   meta: {
     type: 'problem',
     docs: {
       description: 'Disallow destructuring css.props and css.global',
-      recommended: true,
     },
     messages: {
       noDestructure:
@@ -19,6 +20,7 @@ module.exports = {
     },
     schema: [],
   },
+  defaultOptions: [],
   create(context) {
     return {
       VariableDeclarator(node) {
@@ -49,4 +51,4 @@ module.exports = {
       },
     };
   },
-};
+});

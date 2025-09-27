@@ -1,3 +1,4 @@
+/* eslint-disable @plumeria/sort-properties */
 const fontSizeSubValues = [
   'xx-small',
   'x-small',
@@ -63,7 +64,7 @@ const overflowAlignment = [
   'unsafe flex-end',
 ];
 
-const validData = {
+const validData: { [key: string]: readonly string[] } = {
   all: [], // 1
   appearance: [
     'none',
@@ -1049,4 +1050,4 @@ const validData = {
   zoom: ['normal', 'reset'], // 397
 };
 
-module.exports = validData;
+export { validData };

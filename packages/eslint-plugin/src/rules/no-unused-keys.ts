@@ -3,33 +3,33 @@
  * Compatible with eslint 8 and below or 9 and above
  */
 
-'use strict';
+import { ESLintUtils } from '@typescript-eslint/utils';
+import type { Rule } from 'eslint';
 
-/**
- * @param {import('eslint').Rule.RuleContext} context
- * @returns {import('eslint').Filename}
- */
-function getFilename(context) {
+const createRule = ESLintUtils.RuleCreator((name) => name);
+
+function getFilename(context: Rule.RuleContext): string {
   return context.getFilename ? context.getFilename() : context.filename;
 }
 
-/** @type {import('eslint').Rule.RuleModule} */
-module.exports = {
+export const noUnusedKeys = createRule({
+  name: 'no-unused-keys',
   meta: {
     type: 'problem',
     docs: {
       description:
         'Detect unused object keys if they are not referenced anywhere',
-      recommended: true,
     },
     messages: {
       unusedKey:
         "The key '{{ key }}' is defined but never referenced anywhere.",
     },
+    schema: [],
   },
+  defaultOptions: [],
 
   create(context) {
-    const filename = getFilename(context);
+    const filename = getFilename(context as unknown as Rule.RuleContext);
     if (filename.endsWith('.ts')) {
       return {};
     }
@@ -42,6 +42,8 @@ module.exports = {
       CallExpression(node) {
         if (
           node.callee.type === 'MemberExpression' &&
+          'name' in node.callee.object &&
+          'name' in node.callee.property &&
           node.callee.object.name === 'css' &&
           node.callee.property.name === 'create'
         ) {
@@ -49,13 +51,15 @@ module.exports = {
           if (
             arg &&
             arg.type === 'ObjectExpression' &&
-            node.parent.type === 'VariableDeclarator'
+            node.parent.type === 'VariableDeclarator' &&
+            'name' in node.parent.id
           ) {
             const variableName = node.parent.id.name;
             const keyMap = new Map();
 
             arg.properties.forEach((prop) => {
               if (
+                prop.type === 'Property' &&
                 prop.key &&
                 prop.key.type === 'Identifier' &&
                 prop.value.type === 'ObjectExpression'
@@ -74,29 +78,22 @@ module.exports = {
           node.property.type === 'Identifier'
         ) {
           const normalKey = `${node.object.name}.${node.property.name}`;
-          const dollerKey = `${node.object.name}.$${node.property.name}`;
           referencedKeys.add(normalKey);
-          referencedKeys.add(dollerKey);
 
           if (parserServices && checker) {
             const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
             const symbol = checker.getSymbolAtLocation(tsNode);
             if (symbol) {
               referencedKeys.add(normalKey);
-              referencedKeys.add(dollerKey);
             }
           }
         }
       },
       'Program:exit'() {
         definedKeys.forEach((keyMap, variableName) => {
-          keyMap.forEach((keyNode, keyName) => {
+          keyMap.forEach((keyNode: any, keyName: string) => {
             const normalKey = `${variableName}.${keyName}`;
-            const dollerKey = `${variableName}.$${keyName}`;
-            if (
-              !referencedKeys.has(normalKey) &&
-              !referencedKeys.has(dollerKey)
-            ) {
+            if (!referencedKeys.has(normalKey)) {
               context.report({
                 node: keyNode,
                 messageId: 'unusedKey',
@@ -108,4 +105,4 @@ module.exports = {
       },
     };
   },
-};
+});

@@ -39,4 +39,4 @@ const unitData = [
   // '%',
 ];
 
-module.exports = unitData;
+export { unitData };

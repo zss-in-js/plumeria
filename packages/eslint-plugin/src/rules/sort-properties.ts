@@ -3,34 +3,49 @@
  * Compatible with eslint 8 and below or 9 and above
  */
 
-'use strict';
+import { ESLintUtils } from '@typescript-eslint/utils';
+import type { Rule } from 'eslint';
+import type { TSESTree } from '@typescript-eslint/utils';
+import { propertyGroups } from '../util/propertyGroups';
 
-const propertyGroups = require('../util/propertyGroups');
+const createRule = ESLintUtils.RuleCreator((name) => name);
 
 /**
- * @param {import('eslint').Rule.RuleContext} context
- * @returns {import('eslint').SourceCode}
+ * @param context Rule context
+ * @returns Source code object
  */
-function getSourceCode(context) {
+function getSourceCode(context: Rule.RuleContext) {
   return context.getSourceCode ? context.getSourceCode() : context.sourceCode;
 }
 
-function getPropertyName(property) {
+function getPropertyName(property: TSESTree.Property): string | string[] {
   if (property.key.type === 'Literal' && Array.isArray(property.key.value)) {
     return property.key.value;
   }
-  return property.key.name || property.key.value || '';
+  if (property.key.type === 'Identifier') {
+    return property.key.name;
+  }
+  if (property.key.type === 'Literal') {
+    return String(property.key.value);
+  }
+  return '';
 }
 
-function getPropertyIndex(property, isTopLevel = false) {
+function getPropertyIndex(
+  property: TSESTree.Property,
+  isTopLevel = false,
+): number | null {
   const name = getPropertyName(property);
+
+  if (Array.isArray(name)) {
+    return null;
+  }
 
   if (
     isTopLevel &&
     (property.key.type !== 'Identifier' ||
-      name.startsWith('&') ||
-      name.startsWith(':') ||
-      name.startsWith('@'))
+      (typeof name === 'string' &&
+        (name.startsWith('&') || name.startsWith(':') || name.startsWith('@'))))
   ) {
     return null;
   }
@@ -59,13 +74,13 @@ function getPropertyIndex(property, isTopLevel = false) {
   return lastGroupIndex * 1000 + maxPropIndex + 1;
 }
 
-module.exports = {
+export const sortProperties = createRule({
+  name: 'sort-properties',
   meta: {
     type: 'suggestion',
     docs: {
       description:
         'Sort CSS properties keeping original order for specific keys',
-      recommended: true,
     },
     fixable: 'code',
     schema: [],
@@ -75,12 +90,18 @@ module.exports = {
     },
   },
 
+  defaultOptions: [],
+
   create(context) {
     return {
-      ObjectExpression(node) {
-        const sourceCode = getSourceCode(context);
+      ObjectExpression(node: TSESTree.ObjectExpression) {
+        const sourceCode = getSourceCode(
+          context as unknown as Rule.RuleContext,
+        );
         const isTopLevel = !node.parent || node.parent.type !== 'Property';
-        const properties = node.properties.filter((prop) => prop.key);
+        const properties = node.properties.filter(
+          (prop): prop is TSESTree.Property => 'key' in prop && !!prop.key,
+        );
 
         const sorted = [...properties].sort((a, b) => {
           const indexA = getPropertyIndex(a, isTopLevel);
@@ -92,13 +113,13 @@ module.exports = {
 
         if (misordered.length === 0) return;
 
-        const match = sourceCode.getText(node).match(/^{\s*\n(\s*)/);
+        const match = sourceCode.getText(node as any).match(/^{\s*\n(\s*)/);
         const indent = match ? match[1] : '';
         const lineEnding = match ? '\n' : ' ';
 
         misordered.forEach((prop) => {
           context.report({
-            node: prop,
+            node: prop as any,
             messageId: 'sortProperties',
             data: {
               position: sorted.indexOf(prop) + 1,
@@ -107,14 +128,20 @@ module.exports = {
             fix(fixer) {
               const newText = sorted
                 .map((p) => {
-                  if (Array.isArray(getPropertyName(p))) {
-                    const arrayKey = sourceCode.getText(p.key);
-                    const arrayContent = p.value.properties
-                      .map((inner) => `${indent}  ${sourceCode.getText(inner)}`)
+                  const propName = getPropertyName(p);
+                  if (Array.isArray(propName)) {
+                    const arrayKey = sourceCode.getText(p.key as any);
+                    const arrayContent = (
+                      p.value as TSESTree.ObjectExpression
+                    ).properties
+                      .map(
+                        (inner) =>
+                          `${indent}  ${sourceCode.getText(inner as any)}`,
+                      )
                       .join(`,${lineEnding}`);
                     return `${indent}${arrayKey}: {\n${arrayContent}\n${indent}}`;
                   }
-                  return `${indent}${sourceCode.getText(p)}`;
+                  return `${indent}${sourceCode.getText(p as any)}`;
                 })
                 .join(`,${lineEnding}`);
 
@@ -128,4 +155,4 @@ module.exports = {
       },
     };
   },
-};
+});

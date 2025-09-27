@@ -69,7 +69,7 @@ function generatePlaceContentPattern() {
   const alignContent = getAlignContent();
   const justifyContent = getJustifyContent();
 
-  const pattern = [];
+  const pattern: string[] = [];
 
   alignContent.forEach((align) => {
     pattern.push(align);
@@ -142,7 +142,7 @@ function generatePlaceItemsPattern() {
   const alignItems = getAlignItems();
   const justifyItems = getJustifyItems();
 
-  const pattern = [];
+  const pattern: string[] = [];
 
   alignItems.forEach((align) => {
     pattern.push(align);
@@ -200,7 +200,7 @@ function generatePlaceSelfPattern() {
   const alignSelf = getAlignSelf();
   const justifySelf = getJustifySelf();
 
-  const pattern = [];
+  const pattern: string[] = [];
 
   alignSelf.forEach((align) => {
     pattern.push(align);
@@ -215,7 +215,7 @@ function generatePlaceSelfPattern() {
   return new RegExp(`^(${pattern.join('|')})$`);
 }
 
-function isValidPlaceContent(value) {
+function isValidPlaceContent(value: string) {
   const trimmedValue = value.trim();
   if (trimmedValue !== value) {
     return false;
@@ -229,7 +229,7 @@ function isValidPlaceContent(value) {
   return pattern.test(trimmedValue);
 }
 
-function isValidPlaceItems(value) {
+function isValidPlaceItems(value: string) {
   const trimmedValue = value.trim();
   if (trimmedValue !== value) {
     return false;
@@ -243,7 +243,7 @@ function isValidPlaceItems(value) {
   return pattern.test(trimmedValue);
 }
 
-function isValidPlaceSelf(value) {
+function isValidPlaceSelf(value: string) {
   const trimmedValue = value.trim();
   if (trimmedValue !== value) {
     return false;
@@ -257,7 +257,7 @@ function isValidPlaceSelf(value) {
   return pattern.test(trimmedValue);
 }
 
-function isValidTouchAction(value) {
+function isValidTouchAction(value: string) {
   const basicValues = ['auto', 'none', 'manipulation'];
   const panX = ['pan-x', 'pan-left', 'pan-right'];
   const panY = ['pan-y', 'pan-up', 'pan-down'];
@@ -298,7 +298,7 @@ function isValidTouchAction(value) {
   });
 }
 
-module.exports = {
+export {
   isValidPlaceContent,
   isValidPlaceItems,
   isValidPlaceSelf,

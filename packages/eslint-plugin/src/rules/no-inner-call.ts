@@ -3,21 +3,24 @@
  * Compatible with eslint 8 and below or 9 and above
  */
 
-'use strict';
+import { ESLintUtils } from '@typescript-eslint/utils';
 
-/** @type {import('eslint').Rule.RuleModule} */
-module.exports = {
+const createRule = ESLintUtils.RuleCreator((name) => name);
+
+export const noInnerCall = createRule({
+  name: 'no-inner-call',
   meta: {
     type: 'problem',
     docs: {
       description:
         'An error occurs if a specific call is made within a function',
-      recommended: true,
     },
     messages: {
       noInnerCall: 'Do not use {{name}} inside functions',
     },
+    schema: [],
   },
+  defaultOptions: [],
   create(context) {
     let functionDepth = 0;
 
@@ -42,7 +45,11 @@ module.exports = {
       },
       CallExpression(node) {
         if (functionDepth > 0) {
-          if (node.callee.type === 'MemberExpression') {
+          if (
+            node.callee.type === 'MemberExpression' &&
+            'name' in node.callee.object &&
+            'name' in node.callee.property
+          ) {
             const objectName = node.callee.object.name;
             const propertyName = node.callee.property.name;
 
@@ -66,4 +73,4 @@ module.exports = {
       },
     };
   },
-};
+});

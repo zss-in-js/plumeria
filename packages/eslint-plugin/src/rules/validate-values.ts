@@ -2,18 +2,15 @@
  * @fileoverview CSS 397 Properties valid value verification
  * Compatible with eslint 8 and below or 9 and above
  */
-
-'use strict';
-
-const validData = require('../util/validData');
-const unitData = require('../util/unitData');
-const { colorValue } = require('../util/colorData');
-const {
+import { validData } from '../util/validData';
+import { unitData } from '../util/unitData';
+import { colorValue } from '../util/colorData';
+import {
   isValidPlaceContent,
   isValidPlaceItems,
   isValidPlaceSelf,
   isValidTouchAction,
-} = require('../util/place');
+} from '../util/place';
 
 const globalValues = ['inherit', 'initial', 'revert', 'revert-layer', 'unset'];
 
@@ -215,7 +212,7 @@ const multipleValueProperties = [
   'borderImageOutset',
 ];
 
-const valueCountMap = {
+const valueCountMap: { [key: string]: number } = {
   inset: 4,
   gap: 2,
   padding: 4,
@@ -309,7 +306,7 @@ const notationFuncs = [
   varString,
 ].join('|');
 
-function isValidMultipleColorValues(value) {
+function isValidMultipleColorValues(value: string) {
   const colors = splitColorValues(value);
 
   if (colors.length > 4) return false;
@@ -317,13 +314,13 @@ function isValidMultipleColorValues(value) {
   return colors.every(isValidColorValue);
 }
 
-function isValidColorValue(value) {
+function isValidColorValue(value: string) {
   return colorRegex.test(value);
 }
 
-function splitColorValues(value) {
+function splitColorValues(value: string) {
   const colors = [];
-  let remaining = value.trim();
+  const remaining = value.trim();
   let inParentheses = false;
   let currentColor = '';
 
@@ -406,36 +403,48 @@ const cursorValue = [
   varString,
 ].join('|');
 
-/** @type {import('eslint').Rule.RuleModule} */
-module.exports = {
+import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
+
+const createRule = ESLintUtils.RuleCreator((name) => name);
+
+export const validateValues = createRule({
+  name: 'validate-values',
   meta: {
     type: 'problem',
     docs: {
       description:
         'Validate camelCase CSS property values in JS objects or JSX',
-      recommended: true,
     },
-    schema: [],
+
     messages: {
       validateValue:
         "'{{key}}' has an invalid value '{{value}}'. Valid values: {{validValues}}",
     },
+    schema: [],
   },
+  defaultOptions: [],
   create(context) {
     return {
       ObjectExpression(node) {
         node.properties.forEach((property) => {
           if (
+            property.type === 'Property' &&
             property.key &&
             property.value &&
+            property.key.type === 'Identifier' &&
             typeof property.key.name === 'string' &&
+            property.value.type === 'Literal' &&
             typeof property.value.value === 'string'
           ) {
             const key = property.key.name;
             const value = property.value.value;
 
             if (validData[key]) {
-              const createReport = (property, key, value) => {
+              const createReport = (
+                property: TSESTree.Property,
+                key: string,
+                value: string,
+              ) => {
                 return () => {
                   context.report({
                     node: property.value,
@@ -888,7 +897,7 @@ module.exports = {
               const filterPattern = `^(${filterAllPattern}\\s*)+$`;
               const filterRegex = new RegExp(filterPattern);
 
-              function isBorderValue(value) {
+              function isBorderValue(value: string) {
                 const parts = splitColorValues(value);
                 if (parts.length > 3) return false;
 
@@ -1004,7 +1013,7 @@ module.exports = {
 
               const contentProperty = ['content'];
 
-              function isValidCursor(value) {
+              function isValidCursor(value: string) {
                 const urlWithHotspotRegex = `(${urlString}|${varString})(\\s+(${numberPattern})(\\s+(${numberPattern}))?)?`;
                 const urlPart = `(${urlWithHotspotRegex})`;
                 const standalonePattern = new RegExp(`^(${cursorValue})$`);
@@ -1036,7 +1045,7 @@ module.exports = {
               }
               const cursorProperty = ['cursor'];
 
-              function isValidFlexValue(value) {
+              function isValidFlexValue(value: string) {
                 // Remove all whitespace
                 const cleanValue = value.replace(/\s+/g, ' ').trim();
 
@@ -1266,7 +1275,7 @@ module.exports = {
 
               const fontMetric = `ex-height|cap-height|ch-width|ic-width|ic-height|${varString}`;
 
-              function isValidFontSizeAdjust(value) {
+              function isValidFontSizeAdjust(value: string) {
                 const cleanValue = value.replace(/\s+/g, ' ').trim();
                 if (!cleanValue) {
                   return false;
@@ -1329,14 +1338,14 @@ module.exports = {
                 'i',
               );
 
-              function isValidFontVariantEastAsian(value) {
+              function isValidFontVariantEastAsian(value: string) {
                 if (!fontVariantEastAsianRegex.test(value)) {
                   return false;
                 }
 
                 const values = value.toLowerCase().split(/\s+/);
 
-                const jisCount = values.filter((v) =>
+                const jisCount = values.filter((value) =>
                   [
                     'jis78',
                     'jis83',
@@ -1344,7 +1353,7 @@ module.exports = {
                     'jis04',
                     'simplified',
                     'traditional',
-                  ].includes(v),
+                  ].includes(value),
                 ).length;
 
                 const widthCount = values.filter((v) =>
@@ -1528,7 +1537,7 @@ module.exports = {
                 'gridTemplateRows',
               ];
 
-              const isValidateGridTemplate = (value) => {
+              const isValidateGridTemplate = (value: string) => {
                 if (typeof value !== 'string') return false;
 
                 const gridAreaRowPattern =
@@ -1843,7 +1852,7 @@ module.exports = {
               const strokeMiterlimitRegex = new RegExp(`^(${numberPattern})$`);
               const strokeMiterlimitProperties = ['strokeMiterlimit'];
 
-              const isValidTextDecorationLine = (value) => {
+              const isValidTextDecorationLine = (value: string) => {
                 const decorationValues = [
                   'underline',
                   'overline',
@@ -2476,4 +2485,4 @@ module.exports = {
       },
     };
   },
-};
+});
