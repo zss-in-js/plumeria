@@ -14,7 +14,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/validate-values`: **warn**
 
 ```js
-import plumeria from '@plumeria/eslint-plugin';
+import { plumeria } from '@plumeria/eslint-plugin';
 
 export default [plumeria.flatConfigs.recommended];
 ```
@@ -27,7 +27,7 @@ Disallow destructuring `css.create` and `css.props`, etc.
 
 ### no-inner-call
 
-Disallow calling `css.create`, `css.global`, etc. inside functions.
+Disallow calling `css.create`, etc. inside functions.
 
 ### no-unused-keys
 
