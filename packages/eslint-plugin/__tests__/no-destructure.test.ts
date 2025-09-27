@@ -1,18 +1,43 @@
-const { RuleTester } = require('eslint');
-const rule = require('../lib/rules/no-destructure');
+import type { JSRuleDefinition } from 'eslint';
+import { RuleTester } from 'eslint';
+import { noDestructure } from '../src/rules/no-destructure';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-destructure', rule, {
+ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
   valid: [
     {
       code: 'const styles = css.create({})',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
       code: 'css.props()',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
       code: 'const animate = css.keyframes({})',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
       code: 'const transitionName = css.viewTransition({})',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
       code: 'const breakpoints = css.defineConsts({})',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
       code: 'const tokens = css.defineTokens({})',
-
       settings: {
         ecmaVersion: 2021,
       },

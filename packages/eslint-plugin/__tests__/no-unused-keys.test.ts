@@ -1,13 +1,24 @@
-const { RuleTester } = require('eslint');
-const rule = require('../lib/rules/no-unused-keys');
+import type { JSRuleDefinition } from 'eslint';
+import { RuleTester } from 'eslint';
+import { noUnusedKeys } from '../src/rules/no-unused-keys';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-unused-keys', rule, {
+ruleTester.run('no-unused-keys', noUnusedKeys as unknown as JSRuleDefinition, {
   valid: [
     {
       code: 'const styles = { key: {} };',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
       code: 'const styles = css.keyframes({ from: {}, to: {} })',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
       code: 'const tokens = css.defineTokens({ primary: {} })',
       settings: {
         ecmaVersion: 2021,
