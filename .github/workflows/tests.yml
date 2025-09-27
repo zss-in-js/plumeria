@@ -44,8 +44,10 @@ jobs:
         run: npm install -g pnpm
 
       - name: Install Dependencies
-        run: pnpm install
-      - run: pnpm lint:report
+        run: |
+          pnpm install
+          pnpm build
+          pnpm lint:report
 
   unit-test:
     runs-on: ubuntu-latest
