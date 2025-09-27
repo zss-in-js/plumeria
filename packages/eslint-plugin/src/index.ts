@@ -1,10 +1,8 @@
-'use strict';
-
-const noDestructure = require('./rules/no-destructure.js');
-const noInnerCall = require('./rules/no-inner-call.js');
-const noUnusedKeys = require('./rules/no-unused-keys.js');
-const sortProperties = require('./rules/sort-properties.js');
-const validateValues = require('./rules/validate-values.js');
+import { noDestructure } from './rules/no-destructure';
+import { noInnerCall } from './rules/no-inner-call.js';
+import { noUnusedKeys } from './rules/no-unused-keys';
+import { sortProperties } from './rules/sort-properties';
+import { validateValues } from './rules/validate-values';
 
 const rules = {
   'no-destructure': noDestructure,
