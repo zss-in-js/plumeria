@@ -1,6 +1,6 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import plumeria from '@plumeria/eslint-plugin';
+import { plumeria } from '@plumeria/eslint-plugin';
 
 const eslintConfig = tseslint.config(
   eslint.configs.recommended,
