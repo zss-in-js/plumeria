@@ -8,12 +8,17 @@
     "directory": "packages/eslint-plugin"
   },
   "license": "MIT",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "lib/"
+    "dist/"
   ],
+  "scripts": {
+    "build": "rimraf dist && pnpm cjs",
+    "cjs": "tsc --project tsconfig.cjs.json"
+  },
   "devDependencies": {
+    "@typescript-eslint/utils": "^8.44.1",
     "eslint": "^9.15.0"
   },
   "publishConfig": {
