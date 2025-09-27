@@ -1,52 +1,70 @@
-const { RuleTester } = require('eslint');
-const rule = require('../lib/rules/no-inner-call');
+import type { JSRuleDefinition } from 'eslint';
+import { RuleTester } from 'eslint';
+import { noInnerCall } from '../src/rules/no-inner-call';
 
 const ruleTester = new RuleTester();
 
-const settings = { settings: { ecmaVersion: 2021 } };
+const settings = {
+  ecmaVersion: 2021,
+};
 
-ruleTester.run('no-inner-call', rule, {
+ruleTester.run('no-inner-call', noInnerCall as unknown as JSRuleDefinition, {
   valid: [
     {
       code: 'css.create();',
+      settings,
+    },
+    {
       code: 'css.keyframes();',
+      settings,
+    },
+    {
       code: 'css.viewTransition();',
+      settings,
+    },
+    {
       code: 'css.defineConsts();',
+      settings,
+    },
+    {
       code: 'css.defineTokens();',
+      settings,
+    },
+    {
       code: 'const styles = css.create();',
-      ...settings,
+      settings,
     },
   ],
   invalid: [
     {
       code: 'const create = () => { css.create(); }',
       errors: [{ message: 'Do not use css.create inside functions' }],
-      ...settings,
+      settings,
     },
     {
       code: 'function create() { css.create(); }',
       errors: [{ message: 'Do not use css.create inside functions' }],
-      ...settings,
+      settings,
     },
     {
       code: '(() => { css.keyframes(); })();',
       errors: [{ message: 'Do not use css.keyframes inside functions' }],
-      ...settings,
+      settings,
     },
     {
       code: '(() => { css.viewTransition(); })();',
       errors: [{ message: 'Do not use css.viewTransition inside functions' }],
-      ...settings,
+      settings,
     },
     {
       code: 'function consts() { css.defineConsts(); }',
       errors: [{ message: 'Do not use css.defineConsts inside functions' }],
-      ...settings,
+      settings,
     },
     {
       code: 'function theme() { css.defineTokens(); }',
       errors: [{ message: 'Do not use css.defineTokens inside functions' }],
-      ...settings,
+      settings,
     },
   ],
 });
