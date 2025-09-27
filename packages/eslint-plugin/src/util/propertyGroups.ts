@@ -1,11 +1,9 @@
 // reference: [https://github.com/stormwarning/stylelint-config-recess-order/blob/main/groups.js]
-/**
- * @typedef {Object} Group
- * @property {Array<string>} properties
- */
+interface Group {
+  properties: string[];
+}
 
-/** @type {Group[]} */
-const propertyGroups = [
+export const propertyGroups: Group[] = [
   {
     properties: ['composes'],
   },
@@ -553,5 +551,3 @@ const propertyGroups = [
     ],
   },
 ];
-
-module.exports = propertyGroups;
