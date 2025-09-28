@@ -1,6 +1,6 @@
 ---
 title: 'Installation'
-description: "It is plumeria's installation, compilation, integration setup"
+description: "It is plumeria's installing, compiler, integration setup"
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
@@ -8,36 +8,34 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 <Steps>
 <Step>
-## Runtime
+## Installing `core`
 
 <Tabs items={['npm', 'yarn', 'pnpm']}>
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    npm i @plumeria/core
+    npm i -D @plumeria/core
     ```
   </Tab>
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    yarn add @plumeria/core
+    yarn add -D @plumeria/core
     ```
   </Tab>
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    pnpm i @plumeria/core
+    pnpm i -D @plumeria/core
     ```
   </Tab>
 </Tabs>
-If you are using Next.js, you need to configure next-plugin, and if you are using Vite, you need to configure vite-plugin.
-You can install the compiler in stages.
 
 </Step>
 <Step>
 ## Compiler
 
-<Tabs items={['npm', 'pnpm', 'yarn']}>
+<Tabs items={['npm', 'yarn', 'pnpm']}>
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
@@ -47,30 +45,31 @@ You can install the compiler in stages.
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    pnpm i -D @plumeria/compiler
+    yarn add -D @plumeria/compiler
     ```
   </Tab>
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    yarn add -D @plumeria/compiler
+    pnpm i -D @plumeria/compiler
     ```
   </Tab>
 </Tabs>
-- `npx css`  
-use swc compile without type-check.
+- `npx css`  `pnpm exec css`  
+Compile without type-check.
 - argument `--type-check`  
 The  will include compilation type-check.
 
 - arugment `--view`  
-Display the CSS log that is output during compilation.
+Display the output css.
 
 - argument `--paths`  
-Display the compile target paths list is output during compilation.
+Display the styling paths list.
 
-## Integration with build
-
-Like Vite and Next, there is no need to compile at the same time as dev.
+</Step>
+<Step>
+## Setup
+ 
 <Tabs items={["Next.js", "Vite"]}>
 <Tab>
 ```json title="package.json"
@@ -90,41 +89,42 @@ Like Vite and Next, there is no need to compile at the same time as dev.
 </Tab>
 </Tabs>
 
-## Static Stylesheet
+</Step>
+<Step>
 
-- Applying a Style Sheet: import `@plumeria/core/stylesheet.css` in your application entry point.
+## Stylesheet
+
+- Applying a Stylesheet: import `@plumeria/core/stylesheet.css` in your application entry point.
 ```ts
 import "@plumeria/core/stylesheet.css";
 ```
-
-
-
 </Step>
 <Step>
 ## Integration
+</Step>
 
-Plumeira can be integrated with Vite and Next.js.
+## Next.js
 
-<Tabs items={["Next.js", "Vite"]}>
+<Tabs items={["npm", "yarn", "pnpm"]}>
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
     npm i -D @plumeria/next-plugin
     ```
-
   </Tab>
-  {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    npm i -D @plumeria/vite-plugin
+    yarn add -D @plumeria/next-plugin
+    ```
+  </Tab>
+  <Tab>
+    ```sh title="Terminal"
+    pnpm add -D @plumeria/next-plugin
     ```
   </Tab>
 </Tabs>
-</Step>
-<Step>
-## Next.js
 
-Plugin is compiling Server components style and Inject virtual CSS imports for HMR.
+Server components style Inject virtual CSS imports for HMR.
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
 import { withPlumeria } from "@plumeria/next-plugin";
@@ -135,11 +135,28 @@ const nextConfig: NextConfig = withPlumeria({
 
 export default nextConfig;
 ```
+---
 
-</Step>
-<Step>
 ## Vite
-Vite is a client-based bundler, so it externalizes fs with plugins.
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    npm i -D @plumeria/vite-plugin
+    ```
+  </Tab>
+  <Tab>
+    ```sh title="Terminal"
+    yarn add -D @plumeria/vite-plugin
+    ```
+  </Tab>
+  <Tab>
+    ```sh title="Terminal"
+    pnpm add -D @plumeria/vite-plugin
+    ```
+  </Tab>
+</Tabs>
+Externalizes fs with plugins.
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
@@ -150,7 +167,6 @@ export default defineConfig({
 });
 
 ```
-</Step>
 <Cards>
   <Card title="See more about @plumeria/vite-plugin package" href="/docs/reference/vite-plugin" />
   <Card title="See more about @plumeria/next-plugin package" href="/docs/reference/next-plugin" />
