@@ -1,56 +1,42 @@
 ---
 title: 'Introduction'
-description: 'Introduction Plumeria - A CSS-in-JS framework for fast, type-safe, zero-runtime styling.'
+description: 'Introduction to Plumeria - A CSS-in-JS framework for fast, type-safe, zero-runtime styling.'
 ---
 
 <br/>
-
-
 Welcome to the Plumeria documentation!
 
 ---
 
-
-Plumeria is a JavaScript and TypeScript syntax and compiler's atomic Zero-runtime CSS-in-JS library.  
-Build optimized styles using collision-free atomic CSS, refactoring less and scaling the number of components optimistically.
-It helps developers focus on **what** to style, not **how** to style it.  
-Which is more efficient than what you can create and manage manually.
-
-
+Plumeria is an atomic Zero-runtime CSS-in-JS library with JavaScript and TypeScript syntax and compilation.
+It creates optimized styles using collision-free atomic CSS, reducing refactoring needs while scaling components efficiently.
+It helps developers focus on what to style, not how to style it.
+This approach is more efficient than what you can create and manage manually.
 
 ## Features at a glance
 
 ### Scalable
 - Efficient and minimal output with atomic CSS.
-- The CSS size it will be constant even if the number of components increases.
-- Styles are maintained by the CLI, making them easy to read and maintainable.
+- CSS size remains constant even as the number of components increases.
+- Styles are maintained by the CLI, making them easy to read and maintain.
 
 ### Predictable
 - The last style applied always takes precedence.
-- All specificity levels are 1, determined only by the left right order in which they are applied.
-- Therefore, there are no special rules other than that the right wins.
+- All specificity levels are 1, determined only by the order in which they are applied.
+- There are no special rules—the rightmost style always wins.
 
 ### Fast
 - No runtime style injection.
-- All styles are collocated at compile-time into a single CSS file.
+- All styles are compiled into a single CSS file at build time.
 - Optimized function for merging class names.
 
 ### Type-Safe
 - Type-safe APIs.
 - Type-safe styles.
-- Type-safe values.
-
+- Type-safe built in [csstype](https://www.npmjs.com/package/csstype?activeTab=code).
 
 ---
 
-Unlike traditional solutions, you **know exactly what CSS is generated** at authoring time.
+Unlike traditional solutions, you know exactly what CSS is generated at authoring time.
 - Clean, high-quality code that adheres to the DRY principle
 - Focus on building beautiful UIs — not wrestling with your styles
-
----
-
-
-
-
-
-
