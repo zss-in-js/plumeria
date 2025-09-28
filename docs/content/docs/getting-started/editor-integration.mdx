@@ -30,22 +30,21 @@ yarn add -D @plumeria/eslint-plugin
 </Tabs>
 <Tabs items={['Flat Config ESM', 'CJS', 'eslint8']}>
   <Tab>
-    ```js title="eslint.config.mjs"
+    ```js title="eslint.config.ts"
     import eslint from '@eslint/js';
     import tseslint from 'typescript-eslint';
-    import plumeria from '@plumeria/eslint-plugin';
+    import { defineConfig } from 'eslint/config';
+    import { plumeria } from '@plumeria/eslint-plugin';
 
-    const eslintConfig = tseslint.config(
+    export default defineConfig(
       eslint.configs.recommended,
-      ...tseslint.configs.strict,
+      tseslint.configs.recommended,
       plumeria.flatConfigs.recommended,  // [!code ++]
-
       {
         files: ['**/*.{ts,tsx}'],
       }
     );
 
-    export default eslintConfig;
     ```
 
   </Tab>
@@ -53,7 +52,8 @@ yarn add -D @plumeria/eslint-plugin
       ```js title="eslint.config.js"
       const eslint = require('@eslint/js');
       const tseslint = require('typescript-eslint');
-      const zsslint = require('@plumeria/eslint-plugin');
+      const { defineConfig } = require('eslint/config');
+      const { plumeria } = require('@plumeria/eslint-plugin');
 
       module.exports = tseslint.config(
         eslint.configs.recommended,
