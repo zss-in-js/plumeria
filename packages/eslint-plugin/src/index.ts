@@ -59,6 +59,6 @@ export const plumeria = {
     recommended: Linter.LegacyConfig;
   };
   flatConfigs: {
-    recommended: Linter.Config<Linter.RulesRecord>;
+    recommended: Linter.RulesRecord;
   };
 };
