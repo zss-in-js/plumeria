@@ -1,0 +1,68 @@
+---
+title: Getting started
+description: Get started with Plumeria.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Step, Steps } from "fumadocs-ui/components/steps";
+
+If you're new to Plumeria, you can follow these steps to get started.
+
+<Steps>
+<Step>
+## Install Plumeria
+
+
+
+<Tabs items={["npm", "yarn", "pnpm"]}>
+  <Tab value="npm">
+  ```bash title="Terminal"
+  npm install -D @plumeria/core @plumeria/compiler
+  ```
+
+  </Tab>
+  <Tab value="yarn">
+  ```bash title="Terminal"
+  yarn add -D @plumeria/core @pumeria/compiler
+  ```
+
+  </Tab>
+  <Tab value="pnpm">
+  ```bash title="Terminal"
+  pnpm add -D @plumeria/core @plumeira/compiler
+  ```
+
+  </Tab>
+</Tabs>
+
+To learn more about installing `@plumeria`, see the [installation guide](/docs/getting-started/installation).
+
+</Step>
+<Step>
+
+## Choose your learning path
+
+<Cards>
+  <Card
+    href="/docs/getting-started/installation"
+    title="Setup guide"
+    description="Start with a config files"
+  />
+  <Card
+    href="/docs/getting-started/recipes"
+    title="Visid an recipes"
+    description="Start styling with the recipes"
+  />
+  <Card
+    href="/docs/selector-rules"
+    title="Selector rules"
+    description="Learn how to write media queries"
+  />
+  <Card
+    href="/docs/getting-started/add-to-existing-repository"
+    title="Editor integration"
+    description="Make your esilnt.config.ts file"
+  />
+</Cards>
+</Step>
+</Steps>
