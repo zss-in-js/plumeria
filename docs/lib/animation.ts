@@ -6,14 +6,15 @@ export const rotateHover = css.keyframes({
   },
   to: {
     transform: 'rotate(360deg)',
+    scale: 1.2,
+    opacity: 0,
   },
 });
 
 export const rotateFocus = css.keyframes({
-  from: {
-    transform: 'rotateY(0deg) rotateX(0deg)',
-  },
+  from: { scale: 1 },
   to: {
-    transform: 'rotateY(360deg) rotateX(90deg)',
+    scale: 1.2,
+    opacity: 0,
   },
 });
