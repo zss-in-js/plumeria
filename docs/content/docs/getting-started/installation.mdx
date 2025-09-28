@@ -98,6 +98,15 @@ Display the styling paths list.
 ```ts
 import "@plumeria/core/stylesheet.css";
 ```
+
+If you have global.css, make sure to load it before @plumeria's css.  
+This will give global.css higher priority.
+
+```ts
+import './global.css';
+import "@plumeria/core/stylesheet.css";
+```
+
 </Step>
 <Step>
 ## Integration
