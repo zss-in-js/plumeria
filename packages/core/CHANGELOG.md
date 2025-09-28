@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.19.3
+
+### Patch Changes
+
+- b6e33cf: feat: version bump only
+
 ## 0.19.2
 
 ### Patch Changes
