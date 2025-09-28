@@ -55,9 +55,9 @@ yarn add -D @plumeria/eslint-plugin
       const { defineConfig } = require('eslint/config');
       const { plumeria } = require('@plumeria/eslint-plugin');
 
-      module.exports = tseslint.config(
+      module.exports = defineConfig(
         eslint.configs.recommended,
-        ...tseslint.configs.strict,
+        tseslint.configs.recommended,
         plumeria.flatConfigs.recommended,  // [!code ++]
 
         {
