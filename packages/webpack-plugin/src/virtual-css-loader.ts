@@ -23,7 +23,7 @@ import path from 'path';
 import fs from 'fs';
 import { createCSS, createTokens } from './create';
 import { globSync } from '@rust-gear/glob';
-import type { CreateTokens, CSSProperties } from 'zss-engine';
+import type { CreateStyle, CreateTokens, CSSProperties } from 'zss-engine';
 import { genBase36Hash, transpile, camelToKebabCase } from 'zss-engine';
 
 interface PlumeriaPlugin extends WebpackPluginInstance {
@@ -704,7 +704,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   tokensTable = tokensTableLocal;
   defineTokensObjectTable = defineTokensObjectTableLocal;
 
-  let extractedObject: CSSObject | null = null;
+  const extractedObjects: CSSObject[] = [];
   let ast;
   try {
     ast = parseSync(source, {
@@ -741,13 +741,16 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
             args.length === 1 &&
             t.isObjectExpression(args[0])
           ) {
-            extractedObject = objectExpressionToObject(
+            const obj = objectExpressionToObject(
               args[0],
               constTable,
               keyframesHashTable,
               viewTransitionHashTable,
               tokensTable,
             );
+            if (obj) {
+              extractedObjects.push(obj); // CSSObject[] に蓄積
+            }
           }
         }
       },
@@ -761,9 +764,16 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   });
 
   const fileStyles: CSSObject = {};
-  if (extractedObject) {
-    const base = createCSS(extractedObject);
-    if (base) fileStyles.baseStyles = base;
+  if (extractedObjects.length > 0) {
+    const combinedStyles = extractedObjects.reduce<CSSObject>(
+      (acc, obj) => Object.assign(acc, obj),
+      {},
+    );
+
+    const base = createCSS(combinedStyles as CreateStyle);
+    if (base) {
+      fileStyles.baseStyles = base;
+    }
   }
 
   if (Object.keys(keyframesObjectTable).length > 0) {
