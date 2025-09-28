@@ -2,7 +2,7 @@
 
 The atomic on-demand CSS-in-JS.
 
-### Quick Example
+## Quick Example
 
 ```ts
 import { css } from '@plumeria/core';
