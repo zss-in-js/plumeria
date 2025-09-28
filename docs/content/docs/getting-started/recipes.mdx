@@ -1,0 +1,237 @@
+---
+title: 'Recipes'
+description: 'Learn more about `Plumeria` syntax and recipe'
+---
+
+import { FancyButtons, Box } from 'component/Recipes'
+
+Get started with **Plumeria** using `css.create()` and `css.props()` to build styles with clarity and structure.
+
+## FancyButtons
+
+<FancyButtons />
+
+```tsx title="TSX"
+export function FancyButtons() {
+  return (
+    <div className={css.props(styles.stack)}>
+      <button className={css.props(styles.button, styles.hover, buttons.focusPurple)}>Purple</button>
+      <button className={css.props(styles.button, styles.hover, buttons.focusSky)}>Sky</button>
+      <button className={css.props(styles.button, styles.hover, buttons.focusGreen)}>Green</button>
+    </div>
+  );
+}
+```
+
+```ts  title="TypeScript"
+import { css } from '@plumeria/core';
+import { ps } from 'lib/pseudos';
+
+const styles = css.create({
+  stack: {
+    display: 'flex',
+    gap: 16,
+    alignItems: 'center',
+    marginTop: 32,
+  },
+  button: {
+    padding: '0.75rem 1.5rem',
+    fontSize: '1rem',
+    fontWeight: 600,
+    color: '#fff',
+    cursor: 'pointer',
+    border: 'none',
+    borderRadius: '0.75rem',
+    boxShadow: '0 6px 16px rgba(79,70,229,0.3)',
+    transition: 'all 0.3s ease',
+  },
+  hover: {
+    [ps.hover]: {
+      boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+      transform: 'translateY(-2px)',
+    },
+  },
+});
+
+const buttons = css.create({
+  focusPurple: {
+    background: 'linear-gradient(135deg,rgb(68, 60, 222), #6366f1)',
+    [ps.hover]: {
+      background: 'linear-gradient(135deg, #3932c0, #6366f1)',
+    },
+    [ps.focus]: {
+      outline: '2px solid #a5b4fc',
+      outlineOffset: '4px',
+    },
+  },
+  focusSky: {
+    background: 'linear-gradient(135deg, #16adf9, #3ce1fb)',
+    [ps.hover]: {
+      background: 'linear-gradient(135deg, #0c9ce4, #3ce1fb)',
+    },
+    [ps.focus]: {
+      outline: '2px solid #82c3e4',
+      outlineOffset: '4px',
+    },
+  },
+  focusGreen: {
+    background: 'linear-gradient(135deg,rgb(10, 177, 121), #34d399)',
+    [ps.hover]: {
+      background: 'linear-gradient(135deg, #089e6c, #34d399)',
+    },
+    [ps.focus]: {
+      outline: '2px solid #5bd3ab',
+      outlineOffset: '4px',
+    },
+  },
+})
+```
+
+```tsx title="TypeScript"
+import { css } from '@plumeria/core';
+import { ps } from 'lib/pseudos';
+
+const rotateHover = css.keyframes({
+  from: {
+    transform: 'rotate(0deg)',
+  },
+  to: {
+    transform: 'rotate(360deg)',
+  },
+});
+
+const rotateFocus = css.keyframes({
+  from: {
+    transform: 'rotateY(0deg) rotateX(0deg)',
+  },
+  to: {
+    transform: 'rotateY(360deg) rotateX(90deg)',
+  },
+});
+
+const styles = css.create({
+  container: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 40,
+  },
+  card: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '200px',
+    height: '200px',
+    fontSize: '1.25rem',
+    fontWeight: '600',
+    backgroundColor: '#fefefe',
+    borderRadius: '2rem',
+    boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+    transition: 'transform 0.4s ease, box-shadow 0.4s ease',
+  },
+});
+
+const animated = css.create({
+  hover: {
+    [ps.hover]: {
+      background: css.color.azure,
+      boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
+      animationName: rotateHover,
+      animationDuration: '1s',
+      animationTimingFunction: 'linear',
+      animationIterationCount: 'infinite',
+    },
+  },
+  focus: {
+    [ps.focus]: {
+      outline: '2px solid dodgerblue',
+      animationName: rotateFocus,
+      animationDuration: '0.8s',
+      animationIterationCount: 'infinite',
+    },
+  },
+});
+```
+
+## Motion Card
+<Box />
+
+```jsx
+export const Box = () => {
+  return (
+    <div className={css.props(stylesBox.container)}>
+      <span>
+        <span tabIndex={0} className={css.props(stylesBox.card, animated.hover1)}>
+          A
+        </span>
+      </span>
+      <span>
+        <span tabIndex={0} className={css.props(stylesBox.card, animated.hover2)}>
+          B
+        </span>
+      </span>
+    </div>
+  );
+};
+```
+
+```ts
+const stylesBox = css.create({
+  container: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 40,
+  },
+  card: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 140,
+    height: 200,
+    fontSize: 36,
+    borderRadius: 10,
+    boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+    [breakpoints.md]: {
+      width: 80,
+      height: 120,
+      fontSize: 28,
+    },
+  },
+});
+
+const scaleOut = css.keyframes({
+  from: {
+    transform: 'rotate(0deg)',
+  },
+  to: {
+    transform: 'rotate(360deg)',
+    scale: 1.2,
+    opacity: 0,
+  },
+});
+
+const rotatationOut = css.keyframes({
+  from: { scale: 1 },
+  to: {
+    scale: 1.2,
+    opacity: 0,
+  },
+});
+
+const animated = css.create({
+  hover1: {
+    [ps.hover]: {
+      outline: '1px solid dodgerblue',
+      animationName: rotatationOut,
+      animationDuration: '0.7s',
+    },
+  },
+  hover2: {
+    [ps.hover]: {
+      outline: '1px solid orange',
+      animationName: scaleOut,
+      animationDuration: '0.8s',
+    },
+  },
+});
+```
+
