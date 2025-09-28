@@ -1,10 +1,6 @@
 # Plumeria &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@plumeria/core.svg?color=brightgreen)](https://www.npmjs.com/package/@plumeria/core) [![tests](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml/badge.svg)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml)
 
-Plumeria is a JavaScript library for scalable and optimized styling.
-
-## Documentation
-
-Visit our [official documentation](https://plumeria.dev).
+The atomic on-demand CSS-in-JS.
 
 ## Quick Example
 
@@ -70,6 +66,18 @@ plumeria/
 We welcome contributions of all kinds — bug reports, feature ideas, pull requests.
 
 [Contributing Guide](https://github.com/zss-in-js/plumeria/blob/main/.github/CONTRIBUTING.md)
+
+## Documentation
+
+Read the [documentation](https://plumeria.dev/) for more details.
+
+## Installation
+
+- [Vite](https://plumeria.dev/docs/integration/vite)
+- [Next](https://plumeria.dev/docs/integration/next)
+- [Webpack](https://plumeria.dev/docs/integration/webpack)
+- [CLI](https://plumeria.dev/docs/integration/cli)
+- [ESLint](https://plumeria.dev/docs/integration/eslint)
 
 ## Acknowledgement
 
