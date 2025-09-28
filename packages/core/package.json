@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "0.19.2",
-  "description": "A library for scalable and optimized styling.",
+  "description": "The atomic on-demand CSS-in-JS.",
   "author": "Refirst 11",
   "license": "MIT",
   "funding": "https://github.com/sponsors/refirst11",
