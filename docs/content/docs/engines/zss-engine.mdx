@@ -1,0 +1,135 @@
+---
+title: 'zss-engine'
+description: 'For API development zss-engine.'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+It is the Public API for the Plumeria [Runtime `zss-engine` package](https://www.npmjs.com/package/zss-engine)  
+You can use this Stylesheet Engine to develop Zero-runtime StyleSheet CSS-in-JS libraries.  
+
+## Installation
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i zss-engine
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add zss-engine
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i zss-engine
+```
+</Tab>
+</Tabs>
+
+## Overview
+```ts title="TypeScript"
+export type { CSSProperties } from './types/common/css-properties';
+export type { CreateStyleType, ReturnType, CreateStyle } from './types/main/create';
+export type { CSSHTML, CreateKeyframes } from './types/main/global';
+export type { CreateValues, CreateTokens, ReturnVariableType, RxVariableSet, ReturnRx } from './types/main/variableTypes';
+export type { ViewTransitionOptions } from './types/main/viewTransitionOptions';
+export { isServer, isDevelopment, isTestingDevelopment } from './utils/helper.js';
+export { genBase36Hash } from './utils/hash.js';
+export { transpile } from './utils/transpile.js';
+export { transpileAtomic } from './utils/transpile-atomic.js';
+export { splitAtomicAndNested, processAtomicProps } from './utils/processor-atomic.js';
+export { build } from './utils/build.js';
+export { camelToKebabCase, applyCssValue } from './utils/helper.js';
+export { injectClientCSS, injectClientQuery } from './utils/inject-client-css.js';
+export { injectClientGlobalCSS } from './utils/inject-client-global-css.js';
+export { isHashInStyleSheets } from './utils/is-hash-in-style-sheets.js';
+```
+
+## API
+
+### Helpers
+For branching the environment.
+```ts title="TypeScript"
+const isWindowDefined = typeof window !== 'undefined';
+const isDocumentDefined = typeof document !== 'undefined';
+export const isServer = !isWindowDefined || !isDocumentDefined;
+export const isDevelopment = process.env.NODE_ENV === 'development';
+export const isDevAndTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+```
+
+
+
+### Functions
+
+### `genBase36Hash`
+Arguments: `object, number of hash lengths`  
+Returns: `string of hash`
+
+```ts title="TypeScript"
+const base36Hash = genBase36Hash(object, 6); 
+```
+
+
+
+### `transpiler`
+Argments: `object: style object, hash: string`  
+Returns: `styleSheet: string    `
+
+```ts title="TypeScript" 
+const { styleSheet } = transpiler(object, base36Hash);
+```
+
+### `transpilerAtomic`
+Argments: `object: style object, value: string | number, hash: string`  
+Returns: `styleSheet: string    `
+
+```ts title="TypeScript" 
+const { styleSheet } = transpilerAtomic(object, property, atomichash);
+```
+
+### `build`
+Argments: `styleSheet: string, filePath: string`  
+Returns: `void`
+```ts title="TypeScript" 
+build(styleSheet, filePath);
+```
+
+### `injectClientCSS`
+Argments: `hash: string, styleSheet: string`  
+Returns: `void`
+```ts title="TypeScript" 
+injectClientCSS(base36Hash, styleSheet);
+```
+
+### `injectClientGlobalCSS`
+Argments: `styleSheet: string, scoped: string`  
+Returns: `void`
+```ts title="TypeScript" 
+injectClientGlobalCSS(styleSheet, 'global');
+```
+
+## Types
+For API development.
+```ts title="TypeScript"
+// create method
+CSSProperties, // supply 
+CreateStyle, // supply
+CreateStyleType<T>, 
+ReturnType<T>,
+
+// global method (internal)
+CSSHTMLType,
+
+// keyframes method
+CreateKeyframes,
+
+// ViewTransition method
+ViewTransitionOptions,
+
+// defineConsts method
+CreateValues,
+
+// defineTokens method
+CreateTokens,
+```
