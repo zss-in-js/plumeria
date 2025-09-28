@@ -1,0 +1,21 @@
+---
+title: 'Plumeria 0.20.0'
+description: 'Plumeria 0.20.0 introduces improve eslint-plugin and webpack-plugin. (1 min read)'
+date: '2025/09/28'
+---
+
+## Significant improvements
+
+- ESLint plugin has been refactored JavaScript to in TypeScript.
+- Webpack plugin has been fixed a bug that caused duplicate creates to not compile.
+- The documentation has been significantly updated.
+
+## @plumeria/eslint-plugin
+Starting from v0.19.4, we support eslint.config.ts that does not use jiti.
+
+## @plumeria/webpack-plugin
+create was compiled only when it was first found, but now all creates are managed in an array and compiled.
+The next.js development experience has improved.
+
+## Others
+npm.js and monorepo readme improvements.
