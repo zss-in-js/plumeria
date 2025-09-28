@@ -7,12 +7,6 @@ description: 'Comprehensive API reference for the `pseudo` utility in the zss-ut
 
 The `ps(pseudo selector)` utility allows developers to apply CSS pseudo-classes and pseudo-elements directly within JavaScript or TypeScript code using `@plumeria/core`. This is particularly useful for dynamic styling in modern web applications, such as single-page apps or component-based frameworks. By leveraging these utilities, you can create responsive and interactive styles with minimal CSS boilerplate.
 
-<Callout title="Available to clients only">
-  If you require AST parsing and compilation for an RSC preview such as Next.js, you cannot use these zss-utils libraries and must instead define static variables using the defineConsts API.
-</Callout>
-
-
-
 ## Usage
 ```ts title="TypeScript"
 import { ps } from 'zss-utils';
@@ -145,12 +139,3 @@ Functional pseudo-elements allow styling specific parts of an element with argum
 | `ps.fn.viewTransitionImagePair(name)` | Styles an image pair during a view transition.       | Style images during a transition animation.   |
 | `ps.fn.viewTransitionNew(name)`       | Styles the new content during a view transition.     | Style incoming content in a transition.       |
 | `ps.fn.viewTransitionOld(name)`       | Styles the old content during a view transition.     | Style outgoing content in a transition.       |
-
----
-
-## 🔗 Related
-
-<Cards>
-  <Card title="zss-utils Package" href="/docs/reference/zss-utils" description="Explore other utilities in the zss-utils package." />
-  <Card title="Plumeria Core Documentation" href="/docs/reference/core" description="Learn more about the @plumeria/core package." />
-</Cards>
