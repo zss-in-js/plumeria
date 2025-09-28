@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.19.4
+
+### Patch Changes
+
+- fbf4bda: feat: fix eslint.config.ts works without jiti
+
 ## 0.19.3
 
 ### Patch Changes
