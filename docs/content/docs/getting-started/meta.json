@@ -1,4 +1,4 @@
 {
   "defaultOpen": true,
-  "pages": ["installation", "define-styles", "selector-rules", "editor-integration"]
+  "pages": ["installation", "recipes", "selector-rules", "editor-integration"]
 }
