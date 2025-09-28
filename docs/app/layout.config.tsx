@@ -9,6 +9,9 @@ const styles = css.create({
     flexDirection: 'row',
     gap: 12,
     fontWeight: 700,
+    WebkitTextFillColor: 'transparent',
+    background: 'linear-gradient(90deg, #6dd7c9 0%, #6bccbf 50%, #6bbfcc 100%)',
+    WebkitBackgroundClip: 'text',
   },
   zss: {
     borderRadius: '8px',
