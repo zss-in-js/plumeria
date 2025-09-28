@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.20.0
+
+### Minor Changes
+
+- 7426668: feat: fix next-plugin: it has been fixed so that it can be compiled even when there are duplicate create statements
+
 ## 0.19.4
 
 ### Patch Changes
