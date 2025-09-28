@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/compiler",
-  "version": "0.19.2",
+  "version": "0.19.3",
   "description": "Plumeria Rust-based compiler",
   "repository": {
     "type": "git",
