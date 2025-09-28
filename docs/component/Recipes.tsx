@@ -1,5 +1,7 @@
 import { css } from '@plumeria/core';
 import { ps } from 'lib/pseudos';
+import { rotateFocus, rotateHover } from 'lib/animation';
+import { breakpoints } from 'lib/mediaQuery';
 
 const styles = css.create({
   stack: {
@@ -9,6 +11,7 @@ const styles = css.create({
     marginTop: 32,
   },
   button: {
+    position: 'relative',
     padding: '0.75rem 1.5rem',
     fontSize: '1rem',
     fontWeight: 600,
@@ -59,6 +62,63 @@ const buttons = css.create({
     },
   },
 });
+
+const stylesBox = css.create({
+  container: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 40,
+  },
+  card: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 140,
+    height: 200,
+    fontSize: 36,
+    borderRadius: 10,
+    boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+    [breakpoints.md]: {
+      width: 80,
+      height: 120,
+      fontSize: 28,
+    },
+  },
+});
+
+const animated = css.create({
+  hover: {
+    [ps.hover]: {
+      outline: '1px solid dodgerblue',
+      animationName: rotateHover,
+      animationDuration: '0.7s',
+    },
+  },
+  focus: {
+    [ps.hover]: {
+      outline: '1px solid orange',
+      animationName: rotateFocus,
+      animationDuration: '0.8s',
+    },
+  },
+});
+
+export function Box() {
+  return (
+    <div className={css.props(stylesBox.container)}>
+      <span>
+        <span tabIndex={0} className={css.props(stylesBox.card, animated.hover)}>
+          A
+        </span>
+      </span>
+      <span>
+        <span tabIndex={0} className={css.props(stylesBox.card, animated.focus)}>
+          B
+        </span>
+      </span>
+    </div>
+  );
+}
 
 export function FancyButtons() {
   return (
