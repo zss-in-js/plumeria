@@ -1,0 +1,47 @@
+---
+title: 'media'
+description: 'API reference for the `media` utility in @plumeria/core'
+---
+
+The `media` utility provides composable media query helpers.  
+Accepts either `number` (auto-suffixed with `px`) or `string` values.
+
+## Usage
+
+```ts
+import { css } from '@plumeria/core';
+import { media } from 'zss-utils';
+
+
+const styles = css({
+  [media.maxWidth(800)]: {
+    fontSize: '90%',
+  },
+  [media.range('width <= 1024px')]: {
+    display: 'none',
+  },
+});
+```
+
+## API
+
+### `maxWidth(value: number | string): string`
+Creates a `@media (max-width: …)` query.
+
+| Example Input       | Output                      |
+| ------------------- | --------------------------- |
+| `maxWidth(800)`     | `@media (max-width: 800px)` |
+| `maxWidth("48rem")` | `@media (max-width: 48rem)` |
+
+### `minWidth(value: number | string): string`
+| Example Input      | Output                      |
+| ------------------ | --------------------------- |
+| `minWidth(560)`    | `@media (min-width: 560px)` |
+| `minWidth("40em")` | `@media (min-width: 40em)`  |
+
+### `range(query: string): string`
+Creates custom range expressions.
+
+| Example Input              | Output                     |
+| -------------------------- | -------------------------- |
+| `range("width <= 1024px")` | `@media (width <= 1024px)` |

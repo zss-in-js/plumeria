@@ -1,0 +1,55 @@
+---
+title: 'zss-utils'
+description:  'Learn more about zss-utils.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import Link from 'next/link';
+
+It is the plumeria [Utility `zss-utils` package](https://www.npmjs.com/package/zss-utils)  
+
+<Callout title="Available to Vite only features">
+  If your project is client-only, this library makes it easy to specify key properties.
+In examples like Next.js, which handle both client and server functions, you'll need to register static literal values using defineConsts.
+</Callout>
+
+
+## Installation
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i zss-utils
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add zss-utils
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i zss-utils
+```
+</Tab>
+</Tabs>
+
+
+## Overview
+
+```ts title="TypeScript"
+export { media } from './utils/media';
+export { container } from './utils/container';
+export { color } from './utils/color';
+export { ps } from './utils/ps';
+export { px } from './utils/px';
+```
+
+## API
+
+```ts title="TypeScript"
+import { ps, px, media, container, color } from 'zss-utils';
+```
+
+<Cards>
+  <Card title="See more about color" href="/docs/preset/color" />
+  <Card title="See more about pseudo" href="/docs/preset/pseudo" />
+</Cards>

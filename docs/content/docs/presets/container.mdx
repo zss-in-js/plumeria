@@ -1,0 +1,26 @@
+---
+title: 'container'
+description: 'API reference for the `container` utility in @plumeria/core'
+---
+
+The `css.container` utility works just like `css.media`, but targets **CSS container queries** instead of viewport media queries.
+
+- Same function names: `minWidth`, `maxWidth`, `range`, etc.
+- Accepts `number` (auto-suffixed with `px`) or `string`
+- Can be used as a selector key:
+```ts
+  [container.minWidth(600)]: {
+    display: "grid"
+  }
+```
+
+
+## API
+
+The following functions mirror those in `media`, but use `container` rules:
+
+| Function                            | Output                           |
+| ----------------------------------- | -------------------------------- |
+| `container.minWidth(240)`           | `@container (min-width: 240px)`  |
+| `container.minHeight("20rem")`      | `@container (min-height: 20rem)` |
+| `container.range("width <= 400px")` | `@container (width <= 400px)`    |
