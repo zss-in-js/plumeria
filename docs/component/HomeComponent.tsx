@@ -105,7 +105,7 @@ export const HomeComponent = () => {
       <div className={css.props(styles.inlineword)}>
         Atomic CSS-in-JS
         <br />
-        <span className={css.props(styles.textSize)}>Compile at build-time. No-runtime overhead.</span>
+        <span className={css.props(styles.textSize)}>On-demand compile at build-time.</span>
       </div>
       <CodeBlock code={demoCode} lang="text" />
       <div className={css.props(styles.link_box)}>
