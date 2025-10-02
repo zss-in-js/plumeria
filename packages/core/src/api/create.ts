@@ -61,7 +61,7 @@ function create<const T extends Record<string, CSSProperties>>(
         records.push({
           key: prop,
           hash: baseHashParts.join(' '),
-          sheet: baseSheetParts.join(' '),
+          sheet: baseSheetParts.join(''),
         });
       }
 
@@ -69,7 +69,7 @@ function create<const T extends Record<string, CSSProperties>>(
         records.push({
           key: prop + '__queries__',
           hash: queryHashParts.join(' '),
-          sheet: querySheetParts.join(' '),
+          sheet: querySheetParts.join(''),
         });
       }
     });
