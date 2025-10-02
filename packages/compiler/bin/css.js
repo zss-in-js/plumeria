@@ -3,6 +3,13 @@
 const path = require('path');
 const { execSync } = require('child_process');
 const { styleText } = require('util');
+const { enableCompileCache } = require('node:module');
+
+enableCompileCache();
+
+const { register } = require('rscute/register');
+
+register();
 
 try {
   const checkMark = styleText('greenBright', '✓');
@@ -15,15 +22,7 @@ try {
     });
   }
 
-  const a1 = process.argv.includes('--view') ? '--view' : '';
-  const a2 = process.argv.includes('--paths') ? '--paths' : '';
-  const argv = [a1, a2].join(' ');
-
-  const indexPath = path.resolve(__dirname, '../dist/index.js');
-
-  execSync(`node -r rscute ${indexPath} ` + argv, {
-    stdio: 'inherit',
-  });
+  require(path.resolve(__dirname, '../dist/index.js'));
 
   const compilation = typecheck ? 'Type-check completed' : '';
   console.log(` ${checkMark} Compiled... ${compilation}`);
