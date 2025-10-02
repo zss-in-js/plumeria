@@ -21,11 +21,11 @@
   "dependencies": {
     "@rust-gear/glob": "^0.2.2",
     "@swc/core": "^1.11.24",
+    "find-up": "^7.0.0",
     "lightningcss": "^1.29.3",
     "postcss": "^8.5.3",
     "postcss-combine-media-query": "^2.0.0",
-    "rscute": "^0.2.7",
-    "find-up": "^7.0.0"
+    "rscute": "^0.2.8"
   },
   "publishConfig": {
     "access": "public"
