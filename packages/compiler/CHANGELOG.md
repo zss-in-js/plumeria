@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.20.1
+
+### Patch Changes
+
+- 9b3e149: feat: node start-up changed to rscute/register and add enableCompileCache
+
 ## 0.20.0
 
 ### Minor Changes

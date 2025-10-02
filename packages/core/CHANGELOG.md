@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.20.1
+
+### Patch Changes
+
+- 74313b2: fix: remove unnecessary join spaces in the sheet
+
 ## 0.20.0
 
 ### Minor Changes
