@@ -173,14 +173,36 @@ function extractCssProps(code: string) {
     }
 
     if (parenCount === 0) {
-      // Normalize whitespace and newlines in args for better parsing
-      const normalizedArgs = args.replace(/\s+/g, ' ').trim();
+      const originalArgs = args.split(/\s*,\s*(?![^(]*\))/);
 
-      // Get the pure argument list with the conditional expressions removed
-      const cleanArgs = parseCssPropsArguments(normalizedArgs);
-      if (cleanArgs.length > 0) {
-        // Reconstruction preserving the code calling format
-        propsMatches.push(`css.props(${cleanArgs.join(', ')})`);
+      const staticArgs = [];
+      const conditionalStyleObjects = [];
+
+      for (const arg of originalArgs) {
+        const trimmedArg = arg.trim();
+        if (trimmedArg) {
+          if (trimmedArg.includes('&&') || trimmedArg.includes('?')) {
+            const styles = parseCssPropsArguments(trimmedArg);
+            conditionalStyleObjects.push(...styles);
+          } else {
+            staticArgs.push(trimmedArg);
+          }
+        }
+      }
+
+      if (staticArgs.length > 0) {
+        propsMatches.push(`css.props(${staticArgs.join(', ')})`);
+      }
+
+      for (const styleObj of conditionalStyleObjects) {
+        if (
+          styleObj &&
+          styleObj !== 'false' &&
+          styleObj !== 'null' &&
+          styleObj !== 'undefined'
+        ) {
+          propsMatches.push(`css.props(${styleObj})`);
+        }
       }
     }
   }
