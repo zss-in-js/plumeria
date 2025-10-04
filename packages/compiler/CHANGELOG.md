@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.20.2
+
+### Patch Changes
+
+- b3127eb: fix: when using conditional styles, the base style's properties are now compiled without determining the property winner
+
 ## 0.20.1
 
 ### Patch Changes
