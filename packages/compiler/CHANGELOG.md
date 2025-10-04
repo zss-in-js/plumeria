@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.20.2
+
+### Patch Changes
+
+- b3127eb: fix: fixed to compile without determining the winner of the style when using conditional branching style
+
 ## 0.20.1
 
 ### Patch Changes
