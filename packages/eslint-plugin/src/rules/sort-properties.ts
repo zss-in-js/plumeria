@@ -10,10 +10,6 @@ import { propertyGroups } from '../util/propertyGroups';
 
 const createRule = ESLintUtils.RuleCreator((name) => name);
 
-/**
- * @param context Rule context
- * @returns Source code object
- */
 function getSourceCode(context: Rule.RuleContext) {
   return context.getSourceCode ? context.getSourceCode() : context.sourceCode;
 }
@@ -41,12 +37,7 @@ function getPropertyIndex(
     return null;
   }
 
-  if (
-    isTopLevel &&
-    (property.key.type !== 'Identifier' ||
-      (typeof name === 'string' &&
-        (name.startsWith('&') || name.startsWith(':') || name.startsWith('@'))))
-  ) {
+  if (isTopLevel) {
     return null;
   }
 
