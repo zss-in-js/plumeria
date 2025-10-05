@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.20.3
+
+### Patch Changes
+
+- 8d9d65e: fix: fixed an issue where styles were broken when transitioning from a component-based page by resetting it
+
 ## 0.20.2
 
 ### Patch Changes
