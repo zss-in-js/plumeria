@@ -48,6 +48,7 @@ export class PlumeriaPlugin {
   }
 
   private updateCurrentPageFiles(compiler: any) {
+    this.stylesByFile.clear();
     const entries = compiler.options.entry;
     if (entries && typeof entries === 'object') {
       this.currentPageFiles.clear();
