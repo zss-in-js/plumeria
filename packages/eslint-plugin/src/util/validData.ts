@@ -1,4 +1,3 @@
-/* eslint-disable @plumeria/sort-properties */
 const fontSizeSubValues = [
   'xx-small',
   'x-small',
