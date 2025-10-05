@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.20.4
+
+### Patch Changes
+
+- fe14613: fix: sort-properties rule exclude first-level keys from lint targets
+
 ## 0.20.3
 
 ### Patch Changes
