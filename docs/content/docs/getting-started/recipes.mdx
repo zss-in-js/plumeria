@@ -87,75 +87,10 @@ const buttons = css.create({
 })
 ```
 
-```tsx title="TypeScript"
-import { css } from '@plumeria/core';
-import { ps } from 'lib/pseudos';
-
-const rotateHover = css.keyframes({
-  from: {
-    transform: 'rotate(0deg)',
-  },
-  to: {
-    transform: 'rotate(360deg)',
-  },
-});
-
-const rotateFocus = css.keyframes({
-  from: {
-    transform: 'rotateY(0deg) rotateX(0deg)',
-  },
-  to: {
-    transform: 'rotateY(360deg) rotateX(90deg)',
-  },
-});
-
-const styles = css.create({
-  container: {
-    display: 'flex',
-    flexDirection: 'row',
-    gap: 40,
-  },
-  card: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '200px',
-    height: '200px',
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    backgroundColor: '#fefefe',
-    borderRadius: '2rem',
-    boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
-    transition: 'transform 0.4s ease, box-shadow 0.4s ease',
-  },
-});
-
-const animated = css.create({
-  hover: {
-    [ps.hover]: {
-      background: css.color.azure,
-      boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
-      animationName: rotateHover,
-      animationDuration: '1s',
-      animationTimingFunction: 'linear',
-      animationIterationCount: 'infinite',
-    },
-  },
-  focus: {
-    [ps.focus]: {
-      outline: '2px solid dodgerblue',
-      animationName: rotateFocus,
-      animationDuration: '0.8s',
-      animationIterationCount: 'infinite',
-    },
-  },
-});
-```
-
 ## Motion Card
 <Box />
 
-```jsx
+```jsx title="TSX"
 export function Box() {
   return (
     <div className={css.props(stylesBox.container)}>
@@ -174,7 +109,7 @@ export function Box() {
 };
 ```
 
-```ts
+```ts title="TypeScript"
 const stylesBox = css.create({
   container: {
     display: 'flex',
