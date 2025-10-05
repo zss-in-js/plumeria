@@ -10,7 +10,7 @@ ruleTester.run(
   {
     valid: [
       {
-        code: 'const styles = { position: "absolute", top: "0", right: "0", bottom: "0", left: "0", display: "block" };',
+        code: 'const styles = { key1: { position: "absolute", top: "0", right: "0", bottom: "0", left: "0", display: "block" } };',
         settings: {
           ecmaVersion: 2021,
         },
@@ -18,7 +18,7 @@ ruleTester.run(
     ],
     invalid: [
       {
-        code: 'const styles = { display: "block", position: "absolute", top: "0", right: "0", bottom: "0", left: "0" };',
+        code: 'const styles = { key1: { display: "block", position: "absolute", top: "0", right: "0", bottom: "0", left: "0" } };',
         errors: [
           {
             message: 'Property "display" should be at position 6',
@@ -40,7 +40,7 @@ ruleTester.run(
           },
         ],
         output:
-          'const styles = { position: "absolute", top: "0", right: "0", bottom: "0", left: "0", display: "block" };',
+          'const styles = { key1: { position: "absolute", top: "0", right: "0", bottom: "0", left: "0", display: "block" } };',
         settings: {
           ecmaVersion: 2021,
         },
