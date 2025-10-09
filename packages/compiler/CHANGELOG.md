@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.21.0
+
+### Minor Changes
+
+- 27aada1: fix: the rules for conditional expressions were improved in the previous version 0.20.2, so they will be unified in 0.21.0
+
 ## 0.20.4
 
 ### Patch Changes
