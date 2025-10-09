@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.21.0
+
+### Minor Changes
+
+- 3b70ce0: fix: improved the component-only page in the previous version, 0.20.3, so we will unify it in 0.21.0
+
 ## 0.20.4
 
 ### Patch Changes
