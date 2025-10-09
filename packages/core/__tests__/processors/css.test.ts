@@ -80,7 +80,11 @@ describe('css processor (single sequential test)', () => {
 
     // 9. buildGlobal should process the queue when not processing and queue is not empty
     await buildGlobal('global1.css');
-    expect(mockZssEngine.build).toHaveBeenCalledWith(testSheet5, 'global1.css', '--global');
+    expect(mockZssEngine.build).toHaveBeenCalledWith(
+      testSheet5,
+      'global1.css',
+      '--global',
+    );
     expect(mockZssEngine.build).toHaveBeenCalledTimes(4); // 3 from buildProps + 1 here
 
     // 10. buildGlobal should not call build in development mode
@@ -95,7 +99,11 @@ describe('css processor (single sequential test)', () => {
     const testSheet7 = '.global3 { border: 1px solid black; }';
     resolvePromise_2(testSheet7);
     await buildGlobal('global3.css');
-    expect(mockZssEngine.build).toHaveBeenCalledWith(testSheet7, 'global3.css', '--global');
+    expect(mockZssEngine.build).toHaveBeenCalledWith(
+      testSheet7,
+      'global3.css',
+      '--global',
+    );
     expect(mockZssEngine.build).toHaveBeenCalledTimes(5);
 
     // 12. buildGlobal should not process if already processing
@@ -105,6 +113,10 @@ describe('css processor (single sequential test)', () => {
     const promise4 = buildGlobal('global4.css');
     await Promise.all([promise3, promise4]);
     expect(mockZssEngine.build).toHaveBeenCalledTimes(6); // Only one more call
-    expect(mockZssEngine.build).toHaveBeenCalledWith(testSheet8, 'global4.css', '--global');
+    expect(mockZssEngine.build).toHaveBeenCalledWith(
+      testSheet8,
+      'global4.css',
+      '--global',
+    );
   });
 });
