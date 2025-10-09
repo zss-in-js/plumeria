@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const generatedTsMap = new Map<string, string>();
 
@@ -533,8 +533,4 @@ process.on('unhandledRejection', async (reason, promise) => {
   process.exit(1);
 });
 
-module.exports = {
-  extractTSFile,
-  restoreAllOriginals,
-  extractVueAndSvelte,
-};
+export { extractTSFile, restoreAllOriginals, extractVueAndSvelte };
