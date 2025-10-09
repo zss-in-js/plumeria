@@ -1093,8 +1093,8 @@ export const validateValues = createRule({
                     return false;
                   }
 
-                  // Third value must be a length
-                  return new RegExp(lengthValuePattern).test(parts[2]);
+                  // Third value must be a length or auto
+                  return new RegExp(`^(${lengthValuePattern}|auto)$`).test(parts[2]);
                 }
 
                 return false;
