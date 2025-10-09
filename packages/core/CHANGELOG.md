@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.21.0
+
+### Minor Changes
+
+- 8175d8e: fix: defineTokens the key has been corrected to kebab case
+
 ## 0.20.4
 
 ### Patch Changes
