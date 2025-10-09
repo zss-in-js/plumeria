@@ -1,20 +1,19 @@
-const path = require('path');
-const fs = require('fs');
-const { unlinkSync, existsSync, readFileSync, statSync } = require('fs');
-const { readFile, writeFile } = require('fs/promises');
-const { glob } = require('@rust-gear/glob');
-const postcss = require('postcss');
-const combineMediaQuery = require('postcss-combine-media-query');
-const { execute } = require('rscute/execute');
-const { transform: lightningCSSTransform } = require('lightningcss');
-const { parseSync } = require('@swc/core');
-const { findUpSync } = require('find-up');
-const { buildGlobal, buildProps } = require('@plumeria/core/processors');
-const {
+import path from 'path';
+import fs, { unlinkSync, existsSync, readFileSync, statSync } from 'fs';
+import { readFile, writeFile } from 'fs/promises';
+import { glob } from '@rust-gear/glob';
+import postcss from 'postcss';
+import combineMediaQuery from 'postcss-combine-media-query';
+import { execute } from 'rscute/execute';
+import { transform as lightningCSSTransform } from 'lightningcss';
+import { parseSync } from '@swc/core';
+import { findUpSync } from 'find-up';
+import { buildGlobal, buildProps } from '@plumeria/core/processors';
+import {
   extractTSFile,
   restoreAllOriginals,
   extractVueAndSvelte,
-} = require('./extract');
+} from './extract';
 
 let projectRoot;
 
@@ -176,7 +175,6 @@ async function optimizeCSS(): Promise<void> {
 
   const files = await glob('**/*.{js,jsx,ts,tsx,vue,svelte}', {
     cwd: scanRoot,
-    absolute: true,
     exclude: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**'],
   });
 
