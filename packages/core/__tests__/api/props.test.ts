@@ -147,4 +147,20 @@ describe('props', () => {
     props(styles.cachedStyle);
     expect(mockZssEngine.injectClientCSS).toHaveBeenCalledTimes(2);
   });
+
+  it('should handle objects not created by create function', () => {
+    const styles = create({ validStyle: { color: 'red' } });
+
+    // A regular object not registered in styleAtomMap
+    const invalidObject = { color: 'blue' } as any;
+
+    const result = props(invalidObject.color, styles.validStyle, null);
+
+    // If there is an object that is not registered in create,
+    // an error occurs in the type, but no class is returned even if it is passed through any.
+    expect(result).toMatch(/^x[a-zA-Z0-9]+$/);
+    expect(cssProcessor.resolvePromise_1).toHaveBeenCalledWith(
+      expect.stringContaining(''),
+    );
+  });
 });
