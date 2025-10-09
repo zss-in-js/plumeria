@@ -1,6 +1,6 @@
 import type { JSRuleDefinition } from 'eslint';
 import { RuleTester } from 'eslint';
-import { noInnerCall } from '../src/rules/no-inner-call';
+import { noInnerCall } from '../../src/rules/no-inner-call';
 
 const ruleTester = new RuleTester();
 
