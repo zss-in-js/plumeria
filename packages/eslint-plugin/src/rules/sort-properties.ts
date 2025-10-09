@@ -57,9 +57,11 @@ function getPropertyIndex(
   }
 
   if (typeof name === 'string') {
-    if (name.startsWith('&')) return (propertyGroups.length + 1) * 1000;
-    if (name.includes(':')) return (propertyGroups.length + 2) * 1000;
-    if (name.includes('@media')) return (propertyGroups.length + 3) * 1000;
+    if (name.startsWith(':')) return (propertyGroups.length + 1) * 1000;
+    if (name.startsWith('&')) return (propertyGroups.length + 2) * 1000;
+    if (name.startsWith('@media')) return (propertyGroups.length + 3) * 1000;
+    if (name.startsWith('@container'))
+      return (propertyGroups.length + 3) * 1000;
   }
 
   return lastGroupIndex * 1000 + maxPropIndex + 1;
