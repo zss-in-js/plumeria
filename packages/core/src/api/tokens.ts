@@ -15,13 +15,13 @@ const defineTokens = <const T extends CreateTokens>(object: T) => {
         styles[':root'] ||= {};
         styles[':root'][subKey] ||= {};
         (styles[':root'][subKey] as Record<string, string | number>)[
-          `--${key}`
+          `--${kebabKey}`
         ] = subValue;
       } else {
         const themeSelector =
           subKey === 'default' ? ':root' : `:root[data-theme="${subKey}"]`;
         styles[themeSelector] ||= {};
-        styles[themeSelector][`--${key}`] = subValue;
+        styles[themeSelector][`--${kebabKey}`] = subValue;
       }
     });
   });
