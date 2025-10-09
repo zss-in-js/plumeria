@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.21.0
+
+### Minor Changes
+
+- d109549: fix: validate-values ​​rule has been mini fix
+
 ## 0.20.4
 
 ### Patch Changes
