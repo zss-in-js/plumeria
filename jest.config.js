@@ -11,7 +11,10 @@ module.exports = {
   ],
   preset: 'ts-jest',
   testEnvironment: 'node',
-  coverageReporters: ['text', 'html'],
+  coverageReporters: ['text', 'lcov', 'html'],
   reporters: [['github-actions', { silent: false }], 'summary'],
-  coveragePathIgnorePatterns: ['<rootDir>/packages/core/dist/'],
+  coveragePathIgnorePatterns: [
+    '<rootDir>/packages/core/dist/',
+    '<rootDir>/packages/eslint-plugin/',
+  ],
 };
