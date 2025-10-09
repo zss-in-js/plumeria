@@ -1,6 +1,6 @@
 import type { JSRuleDefinition } from 'eslint';
 import { RuleTester } from 'eslint';
-import { noUnusedKeys } from '../src/rules/no-unused-keys';
+import { noUnusedKeys } from '../../src/rules/no-unused-keys';
 
 const ruleTester = new RuleTester();
 

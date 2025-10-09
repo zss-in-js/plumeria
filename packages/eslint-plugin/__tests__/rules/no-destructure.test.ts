@@ -1,6 +1,6 @@
 import type { JSRuleDefinition } from 'eslint';
 import { RuleTester } from 'eslint';
-import { noDestructure } from '../src/rules/no-destructure';
+import { noDestructure } from '../../src/rules/no-destructure';
 
 const ruleTester = new RuleTester();
 
