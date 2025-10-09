@@ -13,4 +13,5 @@ module.exports = {
   testEnvironment: 'node',
   coverageReporters: ['text', 'html'],
   reporters: [['github-actions', { silent: false }], 'summary'],
+  coveragePathIgnorePatterns: ['<rootDir>/packages/core/dist/'],
 };
