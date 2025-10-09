@@ -1094,7 +1094,9 @@ export const validateValues = createRule({
                   }
 
                   // Third value must be a length or auto
-                  return new RegExp(`^(${lengthValuePattern}|auto)$`).test(parts[2]);
+                  return new RegExp(`^(${lengthValuePattern}|auto)$`).test(
+                    parts[2],
+                  );
                 }
 
                 return false;
