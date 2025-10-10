@@ -11,7 +11,7 @@ Consolidated the accumulated patch versions and fixed the core defineTokens.
 - compiler: The rule that the left wins is that when using conditional expressions, you cannot toggle by overwriting unless there is a base property, so we decided to treat conditional expressions specially.
 - webpack-plugin: When the development server is started, even for pages with a single component, styles are cleared when navigating, and the next reflection is applied.
 - eslint-plugin: Improved consistency in ordering of flex and sort-properties in rule value-vlidate.
-- core: Fixed defineTokens keys not being kebab-case.
+- core: Refactor defineTokens key changed to kebabKey.
 
 Below are the important bug fixes implemented in 0.20.
 
