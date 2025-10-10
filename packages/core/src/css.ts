@@ -19,7 +19,6 @@ import { defineConsts } from './api/consts';
 import { rx } from './api/rx';
 
 class StyleSheet {
-  /* istanbul ignore next */
   private constructor() {}
 
   static create<const T extends Record<string, CSSProperties>>(
