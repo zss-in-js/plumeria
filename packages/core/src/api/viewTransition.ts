@@ -4,18 +4,17 @@ import { global } from './global';
 
 const viewTransition = (object: ViewTransitionOptions): string => {
   const hash = genBase36Hash(object, 1, 8);
-  const transitionName = `vt-${hash}`;
+  const name = `vt-${hash}`;
 
   global({
-    [`::view-transition-group(${transitionName})`]:
-      object.group as CSSProperties,
-    [`::view-transition-image-pair(${transitionName})`]:
+    [`::view-transition-group(${name})`]: object.group as CSSProperties,
+    [`::view-transition-image-pair(${name})`]:
       object.imagePair as CSSProperties,
-    [`::view-transition-old(${transitionName})`]: object.old as CSSProperties,
-    [`::view-transition-new(${transitionName})`]: object.new as CSSProperties,
+    [`::view-transition-old(${name})`]: object.old as CSSProperties,
+    [`::view-transition-new(${name})`]: object.new as CSSProperties,
   });
 
-  return transitionName;
+  return name;
 };
 
 export { viewTransition };
