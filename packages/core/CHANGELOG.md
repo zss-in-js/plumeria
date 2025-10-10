@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.21.4
+
+### Patch Changes
+
+- bcd57e4: refactor: further adjustments to variable name
+
 ## 0.21.3
 
 ### Patch Changes
