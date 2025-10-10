@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.21.2
+
+### Patch Changes
+
+- ffdf0e4: chore: removed the istanbul ignore next
+
 ## 0.21.1
 
 ### Patch Changes
