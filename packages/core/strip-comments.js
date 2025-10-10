@@ -12,10 +12,21 @@ function clean(file) {
         previousLineWasRegionComment = true;
         return '';
       }
+
+      // Remove /* ... */ style block comments
+      let cleanedLine = line.replace(/\s*\/\*.*\*\/\s*/g, '');
+
+      // Remove // #region style comments
+      cleanedLine = cleanedLine
+        .replace(/\s*\/\/\s*#(end)?region\b.*$/, '')
+        .trimEnd();
+
       // If the previous line was a `#region` / `#endregion` comment, add a blank line
-      const lineToAdd = previousLineWasRegionComment ? '\n' + line : line;
+      const lineToAdd = previousLineWasRegionComment
+        ? '\n' + cleanedLine
+        : cleanedLine;
       previousLineWasRegionComment = false;
-      return lineToAdd.replace(/\s*\/\/\s*#(end)?region\b.*$/, '').trimEnd();
+      return lineToAdd;
     })
     .filter((line) => line !== '') // Remove blank lines (but leave `\n`)
     .join('\n');
