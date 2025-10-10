@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.21.3
+
+### Patch Changes
+
+- 584e992: refactor: fit to 25kB for npm bundle size
+
 ## 0.21.2
 
 ### Patch Changes
