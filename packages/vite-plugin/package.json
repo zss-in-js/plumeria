@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/vite-plugin",
-  "version": "0.21.2",
+  "version": "0.21.3",
   "type": "module",
   "description": "Plumeria Vite plugin",
   "repository": {
