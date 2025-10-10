@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.21.1
+
+### Patch Changes
+
+- c42f4d2: chore: version bump only
+
 ## 0.21.0
 
 ### Minor Changes

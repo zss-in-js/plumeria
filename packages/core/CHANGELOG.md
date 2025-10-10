@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.21.1
+
+### Patch Changes
+
+- 9a0a31d: chore: removed the code related to the commented out tests
+
 ## 0.21.0
 
 ### Minor Changes
