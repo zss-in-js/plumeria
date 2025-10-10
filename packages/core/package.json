@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "0.21.1",
+  "version": "0.21.2",
   "description": "The atomic on-demand CSS-in-JS.",
   "author": "Refirst 11",
   "license": "MIT",
