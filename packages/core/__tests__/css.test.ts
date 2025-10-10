@@ -2,6 +2,7 @@
 import { css, rx } from '../src/css';
 
 describe('css static methods', () => {
+  new (css as any)();
   it('delegates keyframes()', () => {
     const res = css.keyframes({
       from: { opacity: 0 },
