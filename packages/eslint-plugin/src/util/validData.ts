@@ -198,7 +198,7 @@ const validData: { [key: string]: readonly string[] } = {
     // 'round round',
   ], // 26
   backgroundSize: ['auto', 'cover', 'contain'], // 27
-  blockSize: ['auto'], // 28
+  blockSize: ['auto', ...lengthSubValues], // 28
   boxDecorationBreak: ['slice', 'clone'], // 29
   boxShadow: [], // 30
   boxSizing: ['content-box', 'border-box'], // 31
@@ -349,7 +349,7 @@ const validData: { [key: string]: readonly string[] } = {
   columnRuleStyle: [...lineStyle], // 142
   columnRuleWidth: [], // 143
   columnSpan: ['none', 'all'], // 144
-  columnWidth: ['auto'], // 145
+  columnWidth: ['auto', ...lengthSubValues], // 145
   columns: [], // 146
   content: [
     'open-quote',
@@ -573,7 +573,7 @@ const validData: { [key: string]: readonly string[] } = {
     'pixelated',
   ], // 206
   initialLetter: ['normal'], // 207
-  inlineSize: ['auto'], // 208
+  inlineSize: ['auto', ...lengthSubValues], // 208
   insetBlock: ['auto'], // 209
   insetBlockEnd: ['auto'], // 210
   insetBlockStart: ['auto'], // 211
@@ -695,7 +695,7 @@ const validData: { [key: string]: readonly string[] } = {
   maskMode: ['alpha', 'luminance', 'match-source'], // 244
   maskOrigin: [], // 245
   maskPosition: ['top', 'bottom', 'left', 'right', 'center'], // 246
-  maskRepeat: [], // 247
+  maskRepeat: ['repeat-x', 'repeat-y', 'repeat', 'space', 'round', 'no-repeat'], // 247
   maskSize: ['cover', 'contain'], // 248
   maskType: ['luminance', 'alpha'], // 249
   mathDepth: ['auto-add'], // 250
@@ -855,7 +855,7 @@ const validData: { [key: string]: readonly string[] } = {
   scrollbarGutter: ['auto', 'stable', 'stable both-edges'], // 333
   scrollbarWidth: ['none', 'auto', 'thin'], // 334
   shapeImageThreshold: [], // 335
-  shapeOutSide: ['none'], // 336
+  shapeOutside: ['none'], // 336
   shapeRendering: ['auto', 'optimizeSpeed', 'crispEdges', 'geometricPrecision'], // 337
   stopColor: [], // 338
   stopOpacity: [], // 339
