@@ -74,6 +74,7 @@ describe('place validation', () => {
       expect(isValidTouchAction(' auto')).toBe(false);
       expect(isValidTouchAction('foo')).toBe(false);
       expect(isValidTouchAction('pan-x pan-y auto')).toBe(false);
+      expect(isValidTouchAction('pan-y pan-up')).toBe(false);
       expect(isValidTouchAction('pan-x pan-left')).toBe(false);
     });
   });
