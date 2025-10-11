@@ -120,3 +120,41 @@ describe('css processor (single sequential test)', () => {
     );
   });
 });
+
+describe('css processor lazy initialization', () => {
+  beforeEach(() => {
+    jest.resetModules();
+  });
+
+  it('buildProps should initialize promise on first call', async () => {
+    const cssProcessor = require('../../src/processors/css');
+    require('zss-engine');
+    jest.mock('zss-engine', () => ({
+      ...jest.requireActual('zss-engine'),
+      build: jest.fn(),
+      isDevelopment: false,
+    }));
+
+    expect(cssProcessor.resolvePromise_1).toBeUndefined();
+    await cssProcessor.buildProps('test.css');
+
+    const cssProcessorAfter = require('../../src/processors/css');
+    expect(cssProcessorAfter.resolvePromise_1).toBeInstanceOf(Function);
+  });
+
+  it('buildGlobal should initialize promise on first call', async () => {
+    const cssProcessor = require('../../src/processors/css');
+    require('zss-engine');
+    jest.mock('zss-engine', () => ({
+      ...jest.requireActual('zss-engine'),
+      build: jest.fn(),
+      isDevelopment: false,
+    }));
+
+    expect(cssProcessor.resolvePromise_2).toBeUndefined();
+    await cssProcessor.buildGlobal('test.css');
+
+    const cssProcessorAfter = require('../../src/processors/css');
+    expect(cssProcessorAfter.resolvePromise_2).toBeInstanceOf(Function);
+  });
+});
