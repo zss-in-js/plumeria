@@ -582,10 +582,26 @@ export const validateValues = createRule({
                 'verticalAlign',
               ];
 
+              const isFitContentGroup = [
+                'width',
+                'maxWidth',
+                'minWidth',
+                'height',
+                'maxHeight',
+                'minHeight',
+                'flexBasis',
+                'blockSize',
+                'columnWidth',
+                'inlineSize',
+              ];
+
+              const isFitContent = isFitContentGroup.includes(key);
+
               const isLengthPercentage = lengthPercentage.includes(key);
               const lengthValuePattern =
                 `${lengthPattern}` +
                 (isLengthPercentage ? `|${percentagePattern}` : '') +
+                (isFitContent ? `|${fitContentString}` : '') +
                 (isNumber ? `|${numberPattern}` : '') +
                 (isAuto ? `|auto` : '') +
                 (isBorderWidth ? '|thin|medium|thick' : '') +
@@ -593,7 +609,7 @@ export const validateValues = createRule({
                 (isBackgroundPositionX ? '|left|center|right' : '') +
                 (isBackgroundPosition ? '|top|bottom|center|left|right' : '') +
                 (isBackgroundSize ? '|cover|contain' : '') +
-                `|${calcString}|${clampString}|${fitContentString}|${anchorString}|${anchorSizeString}|${minString}|${maxString}|${varString}`;
+                `|${calcString}|${clampString}|${anchorString}|${anchorSizeString}|${minString}|${maxString}|${varString}`;
               const lengthValueRegex = new RegExp(`^(${lengthValuePattern})$`);
 
               const isOtherGroups = [
