@@ -13,8 +13,5 @@ module.exports = {
   testEnvironment: 'node',
   coverageReporters: ['text', 'lcov', 'html'],
   reporters: [['github-actions', { silent: false }], 'summary'],
-  coveragePathIgnorePatterns: [
-    '<rootDir>/packages/core/dist/',
-    '<rootDir>/packages/eslint-plugin/',
-  ],
+  coveragePathIgnorePatterns: ['<rootDir>/packages/core/dist/'],
 };
