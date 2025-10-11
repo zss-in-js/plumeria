@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.21.5
+
+### Patch Changes
+
+- 331722a: fix: improved the property where the fit-content function can be used
+
 ## 0.21.4
 
 ### Patch Changes
