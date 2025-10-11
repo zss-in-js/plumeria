@@ -349,7 +349,7 @@ const validData: { [key: string]: readonly string[] } = {
   columnRuleStyle: [...lineStyle], // 142
   columnRuleWidth: [], // 143
   columnSpan: ['none', 'all'], // 144
-  columnWidth: ['auto', ...lengthSubValues], // 145
+  columnWidth: ['auto', 'max-content', 'min-content'], // 145
   columns: [], // 146
   content: [
     'open-quote',
