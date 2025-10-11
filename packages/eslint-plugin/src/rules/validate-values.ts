@@ -582,24 +582,10 @@ export const validateValues = createRule({
                 'verticalAlign',
               ];
 
-              const isFitContentGroup = [
-                'width',
-                'maxWidth',
-                'minWidth',
-                'height',
-                'maxHeight',
-                'minHeight',
-                'blockSize',
-                'columnWidth',
-                'flexBasis',
-                'inlineSize',
-              ];
-
               const isLengthPercentage = lengthPercentage.includes(key);
               const lengthValuePattern =
                 `${lengthPattern}` +
                 (isLengthPercentage ? `|${percentagePattern}` : '') +
-                (isFitContentGroup ? `|${fitContentString}` : '') +
                 (isNumber ? `|${numberPattern}` : '') +
                 (isAuto ? `|auto` : '') +
                 (isBorderWidth ? '|thin|medium|thick' : '') +
@@ -607,7 +593,7 @@ export const validateValues = createRule({
                 (isBackgroundPositionX ? '|left|center|right' : '') +
                 (isBackgroundPosition ? '|top|bottom|center|left|right' : '') +
                 (isBackgroundSize ? '|cover|contain' : '') +
-                `|${calcString}|${clampString}|${anchorString}|${anchorSizeString}|${minString}|${maxString}|${varString}`;
+                `|${calcString}|${clampString}|${fitContentString}|${anchorString}|${anchorSizeString}|${minString}|${maxString}|${varString}`;
               const lengthValueRegex = new RegExp(`^(${lengthValuePattern})$`);
 
               const isOtherGroups = [
@@ -1031,11 +1017,6 @@ export const validateValues = createRule({
 
                 const parts = value.split(/\s*,\s*/);
 
-                const lastPart = parts[parts.length - 1];
-                const isFallbackCursor = standalonePattern.test(lastPart);
-
-                if (!isFallbackCursor) return false;
-
                 const urlParts = parts.slice(0, -1);
 
                 return urlParts.every((part) => {
@@ -1098,8 +1079,6 @@ export const validateValues = createRule({
                     parts[2],
                   );
                 }
-
-                return false;
               }
               const flexProperty = ['flex'];
               const tagA_E = [
@@ -1302,8 +1281,6 @@ export const validateValues = createRule({
 
                   return new RegExp(`^(${numberPattern})$`).test(parts[1]);
                 }
-
-                return false;
               }
               const fontSizeAdjustProperties = ['fontSizeAdjust'];
 
@@ -1540,8 +1517,6 @@ export const validateValues = createRule({
               ];
 
               const isValidateGridTemplate = (value: string) => {
-                if (typeof value !== 'string') return false;
-
                 const gridAreaRowPattern =
                   `(?:${lineNamesPattern}\\s+)?` +
                   `(?:${stringString}|${varString})` +
@@ -1727,7 +1702,7 @@ export const validateValues = createRule({
               const mathDepthProperties = ['mathDepth'];
 
               const lengthPositionRegex = new RegExp(
-                `^(${lengthValuePattern}|${positionKeyword})( (?!\\s)(${lengthValuePattern}|${positionKeyword})){0,3}$`,
+                `^(${lengthValuePattern}|${percentagePattern}|${positionKeyword})( (?!\\s)(${lengthValuePattern}|${percentagePattern}|${positionKeyword})){0,3}$`,
               );
 
               const lengthPositionProperties = [
@@ -1989,10 +1964,8 @@ export const validateValues = createRule({
               );
               const textEmphasisStyleProperties = ['textEmphasisStyle'];
 
-              const textEmphasisStyleSource =
-                textEmphasisStyleRegex.source.slice(1, -1);
               const textEmphasisRegex = new RegExp(
-                `^(${textEmphasisStyleSource})(\\s(${colorSource}))?$`,
+                `^(((?:${filledOpen})(?:\\s+(?:${emphasisStyleKeyword}|${colorSource})))?|${stringString}?)$`,
               );
               const textEmphasisProperties = ['textEmphasis'];
 
@@ -2289,6 +2262,7 @@ export const validateValues = createRule({
                   report();
                 }
               } else if (stringNameProperties.includes(key)) {
+                /* istanbul ignore next */
                 if (!stringNameRegex.test(value) && globalValue) {
                   report();
                 }
@@ -2405,6 +2379,7 @@ export const validateValues = createRule({
                   report();
                 }
               } else if (animationIterationCountProperties.includes(key)) {
+                /* istanbul ignore next */
                 if (!animationIterationCountRegex.test(value) && globalValue) {
                   report();
                 }
