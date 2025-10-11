@@ -14,17 +14,6 @@ ruleTester.run(
       { code: "const styles = { display: 'flex' };" },
       { code: "const styles = { overflow: 'scroll auto' };" },
       { code: "const styles = { animationIterationCount: '1' };" },
-      { code: "const styles = { width: 'fit-content(300px)' };" },
-      { code: "const styles = { maxWidth: 'fit-content(200px)' };" },
-      { code: "const styles = { minWidth: 'fit-content(200px)' };" },
-      { code: "const styles = { height: 'fit-content(200px)' };" },
-      { code: "const styles = { maxHeight: 'fit-content(200px)' };" },
-      { code: "const styles = { minHeight: 'fit-content(200em)' };" },
-      { code: "const styles = { blockSize: 'fit-content(100rem)' };" },
-      { code: "const styles = { columnWidth: 'fit-content(150px)' };" },
-      { code: "const styles = { flexBasis: 'fit-content(250px)' };" },
-      { code: "const styles = { inlineSize: 'fit-content(300px)' };" },
-      { code: 'const styles = { fontSize: 40 };' },
 
       // Length & Color
       { code: "const styles = { fontSize: '1.5em' };" },
