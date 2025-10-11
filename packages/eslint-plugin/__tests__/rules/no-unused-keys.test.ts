@@ -24,6 +24,32 @@ ruleTester.run('no-unused-keys', noUnusedKeys as unknown as JSRuleDefinition, {
         ecmaVersion: 2021,
       },
     },
+    {
+      code: 'const styles = css.create({ unused: {} });',
+      filename: 'test.ts',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
+        const styles = css.create({ used: {} });
+        const x = styles.used;
+      `,
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
+        const styles = css.create({ unused: {} });
+        const ref = styles.unused;
+      `,
+      settings: {
+        ecmaVersion: 2021,
+      },
+      filename: 'test.js',
+    },
   ],
   invalid: [
     {
@@ -39,3 +65,5 @@ ruleTester.run('no-unused-keys', noUnusedKeys as unknown as JSRuleDefinition, {
     },
   ],
 });
+
+
