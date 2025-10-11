@@ -18,7 +18,7 @@ ruleTester.run(
         settings: { ecmaVersion: 2021 },
       },
       {
-        code: 'const styles = { b: 1, a: 2 };',
+        code: 'const styles = { z: 1, a: 2 };',
         settings: { ecmaVersion: 2021 },
       },
       {
@@ -27,6 +27,10 @@ ruleTester.run(
       },
       {
         code: 'const styles = { ":hover": { color: \'blue\'}, "&": { color: \'red\'} };',
+        settings: { ecmaVersion: 2021 },
+      },
+      {
+        code: 'const styles = { key1: { display: "block", ":hover": { color: "red" } } };',
         settings: { ecmaVersion: 2021 },
       },
     ],
@@ -50,6 +54,27 @@ ruleTester.run(
         errors: 3,
         output:
           "const styles = { key1: { '&:hover': { color: 'red' }, '&': { color: 'blue' }, '@media (min-width: 1024px)': { color: 'purple' } } };",
+        settings: { ecmaVersion: 2021 },
+      },
+      {
+        code: "const key = 'z'; const styles = { key1: { [key]: 'value', display: 'block' } };",
+        errors: 2,
+        output:
+          "const key = 'z'; const styles = { key1: { display: 'block', [key]: 'value' } };",
+        settings: { ecmaVersion: 2021 },
+      },
+      {
+        code: "const styles = { key1: { '@container (min-width: 1024px)': { color: 'purple' }, '&:hover': { color: 'red' } } };",
+        errors: 2,
+        output:
+          "const styles = { key1: { '&:hover': { color: 'red' }, '@container (min-width: 1024px)': { color: 'purple' } } };",
+        settings: { ecmaVersion: 2021 },
+      },
+      {
+        code: "const styles = { key1: { [`z-prop`]: 'value', display: 'block' } };",
+        errors: 2,
+        output:
+          "const styles = { key1: { display: 'block', [`z-prop`]: 'value' } };",
         settings: { ecmaVersion: 2021 },
       },
     ],
