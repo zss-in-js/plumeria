@@ -66,5 +66,15 @@ ruleTester.run('no-inner-call', noInnerCall as unknown as JSRuleDefinition, {
       errors: [{ message: 'Do not use css.defineTokens inside functions' }],
       settings,
     },
+    {
+      code: 'const arrow = () => { css.keyframes(); };',
+      errors: [{ message: 'Do not use css.keyframes inside functions' }],
+      settings,
+    },
+    {
+      code: 'const func = function() { css.create(); };',
+      errors: [{ message: 'Do not use css.create inside functions' }],
+      settings,
+    },
   ],
 });
