@@ -8,6 +8,7 @@ import type { Rule } from 'eslint';
 
 const createRule = ESLintUtils.RuleCreator((name) => name);
 
+/* istanbul ignore next */
 function getFilename(context: Rule.RuleContext): string {
   return context.getFilename ? context.getFilename() : context.filename;
 }
@@ -33,8 +34,6 @@ export const noUnusedKeys = createRule({
     if (filename.endsWith('.ts')) {
       return {};
     }
-    const parserServices = context.parserServices;
-    const checker = parserServices?.program?.getTypeChecker();
     const definedKeys = new Map();
     const referencedKeys = new Set();
 
@@ -79,14 +78,6 @@ export const noUnusedKeys = createRule({
         ) {
           const normalKey = `${node.object.name}.${node.property.name}`;
           referencedKeys.add(normalKey);
-
-          if (parserServices && checker) {
-            const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
-            const symbol = checker.getSymbolAtLocation(tsNode);
-            if (symbol) {
-              referencedKeys.add(normalKey);
-            }
-          }
         }
       },
       'Program:exit'() {
