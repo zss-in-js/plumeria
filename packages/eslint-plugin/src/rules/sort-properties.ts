@@ -10,14 +10,12 @@ import { propertyGroups } from '../util/propertyGroups';
 
 const createRule = ESLintUtils.RuleCreator((name) => name);
 
+/* istanbul ignore next */
 function getSourceCode(context: Rule.RuleContext) {
   return context.getSourceCode ? context.getSourceCode() : context.sourceCode;
 }
 
-function getPropertyName(property: TSESTree.Property): string | string[] {
-  if (property.key.type === 'Literal' && Array.isArray(property.key.value)) {
-    return property.key.value;
-  }
+function getPropertyName(property: TSESTree.Property): string {
   if (property.key.type === 'Identifier') {
     return property.key.name;
   }
@@ -29,13 +27,9 @@ function getPropertyName(property: TSESTree.Property): string | string[] {
 
 function getPropertyIndex(
   property: TSESTree.Property,
-  isTopLevel = false,
+  isTopLevel: boolean,
 ): number | null {
   const name = getPropertyName(property);
-
-  if (Array.isArray(name)) {
-    return null;
-  }
 
   if (isTopLevel) {
     return null;
@@ -121,19 +115,6 @@ export const sortProperties = createRule({
             fix(fixer) {
               const newText = sorted
                 .map((p) => {
-                  const propName = getPropertyName(p);
-                  if (Array.isArray(propName)) {
-                    const arrayKey = sourceCode.getText(p.key as any);
-                    const arrayContent = (
-                      p.value as TSESTree.ObjectExpression
-                    ).properties
-                      .map(
-                        (inner) =>
-                          `${indent}  ${sourceCode.getText(inner as any)}`,
-                      )
-                      .join(`,${lineEnding}`);
-                    return `${indent}${arrayKey}: {\n${arrayContent}\n${indent}}`;
-                  }
                   return `${indent}${sourceCode.getText(p as any)}`;
                 })
                 .join(`,${lineEnding}`);
