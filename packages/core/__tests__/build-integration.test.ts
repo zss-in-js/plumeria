@@ -5,7 +5,7 @@ import path from 'path';
 const execPromise = promisify(exec);
 
 test('Should be build successfully and logs contain expected output', async () => {
-  const { stdout } = await execPromise('npm run build', {
+  const { stdout } = await execPromise('pnpm build', {
     cwd: path.join(__dirname, '../../../test-e2e/site'),
   });
 
