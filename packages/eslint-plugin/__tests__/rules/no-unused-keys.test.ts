@@ -65,5 +65,3 @@ ruleTester.run('no-unused-keys', noUnusedKeys as unknown as JSRuleDefinition, {
     },
   ],
 });
-
-
