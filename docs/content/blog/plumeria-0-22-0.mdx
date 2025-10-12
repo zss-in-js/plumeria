@@ -1,0 +1,27 @@
+---
+title: 'Plumeria 0.22.0'
+description: 'Plumeria 0.22.0 introduces improve and bugfix zss-engine core webpack-plugin. (1 min read)'
+date: '2025/10/12'
+---
+
+## Improvements and fixes
+
+Shorthanded and longhanded rules are now properly filtered.
+
+When using the eslint-plugin, shorthand rules always appear on top and longhand rules on the bottom. However, even when sorting without using eslint, filtering will ensure proper ordering.
+
+## fixes
+Fixed a bug where shorthand and longhand elements would not behave as expected in CSS when using media queries.
+Class filtering is now performed properly even when the shorthand and longhand elements are used atomically.
+
+## Imporvements
+Along with @plumeria/core,
+Testing for @plumeria/eslint-plugin and zss-engine has been completed.
+During testing, small bugs and redundancies were removed, improving the quality of each.
+
+#### [zss-engine](https://www.npmjs.com/package/zss-engine)
+[![codecov](https://codecov.io/github/zss-in-js/zss-engine/graph/badge.svg?token=4TGC0PMCAL)](https://codecov.io/github/zss-in-js/zss-engine)
+
+#### [@plumeria/core](https://www.npmjs.com/package/@plumeria/core) and [@plumeria/eslint-plugin](https://www.npmjs.com/package/@plumeria/eslint-plugin)
+[![codecov](https://codecov.io/github/zss-in-js/plumeria/graph/badge.svg?token=BMEGY37BYZ)](https://codecov.io/github/zss-in-js/plumeria)
+
