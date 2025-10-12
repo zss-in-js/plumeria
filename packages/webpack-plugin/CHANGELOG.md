@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.22.0
+
+### Minor Changes
+
+- dbda7cc: feat: zss-engine@latest dependencies update and corresponding
+
 ## 0.21.5
 
 ### Patch Changes

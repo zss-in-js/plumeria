@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.22.0
+
+### Minor Changes
+
+- 414edcb: feat: version bump only
+
 ## 0.21.5
 
 ### Patch Changes
