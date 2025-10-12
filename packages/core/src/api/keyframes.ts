@@ -4,9 +4,9 @@ import { global } from './global';
 
 const keyframes = (object: CreateKeyframes): string => {
   const hash = genBase36Hash(object, 1, 8);
-  const animationName = `kf-${hash}`;
-  global({ [`@keyframes ${animationName}`]: object });
-  return animationName;
+  const ident = `kf-${hash}`;
+  global({ [`@keyframes ${ident}`]: object });
+  return ident;
 };
 
 export { keyframes };
