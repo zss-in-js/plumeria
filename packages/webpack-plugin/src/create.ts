@@ -10,6 +10,7 @@ import {
   processAtomicProps,
   genBase36Hash,
   transpile,
+  camelToKebabCase,
 } from 'zss-engine';
 
 function compileToSingleCSS<T extends Record<string, CSSProperties>>(
@@ -34,7 +35,10 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
     Object.entries(flat).forEach(([prop, value]) => {
       const hashes = new Set<string>();
       const sheets = new Set<string>();
-      processAtomicProps({ [prop]: value }, hashes, sheets);
+      const seen = new Set<string>();
+      const resultQueue: Array<[string, string | number]> = [];
+
+      processAtomicProps({ [prop]: value }, hashes, sheets, seen, resultQueue);
 
       // Organize media and containers by sheet
       const propBaseSheets: string[] = [];
@@ -126,18 +130,19 @@ const createTokens = <const T extends CreateTokens>(object: T) => {
   const styles: Record<string, Record<string, string | number | object>> = {};
 
   Object.entries(object).forEach(([key, value]) => {
+    const kebabKey = camelToKebabCase(key);
     Object.entries(value).forEach(([subKey, subValue]) => {
       if (subKey.startsWith('@media')) {
         styles[':root'] ||= {};
         styles[':root'][subKey] ||= {};
         (styles[':root'][subKey] as Record<string, string | number>)[
-          `--${key}`
+          `--${kebabKey}`
         ] = subValue;
       } else {
         const themeSelector =
           subKey === 'default' ? ':root' : `:root[data-theme="${subKey}"]`;
         styles[themeSelector] ||= {};
-        styles[themeSelector][`--${key}`] = subValue;
+        styles[themeSelector][`--${kebabKey}`] = subValue;
       }
     });
   });
