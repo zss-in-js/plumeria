@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.22.0
+
+### Minor Changes
+
+- 2db53f8: fix: class filtering is now performed properly even when the shorthand and longhand elements are used atomically
+
 ## 0.21.5
 
 ### Patch Changes
