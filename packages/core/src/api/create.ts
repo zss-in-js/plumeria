@@ -23,6 +23,7 @@ function create<const T extends Record<string, CSSProperties>>(
   Object.entries(object).forEach(([key, styleObj]) => {
     const flat: Record<string, any> = {};
     const nonFlat: Record<string, any> = {};
+
     splitAtomicAndNested(styleObj, flat, nonFlat);
 
     const records: Array<{
@@ -35,7 +36,10 @@ function create<const T extends Record<string, CSSProperties>>(
     Object.entries(flat).forEach(([prop, value]) => {
       const hashes = new Set<string>();
       const sheets = new Set<string>();
-      processAtomicProps({ [prop]: value }, hashes, sheets);
+      const seen = new Set<string>();
+      const resultQueue: Array<[string, string | number]> = [];
+
+      processAtomicProps({ [prop]: value }, hashes, sheets, seen, resultQueue);
 
       const hashArray = [...hashes];
       const sheetArray = [...sheets];
