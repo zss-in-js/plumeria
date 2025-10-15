@@ -435,8 +435,8 @@ importers:
   packages/compiler:
     dependencies:
       '@rust-gear/glob':
-        specifier: ^0.2.2
-        version: 0.2.2
+        specifier: ^0.2.3
+        version: 0.2.3
       '@swc/core':
         specifier: ^1.11.24
         version: 1.13.20(@swc/helpers@0.5.17)
@@ -459,8 +459,8 @@ importers:
   packages/core:
     dependencies:
       zss-engine:
-        specifier: 0.2.91
-        version: 0.2.91
+        specifier: 0.2.94
+        version: 0.2.94
 
   packages/eslint-plugin:
     devDependencies:
@@ -512,8 +512,8 @@ importers:
         specifier: ^5.101.0
         version: 5.101.3
       zss-engine:
-        specifier: ^0.2.91
-        version: 0.2.91
+        specifier: ^0.2.94
+        version: 0.2.94
 
   test-e2e/site:
     dependencies:
@@ -2301,8 +2301,20 @@ packages:
     cpu: [arm64]
     os: [darwin]
 
+  '@rust-gear/glob-darwin-arm64@0.2.3':
+    resolution: {integrity: sha512-JWkeuhQpOGrJnpuye1lEcNaXjgWKXh399Bk5tNIVwpmCUq9xnNAJLVTuQT67u5rN69D5yHpDt6BEhh56+R0q1A==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
   '@rust-gear/glob-darwin-x64@0.2.2':
     resolution: {integrity: sha512-aADXolZYmSaVFKDuwYxq8dq6E/ytkYvXMgj5Hru1RILPalwPLgubzWo1Hj1eMPIZOMPle8cxGkegxY1vNs/+Qg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@rust-gear/glob-darwin-x64@0.2.3':
+    resolution: {integrity: sha512-4FXV1Za3mb1M3jiIFGKda5h5Z+iKQvy8DZ6SNQqSNEbRGZ+IhG5K/vvKo6UKXe2Z1Q9FoWQDFslldkCnSP57hw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
@@ -2313,8 +2325,20 @@ packages:
     cpu: [arm64]
     os: [linux]
 
+  '@rust-gear/glob-linux-arm64-gnu@0.2.3':
+    resolution: {integrity: sha512-VTqhjYUyBV9Le69ZVAtMZYv5KT5wnRaXBOHidsDO7h9X1i9/mywCuEgS2nA0+ajN5wq56DTVgOQqqzxOsEfzUw==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
   '@rust-gear/glob-linux-arm64-musl@0.2.2':
     resolution: {integrity: sha512-dZwnuJvKifPiQh7ASkVElgMenhy/Qm5d1bntJsemAs+69E+0locAB3uu6sgg/wQvaIomBNrAoKwVcGo5hwEFDw==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@rust-gear/glob-linux-arm64-musl@0.2.3':
+    resolution: {integrity: sha512-f5mGNjw9jxb3mPvi5O67CBA7rG0zWWdHFimacVdl+d1Ny7JkieTBfBwaCHQmQ/d4nV1gCzIzR6eMoCHVTnJkIQ==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
@@ -2325,8 +2349,20 @@ packages:
     cpu: [x64]
     os: [linux]
 
+  '@rust-gear/glob-linux-x64-gnu@0.2.3':
+    resolution: {integrity: sha512-rWxFsQVO9u/+RTyMGeUpiukQMZe9t7J0dX5Oa28MWAsdUdYY0LIAf2Rj8fnHuslGZDteVVtAp9ukBzQXN8y7vA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
   '@rust-gear/glob-linux-x64-musl@0.2.2':
     resolution: {integrity: sha512-Quviy6UpzPmGz+herhwAMzhR3hAUk2mny+5FvvG8gu3SKABkCY7UmPQP54HGIbCg9f5hGrruJ7Wh1/AxqN+pMA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@rust-gear/glob-linux-x64-musl@0.2.3':
+    resolution: {integrity: sha512-z9L6aGaSDqecbzNO1xC4e121zi8N1eJhI2NqdDUbZKj/mB9kHXn99ucD7FHXxtHJWNBQ2tr+DikrB67uONqyeA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
@@ -2337,8 +2373,20 @@ packages:
     cpu: [arm64]
     os: [win32]
 
+  '@rust-gear/glob-win32-arm64-msvc@0.2.3':
+    resolution: {integrity: sha512-5vhJq4GKkBo0sBCOvUymq1Nxt0JpLnBXoKrJSwQfxx7+3w+6biZ4JpxV0XbMR2U/vxxMlYuqULuGV+7OjId7Rg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [win32]
+
   '@rust-gear/glob-win32-ia32-msvc@0.2.2':
     resolution: {integrity: sha512-ETGP7FBr0kC9FLG2V5ptP7G/V8lh1UyuXWrDDEeCBrU8teel9JdsBWHKV8W4+jktinPsP9suFPsYnw+apNgWvg==}
+    engines: {node: '>= 10'}
+    cpu: [ia32]
+    os: [win32]
+
+  '@rust-gear/glob-win32-ia32-msvc@0.2.3':
+    resolution: {integrity: sha512-1vdnGfS/IHF43gqf+CqIOY+LktjTqKTav2CkRD5aPmNT9OW1Uo8ygrsvqi7PwRyXYGUecP5GVMkRTnzS3PMF/w==}
     engines: {node: '>= 10'}
     cpu: [ia32]
     os: [win32]
@@ -2349,8 +2397,18 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@rust-gear/glob-win32-x64-msvc@0.2.3':
+    resolution: {integrity: sha512-FnioFeKVVCRggVUfzL8CVayyBqYrHNdNm7jCEQ+M1Q43EQflBEcJRxHGJMtkCLsdNFt7QRIlJ6RFa5ULziE4Tg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
   '@rust-gear/glob@0.2.2':
     resolution: {integrity: sha512-tnFqLAQg44V4Eq7eAcj2g+wj3FrPRGppX/VuCDcGrVwzhsNCouG0HjsEi3Gkp8jvRMoBNUbBsEwUR8uEiWKXaA==}
+    engines: {node: '>=10'}
+
+  '@rust-gear/glob@0.2.3':
+    resolution: {integrity: sha512-Z4RxTTBM7p97GBMazZSs1z51MdgzIks075vpphhfwjGWS0JqpUyW/4kjq7ZL2OB1twuoNFnmf83RrvzIiuE2Pw==}
     engines: {node: '>=10'}
 
   '@shikijs/core@1.29.2':
@@ -7814,8 +7872,8 @@ packages:
   zod@4.1.11:
     resolution: {integrity: sha512-WPsqwxITS2tzx1bzhIKsEs19ABD5vmCVa4xBo2tq/SrV4RNZtfws1EnCWQXM6yh8bD08a1idvkB5MZSBiZsjwg==}
 
-  zss-engine@0.2.91:
-    resolution: {integrity: sha512-lNwbIaYb5BdR11dnfaagJd0Qt4TytAV4y96KCHCXZT9yJ0UlomR0jPi6/VwKY4lP2C7eqF3T7sLP2WoS0lX0Yw==}
+  zss-engine@0.2.94:
+    resolution: {integrity: sha512-smKvR+kqm+Hyitkz6WY0ggZGRswUxEpPcU2IfkAswvuyVpwBjRtAoUYAQz6QZKjSfQ8cwtYQtLVsh8qJv9oK9A==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -9734,28 +9792,55 @@ snapshots:
   '@rust-gear/glob-darwin-arm64@0.2.2':
     optional: true
 
+  '@rust-gear/glob-darwin-arm64@0.2.3':
+    optional: true
+
   '@rust-gear/glob-darwin-x64@0.2.2':
+    optional: true
+
+  '@rust-gear/glob-darwin-x64@0.2.3':
     optional: true
 
   '@rust-gear/glob-linux-arm64-gnu@0.2.2':
     optional: true
 
+  '@rust-gear/glob-linux-arm64-gnu@0.2.3':
+    optional: true
+
   '@rust-gear/glob-linux-arm64-musl@0.2.2':
+    optional: true
+
+  '@rust-gear/glob-linux-arm64-musl@0.2.3':
     optional: true
 
   '@rust-gear/glob-linux-x64-gnu@0.2.2':
     optional: true
 
+  '@rust-gear/glob-linux-x64-gnu@0.2.3':
+    optional: true
+
   '@rust-gear/glob-linux-x64-musl@0.2.2':
+    optional: true
+
+  '@rust-gear/glob-linux-x64-musl@0.2.3':
     optional: true
 
   '@rust-gear/glob-win32-arm64-msvc@0.2.2':
     optional: true
 
+  '@rust-gear/glob-win32-arm64-msvc@0.2.3':
+    optional: true
+
   '@rust-gear/glob-win32-ia32-msvc@0.2.2':
     optional: true
 
+  '@rust-gear/glob-win32-ia32-msvc@0.2.3':
+    optional: true
+
   '@rust-gear/glob-win32-x64-msvc@0.2.2':
+    optional: true
+
+  '@rust-gear/glob-win32-x64-msvc@0.2.3':
     optional: true
 
   '@rust-gear/glob@0.2.2':
@@ -9769,6 +9854,18 @@ snapshots:
       '@rust-gear/glob-win32-arm64-msvc': 0.2.2
       '@rust-gear/glob-win32-ia32-msvc': 0.2.2
       '@rust-gear/glob-win32-x64-msvc': 0.2.2
+
+  '@rust-gear/glob@0.2.3':
+    optionalDependencies:
+      '@rust-gear/glob-darwin-arm64': 0.2.3
+      '@rust-gear/glob-darwin-x64': 0.2.3
+      '@rust-gear/glob-linux-arm64-gnu': 0.2.3
+      '@rust-gear/glob-linux-arm64-musl': 0.2.3
+      '@rust-gear/glob-linux-x64-gnu': 0.2.3
+      '@rust-gear/glob-linux-x64-musl': 0.2.3
+      '@rust-gear/glob-win32-arm64-msvc': 0.2.3
+      '@rust-gear/glob-win32-ia32-msvc': 0.2.3
+      '@rust-gear/glob-win32-x64-msvc': 0.2.3
 
   '@shikijs/core@1.29.2':
     dependencies:
@@ -16784,7 +16881,7 @@ snapshots:
 
   zod@4.1.11: {}
 
-  zss-engine@0.2.91:
+  zss-engine@0.2.94:
     dependencies:
       csstype: 3.1.3
 
