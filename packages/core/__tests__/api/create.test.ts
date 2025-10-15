@@ -74,4 +74,27 @@ describe('create', () => {
     const styles = create(styleObject);
     expect(Object.isFrozen(styles)).toBe(true);
   });
+
+  it('should handle shorthand/longhand ordering within an object', () => {
+    // Case 1: Shorthand follows longhand (longhand should be removed)
+    const shorthandAfter = {
+      paddingTop: 10,
+      padding: 20,
+    };
+    create({ shorthandAfter });
+    const records1 = styleAtomMap.get(shorthandAfter);
+    expect(records1).toHaveLength(1);
+    expect(records1?.[0].key).toBe('padding');
+
+    // Case 2: Longhand follows shorthand (both should be kept)
+    const longhandAfter = {
+      padding: 20,
+      paddingTop: 10,
+    };
+    create({ longhandAfter });
+    const records2 = styleAtomMap.get(longhandAfter);
+    expect(records2).toHaveLength(2);
+    expect(records2?.some((r) => r.key === 'padding')).toBeTruthy();
+    expect(records2?.some((r) => r.key === 'paddingTop')).toBeTruthy();
+  });
 });
