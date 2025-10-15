@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.22.1
+
+### Patch Changes
+
+- a63bf1c: fix: corrected to match zss-engine and core output
+
 ## 0.22.0
 
 ### Minor Changes
