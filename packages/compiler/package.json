@@ -19,7 +19,7 @@
     "build": "rimraf dist && tsc"
   },
   "dependencies": {
-    "@rust-gear/glob": "^0.2.2",
+    "@rust-gear/glob": "^0.2.3",
     "@swc/core": "^1.11.24",
     "find-up": "^7.0.0",
     "lightningcss": "^1.29.3",
