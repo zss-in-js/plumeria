@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.22.1
+
+### Patch Changes
+
+- c1d040c: chore: version bump only
+
 ## 0.22.0
 
 ### Minor Changes

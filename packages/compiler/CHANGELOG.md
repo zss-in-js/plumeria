@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.22.1
+
+### Patch Changes
+
+- af1e7af: fix: fixed rust-glob (@rust-gear/glob) to not return files with empty strings
+
 ## 0.22.0
 
 ### Minor Changes

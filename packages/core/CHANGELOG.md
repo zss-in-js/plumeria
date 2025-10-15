@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.22.1
+
+### Patch Changes
+
+- e7d1dcb: fix: fixed so that longhands are filtered if they come before shorthands, and no ordering issues occur if longhands come after shorthands
+
 ## 0.22.0
 
 ### Minor Changes
