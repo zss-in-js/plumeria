@@ -6,6 +6,8 @@ import type {
   ReturnType,
 } from 'zss-engine';
 import {
+  SHORTHAND_PROPERTIES,
+  LONG_TO_SHORT,
   splitAtomicAndNested,
   processAtomicProps,
   genBase36Hash,
@@ -25,6 +27,33 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
     const nonFlat: Record<string, any> = {};
     splitAtomicAndNested(styleObj, flat, nonFlat);
 
+    const props = Object.keys(flat);
+    const finalFlat: Record<string, any> = {};
+
+    for (let i = 0; i < props.length; i++) {
+      const prop = props[i];
+      const kebab = camelToKebabCase(prop);
+      const isShorthand = !!SHORTHAND_PROPERTIES[kebab];
+
+      if (isShorthand) {
+        finalFlat[prop] = flat[prop];
+      } else {
+        let isOverridden = false;
+        const shorthands = LONG_TO_SHORT[kebab] || [];
+        for (let j = i + 1; j < props.length; j++) {
+          const futureProp = props[j];
+          const futureKebab = camelToKebabCase(futureProp);
+          if (shorthands.includes(futureKebab)) {
+            isOverridden = true;
+            break;
+          }
+        }
+        if (!isOverridden) {
+          finalFlat[prop] = flat[prop];
+        }
+      }
+    }
+
     const records: Array<{
       key: string;
       hash: string;
@@ -32,13 +61,11 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
     }> = [];
 
     // Processing flat atoms and atoms in media
-    Object.entries(flat).forEach(([prop, value]) => {
+    Object.entries(finalFlat).forEach(([prop, value]) => {
       const hashes = new Set<string>();
       const sheets = new Set<string>();
-      const seen = new Set<string>();
-      const resultQueue: Array<[string, string | number]> = [];
 
-      processAtomicProps({ [prop]: value }, hashes, sheets, seen, resultQueue);
+      processAtomicProps({ [prop]: value }, hashes, sheets);
 
       // Organize media and containers by sheet
       const propBaseSheets: string[] = [];
