@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- 2db53f8: fix: class filtering is now performed properly even when the shorthand and longhand elements are used atomically
+- 2db53f8: fix: fixed a bug that caused longhand to disappear when shorthand was present during media queries.
 
 ## 0.21.5
 
