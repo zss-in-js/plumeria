@@ -3,7 +3,6 @@ import type {
   CreateStyleType,
   CreateTokens,
   CreateValues,
-  ReturnType,
 } from 'zss-engine';
 import {
   SHORTHAND_PROPERTIES,
@@ -127,14 +126,6 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
 function createCSS<T extends Record<string, CSSProperties>>(
   object: CreateStyleType<T>,
 ): string {
-  const result = {} as ReturnType<T>;
-
-  Object.entries(object).forEach(([key, styleObj]) => {
-    Object.defineProperty(result, key, {
-      get: () => Object.freeze(styleObj),
-    });
-  });
-
   const compiledCSS = compileToSingleCSS(object);
 
   return compiledCSS;
