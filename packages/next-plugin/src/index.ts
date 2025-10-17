@@ -3,7 +3,7 @@ import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
 import { PlumeriaPlugin } from '@plumeria/webpack-plugin';
 
-export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
+export function withPlumeria(nextConfig: NextConfig): NextConfig {
   const originalWebpack = nextConfig.webpack;
 
   return {
