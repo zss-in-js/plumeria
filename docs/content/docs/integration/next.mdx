@@ -37,11 +37,11 @@ export declare function withPlumeria(nextConfig?: NextConfig): NextConfig;
 import type { NextConfig } from "next";
 import { withPlumeria } from "@plumeria/next-plugin";
 
-const nextConfig: NextConfig = withPlumeria({
+const nextConfig: NextConfig = {
   /* config options here */
-});
+};
 
-export default nextConfig;
+export default withPlumeria(nextConfig);
 ```
 
 <Cards>
