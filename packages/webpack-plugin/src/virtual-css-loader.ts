@@ -651,7 +651,6 @@ function scanForDefineTokens(this: LoaderContext<unknown>): {
   return { tokensTableLocal, defineTokensObjectTableLocal };
 }
 
-/* istanbul ignore next */
 function isCSSDefineFile(filePath: string, target: string): boolean {
   if (fs.statSync(filePath).isDirectory()) return false;
   const code = fs.readFileSync(filePath, 'utf8');
@@ -663,12 +662,11 @@ function isCSSDefineFile(filePath: string, target: string): boolean {
       presets: [
         ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
       ],
-    });
+    }) as t.File;
   } catch (err) {
     console.log(err);
     return false;
   }
-  if (!ast) return false;
 
   let found = false;
 
