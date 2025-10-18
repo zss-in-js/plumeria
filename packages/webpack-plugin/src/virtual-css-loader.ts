@@ -301,7 +301,6 @@ function evaluateUnaryExpression(node: t.UnaryExpression): number | string {
   throw new Error(`Unsupported UnaryExpression argument type: ${arg.type}`);
 }
 
-/* istanbul ignore next */
 function resolveKeyframesTableMemberExpression(
   node: t.Identifier | t.MemberExpression,
   keyframesHashTable: KeyframesHashTable,
@@ -314,10 +313,8 @@ function resolveKeyframesTableMemberExpression(
       return keyframesHashTable[node.object.name];
     }
   }
-  return undefined;
 }
 
-/* istanbul ignore next */
 function resolveViewTransitionTableMemberExpression(
   node: t.Identifier | t.MemberExpression,
   viewTransitionHashTable: ViewTransitionHashTable,
@@ -330,10 +327,8 @@ function resolveViewTransitionTableMemberExpression(
       return viewTransitionHashTable[node.object.name];
     }
   }
-  return undefined;
 }
 
-/* istanbul ignore next */
 function resolveConstTableMemberExpression(
   node: t.MemberExpression,
   constTable: ConstTable,
@@ -343,10 +338,6 @@ function resolveConstTableMemberExpression(
     const key = node.property.name;
     const tableValue = constTable[varName];
 
-    if (typeof tableValue === 'string') {
-      return tableValue;
-    }
-
     if (tableValue && typeof tableValue === 'object' && key in tableValue) {
       return tableValue[key];
     }
@@ -354,16 +345,11 @@ function resolveConstTableMemberExpression(
   return undefined;
 }
 
-/* istanbul ignore next */
 function resolveTokensTableMemberExpressionByNode(
   node: t.Identifier | t.MemberExpression,
   tokensTable: TokensTable,
-  asObject: boolean = false,
 ): CSSValue | undefined {
   if (t.isIdentifier(node)) {
-    if (asObject && typeof tokensTable[node.name] === 'object') {
-      return { ...tokensTable[node.name] };
-    }
     const cssVarName = camelToKebabCase(node.name);
     return `var(--${cssVarName})`;
   }
@@ -381,9 +367,6 @@ function resolveTokensTableMemberExpressionByNode(
       tokensTable[varName] &&
       tokensTable[varName][key] !== undefined
     ) {
-      if (asObject) {
-        return { [key]: tokensTable[varName][key] };
-      }
       const cssVarName = camelToKebabCase(key);
       return `var(--${cssVarName})`;
     }
@@ -391,7 +374,6 @@ function resolveTokensTableMemberExpressionByNode(
   return undefined;
 }
 
-/* istanbul ignore next */
 function scanForKeyframes(this: LoaderContext<unknown>): {
   keyframesHashTableLocal: KeyframesHashTable;
   keyframesObjectTableLocal: KeyframesObjectTable;
@@ -412,9 +394,7 @@ function scanForKeyframes(this: LoaderContext<unknown>): {
       ],
     });
 
-    if (!ast) continue;
-
-    for (const node of ast.program.body as t.Statement[]) {
+    for (const node of ast?.program.body as t.Statement[]) {
       let declarations: t.VariableDeclarator[] = [];
 
       if (t.isVariableDeclaration(node)) {
@@ -460,7 +440,6 @@ function scanForKeyframes(this: LoaderContext<unknown>): {
   };
 }
 
-/* istanbul ignore next */
 function scanForViewTransition(this: LoaderContext<unknown>): {
   viewTransitionHashTableLocal: ViewTransitionHashTable;
   viewTransitionObjectTableLocal: ViewTransitionObjectTable;
@@ -481,9 +460,7 @@ function scanForViewTransition(this: LoaderContext<unknown>): {
       ],
     });
 
-    if (!ast) continue;
-
-    for (const node of ast.program.body as t.Statement[]) {
+    for (const node of ast?.program.body as t.Statement[]) {
       let declarations: t.VariableDeclarator[] = [];
 
       if (t.isVariableDeclaration(node)) {
@@ -531,7 +508,6 @@ function scanForViewTransition(this: LoaderContext<unknown>): {
   };
 }
 
-/* istanbul ignore next */
 function scanForDefineConsts(this: LoaderContext<unknown>): ConstTable {
   const constTableLocal: ConstTable = {};
   const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
@@ -548,9 +524,7 @@ function scanForDefineConsts(this: LoaderContext<unknown>): ConstTable {
       ],
     });
 
-    if (!ast) continue;
-
-    for (const node of ast.program.body as t.Statement[]) {
+    for (const node of ast?.program.body as t.Statement[]) {
       let declarations: t.VariableDeclarator[] = [];
 
       if (t.isVariableDeclaration(node)) {
@@ -589,7 +563,6 @@ function scanForDefineConsts(this: LoaderContext<unknown>): ConstTable {
   return constTableLocal;
 }
 
-/* istanbul ignore next */
 function scanForDefineTokens(this: LoaderContext<unknown>): {
   tokensTableLocal: Record<string, Record<string, any>>;
   defineTokensObjectTableLocal: Record<string, any>;
@@ -609,9 +582,7 @@ function scanForDefineTokens(this: LoaderContext<unknown>): {
       ],
     });
 
-    if (!ast) continue;
-
-    for (const node of ast.program.body as t.Statement[]) {
+    for (const node of ast?.program.body as t.Statement[]) {
       let declarations: t.VariableDeclarator[] = [];
       if (t.isVariableDeclaration(node)) {
         declarations = node.declarations;
