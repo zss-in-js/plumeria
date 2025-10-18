@@ -181,6 +181,22 @@ describe('virtual-css-loader', () => {
       );
     });
 
+    it('resolves defineConsts (non-exported)', (done) => {
+      setupExternal(
+        '/consts.ts',
+        `const C = css.defineConsts({ color: '#F00' });`,
+      );
+      const callback = () => {
+        expect(registerSpy.mock.calls[0][1].baseStyles).toMatch(/#F00/);
+        done();
+      };
+      (mockContext.async as jest.Mock).mockReturnValue(callback);
+      loader.call(
+        mockContext as LoaderContext<any>,
+        `css.create({ k: { color: C.color } });`,
+      );
+    });
+
     it('resolves keyframes', (done) => {
       setupExternal(
         '/anim.ts',
@@ -195,6 +211,23 @@ describe('virtual-css-loader', () => {
       loader.call(
         mockContext as LoaderContext<any>,
         `import { fade } from './anim'; css.create({ k: { animation: fade } });`,
+      );
+    });
+
+    it('resolves keyframes (non-export)', (done) => {
+      setupExternal(
+        '/anim.ts',
+        `const fade = css.keyframes({ from: { opacity: 0 } });`,
+      );
+      const callback = () => {
+        const styles = registerSpy.mock.calls[0][1];
+        expect(styles.keyframeStyles).toMatch(/@keyframes kf-/);
+        done();
+      };
+      (mockContext.async as jest.Mock).mockReturnValue(callback);
+      loader.call(
+        mockContext as LoaderContext<any>,
+        `css.create({ k: { animation: fade } });`,
       );
     });
 
@@ -216,6 +249,42 @@ describe('virtual-css-loader', () => {
       );
     });
 
+    it('resolves defineTokens (non-exported)', (done) => {
+      setupExternal(
+        '/tokens.ts',
+        `const T = css.defineTokens({ primary: '#F00' });`,
+      );
+      const callback = () => {
+        const styles = registerSpy.mock.calls[0][1];
+        expect(styles.tokenStyles).toBeDefined();
+        done();
+      };
+      (mockContext.async as jest.Mock).mockReturnValue(callback);
+      loader.call(
+        mockContext as LoaderContext<any>,
+        `css.create({ k: { color: T.primary } });`,
+      );
+    });
+
+    describe('resolveTokensTableMemberExpressionByNode coverage', () => {
+      it('resolves string literal property access', (done) => {
+        setupExternal(
+          '/tokens.ts',
+          `export const T = css.defineTokens({ 'my-color': '#F00' });`,
+        );
+        const callback = () => {
+          const styles = registerSpy.mock.calls[0][1];
+          expect(styles.baseStyles).toMatch(/var\(--my-color\)/);
+          done();
+        };
+        (mockContext.async as jest.Mock).mockReturnValue(callback);
+        loader.call(
+          mockContext as LoaderContext<any>,
+          `import { T } from './tokens'; css.create({ k: { color: T['my-color'] } });`,
+        );
+      });
+    });
+
     it('resolves viewTransition', (done) => {
       setupExternal(
         '/vt.ts',
@@ -234,21 +303,21 @@ describe('virtual-css-loader', () => {
       );
     });
 
-    it('handles unresolved member expressions', (done) => {
+    it('resolves viewTransition (non-exported)', (done) => {
       setupExternal(
-        '/c.ts',
-        `export const C = css.defineConsts({ a: '#F00' });`,
+        '/vt.ts',
+        `const slide = css.viewTransition({ group: { animationDuration: '0.3s' } });`,
       );
       const callback = () => {
-        expect(registerSpy.mock.calls[0][1].baseStyles).toContain(
-          '[unresolved]',
+        expect(registerSpy.mock.calls[0][1].viewTransitionStyles).toMatch(
+          /::view-transition/,
         );
         done();
       };
       (mockContext.async as jest.Mock).mockReturnValue(callback);
       loader.call(
         mockContext as LoaderContext<any>,
-        `import { C } from './c'; css.create({ k: { color: C.missing } });`,
+        `css.create({ k: { viewTransitionName: slide } });`,
       );
     });
   });
