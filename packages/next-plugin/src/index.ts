@@ -13,7 +13,7 @@ export function withPlumeria(nextConfig: NextConfig): NextConfig {
         config = originalWebpack(config, context);
       }
 
-      if (context.dev) {
+      if (context.dev && context.isServer) {
         config.watchOptions = {
           ignored: ['node_modules', '.next', '.git'],
         };
