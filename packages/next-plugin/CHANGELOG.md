@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 0.22.3
+
+### Patch Changes
+
+- 2370695: fix: bugfix: added context.isServer to the conditional
+- Updated dependencies [c456a68]
+  - @plumeria/webpack-plugin@0.22.3
+
 ## 0.22.2
 
 ### Patch Changes
