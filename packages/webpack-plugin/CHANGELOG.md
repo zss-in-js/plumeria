@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.22.3
+
+### Patch Changes
+
+- c456a68: fix: bugfix: Improvement under certain conditions
+
 ## 0.22.2
 
 ### Patch Changes
