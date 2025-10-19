@@ -109,21 +109,17 @@ export class PlumeriaPlugin {
       (a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0),
     );
 
-    const latestStyles = sortedStyles[0];
-
     const keyframeStylesSet = new Set<string>();
     const viewTransitionStylesSet = new Set<string>();
     const tokenStylesSet = new Set<string>();
     const baseStylesSet = new Set<string>();
 
-    if (latestStyles.keyframeStyles?.trim().length > 0)
-      keyframeStylesSet.add(latestStyles.keyframeStyles);
-    if (latestStyles.viewTransitionStyles?.trim().length > 0)
-      viewTransitionStylesSet.add(latestStyles.viewTransitionStyles);
-    if (latestStyles.tokenStyles?.trim().length > 0)
-      tokenStylesSet.add(latestStyles.tokenStyles);
-
     for (const s of sortedStyles) {
+      if (s.keyframeStyles?.trim().length > 0)
+        keyframeStylesSet.add(s.keyframeStyles);
+      if (s.viewTransitionStyles?.trim().length > 0)
+        viewTransitionStylesSet.add(s.viewTransitionStyles);
+      if (s.tokenStyles?.trim().length > 0) tokenStylesSet.add(s.tokenStyles);
       if (s.baseStyles?.trim().length > 0) baseStylesSet.add(s.baseStyles);
     }
 
