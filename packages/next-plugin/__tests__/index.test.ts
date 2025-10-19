@@ -17,7 +17,7 @@ describe('withPlumeria', () => {
 
   it('adds loader and plugin in dev mode', () => {
     const config = { module: { rules: [] }, plugins: [] };
-    withPlumeria({}).webpack!(config, { dev: true } as any);
+    withPlumeria({}).webpack!(config, { dev: true, isServer: true } as any);
     expect(config.module.rules[0]).toMatchObject({
       test: /\.(tsx|ts|jsx|js)$/,
     });
@@ -38,7 +38,7 @@ describe('withPlumeria', () => {
     const config = {
       plugins: [new PlumeriaPlugin({ entryPaths: 'pages/' })],
     };
-    withPlumeria({}).webpack!(config, { dev: true } as any);
+    withPlumeria({}).webpack!(config, { dev: true, isServer: true } as any);
     expect(
       config.plugins.filter((p) => p instanceof PlumeriaPlugin),
     ).toHaveLength(1);
