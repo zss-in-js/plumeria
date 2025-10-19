@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 0.22.2
+
+### Patch Changes
+
+- 7d06bf8: fix: removed initial object for consistency with export pattern
+- Updated dependencies [b8d77f7]
+  - @plumeria/webpack-plugin@0.22.2
+
 ## 0.22.1
 
 ### Patch Changes
