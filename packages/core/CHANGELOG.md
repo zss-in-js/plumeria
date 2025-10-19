@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.22.2
+
+### Patch Changes
+
+- e9cc299: chore: version bump only
+
 ## 0.22.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.22.2
+
+### Patch Changes
+
+- b8d77f7: fix: eliminate code redundancies and dead code and add tests
+
 ## 0.22.1
 
 ### Patch Changes
