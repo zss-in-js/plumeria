@@ -1,7 +1,6 @@
 import path from 'path';
-import fs, { unlinkSync, existsSync, readFileSync, statSync } from 'fs';
+import { unlinkSync, existsSync, readFileSync, statSync, globSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
-import { glob } from '@rust-gear/glob';
 import postcss from 'postcss';
 import combineMediaQuery from 'postcss-combine-media-query';
 import { execute } from 'rscute/execute';
@@ -19,14 +18,14 @@ let projectRoot;
 
 const workspaceRootFile = findUpSync((directory: string) => {
   const pnpmWsPath = path.join(directory, 'pnpm-workspace.yaml');
-  if (fs.existsSync(pnpmWsPath)) {
+  if (existsSync(pnpmWsPath)) {
     return pnpmWsPath;
   }
 
   const pkgJsonPath = path.join(directory, 'package.json');
-  if (fs.existsSync(pkgJsonPath)) {
+  if (existsSync(pkgJsonPath)) {
     try {
-      const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+      const pkgJson = JSON.parse(readFileSync(pkgJsonPath, 'utf-8'));
       if (pkgJson.workspaces) {
         return pkgJsonPath;
       }
@@ -51,7 +50,7 @@ if (workspaceRootFile) {
 let coreFilePath: string;
 const coreSourcePackageJsonPath = path.join(process.cwd(), 'package.json');
 const coreSourcePackageJson = JSON.parse(
-  fs.readFileSync(coreSourcePackageJsonPath, 'utf-8'),
+  readFileSync(coreSourcePackageJsonPath, 'utf-8'),
 );
 const dependencies = {
   ...coreSourcePackageJson.dependencies,
@@ -72,7 +71,7 @@ if (workspaceRootFile) {
     );
   } else {
     const corePackageJson = JSON.parse(
-      fs.readFileSync(resolvedCorePackageJsonPath, 'utf-8'),
+      readFileSync(resolvedCorePackageJsonPath, 'utf-8'),
     );
     const exactCoreVersion = corePackageJson.version;
     coreFilePath = path.join(
@@ -173,7 +172,7 @@ async function optimizeCSS(): Promise<void> {
 
   const scanRoot = process.cwd();
 
-  const files = await glob('**/*.{js,jsx,ts,tsx,vue,svelte}', {
+  const files = globSync('**/*.{js,jsx,ts,tsx,vue,svelte}', {
     cwd: scanRoot,
     exclude: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**'],
   });
