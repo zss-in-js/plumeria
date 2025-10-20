@@ -499,9 +499,6 @@ importers:
         specifier: ^7.28.2
         version: 7.28.4
     devDependencies:
-      '@rust-gear/glob':
-        specifier: ^0.2.2
-        version: 0.2.2
       '@types/babel__core':
         specifier: ^7.20.5
         version: 7.20.5
@@ -2291,64 +2288,6 @@ packages:
 
   '@rushstack/eslint-patch@1.12.0':
     resolution: {integrity: sha512-5EwMtOqvJMMa3HbmxLlF74e+3/HhwBTMcvt3nqVJgGCozO6hzIPOBlwm8mGVNR9SN2IJpxSnlxczyDjcn7qIyw==}
-
-  '@rust-gear/glob-darwin-arm64@0.2.2':
-    resolution: {integrity: sha512-u2RhNepEuJrjTY00gN+H+k75UKLSVab8DZpC683Cbs9pw0u3MAnPbTqlFdiOtp+k0Tl3grjCG6FI/LJOGJ1jEQ==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@rust-gear/glob-darwin-x64@0.2.2':
-    resolution: {integrity: sha512-aADXolZYmSaVFKDuwYxq8dq6E/ytkYvXMgj5Hru1RILPalwPLgubzWo1Hj1eMPIZOMPle8cxGkegxY1vNs/+Qg==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [darwin]
-
-  '@rust-gear/glob-linux-arm64-gnu@0.2.2':
-    resolution: {integrity: sha512-5qBC2dJU9O/w9Qhyvhyb3XqLVTdL2mGnuAsVhnx/Z3aHPUx3QhiaOYIEywUDiSCy+RCqQ6n70QEvEssJsH49Fw==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [linux]
-
-  '@rust-gear/glob-linux-arm64-musl@0.2.2':
-    resolution: {integrity: sha512-dZwnuJvKifPiQh7ASkVElgMenhy/Qm5d1bntJsemAs+69E+0locAB3uu6sgg/wQvaIomBNrAoKwVcGo5hwEFDw==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [linux]
-
-  '@rust-gear/glob-linux-x64-gnu@0.2.2':
-    resolution: {integrity: sha512-q3U9/2PNrOFtPDh07H+f0DWDHE/bS6UVwzby5YIB7Mkbty4GIJ5eglrbwL/shXIfnKTIk96nIsJDOyNEVFGf/Q==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [linux]
-
-  '@rust-gear/glob-linux-x64-musl@0.2.2':
-    resolution: {integrity: sha512-Quviy6UpzPmGz+herhwAMzhR3hAUk2mny+5FvvG8gu3SKABkCY7UmPQP54HGIbCg9f5hGrruJ7Wh1/AxqN+pMA==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [linux]
-
-  '@rust-gear/glob-win32-arm64-msvc@0.2.2':
-    resolution: {integrity: sha512-q4C2l2ECWjlVQTueThjz6MQVgEi0RWQ6iz1c7nfaGGOtqSQhpbo3LbvvlxFxDP/rbOrkEVw5Ex8FfnDZUBnYaQ==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [win32]
-
-  '@rust-gear/glob-win32-ia32-msvc@0.2.2':
-    resolution: {integrity: sha512-ETGP7FBr0kC9FLG2V5ptP7G/V8lh1UyuXWrDDEeCBrU8teel9JdsBWHKV8W4+jktinPsP9suFPsYnw+apNgWvg==}
-    engines: {node: '>= 10'}
-    cpu: [ia32]
-    os: [win32]
-
-  '@rust-gear/glob-win32-x64-msvc@0.2.2':
-    resolution: {integrity: sha512-GEQK/2SR14K2ORlkukjaRFFs9+dzzZUPRWG0lVgx1vk7QE9lgXaSIdLXGuWeb7ThB1lqRw32ga0kQKWdH0Xfvg==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [win32]
-
-  '@rust-gear/glob@0.2.2':
-    resolution: {integrity: sha512-tnFqLAQg44V4Eq7eAcj2g+wj3FrPRGppX/VuCDcGrVwzhsNCouG0HjsEi3Gkp8jvRMoBNUbBsEwUR8uEiWKXaA==}
-    engines: {node: '>=10'}
 
   '@shikijs/core@1.29.2':
     resolution: {integrity: sha512-vju0lY9r27jJfOY4Z7+Rt/nIOjzJpZ3y+nYpqtUZInVoXQ/TJZcfGnNOGnKjFdVZb8qexiCuSlZRKcGfhhTTZQ==}
@@ -9727,45 +9666,6 @@ snapshots:
   '@rtsao/scc@1.1.0': {}
 
   '@rushstack/eslint-patch@1.12.0': {}
-
-  '@rust-gear/glob-darwin-arm64@0.2.2':
-    optional: true
-
-  '@rust-gear/glob-darwin-x64@0.2.2':
-    optional: true
-
-  '@rust-gear/glob-linux-arm64-gnu@0.2.2':
-    optional: true
-
-  '@rust-gear/glob-linux-arm64-musl@0.2.2':
-    optional: true
-
-  '@rust-gear/glob-linux-x64-gnu@0.2.2':
-    optional: true
-
-  '@rust-gear/glob-linux-x64-musl@0.2.2':
-    optional: true
-
-  '@rust-gear/glob-win32-arm64-msvc@0.2.2':
-    optional: true
-
-  '@rust-gear/glob-win32-ia32-msvc@0.2.2':
-    optional: true
-
-  '@rust-gear/glob-win32-x64-msvc@0.2.2':
-    optional: true
-
-  '@rust-gear/glob@0.2.2':
-    optionalDependencies:
-      '@rust-gear/glob-darwin-arm64': 0.2.2
-      '@rust-gear/glob-darwin-x64': 0.2.2
-      '@rust-gear/glob-linux-arm64-gnu': 0.2.2
-      '@rust-gear/glob-linux-arm64-musl': 0.2.2
-      '@rust-gear/glob-linux-x64-gnu': 0.2.2
-      '@rust-gear/glob-linux-x64-musl': 0.2.2
-      '@rust-gear/glob-win32-arm64-msvc': 0.2.2
-      '@rust-gear/glob-win32-ia32-msvc': 0.2.2
-      '@rust-gear/glob-win32-x64-msvc': 0.2.2
 
   '@shikijs/core@1.29.2':
     dependencies:
