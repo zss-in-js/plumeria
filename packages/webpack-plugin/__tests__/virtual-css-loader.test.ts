@@ -6,16 +6,10 @@ jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
   readFileSync: jest.fn(),
   statSync: jest.fn(() => ({ isDirectory: () => false, isFile: () => true })),
-}));
-
-jest.mock('@rust-gear/glob', () => ({
   globSync: jest.fn(),
 }));
 
 const fs = require('fs') as jest.Mocked<typeof import('fs')>;
-const { globSync } = require('@rust-gear/glob') as jest.Mocked<
-  typeof import('@rust-gear/glob')
->;
 
 describe('virtual-css-loader', () => {
   let mockContext: Partial<LoaderContext<any>>;
@@ -38,7 +32,7 @@ describe('virtual-css-loader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     fs.readFileSync.mockReturnValue('');
-    globSync.mockReturnValue([]);
+    fs.globSync.mockReturnValue([]);
 
     mockPlugin = new PlumeriaPlugin({ entryPaths: 'app' });
     registerSpy = jest.spyOn(mockPlugin, 'registerFileStyles');
@@ -161,7 +155,7 @@ describe('virtual-css-loader', () => {
 
   describe('External definitions', () => {
     const setupExternal = (path: string, content: string) => {
-      globSync.mockReturnValue([path]);
+      fs.globSync.mockReturnValue([path]);
       fs.readFileSync.mockImplementation((p) => (p === path ? content : ''));
     };
 
@@ -414,7 +408,7 @@ describe('virtual-css-loader', () => {
     });
 
     it('handles files with parse errors in scanning', (done) => {
-      globSync.mockReturnValue(['/bad.ts']);
+      fs.globSync.mockReturnValue(['/bad.ts']);
       fs.readFileSync.mockImplementation((p) =>
         p === '/bad.ts' ? 'invalid {' : '',
       );
@@ -422,7 +416,7 @@ describe('virtual-css-loader', () => {
     });
 
     it('handles directories in glob results', (done) => {
-      globSync.mockReturnValue(['/dir']);
+      fs.globSync.mockReturnValue(['/dir']);
       fs.statSync.mockReturnValue({
         isDirectory: () => true,
         isFile: () => false,
@@ -431,7 +425,7 @@ describe('virtual-css-loader', () => {
     });
 
     it('handles non-css callee in external files', (done) => {
-      globSync.mockReturnValue(['/other.ts']);
+      fs.globSync.mockReturnValue(['/other.ts']);
       fs.readFileSync.mockImplementation((p) =>
         p === '/other.ts' ? `export const C = other.defineConsts({});` : '',
       );
