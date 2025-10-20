@@ -24,34 +24,52 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
   Object.entries(object).forEach(([key, styleObj]) => {
     const flat: Record<string, any> = {};
     const nonFlat: Record<string, any> = {};
+
     splitAtomicAndNested(styleObj, flat, nonFlat);
 
-    const props = Object.keys(flat);
-    const finalFlat: Record<string, any> = {};
+    const overrideLonghand = (style: Record<string, any>) => {
+      const props = Object.keys(style);
 
-    for (let i = 0; i < props.length; i++) {
-      const prop = props[i];
-      const kebab = camelToKebabCase(prop);
-      const isShorthand = !!SHORTHAND_PROPERTIES[kebab];
-
-      if (isShorthand) {
-        finalFlat[prop] = flat[prop];
-      } else {
-        let isOverridden = false;
-        const shorthands = LONG_TO_SHORT[kebab] || [];
-        for (let j = i + 1; j < props.length; j++) {
-          const futureProp = props[j];
-          const futureKebab = camelToKebabCase(futureProp);
-          if (shorthands.includes(futureKebab)) {
-            isOverridden = true;
-            break;
+      if (props.some((p) => p.startsWith('@'))) {
+        const finalStyle: Record<string, any> = { ...style };
+        for (const key of props) {
+          if (key.startsWith('@')) {
+            finalStyle[key] = overrideLonghand(style[key] as Record<string, any>);
           }
         }
-        if (!isOverridden) {
-          finalFlat[prop] = flat[prop];
+        return finalStyle;
+      }
+
+      const finalStyle: Record<string, any> = {};
+
+      for (let i = 0; i < props.length; i++) {
+        const prop = props[i];
+        const kebab = camelToKebabCase(prop);
+        const isShorthand = !!SHORTHAND_PROPERTIES[kebab];
+
+        if (isShorthand) {
+          finalStyle[prop] = style[prop];
+        } else {
+          // isLonghand
+          let isOverridden = false;
+          const shorthands = LONG_TO_SHORT[kebab] || [];
+          for (let j = i + 1; j < props.length; j++) {
+            const futureProp = props[j];
+            const futureKebab = camelToKebabCase(futureProp);
+            if (shorthands.includes(futureKebab)) {
+              isOverridden = true;
+              break;
+            }
+          }
+          if (!isOverridden) {
+            finalStyle[prop] = style[prop];
+          }
         }
       }
-    }
+      return finalStyle;
+    };
+
+    const finalFlat = overrideLonghand(flat);
 
     const records: Array<{
       key: string;
@@ -90,10 +108,15 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
 
     // Handling nested objects such as pseudos to atom by key is atRule + prop
     if (Object.keys(nonFlat).length > 0) {
-      const nonFlatObj = { [key]: nonFlat };
+      const finalNonFlat: Record<string, any> = {};
+      Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
+        finalNonFlat[atRule] = overrideLonghand(nestedObj as Record<string, any>);
+      });
+
+      const nonFlatObj = { [key]: finalNonFlat };
       const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
       const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
-      Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
+      Object.entries(finalNonFlat).forEach(([atRule, nestedObj]) => {
         Object.entries(nestedObj as Record<string, unknown>).forEach(
           ([prop]) => {
             records.push({
