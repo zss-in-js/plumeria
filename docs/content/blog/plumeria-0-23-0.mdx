@@ -1,0 +1,54 @@
+---
+title: 'Plumeria 0.23.0'
+description: 'Plumeria 0.23.0 introduces improvement and Minor fixes compiler webpack-plugin. (2 min read)'
+date: '2025/10/20'
+---
+
+## [0.23.0] - 2025-10-20
+
+### Changed
+- Migrated from @rust-gear/glob to Node.js built-in stable `fs.globSync`  
+The new fs.globSync requires Node.js 22 or higher.
+
+### Fixed
+- Fixed an issue where compilation was not applied to projects where `@rust-gear/glob` did not work.
+
+
+0.22.x fixes shorthand and longhand issues and webpack-plugin display issues.  
+Using the latest version, which fixes edge cases, allows for stable development.
+
+## @plumeria/core and @plumeria/webpack-plugin
+## 0.22.4 
+### Patch Changes 
+- fix: media queries: don't output longhand if shorthand comes after
+
+## @plumeria/webpack-plugin
+## 0.22.3
+### Patch Changes 
+- fix: bugfix: Improvement under certain conditions
+
+## @plumeria/next-plugin
+## 0.22.3
+### Patch Changes
+- fix: bugfix: added context.isServer to the conditional
+
+## @plumeria/webpack-plugin
+## 0.22.2
+### Patch Changes
+- fix: eliminate code redundancies and dead code and add tests
+
+## @plumeria/next-plugin
+## 0.22.2
+### Patch Changes
+- fix: removed initial object for consistency with export pattern
+
+## @plumeria/core
+## 0.22.1
+### Patch Changes
+
+- fix: fixed so that longhands are filtered if they come before shorthands, and no ordering issues occur if longhands come after shorthands
+
+## @plumeria/webpack-plugin
+## 0.22.1
+### Patch Changes
+- fix: corrected to match zss-engine and core output
