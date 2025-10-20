@@ -1,3 +1,4 @@
+/* eslint-disable @plumeria/sort-properties */
 import { create, styleAtomMap } from '../../src/api/create';
 
 describe('create', () => {
@@ -78,23 +79,44 @@ describe('create', () => {
   it('should handle shorthand/longhand ordering within an object', () => {
     // Case 1: Shorthand follows longhand (longhand should be removed)
     const shorthandAfter = {
-      paddingTop: 10,
-      padding: 20,
+      test: {
+        paddingTop: 10,
+        padding: 20,
+      },
     };
-    create({ shorthandAfter });
-    const records1 = styleAtomMap.get(shorthandAfter);
+    create(shorthandAfter);
+    const records1 = styleAtomMap.get(shorthandAfter.test);
     expect(records1).toHaveLength(1);
     expect(records1?.[0].key).toBe('padding');
 
     // Case 2: Longhand follows shorthand (both should be kept)
     const longhandAfter = {
-      padding: 20,
-      paddingTop: 10,
+      test: {
+        padding: 20,
+        paddingTop: 10,
+      },
     };
-    create({ longhandAfter });
-    const records2 = styleAtomMap.get(longhandAfter);
+    create(longhandAfter);
+    const records2 = styleAtomMap.get(longhandAfter.test);
     expect(records2).toHaveLength(2);
     expect(records2?.some((r) => r.key === 'padding')).toBeTruthy();
     expect(records2?.some((r) => r.key === 'paddingTop')).toBeTruthy();
+
+    // Case 3: In MediaQuery Shorthand follows longhand (longhand should be removed)
+    const mediaQueryShorthand = {
+      test: {
+        '@media (min-width: 600px)': {
+          paddingTop: 10,
+          padding: 20,
+        },
+      },
+    };
+    create(mediaQueryShorthand);
+    const records3 = styleAtomMap.get(mediaQueryShorthand.test);
+    expect(records3).toBeDefined();
+    expect(records3).toHaveLength(1);
+    expect(records3?.[0].key).toContain('__queries__');
+    expect(records3?.[0].sheet).not.toContain('padding-top');
+    expect(records3?.[0].sheet).toContain('padding');
   });
 });
