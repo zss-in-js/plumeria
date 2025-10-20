@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.23.0
+
+### Minor Changes
+
+- d763831: feat: @rust-gear/glob changed to use fs.globSync
+
 ## 0.22.4
 
 ### Patch Changes
