@@ -34,7 +34,9 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
         const finalStyle: Record<string, any> = { ...style };
         for (const key of props) {
           if (key.startsWith('@')) {
-            finalStyle[key] = overrideLonghand(style[key] as Record<string, any>);
+            finalStyle[key] = overrideLonghand(
+              style[key] as Record<string, any>,
+            );
           }
         }
         return finalStyle;
@@ -110,7 +112,9 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
     if (Object.keys(nonFlat).length > 0) {
       const finalNonFlat: Record<string, any> = {};
       Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
-        finalNonFlat[atRule] = overrideLonghand(nestedObj as Record<string, any>);
+        finalNonFlat[atRule] = overrideLonghand(
+          nestedObj as Record<string, any>,
+        );
       });
 
       const nonFlatObj = { [key]: finalNonFlat };
