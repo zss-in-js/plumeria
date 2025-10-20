@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.23.0
+
+### Minor Changes
+
+- 43573de: feat: update @rust-gear/glob changed to fs.globSync
+
 ## 0.22.4
 
 ### Patch Changes
