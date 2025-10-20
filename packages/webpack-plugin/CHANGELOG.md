@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.22.4
+
+### Patch Changes
+
+- 02d1641: fix: media queries: don't output longhand if shorthand comes after
+
 ## 0.22.3
 
 ### Patch Changes
