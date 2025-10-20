@@ -22,7 +22,6 @@ import * as t from '@babel/types';
 import path from 'path';
 import fs from 'fs';
 import { createCSS, createTokens } from './create';
-import { globSync } from '@rust-gear/glob';
 import type { CreateStyle, CreateTokens, CSSProperties } from 'zss-engine';
 import { genBase36Hash, transpile, camelToKebabCase } from 'zss-engine';
 
@@ -380,7 +379,7 @@ function scanForKeyframes(this: LoaderContext<unknown>): {
 } {
   const keyframesHashTableLocal: KeyframesHashTable = {};
   const keyframesObjectTableLocal: KeyframesObjectTable = {};
-  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
+  const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
     if (!isCSSDefineFile(filePath, 'keyframes')) continue;
@@ -446,7 +445,7 @@ function scanForViewTransition(this: LoaderContext<unknown>): {
 } {
   const viewTransitionHashTableLocal: ViewTransitionHashTable = {};
   const viewTransitionObjectTableLocal: ViewTransitionObjectTable = {};
-  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
+  const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
     if (!isCSSDefineFile(filePath, 'viewTransition')) continue;
@@ -510,7 +509,7 @@ function scanForViewTransition(this: LoaderContext<unknown>): {
 
 function scanForDefineConsts(this: LoaderContext<unknown>): ConstTable {
   const constTableLocal: ConstTable = {};
-  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
+  const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
     if (!isCSSDefineFile(filePath, 'defineConsts')) continue;
@@ -569,7 +568,7 @@ function scanForDefineTokens(this: LoaderContext<unknown>): {
 } {
   const tokensTableLocal: Record<string, Record<string, any>> = {};
   const defineTokensObjectTableLocal: Record<string, any> = {};
-  const files = globSync(PATTERN_PATH, GLOB_OPTIONS);
+  const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
     if (!isCSSDefineFile(filePath, 'defineTokens')) continue;
@@ -732,7 +731,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               tokensTable,
             );
             if (obj) {
-              extractedObjects.push(obj); // Store in stack CSSObject[]
+              extractedObjects.push(obj);
             }
           }
         }
