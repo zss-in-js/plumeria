@@ -1,5 +1,11 @@
 # @plumeria/vite
 
+## 0.22.4
+
+### Patch Changes
+
+- 02d1641: chore: version bump only
+
 ## 0.22.3
 
 ### Patch Changes
