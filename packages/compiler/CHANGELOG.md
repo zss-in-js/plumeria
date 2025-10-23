@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.23.1
+
+### Patch Changes
+
+- 3050b2c: fix: rscute now supports windows computer
+
 ## 0.23.0
 
 ### Minor Changes
