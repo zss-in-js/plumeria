@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 0.23.1
+
+### Patch Changes
+
+- bfa1217: chore: version bump only
+- Updated dependencies [bfa1217]
+  - @plumeria/webpack-plugin@0.23.1
+
 ## 0.23.0
 
 ### Minor Changes
