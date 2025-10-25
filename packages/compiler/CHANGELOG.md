@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.23.2
+
+### Patch Changes
+
+- 9c90f6e: fix: swc version anchored
+
 ## 0.23.1
 
 ### Patch Changes
