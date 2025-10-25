@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 0.23.2
+
+### Patch Changes
+
+- 78e3faa: chore: version bump only
+- Updated dependencies [78e3faa]
+  - @plumeria/webpack-plugin@0.23.2
+
 ## 0.23.1
 
 ### Patch Changes
