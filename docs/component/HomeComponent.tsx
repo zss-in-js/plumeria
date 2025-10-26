@@ -96,8 +96,8 @@ const styles = css.create({
 
 const demoCode = ` text: { fontSize: 16, color: "navy" }
  ↓
-.zftshu08 { font-size: 16px; }
-.zzie71ek { color: navy }`;
+.xftshu08 { font-size: 16px; }
+.xzie71ek { color: navy }`;
 export const HomeComponent = () => {
   return (
     <main className={css.props(styles.container)}>
