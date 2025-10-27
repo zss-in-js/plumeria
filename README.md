@@ -26,7 +26,7 @@ maximizes reusability.
 **Generated CSS:**
 
 ```css
-.x1p2jzyu {
+.x1p2jzyu:not(#\#) {
   font-size: 12px;
 }
 .xzie71ek {
