@@ -148,9 +148,52 @@ describe('virtual-css-loader', () => {
     };
 
     testValue('handles numbers', '0', /0/);
+
     testValue('handles negative numbers', '-10', /-10/);
-    testValue('handles local constants', 'myVar', /--my-var/);
-    testValue('handles unresolved identifiers', 'unknown', /--unknown/);
+
+    it('does not convert non-token identifiers to var()', (done) => {
+      const callback = () => {
+        const styles = registerSpy.mock.calls[0][1].baseStyles;
+
+        expect(styles).toContain('[unresolved identifier]');
+        expect(styles).not.toContain('var(--some-random-variable)');
+        done();
+      };
+
+      (mockContext.async as jest.Mock).mockReturnValue(callback);
+
+      loader.call(
+        mockContext as LoaderContext<any>,
+
+        `css.create({ key: { prop: someRandomVariable } });`,
+      );
+    });
+
+    it('resolves local string constants', (done) => {
+      const callback = () => {
+        const styles = registerSpy.mock.calls[0][1].baseStyles;
+        expect(styles).toContain('color: skyblue');
+        done();
+      };
+      (mockContext.async as jest.Mock).mockReturnValue(callback);
+      loader.call(
+        mockContext as LoaderContext<any>,
+        `const skyblue = 'skyblue'; css.create({ key: { color: skyblue } });`,
+      );
+    });
+
+    it('resolves local object constants with member expression', (done) => {
+      const callback = () => {
+        const styles = registerSpy.mock.calls[0][1].baseStyles;
+        expect(styles).toContain('width: 100px');
+        done();
+      };
+      (mockContext.async as jest.Mock).mockReturnValue(callback);
+      loader.call(
+        mockContext as LoaderContext<any>,
+        `const sizes = { sc: '100px' }; css.create({ key: { width: sizes.sc } });`,
+      );
+    });
   });
 
   describe('External definitions', () => {
