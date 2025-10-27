@@ -96,7 +96,7 @@ const styles = css.create({
 
 const demoCode = ` text: { fontSize: 16, color: "navy" }
  ↓
-.xftshu08 { font-size: 16px; }
+.xftshu08:not(#\\#) { font-size: 16px; }
 .xzie71ek { color: navy }`;
 export const HomeComponent = () => {
   return (
