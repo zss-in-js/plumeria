@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.24.0
+
+### Minor Changes
+
+- 9bd06f9: feat: add stats argument to css command
+
 ## 0.23.2
 
 ### Patch Changes
