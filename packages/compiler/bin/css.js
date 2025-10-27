@@ -14,6 +14,7 @@ register();
 try {
   const checkMark = styleText('greenBright', '✓');
   const typecheck = process.argv.includes('--type-check');
+  const stats = process.argv.includes('--stats');
 
   if (typecheck) {
     execSync('tsc --noEmit --incremental false', {
@@ -24,8 +25,10 @@ try {
 
   require(path.resolve(__dirname, '../dist/index.js'));
 
-  const compilation = typecheck ? 'Type-check completed' : '';
-  console.log(` ${checkMark} Compiled... ${compilation}`);
+  if (!stats) {
+    const compilation = typecheck ? 'Type-check completed' : '';
+    console.log(` ${checkMark} Compiled... ${compilation}`);
+  }
 } catch (error) {
   console.error('Compilation failed:', error.message);
   process.exit(1);
