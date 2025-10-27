@@ -533,4 +533,9 @@ process.on('unhandledRejection', async (reason, promise) => {
   process.exit(1);
 });
 
-export { extractTSFile, restoreAllOriginals, extractVueAndSvelte };
+export {
+  extractTSFile,
+  restoreAllOriginals,
+  extractVueAndSvelte,
+  generatedTsMap,
+};
