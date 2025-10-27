@@ -23,7 +23,7 @@ Plumeria compiles each style property into a unique, **atomic**, and **hashed** 
 **Generated CSS:**
 
 ```css
-.x1p2jzyu {
+.x1p2jzyu:not(#\#) {
   font-size: 12px;
 }
 .xzie71ek {
