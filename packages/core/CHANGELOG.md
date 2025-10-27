@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.24.0
+
+### Minor Changes
+
+- ee90341: feat: readme updated
+
 ## 0.23.2
 
 ### Patch Changes
