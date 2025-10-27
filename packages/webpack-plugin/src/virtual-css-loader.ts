@@ -131,18 +131,24 @@ function objectExpressionToObject(
   return obj;
 }
 
-function collectLocalConsts(ast: t.File): Record<string, string> {
-  const localConsts: Record<string, string> = {};
+function collectLocalConsts(ast: t.File): Record<string, any> {
+  const localConsts: Record<string, any> = {};
 
   traverse(ast, {
     VariableDeclarator(path) {
       const { node } = path;
-      if (
-        t.isIdentifier(node.id) &&
-        node.init &&
-        t.isStringLiteral(node.init)
-      ) {
-        localConsts[node.id.name] = node.init.value;
+      if (t.isIdentifier(node.id) && node.init) {
+        if (t.isStringLiteral(node.init)) {
+          localConsts[node.id.name] = node.init.value;
+        } else if (t.isObjectExpression(node.init)) {
+          localConsts[node.id.name] = objectExpressionToObject(
+            node.init,
+            localConsts,
+            keyframesHashTable,
+            viewTransitionHashTable,
+            tokensTable,
+          );
+        }
       }
     },
   });
@@ -348,10 +354,6 @@ function resolveTokensTableMemberExpressionByNode(
   node: t.Identifier | t.MemberExpression,
   tokensTable: TokensTable,
 ): CSSValue | undefined {
-  if (t.isIdentifier(node)) {
-    const cssVarName = camelToKebabCase(node.name);
-    return `var(--${cssVarName})`;
-  }
   // The MemberExpression part also branches
   if (t.isMemberExpression(node) && t.isIdentifier(node.object)) {
     const varName = node.object.name;
