@@ -60,10 +60,11 @@ Use it to visualize your builds and test them as you go.
 Do not include the --view argument in your build script as it will get into the server logs.
 
 ```sh title="Terminal"
-npx css --view
+pnpm exec --view
 ```
-Example output:
+Example:
 ```sh title="Terminal"
+ ✓ Compiled... 
 props💫:
 
 .x1dc3zs0 { color: orange; }
@@ -75,33 +76,51 @@ props💫:
 
 props💫:
 
-.x1x6w4y4 { font-size: 14px; }
+.x1x6w4y4:not(#\#) { font-size: 14px; }
 
 props💫:
 
 .x1f4cjxk { color: green; }
-
- ✓ Compiled... 
 ```
 
 ### `--paths`
 Outputs a list of the files to be compiled. file.
 ```sh title="Terminal"
-npx css --paths
+pnpm exec css --paths
 ```
-Example output:
+Example:
 ```sh title="Terminal"
-component/CodeBlock.tsx
-component/HomeComponent.tsx
-component/Plumeria.tsx
- ✓ Compiled... 
+✓ Compiled... 
+project/src/component/CodeBlock.tsx
+project/src/component/HomeComponent.tsx
+project/src/component/Plumeria.tsx
+```
 
+### `--stats`
+```sh title="Terminal"
+pnpm exec css --stats
+```
+
+Example:
+```sh title="Terminal"
+📦 Plumeria CSS Stats
+────────────────────────────
+Total CSS size:           3.611 KB
+Rules:                    82
+Top properties:
+  - width: 9
+  - top: 8
+  - right: 6
+  - margin-top: 5
+  - height: 5
+Build time:               0.08s
+────────────────────────────
 ```
 
 ### `--type-check`
 Runs Typescript type checking before compiling.
 ```sh title="Terminal"
-npx css --type-check
+pnpm exec css --type-check
 ```
 ### Success
 ```sh
