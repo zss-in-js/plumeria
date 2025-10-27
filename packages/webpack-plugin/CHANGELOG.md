@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.24.0
+
+### Minor Changes
+
+- c93704c: fix: improve local constant and token resolution
+
 ## 0.23.2
 
 ### Patch Changes
