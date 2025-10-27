@@ -12,7 +12,52 @@ import {
   extractTSFile,
   restoreAllOriginals,
   extractVueAndSvelte,
+  generatedTsMap,
 } from './extract';
+
+async function generateStats(buildTime: number) {
+  const cssCode = await readFile(coreFilePath, 'utf8');
+  const cssSize = Buffer.byteLength(cssCode, 'utf8');
+
+  let rules = 0;
+  const topProperties = new Map<string, number>();
+
+  lightningCSSTransform({
+    filename: coreFilePath,
+    code: Buffer.from(cssCode),
+    visitor: {
+      Rule(rule) {
+        if (rule.type === 'style') {
+          rules++;
+          rule.value.declarations.declarations.forEach((decl) => {
+            if ('property' in decl) {
+              topProperties.set(
+                decl.property,
+                (topProperties.get(decl.property) || 0) + 1,
+              );
+            }
+          });
+        }
+      },
+    },
+  });
+
+  const sortedTopProperties = [...topProperties.entries()].sort(
+    (a, b) => b[1] - a[1],
+  );
+
+  console.log('\n📦 Plumeria CSS Stats');
+  console.log('────────────────────────────');
+  console.log(`Total CSS size:           ${(cssSize / 1024).toFixed(3)} KB`);
+  console.log(`Rules:                    ${rules}`);
+  console.log('Top properties:');
+  for (let i = 0; i < Math.min(5, sortedTopProperties.length); i++) {
+    const [prop, count] = sortedTopProperties[i];
+    console.log(`  - ${prop}: ${count}`);
+  }
+  console.log(`Build time:               ${buildTime.toFixed(2)}s`);
+  console.log('────────────────────────────\n');
+}
 
 let projectRoot;
 
@@ -168,6 +213,7 @@ async function optimizeCSS(): Promise<void> {
 }
 
 (async () => {
+  const startTime = performance.now();
   await cleanUp();
 
   const scanRoot = process.cwd();
@@ -195,12 +241,19 @@ async function optimizeCSS(): Promise<void> {
     .filter((file) => isCSS(file))
     .sort();
 
+  const tempToOriginalMap = new Map<string, string>();
+  for (const [original, temp] of generatedTsMap.entries()) {
+    tempToOriginalMap.set(temp, original);
+  }
+
   for (let i = 0; i < styleFiles.length; i++) {
     await execute(path.resolve(styleFiles[i]));
-    if (process.argv.includes('--paths'))
+    if (process.argv.includes('--paths')) {
+      const originalFile = tempToOriginalMap.get(styleFiles[i])!;
       console.log(
-        `✅: ${projectName}/${path.relative(projectRoot, styleFiles[i])}`,
+        `✅: ${projectName}/${path.relative(projectRoot, originalFile)}`,
       );
+    }
   }
   for (let i = 0; i < styleFiles.length; i++) {
     await buildGlobal(coreFilePath);
@@ -212,4 +265,10 @@ async function optimizeCSS(): Promise<void> {
 
   await optimizeCSS();
   await restoreAllOriginals();
+
+  if (process.argv.includes('--stats')) {
+    const endTime = performance.now();
+    const buildTime = (endTime - startTime) / 1000;
+    await generateStats(buildTime);
+  }
 })();
