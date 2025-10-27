@@ -6,10 +6,6 @@ jest.mock('../../src/api/global', () => ({
 }));
 
 describe('defineTokens', () => {
-  beforeEach(() => {
-    (global as jest.Mock).mockClear();
-  });
-
   it('should return an object with CSS variable strings and call global with default values', () => {
     const tokens = {
       fontSize: {
