@@ -30,7 +30,7 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
         owner: 'zss-in-js',
         repo: 'plumeria',
         sha: 'main',
-        path: `website/content/docs/${page.file.path}`,
+        path: `docs/content/docs/${page.file.path}`,
       }}
       tableOfContent={{
         style: 'normal',
