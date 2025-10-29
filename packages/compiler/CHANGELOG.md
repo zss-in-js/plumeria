@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.24.1
+
+### Patch Changes
+
+- 8b1ed41: chore: swc and rscute(swc) version upgrade
+
 ## 0.24.0
 
 ### Minor Changes
