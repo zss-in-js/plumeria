@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.24.1
+
+### Patch Changes
+
+- 6c9c3fb: chore: version track only
+
 ## 0.24.0
 
 ### Minor Changes
