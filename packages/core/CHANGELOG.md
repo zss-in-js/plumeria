@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.24.2
+
+### Patch Changes
+
+- 913982f: fix: fixed an issue where flat filtering would not succeed when media filtering occurred
+
 ## 0.24.1
 
 ### Patch Changes
