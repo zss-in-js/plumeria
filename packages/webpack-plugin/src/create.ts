@@ -3,6 +3,7 @@ import type {
   CreateStyleType,
   CreateTokens,
   CreateValues,
+  CreateStyle,
 } from 'zss-engine';
 import {
   SHORTHAND_PROPERTIES,
@@ -22,12 +23,12 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
   const processedHashes = new Set<string>(); // For duplicate check
 
   Object.entries(object).forEach(([key, styleObj]) => {
-    const flat: Record<string, any> = {};
-    const nonFlat: Record<string, any> = {};
+    const flat: CreateStyle = {};
+    const nonFlat: CreateStyle = {};
 
     splitAtomicAndNested(styleObj, flat, nonFlat);
 
-    const overrideLonghand = (style: Record<string, any>) => {
+    const overrideLonghand = (style: CreateStyle) => {
       const props = Object.keys(style);
       const propsToRemove = new Set<string>();
 
@@ -63,15 +64,13 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
         }
       }
 
-      const finalStyle: Record<string, any> = {};
+      const finalStyle: CreateStyle = {};
       for (const prop of props) {
         if (propsToRemove.has(prop)) {
           continue;
         }
         if (prop.startsWith('@')) {
-          finalStyle[prop] = overrideLonghand(
-            style[prop] as Record<string, any>,
-          );
+          finalStyle[prop] = overrideLonghand(style[prop] as CreateStyle);
         } else {
           finalStyle[prop] = style[prop];
         }
@@ -119,26 +118,17 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
 
     // Handling nested objects such as pseudos to atom by key is atRule + prop
     if (Object.keys(nonFlat).length > 0) {
-      const finalNonFlat: Record<string, any> = {};
-      Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
-        finalNonFlat[atRule] = overrideLonghand(
-          nestedObj as Record<string, any>,
-        );
-      });
-
-      const nonFlatObj = { [key]: finalNonFlat };
+      const nonFlatObj = { [key]: nonFlat };
       const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
       const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
-      Object.entries(finalNonFlat).forEach(([atRule, nestedObj]) => {
-        Object.entries(nestedObj as Record<string, unknown>).forEach(
-          ([prop]) => {
-            records.push({
-              key: atRule + prop,
-              hash: nonFlatHash,
-              sheet: styleSheet,
-            });
-          },
-        );
+      Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
+        Object.entries(nestedObj).forEach(([prop]) => {
+          records.push({
+            key: atRule + prop,
+            hash: nonFlatHash,
+            sheet: styleSheet,
+          });
+        });
       });
     }
 
