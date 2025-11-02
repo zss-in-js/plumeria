@@ -3,13 +3,13 @@ title: 'CSS Specificity'
 description: 'Learn more about Plumeria CSS Specificity'
 ---
 
-## Use `:not(#\#)` for Predictable Longhand Behavior
+## `:not(#\#)` for priority
 
-Plumeria adds `:not(#\#)` to longhand property atoms, increasing their specificity to `(0,1,1)`.
+Plumeria adds `:not(#\#)` to longhand property atomic class, increasing priority.
 
-### Additive Override Behavior
+### Override only that value
 
-This ensures longhand properties **always add to** shorthand properties, regardless of merge order:
+This ensures longhand properties **always addtion to** shorthand properties, regardless of merge order:
 ```js
 const styles = css.create({
   base: { margin: 10 },
@@ -22,22 +22,58 @@ css.props(styles.custom, styles.base);
 
 // Result: margin 10px on all sides, except top is 20px
 ```
-This slightly increases bundle size, but is necessary to maintain strict specificity.  
 
-Also, if a shorthand is written after a longhand in the same key, the previous longhand will be filtered.
+Normally, if a shorthand is below a longhand, it will override the all longhand, but if you raise its priority, the following CSS will return the same result:
+```css
+atom1 {
+  padding: 20px
+}
+
+atom2:not(#\#) {
+  padding-top: 10px;
+}
+```
+And this too
+
+```css
+atom2:not(#\#) {
+  padding-top: 10px;
+}
+
+atom1 {
+  padding: 20px
+}
+```
+
+This slightly increases bundle size, but is necessary to maintain for strict behavior.  
+
+
+### Override all
+Also, if a shorthand is written after a longhand in the same key, the previous longhand will be filtered and overridden.
 
 ```js
 const styles = css.create({
   base: {
-    paddingTop: "12px", // filtered out
-    padding: '8px' // overrides all padding
+    paddingTop: '20px', // filtered out
+    padding: '10px' // override all padding-long-hand
   },
  });
 ```
+As follows:
+```css
+atom1 {
+  padding: 10px
+}
+```
 
-When the ESLint rule is enabled, in the key longhand properties will always after shorthand properties.
+<Callout title="Enforcing with ESLint">
+These behaviors are complex even in normal CSS, so ESLint is effective for enforcing consistent behavior through rules.
+ When the ESLint rule is enabled, in the key longhand properties will always after shorthand properties.
+</Callout>
 
-## How `css.props()` Merges Styles
+
+
+## `css.props()` merge styles
 
 Also, when `css.props()` has duplicate properties on its arguments, the style properties on the right always take precedence and duplicate properties on the left are filtered. In that case no filtered hash is generated.
 
@@ -50,4 +86,17 @@ const styles = css.create({
 // The right always wins
 css.props(styles.base, styles.custom); // 16px
 css.props(styles.custom, styles.base); // 10px
+```
+Generated as follows:
+```css
+atom1 {
+  font-size: 16px
+}
+```
+
+Or:
+```css
+atom2 {
+  font-size: 10px
+}
 ```
