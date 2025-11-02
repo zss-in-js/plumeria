@@ -29,45 +29,54 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
 
     const overrideLonghand = (style: Record<string, any>) => {
       const props = Object.keys(style);
+      const propsToRemove = new Set<string>();
 
-      if (props.some((p) => p.startsWith('@'))) {
-        const finalStyle: Record<string, any> = { ...style };
-        for (const key of props) {
-          if (key.startsWith('@')) {
-            finalStyle[key] = overrideLonghand(
-              style[key] as Record<string, any>,
-            );
-          }
+      // Find plain props and their indices
+      const plainProps: { key: string; index: number }[] = [];
+      for (let i = 0; i < props.length; i++) {
+        if (!props[i].startsWith('@')) {
+          plainProps.push({ key: props[i], index: i });
         }
-        return finalStyle;
       }
 
-      const finalStyle: Record<string, any> = {};
+      // Find shorthands among plain props
+      const shorthandsInStyle: { [key: string]: number } = {};
+      for (const { key, index } of plainProps) {
+        const kebab = camelToKebabCase(key);
+        if (SHORTHAND_PROPERTIES[kebab]) {
+          shorthandsInStyle[kebab] = index;
+        }
+      }
 
-      for (let i = 0; i < props.length; i++) {
-        const prop = props[i];
-        const kebab = camelToKebabCase(prop);
-        const isShorthand = !!SHORTHAND_PROPERTIES[kebab];
-
-        if (isShorthand) {
-          finalStyle[prop] = style[prop];
-        } else {
-          // isLonghand
-          let isOverridden = false;
-          const shorthands = LONG_TO_SHORT[kebab] || [];
-          for (let j = i + 1; j < props.length; j++) {
-            const futureProp = props[j];
-            const futureKebab = camelToKebabCase(futureProp);
-            if (shorthands.includes(futureKebab)) {
-              isOverridden = true;
+      // Determine which longhands to remove
+      for (const { key, index } of plainProps) {
+        const kebab = camelToKebabCase(key);
+        if (!SHORTHAND_PROPERTIES[kebab]) {
+          // is longhand
+          const longhands = LONG_TO_SHORT[kebab] || [];
+          for (const shorthand of longhands) {
+            if (shorthandsInStyle[shorthand] > index) {
+              propsToRemove.add(key);
               break;
             }
           }
-          if (!isOverridden) {
-            finalStyle[prop] = style[prop];
-          }
         }
       }
+
+      const finalStyle: Record<string, any> = {};
+      for (const prop of props) {
+        if (propsToRemove.has(prop)) {
+          continue;
+        }
+        if (prop.startsWith('@')) {
+          finalStyle[prop] = overrideLonghand(
+            style[prop] as Record<string, any>,
+          );
+        } else {
+          finalStyle[prop] = style[prop];
+        }
+      }
+
       return finalStyle;
     };
 
