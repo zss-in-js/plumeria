@@ -1,11 +1,21 @@
 import { noDestructure } from './rules/no-destructure';
-import { noInnerCall } from './rules/no-inner-call.js';
+import { noInnerCall } from './rules/no-inner-call';
 import { noUnusedKeys } from './rules/no-unused-keys';
 import { sortProperties } from './rules/sort-properties';
 import { validateValues } from './rules/validate-values';
-import { ESLint, Linter, Rule } from 'eslint';
+import type { ESLint, Linter, Rule } from 'eslint';
 
-const rules = {
+type PlumeriaPlugin = ESLint.Plugin & {
+  rules: Record<string, Rule.RuleModule>;
+  configs: {
+    recommended: Linter.LegacyConfig;
+  };
+  flatConfigs: {
+    recommended: Linter.Config;
+  };
+};
+
+const rules: Record<string, Rule.RuleModule> = {
   'no-destructure': noDestructure,
   'no-inner-call': noInnerCall,
   'no-unused-keys': noUnusedKeys,
@@ -13,7 +23,7 @@ const rules = {
   'validate-values': validateValues,
 };
 
-const configs = {
+const configs: PlumeriaPlugin['configs'] = {
   recommended: {
     plugins: ['@plumeria'],
     rules: {
@@ -25,8 +35,7 @@ const configs = {
     },
   },
 };
-
-const flatConfigs = {
+const flatConfigs: PlumeriaPlugin['flatConfigs'] = {
   recommended: {
     plugins: {
       '@plumeria': {
@@ -43,22 +52,8 @@ const flatConfigs = {
   },
 };
 
-export const plumeria = {
+export const plumeria: PlumeriaPlugin = {
   rules,
   configs,
   flatConfigs,
-} as unknown as ESLint.Plugin & {
-  rules: {
-    'no-destructure': Rule.RuleModule;
-    'no-inner-call': Rule.RuleModule;
-    'no-unused-keys': Rule.RuleModule;
-    'sort-properties': Rule.RuleModule;
-    'validate-values': Rule.RuleModule;
-  };
-  configs: {
-    recommended: Linter.LegacyConfig;
-  };
-  flatConfigs: {
-    recommended: Linter.RulesRecord;
-  };
 };
