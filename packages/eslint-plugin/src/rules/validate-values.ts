@@ -403,12 +403,10 @@ const cursorValue = [
   varString,
 ].join('|');
 
-import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
+import type { Property } from 'estree';
+import { Rule } from 'eslint';
 
-const createRule = ESLintUtils.RuleCreator((name) => name);
-
-export const validateValues = createRule({
-  name: 'validate-values',
+export const validateValues: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
@@ -422,7 +420,6 @@ export const validateValues = createRule({
     },
     schema: [],
   },
-  defaultOptions: [],
   create(context) {
     return {
       ObjectExpression(node) {
@@ -441,7 +438,7 @@ export const validateValues = createRule({
 
             if (validData[key]) {
               const createReport = (
-                property: TSESTree.Property,
+                property: Property,
                 key: string,
                 value: string,
               ) => {
@@ -457,7 +454,7 @@ export const validateValues = createRule({
                   });
                 };
               };
-              const report = createReport(property, key, value);
+              const report = createReport(property as Property, key, value);
 
               const globalValue =
                 !validData[key].includes(value) &&
@@ -2478,4 +2475,4 @@ export const validateValues = createRule({
       },
     };
   },
-});
+};
