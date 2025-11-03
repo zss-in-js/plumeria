@@ -3,7 +3,7 @@ import { css } from '@plumeria/core';
 const styles = css.create({
   color: {
     fontWeight: '500',
-    color: 'rgb(34 34 34)',
+    color: 'rgb(112, 200, 222)',
   },
 });
 
