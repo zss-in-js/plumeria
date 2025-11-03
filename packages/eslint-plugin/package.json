@@ -18,8 +18,9 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "devDependencies": {
-    "@typescript-eslint/utils": "^8.44.1",
-    "eslint": "^9.15.0"
+    "@types/eslint": "^9.6.1",
+    "eslint": "^9.39.0",
+    "@types/estree": "^1.0.8"
   },
   "publishConfig": {
     "access": "public"
