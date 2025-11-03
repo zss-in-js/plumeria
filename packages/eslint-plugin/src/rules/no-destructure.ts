@@ -3,12 +3,9 @@
  * Compatible with eslint 8 and below or 9 and above
  */
 
-import { ESLintUtils } from '@typescript-eslint/utils';
+import type { Rule } from 'eslint';
 
-const createRule = ESLintUtils.RuleCreator((name) => name);
-
-export const noDestructure = createRule({
-  name: 'no-destructure',
+export const noDestructure: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
@@ -20,7 +17,7 @@ export const noDestructure = createRule({
     },
     schema: [],
   },
-  defaultOptions: [],
+
   create(context) {
     return {
       VariableDeclarator(node) {
@@ -51,4 +48,4 @@ export const noDestructure = createRule({
       },
     };
   },
-});
+};
