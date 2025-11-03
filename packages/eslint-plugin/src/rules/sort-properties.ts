@@ -3,19 +3,17 @@
  * Compatible with eslint 8 and below or 9 and above
  */
 
-import { ESLintUtils } from '@typescript-eslint/utils';
+import type { Property } from 'estree';
 import type { Rule } from 'eslint';
-import type { TSESTree } from '@typescript-eslint/utils';
-import { propertyGroups } from '../util/propertyGroups';
 
-const createRule = ESLintUtils.RuleCreator((name) => name);
+import { propertyGroups } from '../util/propertyGroups';
 
 /* istanbul ignore next */
 function getSourceCode(context: Rule.RuleContext) {
   return context.getSourceCode ? context.getSourceCode() : context.sourceCode;
 }
 
-function getPropertyName(property: TSESTree.Property): string {
+function getPropertyName(property: Property): string {
   if (property.key.type === 'Identifier') {
     return property.key.name;
   }
@@ -26,7 +24,7 @@ function getPropertyName(property: TSESTree.Property): string {
 }
 
 function getPropertyIndex(
-  property: TSESTree.Property,
+  property: Property,
   isTopLevel: boolean,
 ): number | null {
   const name = getPropertyName(property);
@@ -61,8 +59,7 @@ function getPropertyIndex(
   return lastGroupIndex * 1000 + maxPropIndex + 1;
 }
 
-export const sortProperties = createRule({
-  name: 'sort-properties',
+export const sortProperties: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
     docs: {
@@ -77,22 +74,18 @@ export const sortProperties = createRule({
     },
   },
 
-  defaultOptions: [],
-
   create(context) {
     return {
-      ObjectExpression(node: TSESTree.ObjectExpression) {
-        const sourceCode = getSourceCode(
-          context as unknown as Rule.RuleContext,
-        );
+      ObjectExpression(node) {
+        const sourceCode = getSourceCode(context);
         const isTopLevel = !node.parent || node.parent.type !== 'Property';
         const properties = node.properties.filter(
-          (prop): prop is TSESTree.Property => 'key' in prop && !!prop.key,
+          (prop) => 'key' in prop && !!prop.key,
         );
 
         const sorted = [...properties].sort((a, b) => {
-          const indexA = getPropertyIndex(a, isTopLevel);
-          const indexB = getPropertyIndex(b, isTopLevel);
+          const indexA = getPropertyIndex(a as Property, isTopLevel);
+          const indexB = getPropertyIndex(b as Property, isTopLevel);
           return indexA === null || indexB === null ? 0 : indexA - indexB;
         });
 
@@ -100,27 +93,30 @@ export const sortProperties = createRule({
 
         if (misordered.length === 0) return;
 
-        const match = sourceCode.getText(node as any).match(/^{\s*\n(\s*)/);
+        const match = sourceCode.getText(node).match(/^{\s*\n(\s*)/);
         const indent = match ? match[1] : '';
         const lineEnding = match ? '\n' : ' ';
 
         misordered.forEach((prop) => {
           context.report({
-            node: prop as any,
+            node: prop,
             messageId: 'sortProperties',
             data: {
-              position: sorted.indexOf(prop) + 1,
-              property: getPropertyName(prop),
+              position: String(sorted.indexOf(prop) + 1),
+              property: getPropertyName(prop as Property),
             },
             fix(fixer) {
               const newText = sorted
                 .map((p) => {
-                  return `${indent}${sourceCode.getText(p as any)}`;
+                  return `${indent}${sourceCode.getText(p)}`;
                 })
                 .join(`,${lineEnding}`);
 
               return fixer.replaceTextRange(
-                [node.range[0] + 1, node.range[1] - 1],
+                [
+                  (node.range as [number, number])[0] + 1,
+                  (node.range as [number, number])[1] - 1,
+                ],
                 `${lineEnding}${newText}${lineEnding}`,
               );
             },
@@ -129,4 +125,4 @@ export const sortProperties = createRule({
       },
     };
   },
-});
+};
