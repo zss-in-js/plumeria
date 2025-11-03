@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.24.3
+
+### Patch Changes
+
+- 28bbef3: refactor: update dev dependencies and fix types
+
 ## 0.24.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.24.3
+
+### Patch Changes
+
+- f1c2665: chore: version track only
+
 ## 0.24.2
 
 ### Patch Changes
