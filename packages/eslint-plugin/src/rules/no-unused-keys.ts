@@ -3,18 +3,14 @@
  * Compatible with eslint 8 and below or 9 and above
  */
 
-import { ESLintUtils } from '@typescript-eslint/utils';
 import type { Rule } from 'eslint';
-
-const createRule = ESLintUtils.RuleCreator((name) => name);
 
 /* istanbul ignore next */
 function getFilename(context: Rule.RuleContext): string {
   return context.getFilename ? context.getFilename() : context.filename;
 }
 
-export const noUnusedKeys = createRule({
-  name: 'no-unused-keys',
+export const noUnusedKeys: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
@@ -27,7 +23,6 @@ export const noUnusedKeys = createRule({
     },
     schema: [],
   },
-  defaultOptions: [],
 
   create(context) {
     const filename = getFilename(context as unknown as Rule.RuleContext);
@@ -96,4 +91,4 @@ export const noUnusedKeys = createRule({
       },
     };
   },
-});
+};
