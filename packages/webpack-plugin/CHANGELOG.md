@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.24.3
+
+### Patch Changes
+
+- 8f8916d: refactor: improve any types
+
 ## 0.24.2
 
 ### Patch Changes
