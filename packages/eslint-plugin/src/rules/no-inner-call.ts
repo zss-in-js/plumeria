@@ -3,12 +3,9 @@
  * Compatible with eslint 8 and below or 9 and above
  */
 
-import { ESLintUtils } from '@typescript-eslint/utils';
+import type { Rule } from 'eslint';
 
-const createRule = ESLintUtils.RuleCreator((name) => name);
-
-export const noInnerCall = createRule({
-  name: 'no-inner-call',
+export const noInnerCall: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
@@ -20,7 +17,6 @@ export const noInnerCall = createRule({
     },
     schema: [],
   },
-  defaultOptions: [],
   create(context) {
     let functionDepth = 0;
 
@@ -73,4 +69,4 @@ export const noInnerCall = createRule({
       },
     };
   },
-});
+};
