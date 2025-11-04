@@ -48,8 +48,6 @@ describe('createCSS', () => {
         sheets.add('.a{color:red}');
       });
     jest.spyOn(zss, 'camelToKebabCase').mockImplementation((x) => x);
-    jest.spyOn(zss, 'SHORTHAND_PROPERTIES', 'get').mockReturnValue({});
-    jest.spyOn(zss, 'LONG_TO_SHORT', 'get').mockReturnValue({});
 
     const result = createCSS({
       base: { color: 'red' },
