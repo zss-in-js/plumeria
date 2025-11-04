@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.24.4
+
+### Patch Changes
+
+- 09f477b: feat: added TSDocs to the API and porting overrideLonghand in create.ts to zss-engine
+
 ## 0.24.3
 
 ### Patch Changes
