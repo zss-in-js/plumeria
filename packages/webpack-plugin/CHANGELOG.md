@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.24.4
+
+### Patch Changes
+
+- 3509717: feat: porting overrideLonghand in create.ts to zss-engine
+
 ## 0.24.3
 
 ### Patch Changes
