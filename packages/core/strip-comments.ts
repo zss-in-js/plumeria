@@ -1,12 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 
-function clean(file) {
+function clean(file: string) {
   const content = fs.readFileSync(file, 'utf8');
   let previousLineWasRegionComment = false;
   const cleaned = content
     .split(/\r?\n/)
-    .map((line) => {
+    .map((line: string) => {
       const isRegionComment = /^\s*\/\/\s*#(end)?region\b/.test(line);
       if (isRegionComment) {
         previousLineWasRegionComment = true;
@@ -17,12 +17,12 @@ function clean(file) {
       previousLineWasRegionComment = false;
       return lineToAdd.replace(/\s*\/\/\s*#(end)?region\b.*$/, '').trimEnd();
     })
-    .filter((line) => line !== '') // Remove blank lines (but leave `\n`)
+    .filter((line: string) => line !== '') // Remove blank lines (but leave `\n`)
     .join('\n');
   fs.writeFileSync(file, cleaned);
 }
 
-function walk(dir) {
+function walk(dir: string) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full);
