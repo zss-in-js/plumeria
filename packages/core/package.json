@@ -45,10 +45,10 @@
     "stylesheet.css"
   ],
   "scripts": {
-    "build": "tsdown && node strip-comments"
+    "build": "tsdown && node strip-comments && node tsdocs"
   },
   "dependencies": {
-    "zss-engine": "0.2.94"
+    "zss-engine": "0.2.96"
   },
   "publishConfig": {
     "access": "public"
