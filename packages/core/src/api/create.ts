@@ -10,6 +10,7 @@ import {
   processAtomicProps,
   genBase36Hash,
   transpile,
+  transformNestedSelectors,
 } from 'zss-engine';
 
 const styleAtomMap = new WeakMap<
@@ -85,7 +86,8 @@ function create<const T extends Record<string, CSSProperties>>(
 
     // Handling nested objects such as pseudos to atom by key is atRule + prop
     if (Object.keys(nonFlat).length > 0) {
-      const nonFlatObj = { [key]: nonFlat };
+      const modNonFlat = transformNestedSelectors(nonFlat);
+      const nonFlatObj = { [key]: modNonFlat };
       const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
       const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
       Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
