@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 0.24.5
+
+### Patch Changes
+
+- e3f3151: chore: version track only
+- Updated dependencies [e3f3151]
+  - @plumeria/webpack-plugin@0.24.5
+
 ## 0.24.4
 
 ### Patch Changes
