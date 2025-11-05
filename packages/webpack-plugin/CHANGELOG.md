@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.24.5
+
+### Patch Changes
+
+- e3f3151: fix: added :not(#\#) to pseudo and special syntax
+
 ## 0.24.4
 
 ### Patch Changes
