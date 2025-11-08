@@ -1,0 +1,44 @@
+---
+title: 'Plumeria 0.25.0'
+description: 'Plumeria 0.25.0 introduces compiler improvement and minor fix. (2 min read)'
+date: '2025/11/8'
+---
+
+## Improvement
+The compiler `rscute` has been updated to v1.0.0.  
+Supports various import cases.  
+Regular expressions have been replaced with AST parsing from `@swc/core`, making it more stable.
+
+## Bugfix
+The issue that occurred in v0.24.5 where pseudo-elements were followed by `not(#\#)` has been fixed in `zss-engine`.
+
+Other minor bugs have been fixed in 0.24.x.  
+In addition, TSDocs has been added to the API, improving it so that you can link to `documents` by `hovering`.
+
+- fix: fixed precedence of pseudo-element classes and special syntax beginning with "&".
+- fix: fixed an issue where flat filtering would not succeed when media filtering occurred
+
+
+
+## Appointment
+In v0.25.x, we plan to move the compiler closer to **AST parsing** to the extent that there is no difference in performance.
+
+Plumeria's thoughts on nextjs's support for `Turbopack`.  
+Currently, it's best to start `next dev` in `Webpack mode`.  
+We plan to support Turbopack `next dev` once the Turbopack API or corresponding next features are released.
+
+
+
+```ts
+const nextConfig: NextConfig = {
+  turbopack: {}
+};
+
+export default withPlumeria(nextConfig);
+```
+
+```json
+"dev": "css & next dev --webpack",
+```
+
+If you are using next@16 or higher, continue using `next dev --webpack`.
