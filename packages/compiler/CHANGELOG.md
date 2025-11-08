@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.25.0
+
+### Minor Changes
+
+- d2ea636: feat: dependencies update
+
 ## 0.24.5
 
 ### Patch Changes

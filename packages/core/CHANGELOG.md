@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.25.0
+
+### Minor Changes
+
+- c91fb8b: feat: zss-engine@latest update
+
 ## 0.24.5
 
 ### Patch Changes
