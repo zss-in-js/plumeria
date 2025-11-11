@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.25.1
+
+### Patch Changes
+
+- 13d111a: refactor: improvements Replace regular expressions with AST parsing, support for complex conditional expressions
+
 ## 0.25.0
 
 ### Minor Changes
