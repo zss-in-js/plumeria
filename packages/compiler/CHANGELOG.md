@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 13d111a: refactor: improvements Replace regular expressions with AST parsing, support for complex conditional expressions
+- 13d111a: refactor: improvements replace regular expressions with AST parsing, support for complex conditional expressions
 
 ## 0.25.0
 
