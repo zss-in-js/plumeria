@@ -1,9 +1,17 @@
+import {
+  parseSync,
+  printSync,
+  ImportDeclaration,
+  VariableDeclaration,
+  CallExpression,
+  Expression,
+  Module,
+} from '@swc/core';
 import fs from 'fs';
 import path from 'path';
 
 const generatedTsMap = new Map<string, string>();
 
-// Helper function to check if a position is within a comment
 function isInComment(code: string, position: number): boolean {
   const beforePosition = code.substring(0, position);
 
@@ -135,246 +143,324 @@ function isInHtmlText(code: string, position: number): boolean {
   return lastCloseTag > lastOpenTag && nextOpenTag > position;
 }
 
-// css.props extractor function that supports conditional expressions
-function extractCssProps(code: string) {
-  const propsMatches = [];
-  const regex = /css\.props\s*\(/g;
-  let match;
+function expressionToString(expr: Expression): string {
+  switch (expr.type) {
+    case 'Identifier':
+      return expr.value;
+    case 'MemberExpression': {
+      const obj = expressionToString(expr.object);
+      if (obj && expr.property.type === 'Identifier') {
+        return `${obj}.${expr.property.value}`;
+      }
+      break;
+    }
+    case 'CallExpression': {
+      if (expr.callee.type !== 'Super' && expr.callee.type !== 'Import') {
+        const callee = expressionToString(expr.callee);
+        if (callee) {
+          const args = expr.arguments
+            .map((arg) => expressionToString(arg.expression))
+            .join(', ');
+          return `${callee}(${args})`;
+        }
+      }
+      break;
+    }
+    case 'ObjectExpression': {
+      const properties = expr.properties
+        .map((prop) => {
+          if ('key' in prop && prop.key && prop.key.type === 'Identifier') {
+            const key = prop.key.value;
+            const value = expressionToString((prop as any).value);
+            return `${key}: ${value}`;
+          }
+          return '[complex property]';
+        })
+        .join(', ');
 
-  while ((match = regex.exec(code))) {
-    // Skip if this match is within a comment
-    if (
-      isInComment(code, match.index) ||
-      isInString(code, match.index) ||
-      isInHtmlText(code, match.index)
-    ) {
-      continue;
+      console.warn(
+        `css.props: Argument unsupported ${expr.type}: { ${properties} } Use css.create instead.`,
+      );
+      return '';
     }
 
-    const startIndex = match.index + match[0].length;
-    let parenCount = 1;
-    let currentIndex = startIndex;
-    let args = '';
+    case 'StringLiteral':
+      return String(expr.value);
+  }
 
-    // Find the matching closing bracket
-    while (parenCount > 0 && currentIndex < code.length) {
-      const char = code[currentIndex];
-      if (char === '(') {
-        parenCount++;
-      } else if (char === ')') {
-        parenCount--;
-      }
+  console.warn(
+    `css.props: Argument unsupported ${expr.type}: Use css.create instead.`,
+  );
+  return '';
+}
 
-      // Collect the argument parts (not including the closing bracket)
-      if (parenCount > 0 || char !== ')') {
-        args += char;
-      }
-      currentIndex++;
-    }
+function extractCssProps(ast: Module): string[] {
+  const propsMatches: string[] = [];
+  try {
+    visit(ast, {
+      CallExpression: (node: CallExpression) => {
+        if (
+          node.callee.type === 'MemberExpression' &&
+          node.callee.object.type === 'Identifier' &&
+          node.callee.object.value === 'css' &&
+          node.callee.property.type === 'Identifier' &&
+          node.callee.property.value === 'props'
+        ) {
+          const staticArgs: string[] = [];
+          const conditionalStyleObjects: string[] = [];
 
-    if (parenCount === 0) {
-      const originalArgs = args.split(/\s*,\s*(?![^(]*\))/);
+          for (const arg of node.arguments) {
+            if (arg.expression) {
+              if (
+                arg.expression.type === 'ConditionalExpression' ||
+                (arg.expression.type === 'BinaryExpression' &&
+                  arg.expression.operator === '&&')
+              ) {
+                const styles = extractStyleObjectsFromExpression(
+                  arg.expression,
+                );
+                conditionalStyleObjects.push(...styles);
+              } else {
+                const argStr = expressionToString(arg.expression);
+                if (argStr) {
+                  staticArgs.push(argStr);
+                }
+              }
+            }
+          }
 
-      const staticArgs = [];
-      const conditionalStyleObjects = [];
+          if (staticArgs.length > 0) {
+            propsMatches.push(`css.props(${staticArgs.join(', ')})`);
+          }
 
-      for (const arg of originalArgs) {
-        const trimmedArg = arg.trim();
-        if (trimmedArg) {
-          if (trimmedArg.includes('&&') || trimmedArg.includes('?')) {
-            const styles = parseCssPropsArguments(trimmedArg);
-            conditionalStyleObjects.push(...styles);
-          } else {
-            staticArgs.push(trimmedArg);
+          for (const styleObj of conditionalStyleObjects) {
+            if (
+              styleObj &&
+              styleObj !== 'false' &&
+              styleObj !== 'null' &&
+              styleObj !== 'undefined'
+            ) {
+              propsMatches.push(`css.props(${styleObj})`);
+            }
           }
         }
-      }
-
-      if (staticArgs.length > 0) {
-        propsMatches.push(`css.props(${staticArgs.join(', ')})`);
-      }
-
-      for (const styleObj of conditionalStyleObjects) {
-        if (
-          styleObj &&
-          styleObj !== 'false' &&
-          styleObj !== 'null' &&
-          styleObj !== 'undefined'
-        ) {
-          propsMatches.push(`css.props(${styleObj})`);
-        }
-      }
-    }
+      },
+    });
+  } catch (e) {
+    console.error(`Failed to parse code to extract css.props: ${e}`);
   }
 
   return propsMatches;
 }
 
-function extractStaticStringLiteralVariable(code: string) {
-  const matches: string[] = [];
-
-  const regex =
-    /\b(?:var|let|const)\s+[a-zA-Z_$][\w$]*\s*=\s*(['"])(.*?)\1\s*;?/gm;
-
-  let match;
-  while ((match = regex.exec(code))) {
-    const index = match.index;
-
-    if (
-      isInComment(code, index) ||
-      isInString(code, index) ||
-      isInHtmlText(code, index)
-    ) {
-      continue;
+function extractStyleObjectsFromExpression(expression: Expression): string[] {
+  switch (expression.type) {
+    case 'BinaryExpression':
+      if (expression.operator === '&&') {
+        return extractStyleObjectsFromExpression(expression.right);
+      }
+      break;
+    case 'ConditionalExpression':
+      return [
+        ...extractStyleObjectsFromExpression(expression.consequent),
+        ...extractStyleObjectsFromExpression(expression.alternate),
+      ];
+    case 'BooleanLiteral':
+    case 'NullLiteral':
+      return [];
+    case 'Identifier':
+      if (expression.value === 'undefined') {
+        return [];
+      }
+    // Fallthrough
+    case 'ObjectExpression': {
+      const str = expressionToString(expression);
+      return str ? [str] : [];
     }
+  }
 
-    matches.push(match[0]);
+  const str = expressionToString(expression);
+  if (str) {
+    return [str];
+  }
+  return [];
+}
+
+function extractStaticStringLiteralVariable(ast: Module): string {
+  const matches: string[] = [];
+  try {
+    visit(ast, {
+      VariableDeclaration: (node: VariableDeclaration) => {
+        const allStringLiterals =
+          node.declarations.length > 0 &&
+          node.declarations.every(
+            (decl) => decl.init && decl.init.type === 'StringLiteral',
+          );
+
+        if (allStringLiterals) {
+          const { code: extractedCode } = printSync({
+            type: 'Module',
+            body: [node],
+            span: { start: 0, end: 0, ctxt: 0 },
+          } as Module);
+          matches.push(extractedCode.trim());
+        }
+      },
+    });
+  } catch (e) {
+    console.error(
+      `Failed to parse code to extract static string literal variables: ${e}`,
+    );
   }
 
   return matches.join('\n');
 }
 
-// Enhanced css.create extractor that skips commented code
-function extractCssCreate(code: string) {
-  const cssCreateMatches = [];
-  const regex =
-    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.create\([\s\S]*?\);\s*))/g;
+function extractCssPropsFromTemplate(code: string): string[] {
+  const matches: string[] = [];
+  // Simple regex to find css.props(...) calls, assuming simple arguments in templates.
+  const regex = /css\.props\(([^)]*)\)/g;
   let match;
 
-  while ((match = regex.exec(code))) {
-    // Skip if this match is within a comment
+  while ((match = regex.exec(code)) !== null) {
+    const matchStart = match.index;
+
     if (
-      isInComment(code, match.index) ||
-      isInString(code, match.index) ||
-      isInHtmlText(code, match.index)
+      isInComment(code, matchStart) ||
+      isInString(code, matchStart) ||
+      isInHtmlText(code, matchStart)
+    ) {
+      continue;
+    }
+    // Exclude matches found within <script> tags, as they are handled by the AST parser.
+    const scriptStartIndex = code.indexOf('<script');
+    const scriptEndIndex = code.indexOf('</script>');
+    if (
+      scriptStartIndex !== -1 &&
+      scriptEndIndex !== -1 &&
+      match.index > scriptStartIndex &&
+      match.index < scriptEndIndex
     ) {
       continue;
     }
 
-    cssCreateMatches.push(match[0]);
-  }
-
-  return cssCreateMatches.join('\n');
-}
-
-function extractCssKeyframes(code: string) {
-  const cssCreateMatches = [];
-  const regex =
-    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.keyframes\([\s\S]*?\);\s*))/g;
-  let match;
-
-  while ((match = regex.exec(code))) {
-    // Skip if this match is within a comment
-    if (
-      isInComment(code, match.index) ||
-      isInString(code, match.index) ||
-      isInHtmlText(code, match.index)
-    ) {
-      continue;
+    const args = match[1];
+    // A simple heuristic to avoid complex expressions that regex can't handle well.
+    if (args && !args.includes('{') && !args.includes('(')) {
+      matches.push(`css.props(${args})`);
     }
-
-    cssCreateMatches.push(match[0]);
   }
-
-  return cssCreateMatches.join('\n');
+  return matches;
 }
 
-function extractCssViewTransition(code: string) {
-  const cssCreateMatches = [];
-  const regex =
-    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.viewTransition\([\s\S]*?\);\s*))/g;
-  let match;
+function visit(node: any, visitor: { [key: string]: (node: any) => void }) {
+  if (!node) return;
 
-  while ((match = regex.exec(code))) {
-    // Skip if this match is within a comment
-    if (
-      isInComment(code, match.index) ||
-      isInString(code, match.index) ||
-      isInHtmlText(code, match.index)
-    ) {
-      continue;
-    }
-
-    cssCreateMatches.push(match[0]);
+  const visitorFunc = visitor[node.type];
+  if (visitorFunc) {
+    visitorFunc(node);
   }
 
-  return cssCreateMatches.join('\n');
-}
-
-function extractCssDefineConsts(code: string) {
-  const cssCreateMatches = [];
-  const regex =
-    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.defineConsts\([\s\S]*?\);\s*))/g;
-  let match;
-
-  while ((match = regex.exec(code))) {
-    // Skip if this match is within a comment
-    if (
-      isInComment(code, match.index) ||
-      isInString(code, match.index) ||
-      isInHtmlText(code, match.index)
-    ) {
-      continue;
-    }
-
-    cssCreateMatches.push(match[0]);
-  }
-
-  return cssCreateMatches.join('\n');
-}
-
-function extractCssDefineTokens(code: string) {
-  const cssCreateMatches = [];
-  const regex =
-    /(?:(?:\s*const\s+[a-zA-Z0-9_$]+\s*=\s*css\.defineTokens\([\s\S]*?\);\s*))/g;
-  let match;
-
-  while ((match = regex.exec(code))) {
-    // Skip if this match is within a comment
-    if (
-      isInComment(code, match.index) ||
-      isInString(code, match.index) ||
-      isInHtmlText(code, match.index)
-    ) {
-      continue;
-    }
-
-    cssCreateMatches.push(match[0]);
-  }
-
-  return cssCreateMatches.join('\n');
-}
-
-function parseCssPropsArguments(args: string) {
-  const results = [];
-  const splitArgs = args.split(/\s*,\s*(?![^(]*\))/);
-
-  for (const arg of splitArgs) {
-    // Handle logical AND expressions (&&)
-    if (arg.includes('&&')) {
-      const match = arg.match(/&&\s*([^\s,]+)/);
-      if (match) {
-        results.push(match[1]);
-        continue;
+  for (const key in node) {
+    if (typeof node[key] === 'object' && node[key] !== null) {
+      if (Array.isArray(node[key])) {
+        for (const child of node[key]) {
+          visit(child, visitor);
+        }
+      } else {
+        visit(node[key], visitor);
       }
     }
+  }
+}
 
-    // Handle ternary expressions (?:)
-    if (arg.includes('?')) {
-      const match = arg.match(/([^?]+)\?([^:]+):(.+)$/);
-      if (match) {
-        // match[2] = then, match[3] = else
-        results.push(match[2].trim());
-        results.push(match[3].trim());
-        continue;
-      }
-    }
+function importDeclarationToString(node: ImportDeclaration): string {
+  const source = node.source.value;
 
-    // Default case (simple argument)
-    results.push(arg.trim());
+  const defaultImport = node.specifiers.find(
+    (s) => s.type === 'ImportDefaultSpecifier',
+  );
+  const namespaceImport = node.specifiers.find(
+    (s) => s.type === 'ImportNamespaceSpecifier',
+  );
+  const namedImports = node.specifiers.filter(
+    (s) => s.type === 'ImportSpecifier',
+  ) as any[];
+
+  let importClause = '';
+
+  if (defaultImport) {
+    importClause += (defaultImport as any).local.value;
   }
 
-  return results;
+  if (namespaceImport) {
+    if (importClause) importClause += ', ';
+    importClause += `* as ${(namespaceImport as any).local.value}`;
+  }
+
+  if (namedImports.length > 0) {
+    if (importClause) importClause += ', ';
+    const namedParts = namedImports.map((spec) => {
+      if (spec.imported && spec.imported.value !== spec.local.value) {
+        return `${spec.imported.value} as ${spec.local.value}`;
+      }
+      return spec.local.value;
+    });
+    importClause += `{ ${namedParts.join(', ')} }`;
+  }
+
+  if (importClause) {
+    return `import ${importClause} from '${source}';`;
+  }
+
+  return `import '${source}';`;
+}
+
+function extractImportDeclarations(ast: Module): string {
+  const importDeclarations: string[] = [];
+  try {
+    visit(ast, {
+      ImportDeclaration: (node: ImportDeclaration) => {
+        importDeclarations.push(importDeclarationToString(node));
+      },
+    });
+  } catch (e) {
+    console.error(`Failed to parse code to extract import declarations: ${e}`);
+  }
+  return importDeclarations.join('\n');
+}
+
+function extractCssMethod(ast: Module, methodName: string): string {
+  const matches: string[] = [];
+  try {
+    visit(ast, {
+      VariableDeclaration: (node: VariableDeclaration) => {
+        const containsCssMethod = node.declarations.some(
+          (decl) =>
+            decl.init &&
+            decl.init.type === 'CallExpression' &&
+            decl.init.callee.type === 'MemberExpression' &&
+            decl.init.callee.object.type === 'Identifier' &&
+            decl.init.callee.object.value === 'css' &&
+            decl.init.callee.property.type === 'Identifier' &&
+            decl.init.callee.property.value === methodName,
+        );
+
+        if (containsCssMethod && node.span) {
+          const { code: extractedCode } = printSync({
+            type: 'Module',
+            body: [node],
+            span: { start: 0, end: 0, ctxt: 0 },
+          } as Module);
+          matches.push(extractedCode.trim());
+        }
+      },
+    });
+  } catch (e) {
+    console.error(`Failed to parse code to extract css.${methodName}: ${e}`);
+  }
+
+  return matches.join('\n');
 }
 
 async function extractVueAndSvelte(filePath: string) {
@@ -402,64 +488,54 @@ async function extractVueAndSvelte(filePath: string) {
   }
   const tsCode = contentLines.join('\n');
 
-  // Search for css.props in the code code (as it may be in a HTML tags)
-  // extract css.props
-  const propsMatches = [...extractCssProps(tsCode), ...extractCssProps(code)];
+  // Do nothing if script tag is empty
+  if (!tsCode.trim()) {
+    const tsPath = filePath.replace(ext, '.ts');
+    fs.writeFileSync(tsPath, '', 'utf8');
+    generatedTsMap.set(filePath, tsPath);
+    return tsPath;
+  }
+
+  const ast = parseSync(tsCode, {
+    syntax: 'typescript',
+    tsx: true,
+  });
+
+  // extract css.props from both script (AST) and template (regex)
+  const propsFromScript = extractCssProps(ast);
+  const propsFromTemplate = extractCssPropsFromTemplate(code);
+  const propsMatches = [...new Set([...propsFromScript, ...propsFromTemplate])];
+
   const calls = propsMatches
     .filter(Boolean)
     .map((call) => `${call};`)
     .join('\n');
 
   // extract import section
-  const importRegex = /^(\s*import\s[^;]+;\s*)+/m;
-  const importMatch = tsCode.match(importRegex);
-  const importSection = importMatch ? importMatch[0] : '';
+  const importSection = extractImportDeclarations(ast);
 
   // extract css.create section using the new function
-  const staticVariableSection = extractStaticStringLiteralVariable(tsCode);
-  const cssCreateSection = extractCssCreate(tsCode);
-  const cssKeyframesSection = extractCssKeyframes(tsCode);
-  const cssViewTransitionSection = extractCssViewTransition(tsCode);
-  const cssDefineConstsSection = extractCssDefineConsts(tsCode);
-  const cssDefineTokensSection = extractCssDefineTokens(tsCode);
+  const staticVariableSection = extractStaticStringLiteralVariable(ast);
+  const cssCreateSection = extractCssMethod(ast, 'create');
+  const cssKeyframesSection = extractCssMethod(ast, 'keyframes');
+  const cssViewTransitionSection = extractCssMethod(ast, 'viewTransition');
+  const cssDefineConstsSection = extractCssMethod(ast, 'defineConsts');
+  const cssDefineTokensSection = extractCssMethod(ast, 'defineTokens');
 
   // finale ts code
   let finalCode = '';
 
   // add import section
-  if (importSection) {
-    finalCode += importSection + '\n';
-  }
-
-  if (staticVariableSection) {
-    finalCode += staticVariableSection + '\n';
-  }
-
-  if (cssKeyframesSection) {
-    finalCode += cssKeyframesSection + '\n';
-  }
-
-  if (cssViewTransitionSection) {
-    finalCode += cssViewTransitionSection + '\n';
-  }
-
-  if (cssDefineConstsSection) {
-    finalCode += cssDefineConstsSection + '\n';
-  }
-
-  if (cssDefineTokensSection) {
-    finalCode += cssDefineTokensSection + '\n';
-  }
-
+  if (importSection) finalCode += importSection + '\n';
+  if (staticVariableSection) finalCode += staticVariableSection + '\n';
+  if (cssKeyframesSection) finalCode += cssKeyframesSection + '\n';
+  if (cssViewTransitionSection) finalCode += cssViewTransitionSection + '\n';
+  if (cssDefineConstsSection) finalCode += cssDefineConstsSection + '\n';
+  if (cssDefineTokensSection) finalCode += cssDefineTokensSection + '\n';
   // add style.create section
-  if (cssCreateSection) {
-    finalCode += cssCreateSection + '\n';
-  }
-
+  if (cssCreateSection) finalCode += cssCreateSection + '\n';
   // add calls as they are
-  if (calls) {
-    finalCode += calls + '\n';
-  }
+  if (calls) finalCode += calls + '\n';
 
   const tsPath = filePath.replace(ext, '.ts');
   fs.writeFileSync(tsPath, finalCode, 'utf8');
@@ -469,24 +545,26 @@ async function extractVueAndSvelte(filePath: string) {
 
 async function extractTSFile(filePath: string) {
   const code = fs.readFileSync(filePath, 'utf8');
+  const ast = parseSync(code, {
+    syntax: 'typescript',
+    tsx: true,
+  });
 
   // extract import section
-  const importRegex = /^(?:\s*import\s[^;]+;\s*)+/m;
-  const importMatch = code.match(importRegex);
-  const importSection = importMatch ? importMatch[0] : '';
+  const importSection = extractImportDeclarations(ast);
 
   // extract static string literal variables
-  const staticVariableSection = extractStaticStringLiteralVariable(code);
+  const staticVariableSection = extractStaticStringLiteralVariable(ast);
 
   // extract css.create section using the new function
-  const cssCreateSection = extractCssCreate(code);
-  const cssKeyframesSection = extractCssKeyframes(code);
-  const cssViewTransitionSection = extractCssViewTransition(code);
-  const cssDefineConstsSection = extractCssDefineConsts(code);
-  const cssDefineTokensSection = extractCssDefineTokens(code);
+  const cssCreateSection = extractCssMethod(ast, 'create');
+  const cssKeyframesSection = extractCssMethod(ast, 'keyframes');
+  const cssViewTransitionSection = extractCssMethod(ast, 'viewTransition');
+  const cssDefineConstsSection = extractCssMethod(ast, 'defineConsts');
+  const cssDefineTokensSection = extractCssMethod(ast, 'defineTokens');
 
   // extract css.props
-  const propsMatches = extractCssProps(code);
+  const propsMatches = extractCssProps(ast);
   const calls = propsMatches
     .filter(Boolean)
     .map((call) => `${call};`)
@@ -514,7 +592,7 @@ async function extractTSFile(filePath: string) {
 async function restoreAllOriginals() {
   for (const [originalPath, genPath] of generatedTsMap.entries()) {
     if (genPath !== originalPath && fs.existsSync(genPath)) {
-      fs.unlinkSync(genPath); // Delete only the files generated by conversion from /.svelte and .vue to .ts
+      fs.unlinkSync(genPath);
     }
   }
   generatedTsMap.clear();
