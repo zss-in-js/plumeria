@@ -1,13 +1,12 @@
 import {
-  parseSync,
-  printSync,
+  parse,
+  print,
   ImportDeclaration,
-  VariableDeclaration,
   CallExpression,
   Expression,
   Module,
 } from '@swc/core';
-import fs from 'fs';
+import { readFile } from 'fs/promises';
 import path from 'path';
 
 const generatedTsMap = new Map<string, string>();
@@ -194,11 +193,11 @@ function expressionToString(expr: Expression): string {
   return '';
 }
 
-function extractCssProps(ast: Module): string[] {
+async function extractCssProps(ast: Module): Promise<string[]> {
   const propsMatches: string[] = [];
   try {
-    visit(ast, {
-      CallExpression: (node: CallExpression) => {
+    await visit(ast, {
+      CallExpression: async (node: CallExpression) => {
         if (
           node.callee.type === 'MemberExpression' &&
           node.callee.object.type === 'Identifier' &&
@@ -216,7 +215,7 @@ function extractCssProps(ast: Module): string[] {
                 (arg.expression.type === 'BinaryExpression' &&
                   arg.expression.operator === '&&')
               ) {
-                const styles = extractStyleObjectsFromExpression(
+                const styles = await extractStyleObjectsFromExpression(
                   arg.expression,
                 );
                 conditionalStyleObjects.push(...styles);
@@ -286,11 +285,13 @@ function extractStyleObjectsFromExpression(expression: Expression): string[] {
   return [];
 }
 
-function extractStaticStringLiteralVariable(ast: Module): string {
+async function extractStaticStringLiteralVariable(
+  ast: Module,
+): Promise<string> {
   const matches: string[] = [];
   try {
-    visit(ast, {
-      VariableDeclaration: (node: VariableDeclaration) => {
+    for (const node of ast.body) {
+      if (node.type === 'VariableDeclaration') {
         const allStringLiterals =
           node.declarations.length > 0 &&
           node.declarations.every(
@@ -298,15 +299,15 @@ function extractStaticStringLiteralVariable(ast: Module): string {
           );
 
         if (allStringLiterals) {
-          const { code: extractedCode } = printSync({
+          const { code: extractedCode } = await print({
             type: 'Module',
             body: [node],
             span: { start: 0, end: 0, ctxt: 0 },
           } as Module);
           matches.push(extractedCode.trim());
         }
-      },
-    });
+      }
+    }
   } catch (e) {
     console.error(
       `Failed to parse code to extract static string literal variables: ${e}`,
@@ -353,22 +354,25 @@ function extractCssPropsFromTemplate(code: string): string[] {
   return matches;
 }
 
-function visit(node: any, visitor: { [key: string]: (node: any) => void }) {
+async function visit(
+  node: any,
+  visitor: { [key: string]: (node: any) => void },
+) {
   if (!node) return;
 
   const visitorFunc = visitor[node.type];
   if (visitorFunc) {
-    visitorFunc(node);
+    await visitorFunc(node);
   }
 
   for (const key in node) {
     if (typeof node[key] === 'object' && node[key] !== null) {
       if (Array.isArray(node[key])) {
         for (const child of node[key]) {
-          visit(child, visitor);
+          await visit(child, visitor);
         }
       } else {
-        visit(node[key], visitor);
+        await visit(node[key], visitor);
       }
     }
   }
@@ -416,10 +420,10 @@ function importDeclarationToString(node: ImportDeclaration): string {
   return `import '${source}';`;
 }
 
-function extractImportDeclarations(ast: Module): string {
+async function extractImportDeclarations(ast: Module): Promise<string> {
   const importDeclarations: string[] = [];
   try {
-    visit(ast, {
+    await visit(ast, {
       ImportDeclaration: (node: ImportDeclaration) => {
         importDeclarations.push(importDeclarationToString(node));
       },
@@ -430,11 +434,14 @@ function extractImportDeclarations(ast: Module): string {
   return importDeclarations.join('\n');
 }
 
-function extractCssMethod(ast: Module, methodName: string): string {
+async function extractCssMethod(
+  ast: Module,
+  methodName: string,
+): Promise<string> {
   const matches: string[] = [];
   try {
-    visit(ast, {
-      VariableDeclaration: (node: VariableDeclaration) => {
+    for (const node of ast.body) {
+      if (node.type === 'VariableDeclaration') {
         const containsCssMethod = node.declarations.some(
           (decl) =>
             decl.init &&
@@ -447,15 +454,15 @@ function extractCssMethod(ast: Module, methodName: string): string {
         );
 
         if (containsCssMethod && node.span) {
-          const { code: extractedCode } = printSync({
+          const { code: extractedCode } = await print({
             type: 'Module',
             body: [node],
             span: { start: 0, end: 0, ctxt: 0 },
           } as Module);
           matches.push(extractedCode.trim());
         }
-      },
-    });
+      }
+    }
   } catch (e) {
     console.error(`Failed to parse code to extract css.${methodName}: ${e}`);
   }
@@ -467,7 +474,7 @@ async function extractVueAndSvelte(filePath: string) {
   const ext = path.extname(filePath);
   if (!(ext === '.svelte' || ext === '.vue')) return filePath;
 
-  const code = fs.readFileSync(filePath, 'utf8');
+  const code = await readFile(filePath, 'utf8');
 
   const lines = code.split(/\r?\n/);
   let inScript = false;
@@ -487,22 +494,21 @@ async function extractVueAndSvelte(filePath: string) {
     }
   }
   const tsCode = contentLines.join('\n');
+  const tsPath = filePath.replace(ext, '.ts');
 
   // Do nothing if script tag is empty
   if (!tsCode.trim()) {
-    const tsPath = filePath.replace(ext, '.ts');
-    fs.writeFileSync(tsPath, '', 'utf8');
-    generatedTsMap.set(filePath, tsPath);
+    generatedTsMap.set(filePath, '');
     return tsPath;
   }
 
-  const ast = parseSync(tsCode, {
+  const ast = await parse(tsCode, {
     syntax: 'typescript',
     tsx: true,
   });
 
   // extract css.props from both script (AST) and template (regex)
-  const propsFromScript = extractCssProps(ast);
+  const propsFromScript = await extractCssProps(ast);
   const propsFromTemplate = extractCssPropsFromTemplate(code);
   const propsMatches = [...new Set([...propsFromScript, ...propsFromTemplate])];
 
@@ -512,15 +518,18 @@ async function extractVueAndSvelte(filePath: string) {
     .join('\n');
 
   // extract import section
-  const importSection = extractImportDeclarations(ast);
+  const importSection = await extractImportDeclarations(ast);
 
   // extract css.create section using the new function
-  const staticVariableSection = extractStaticStringLiteralVariable(ast);
-  const cssCreateSection = extractCssMethod(ast, 'create');
-  const cssKeyframesSection = extractCssMethod(ast, 'keyframes');
-  const cssViewTransitionSection = extractCssMethod(ast, 'viewTransition');
-  const cssDefineConstsSection = extractCssMethod(ast, 'defineConsts');
-  const cssDefineTokensSection = extractCssMethod(ast, 'defineTokens');
+  const staticVariableSection = await extractStaticStringLiteralVariable(ast);
+  const cssCreateSection = await extractCssMethod(ast, 'create');
+  const cssKeyframesSection = await extractCssMethod(ast, 'keyframes');
+  const cssViewTransitionSection = await extractCssMethod(
+    ast,
+    'viewTransition',
+  );
+  const cssDefineConstsSection = await extractCssMethod(ast, 'defineConsts');
+  const cssDefineTokensSection = await extractCssMethod(ast, 'defineTokens');
 
   // finale ts code
   let finalCode = '';
@@ -537,34 +546,35 @@ async function extractVueAndSvelte(filePath: string) {
   // add calls as they are
   if (calls) finalCode += calls + '\n';
 
-  const tsPath = filePath.replace(ext, '.ts');
-  fs.writeFileSync(tsPath, finalCode, 'utf8');
-  generatedTsMap.set(filePath, tsPath);
+  generatedTsMap.set(filePath, finalCode);
   return tsPath;
 }
 
 async function extractTSFile(filePath: string) {
-  const code = fs.readFileSync(filePath, 'utf8');
-  const ast = parseSync(code, {
+  const code = await readFile(filePath, 'utf8');
+  const ast = await parse(code, {
     syntax: 'typescript',
     tsx: true,
   });
 
   // extract import section
-  const importSection = extractImportDeclarations(ast);
+  const importSection = await extractImportDeclarations(ast);
 
   // extract static string literal variables
-  const staticVariableSection = extractStaticStringLiteralVariable(ast);
+  const staticVariableSection = await extractStaticStringLiteralVariable(ast);
 
   // extract css.create section using the new function
-  const cssCreateSection = extractCssMethod(ast, 'create');
-  const cssKeyframesSection = extractCssMethod(ast, 'keyframes');
-  const cssViewTransitionSection = extractCssMethod(ast, 'viewTransition');
-  const cssDefineConstsSection = extractCssMethod(ast, 'defineConsts');
-  const cssDefineTokensSection = extractCssMethod(ast, 'defineTokens');
+  const cssCreateSection = await extractCssMethod(ast, 'create');
+  const cssKeyframesSection = await extractCssMethod(ast, 'keyframes');
+  const cssViewTransitionSection = await extractCssMethod(
+    ast,
+    'viewTransition',
+  );
+  const cssDefineConstsSection = await extractCssMethod(ast, 'defineConsts');
+  const cssDefineTokensSection = await extractCssMethod(ast, 'defineTokens');
 
   // extract css.props
-  const propsMatches = extractCssProps(ast);
+  const propsMatches = await extractCssProps(ast);
   const calls = propsMatches
     .filter(Boolean)
     .map((call) => `${call};`)
@@ -581,20 +591,16 @@ async function extractTSFile(filePath: string) {
   if (cssCreateSection) finalCode += cssCreateSection + '\n';
   finalCode += calls;
 
-  const ext = path.extname(filePath);
-  const tempFilePath = filePath.replace(ext, '-temp.ts');
-  fs.writeFileSync(tempFilePath, finalCode, 'utf8');
-  generatedTsMap.set(filePath, tempFilePath);
+  // Instead of writing to a temp file, store it in memory
+  const tempFilePath = filePath.replace(path.extname(filePath), '-temp.ts');
+  generatedTsMap.set(filePath, finalCode); // Store content instead of path
 
-  return tempFilePath;
+  return tempFilePath; // Return the virtual path
 }
 
 async function restoreAllOriginals() {
-  for (const [originalPath, genPath] of generatedTsMap.entries()) {
-    if (genPath !== originalPath && fs.existsSync(genPath)) {
-      fs.unlinkSync(genPath);
-    }
-  }
+  // The map now holds content, not paths that need deletion at this stage.
+  // Clearing the map is sufficient for cleanup.
   generatedTsMap.clear();
 }
 
