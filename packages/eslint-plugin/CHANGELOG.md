@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.25.2
+
+### Patch Changes
+
+- 770c22a: chore: version track only
+
 ## 0.25.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.25.2
+
+### Patch Changes
+
+- 00c5e08: perf: thorough asynchronization and Improved logic
+
 ## 0.25.1
 
 ### Patch Changes
