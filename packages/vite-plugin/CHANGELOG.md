@@ -1,5 +1,11 @@
 # @plumeria/vite
 
+## 0.25.3
+
+### Patch Changes
+
+- b24b1b4: chore: version track only
+
 ## 0.25.2
 
 ### Patch Changes
