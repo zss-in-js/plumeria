@@ -2,17 +2,12 @@ import path from 'path';
 import { readFile, writeFile, unlink, access, glob } from 'fs/promises';
 import postcss from 'postcss';
 import combineMediaQuery from 'postcss-combine-media-query';
-import { execute } from 'rscute/execute';
+import { executeCode } from 'rscute/execute';
 import { transform as lightningCSSTransform } from 'lightningcss';
 import { parse } from '@swc/core';
 import { findUp } from 'find-up';
 import { buildGlobal, buildProps } from '@plumeria/core/processors';
-import {
-  extractTSFile,
-  restoreAllOriginals,
-  extractVueAndSvelte,
-  generatedTsMap,
-} from './extract';
+import { extractTSFile, extractVueAndSvelte, generatedTsMap } from './extract';
 
 async function generateStats(buildTime: number, coreFilePath: string) {
   const cssCode = await readFile(coreFilePath, 'utf8');
@@ -243,26 +238,20 @@ async function main() {
 
     const projectName = path.basename(projectRoot);
 
-    const tempToOriginalMap = new Map<string, string>();
-
     const filesSupportExtensions = await Promise.all(
       files.map(async (file) => {
         const ext = path.extname(file);
-        let tempFile: string;
         if (ext === '.vue' || ext === '.svelte') {
-          tempFile = await extractVueAndSvelte(file);
+          return await extractVueAndSvelte(file);
         } else {
-          tempFile = await extractTSFile(file);
+          return await extractTSFile(file);
         }
-        tempToOriginalMap.set(tempFile, file);
-        return tempFile;
       }),
     );
 
     const styleFiles = await Promise.all(
       filesSupportExtensions.map(async (file) => {
-        const originalFile = tempToOriginalMap.get(file)!;
-        const code = generatedTsMap.get(originalFile);
+        const code = generatedTsMap.get(file);
         const isCssFile = code ? await isCSS(code, file) : false;
         return isCssFile ? file : null;
       }),
@@ -271,25 +260,23 @@ async function main() {
       .then((results) => results.sort());
 
     for (const file of styleFiles) {
-      const originalFile = tempToOriginalMap.get(file)!;
-      const code = generatedTsMap.get(originalFile);
+      const code = generatedTsMap.get(file);
 
       if (code) {
-        await writeFile(file, code, 'utf8');
-        await execute(path.resolve(file));
+        const ext = path.extname(file);
+        const tsPath =
+          ext === '.vue' || ext === '.svelte' ? file.replace(ext, '.ts') : file;
+        await executeCode(code, { filePath: tsPath });
         if (process.argv.includes('--paths')) {
-          console.log(
-            `✅: ${projectName}/${path.relative(projectRoot, originalFile)}`,
-          );
+          console.log(`✅: ${projectName}/${path.relative(projectRoot, file)}`);
         }
-        await unlink(file);
       }
     }
     await buildGlobal(coreFilePath);
     await buildProps(coreFilePath);
 
     await optimizeCSS();
-    await restoreAllOriginals();
+    generatedTsMap.clear();
 
     if (process.argv.includes('--stats')) {
       const endTime = performance.now();
