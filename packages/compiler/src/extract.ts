@@ -193,8 +193,11 @@ function expressionToString(expr: Expression): string {
   return '';
 }
 
-async function extractCssProps(ast: Module): Promise<string[]> {
+async function extractCssProps(ast: Module, code: string): Promise<string[]> {
   const propsMatches: string[] = [];
+  if (code && !code.includes('css.props')) {
+    return propsMatches;
+  }
   try {
     await visit(ast, {
       CallExpression: async (node: CallExpression) => {
@@ -437,7 +440,12 @@ async function extractImportDeclarations(ast: Module): Promise<string> {
 async function extractCssMethod(
   ast: Module,
   methodName: string,
+  code: string,
 ): Promise<string> {
+  if (!code.includes(`css.${methodName}`)) {
+    return '';
+  }
+
   const matches: string[] = [];
   try {
     for (const node of ast.body) {
@@ -508,7 +516,7 @@ async function extractVueAndSvelte(filePath: string) {
   });
 
   // extract css.props from both script (AST) and template (regex)
-  const propsFromScript = await extractCssProps(ast);
+  const propsFromScript = await extractCssProps(ast, code);
   const propsFromTemplate = extractCssPropsFromTemplate(code);
   const propsMatches = [...new Set([...propsFromScript, ...propsFromTemplate])];
 
@@ -522,14 +530,23 @@ async function extractVueAndSvelte(filePath: string) {
 
   // extract css.create section using the new function
   const staticVariableSection = await extractStaticStringLiteralVariable(ast);
-  const cssCreateSection = await extractCssMethod(ast, 'create');
-  const cssKeyframesSection = await extractCssMethod(ast, 'keyframes');
+  const cssCreateSection = await extractCssMethod(ast, 'create', code);
+  const cssKeyframesSection = await extractCssMethod(ast, 'keyframes', code);
   const cssViewTransitionSection = await extractCssMethod(
     ast,
     'viewTransition',
+    code,
   );
-  const cssDefineConstsSection = await extractCssMethod(ast, 'defineConsts');
-  const cssDefineTokensSection = await extractCssMethod(ast, 'defineTokens');
+  const cssDefineConstsSection = await extractCssMethod(
+    ast,
+    'defineConsts',
+    code,
+  );
+  const cssDefineTokensSection = await extractCssMethod(
+    ast,
+    'defineTokens',
+    code,
+  );
 
   // finale ts code
   let finalCode = '';
@@ -547,7 +564,7 @@ async function extractVueAndSvelte(filePath: string) {
   if (calls) finalCode += calls + '\n';
 
   generatedTsMap.set(filePath, finalCode);
-  return tsPath;
+  return filePath;
 }
 
 async function extractTSFile(filePath: string) {
@@ -564,17 +581,26 @@ async function extractTSFile(filePath: string) {
   const staticVariableSection = await extractStaticStringLiteralVariable(ast);
 
   // extract css.create section using the new function
-  const cssCreateSection = await extractCssMethod(ast, 'create');
-  const cssKeyframesSection = await extractCssMethod(ast, 'keyframes');
+  const cssCreateSection = await extractCssMethod(ast, 'create', code);
+  const cssKeyframesSection = await extractCssMethod(ast, 'keyframes', code);
   const cssViewTransitionSection = await extractCssMethod(
     ast,
     'viewTransition',
+    code,
   );
-  const cssDefineConstsSection = await extractCssMethod(ast, 'defineConsts');
-  const cssDefineTokensSection = await extractCssMethod(ast, 'defineTokens');
+  const cssDefineConstsSection = await extractCssMethod(
+    ast,
+    'defineConsts',
+    code,
+  );
+  const cssDefineTokensSection = await extractCssMethod(
+    ast,
+    'defineTokens',
+    code,
+  );
 
   // extract css.props
-  const propsMatches = await extractCssProps(ast);
+  const propsMatches = await extractCssProps(ast, code);
   const calls = propsMatches
     .filter(Boolean)
     .map((call) => `${call};`)
@@ -591,35 +617,22 @@ async function extractTSFile(filePath: string) {
   if (cssCreateSection) finalCode += cssCreateSection + '\n';
   finalCode += calls;
 
-  // Instead of writing to a temp file, store it in memory
-  const tempFilePath = filePath.replace(path.extname(filePath), '-temp.ts');
   generatedTsMap.set(filePath, finalCode); // Store content instead of path
 
-  return tempFilePath; // Return the virtual path
-}
-
-async function restoreAllOriginals() {
-  // The map now holds content, not paths that need deletion at this stage.
-  // Clearing the map is sufficient for cleanup.
-  generatedTsMap.clear();
+  return filePath; // Return the original path
 }
 
 // Process-wide error handling (for recovery)
 process.on('uncaughtException', async (error) => {
   console.error('Uncaught Exception:', error);
-  await restoreAllOriginals();
+  generatedTsMap.clear();
   process.exit(1);
 });
 
 process.on('unhandledRejection', async (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  await restoreAllOriginals();
+  generatedTsMap.clear();
   process.exit(1);
 });
 
-export {
-  extractTSFile,
-  restoreAllOriginals,
-  extractVueAndSvelte,
-  generatedTsMap,
-};
+export { extractTSFile, extractVueAndSvelte, generatedTsMap };
