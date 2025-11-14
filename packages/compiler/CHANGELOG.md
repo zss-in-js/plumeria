@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.25.3
+
+### Patch Changes
+
+- ddfbdab: perf: improvements IO process all run in-memory
+
 ## 0.25.2
 
 ### Patch Changes
