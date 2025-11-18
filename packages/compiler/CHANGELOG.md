@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.25.4
+
+### Patch Changes
+
+- 3fda5bd: perf: rscute@latest tuning
+
 ## 0.25.3
 
 ### Patch Changes

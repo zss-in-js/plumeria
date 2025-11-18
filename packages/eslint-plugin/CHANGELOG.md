@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.25.4
+
+### Patch Changes
+
+- 8b59dc5: chore: version track only
+
 ## 0.25.3
 
 ### Patch Changes
