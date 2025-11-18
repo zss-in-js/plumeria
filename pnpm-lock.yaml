@@ -453,8 +453,8 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0(postcss@8.5.6)
       rscute:
-        specifier: ^1.1.1
-        version: 1.1.1(@swc/helpers@0.5.17)
+        specifier: ^1.1.2
+        version: 1.1.2(@swc/helpers@0.5.17)
 
   packages/core:
     dependencies:
@@ -6729,8 +6729,8 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  rscute@1.1.1:
-    resolution: {integrity: sha512-EFC0PgQBKlkstGnl1Dj4fYR/Cs+5ymEbwQFo2R0rokviIWGQyzf9zFi5vu5yrvf/C4F30N0qoM/DKwPZojTHow==}
+  rscute@1.1.2:
+    resolution: {integrity: sha512-SO9/sQTh162T42MGmnFSFVM40/XxEy7JAD98qAEvH6su+DfPfj4chp9iYGjqNN7nMkedzYWtkkpcZlavq348gQ==}
     hasBin: true
 
   run-parallel@1.2.0:
@@ -15579,7 +15579,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.53.1
       fsevents: 2.3.3
 
-  rscute@1.1.1(@swc/helpers@0.5.17):
+  rscute@1.1.2(@swc/helpers@0.5.17):
     dependencies:
       '@swc/core': 1.15.1(@swc/helpers@0.5.17)
     transitivePeerDependencies:
