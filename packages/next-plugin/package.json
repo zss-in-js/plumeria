@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/next-plugin",
-  "version": "0.25.4",
+  "version": "0.25.5",
   "description": "Plumeria Next.js plugin",
   "repository": {
     "type": "git",
