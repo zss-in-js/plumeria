@@ -1,8 +1,9 @@
 import path from 'path';
-import { readFile, writeFile, unlink, access, glob } from 'fs/promises';
+import { readFile, writeFile, unlink, access } from 'fs/promises';
 import postcss from 'postcss';
 import combineMediaQuery from 'postcss-combine-media-query';
 import { executeCode } from 'rscute/execute';
+import { globSync } from '@rust-gear/glob';
 import { transform as lightningCSSTransform } from 'lightningcss';
 import { parse } from '@swc/core';
 import { findUp } from 'find-up';
@@ -223,8 +224,7 @@ async function main() {
 
     const scanRoot = process.cwd();
 
-    const files: string[] = [];
-    for await (const entry of glob('**/*.{js,jsx,ts,tsx,vue,svelte}', {
+    const files: string[] = globSync('**/*.{js,jsx,ts,tsx,vue,svelte}', {
       cwd: scanRoot,
       exclude: [
         '**/node_modules/**',
@@ -232,9 +232,7 @@ async function main() {
         '**/build/**',
         '**/.next/**',
       ],
-    })) {
-      files.push(entry);
-    }
+    });
 
     const projectName = path.basename(projectRoot);
 
