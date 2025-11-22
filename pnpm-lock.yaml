@@ -437,6 +437,9 @@ importers:
 
   packages/compiler:
     dependencies:
+      '@rust-gear/glob':
+        specifier: ^0.2.4
+        version: 0.2.4
       '@swc/core':
         specifier: 1.15.2
         version: 1.15.2(@swc/helpers@0.5.17)
@@ -2388,6 +2391,64 @@ packages:
 
   '@rushstack/eslint-patch@1.14.1':
     resolution: {integrity: sha512-jGTk8UD/RdjsNZW8qq10r0RBvxL8OWtoT+kImlzPDFilmozzM+9QmIJsmze9UiSBrFU45ZxhTYBypn9q9z/VfQ==}
+
+  '@rust-gear/glob-darwin-arm64@0.2.4':
+    resolution: {integrity: sha512-3qoziKGKITJnVSiTEzzHn4PHtHW17dcatJ3o36C5dE3dYmAzOe/f/PS8o4Ee5aov2FWNE55aFvUZLqE5ubF5rA==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@rust-gear/glob-darwin-x64@0.2.4':
+    resolution: {integrity: sha512-ZNOqBkcMOwWQENh/EQfJTiwCKDQv3Gy9bsMydDZuhlWk7PzEMpLKES0CvQxyxTlPQ1cfZBNmJGjy8EBv5htNQg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@rust-gear/glob-linux-arm64-gnu@0.2.4':
+    resolution: {integrity: sha512-GXVMWH4kcTpRdHsjiDtYSlFEJRsdBrItdp9o5Wqb+oGETqd72K/GGJKa5OuKeNYOjMlGDl1f4OtNF67bhckj6w==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@rust-gear/glob-linux-arm64-musl@0.2.4':
+    resolution: {integrity: sha512-QpzgWG1056Cn0rbICeouk183EftLQuqtdFAjhWWorvVISnmU3R3Tw4exdzcyIDmcG+Ya3r4kYElQ95nE5m5WWg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@rust-gear/glob-linux-x64-gnu@0.2.4':
+    resolution: {integrity: sha512-+Z5zs4l3g4D8Ux5fQ/LxsS1doOoYiA48n9P0uf3wprafj9UiVc8szZKjQQUIvzTsqMPY37IWS2pB2G0dE+NFcA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@rust-gear/glob-linux-x64-musl@0.2.4':
+    resolution: {integrity: sha512-WjN+7CGrnaNtBF1siIlLYnqDa4Oi/xuTwTlEMAC7A42zIG0QHgauwCwHaTTszBHV4xW5fxvvgs7rrtVtCfq6GA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@rust-gear/glob-win32-arm64-msvc@0.2.4':
+    resolution: {integrity: sha512-8sQvXtM9g369BhOOk9g+/a2j3tqEciOpTKjmWEsXrr+Q+VeXplWFo4sPZTRr0DA5bf7FwqiOVrWcwZNaA/LrKA==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@rust-gear/glob-win32-ia32-msvc@0.2.4':
+    resolution: {integrity: sha512-qfFqNaqHbPW/v+jNMoZF8JMsCj716LSXLkI7v6+aUIaNrB1OLnGwrwc/dfaDn8jYbTcEXHHTROT4fuR0Pl1M1g==}
+    engines: {node: '>= 10'}
+    cpu: [ia32]
+    os: [win32]
+
+  '@rust-gear/glob-win32-x64-msvc@0.2.4':
+    resolution: {integrity: sha512-FNNNqBg0aWMftovRGAmvFn3WgffimFXiYyyluvO6S0T1s8XrHcwuFzbYMCg8wOktHhkbQuWvWLv9A75tWjUPCw==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@rust-gear/glob@0.2.4':
+    resolution: {integrity: sha512-dvuei8ZkwjnLF0kLPhnvK7cm5UI5jHqd+zWCjRdksZpRnCoEz2jKNYDzEEQNzZ7nIH1KGbFm51rCXR6qtaZR6w==}
+    engines: {node: '>=10'}
 
   '@shikijs/core@1.29.2':
     resolution: {integrity: sha512-vju0lY9r27jJfOY4Z7+Rt/nIOjzJpZ3y+nYpqtUZInVoXQ/TJZcfGnNOGnKjFdVZb8qexiCuSlZRKcGfhhTTZQ==}
@@ -10016,6 +10077,45 @@ snapshots:
 
   '@rushstack/eslint-patch@1.14.1': {}
 
+  '@rust-gear/glob-darwin-arm64@0.2.4':
+    optional: true
+
+  '@rust-gear/glob-darwin-x64@0.2.4':
+    optional: true
+
+  '@rust-gear/glob-linux-arm64-gnu@0.2.4':
+    optional: true
+
+  '@rust-gear/glob-linux-arm64-musl@0.2.4':
+    optional: true
+
+  '@rust-gear/glob-linux-x64-gnu@0.2.4':
+    optional: true
+
+  '@rust-gear/glob-linux-x64-musl@0.2.4':
+    optional: true
+
+  '@rust-gear/glob-win32-arm64-msvc@0.2.4':
+    optional: true
+
+  '@rust-gear/glob-win32-ia32-msvc@0.2.4':
+    optional: true
+
+  '@rust-gear/glob-win32-x64-msvc@0.2.4':
+    optional: true
+
+  '@rust-gear/glob@0.2.4':
+    optionalDependencies:
+      '@rust-gear/glob-darwin-arm64': 0.2.4
+      '@rust-gear/glob-darwin-x64': 0.2.4
+      '@rust-gear/glob-linux-arm64-gnu': 0.2.4
+      '@rust-gear/glob-linux-arm64-musl': 0.2.4
+      '@rust-gear/glob-linux-x64-gnu': 0.2.4
+      '@rust-gear/glob-linux-x64-musl': 0.2.4
+      '@rust-gear/glob-win32-arm64-msvc': 0.2.4
+      '@rust-gear/glob-win32-ia32-msvc': 0.2.4
+      '@rust-gear/glob-win32-x64-msvc': 0.2.4
+
   '@shikijs/core@1.29.2':
     dependencies:
       '@shikijs/engine-javascript': 1.29.2
@@ -12182,7 +12282,7 @@ snapshots:
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-react-hooks: 5.2.0(eslint@9.39.1(jiti@2.6.1))
@@ -12202,7 +12302,7 @@ snapshots:
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-react-hooks: 5.2.0(eslint@9.39.1(jiti@2.6.1))
@@ -12232,7 +12332,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -12247,7 +12347,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.46.3(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
