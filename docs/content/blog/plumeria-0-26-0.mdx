@@ -1,0 +1,49 @@
+---
+title: 'Plumeria 0.26.0'
+description: 'Compiler changed and improvement. (30 s read)'
+date: '2025/11/23'
+---
+
+## Improvement
+The compiler `rscute` has been updated to v1.0.4.  
+Supports fully in-memory compiling (By `executeCode` of `rscute`).  
+In `React(TS)` syntax, Compiler extract has been replaced with AST extraction.
+
+## Changed(0.26.0)
+The compiler's `glob` has been changed from node.js's stable `glob` to the latest `@rust-gear/glob`.
+
+### [Compiler] only
+
+## 0.26.0(Currently)
+### Minor Changes
+- feat: use dependencies @rust-gear/glob
+
+## 0.25.5
+
+### Patch Changes
+
+- feat: dependencies update
+
+## 0.25.4
+
+### Patch Changes
+
+- perf: rscute@latest tuning
+
+## 0.25.3
+
+### Patch Changes
+
+- perf: improvements IO process all run in-memory
+
+## 0.25.2
+
+### Patch Changes
+
+- perf: thorough asynchronization and Improved logic
+
+## 0.25.1
+
+### Patch Changes
+
+- refactor: improvements replace regular expressions with AST parsing, support for complex conditional expressions
