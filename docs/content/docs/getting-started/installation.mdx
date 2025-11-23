@@ -103,14 +103,6 @@ The  will include compilation type-check.
 import "@plumeria/core/stylesheet.css";
 ```
 
-If you have global.css, make sure to load it before @plumeria's css.  
-This will give global.css higher priority.
-
-```ts
-import './global.css';
-import "@plumeria/core/stylesheet.css";
-```
-
 </Step>
 <Step>
 ## Integration
@@ -147,6 +139,19 @@ const nextConfig: NextConfig = {
 };
 
 export default withPlumeria(nextConfig);
+```
+
+If you are using next@16 or higher, continue using `next dev --webpack`.
+```ts
+const nextConfig: NextConfig = {
+  turbopack: {}
+};
+
+export default withPlumeria(nextConfig);
+```
+
+```json
+"dev": "css & next dev --webpack",
 ```
 ---
 
