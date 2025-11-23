@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.26.0
+
+### Minor Changes
+
+- 1f97cd3: feat: use dependencies @rust-gear/glob
+
 ## 0.25.5
 
 ### Patch Changes
