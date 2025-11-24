@@ -28,25 +28,17 @@ pnpm i --save-dev @plumeria/eslint-plugin
 
 ## Overview
 ```ts title="TypeScript"
-import { ESLint, Linter, Rule } from 'eslint';
-
-declare const plugin: ESLint.Plugin & {
-  rules: {
-    'no-destructure': Rule.RuleModule;
-    'no-inner-call': Rule.RuleModule;
-    'no-unused-keys': Rule.RuleModule;
-    'sort-properties': Rule.RuleModule;
-    'validate-values': Rule.RuleModule;
-  };
-  configs: {
-    recommended: Linter.LegacyConfig;
-  };
-  flatConfigs: {
-    recommended: Linter.RulesRecord;
-  };
+import type { ESLint, Linter, Rule } from 'eslint';
+type PlumeriaPlugin = ESLint.Plugin & {
+    rules: Record<string, Rule.RuleModule>;
+    configs: {
+        recommended: Linter.LegacyConfig;
+    };
+    flatConfigs: {
+        recommended: Linter.Config;
+    };
 };
-
-export = plugin;
+export declare const plumeria: PlumeriaPlugin;
 ```
 
 ## API
