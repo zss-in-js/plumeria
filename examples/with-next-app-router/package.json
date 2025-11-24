@@ -3,14 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "css && next dev",
+    "dev": "css && next dev --webpack",
     "build": "css --type-check && next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@plumeria/core": "workspace:^",
-    "next": "^15.5.2",
+    "next": "^16.0.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
