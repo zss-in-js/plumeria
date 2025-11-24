@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "css && next dev",
+    "dev": "css && next dev --webpack",
     "build": "css && next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "^15.2.4",
+    "next": "^16.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
