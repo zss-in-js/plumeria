@@ -33,6 +33,7 @@ const securityHeaders = [
 
 const config: NextConfig = withPlumeria({
   reactStrictMode: true,
+  turbopack: {},
   async headers() {
     return [
       {
