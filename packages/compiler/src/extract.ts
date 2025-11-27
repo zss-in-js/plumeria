@@ -193,7 +193,54 @@ function expressionToString(expr: Expression): string {
   return '';
 }
 
-async function extractCssProps(ast: Module, code: string): Promise<string[]> {
+async function extractCreatedStyleKeys(
+  ast: Module,
+): Promise<Map<string, string[]>> {
+  const createdStylesMap = new Map<string, string[]>();
+
+  await visit(ast, {
+    VariableDeclarator: (node: any) => {
+      if (
+        node.id.type === 'Identifier' &&
+        node.init &&
+        node.init.type === 'CallExpression' &&
+        node.init.callee.type === 'MemberExpression' &&
+        node.init.callee.object.type === 'Identifier' &&
+        node.init.callee.object.value === 'css' &&
+        node.init.callee.property.type === 'Identifier' &&
+        node.init.callee.property.value === 'create' &&
+        node.init.arguments.length > 0
+      ) {
+        const variableName = node.id.value;
+        const createArg = node.init.arguments[0].expression;
+        if (createArg && createArg.type === 'ObjectExpression') {
+          const keys: string[] = [];
+          for (const prop of createArg.properties) {
+            if (
+              prop.type === 'KeyValueProperty' &&
+              prop.key.type === 'Identifier'
+            ) {
+              keys.push(prop.key.value);
+            } else if (prop.type === 'Identifier') {
+              keys.push(prop.value);
+            }
+          }
+          if (keys.length > 0) {
+            createdStylesMap.set(variableName, keys);
+          }
+        }
+      }
+    },
+  });
+
+  return createdStylesMap;
+}
+
+async function extractCssProps(
+  ast: Module,
+  code: string,
+  createdStylesMap: Map<string, string[]>,
+): Promise<string[]> {
   const propsMatches: string[] = [];
   if (code && !code.includes('css.props')) {
     return propsMatches;
@@ -218,10 +265,24 @@ async function extractCssProps(ast: Module, code: string): Promise<string[]> {
                 (arg.expression.type === 'BinaryExpression' &&
                   arg.expression.operator === '&&')
               ) {
-                const styles = await extractStyleObjectsFromExpression(
+                const styles = extractStyleObjectsFromExpression(
                   arg.expression,
                 );
                 conditionalStyleObjects.push(...styles);
+              } else if (
+                arg.expression.type === 'MemberExpression' &&
+                arg.expression.property.type === 'Computed' &&
+                arg.expression.object.type === 'Identifier'
+              ) {
+                const styleVarName = arg.expression.object.value;
+                const styleKeys = createdStylesMap.get(styleVarName);
+                if (styleKeys) {
+                  propsMatches.push(
+                    ...styleKeys.map(
+                      (key) => `css.props(${styleVarName}.${key})`,
+                    ),
+                  );
+                }
               } else {
                 const argStr = expressionToString(arg.expression);
                 if (argStr) {
@@ -252,7 +313,7 @@ async function extractCssProps(ast: Module, code: string): Promise<string[]> {
     console.error(`Failed to parse code to extract css.props: ${e}`);
   }
 
-  return propsMatches;
+  return [...new Set(propsMatches)];
 }
 
 function extractStyleObjectsFromExpression(expression: Expression): string[] {
@@ -515,8 +576,10 @@ async function extractVueAndSvelte(filePath: string) {
     tsx: true,
   });
 
+  const createdStylesMap = await extractCreatedStyleKeys(ast);
+
   // extract css.props from both script (AST) and template (regex)
-  const propsFromScript = await extractCssProps(ast, code);
+  const propsFromScript = await extractCssProps(ast, code, createdStylesMap);
   const propsFromTemplate = extractCssPropsFromTemplate(code);
   const propsMatches = [...new Set([...propsFromScript, ...propsFromTemplate])];
 
@@ -574,6 +637,8 @@ async function extractTSFile(filePath: string) {
     tsx: true,
   });
 
+  const createdStylesMap = await extractCreatedStyleKeys(ast);
+
   // extract import section
   const importSection = await extractImportDeclarations(ast);
 
@@ -600,7 +665,7 @@ async function extractTSFile(filePath: string) {
   );
 
   // extract css.props
-  const propsMatches = await extractCssProps(ast, code);
+  const propsMatches = await extractCssProps(ast, code, createdStylesMap);
   const calls = propsMatches
     .filter(Boolean)
     .map((call) => `${call};`)
@@ -618,7 +683,6 @@ async function extractTSFile(filePath: string) {
   finalCode += calls;
 
   generatedTsMap.set(filePath, finalCode); // Store content instead of path
-
   return filePath; // Return the original path
 }
 
