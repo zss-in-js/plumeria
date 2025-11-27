@@ -1,0 +1,41 @@
+---
+title: 'Variant'
+description: 'Learn more about Variant syntax'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+Using variants, you can switch between predefined style keys for a component via properties.
+In the example above, by passing `"white" | "pink" | "green"` to the color property, the corresponding styles will be applied to the `Button`.
+
+
+## Example
+The type of the property must be returned by the `create` method using `keyof` `typeof`.  
+eg: `color: keyof typeof styles`.
+```tsx
+import { css } from '@plumeria/core';
+
+const styles = css.create({
+  white: {
+    color: 'white',
+  },
+  pink: {
+    color: 'pink',
+  },
+  green: {
+    color: 'green',
+  },
+});
+
+export const Button = ({ color }: { color: keyof typeof styles }) => {
+  return <button className={css.props(styles[color])}>Button</button>;
+};
+
+<Button color="white" />;
+<Button color="pink" />;
+<Button color="green" />;
+```
+
+<Cards>
+  <Card title="See more about API create" href="/docs/api-reference/create" />
+</Cards>
