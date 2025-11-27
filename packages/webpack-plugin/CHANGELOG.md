@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.27.0
+
+### Minor Changes
+
+- f367fd5: chore version bump only
+
 ## 0.26.0
 
 ### Minor Changes
