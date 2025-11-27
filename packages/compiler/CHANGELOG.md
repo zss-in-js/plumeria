@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 0.27.0
+
+### Minor Changes
+
+- f367fd5: feat: variant syntax
+
 ## 0.26.0
 
 ### Minor Changes
