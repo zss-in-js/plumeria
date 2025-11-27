@@ -10,6 +10,15 @@ function getFilename(context: Rule.RuleContext): string {
   return context.getFilename ? context.getFilename() : context.filename;
 }
 
+function getRootObject(node: any): any {
+  if (node.type === 'Identifier') {
+    return node;
+  }
+  if (node.type === 'MemberExpression') {
+    return getRootObject(node.object);
+  }
+}
+
 export const noUnusedKeys: Rule.RuleModule = {
   meta: {
     type: 'problem',
@@ -31,6 +40,7 @@ export const noUnusedKeys: Rule.RuleModule = {
     }
     const definedKeys = new Map();
     const referencedKeys = new Set();
+    const dynamicallyAccessedVars = new Set(); // dynamic bracket access
 
     return {
       CallExpression(node) {
@@ -49,6 +59,7 @@ export const noUnusedKeys: Rule.RuleModule = {
             'name' in node.parent.id
           ) {
             const variableName = node.parent.id.name;
+
             const keyMap = new Map();
 
             arg.properties.forEach((prop) => {
@@ -66,15 +77,29 @@ export const noUnusedKeys: Rule.RuleModule = {
           }
         }
       },
+
       MemberExpression(node) {
-        if (
-          node.object.type === 'Identifier' &&
-          node.property.type === 'Identifier'
-        ) {
-          const normalKey = `${node.object.name}.${node.property.name}`;
-          referencedKeys.add(normalKey);
+        if (node.computed && node.property.type === 'Identifier') {
+          // Detect dynamic access - handle nested MemberExpressions
+          const rootObject = getRootObject(node.object);
+          if (rootObject && rootObject.type === 'Identifier') {
+            const variableName = rootObject.name;
+            dynamicallyAccessedVars.add(variableName);
+            definedKeys.delete(variableName);
+          }
+          return;
+        }
+
+        if (node.property.type === 'Identifier') {
+          // Handle nested MemberExpressions
+          const rootObject = getRootObject(node.object);
+          if (rootObject && rootObject.type === 'Identifier') {
+            const normalKey = `${rootObject.name}.${node.property.name}`;
+            referencedKeys.add(normalKey);
+          }
         }
       },
+
       'Program:exit'() {
         definedKeys.forEach((keyMap, variableName) => {
           keyMap.forEach((keyNode: any, keyName: string) => {
