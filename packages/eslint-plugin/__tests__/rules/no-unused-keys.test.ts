@@ -50,6 +50,25 @@ ruleTester.run('no-unused-keys', noUnusedKeys as unknown as JSRuleDefinition, {
       },
       filename: 'test.js',
     },
+    {
+      code: `
+        const styles = css.create({ key1: {}, key2: {} });
+        const key = 'key1';
+        const x = styles[key];
+      `,
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
+        const styles = css.create({ primary: { color: 'gray' }});
+        styles.primary.color;
+      `,
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
   ],
   invalid: [
     {
@@ -57,6 +76,68 @@ ruleTester.run('no-unused-keys', noUnusedKeys as unknown as JSRuleDefinition, {
       errors: [
         {
           message: "The key 'key' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
+        const styles = css.create({ unused1: {}, unused2: {} });
+      `,
+      errors: [
+        {
+          message:
+            "The key 'unused1' is defined but never referenced anywhere.",
+        },
+        {
+          message:
+            "The key 'unused2' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
+        const styles = css.create({ used: {}, unused: {} });
+        const x = styles.used;
+      `,
+      errors: [
+        {
+          message: "The key 'unused' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
+        const styles1 = css.create({ unused: {} });
+        const key = 'prop';
+        styles1[key];
+        const styles2 = css.create({ unused: {} });
+      `,
+      errors: [
+        {
+          message: "The key 'unused' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
+        const styles = css.create({ used: { fontSize: 24 }, unused: {} });
+        styles.used.fontSize;
+      `,
+      errors: [
+        {
+          message: "The key 'unused' is defined but never referenced anywhere.",
         },
       ],
       settings: {
