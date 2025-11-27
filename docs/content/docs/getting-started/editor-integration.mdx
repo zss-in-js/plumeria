@@ -79,15 +79,15 @@ yarn add -D @plumeria/eslint-plugin
 </Tabs>
 </Step>
 <Step>
-## className snippets
+## className snippet for css macro
 
-Creates a shortcut for object expansion of className.
+Creates a shortcut for the css.props() object expansion in className.
 ```json
 {
   "React className": {
-    "prefix": "c",
-    "body": "className={$1}",
-    "description": "React className with curly braces",
+    "prefix": "css",
+    "body": "className={css.props($1)}",
+    "description": "React className with css.props()",
   }
 }
 ```
