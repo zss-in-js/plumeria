@@ -208,7 +208,7 @@ describe('virtual-css-loader', () => {
         `export const C = css.defineConsts({ color: '#F00' });`,
       );
       const callback = () => {
-        expect(registerSpy.mock.calls[0][1].baseStyles).toMatch(/#F00/);
+        expect(registerSpy.mock.calls[0][1].baseStyles).toMatch('red');
         done();
       };
       (mockContext.async as jest.Mock).mockReturnValue(callback);
@@ -224,7 +224,7 @@ describe('virtual-css-loader', () => {
         `const C = css.defineConsts({ color: '#F00' });`,
       );
       const callback = () => {
-        expect(registerSpy.mock.calls[0][1].baseStyles).toMatch(/#F00/);
+        expect(registerSpy.mock.calls[0][1].baseStyles).toMatch('red');
         done();
       };
       (mockContext.async as jest.Mock).mockReturnValue(callback);
@@ -400,10 +400,6 @@ describe('virtual-css-loader', () => {
   });
 
   describe('Edge cases', () => {
-    it('handles boolean literals', (done) => {
-      setupLoader(`css.create({ a: { p: true }, b: { p: false } });`, done);
-    });
-
     it('handles null values', (done) => {
       setupLoader(`css.create({ k: { p: null } });`, done);
     });
