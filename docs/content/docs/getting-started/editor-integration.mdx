@@ -1,9 +1,11 @@
 ---
 title: 'Editor integration'
-description: 'Quickly set up a eslint and snippets'
+description: 'Quickly set up ESLint and editor snippets'
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import { Step, Steps } from "fumadocs-ui/components/steps";
+
+<br/>
 
 <Steps>
 <Step>
@@ -100,11 +102,18 @@ yarn add -D @plumeria/eslint-plugin
 </Tab>
 </Tabs>
 </Step>
-</Steps>
-
-<Callout title="It is Good know">
+<Step>
+<Callout title="It is good know navigation">
   You can jump to definitions from styles even if they are not written in JSX `command or Alt + click`.
 </Callout>
+</Step>
+</Steps>
+
+## What you get
+
+* **Editor snippets**: Type `css` + Tab to instantly expand `className={css.props()}` 
+* **Auto-linting**: Catch syntax errors and auto-sort styles with ESLint
+* **Go-to-definition**: Jump directly from `css` prop to style definitions across your codebase
 
 <Cards>
   <Card title="See more about @plumeria/eslint-plugin" href="/docs/integration/eslint" />
