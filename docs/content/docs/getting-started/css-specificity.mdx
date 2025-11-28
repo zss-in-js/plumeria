@@ -2,10 +2,14 @@
 title: 'CSS Specificity'
 description: 'Learn more about Plumeria CSS Specificity'
 ---
+import { Step, Steps } from "fumadocs-ui/components/steps";
 
-## `:not(#\#)` for priority
+<Steps>
+<Step>
+## For ordered priority
 
-Plumeria adds `:not(#\#)` to longhand property atomic class, increasing priority.
+Plumeria adds `:not(#\#)` to longhand property atomic class, increasing priority.  
+To simplify things, we'll explain `hash(xxxxxxxx)` as `xatom`.
 
 ### Override only that value
 
@@ -25,29 +29,30 @@ css.props(styles.custom, styles.base);
 
 Normally, if a shorthand is below a longhand, it will override the all longhand, but if you raise its priority, the following CSS will return the same result:
 ```css
-atom1 {
+xatom1 {
   padding: 20px
 }
 
-atom2:not(#\#) {
+xatom2:not(#\#) {
   padding-top: 10px;
 }
 ```
 And this too
 
 ```css
-atom2:not(#\#) {
+xatom2:not(#\#) {
   padding-top: 10px;
 }
 
-atom1 {
+xatom1 {
   padding: 20px
 }
 ```
 
 This slightly increases bundle size, but is necessary to maintain for strict behavior.  
+</Step>
 
-
+<Step>
 ### Override all
 Also, if a shorthand is written after a longhand in the same key, the previous longhand will be filtered and overridden.
 
@@ -61,7 +66,7 @@ const styles = css.create({
 ```
 As follows:
 ```css
-atom1 {
+xatom {
   padding: 10px
 }
 ```
@@ -70,9 +75,9 @@ atom1 {
 These behaviors are complex even in normal CSS, so ESLint is effective for enforcing consistent behavior through rules.
  When the ESLint rule is enabled, in the key longhand properties will always after shorthand properties.
 </Callout>
+</Step>
 
-
-
+<Step>
 ## `css.props()` merge styles
 
 Also, when `css.props()` has duplicate properties on its arguments, the style properties on the right always take precedence and duplicate properties on the left are filtered. In that case no filtered hash is generated.
@@ -89,14 +94,16 @@ css.props(styles.custom, styles.base); // 10px
 ```
 Generated as follows:
 ```css
-atom1 {
+xatom {
   font-size: 16px
 }
 ```
 
 Or:
 ```css
-atom2 {
+xatom {
   font-size: 10px
 }
 ```
+</Step>
+</Steps>
