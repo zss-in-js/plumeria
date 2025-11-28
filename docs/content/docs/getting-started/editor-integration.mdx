@@ -7,6 +7,28 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 <Steps>
 <Step>
+## className snippet for css macro
+In VScode create a shortcut for the css.props() object expansion in className.  
+`shift + command + p >`  
+`select >` Snippets: Configure Snippets  
+`select >` typescriptreact.json (TypeScript JSX) or javascriptreact.json (JavaScript JSX)  
+
+```json
+{
+  "React className": {
+    "prefix": "css",
+    "body": "className={css.props($1)}",
+    "description": "React className with css.props()",
+  }
+}
+```
+
+### Macro Usage
+```jsx
+<div css /> -> Enter -> <div className={css.props(|)} />
+```
+</Step>
+<Step>
 ## ESLint
 
 It is the plumeria [Linter `@plumeria/eslint-plugin` package](https://www.npmjs.com/package/@plumeria/eslint-plugin)
@@ -77,20 +99,6 @@ yarn add -D @plumeria/eslint-plugin
     ```
 </Tab>
 </Tabs>
-</Step>
-<Step>
-## className snippet for css macro
-
-Creates a shortcut for the css.props() object expansion in className.
-```json
-{
-  "React className": {
-    "prefix": "css",
-    "body": "className={css.props($1)}",
-    "description": "React className with css.props()",
-  }
-}
-```
 </Step>
 </Steps>
 
