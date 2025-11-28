@@ -3,6 +3,8 @@ title: 'Plumeria 0.27.0'
 description: 'Plumeria 0.27.0 introduces new features variant bracket syntax and improved atoms. (1 min read)'
 date: '2025/11/28'
 ---
+import Link from 'next/link';
+
 
 ## Features
 New Variant syntax added.
@@ -21,3 +23,6 @@ const Button = ({ color }: { color: keyof typeof styles }) => {
 zss-engine improvement: 
 `color: white` and `color: #fff` were generating separate `atoms`, but now they are just one `color name`.
 
+## Others
+- Added Variant to the documentation.
+- Snippets <Link href="/docs/getting-started/editor-integration">macro</Link> updated.
