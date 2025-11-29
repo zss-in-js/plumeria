@@ -20,7 +20,7 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
 ): string {
   const baseSheets: string[] = [];
   const querySheets: string[] = [];
-  const processedHashes = new Set<string>(); // For duplicate check
+  const processedHashes = new Set<string>();
 
   Object.entries(object).forEach(([key, styleObj]) => {
     const flat: CreateStyle = {};
@@ -35,33 +35,49 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
       sheet: string;
     }> = [];
 
-    // Processing flat atoms and atoms in media
+    // Processing flat atoms and atoms in media - css.createと同じロジックに修正
     Object.entries(finalFlat).forEach(([prop, value]) => {
       const hashes = new Set<string>();
       const sheets = new Set<string>();
 
       processAtomicProps({ [prop]: value }, hashes, sheets);
 
-      // Organize media and containers by sheet
-      const propBaseSheets: string[] = [];
-      const propQuerySheets: string[] = [];
+      const hashArray = [...hashes];
+      const sheetArray = [...sheets];
 
-      for (const sheet of sheets) {
+      const baseSheetParts: string[] = [];
+      const baseHashParts: string[] = [];
+      const querySheetParts: string[] = [];
+      const queryHashParts: string[] = [];
+
+      for (let i = 0; i < sheetArray.length; i++) {
+        const sheet = sheetArray[i];
+        const hash = hashArray[i];
         if (sheet.includes('@media') || sheet.includes('@container')) {
-          propQuerySheets.push(sheet);
+          querySheetParts.push(sheet);
+          queryHashParts.push(hash);
         } else {
-          propBaseSheets.push(sheet);
+          baseSheetParts.push(sheet);
+          baseHashParts.push(hash);
         }
       }
 
-      const hash = [...hashes].join(' ');
-      const sheet = [...propBaseSheets, ...propQuerySheets].join('');
+      // ベーススタイルとクエリスタイルを別々のレコードとして追加（css.createと同じ）
+      if (baseSheetParts.length > 0) {
+        records.push({
+          key: prop,
+          hash: baseHashParts.join(' '),
+          sheet: baseSheetParts.join(''),
+        });
+      }
 
-      records.push({
-        key: prop,
-        hash,
-        sheet,
-      });
+      if (querySheetParts.length > 0) {
+        records.push({
+          key: prop + '__queries__',
+          hash: queryHashParts.join(' '),
+          sheet: querySheetParts.join(''),
+        });
+      }
     });
 
     // Handling nested objects such as pseudos to atom by key is atRule + prop
@@ -71,7 +87,7 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
       const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
       const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
       Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
-        Object.entries(nestedObj).forEach(([prop]) => {
+        Object.keys(nestedObj).forEach((prop) => {
           records.push({
             key: atRule + prop,
             hash: nonFlatHash,
@@ -81,7 +97,7 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
       });
     }
 
-    // Collect sheets from records and avoid duplicates
+    // レコードからシートを収集（重複排除）
     records.forEach(({ hash, sheet }) => {
       if (!processedHashes.has(hash)) {
         processedHashes.add(hash);
@@ -102,7 +118,6 @@ function createCSS<T extends Record<string, CSSProperties>>(
   object: CreateStyleType<T>,
 ): string {
   const compiledCSS = compileToSingleCSS(object);
-
   return compiledCSS;
 }
 
