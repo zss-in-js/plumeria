@@ -28,6 +28,7 @@
     "rscute": "^1.1.4"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   }
 }
