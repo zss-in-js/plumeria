@@ -112,11 +112,9 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
   });
 
   const baseLayer =
-    baseSheets.length > 0 ? `@layer base {\n${baseSheets.join('\n')}}` : '';
+    baseSheets.length > 0 ? `@layer base {\n${baseSheets.join('')}}` : '';
   const queryLayer =
-    querySheets.length > 0
-      ? `@layer queries {\n${querySheets.join('\n')}}`
-      : '';
+    querySheets.length > 0 ? `@layer queries {\n${querySheets.join('')}}` : '';
 
   return [baseLayer, queryLayer].join('\n');
 }
