@@ -60,12 +60,16 @@ export class PlumeriaPlugin {
       return '';
     }
 
+    const sortedStyles = allStyles.sort(
+      (a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0),
+    );
+
     const keyframeStylesSet = new Set<string>();
     const viewTransitionStylesSet = new Set<string>();
     const tokenStylesSet = new Set<string>();
     const baseStylesSet = new Set<string>();
 
-    for (const s of allStyles) {
+    for (const s of sortedStyles) {
       if (s.keyframeStyles?.trim().length > 0)
         keyframeStylesSet.add(s.keyframeStyles);
       if (s.viewTransitionStyles?.trim().length > 0)
