@@ -1,5 +1,5 @@
 /* eslint-disable @plumeria/no-inner-call */
-import { css, rx } from '../src/css';
+import { css, x } from '../src/css';
 
 describe('css static methods', () => {
   new (css as any)();
@@ -40,7 +40,7 @@ describe('css static methods', () => {
   });
 });
 
-describe('rx', () => {
+describe('x', () => {
   it('should return an object with the given className and varSet as style', () => {
     const className = 'my-class';
     const varSet = {
@@ -48,7 +48,7 @@ describe('rx', () => {
       '--font-weight': 'bold',
     };
 
-    const result = rx(className, varSet);
+    const result = x(className, varSet);
 
     expect(result).toEqual({
       className: className,
