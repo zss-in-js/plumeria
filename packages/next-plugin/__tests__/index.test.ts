@@ -36,7 +36,7 @@ describe('withPlumeria', () => {
 
   it('does not add duplicate plugin', () => {
     const config = {
-      plugins: [new PlumeriaPlugin({ entryPaths: 'pages/' })],
+      plugins: [new PlumeriaPlugin()],
     };
     withPlumeria({}).webpack!(config, { dev: true, isServer: true } as any);
     expect(
