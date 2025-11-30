@@ -25,8 +25,15 @@ import { createCSS, createTokens } from './create';
 import type { CreateStyle, CreateTokens, CSSProperties } from 'zss-engine';
 import { genBase36Hash, transpile, camelToKebabCase } from 'zss-engine';
 
+interface FileStyles {
+  baseStyles?: string;
+  keyframeStyles?: string;
+  viewTransitionStyles?: string;
+  tokenStyles?: string;
+}
+
 interface PlumeriaPlugin extends WebpackPluginInstance {
-  registerFileStyles(fileName: string, style: CSSObject): void;
+  registerFileStyles(fileName: string, styles: FileStyles): void;
   __plumeriaRegistered?: Map<string, string>;
 }
 
@@ -747,7 +754,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     configFile: false,
   });
 
-  const fileStyles: CSSObject = {};
+  const fileStyles: FileStyles = {};
   if (extractedObjects.length > 0) {
     const combinedStyles = extractedObjects.reduce<CSSObject>(
       (acc, obj) => Object.assign(acc, obj),
@@ -844,6 +851,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   const pluginInstance = this._compiler?.options?.plugins.find(
     (p): p is PlumeriaPlugin => p?.constructor?.name === 'PlumeriaPlugin',
   );
+
   const fileKey = this.resourcePath;
 
   if (pluginInstance) {
