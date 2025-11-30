@@ -34,7 +34,7 @@ describe('virtual-css-loader', () => {
     fs.readFileSync.mockReturnValue('');
     fs.globSync.mockReturnValue([]);
 
-    mockPlugin = new PlumeriaPlugin({ entryPaths: 'app' });
+    mockPlugin = new PlumeriaPlugin();
     registerSpy = jest.spyOn(mockPlugin, 'registerFileStyles');
     jest.spyOn(mockPlugin as any, 'writeCSS').mockImplementation(() => {});
     jest.spyOn(console, 'log').mockImplementation(() => {});
