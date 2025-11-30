@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 0.28.1
+
+### Patch Changes
+
+- 5404dbc: ci: enable npm provenance
+- Updated dependencies [5404dbc]
+  - @plumeria/webpack-plugin@0.28.1
+
 ## 0.28.0
 
 ### Minor Changes

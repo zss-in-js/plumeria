@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.28.1
+
+### Patch Changes
+
+- 5404dbc: ci: enable npm provenance
+
 ## 0.28.0
 
 ### Minor Changes
