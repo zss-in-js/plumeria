@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.28.0
+
+### Minor Changes
+
+- 21c43f3: feat: rx function is renamed to x
+
 ## 0.27.0
 
 ### Minor Changes
