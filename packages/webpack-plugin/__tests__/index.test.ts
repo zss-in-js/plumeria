@@ -29,7 +29,7 @@ describe('PlumeriaPlugin', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    plugin = new PlumeriaPlugin({ entryPaths: 'app' });
+    plugin = new PlumeriaPlugin();
   });
 
   // --- apply() test ---
@@ -38,23 +38,10 @@ describe('PlumeriaPlugin', () => {
 
     // invalid, watchRun, normalModuleFactory was called
     expect(mockCompiler.hooks.invalid.tap).toHaveBeenCalled();
-    expect(mockCompiler.hooks.watchRun.tap).toHaveBeenCalled();
     expect(mockCompiler.hooks.normalModuleFactory.tap).toHaveBeenCalled();
 
     // outFile is set to the correct location
     expect((plugin as any).outFile).toContain('zero-virtual.css');
-  });
-
-  it('should call updateCurrentPageFiles when watchRun hook is triggered', () => {
-    plugin.apply(mockCompiler);
-    const watchRunCallback = mockCompiler.hooks.watchRun.tap.mock.calls[0][1];
-    const spy = jest.spyOn(plugin as any, 'updateCurrentPageFiles');
-
-    watchRunCallback(mockCompiler);
-
-    expect(spy).toHaveBeenCalledWith(mockCompiler);
-
-    spy.mockRestore();
   });
 
   it('should handle invalid hook callback', () => {
@@ -63,12 +50,10 @@ describe('PlumeriaPlugin', () => {
     const invalidCallback = mockCompiler.hooks.invalid.tap.mock.calls[0][1];
     const absPath = path.resolve('src/test.ts');
     (plugin as any).stylesByFile.set(absPath, {});
-    (plugin as any).currentPageFiles.add(absPath);
 
     invalidCallback('src/test.ts');
 
     expect((plugin as any).stylesByFile.has(absPath)).toBe(false);
-    expect((plugin as any).currentPageFiles.has(absPath)).toBe(false);
   });
 
   it('should handle normalModuleFactory and mark css as side effect', () => {
@@ -91,54 +76,6 @@ describe('PlumeriaPlugin', () => {
     const createData: any = {};
     createModuleTap(createData);
     expect(createData.settings).toBeUndefined();
-  });
-
-  // --- updateCurrentPageFiles() ---
-  it('should update current page files from entry object', () => {
-    plugin['updateCurrentPageFiles'](mockCompiler);
-
-    const fileSet = Array.from((plugin as any).currentPageFiles) as string[];
-    expect(fileSet.some((f) => f.includes('src/page.tsx'))).toBe(true);
-  });
-
-  it('should add current page files when entry is a string', () => {
-    const plugin = new PlumeriaPlugin({ entryPaths: 'pages/' });
-
-    // If entry is a string
-    const mockCompiler = {
-      options: {
-        entry: {
-          'pages/index': 'pages/index.tsx', // 文字列型
-        },
-      },
-    };
-
-    // Initially currentPageFiles is empty
-    expect((plugin as any).currentPageFiles.size).toBe(0);
-
-    // Call the internal method directly
-    (plugin as any).updateCurrentPageFiles(mockCompiler);
-
-    const addedFile = path.resolve('pages/index.tsx');
-    expect((plugin as any).currentPageFiles.has(addedFile)).toBe(true);
-  });
-
-  // --- isCurrentPageFile() ---
-  it('should return true for direct and nested current page files', () => {
-    const file = path.resolve('src/page.tsx');
-    (plugin as any).currentPageFiles.add(file);
-
-    expect((plugin as any).isCurrentPageFile(file)).toBe(true);
-    // nested check
-    expect(
-      (plugin as any).isCurrentPageFile(
-        path.join(path.dirname(file), 'sub', 'file.ts'),
-      ),
-    ).toBe(true);
-  });
-
-  it('should return false when not current page file', () => {
-    expect((plugin as any).isCurrentPageFile('other.ts')).toBe(false);
   });
 
   // --- generateOrderedCSS() ---
@@ -211,7 +148,7 @@ describe('PlumeriaPlugin', () => {
     (plugin as any).writeCSS();
     expect(mockedFs.writeFileSync).toHaveBeenCalledWith(
       'dist/zero.css',
-      'content',
+      '@layer base, queries;\n\ncontent',
       'utf-8',
     );
     spy.mockRestore();
