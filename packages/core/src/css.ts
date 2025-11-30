@@ -16,7 +16,7 @@ import { keyframes } from './api/keyframes';
 import { viewTransition } from './api/viewTransition';
 import { defineTokens } from './api/tokens';
 import { defineConsts } from './api/consts';
-import { rx } from './api/rx';
+import { x } from './api/x';
 
 class StyleSheet {
   private constructor() {}
@@ -54,5 +54,5 @@ class StyleSheet {
 
 const css = StyleSheet;
 
-export { css, rx };
+export { css, x };
 export type { CreateStyle, CSSProperties };
