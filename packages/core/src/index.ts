@@ -1,2 +1,2 @@
-export { css, rx } from './css';
+export { css, x } from './css';
 export type { CreateStyle, CSSProperties } from './css';
