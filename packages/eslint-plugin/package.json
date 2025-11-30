@@ -23,6 +23,7 @@
     "@types/estree": "^1.0.8"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   }
 }
