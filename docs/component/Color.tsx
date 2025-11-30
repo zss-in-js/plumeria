@@ -1,4 +1,4 @@
-import { css, rx } from '@plumeria/core';
+import { css, x } from '@plumeria/core';
 import { ps } from 'lib/pseudos';
 
 const styles = css.create({
@@ -19,5 +19,5 @@ const styles = css.create({
 });
 
 export const Color = ({ color }: { color: string }) => {
-  return <span {...rx(css.props(styles.colorName), { '--color': color })} />;
+  return <span {...x(css.props(styles.colorName), { '--color': color })} />;
 };
