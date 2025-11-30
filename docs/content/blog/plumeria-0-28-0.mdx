@@ -1,0 +1,50 @@
+---
+title: 'Plumeria 0.28.0'
+description: 'Plumeria 0.28.0 introduces bugfixes atom order override issues for next dev environment. (1 min read)'
+date: '2025/11/30'
+---
+
+## v0.28.x - Major Improvements
+
+### 🔧 Bug Fixes
+- Fixed atomic styles overriding each other with `@layer` support for `next dev` environment
+
+In the case below, there was no need to use `@layer`, but in this case of next-plugin (`webpack-plugin`), it was necessary to use it because separate components are compiled.
+
+- Production environment ( reduce bundle size and reordered by plugin postcss and lightningcss )
+- Vite environment ( this cases is client injection only so it was already under controled )
+
+### ✨ API Improvements and change update 
+**Renamed `rx` → `x` for better ergonomics and clarity:**
+```tsx
+// Before
+<div {...rx(css.props(styles.bar), { '--width': state + 'px' })} />
+
+// After  
+<div {...x(css.props(styles.bar), { '--width': state + 'px' })} />
+```
+
+**Reason for choosing `x`?**
+- Shorter and more intuitive
+- Naming associated with variable expansion
+- Framework-agnostic naming
+
+### 📦 Migration Guide
+
+`rx` has been removed and replaced by `x`, so please use `x` for future variable expansion.
+
+
+---
+
+## Previous Release: v0.27.0 [#261](https://github.com/zss-in-js/plumeria/pull/261)
+
+### @plumeria/eslint-plugin@0.27.0
+feat: update unusedkey rule for variant features
+
+### @plumeria/compiler@0.27.0
+feat: compiler supported bracket syntax for variant 
+
+## Release History
+
+- [v0.27.0 - Previous release](/blog/plumeria-0-27-0)
+- [All releases](/blog)
