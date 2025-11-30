@@ -5,19 +5,11 @@ import fs from 'fs';
 
 const PLUGIN_NAME = 'PlumeriaPlugin';
 
-interface PlumeriaPluginOptions {
-  entryPaths: string;
-}
-
 export class PlumeriaPlugin {
   private stylesByFile = new Map<string, any>();
-  private currentPageFiles = new Set<string>();
   private outFile!: string;
-  private options: PlumeriaPluginOptions;
 
-  constructor(options: PlumeriaPluginOptions) {
-    this.options = options;
-  }
+  constructor() {}
 
   apply(compiler: Compiler) {
     this.outFile = path.resolve(__dirname, '..', 'zero-virtual.css');
@@ -26,12 +18,7 @@ export class PlumeriaPlugin {
       if (filename) {
         const absPath = path.resolve(filename);
         this.stylesByFile.delete(absPath);
-        this.currentPageFiles.delete(absPath);
       }
-    });
-
-    compiler.hooks.watchRun.tap(PLUGIN_NAME, (compiler) => {
-      this.updateCurrentPageFiles(compiler);
     });
 
     compiler.hooks.normalModuleFactory.tap(PLUGIN_NAME, (nmf) => {
@@ -47,26 +34,6 @@ export class PlumeriaPlugin {
     });
   }
 
-  private updateCurrentPageFiles(compiler: any) {
-    this.stylesByFile.clear();
-    const entries = compiler.options.entry;
-    if (entries && typeof entries === 'object') {
-      this.currentPageFiles.clear();
-      Object.keys(entries).forEach((entryName) => {
-        if (entryName.startsWith(this.options.entryPaths)) {
-          const entry = entries[entryName];
-          if (Array.isArray(entry)) {
-            entry.forEach((file) => {
-              this.currentPageFiles.add(path.resolve(file));
-            });
-          } else if (typeof entry === 'string') {
-            this.currentPageFiles.add(path.resolve(entry));
-          }
-        }
-      });
-    }
-  }
-
   registerFileStyles(filePath: string, styles: CSSObject) {
     const absPath = path.resolve(filePath);
     const prev = this.stylesByFile.get(absPath) || {
@@ -77,25 +44,13 @@ export class PlumeriaPlugin {
       baseStyles: '',
     };
 
-    const isCurrentPage = this.isCurrentPageFile(absPath);
     const updatedStyles = {
       ...prev,
       ...styles,
-      isCurrentPage,
-      lastAccessed: Date.now(),
     };
 
     this.stylesByFile.set(absPath, updatedStyles);
     this.writeCSS();
-  }
-
-  private isCurrentPageFile(filePath: string): boolean {
-    return (
-      this.currentPageFiles.has(filePath) ||
-      Array.from(this.currentPageFiles).some((pageFile) =>
-        filePath.includes(path.dirname(pageFile)),
-      )
-    );
   }
 
   private generateOrderedCSS(): string {
@@ -105,16 +60,12 @@ export class PlumeriaPlugin {
       return '';
     }
 
-    const sortedStyles = allStyles.sort(
-      (a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0),
-    );
-
     const keyframeStylesSet = new Set<string>();
     const viewTransitionStylesSet = new Set<string>();
     const tokenStylesSet = new Set<string>();
     const baseStylesSet = new Set<string>();
 
-    for (const s of sortedStyles) {
+    for (const s of allStyles) {
       if (s.keyframeStyles?.trim().length > 0)
         keyframeStylesSet.add(s.keyframeStyles);
       if (s.viewTransitionStyles?.trim().length > 0)
@@ -134,7 +85,8 @@ export class PlumeriaPlugin {
   }
 
   private writeCSS() {
-    const css = this.generateOrderedCSS();
+    let css = this.generateOrderedCSS();
+    css = '@layer base, queries;\n\n' + css;
     fs.writeFileSync(this.outFile, css, 'utf-8');
   }
 }
