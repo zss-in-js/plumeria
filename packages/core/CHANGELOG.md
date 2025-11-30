@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.28.1
+
+### Patch Changes
+
+- 4973173: feat: readme.md first description update
+
 ## 0.28.0
 
 ### Minor Changes
