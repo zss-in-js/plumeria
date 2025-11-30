@@ -1,90 +1,126 @@
-# [Plumeria - documentation](https://plumeria.dev/)
+# [Plumeria](https://plumeria.dev/)
 
-## What - is Plumeria?
+> Zero-runtime Atomic CSS-in-JS library for modern web development
 
-Plumeria is a **zero-runtime Atomic CSS-in-JS library** that revolutionizes how developers write styles. With flat syntax and intelligent compilation, it creates optimized, collision-free atomic CSS that scales effortlessly with your components. The library reduces refactoring needs while maintaining efficiency. Plumeria lets you focus on **what to style**, not how to style it—providing a more refined and maintainable alternative to manual CSS workflows.
+---
 
-## Why - Choose Plumeria?
+## What
 
-**Spend less time writing CSS, keep styles beautiful.** Plumeria is declarative and intuitive by design, offering portability, migration ease, and forward-thinking architecture that adapts to your needs.
+Plumeria is a **zero-runtime Atomic CSS-in-JS library** that improves how you write styles. With its flat syntax and intelligent compilation, it generates optimized, collision-free atomic CSS that scales effortlessly with your components.
 
-### Key Strengths:
+**Core Philosophy:**
 
-- **Fully static compiler** - Zero runtime overhead, all styles compiled at build time
-- **Fully zero-runtime architecture** - Maximum performance in production
-- **Fully type-safe** - Complete TypeScript support with csstype library integration
-- **Completely predictable** - Deterministic styling with no runtime surprises
-- **More flexible, more lightweight** - Superior to heavier alternatives
+- Focus on **what to style**, not how to style it
+- Minimize refactoring burden while maintaining peak efficiency
+- Deliver a refined, maintainable alternative to manual CSS workflows
 
-Say goodbye to refactoring nightmares and hello to maintainable, scalable styling that grows with your application.
+---
 
-## Who - is Plumeria For?
+## Why
 
-Plumeria is built for **developers who value productivity and code quality.** Whether you're building a startup MVP or scaling an enterprise application, Plumeria's declarative and intuitive design helps teams ship faster without sacrificing maintainability.
+**Write less CSS. Keep styles beautiful.**
 
-**Perfect for:**
+Plumeria offers a declarative, intuitive design with seamless portability, effortless migration paths, and forward-thinking architecture that adapts to your evolving needs.
 
-- **TypeScript enthusiasts** seeking type-safe styling
-- **Teams migrating** from other CSS-in-JS libraries
-- **Developers who want effortless** migration with optimistic syntax philosophy
-- **Engineers tired of unnecessary** constraints and deep nesting
+### Key Strengths
 
-## When - to Use Plumeria?
+- **Fully static compilation** — Zero runtime overhead, all styles compiled at build time
+- **Zero-runtime architecture** — Maximum performance in production environments
+- **Complete type safety** — Full TypeScript support integrated with csstype library
+- **Deterministic behavior** — Predictable styling with no runtime surprises
+- **Lightweight & flexible** — Superior performance compared to heavier alternatives
 
-**Use Plumeria when you need:**
+Say goodbye to refactoring nightmares. Embrace maintainable, scalable styling that grows naturally with your application.
 
-- **Zero-runtime performance** for production applications
-- **Type-safe styling** with full IDE support and autocomplete
-- **Easy migration** from other CSS-in-JS libraries with minimal friction
-- **Scalable styling architecture** for growing codebases
-- **Predictable CSS output** that you can trust and maintain
-- **Developer experience** that makes styling enjoyable, not tedious
+---
 
-## Where - Does Plumeria Shine?
+## Who
 
-Plumeria excels in **JavaScript/TypeScript-first environments,** powered by a simple CLI. Built on two core constraints: **type-safe styles** and **flat nesting structure.**
+Plumeria is built for **developers who value both productivity and code quality.**
 
-**Integration Excellence:**
+Whether you're building a startup MVP or scaling an enterprise application, Plumeria's declarative design helps teams ship faster without sacrificing maintainability.
 
-- React/Next.js projects with seamless TypeScript support
-- VSCode with editor snippets (type `css` + Tab → `className={css.props()}`)
-- ESLint integration with `@plumeria/eslint-plugin` for auto-linting and style sorting
-- Full IDE support with go-to-definition navigation across your codebase
+### Ideal For
 
-**Culture & Philosophy:**
-Plumeria embraces an optimistic syntax philosophy that avoids unnecessary constraints. It offers a declarative, TypeScript-guided authoring experience with no deep nesting, making migration from other libraries effortless and development a pleasure.
-How - How to Get Started?
+- **TypeScript enthusiasts** seeking type-safe styling solutions
+- **Development teams** migrating from other CSS-in-JS libraries
+- **Developers** who value effortless migration with optimistic syntax philosophy
+- **Engineers** tired of unnecessary constraints and deep nesting patterns
 
-1. **Editor Setup (VSCode):**
-   Create a snippet for instant `className` expansion:
+---
 
-- Open Command Palette: `Shift + Cmd + P`
-- Select: "Snippets: Configure Snippets"
-- Choose: `typescriptreact.json` or `javascriptreact.json`
-- Add the snippet configuration
+## When
 
-2. **ESLint Integration:**
-   Install @plumeria/eslint-plugin for automatic linting, syntax error catching, and auto-sorting of styles. Configure with flat config ESM, CJS, or ESLint 8 formats.
-3. **Start Styling:**
-   Use the `css` macro with full TypeScript intellisense. Jump to definitions with `Cmd/Alt + click`, even when styles aren't written directly in JSX.
+**Choose Plumeria when you need:**
 
-**What You Get:**
+- **Zero-runtime performance** — Critical for production applications
+- **Type-safe styling** — Complete IDE support with autocomplete
+- **Smooth migration** — Move from other CSS-in-JS libraries with minimal friction
+- **Scalable architecture** — Grow your styling system alongside your codebase
+- **Predictable output** — CSS you can trust and maintain long-term
+- **Superior developer experience** — Make styling enjoyable, not tedious
 
-- **Editor snippets** - Type `css` + Tab to instantly expand syntax
-- **Auto-linting** - Catch errors and auto-sort styles automatically
-- **Go-to-definition** - Navigate directly from CSS prop to style definitions across your entire codebase
+---
 
-## 🎁 Support This Project
+## Where
 
-Love Plumeria? Here's how you can help:
+Plumeria excels in **JavaScript/TypeScript-first environments**, powered by an elegant CLI.
 
-- ⭐ Star this repo
-- 📝 Write about your experience (we'll feature it!)
-- 🐛 Report bugs
-- 💡 Suggest features
+Built on two foundational principles: **type-safe styles** and **flat nesting structure**.
 
-We're especially looking for:
+### Integration Excellence
 
-- [ ] Blog posts about real-world usage
-- [ ] Performance comparison articles
-- [ ] Migration guides from other solutions
+- **React/Next.js** — Seamless TypeScript integration for modern frameworks
+- **VSCode** — Smart editor snippets (type `css` + Tab → `className={css.props()}`)
+- **ESLint** — Automatic linting and style sorting via `@plumeria/eslint-plugin`
+- **IDE Navigation** — Go-to-definition support across your entire codebase
+
+### Philosophy & Culture
+
+Plumeria embraces an **optimistic syntax philosophy** that eliminates unnecessary constraints. It delivers a declarative, TypeScript-guided authoring experience with flat nesting, making migration from other libraries effortless and development genuinely enjoyable.
+
+---
+
+## How
+
+### 1. Editor Setup (VSCode)
+
+Create a snippet for instant `className` expansion:
+
+1. Open Command Palette: `Shift + Cmd + P`
+2. Select: **"Snippets: Configure Snippets"**
+3. Choose: `typescriptreact.json` or `javascriptreact.json`
+4. Add the snippet configuration
+
+### 2. ESLint Integration
+
+Install `@plumeria/eslint-plugin` for automatic linting, error detection, and style sorting.
+
+Configuration supports multiple formats: flat config ESM, CJS, or legacy ESLint 8.
+
+### 3. Start Styling
+
+Use the `css` macro with full TypeScript intellisense. Navigate to definitions with `Cmd/Alt + Click`, even when styles aren't colocated with JSX.
+
+### Developer Benefits
+
+- **Instant snippets** — Type `css` + Tab for immediate syntax expansion
+- **Automatic linting** — Catch errors and auto-sort styles in real-time
+- **Smart navigation** — Jump directly from CSS props to definitions anywhere in your codebase
+
+---
+
+## Support This Project
+
+Love Plumeria? Here's how you can contribute:
+
+- **Star this repository** — Show your support
+- **Share your experience** — Write about Plumeria (we'll feature it!)
+- **Report issues** — Help us improve by reporting bugs
+- **Suggest features** — Share your ideas for enhancement
+
+### Community Contributions We're Seeking
+
+- [ ] Real-world usage case studies and blog posts
+- [ ] Performance benchmarks and comparison articles
+- [ ] Migration guides from other CSS-in-JS solutions
