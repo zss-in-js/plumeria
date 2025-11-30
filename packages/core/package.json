@@ -51,6 +51,7 @@
     "zss-engine": "0.2.99"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   }
 }
