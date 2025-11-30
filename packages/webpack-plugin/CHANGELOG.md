@@ -1,5 +1,11 @@
 # @plumeria/webpack-plugin
 
+## 0.28.0
+
+### Minor Changes
+
+- 1d66e61: feat: use @layer to reduce the chance of collisions due to ordering
+
 ## 0.27.0
 
 ### Minor Changes
