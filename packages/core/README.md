@@ -1,6 +1,6 @@
 # @plumeria/core
 
-The atomic on-demand CSS-in-JS.
+**The atomic on-demand CSS-in-JS:**
 
 ```ts
 import { css } from '@plumeria/core';
