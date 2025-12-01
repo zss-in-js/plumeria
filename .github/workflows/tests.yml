@@ -27,7 +27,9 @@ jobs:
       - uses: ./.github/actions/setup-node
 
       - name: lint execute
-        run: pnpm lint:report
+        run: |
+          pnpm build
+          pnpm lint:report
            
 
   unit-test:
