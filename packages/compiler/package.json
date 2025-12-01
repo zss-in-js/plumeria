@@ -19,13 +19,13 @@
     "build": "rimraf dist && tsc"
   },
   "dependencies": {
-    "@rust-gear/glob": "^0.2.4",
+    "@rust-gear/glob": "^0.2.6",
     "@swc/core": "1.15.2",
     "find-up": "^8.0.0",
     "lightningcss": "^1.30.2",
     "postcss": "^8.5.6",
     "postcss-combine-media-query": "^2.1.0",
-    "rscute": "^1.1.4"
+    "rscute": "^1.1.5"
   },
   "publishConfig": {
     "access": "public",
