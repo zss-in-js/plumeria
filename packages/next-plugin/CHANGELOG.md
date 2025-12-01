@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 0.28.2
+
+### Patch Changes
+
+- a173cb2: ci: improve supply chain security via trusted publishing
+- Updated dependencies [a173cb2]
+  - @plumeria/webpack-plugin@0.28.2
+
 ## 0.28.1
 
 ### Patch Changes
