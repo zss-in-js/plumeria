@@ -1,0 +1,25 @@
+name: setup-node
+description: "Node.js for CI"
+inputs:
+  node_version:
+    description: "Node.js version install"
+    required: false
+    default: 25
+
+runs:
+  using: "composite"
+  steps:
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
+    - name: install node
+      uses: actions/setup-node@v5
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: pnpm
+
+    - name: install dependencies
+      shell: bash
+      run: pnpm install
+      
