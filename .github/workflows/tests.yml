@@ -14,60 +14,30 @@ jobs:
   prettier:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-node
 
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install Dependencies
-        run: pnpm install
-      - run: pnpm prettier:report
+      - name: prettier execute 
+        run: pnpm prettier:report
 
   lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-node
 
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install Dependencies
-        run: |
-          pnpm install
-          pnpm build
-          pnpm lint:report
+      - name: lint execute
+        run: pnpm lint:report
+           
 
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install Dependencies
-        run: pnpm install
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-node
 
       - name: Build packages
-        run: npm run build
+        run: pnpm build
 
       - name: Run Jest tests with coverage
         run: pnpm exec jest --ci --coverage --reporters=github-actions --reporters=summary
@@ -88,22 +58,11 @@ jobs:
   e2e-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install Dependencies
-        run: pnpm install
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-node
 
       - name: Build packages
-        run: npm run build
+        run: pnpm build
 
       - name: Install Playwright chromium
         run: pnpm exec playwright install chromium --with-deps
