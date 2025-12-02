@@ -1,29 +1,34 @@
 import { css } from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
+import { gradientShift } from './animation';
 
 const styles = css.create({
   headings: {
     position: 'relative',
     left: -4,
     zIndex: 0,
-    display: 'inline',
-    marginBottom: '12px',
-    fontSize: 56,
-    fontWeight: 700,
+    display: 'block',
+    marginBottom: 8,
+    fontSize: 52,
+    fontWeight: 600,
+    lineHeight: 1.1,
     WebkitTextFillColor: 'transparent',
-    textAlign: 'left',
-    background: 'linear-gradient(90deg, #6dd7c9 0%, #6bccbf 50%, #6bbfcc 100%)',
-    WebkitBackgroundClip: 'text',
+    letterSpacing: '-0.03em',
+    background: 'linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)',
+    backgroundClip: 'text',
+    backgroundSize: '400% 400%',
+    border: '1px solid transparent',
+    filter: 'drop-shadow(0 0 2em rgba(168, 85, 247, 0.2))',
+    animationName: gradientShift,
+    animationDuration: '15s',
+    animationTimingFunction: 'ease',
+    animationIterationCount: 'infinite',
     [breakpoints.md]: {
-      top: 20,
-      right: 18,
-      marginTop: '20px',
-      marginBottom: 30,
-      fontSize: '46px',
+      fontSize: 32, // Increased mobile size
     },
   },
 });
 
 export const Plumeria = () => {
-  return <div className={css.props(styles.headings)}>PLUMERIA</div>;
+  return <div className={css.props(styles.headings)}>Plumeria</div>;
 };
