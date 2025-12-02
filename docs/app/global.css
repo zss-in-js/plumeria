@@ -1,3 +1,52 @@
+@layer base, queries;
+
+/* CSS Custom Properties for Theme Awareness */
+:root {
+  --card-bg: rgb(246, 246, 246);
+  --card-border: #e5e5e5;
+  --card-hover-border: #cecece;
+  --icon-color: #71717a;
+  --icon-bg: #f0f0f0;
+  --text-primary: #0b0b0b;
+  --text-secondary: #67676c;
+  --text-muted: #71717a;
+  --text-main-header-line: #3c3c43;
+}
+
+.dark {
+  --card-bg: rgb(18, 18, 18);
+  --card-border: #27272a;
+  --card-hover-border: #35353d;
+  --icon-color: #e4e4e7;
+  --icon-bg: #18181b;
+  --text-primary: #f4f4f5;
+  --text-secondary: #98989f;
+  --text-muted: #71717a;
+  --text-main-header-line: #dfdfd6;
+}
+
+/* Global Dot Pattern Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-image: radial-gradient(#d0d0d0 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+  pointer-events: none;
+}
+
+.dark body::before {
+  background-image: radial-gradient(#333 1px, transparent 1px);
+  opacity: 0.5;
+}
+
+/* Body Styling */
 body {
   background: #fffaff;
 }
@@ -6,41 +55,53 @@ body {
   background: black;
 }
 
+/* Code Block Styling */
+figure {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.dark figure {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+figure:hover {
+  border-color: var(--card-hover-border);
+}
+
 pre {
-  background: white;
+  background: transparent !important;
+}
+
+.dark pre {
+  background: transparent !important;
 }
 
 pre span {
   font-family: var(--font-geist-mono);
 }
 
-.dark pre {
-  background: black;
-}
-
-figure {
-  background: white;
-  border: solid 1px #e0e0e0;
-}
-
-.dark figure {
-  background: black;
-  border: solid 1px #272727;
-}
-
 code {
   font-family: var(--font-geist-mono);
 }
 
+/* Aside Styling */
 .dark aside {
   background: #0b0b0b;
 }
 
+/* Text Utilities */
 .text-3xl {
   font-size: 36px;
   font-weight: 550;
 }
 
+/* Diff Styling */
 .dark span.line.diff.remove {
   background: rgba(255, 83, 252, 0.14);
 }
