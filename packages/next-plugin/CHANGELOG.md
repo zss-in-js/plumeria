@@ -1,5 +1,16 @@
 # @plumeria/next-plugin
 
+## 0.29.0
+
+### Minor Changes
+
+- 3ea4d70: fix: Fixed an issue where it was not possible to override in media queries
+
+### Patch Changes
+
+- Updated dependencies [3ea4d70]
+  - @plumeria/webpack-plugin@0.29.0
+
 ## 0.28.2
 
 ### Patch Changes
