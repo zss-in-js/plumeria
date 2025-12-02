@@ -1518,6 +1518,7 @@ export const validateValues: Rule.RuleModule = {
                 frPattern,
                 percentagePattern,
                 minmaxString,
+                repeatString,
                 varString,
                 ...(isTemplateColumns ? [fitContentString] : []),
               ].join('|');
