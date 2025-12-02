@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 0.29.0
+
+### Minor Changes
+
+- 3ea4d70: fix: Fixed types that cannot use variable properties in queries
+
 ## 0.28.2
 
 ### Patch Changes
