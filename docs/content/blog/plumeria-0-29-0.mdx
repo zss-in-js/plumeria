@@ -1,0 +1,33 @@
+---
+title: 'Plumeria 0.29.0'
+description: 'Plumeria 0.28.0 introduces The problem that occurred in v0.28.x has been fixed. (1 min read)'
+date: '2025/12/2'
+---
+
+## v0.29.x - Minor Improvements and bugfix [#268](https://github.com/zss-in-js/plumeria/pull/268)
+
+### 🔧 Bug Fixes
+
+### `webpack-plugin & next-plugin`
+Bugfix:
+- There was an issue where adding a query to @layer would prevent it from being overwritten.
+This was resolved by including only the base in the layer.
+
+### `core`
+Bugfix:
+- Fixed an issue where CSSVariableProperty types could not be handled in queries.
+
+### `eslint-plugin`
+Improvements:
+- Fixed a bug where the linter would incorrectly warn about "repeat" in `gridTemplate`.
+
+
+## Other
+- Improved documentation top page.
+
+Please use .29.x from now on as these issues have been fixed.
+
+## Release History
+
+- [v0.28.0 - Previous release](/blog/plumeria-0-28-0)
+- [All releases](/blog)
