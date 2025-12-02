@@ -47,6 +47,7 @@ export class PlumeriaPlugin {
     const updatedStyles = {
       ...prev,
       ...styles,
+      lastAccessed: Date.now(),
     };
 
     this.stylesByFile.set(absPath, updatedStyles);
