@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 0.29.0
+
+### Minor Changes
+
+- 3ea4d70: fix: Fixed the problem that repeat cannot be used in gridTemplate
+
 ## 0.28.2
 
 ### Patch Changes
