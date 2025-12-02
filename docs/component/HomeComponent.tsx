@@ -16,7 +16,7 @@ const styles = css.create({
     width: '100%',
     maxWidth: '1280px',
     minHeight: '100vh',
-    padding: '60px 40px 80px',
+    padding: '120px 40px 80px',
     margin: '0 auto',
     [breakpoints.md]: {
       padding: '80px 20px 60px',
