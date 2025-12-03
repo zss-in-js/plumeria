@@ -90,8 +90,7 @@ export class PlumeriaPlugin {
   }
 
   private writeCSS() {
-    let css = this.generateOrderedCSS();
-    css = '@layer base, queries;\n\n' + css;
+    const css = this.generateOrderedCSS();
     fs.writeFileSync(this.outFile, css, 'utf-8');
   }
 }
