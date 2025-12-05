@@ -148,7 +148,7 @@ describe('PlumeriaPlugin', () => {
     (plugin as any).writeCSS();
     expect(mockedFs.writeFileSync).toHaveBeenCalledWith(
       'dist/zero.css',
-      '@layer base, queries;\n\ncontent',
+      'content',
       'utf-8',
     );
     spy.mockRestore();
