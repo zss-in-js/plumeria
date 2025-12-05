@@ -1,5 +1,5 @@
 import type { Compiler } from 'webpack';
-import { CSSObject } from './types';
+import type { CSSObject } from '@plumeria/utils';
 import path from 'path';
 import fs from 'fs';
 
@@ -19,6 +19,10 @@ export class PlumeriaPlugin {
         const absPath = path.resolve(filename);
         this.stylesByFile.delete(absPath);
       }
+    });
+
+    compiler.hooks.watchRun.tap(PLUGIN_NAME, () => {
+      this.stylesByFile.clear();
     });
 
     compiler.hooks.normalModuleFactory.tap(PLUGIN_NAME, (nmf) => {
@@ -62,7 +66,7 @@ export class PlumeriaPlugin {
     }
 
     const sortedStyles = allStyles.sort(
-      (a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0),
+      (b, a) => (b.lastAccessed || 0) - (a.lastAccessed || 0),
     );
 
     const keyframeStylesSet = new Set<string>();
