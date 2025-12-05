@@ -2,6 +2,7 @@ import { css } from '@plumeria/core';
 import type { ReactNode } from 'react';
 import { gradientShift } from './animation';
 import { breakpoints } from 'lib/mediaQuery';
+import Link from 'next/link';
 
 const styles = css.create({
   content: {
@@ -95,8 +96,13 @@ interface Props {
   children: ReactNode;
   variant: ButtonVariant;
   size: ButtonSize;
+  href: string;
 }
 
-export const Button = ({ children, variant, size = 'medium' }: Props) => {
-  return <button className={css.props(styles.button, styles[variant], styles[size])}>{children}</button>;
+export const ButtonLink = ({ children, variant, size, href }: Props) => {
+  return (
+    <Link href={href} className={css.props(styles.button, styles[variant], styles[size])}>
+      {children}
+    </Link>
+  );
 };
