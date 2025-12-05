@@ -25,7 +25,7 @@
   "devDependencies": {
     "@swc/core": "1.15.2",
     "webpack": "^5.101.0",
-    "zss-engine": "^0.2.101"
+    "zss-engine": "^0.2.102"
   },
   "publishConfig": {
     "access": "public",
