@@ -1,0 +1,34 @@
+{
+  "name": "@plumeria/turbopack-loader",
+  "version": "0.29.0",
+  "description": "Plumeria Turbopack-loader",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/turbopack-loader"
+  },
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/",
+    "zero-virtual.css"
+  ],
+  "scripts": {
+    "build": "rimraf dist && pnpm cjs",
+    "cjs": "tsc --project tsconfig.cjs.json"
+  },
+  "dependencies": {
+    "@plumeria/utils": "workspace:^"
+  },
+  "devDependencies": {
+    "@swc/core": "1.15.2",
+    "webpack": "^5.101.0",
+    "zss-engine": "^0.2.102"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
