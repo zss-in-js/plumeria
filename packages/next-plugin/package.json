@@ -7,6 +7,18 @@
     "url": "git+https://github.com/zss-in-js/plumeria.git",
     "directory": "packages/next-plugin"
   },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./turbopack": {
+      "types": "./dist/turbopack.d.ts",
+      "import": "./dist/turbopack.js",
+      "default": "./dist/turbopack.js"
+    }
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
@@ -18,7 +30,8 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@plumeria/webpack-plugin": "workspace:^"
+    "@plumeria/webpack-plugin": "workspace:^",
+    "@plumeria/turbopack-loader": "workspace:^"
   },
   "devDependencies": {
     "next": "^16.0.3",
