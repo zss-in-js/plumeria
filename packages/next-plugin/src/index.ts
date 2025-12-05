@@ -13,7 +13,7 @@ export function withPlumeria(nextConfig: NextConfig): NextConfig {
         config = originalWebpack(config, context);
       }
 
-      if (context.dev && context.isServer) {
+      if (context.dev) {
         config.watchOptions = {
           ignored: ['node_modules', '.next', '.git'],
         };
@@ -21,9 +21,7 @@ export function withPlumeria(nextConfig: NextConfig): NextConfig {
           enforce: 'pre',
           test: /\.(tsx|ts|jsx|js)$/,
           exclude: [/node_modules/, /\.next/, /\.git/],
-          use: require.resolve(
-            '@plumeria/webpack-plugin/dist/virtual-css-loader',
-          ),
+          use: require.resolve('@plumeria/webpack-plugin/dist/virtual-css-loader'),
         });
         if (!config.plugins?.some((p) => p instanceof PlumeriaPlugin)) {
           config.plugins?.push(new PlumeriaPlugin());
