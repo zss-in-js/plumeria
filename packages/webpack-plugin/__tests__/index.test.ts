@@ -56,6 +56,22 @@ describe('PlumeriaPlugin', () => {
     expect((plugin as any).stylesByFile.has(absPath)).toBe(false);
   });
 
+  it('should clear styles on watchRun', () => {
+    plugin.apply(mockCompiler);
+
+    // Setup initial styles
+    const absPath = path.resolve('src/test.ts');
+    (plugin as any).stylesByFile.set(absPath, { baseStyles: '.test {}' });
+    expect((plugin as any).stylesByFile.size).toBe(1);
+
+    // Trigger watchRun hook
+    const watchRunCallback = mockCompiler.hooks.watchRun.tap.mock.calls[0][1];
+    watchRunCallback();
+
+    // Verify styles are cleared
+    expect((plugin as any).stylesByFile.size).toBe(0);
+  });
+
   it('should handle normalModuleFactory and mark css as side effect', () => {
     plugin.apply(mockCompiler);
 
