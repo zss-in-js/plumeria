@@ -18,8 +18,13 @@
     "build": "rimraf dist && pnpm esm",
     "esm": "tsc --project tsconfig.esm.json"
   },
+  "dependencies": {
+    "@plumeria/utils": "workspace:^"
+  },
   "devDependencies": {
-    "vite": "^7.1.1"
+    "@swc/core": "1.15.2",
+    "vite": "^7.1.1",
+    "zss-engine": "^0.2.101"
   },
   "publishConfig": {
     "access": "public",
