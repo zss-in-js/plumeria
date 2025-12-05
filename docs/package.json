@@ -6,7 +6,7 @@
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
     "build": "css --type-check && next build",
-    "dev": "css & next dev --webpack",
+    "dev": "css & next dev",
     "start": "next start",
     "postinstall": "fumadocs-mdx"
   },
