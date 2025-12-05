@@ -1,0 +1,31 @@
+{
+  "name": "@plumeria/utils",
+  "version": "0.29.0",
+  "description": "Plumeria Utils",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/utils"
+  },
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "rimraf dist && pnpm cjs",
+    "cjs": "tsc --project tsconfig.cjs.json"
+  },
+  "dependencies": {
+    "@swc/core": "1.15.2"
+  },
+  "devDependencies": {
+    "zss-engine": "^0.2.102"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
