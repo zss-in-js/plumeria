@@ -1,713 +1,64 @@
 import type { LoaderContext, WebpackPluginInstance } from 'webpack';
-import type {
-  CSSObject,
-  ConstTable,
-  KeyframesHashTable,
-  KeyframesObjectTable,
-  DefineTokensObjectTable,
-  CSSValue,
-  TokensTable,
-  ViewTransitionObjectTable,
-  ViewTransitionHashTable,
-} from './types';
-
-import {
-  parseSync,
-  traverse,
-  transformFromAstSync,
-  type PluginObj,
-} from '@babel/core';
-import * as t from '@babel/types';
+import { parseSync, ObjectExpression } from '@swc/core';
 
 import path from 'path';
 import fs from 'fs';
-import { createCSS, createTokens } from './create';
-import type { CreateStyle, CreateTokens, CSSProperties } from 'zss-engine';
-import { genBase36Hash, transpile, camelToKebabCase } from 'zss-engine';
 
-interface FileStyles {
-  baseStyles?: string;
-  keyframeStyles?: string;
-  viewTransitionStyles?: string;
-  tokenStyles?: string;
-}
+import type { CreateStyle, CreateTokens, CSSProperties } from 'zss-engine';
+import { transpile } from 'zss-engine';
+
+import type { CSSObject, FileStyles } from '@plumeria/utils';
+import {
+  createCSS,
+  createTokens,
+  collectLocalConsts,
+  objectExpressionToObject,
+  scanForDefineConsts,
+  scanForDefineTokens,
+  scanForKeyframes,
+  scanForViewTransition,
+  t,
+  tables,
+  traverse,
+} from '@plumeria/utils';
 
 interface PlumeriaPlugin extends WebpackPluginInstance {
   registerFileStyles(fileName: string, styles: FileStyles): void;
   __plumeriaRegistered?: Map<string, string>;
 }
 
-const PROJECT_ROOT = process.cwd().split('node_modules')[0];
-const PATTERN_PATH = path.join(PROJECT_ROOT, '**/*.{js,jsx,ts,tsx}');
-const GLOB_OPTIONS = {
-  exclude: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**'],
-  cwd: PROJECT_ROOT,
-};
-
-let constTable: ConstTable = {};
-let tokensTable: TokensTable = {};
-
-let keyframesHashTable: KeyframesHashTable = {};
-let keyframesObjectTable: KeyframesObjectTable = {};
-let viewTransitionHashTable: ViewTransitionHashTable = {};
-let viewTransitionObjectTable: ViewTransitionObjectTable = {};
-
-let defineTokensObjectTable: DefineTokensObjectTable = {};
-
-/* 
-These internal functions are executed through the loader function, so they are already comprehensively covered by the current tests.
-Implementation details: These are implementation details that are not exposed, and you end up testing the implementation instead of the behavior.
- */
-
-/* istanbul ignore next */
-function objectExpressionToObject(
-  node: t.ObjectExpression,
-  constTable: ConstTable,
-  keyframesHashTable: KeyframesHashTable,
-  viewTransitionHashTable: ViewTransitionHashTable,
-  tokensTable: TokensTable,
-): CSSObject {
-  const obj: CSSObject = {};
-
-  node.properties.forEach((prop) => {
-    if (!t.isObjectProperty(prop)) return;
-
-    const key = getPropertyKey(prop.key, constTable);
-    if (!key) return;
-
-    const val = prop.value;
-
-    if (t.isIdentifier(val) || t.isMemberExpression(val)) {
-      const resolvedKeyframe = resolveKeyframesTableMemberExpression(
-        val,
-        keyframesHashTable,
-      );
-      if (resolvedKeyframe !== undefined) {
-        obj[key] = 'kf-' + resolvedKeyframe;
-        return;
-      }
-      const resolvedViewTransitioin =
-        resolveViewTransitionTableMemberExpression(
-          val,
-          viewTransitionHashTable,
-        );
-      if (resolvedViewTransitioin !== undefined) {
-        obj[key] = 'vt-' + resolvedViewTransitioin;
-        return;
-      }
-      const resolvedTheme = resolveTokensTableMemberExpressionByNode(
-        val,
-        tokensTable,
-      );
-      if (resolvedTheme !== undefined) {
-        obj[key] = resolvedTheme;
-        return;
-      }
-    }
-
-    if (
-      t.isStringLiteral(val) ||
-      t.isNumericLiteral(val) ||
-      t.isBooleanLiteral(val)
-    ) {
-      obj[key] = val.value;
-    } else if (t.isUnaryExpression(val)) {
-      obj[key] = evaluateUnaryExpression(val);
-    } else if (t.isObjectExpression(val)) {
-      obj[key] = objectExpressionToObject(
-        val,
-        constTable,
-        keyframesHashTable,
-        viewTransitionHashTable,
-        tokensTable,
-      );
-    } else if (t.isMemberExpression(val)) {
-      const resolved = resolveConstTableMemberExpression(val, constTable);
-      obj[key] = resolved !== undefined ? resolved : '[unresolved]';
-    } else if (t.isIdentifier(val)) {
-      if (constTable[val.name] !== undefined) {
-        obj[key] = constTable[val.name];
-      } else {
-        obj[key] = '[unresolved identifier]';
-      }
-    } else {
-      obj[key] = '[unsupported value type]';
-    }
-  });
-
-  return obj;
-}
-
-function collectLocalConsts(ast: t.File): Record<string, any> {
-  const localConsts: Record<string, any> = {};
-
-  traverse(ast, {
-    VariableDeclarator(path) {
-      const { node } = path;
-      if (t.isIdentifier(node.id) && node.init) {
-        if (t.isStringLiteral(node.init)) {
-          localConsts[node.id.name] = node.init.value;
-        } else if (t.isObjectExpression(node.init)) {
-          localConsts[node.id.name] = objectExpressionToObject(
-            node.init,
-            localConsts,
-            keyframesHashTable,
-            viewTransitionHashTable,
-            tokensTable,
-          );
-        }
-      }
-    },
-  });
-
-  return localConsts;
-}
-/* istanbul ignore next */
-function getPropertyKey(
-  node: t.Expression | t.PrivateName,
-  constTable: ConstTable,
-): string {
-  if (t.isIdentifier(node)) {
-    if (constTable[node.name] && typeof constTable[node.name] === 'string') {
-      return constTable[node.name] as string;
-    }
-    return node.name;
-  }
-  if (t.isStringLiteral(node)) return node.value;
-  if (t.isMemberExpression(node)) {
-    const result = resolveConstTableMemberExpression(node, constTable);
-    if (typeof result === 'string') return result;
-    throw new Error(`Resolved key is not a string: ${JSON.stringify(result)}`);
-  }
-
-  if (t.isTemplateLiteral(node)) {
-    return evaluateTemplateLiteral(node, constTable);
-  }
-
-  if (t.isBinaryExpression(node)) {
-    return evaluateBinaryExpression(node, constTable);
-  }
-
-  throw new Error(`Unsupported property key type: ${node.type}`);
-}
-/* istanbul ignore next */
-function evaluateTemplateLiteral(
-  node: t.TemplateLiteral,
-  constTable: ConstTable,
-): string {
-  let result = '';
-
-  for (let i = 0; i < node.quasis.length; i++) {
-    result += node.quasis[i].value.cooked || node.quasis[i].value.raw;
-
-    if (i < node.expressions.length) {
-      const expr = node.expressions[i];
-      const evaluatedExpr = evaluateExpression(
-        expr as t.Expression,
-        constTable,
-      );
-      result += String(evaluatedExpr);
-    }
-  }
-
-  return result;
-}
-
-/* istanbul ignore next */
-function evaluateBinaryExpression(
-  node: t.BinaryExpression,
-  constTable: ConstTable,
-): string {
-  const left = evaluateExpression(node.left as t.Expression, constTable);
-  const right = evaluateExpression(node.right, constTable);
-
-  if (node.operator === '+') {
-    return String(left) + String(right);
-  }
-
-  throw new Error(`Unsupported binary operator: ${node.operator}`);
-}
-
-/* istanbul ignore next */
-function evaluateExpression(
-  node: t.Expression,
-  constTable: ConstTable,
-): string | number | boolean | null | CSSObject {
-  if (t.isStringLiteral(node)) {
-    return node.value;
-  }
-
-  if (t.isNumericLiteral(node)) {
-    return node.value;
-  }
-
-  if (t.isBooleanLiteral(node)) {
-    return node.value;
-  }
-
-  if (t.isNullLiteral(node)) {
-    return null;
-  }
-
-  if (t.isIdentifier(node)) {
-    if (constTable[node.name] !== undefined) {
-      return constTable[node.name];
-    }
-
-    if (keyframesHashTable[node.name] !== undefined) {
-      return keyframesHashTable[node.name];
-    }
-
-    if (viewTransitionHashTable[node.name] !== undefined) {
-      return viewTransitionHashTable[node.name];
-    }
-
-    return `[unresolved: ${node.name}]`;
-  }
-
-  if (t.isMemberExpression(node)) {
-    const resolved = resolveConstTableMemberExpression(node, constTable);
-    if (resolved !== undefined) {
-      return resolved;
-    }
-
-    const resolvedTheme = resolveTokensTableMemberExpressionByNode(
-      node,
-      tokensTable,
-    );
-    if (resolvedTheme !== undefined) {
-      return resolvedTheme;
-    }
-
-    return `[unresolved member expression]`;
-  }
-
-  if (t.isBinaryExpression(node)) {
-    return evaluateBinaryExpression(node, constTable);
-  }
-
-  if (t.isTemplateLiteral(node)) {
-    return evaluateTemplateLiteral(node, constTable);
-  }
-
-  if (t.isUnaryExpression(node)) {
-    return evaluateUnaryExpression(node);
-  }
-
-  throw new Error(`Unsupported expression type: ${node.type}`);
-}
-
-/* istanbul ignore next */
-function evaluateUnaryExpression(node: t.UnaryExpression): number | string {
-  const arg = node.argument;
-  switch (node.operator) {
-    case '-':
-      if (t.isNumericLiteral(arg)) return -arg.value;
-      break;
-    case '+':
-      if (t.isNumericLiteral(arg)) return +arg.value;
-      break;
-    default:
-      throw new Error(`Unsupported unary operator: ${node.operator}`);
-  }
-  throw new Error(`Unsupported UnaryExpression argument type: ${arg.type}`);
-}
-
-function resolveKeyframesTableMemberExpression(
-  node: t.Identifier | t.MemberExpression,
-  keyframesHashTable: KeyframesHashTable,
-): string | undefined {
-  if (t.isIdentifier(node)) {
-    return keyframesHashTable[node.name];
-  }
-  if (t.isMemberExpression(node)) {
-    if (t.isIdentifier(node.object)) {
-      return keyframesHashTable[node.object.name];
-    }
-  }
-}
-
-function resolveViewTransitionTableMemberExpression(
-  node: t.Identifier | t.MemberExpression,
-  viewTransitionHashTable: ViewTransitionHashTable,
-): string | undefined {
-  if (t.isIdentifier(node)) {
-    return viewTransitionHashTable[node.name];
-  }
-  if (t.isMemberExpression(node)) {
-    if (t.isIdentifier(node.object)) {
-      return viewTransitionHashTable[node.object.name];
-    }
-  }
-}
-
-function resolveConstTableMemberExpression(
-  node: t.MemberExpression,
-  constTable: ConstTable,
-): CSSValue | undefined {
-  if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
-    const varName = node.object.name;
-    const key = node.property.name;
-    const tableValue = constTable[varName];
-
-    if (tableValue && typeof tableValue === 'object' && key in tableValue) {
-      return tableValue[key];
-    }
-  }
-  return undefined;
-}
-
-function resolveTokensTableMemberExpressionByNode(
-  node: t.Identifier | t.MemberExpression,
-  tokensTable: TokensTable,
-): CSSValue | undefined {
-  // The MemberExpression part also branches
-  if (t.isMemberExpression(node) && t.isIdentifier(node.object)) {
-    const varName = node.object.name;
-    let key: string | undefined;
-    if (t.isIdentifier(node.property)) {
-      key = node.property.name;
-    } else if (t.isStringLiteral(node.property)) {
-      key = node.property.value;
-    }
-    if (
-      key &&
-      tokensTable[varName] &&
-      tokensTable[varName][key] !== undefined
-    ) {
-      const cssVarName = camelToKebabCase(key);
-      return `var(--${cssVarName})`;
-    }
-  }
-  return undefined;
-}
-
-function scanForKeyframes(this: LoaderContext<unknown>): {
-  keyframesHashTableLocal: KeyframesHashTable;
-  keyframesObjectTableLocal: KeyframesObjectTable;
-} {
-  const keyframesHashTableLocal: KeyframesHashTable = {};
-  const keyframesObjectTableLocal: KeyframesObjectTable = {};
-  const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
-
-  for (const filePath of files) {
-    if (!isCSSDefineFile(filePath, 'keyframes')) continue;
-    this.addDependency(filePath);
-
-    const source = fs.readFileSync(filePath, 'utf8');
-    const ast = parseSync(source, {
-      sourceType: 'module',
-      presets: [
-        ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-      ],
-    });
-
-    for (const node of ast?.program.body as t.Statement[]) {
-      let declarations: t.VariableDeclarator[] = [];
-
-      if (t.isVariableDeclaration(node)) {
-        declarations = node.declarations;
-      } else if (
-        t.isExportNamedDeclaration(node) &&
-        node.declaration &&
-        t.isVariableDeclaration(node.declaration)
-      ) {
-        declarations = node.declaration.declarations;
-      }
-
-      for (const decl of declarations) {
-        if (
-          t.isVariableDeclarator(decl) &&
-          t.isIdentifier(decl.id) &&
-          t.isCallExpression(decl.init) &&
-          t.isMemberExpression(decl.init.callee) &&
-          t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
-          t.isIdentifier(decl.init.callee.property, { name: 'keyframes' }) &&
-          t.isObjectExpression(decl.init.arguments[0])
-        ) {
-          const varName = decl.id.name;
-          const obj = objectExpressionToObject(
-            decl.init.arguments[0],
-            constTable,
-            keyframesHashTableLocal,
-            viewTransitionHashTable,
-            tokensTable,
-          );
-          const hash = genBase36Hash(obj, 1, 8);
-
-          keyframesHashTableLocal[varName] = hash;
-          keyframesObjectTableLocal[hash] = obj;
-        }
-      }
-    }
-  }
-
-  return {
-    keyframesHashTableLocal,
-    keyframesObjectTableLocal,
-  };
-}
-
-function scanForViewTransition(this: LoaderContext<unknown>): {
-  viewTransitionHashTableLocal: ViewTransitionHashTable;
-  viewTransitionObjectTableLocal: ViewTransitionObjectTable;
-} {
-  const viewTransitionHashTableLocal: ViewTransitionHashTable = {};
-  const viewTransitionObjectTableLocal: ViewTransitionObjectTable = {};
-  const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
-
-  for (const filePath of files) {
-    if (!isCSSDefineFile(filePath, 'viewTransition')) continue;
-    this.addDependency(filePath);
-
-    const source = fs.readFileSync(filePath, 'utf8');
-    const ast = parseSync(source, {
-      sourceType: 'module',
-      presets: [
-        ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-      ],
-    });
-
-    for (const node of ast?.program.body as t.Statement[]) {
-      let declarations: t.VariableDeclarator[] = [];
-
-      if (t.isVariableDeclaration(node)) {
-        declarations = node.declarations;
-      } else if (
-        t.isExportNamedDeclaration(node) &&
-        node.declaration &&
-        t.isVariableDeclaration(node.declaration)
-      ) {
-        declarations = node.declaration.declarations;
-      }
-
-      for (const decl of declarations) {
-        if (
-          t.isVariableDeclarator(decl) &&
-          t.isIdentifier(decl.id) &&
-          t.isCallExpression(decl.init) &&
-          t.isMemberExpression(decl.init.callee) &&
-          t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
-          t.isIdentifier(decl.init.callee.property, {
-            name: 'viewTransition',
-          }) &&
-          t.isObjectExpression(decl.init.arguments[0])
-        ) {
-          const varName = decl.id.name;
-          const obj = objectExpressionToObject(
-            decl.init.arguments[0],
-            constTable,
-            keyframesHashTable,
-            viewTransitionHashTableLocal,
-            tokensTable,
-          );
-          const hash = genBase36Hash(obj, 1, 8);
-
-          viewTransitionHashTableLocal[varName] = hash;
-          viewTransitionObjectTableLocal[hash] = obj;
-        }
-      }
-    }
-  }
-
-  return {
-    viewTransitionHashTableLocal,
-    viewTransitionObjectTableLocal,
-  };
-}
-
-function scanForDefineConsts(this: LoaderContext<unknown>): ConstTable {
-  const constTableLocal: ConstTable = {};
-  const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
-
-  for (const filePath of files) {
-    if (!isCSSDefineFile(filePath, 'defineConsts')) continue;
-    this.addDependency(filePath);
-
-    const source = fs.readFileSync(filePath, 'utf8');
-    const ast = parseSync(source, {
-      sourceType: 'module',
-      presets: [
-        ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-      ],
-    });
-
-    for (const node of ast?.program.body as t.Statement[]) {
-      let declarations: t.VariableDeclarator[] = [];
-
-      if (t.isVariableDeclaration(node)) {
-        declarations = node.declarations;
-      } else if (
-        t.isExportNamedDeclaration(node) &&
-        node.declaration &&
-        t.isVariableDeclaration(node.declaration)
-      ) {
-        declarations = node.declaration.declarations;
-      }
-
-      for (const decl of declarations) {
-        if (
-          t.isVariableDeclarator(decl) &&
-          t.isIdentifier(decl.id) &&
-          t.isCallExpression(decl.init) &&
-          t.isMemberExpression(decl.init.callee) &&
-          t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
-          t.isIdentifier(decl.init.callee.property, { name: 'defineConsts' }) &&
-          t.isObjectExpression(decl.init.arguments[0])
-        ) {
-          const varName = decl.id.name;
-          const obj = objectExpressionToObject(
-            decl.init.arguments[0],
-            constTableLocal,
-            keyframesHashTable,
-            viewTransitionHashTable,
-            tokensTable,
-          );
-          constTableLocal[varName] = obj;
-        }
-      }
-    }
-  }
-  return constTableLocal;
-}
-
-function scanForDefineTokens(this: LoaderContext<unknown>): {
-  tokensTableLocal: Record<string, Record<string, any>>;
-  defineTokensObjectTableLocal: Record<string, any>;
-} {
-  const tokensTableLocal: Record<string, Record<string, any>> = {};
-  const defineTokensObjectTableLocal: Record<string, any> = {};
-  const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
-
-  for (const filePath of files) {
-    if (!isCSSDefineFile(filePath, 'defineTokens')) continue;
-    this.addDependency(filePath);
-    const source = fs.readFileSync(filePath, 'utf8');
-    const ast = parseSync(source, {
-      sourceType: 'module',
-      presets: [
-        ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-      ],
-    });
-
-    for (const node of ast?.program.body as t.Statement[]) {
-      let declarations: t.VariableDeclarator[] = [];
-      if (t.isVariableDeclaration(node)) {
-        declarations = node.declarations;
-      } else if (
-        t.isExportNamedDeclaration(node) &&
-        node.declaration &&
-        t.isVariableDeclaration(node.declaration)
-      ) {
-        declarations = node.declaration.declarations;
-      }
-
-      for (const decl of declarations) {
-        if (
-          t.isVariableDeclarator(decl) &&
-          t.isIdentifier(decl.id) &&
-          t.isCallExpression(decl.init) &&
-          t.isMemberExpression(decl.init.callee) &&
-          t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
-          t.isIdentifier(decl.init.callee.property, { name: 'defineTokens' }) &&
-          t.isObjectExpression(decl.init.arguments[0])
-        ) {
-          const varName = decl.id.name;
-          const obj = objectExpressionToObject(
-            decl.init.arguments[0],
-            constTable,
-            keyframesHashTable,
-            viewTransitionHashTable,
-            tokensTableLocal,
-          );
-          tokensTableLocal[varName] = obj;
-          defineTokensObjectTableLocal[varName] = obj;
-        }
-      }
-    }
-  }
-
-  return { tokensTableLocal, defineTokensObjectTableLocal };
-}
-
-function isCSSDefineFile(filePath: string, target: string): boolean {
-  if (fs.statSync(filePath).isDirectory()) return false;
-  const code = fs.readFileSync(filePath, 'utf8');
-
-  let ast;
-  try {
-    ast = parseSync(code, {
-      sourceType: 'module',
-      presets: [
-        ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-      ],
-    }) as t.File;
-  } catch (err) {
-    console.log(err);
-    return false;
-  }
-
-  let found = false;
-
-  traverse(ast, {
-    CallExpression(path) {
-      const callee = path.node.callee;
-
-      if (
-        callee.type === 'MemberExpression' &&
-        callee.object.type === 'Identifier' &&
-        callee.object.name === 'css' &&
-        callee.property.type === 'Identifier' &&
-        callee.property.name === target
-      ) {
-        found = true;
-        path.stop();
-      }
-    },
-  });
-
-  return found;
-}
-
 export default function loader(this: LoaderContext<unknown>, source: string) {
   const callback = this.async();
-  const useClientDirective = /^\s*['"]use client['"]/;
-
-  if (useClientDirective.test(source)) {
-    callback(null, source);
-    return;
-  }
 
   this.clearDependencies();
   this.addDependency(this.resourcePath);
 
-  constTable = scanForDefineConsts.call(this);
+  tables.constTable = scanForDefineConsts((path) => this.addDependency(path));
 
   const { keyframesHashTableLocal, keyframesObjectTableLocal } =
-    scanForKeyframes.call(this);
-  keyframesHashTable = keyframesHashTableLocal;
-  keyframesObjectTable = keyframesObjectTableLocal;
+    scanForKeyframes((path) => this.addDependency(path));
+  tables.keyframesHashTable = keyframesHashTableLocal;
+  tables.keyframesObjectTable = keyframesObjectTableLocal;
 
   const { viewTransitionHashTableLocal, viewTransitionObjectTableLocal } =
-    scanForViewTransition.call(this);
-  viewTransitionHashTable = viewTransitionHashTableLocal;
-  viewTransitionObjectTable = viewTransitionObjectTableLocal;
+    scanForViewTransition((path) => this.addDependency(path));
+  tables.viewTransitionHashTable = viewTransitionHashTableLocal;
+  tables.viewTransitionObjectTable = viewTransitionObjectTableLocal;
 
   const { tokensTableLocal, defineTokensObjectTableLocal } =
-    scanForDefineTokens.call(this);
+    scanForDefineTokens((path) => this.addDependency(path));
 
-  tokensTable = tokensTableLocal;
-  defineTokensObjectTable = defineTokensObjectTableLocal;
+  tables.tokensTable = tokensTableLocal;
+  tables.defineTokensObjectTable = defineTokensObjectTableLocal;
 
   const extractedObjects: CSSObject[] = [];
   let ast;
   try {
     ast = parseSync(source, {
-      sourceType: 'module',
-      presets: [
-        ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-      ],
-    }) as t.File;
+      syntax: 'typescript',
+      tsx: true,
+      target: 'es2022',
+    });
   } catch (err) {
     console.log(err);
     callback(null, source);
@@ -715,43 +66,38 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   }
 
   const localConsts = collectLocalConsts(ast);
-  Object.assign(constTable, localConsts);
+  Object.assign(tables.constTable, localConsts);
 
-  const pluginAst: PluginObj = {
-    visitor: {
-      CallExpression(path) {
-        const callee = path.node.callee;
+  let hasCssCreate = false;
+
+  traverse(ast, {
+    CallExpression({ node }) {
+      const callee = node.callee;
+      if (
+        t.isMemberExpression(callee) &&
+        t.isIdentifier(callee.object, { name: 'css' }) &&
+        t.isIdentifier(callee.property)
+      ) {
+        const args = node.arguments;
         if (
-          t.isMemberExpression(callee) &&
-          t.isIdentifier(callee.object, { name: 'css' }) &&
-          t.isIdentifier(callee.property)
+          callee.property.value === 'create' &&
+          args.length === 1 &&
+          t.isObjectExpression(args[0].expression)
         ) {
-          const args = path.node.arguments;
-          if (
-            callee.property.name === 'create' &&
-            args.length === 1 &&
-            t.isObjectExpression(args[0])
-          ) {
-            const obj = objectExpressionToObject(
-              args[0],
-              constTable,
-              keyframesHashTable,
-              viewTransitionHashTable,
-              tokensTable,
-            );
-            if (obj) {
-              extractedObjects.push(obj);
-            }
+          hasCssCreate = true;
+          const obj = objectExpressionToObject(
+            args[0].expression as ObjectExpression,
+            tables.constTable,
+            tables.keyframesHashTable,
+            tables.viewTransitionHashTable,
+            tables.tokensTable,
+          );
+          if (obj) {
+            extractedObjects.push(obj);
           }
         }
-      },
+      }
     },
-  };
-
-  transformFromAstSync(ast, source, {
-    code: false,
-    plugins: [pluginAst],
-    configFile: false,
   });
 
   const fileStyles: FileStyles = {};
@@ -767,8 +113,8 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     }
   }
 
-  if (Object.keys(keyframesObjectTable).length > 0) {
-    fileStyles.keyframeStyles = Object.entries(keyframesObjectTable)
+  if (Object.keys(tables.keyframesObjectTable).length > 0) {
+    fileStyles.keyframeStyles = Object.entries(tables.keyframesObjectTable)
       .map(
         ([hash, obj]) =>
           transpile({ [`@keyframes kf-${hash}`]: obj }, undefined, '--global')
@@ -777,8 +123,10 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
       .join('\n');
   }
 
-  if (Object.keys(viewTransitionObjectTable).length > 0) {
-    fileStyles.viewTransitionStyles = Object.entries(viewTransitionObjectTable)
+  if (Object.keys(tables.viewTransitionObjectTable).length > 0) {
+    fileStyles.viewTransitionStyles = Object.entries(
+      tables.viewTransitionObjectTable,
+    )
       .map(
         ([hash, obj]) =>
           transpile(
@@ -797,8 +145,8 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
       .join('\n');
   }
 
-  if (Object.keys(defineTokensObjectTable).length > 0) {
-    fileStyles.tokenStyles = Object.values(defineTokensObjectTable)
+  if (Object.keys(tables.defineTokensObjectTable).length > 0) {
+    fileStyles.tokenStyles = Object.values(tables.defineTokensObjectTable)
       .map(
         (obj) =>
           transpile(createTokens(obj as CreateTokens), undefined, '--global')
@@ -869,5 +217,82 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     }
   }
 
-  callback(null, source + postfix);
+  let css = '';
+  css = fs.readFileSync(
+    path.resolve(__dirname, '../zero-virtual.css'),
+    'utf-8',
+  );
+
+  function generateOrderedCSS(styles: typeof fileStyles): string {
+    const sections: string[] = [];
+
+    if (styles.keyframeStyles?.trim()) {
+      if (!css.includes(styles.keyframeStyles))
+        sections.push(styles.keyframeStyles);
+    }
+
+    if (styles.viewTransitionStyles?.trim()) {
+      if (!css.includes(styles.viewTransitionStyles))
+        sections.push(styles.viewTransitionStyles);
+    }
+
+    if (styles.tokenStyles?.trim()) {
+      if (!css.includes(styles.tokenStyles)) sections.push(styles.tokenStyles);
+    }
+
+    if (styles.baseStyles?.trim()) {
+      if (!css.includes(styles.baseStyles)) sections.push(styles.baseStyles);
+    }
+
+    return sections.join('\n');
+  }
+
+  const orderedCSS = generateOrderedCSS(fileStyles);
+  const relativeId = path.relative(process.cwd(), this.resourcePath);
+  const hmrCode = `
+    if (module.hot) {
+      module.hot.accept(${virtualCssRequest});
+
+      const styleId = "plumeria-hmr";
+      const fileKey = ${JSON.stringify(relativeId)};
+      
+      let styleEl = document.getElementById(styleId);
+      
+      if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = styleId;
+        styleEl.setAttribute("data-plumeria-hmr", "");
+        document.head.prepend(styleEl);
+        styleEl.__plumeriaStyles = {};
+      }
+
+      styleEl.__plumeriaStyles[fileKey] = ${JSON.stringify(orderedCSS)};
+      styleEl.textContent = Object.values(styleEl.__plumeriaStyles).join('\\n');
+
+      module.hot.dispose(() => {
+        if (styleEl && styleEl.__plumeriaStyles) {
+          delete styleEl.__plumeriaStyles[fileKey];
+          styleEl.textContent = Object.values(styleEl.__plumeriaStyles).join('\\n');
+          
+          if (Object.keys(styleEl.__plumeriaStyles).length === 0 && styleEl.parentNode) {
+            styleEl.parentNode.removeChild(styleEl);
+          }
+        }
+      });
+    }
+  `;
+
+  if (hasCssCreate) {
+    callback(null, source + hmrCode);
+    return;
+  }
+
+  const useClientDirective = /^\s*['"]use client['"]/;
+
+  if (!useClientDirective.test(source)) {
+    callback(null, source + postfix);
+    return;
+  }
+
+  callback(null, source);
 }
