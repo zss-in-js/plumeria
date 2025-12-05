@@ -10,6 +10,7 @@ module.exports = {
     '<rootDir>/packages/core/__tests__',
     '<rootDir>/packages/eslint-plugin/__tests__',
     '<rootDir>/packages/next-plugin/__tests__',
+    '<rootDir>/packages/utils/__tests__',
     '<rootDir>/packages/webpack-plugin/__tests__',
   ],
   preset: 'ts-jest',
@@ -24,6 +25,7 @@ module.exports = {
     '<rootDir>/packages/core/dist/',
     '<rootDir>/packages/eslint-plugin/dist/',
     '<rootDir>/packages/next-plugin/dist/',
+    '<rootDir>/packages/utils/dist/',
     '<rootDir>/packages/webpack-plugin/dist/',
   ],
 };
