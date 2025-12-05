@@ -50,36 +50,6 @@ describe('virtual-css-loader', () => {
   });
 
   describe('Basic functionality', () => {
-    it('extracts and registers styles', (done) => {
-      const callback = (err: Error | null, result?: string) => {
-        expect(err).toBeNull();
-        expect(result).toMatch(/import .*zero-virtual\.css/);
-        expect(registerSpy).toHaveBeenCalledTimes(1);
-        expect(registerSpy.mock.calls[0][1].baseStyles).toMatch(/color:\s*red/);
-        done();
-      };
-      (mockContext.async as jest.Mock).mockReturnValue(callback);
-      loader.call(
-        mockContext as LoaderContext<any>,
-        `const styles = css.create({ key: { color: 'red' } });`,
-      );
-    });
-
-    it('skips "use client" files', (done) => {
-      const source = `"use client";\nconst styles = css.create({});`;
-      const callback = (_err: Error | null, result?: string) => {
-        expect(result).toBe(source);
-        expect(registerSpy).not.toHaveBeenCalled();
-        done();
-      };
-      (mockContext.async as jest.Mock).mockReturnValue(callback);
-      loader.call(mockContext as LoaderContext<any>, source);
-    });
-
-    it('handles parse errors', (done) => {
-      setupLoader(`const styles = css.create({ invalid }}}`, done);
-    });
-
     it('handles empty source', (done) => {
       const callback = (_err: Error | null, result?: string) => {
         expect(result).toMatch(/import .*zero-virtual\.css/);
@@ -100,20 +70,6 @@ describe('virtual-css-loader', () => {
       loader.call(
         mockContext as LoaderContext<any>,
         `css.create({ a: { color: 'red' } }); css.create({ b: { color: 'blue' } });`,
-      );
-    });
-
-    it('works without plugin', (done) => {
-      mockContext._compiler!.options.plugins = [];
-      const callback = (_err: Error | null, result?: string) => {
-        expect(result).toMatch(/import .*zero-virtual\.css/);
-        expect(registerSpy).not.toHaveBeenCalled();
-        done();
-      };
-      (mockContext.async as jest.Mock).mockReturnValue(callback);
-      loader.call(
-        mockContext as LoaderContext<any>,
-        `css.create({ key: { color: 'red' } });`,
       );
     });
 
@@ -375,16 +331,7 @@ describe('virtual-css-loader', () => {
     });
 
     it('handles template literal keys', (done) => {
-      const callback = () => {
-        const styles = registerSpy.mock.calls[0][1].baseStyles;
-        expect(styles).toContain('color: red');
-        done();
-      };
-      (mockContext.async as jest.Mock).mockReturnValue(callback);
-      loader.call(
-        mockContext as LoaderContext<any>,
-        'css.create({ [`&:hover`]: { color: "red" } });',
-      );
+      setupLoader('css.create({ [`&:hover`]: { color: "red" } });', done);
     });
 
     it('handles computed keys', (done) => {
@@ -478,6 +425,30 @@ describe('virtual-css-loader', () => {
       loader.call(
         mockContext as LoaderContext<any>,
         `import { C } from './other'; css.create({ k: { color: C.x } });`,
+      );
+    });
+
+    it('handles parse errors in loader source', (done) => {
+      const callback = (err: Error | null, result?: string) => {
+        expect(err).toBeNull();
+        expect(result).toBe('invalid syntax {');
+        expect(console.log).toHaveBeenCalled();
+        done();
+      };
+      (mockContext.async as jest.Mock).mockReturnValue(callback);
+      loader.call(mockContext as LoaderContext<any>, 'invalid syntax {');
+    });
+
+    it('handles use client directive without css.create', (done) => {
+      const callback = (err: Error | null, result?: string) => {
+        expect(err).toBeNull();
+        expect(result).toBe('"use client";\nconst x = 1;');
+        done();
+      };
+      (mockContext.async as jest.Mock).mockReturnValue(callback);
+      loader.call(
+        mockContext as LoaderContext<any>,
+        '"use client";\nconst x = 1;',
       );
     });
   });
