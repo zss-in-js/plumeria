@@ -1,10 +1,9 @@
-import Link from 'next/link';
 import { css } from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import { ps } from 'lib/pseudos';
 import { Plumeria } from './Plumeria';
 import { CodeBlock } from './CodeBlock';
-import { Button } from './Button';
+import { ButtonLink } from './ButtonLink';
 
 const styles = css.create({
   container: {
@@ -93,7 +92,7 @@ const styles = css.create({
     flex: 1,
     justifyContent: 'flex-end',
     width: '100%',
-    maxWidth: '500px',
+    maxWidth: '600px',
     [breakpoints.md]: {
       justifyContent: 'center',
       maxWidth: '100%',
@@ -198,23 +197,19 @@ export const HomeComponent = () => {
         <section className={css.props(styles.heroSection)}>
           <div className={css.props(styles.heroContent)}>
             <Plumeria />
-            <h1 className={css.props(styles.mainHeadline)}>Atomic CSS-in-JS</h1>
+            <h2 className={css.props(styles.mainHeadline)}>Atomic CSS-in-JS</h2>
             <p className={css.props(styles.subHeadline)}>
               Zero runtime overhead. Full type safety.
               <br />
               Build-time compilation for ultimate performance.
             </p>
             <div className={css.props(styles.buttonGroup)}>
-              <Link href="/docs">
-                <Button variant="gradient" size="medium">
-                  Get Started
-                </Button>
-              </Link>
-              <Link href="/docs/getting-started/installation">
-                <Button variant="metallic" size="medium">
-                  Installation
-                </Button>
-              </Link>
+              <ButtonLink href="/docs" variant="gradient" size="medium">
+                Get Started
+              </ButtonLink>
+              <ButtonLink href="/docs/getting-started/installation" variant="metallic" size="medium">
+                Installation
+              </ButtonLink>
             </div>
           </div>
 
