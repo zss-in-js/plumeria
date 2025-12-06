@@ -28,8 +28,8 @@ import {
   traverse,
 } from '@plumeria/utils';
 
-const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx', 'astro', 'vue', 'svelte'];
-const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx|astro|vue|svelte)$/;
+const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx', 'vue', 'svelte'];
+const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx|vue|svelte)$/;
 
 export interface PluginOptions {
   include?: FilterPattern;
@@ -56,6 +56,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
     name: '@plumeria/vite-plugin',
     apply: 'serve',
     enforce: 'pre', // Process before transpiling
+
     config: ({ build = {} }) => ({
       build: {
         ...build,
@@ -102,7 +103,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       if (ctx.modules.length) {
         return ctx.modules;
       }
-
       // If a dependent file (such as a token definition) is changed,
       // identify the files that depend on it and update them.
       const affected = targets.filter((target) =>
@@ -122,6 +122,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
       // excluding node_modules
       if (id.includes('node_modules')) {
+        return null;
+      }
+
+      // excluding virtual modules (e.g. ?astro&type=style)
+      if (url.includes('?')) {
         return null;
       }
 
@@ -166,48 +171,57 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
       const extractedObjects: CSSObject[] = [];
       let ast;
-      try {
-        ast = parseSync(source, {
-          syntax: 'typescript',
-          tsx: true,
-          target: 'es2022',
-        });
-      } catch (err) {
-        console.warn(`Zero Styled: Parse error in ${id}`, err);
-        return null;
-      }
 
-      const localConsts = collectLocalConsts(ast);
-      Object.assign(tables.constTable, localConsts);
+      const scriptContents = getScriptContents(source, id);
 
-      traverse(ast, {
-        CallExpression({ node }) {
-          const callee = node.callee;
-          if (
-            t.isMemberExpression(callee) &&
-            t.isIdentifier(callee.object, { name: 'css' }) &&
-            t.isIdentifier(callee.property)
-          ) {
-            const args = node.arguments;
+      for (const content of scriptContents) {
+        if (!content.trim()) {
+          continue;
+        }
+
+        try {
+          ast = parseSync(content, {
+            syntax: 'typescript',
+            tsx: true,
+            target: 'es2022',
+          });
+        } catch (err) {
+          console.warn(`Zero Styled: Parse error in ${id}`, err);
+          continue;
+        }
+
+        const localConsts = collectLocalConsts(ast);
+        Object.assign(tables.constTable, localConsts);
+
+        traverse(ast, {
+          CallExpression({ node }) {
+            const callee = node.callee;
             if (
-              callee.property.value === 'create' &&
-              args.length === 1 &&
-              t.isObjectExpression(args[0].expression)
+              t.isMemberExpression(callee) &&
+              t.isIdentifier(callee.object, { name: 'css' }) &&
+              t.isIdentifier(callee.property)
             ) {
-              const obj = objectExpressionToObject(
-                args[0].expression as ObjectExpression,
-                tables.constTable,
-                tables.keyframesHashTable,
-                tables.viewTransitionHashTable,
-                tables.tokensTable,
-              );
-              if (obj) {
-                extractedObjects.push(obj);
+              const args = node.arguments;
+              if (
+                callee.property.value === 'create' &&
+                args.length === 1 &&
+                t.isObjectExpression(args[0].expression)
+              ) {
+                const obj = objectExpressionToObject(
+                  args[0].expression as ObjectExpression,
+                  tables.constTable,
+                  tables.keyframesHashTable,
+                  tables.viewTransitionHashTable,
+                  tables.tokensTable,
+                );
+                if (obj) {
+                  extractedObjects.push(obj);
+                }
               }
             }
-          }
-        },
-      });
+          },
+        });
+      }
 
       // --- CSS Generation ---
       const fileStyles: FileStyles = {};
@@ -324,9 +338,32 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
       //  Insert import source
       return {
-        code: `${source}\nimport ${JSON.stringify(cssFilename)};`,
+        code: injectImport(source, id, cssFilename),
         map: null,
       };
     },
   };
+}
+
+function getScriptContents(code: string, id: string): string[] {
+  if (id.endsWith('.vue') || id.endsWith('.svelte')) {
+    const matches = code.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g);
+    return Array.from(matches).map((match) => match[1]);
+  }
+  return [code];
+}
+
+function injectImport(code: string, id: string, importPath: string): string {
+  const importStmt = `\nimport ${JSON.stringify(importPath)};`;
+
+  if (id.endsWith('.vue') || id.endsWith('.svelte')) {
+    return code.replace(
+      /(<script[^>]*>)([\s\S]*?)(<\/script>)/,
+      (_match, open, content, close) => {
+        return `${open}${content}${importStmt}\n${close}`;
+      },
+    );
+  }
+
+  return `${code}${importStmt}`;
 }
