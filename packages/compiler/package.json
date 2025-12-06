@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@rust-gear/glob": "^0.2.6",
-    "@swc/core": "1.15.2",
+    "@swc/core": "catalog:",
     "find-up": "^8.0.0",
     "lightningcss": "^1.30.2",
     "postcss": "^8.5.6",
