@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "next": "^16.0.3",
-    "webpack": "^5.101.0"
+    "webpack": "catalog:"
   },
   "publishConfig": {
     "access": "public",
