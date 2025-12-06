@@ -239,9 +239,9 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     if (styles.tokenStyles?.trim()) {
       if (!css.includes(styles.tokenStyles)) sections.push(styles.tokenStyles);
     }
-
+    // Client Consideration
     if (styles.baseStyles?.trim()) {
-      if (!css.includes(styles.baseStyles)) sections.push(styles.baseStyles);
+      sections.push(styles.baseStyles);
     }
 
     return sections.join('\n');
