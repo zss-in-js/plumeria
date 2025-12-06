@@ -6,7 +6,8 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import Link from 'next/link';
 
 It is the plumeria [`@plumeria/next-plugin` package](https://www.npmjs.com/package/@plumeria/next-plugin)  
-Server Component is compiling (HMR) use <Link href="/docs/integration/webpack">@plumeria/webpack-plugin</Link>
+AST parse compiles plumeria styles into CSS (HMR) use:  
+[@plumeria/turbopack-loader](/docs/integration/turbopack) and [@plumeria/webpack-plugin](/docs/integration/webpack)
 
 ## Installation
 <Tabs items={['npm',  'yarn', 'pnpm']}>
@@ -33,10 +34,11 @@ import type { NextConfig } from 'next';
 export declare function withPlumeria(nextConfig?: NextConfig): NextConfig;
 ```
 
-## API
+## API 
+If you do not add `turbopack` to the end of the path, it will be `webpack`.
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
-import { withPlumeria } from "@plumeria/next-plugin";
+import { withPlumeria } from "@plumeria/next-plugin/turboopack";
 
 const nextConfig: NextConfig = {
   /* config options here */
