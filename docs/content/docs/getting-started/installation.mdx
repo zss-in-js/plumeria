@@ -106,6 +106,7 @@ import "@plumeria/core/stylesheet.css";
 </Step>
 <Step>
 ## Integration
+Plugin For HMR.
 </Step>
 
 ## Next.js
@@ -129,10 +130,10 @@ import "@plumeria/core/stylesheet.css";
   </Tab>
 </Tabs>
 
-Server components style Inject virtual CSS imports for HMR.
-```ts title="next.config.ts"
+## Turbopack mode
+```ts title="Turbopack"
 import type { NextConfig } from "next";
-import { withPlumeria } from "@plumeria/next-plugin";
+import { withPlumeria } from "@plumeria/next-plugin/turbopack"; // [!code ++]
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -141,17 +142,20 @@ const nextConfig: NextConfig = {
 export default withPlumeria(nextConfig);
 ```
 
-If you are using next@16 or higher, continue using `next dev --webpack`.
-```ts
+## Webpack mode
+```ts title="next.config.ts"
+import type { NextConfig } from "next";
+import { withPlumeria } from "@plumeria/next-plugin"; // [!code ++]
+
 const nextConfig: NextConfig = {
   turbopack: {}
 };
 
-export default withPlumeria(nextConfig);
+export default withPlumeria(nextConfig); 
 ```
 
 ```json
-"dev": "css & next dev --webpack",
+"dev": "css & next dev --webpack", // [!code ++]
 ```
 ---
 
@@ -174,14 +178,14 @@ export default withPlumeria(nextConfig);
     ```
   </Tab>
 </Tabs>
-Externalizes fs with plugins.
+Place it before any other plugins.
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import plumeria from '@plumeria/vite';
+import { plumeria } from '@plumeria/vite'; // [!code ++]
 
 export default defineConfig({
-  plugins: [react(), plumeria()],  // [!code ++]
+  plugins: [plumeria(), react()],
 });
 
 ```
