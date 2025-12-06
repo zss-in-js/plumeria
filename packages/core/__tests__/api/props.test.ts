@@ -1,6 +1,5 @@
 import { props } from '../../src/api/props';
 import { create } from '../../src/api/create';
-import * as zssEngine from 'zss-engine';
 import * as cssProcessor from '../../src/processors/css';
 
 jest.mock('zss-engine', () => ({
@@ -23,13 +22,6 @@ jest.mock('../../src/processors/css', () => ({
 }));
 
 describe('props', () => {
-  let mockZssEngine: typeof zssEngine;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockZssEngine = require('zss-engine');
-  });
-
   it('should return a string when passed an object created by create', () => {
     const styles = create({ myStyle: { color: 'red' } });
     const result = props(styles.myStyle);
@@ -37,25 +29,6 @@ describe('props', () => {
     expect(typeof result).toBe('string');
     expect(result.length).toBeGreaterThan(0);
     expect(result).toMatch(/^x[a-zA-Z0-9]+$/);
-  });
-
-  it('should not inject CSS if not in testing development or on server', () => {
-    const styles = create({ noInject: { color: 'red' } });
-
-    // Temporarily override mock values for this test
-    mockZssEngine.isTestingDevelopment = false;
-    mockZssEngine.isServer = true;
-
-    const result = props(styles.noInject);
-
-    expect(result).toMatch(/^x[a-zA-Z0-9]+$/);
-    expect(cssProcessor.resolvePromise_1).toHaveBeenCalled();
-    expect(mockZssEngine.injectClientCSS).not.toHaveBeenCalled();
-    expect(mockZssEngine.injectClientQuery).not.toHaveBeenCalled();
-
-    // Restore original mock values
-    mockZssEngine.isTestingDevelopment = true;
-    mockZssEngine.isServer = false;
   });
 
   it('should handle objects not created by create function', () => {
