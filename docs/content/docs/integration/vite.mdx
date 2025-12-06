@@ -5,7 +5,7 @@ description:  'Learn more about @plumeria/vite-plugin.'
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 It is the plumeria [vite-plugin `@plumeria/vite` package](https://www.npmjs.com/package/@plumeria/vite)  
-Vite runs on the client, but Plumeria uses Node.js, so this is a plugin to prevent Node.js from being mixed into Vite.
+AST parse compiles plumeria styles into CSS (HMR)
 
 ## Installation
 <Tabs items={['npm',  'yarn', 'pnpm']}>
@@ -29,12 +29,12 @@ pnpm i -D @plumeria/vite-plugin
 ## Overview
 ```ts title="TypeScript"
 import type { Plugin } from 'vite';
-export default function plumeria(): Plugin;
+export function plumeria(): Plugin;
 ```
 
 ## API
 ```ts title="vite.config.ts"
-import plumeria from '@plumeria/vite';
+import { plumeria } from '@plumeria/vite';
 
 export default defineConfig({
   plugins: [plumeria()],
