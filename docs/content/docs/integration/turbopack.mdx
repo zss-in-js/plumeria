@@ -1,0 +1,57 @@
+---
+title: 'Turbopack'
+description:  'Learn more about @plumeria/turbopack-loader.'
+---
+
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+It is the plumeria [`@plumeria/turbopack-loader` package](https://www.npmjs.com/package/@plumeria/turbopack-loader)  
+AST parse compiles plumeria styles into CSS (HMR)
+
+## Installation
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i --save-dev @plumeria/turbopack-loader
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/turbopack-loader
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i --save-dev @plumeria/turbopack-loader
+```
+</Tab>
+</Tabs>
+
+### Configuration in Next.js project
+If you use Plumeria with Next.js, customize the `turbopack` in `next.config.ts`:
+```ts title="next.config.ts"
+import type {
+  NextConfig,
+  TurbopackLoaderItem,
+} from 'next/dist/server/config-shared';
+
+const reactLoaders: TurbopackLoaderItem[] = [
+  {
+    loader: '@plumeria/turbopack-loader',
+    options: {},
+  },
+];
+
+const nextConfig: NextConfig = {
+  turbopack: {
+    rules: {
+      '*.${ts,tsx,js,jsx}': {
+        loaders: reactLoaders,
+      },
+    },
+  },
+};
+
+export default nextConfig;
+```    
