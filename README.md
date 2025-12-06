@@ -50,12 +50,14 @@ plumeria/
 ├── docs/               → Documentation website
 ├── examples/           → Example apps and integrations
 └── packages/
-    ├── compiler/       → CLI for Rust-based static extraction
-    ├── core/           → API built on the zss-engine
-    ├── eslint-plugin/  → Plugin for ESLint
-    ├── next-plugin/    → Plugin for Integration with Next.js
-    ├── vite-plugin/    → Plugin for integration with Vite
-    └── webpack-plugin/ → Plugin for integration with Webpack
+    ├── compiler/          → CLI for swc-based static extraction
+    ├── core/              → API built on the zss-engine
+    ├── eslint-plugin/     → Plugin for ESLint
+    ├── next-plugin/       → Plugin for Integration with Next.js
+    ├── utils/             → Utils  for Plugin parser and transformer
+    ├── turbopack-loader/  → Loader for Integration with Turbopack
+    ├── vite-plugin/       → Plugin for integration with Vite
+    └── webpack-plugin/    → Plugin for integration with Webpack
 
 ```
 
