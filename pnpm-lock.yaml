@@ -4,6 +4,18 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@swc/core':
+      specifier: 1.15.2
+      version: 1.15.2
+    webpack:
+      specifier: 5.101.0
+      version: 5.101.0
+    zss-engine:
+      specifier: 1.0.0
+      version: 1.0.0
+
 importers:
 
   .:
@@ -441,7 +453,7 @@ importers:
         specifier: ^0.2.6
         version: 0.2.6
       '@swc/core':
-        specifier: 1.15.2
+        specifier: 'catalog:'
         version: 1.15.2(@swc/helpers@0.5.17)
       find-up:
         specifier: ^8.0.0
@@ -462,8 +474,8 @@ importers:
   packages/core:
     dependencies:
       zss-engine:
-        specifier: 0.2.102
-        version: 0.2.102
+        specifier: 'catalog:'
+        version: 1.0.0
 
   packages/eslint-plugin:
     devDependencies:
@@ -490,8 +502,8 @@ importers:
         specifier: ^16.0.3
         version: 16.0.7(@babel/core@7.28.5)(@playwright/test@1.57.0)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       webpack:
-        specifier: ^5.101.0
-        version: 5.103.0
+        specifier: 'catalog:'
+        version: 5.101.0
 
   packages/turbopack-loader:
     dependencies:
@@ -500,24 +512,24 @@ importers:
         version: link:../utils
     devDependencies:
       '@swc/core':
-        specifier: 1.15.2
+        specifier: 'catalog:'
         version: 1.15.2(@swc/helpers@0.5.17)
       webpack:
-        specifier: ^5.101.0
-        version: 5.103.0(@swc/core@1.15.2(@swc/helpers@0.5.17))
+        specifier: 'catalog:'
+        version: 5.101.0(@swc/core@1.15.2(@swc/helpers@0.5.17))
       zss-engine:
-        specifier: ^0.2.102
-        version: 0.2.102
+        specifier: 'catalog:'
+        version: 1.0.0
 
   packages/utils:
     dependencies:
       '@swc/core':
-        specifier: 1.15.2
+        specifier: 'catalog:'
         version: 1.15.2(@swc/helpers@0.5.17)
     devDependencies:
       zss-engine:
-        specifier: ^0.2.102
-        version: 0.2.102
+        specifier: 'catalog:'
+        version: 1.0.0
 
   packages/vite-plugin:
     dependencies:
@@ -526,14 +538,14 @@ importers:
         version: link:../utils
     devDependencies:
       '@swc/core':
-        specifier: 1.15.2
+        specifier: 'catalog:'
         version: 1.15.2(@swc/helpers@0.5.17)
       vite:
         specifier: ^7.1.1
         version: 7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)
       zss-engine:
-        specifier: ^0.2.102
-        version: 0.2.102
+        specifier: 'catalog:'
+        version: 1.0.0
 
   packages/webpack-plugin:
     dependencies:
@@ -542,14 +554,14 @@ importers:
         version: link:../utils
     devDependencies:
       '@swc/core':
-        specifier: 1.15.2
+        specifier: 'catalog:'
         version: 1.15.2(@swc/helpers@0.5.17)
       webpack:
-        specifier: ^5.101.0
-        version: 5.103.0(@swc/core@1.15.2(@swc/helpers@0.5.17))
+        specifier: 'catalog:'
+        version: 5.101.0(@swc/core@1.15.2(@swc/helpers@0.5.17))
       zss-engine:
-        specifier: ^0.2.102
-        version: 0.2.102
+        specifier: 'catalog:'
+        version: 1.0.0
 
   test-e2e/site:
     dependencies:
@@ -7776,8 +7788,8 @@ packages:
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
 
-  webpack@5.103.0:
-    resolution: {integrity: sha512-HU1JOuV1OavsZ+mfigY0j8d1TgQgbZ6M+J75zDkpEAwYeXjWSqrGJtgnPblJjd/mAyTNQ7ygw0MiKOn6etz8yw==}
+  webpack@5.101.0:
+    resolution: {integrity: sha512-B4t+nJqytPeuZlHuIKTbalhljIFXeNRqrUGAQgTGlfOl2lXXKXw+yZu6bicycP+PUlM44CxBjCFD6aciKFT3LQ==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     peerDependencies:
@@ -7917,8 +7929,8 @@ packages:
   zod@4.1.13:
     resolution: {integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==}
 
-  zss-engine@0.2.102:
-    resolution: {integrity: sha512-jH7yI8qkvYqWopKKVabYYl5C215m5cxRS/Me8AWp1RLHJqEUCI/yfChgr23lYNLPIZpZQUqdol39iPRWL4lFqA==}
+  zss-engine@1.0.0:
+    resolution: {integrity: sha512-E7b2LY+5puGFG4+R6AqqmaBOwkMxCR26uQulIxgQJCeg36NPv+tmpmYm+/QkDfWFdwJ3ZyXXx8qaJs/dLgzsnA==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -10383,7 +10395,7 @@ snapshots:
 
   '@types/fontkit@2.0.8':
     dependencies:
-      '@types/node': 24.10.1
+      '@types/node': 22.19.1
 
   '@types/graceful-fs@4.1.9':
     dependencies:
@@ -10437,6 +10449,7 @@ snapshots:
   '@types/node@24.10.1':
     dependencies:
       undici-types: 7.16.0
+    optional: true
 
   '@types/react-dom@19.2.3(@types/react@19.2.7)':
     dependencies:
@@ -12139,7 +12152,7 @@ snapshots:
       '@typescript-eslint/parser': 8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2)
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.1(jiti@2.6.1))
@@ -12159,7 +12172,7 @@ snapshots:
       '@typescript-eslint/parser': 8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2)
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.1(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.1(jiti@2.6.1))
@@ -12179,7 +12192,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
@@ -12194,14 +12207,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2)
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -12216,7 +12229,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -16070,25 +16083,25 @@ snapshots:
       solid-js: 1.9.10
       solid-use: 0.9.1(solid-js@1.9.10)
 
-  terser-webpack-plugin@5.3.14(@swc/core@1.15.2(@swc/helpers@0.5.17))(webpack@5.103.0(@swc/core@1.15.2(@swc/helpers@0.5.17))):
+  terser-webpack-plugin@5.3.14(@swc/core@1.15.2(@swc/helpers@0.5.17))(webpack@5.101.0(@swc/core@1.15.2(@swc/helpers@0.5.17))):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       serialize-javascript: 6.0.2
       terser: 5.44.1
-      webpack: 5.103.0(@swc/core@1.15.2(@swc/helpers@0.5.17))
+      webpack: 5.101.0(@swc/core@1.15.2(@swc/helpers@0.5.17))
     optionalDependencies:
       '@swc/core': 1.15.2(@swc/helpers@0.5.17)
 
-  terser-webpack-plugin@5.3.14(webpack@5.103.0):
+  terser-webpack-plugin@5.3.14(webpack@5.101.0):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       serialize-javascript: 6.0.2
       terser: 5.44.1
-      webpack: 5.103.0
+      webpack: 5.101.0
 
   terser@5.44.1:
     dependencies:
@@ -16346,7 +16359,8 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici-types@7.16.0: {}
+  undici-types@7.16.0:
+    optional: true
 
   unenv@1.10.0:
     dependencies:
@@ -16830,7 +16844,7 @@ snapshots:
 
   webpack-virtual-modules@0.6.2: {}
 
-  webpack@5.103.0:
+  webpack@5.101.0:
     dependencies:
       '@types/eslint-scope': 3.7.7
       '@types/estree': 1.0.8
@@ -16854,7 +16868,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.0
-      terser-webpack-plugin: 5.3.14(webpack@5.103.0)
+      terser-webpack-plugin: 5.3.14(webpack@5.101.0)
       watchpack: 2.4.4
       webpack-sources: 3.3.3
     transitivePeerDependencies:
@@ -16862,7 +16876,7 @@ snapshots:
       - esbuild
       - uglify-js
 
-  webpack@5.103.0(@swc/core@1.15.2(@swc/helpers@0.5.17)):
+  webpack@5.101.0(@swc/core@1.15.2(@swc/helpers@0.5.17)):
     dependencies:
       '@types/eslint-scope': 3.7.7
       '@types/estree': 1.0.8
@@ -16886,7 +16900,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.0
-      terser-webpack-plugin: 5.3.14(@swc/core@1.15.2(@swc/helpers@0.5.17))(webpack@5.103.0(@swc/core@1.15.2(@swc/helpers@0.5.17)))
+      terser-webpack-plugin: 5.3.14(@swc/core@1.15.2(@swc/helpers@0.5.17))(webpack@5.101.0(@swc/core@1.15.2(@swc/helpers@0.5.17)))
       watchpack: 2.4.4
       webpack-sources: 3.3.3
     transitivePeerDependencies:
@@ -17047,7 +17061,7 @@ snapshots:
 
   zod@4.1.13: {}
 
-  zss-engine@0.2.102:
+  zss-engine@1.0.0:
     dependencies:
       csstype: 3.1.3
 
