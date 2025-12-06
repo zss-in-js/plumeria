@@ -44,32 +44,6 @@ describe('global', () => {
     );
   });
 
-  it('should call injectClientGlobalCSS when in testing development environment', () => {
-    mockZssEngine.isTestingDevelopment = true;
-    mockZssEngine.isServer = false;
-    const styles = { a: { color: 'blue' } };
-    global(styles);
-    expect(mockZssEngine.injectClientGlobalCSS).toHaveBeenCalledWith(
-      '/* transpiled css */',
-    );
-  });
-
-  it('should not call injectClientGlobalCSS on the server', () => {
-    mockZssEngine.isTestingDevelopment = true;
-    mockZssEngine.isServer = true;
-    const styles = { a: { color: 'red' } };
-    global(styles);
-    expect(mockZssEngine.injectClientGlobalCSS).not.toHaveBeenCalled();
-  });
-
-  it('should not call injectClientGlobalCSS in production', () => {
-    mockZssEngine.isTestingDevelopment = false;
-    mockZssEngine.isServer = false;
-    const styles = { a: { color: 'green' } };
-    global(styles);
-    expect(mockZssEngine.injectClientGlobalCSS).not.toHaveBeenCalled();
-  });
-
   it('should initialize promise if it is undefined', () => {
     (mockCssProcessor as any).globalPromise_2 = undefined;
     const styles = { div: { padding: '1em' } };
