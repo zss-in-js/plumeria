@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 1.0.2
+
+### Patch Changes
+
+- 6afdf44: ci: enable provenance
+
 ## 1.0.0
 
 ### Major Changes
