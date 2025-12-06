@@ -1,10 +1,5 @@
 import type { CSSHTML } from 'zss-engine';
-import {
-  transpile,
-  isServer,
-  isTestingDevelopment,
-  injectClientGlobalCSS,
-} from 'zss-engine';
+import { transpile } from 'zss-engine';
 import {
   initPromise_2,
   globalPromise_2,
@@ -16,8 +11,6 @@ function global(object: CSSHTML): void {
 
   if (typeof globalPromise_2 === 'undefined') initPromise_2();
   resolvePromise_2(styleSheet);
-
-  if (isTestingDevelopment && !isServer) injectClientGlobalCSS(styleSheet);
 }
 
 export { global };
