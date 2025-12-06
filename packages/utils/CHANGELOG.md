@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 1.0.2
+
+### Patch Changes
+
+- 862dfb6: chore: version bump
+
 ## 1.0.1
 
 ### Patch Changes
