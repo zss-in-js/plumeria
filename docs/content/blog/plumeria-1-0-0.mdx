@@ -1,0 +1,59 @@
+---
+title: 'Plumeria v1.0.0'
+description: 'Plumeria v1.0.0 introduces a new architecture with official Turbopack support. (4 min read)'
+date: '2025/12/6'
+---
+
+# Plumeria v1.0.0
+
+From this version onward, Plumeria’s core no longer performs runtime style injection.
+
+Style HMR is now handled entirely by dedicated plugins and build tools.
+The core is focused solely on describing, generating, and optimizing styles — nothing more, nothing less.
+
+This release marks the point where Plumeria's architecture and philosophy are fully defined:
+clean separation of responsibilities, plugin-first design, and zero hidden side effects.
+
+This is Plumeria’s true beginning.
+
+
+## A complete departure from babel-plugin
+We were using babel in part with webpack-plugin, but we have now all completely migrated to the most powerful library, `@swc/core`.  
+Since the version is fixed within the same project, different `swc` versions will not be included.
+
+
+## API Probability of consistency
+In the client mode of `vite` and `next.js`, variable values could be used as keys and values, but this was possible through client injection.
+Now, both next.js and vite have completely transitioned to AST analysis-based plugins. If you want to use variables, you need to specify static literal values using css.defineConsts.
+
+## NextJS
+Turbopack-loader construction is complete.
+It's ready to use.  
+It is also supported via the previous webpack-plugin, so next-plugin compatibility is maintained.
+
+
+```ts title="next.config.ts"
+import type { NextConfig } from "next";
+import { withPlumeria } from "@plumeria/next-plugin/turbopack"; // [!code ++]
+ 
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+ 
+export default withPlumeria(nextConfig);
+```
+Since the cache may be corrupted every time the next-plugin version changes, we recommend using rimraf to delete it and start it every time.
+```json title="package.json"
+  "scripts": {
+    "predev": "rimraf .next",
+    "prebuild": "rimraf .next",
+    "dev": "css & next dev",
+    "build": "css --type-check && next build",
+    "start": "next start"
+  },
+```
+
+## Vite
+
+The official vite-plugin has been born.  
+I would like to thank the authors and contributors of the open source `pigment-css` and `linaria`, which we used as references for our vite knowledge.
