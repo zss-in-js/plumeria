@@ -19,10 +19,10 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@swc/core": "1.15.2"
+    "@swc/core": "catalog:"
   },
   "devDependencies": {
-    "zss-engine": "^0.2.102"
+    "zss-engine": "catalog:"
   },
   "publishConfig": {
     "access": "public",
