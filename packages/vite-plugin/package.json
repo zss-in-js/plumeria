@@ -22,9 +22,9 @@
     "@plumeria/utils": "workspace:^"
   },
   "devDependencies": {
-    "@swc/core": "1.15.2",
+    "@swc/core": "catalog:",
     "vite": "^7.1.1",
-    "zss-engine": "^0.2.102"
+    "zss-engine": "catalog:"
   },
   "publishConfig": {
     "access": "public",
