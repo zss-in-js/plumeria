@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 1.0.3
+
+### Patch Changes
+
+- be61359: Security patch: Updated Next.js dependency to address a recently disclosed CVE
+- Updated dependencies [be61359]
+  - @plumeria/utils@1.0.3
+
 ## 1.0.2
 
 ### Patch Changes
