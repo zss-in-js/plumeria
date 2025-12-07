@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@plumeria/core": "workspace:^",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
