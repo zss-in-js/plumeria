@@ -301,15 +301,15 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
       // --- Register Virtual CSS File (Modifier Logic) ---
 
+      const baseId = id.replace(EXTENSION_PATTERN, '');
+
       // Generate a virtual file name (eg: src/App.tsx -> src/App.zero.css)
-      const cssFilename = path
-        .normalize(`${id.replace(EXTENSION_PATTERN, '')}.zero.css`)
-        .replace(/\\/g, path.posix.sep); // Windows path countermeasures
+      const cssFilename = `${baseId}.zero.css`;
 
       // Relative path from config.root
       const cssRelativePath = path
         .relative(config.root, cssFilename)
-        .replace(/\\/g, path.posix.sep);
+        .replace(/\\/g, '/');
 
       // ID in the URL (eg: /src/App.zero.css)
       const cssId = `/${cssRelativePath}`;
