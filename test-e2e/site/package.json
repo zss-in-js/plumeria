@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "^16.0.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@plumeria/compiler": "workspace:^",
