@@ -25,12 +25,11 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
-      // lastUpdate={new Date(page.data.lastModified || '')}
       editOnGithub={{
         owner: 'zss-in-js',
         repo: 'plumeria',
         sha: 'main',
-        path: `docs/content/docs/${page.file.path}`,
+        path: `docs/content/docs/${page.path}`,
       }}
       tableOfContent={{
         style: 'normal',
