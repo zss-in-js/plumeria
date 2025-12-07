@@ -1,13 +1,13 @@
-import { docs, meta, blogDocs, blogMeta } from '.source';
-import { createMDXSource } from 'fumadocs-mdx';
+import { docs, meta, blogDocs, blogMeta } from '.source/server';
 import { loader } from 'fumadocs-core/source';
+import { toFumadocsSource } from 'fumadocs-mdx/runtime/server';
 
 export const source = loader({
   baseUrl: '/docs',
-  source: createMDXSource(docs, meta),
+  source: toFumadocsSource(docs, meta),
 });
 
 export const blog = loader({
   baseUrl: '/blog',
-  source: createMDXSource(blogDocs, blogMeta),
+  source: toFumadocsSource(blogDocs, blogMeta),
 });
