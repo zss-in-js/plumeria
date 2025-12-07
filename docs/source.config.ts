@@ -15,7 +15,6 @@ export const { docs: blogDocs, meta: blogMeta } = defineDocs({
 });
 
 export default defineConfig({
-  lastModifiedTime: 'git',
   mdxOptions: async () => {
     return {
       rehypeCodeOptions: {
