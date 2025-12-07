@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 1.0.3
+
+### Patch Changes
+
+- be61359: Security patch: Updated Next.js dependency to address a recently disclosed CVE
+
 ## 1.0.2
 
 ### Patch Changes
