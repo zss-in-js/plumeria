@@ -8,3 +8,6 @@ catalog:
   '@swc/core': 1.15.2
   'webpack': 5.101.0
   'zss-engine': 1.0.0
+  'next': 16.0.7
+  'react': 19.2.1
+  'react-dom': 19.2.1
