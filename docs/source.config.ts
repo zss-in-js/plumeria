@@ -1,4 +1,5 @@
 import { defineDocs, defineConfig, frontmatterSchema } from 'fumadocs-mdx/config';
+import lastModified from 'fumadocs-mdx/plugins/last-modified';
 import { z } from 'zod';
 
 export const { docs, meta } = defineDocs({
@@ -15,6 +16,7 @@ export const { docs: blogDocs, meta: blogMeta } = defineDocs({
 });
 
 export default defineConfig({
+  plugins: [lastModified()],
   mdxOptions: async () => {
     return {
       rehypeCodeOptions: {
