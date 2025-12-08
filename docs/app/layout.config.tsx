@@ -49,9 +49,5 @@ export const baseOptions: BaseLayoutProps = {
       text: <span>Blog</span>,
       url: '/blog',
     },
-    {
-      text: <span>Playground</span>,
-      url: '/playground',
-    },
   ],
 };
