@@ -1,4 +1,4 @@
-export { CSSObject, FileStyles } from './types';
+export type { CSSObject, FileStyles } from './types';
 export { createCSS, createVars, createTokens } from './transform';
 export {
   scanForDefineConsts,
