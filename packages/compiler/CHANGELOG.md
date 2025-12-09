@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 1.0.4
+
+### Patch Changes
+
+- e3720a5: chore: release v1.0.4
+
 ## 1.0.3
 
 ### Patch Changes
