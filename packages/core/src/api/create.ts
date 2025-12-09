@@ -59,7 +59,7 @@ function create<const T extends Record<string, CSSProperties>>(
         const sheet = sheetArray[i];
         const hash = hashArray[i];
         if (sheet.includes('@media') || sheet.includes('@container')) {
-          querySheetParts.push(sheet);
+          querySheetParts.push(sheet.replace(`.${hash}`, `.${hash}:not(#\\#)`));
           queryHashParts.push(hash);
         } else {
           baseSheetParts.push(sheet);
@@ -90,12 +90,18 @@ function create<const T extends Record<string, CSSProperties>>(
       const nonFlatObj = { [key]: modNonFlat };
       const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
       const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
+      const isQuery =
+        styleSheet.includes('@media') || styleSheet.includes('@container');
+      const finalSheet = isQuery
+        ? styleSheet.replace(`.${nonFlatHash}`, `.${nonFlatHash}:not(#\\#)`)
+        : styleSheet;
+
       Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
         Object.keys(nestedObj).forEach((prop) => {
           records.push({
             key: atRule + prop,
             hash: nonFlatHash,
-            sheet: styleSheet,
+            sheet: finalSheet,
           });
         });
       });
