@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 1.0.4
+
+### Patch Changes
+
+- b6bb1ca: fix: Increase the query priority by 1
+
 ## 1.0.3
 
 ### Patch Changes
