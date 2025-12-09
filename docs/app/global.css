@@ -58,7 +58,6 @@ body {
 /* Code Block Styling */
 figure {
   background: var(--card-bg);
-  border: 1px solid var(--card-border);
   backdrop-filter: blur(12px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
   transition: all 0.2s;
@@ -66,7 +65,6 @@ figure {
 
 .dark figure {
   background: var(--card-bg);
-  border: 1px solid var(--card-border);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
