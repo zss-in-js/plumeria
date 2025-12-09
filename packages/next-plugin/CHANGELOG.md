@@ -1,5 +1,14 @@
 # @plumeria/next-plugin
 
+## 1.0.4
+
+### Patch Changes
+
+- e3720a5: chore: release v1.0.4
+- Updated dependencies [e3720a5]
+  - @plumeria/turbopack-loader@1.0.4
+  - @plumeria/webpack-plugin@1.0.4
+
 ## 1.0.3
 
 ### Patch Changes
