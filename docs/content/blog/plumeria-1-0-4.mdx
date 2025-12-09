@@ -1,0 +1,89 @@
+---
+title: 'Plumeria v1.0.4'
+description: 'Plumeria v1.0.4 Fixed longhand and shorthand media queries. Also includes v1.0.3 content. (4 min read)'
+date: '2025/12/9'
+---
+
+# Plumeria v1.0.3 & v1.0.4 Release Notes
+
+## v1.0.3 - Security Patch (2025/12/7)
+
+### 🔒 Next.js CVE Response
+- Addresses Next.js-related vulnerabilities
+- Updated `@plumeria/next-plugin` dependencies
+- **Immediate update recommended for all users**
+
+## v1.0.4 - CSS Specificity Optimization (2025/12/9)
+
+### 🎯 Completely Resolved CSS Order Issues in HMR and Core
+
+#### Changes
+
+
+When using the compile side, queries(1, 2) are always sorted last by optimization and come to the bottom, so the rule was changed from:
+```sh title="Core-Compiler side"
+- shorthand:             0 - :not(#\#) ✖️ 0
+- longhand:              1 - :not(#\#) ✖️ 1
+- shorthand in query:    0 - :not(#\#) ✖️ 0
+- longhand in query:     1 - :not(#\#) ✖️ 1
+to
+- shorthand:             0 - :not(#\#) ✖️ 0
+- longhand:              1 - :not(#\#) ✖️ 1
+- shorthand in query:    1 - :not(#\#) ✖️ 1
+- longhand in query:     2 - :not(#\#) ✖️ 2
+```
+to.
+Since the rule at the bottom is absolute, conflicts do not occur, and bundle size remains low.
+The HMR side of @plumeria/utils was changed from
+**Design changed to be order-independent by using a specificity hierarchy:**
+
+HMR requires order independence since it doesn't sort media queries:
+```sh title="Plugin-HMR utils side"
+- shorthand:             0 - :not(#\#) ✖️ 0
+- longhand:              1 - :not(#\#) ✖️ 1
+- shorthand in query:    1 - :not(#\#) ✖️ 1
+- longhand in query:     2 - :not(#\#) ✖️ 2
+to
+- shorthand:             0 - :not(#\#) ✖️ 0
+- longhand:              1 - :not(#\#) ✖️ 1
+- shorthand in query:    2 - :not(#\#) ✖️ 2
+- longhand in query:     3 - :not(#\#) ✖️ 3
+```
+
+✅ **Achieve complete order independence with HMR**  
+✅ **Resolve conflicts between longhand and query in shorthand**  
+✅ **Consistent behavior between development and production**  
+✅ **Maintain bundle size optimization on the compilation side**
+
+This way, flat longs are always overwritten by media shorts, so there are no ordering issues.  
+
+#### Tech Background (HMR)
+```css
+/* Previous: Unexpected overwrites due to order dependency */
+
+.margin-top:not(#\#) { margin-top: 20px; } /* (0,1,1) - Wins ❌ */
+
+@media (min-width: 768px) {
+.m-4 { margin: 16px; } /* (0,1,0) */
+}
+
+
+/* v1.0.4 and later: Reliable control with specificity */
+.margin-top:not(#\#) { margin-top: 20px; } /* (0,1,1) */
+
+@media (min-width: 768px) {
+.m-4:not(#\#):not(#\#) { margin: 16px; } /* (0,1,2) - Wins ✅ */
+}
+```
+
+This maintains consistency so that media queries always win.  
+Also, media queries are resolved according to the order of the media queries themselves.
+
+### Migration Guide
+
+**No breaking changes. ** Simply update your project to benefit.
+```bash
+pnpm install -D @plumeria/core@latest @plumeria/compiler@latest @plumeria/next-plugin@latest
+```
+
+**Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria) !**
