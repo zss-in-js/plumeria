@@ -13,6 +13,7 @@ const stylesCode = css.create({
     overflow: 'hidden',
     fontFamily: 'var(--font-geist-mono)',
     fontSize: 13,
+    border: '1px solid var(--card-border)',
     borderRadius: '12px',
     backdropFilter: 'blur(12px)',
     [breakpoints.md]: {
