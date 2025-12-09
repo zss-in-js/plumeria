@@ -53,7 +53,9 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
         const sheet = sheetArray[i];
         const hash = hashArray[i];
         if (sheet.includes('@media') || sheet.includes('@container')) {
-          querySheetParts.push(sheet.replace(`.${hash}`, `.${hash}:not(#\\#)`));
+          querySheetParts.push(
+            sheet.replace(`.${hash}`, `.${hash}:not(#\\#):not(#\\#)`),
+          );
           queryHashParts.push(hash);
         } else {
           baseSheetParts.push(sheet);
@@ -86,7 +88,10 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
       const isQuery =
         styleSheet.includes('@media') || styleSheet.includes('@container');
       const finalSheet = isQuery
-        ? styleSheet.replace(`.${nonFlatHash}`, `.${nonFlatHash}:not(#\\#)`)
+        ? styleSheet.replace(
+            `.${nonFlatHash}`,
+            `.${nonFlatHash}:not(#\\#):not(#\\#)`,
+          )
         : styleSheet;
 
       Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
