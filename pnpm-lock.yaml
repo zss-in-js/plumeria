@@ -9,18 +9,6 @@ catalogs:
     '@swc/core':
       specifier: 1.15.2
       version: 1.15.2
-    next:
-      specifier: 16.0.7
-      version: 16.0.7
-    react:
-      specifier: 19.2.1
-      version: 19.2.1
-    react-dom:
-      specifier: 19.2.1
-      version: 19.2.1
-    webpack:
-      specifier: 5.101.0
-      version: 5.101.0
     zss-engine:
       specifier: 1.0.0
       version: 1.0.0
@@ -520,9 +508,6 @@ importers:
       '@swc/core':
         specifier: 'catalog:'
         version: 1.15.2(@swc/helpers@0.5.17)
-      webpack:
-        specifier: 'catalog:'
-        version: 5.101.0(@swc/core@1.15.2(@swc/helpers@0.5.17))
       zss-engine:
         specifier: 'catalog:'
         version: 1.0.0
