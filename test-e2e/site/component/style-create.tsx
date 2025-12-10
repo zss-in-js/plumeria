@@ -1,5 +1,3 @@
-'use client';
-
 import { css } from '@plumeria/core';
 import { breakpoints } from './define';
 
