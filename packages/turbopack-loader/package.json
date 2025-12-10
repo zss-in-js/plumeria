@@ -24,7 +24,6 @@
   },
   "devDependencies": {
     "@swc/core": "catalog:",
-    "webpack": "catalog:",
     "zss-engine": "catalog:"
   },
   "publishConfig": {
