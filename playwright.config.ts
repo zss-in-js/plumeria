@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   webServer: {
-    command: 'pnpm next dev e2e/site --port 4000',
+    command: 'pnpm next dev --port 4000',
     reuseExistingServer: true,
     port: 4000,
   },
