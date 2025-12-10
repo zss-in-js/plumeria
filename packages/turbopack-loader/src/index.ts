@@ -1,4 +1,3 @@
-import type { LoaderContext } from 'webpack';
 import { parseSync, ObjectExpression } from '@swc/core';
 
 import path from 'path';
@@ -22,10 +21,23 @@ import {
   traverse,
 } from '@plumeria/utils';
 
+interface TurbopackLoaderContext {
+  resourcePath: string;
+  rootContext: string;
+  context: string;
+  clearDependencies: () => void;
+  addDependency: (path: string) => void;
+  async: () => (
+    err: Error | null,
+    content?: string | Buffer,
+    sourceMap?: any,
+  ) => void;
+}
+
 const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
 fs.writeFileSync(VIRTUAL_FILE_PATH, '');
 
-export default function loader(this: LoaderContext<unknown>, source: string) {
+export default function loader(this: TurbopackLoaderContext, source: string) {
   const callback = this.async();
 
   if (this.resourcePath.includes('node_modules')) {
@@ -159,7 +171,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   const VIRTUAL_CSS_PATH = require.resolve(VIRTUAL_FILE_PATH);
 
   function stringifyRequest(
-    loaderContext: LoaderContext<unknown>,
+    loaderContext: TurbopackLoaderContext,
     request: string,
   ) {
     const context = loaderContext.context || loaderContext.rootContext;
