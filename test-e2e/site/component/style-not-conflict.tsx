@@ -1,5 +1,3 @@
-'use client';
-
 import { css } from '@plumeria/core';
 
 const styles = css.create({
