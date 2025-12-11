@@ -4,6 +4,7 @@ import { ps } from 'lib/pseudos';
 import { Plumeria } from './Plumeria';
 import { CodeBlock } from './CodeBlock';
 import { ButtonLink } from './ButtonLink';
+import { svg } from './svg';
 
 const styles = css.create({
   container: {
@@ -112,7 +113,7 @@ const styles = css.create({
 
   featuresSection: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
+    gridTemplateColumns: 'repeat(3, 1fr)',
     gap: 24,
     width: '100%',
     maxWidth: '1200px',
@@ -127,7 +128,7 @@ const styles = css.create({
   // Theme-aware card style using CSS variables
   featureCard: {
     position: 'relative',
-    padding: '32px',
+    padding: '24px',
     background: 'var(--card-bg)',
     border: '1px solid transparent',
     borderRadius: '12px',
@@ -176,18 +177,18 @@ const styles = css.create({
 const demoCode = `const styles = css.create({
   featureCard: {
     position: 'relative',
-    padding: '32px',
+    padding: '24px',
     background: 'var(--card-bg)',
-    border: '1px solid var(--card-border)',
+    border: '1px solid transparent',
     borderRadius: '12px',
-    transition: 'border-color 0.2s',
+    transition: 'border-color 0.2s, transform 0.2s',
     [ps.hover]: {
       borderColor: 'var(--card-hover-border)',
     },
     [breakpoints.md]: {
       padding: '24px',
     },
-  }  
+  },
 });`;
 
 export const HomeComponent = () => {
@@ -220,6 +221,33 @@ export const HomeComponent = () => {
 
         <section className={css.props(styles.featuresSection)}>
           <div className={css.props(styles.featureCard)}>
+            <div className={css.props(styles.featureIcon)}>{svg.Atom()}</div>
+            <h3 className={css.props(styles.featureTitle)}>Atomic CSS</h3>
+            <p className={css.props(styles.featureDescription)}>
+              Generates <span className={css.props(styles.highlight)}>atomic CSS classes</span> at build time. Styles
+              are reused automatically, keeping your CSS bundle minimal and highly efficient.
+            </p>
+          </div>
+
+          <div className={css.props(styles.featureCard)}>
+            <div className={css.props(styles.featureIcon)}>{svg.TurbopackIcon()}</div>
+            <h3 className={css.props(styles.featureTitle)}>Turbopack</h3>
+            <p className={css.props(styles.featureDescription)}>
+              Native <span className={css.props(styles.highlight)}>Next.js integration.</span> Instant HMR updates and a
+              development flow that stays in full acceleration. Waiting is obsolete.
+            </p>
+          </div>
+
+          <div className={css.props(styles.featureCard)}>
+            <div className={css.props(styles.featureIcon)}>{svg.Vscode()}</div>
+            <h3 className={css.props(styles.featureTitle)}>Type-Safe</h3>
+            <p className={css.props(styles.featureDescription)}>
+              Enjoy complete <span className={css.props(styles.highlight)}>TypeScript safety</span>. Catch typos and
+              invalid values instantly. Intelligent autocomplete makes styling a breeze.
+            </p>
+          </div>
+
+          <div className={css.props(styles.featureCard)}>
             <div className={css.props(styles.featureIcon)}>⚡</div>
             <h3 className={css.props(styles.featureTitle)}>Build-time Compilation</h3>
             <p className={css.props(styles.featureDescription)}>
@@ -229,29 +257,21 @@ export const HomeComponent = () => {
           </div>
 
           <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>⚛️</div>
-            <h3 className={css.props(styles.featureTitle)}>Atomic CSS</h3>
-            <p className={css.props(styles.featureDescription)}>
-              Generates <span className={css.props(styles.highlight)}>atomic CSS classes</span> at build time. Styles
-              are reused automatically, keeping your CSS bundle minimal and highly efficient.
-            </p>
-          </div>
-
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>🛡️</div>
-            <h3 className={css.props(styles.featureTitle)}>Type-Safe</h3>
-            <p className={css.props(styles.featureDescription)}>
-              Enjoy complete <span className={css.props(styles.highlight)}>TypeScript safety</span>. Catch typos and
-              invalid values instantly. Intelligent autocomplete makes styling a breeze.
-            </p>
-          </div>
-
-          <div className={css.props(styles.featureCard)}>
             <div className={css.props(styles.featureIcon)}>✨</div>
             <h3 className={css.props(styles.featureTitle)}>Authoring Experience</h3>
             <p className={css.props(styles.featureDescription)}>
               Write styles with <span className={css.props(styles.highlight)}>confidence</span> and speed. Full IDE
               support, instant feedback, and intuitive API design make development a joy.
+            </p>
+          </div>
+
+          <div className={css.props(styles.featureCard)}>
+            <div className={css.props(styles.featureIcon)}>{svg.Feather()}</div>
+            <h3 className={css.props(styles.featureTitle)}>Lightweight</h3>
+            <p className={css.props(styles.featureDescription)}>
+              Gzip ~6 KB with a <span className={css.props(styles.highlight)}>browser load cost of zero.</span>
+              <br />
+              Styles arrive pre-compiled, weightless, and ready the moment the page wakes up.
             </p>
           </div>
         </section>
