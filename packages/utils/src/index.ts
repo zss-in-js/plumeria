@@ -1,8 +1,8 @@
 export type { CSSObject, FileStyles } from './types';
-export { createCSS, createVars, createTokens } from './transform';
+export { createCSS, createVars, createTheme } from './transform';
 export {
-  scanForDefineConsts,
-  scanForDefineTokens,
+  scanForCreateStatic,
+  scanForCreateTheme,
   scanForKeyframes,
   scanForViewTransition,
   objectExpressionToObject,
