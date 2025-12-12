@@ -55,7 +55,8 @@ export const noInnerCall: Rule.RuleModule = {
                 propertyName === 'create' ||
                 propertyName === 'keyframes' ||
                 propertyName === 'viewTransition' ||
-                propertyName.startsWith('define')
+                propertyName === 'createStatic' ||
+                propertyName === 'createTheme'
               ) {
                 context.report({
                   node,
