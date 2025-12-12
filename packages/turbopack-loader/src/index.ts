@@ -3,17 +3,17 @@ import { parseSync, ObjectExpression } from '@swc/core';
 import path from 'path';
 import fs from 'fs';
 
-import type { CreateStyle, CreateTokens, CSSProperties } from 'zss-engine';
+import type { CreateStyle, CreateTheme, CSSProperties } from 'zss-engine';
 import { transpile } from 'zss-engine';
 
 import type { CSSObject, FileStyles } from '@plumeria/utils';
 import {
   createCSS,
-  createTokens,
+  createTheme,
   collectLocalConsts,
   objectExpressionToObject,
-  scanForDefineConsts,
-  scanForDefineTokens,
+  scanForCreateStatic,
+  scanForCreateTheme,
   scanForKeyframes,
   scanForViewTransition,
   t,
@@ -47,7 +47,7 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
   this.clearDependencies();
   this.addDependency(this.resourcePath);
 
-  tables.constTable = scanForDefineConsts((path) => this.addDependency(path));
+  tables.staticTable = scanForCreateStatic((path) => this.addDependency(path));
 
   const { keyframesHashTableLocal, keyframesObjectTableLocal } =
     scanForKeyframes((path) => this.addDependency(path));
@@ -59,11 +59,12 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
   tables.viewTransitionHashTable = viewTransitionHashTableLocal;
   tables.viewTransitionObjectTable = viewTransitionObjectTableLocal;
 
-  const { tokensTableLocal, defineTokensObjectTableLocal } =
-    scanForDefineTokens((path) => this.addDependency(path));
+  const { themeTableLocal, createThemeObjectTableLocal } = scanForCreateTheme(
+    (path) => this.addDependency(path),
+  );
 
-  tables.tokensTable = tokensTableLocal;
-  tables.defineTokensObjectTable = defineTokensObjectTableLocal;
+  tables.themeTable = themeTableLocal;
+  tables.createThemeObjectTable = createThemeObjectTableLocal;
 
   const extractedObjects: CSSObject[] = [];
   let ast;
@@ -80,7 +81,7 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
   }
 
   const localConsts = collectLocalConsts(ast);
-  Object.assign(tables.constTable, localConsts);
+  Object.assign(tables.staticTable, localConsts);
 
   traverse(ast, {
     CallExpression({ node }) {
@@ -98,10 +99,10 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
         ) {
           const obj = objectExpressionToObject(
             args[0].expression as ObjectExpression,
-            tables.constTable,
+            tables.staticTable,
             tables.keyframesHashTable,
             tables.viewTransitionHashTable,
-            tables.tokensTable,
+            tables.themeTable,
           );
           if (obj) {
             extractedObjects.push(obj);
@@ -156,11 +157,11 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
       .join('\n');
   }
 
-  if (Object.keys(tables.defineTokensObjectTable).length > 0) {
-    fileStyles.tokenStyles = Object.values(tables.defineTokensObjectTable)
+  if (Object.keys(tables.createThemeObjectTable).length > 0) {
+    fileStyles.themeStyles = Object.values(tables.createThemeObjectTable)
       .map(
         (obj) =>
-          transpile(createTokens(obj as CreateTokens), undefined, '--global')
+          transpile(createTheme(obj as CreateTheme), undefined, '--global')
             .styleSheet,
       )
       .join('\n');
@@ -220,8 +221,8 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
         sections.push(styles.viewTransitionStyles);
     }
 
-    if (styles.tokenStyles?.trim()) {
-      if (!css.includes(styles.tokenStyles)) sections.push(styles.tokenStyles);
+    if (styles.themeStyles?.trim()) {
+      if (!css.includes(styles.themeStyles)) sections.push(styles.themeStyles);
     }
 
     if (styles.baseStyles?.trim()) {
