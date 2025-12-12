@@ -23,11 +23,11 @@ ruleTester.run('no-inner-call', noInnerCall as unknown as JSRuleDefinition, {
       settings,
     },
     {
-      code: 'css.defineConsts();',
+      code: 'css.createStatic();',
       settings,
     },
     {
-      code: 'css.defineTokens();',
+      code: 'css.createTheme();',
       settings,
     },
     {
@@ -57,13 +57,13 @@ ruleTester.run('no-inner-call', noInnerCall as unknown as JSRuleDefinition, {
       settings,
     },
     {
-      code: 'function consts() { css.defineConsts(); }',
-      errors: [{ message: 'Do not use css.defineConsts inside functions' }],
+      code: 'function consts() { css.createStatic(); }',
+      errors: [{ message: 'Do not use css.createStatic inside functions' }],
       settings,
     },
     {
-      code: 'function theme() { css.defineTokens(); }',
-      errors: [{ message: 'Do not use css.defineTokens inside functions' }],
+      code: 'function theme() { css.createTheme(); }',
+      errors: [{ message: 'Do not use css.createTheme inside functions' }],
       settings,
     },
     {
