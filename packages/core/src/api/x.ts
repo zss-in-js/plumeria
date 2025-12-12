@@ -1,6 +1,6 @@
-import type { RxVariableSet } from 'zss-engine';
+import type { XVariableSet, ReturnX } from 'zss-engine';
 
-const x = (className: string, varSet: RxVariableSet) => ({
+const x = (className: string, varSet: XVariableSet): ReturnX => ({
   className,
   style: Object.fromEntries(
     Object.entries(varSet).map(([key, value]) => [key, value]),
