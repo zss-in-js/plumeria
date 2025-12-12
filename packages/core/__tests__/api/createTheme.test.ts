@@ -1,11 +1,11 @@
-import { defineTokens } from '../../src/api/tokens';
+import { createTheme } from '../../src/api/createTheme';
 import { global } from '../../src/api/global';
 
 jest.mock('../../src/api/global', () => ({
   global: jest.fn(),
 }));
 
-describe('defineTokens', () => {
+describe('createTheme', () => {
   it('should return an object with CSS variable strings and call global with default values', () => {
     const tokens = {
       fontSize: {
@@ -16,7 +16,7 @@ describe('defineTokens', () => {
       },
     };
 
-    const result = defineTokens(tokens);
+    const result = createTheme(tokens);
 
     expect(result).toEqual({
       fontSize: 'var(--font-size)',
@@ -39,7 +39,7 @@ describe('defineTokens', () => {
       },
     };
 
-    defineTokens(tokens);
+    createTheme(tokens);
 
     expect(global).toHaveBeenCalledWith({
       ':root': {
@@ -59,7 +59,7 @@ describe('defineTokens', () => {
       },
     };
 
-    defineTokens(tokens);
+    createTheme(tokens);
 
     expect(global).toHaveBeenCalledWith({
       ':root': {
@@ -80,7 +80,7 @@ describe('defineTokens', () => {
       },
     };
 
-    defineTokens(tokens);
+    createTheme(tokens);
 
     expect(global).toHaveBeenCalledWith({
       ':root': {
@@ -102,7 +102,7 @@ describe('defineTokens', () => {
       },
     };
 
-    const result = defineTokens(tokens);
+    const result = createTheme(tokens);
 
     expect(result).toEqual({
       verySpecificValue: 'var(--very-specific-value)',
