@@ -1,16 +1,16 @@
 ---
-title: 'defineTokens'
-description: 'API reference for the `defineTokens` method'
+title: createTheme
+description: 'API reference for the `createTheme` method'
 ---
 
-`defineTokens` is a method for defining CSS variables for each theme.
+`createTheme` is a method for defining CSS variables for each theme.
 
 ## Example
 
 ```ts
 import { css } from '@plumeria/core'
 
-export const theme = css.defineTokens({
+export const theme = css.createTheme({
   colors: {
     default: 'black',
     dark: 'white'
@@ -52,10 +52,10 @@ To use themes, you need to add the `data-theme` attribute to the root element.
 
 ## Media Queries
 
-`defineTokens` can also be used with media queries.
+`createTheme` can also be used with media queries.
 
 ```ts
-export const theme = css.defineTokens({
+export const theme = css.createTheme({
   colors: {
     default: 'black',
     dark: 'white',
@@ -84,5 +84,5 @@ This will generate the following CSS
 
 
 <Callout title="Good to know">
-`defineTokens` is not compiled until the variable is used.
+All APIs, including createTheme, are not compiled until the variable is used.
 </Callout >
