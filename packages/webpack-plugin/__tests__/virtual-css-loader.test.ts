@@ -158,10 +158,10 @@ describe('virtual-css-loader', () => {
       fs.readFileSync.mockImplementation((p) => (p === path ? content : ''));
     };
 
-    it('resolves defineConsts', (done) => {
+    it('resolves createStatic', (done) => {
       setupExternal(
-        '/consts.ts',
-        `export const C = css.defineConsts({ color: '#F00' });`,
+        '/colors.ts',
+        `export const C = css.createStatic({ color: '#F00' });`,
       );
       const callback = () => {
         expect(registerSpy.mock.calls[0][1].baseStyles).toMatch('red');
@@ -170,14 +170,14 @@ describe('virtual-css-loader', () => {
       (mockContext.async as jest.Mock).mockReturnValue(callback);
       loader.call(
         mockContext as LoaderContext<any>,
-        `import { C } from './consts'; css.create({ k: { color: C.color } });`,
+        `import { C } from './colors'; css.create({ k: { color: C.color } });`,
       );
     });
 
-    it('resolves defineConsts (non-exported)', (done) => {
+    it('resolves createStatic (non-exported)', (done) => {
       setupExternal(
-        '/consts.ts',
-        `const C = css.defineConsts({ color: '#F00' });`,
+        '/colors.ts',
+        `const C = css.createStatic({ color: '#F00' });`,
       );
       const callback = () => {
         expect(registerSpy.mock.calls[0][1].baseStyles).toMatch('red');
@@ -224,14 +224,14 @@ describe('virtual-css-loader', () => {
       );
     });
 
-    it('resolves defineTokens', (done) => {
+    it('resolves createTheme', (done) => {
       setupExternal(
         '/tokens.ts',
-        `export const T = css.defineTokens({ primary: '#F00' });`,
+        `export const T = css.createTheme({ primary: '#F00' });`,
       );
       const callback = () => {
         const styles = registerSpy.mock.calls[0][1];
-        expect(styles.tokenStyles).toBeDefined();
+        expect(styles.themeStyles).toBeDefined();
         expect(styles.baseStyles).toMatch(/var\(--primary\)/);
         done();
       };
@@ -242,14 +242,14 @@ describe('virtual-css-loader', () => {
       );
     });
 
-    it('resolves defineTokens (non-exported)', (done) => {
+    it('resolves createTheme (non-exported)', (done) => {
       setupExternal(
         '/tokens.ts',
-        `const T = css.defineTokens({ primary: '#F00' });`,
+        `const T = css.createTheme({ primary: '#F00' });`,
       );
       const callback = () => {
         const styles = registerSpy.mock.calls[0][1];
-        expect(styles.tokenStyles).toBeDefined();
+        expect(styles.themeStyles).toBeDefined();
         done();
       };
       (mockContext.async as jest.Mock).mockReturnValue(callback);
@@ -259,11 +259,11 @@ describe('virtual-css-loader', () => {
       );
     });
 
-    describe('resolveTokensTableMemberExpressionByNode coverage', () => {
+    describe('resolveThemeTableMemberExpressionByNode coverage', () => {
       it('resolves string literal property access', (done) => {
         setupExternal(
           '/tokens.ts',
-          `export const T = css.defineTokens({ 'my-color': '#F00' });`,
+          `export const T = css.createTheme({ 'my-color': '#F00' });`,
         );
         const callback = () => {
           const styles = registerSpy.mock.calls[0][1];
@@ -413,7 +413,7 @@ describe('virtual-css-loader', () => {
     it('handles non-css callee in external files', (done) => {
       fs.globSync.mockReturnValue(['/other.ts']);
       fs.readFileSync.mockImplementation((p) =>
-        p === '/other.ts' ? `export const C = other.defineConsts({});` : '',
+        p === '/other.ts' ? `export const C = other.createStatic({});` : '',
       );
       const callback = () => {
         expect(registerSpy.mock.calls[0][1].baseStyles).toContain(
