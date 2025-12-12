@@ -1,5 +1,17 @@
 # @plumeria/next-plugin
 
+## 2.0.0
+
+### Major Changes
+
+- ad4a53c: feat: version bump only
+
+### Patch Changes
+
+- Updated dependencies [ad4a53c]
+  - @plumeria/turbopack-loader@2.0.0
+  - @plumeria/webpack-plugin@2.0.0
+
 ## 1.0.4
 
 ### Patch Changes
