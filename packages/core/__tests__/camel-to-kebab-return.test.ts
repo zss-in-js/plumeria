@@ -1,6 +1,6 @@
 import { css } from '../dist/index.js';
 
-const result = css.defineTokens({
+const result = css.createTheme({
   fontSize: {},
   textAlign: {},
   testPrimary222HtmlTest: {},
