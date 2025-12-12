@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/webpack-plugin",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "description": "Plumeria Webpack plugin",
   "repository": {
     "type": "git",

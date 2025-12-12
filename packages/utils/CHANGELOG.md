@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 2.0.0
+
+### Major Changes
+
+- ad4a53c: feat: Rename "defineConsts" to "createStatic" and "defineTokens" to "createTheme" and Fixed edge cases in nested pseudo-selector processing
+
 ## 1.0.4
 
 ### Patch Changes
