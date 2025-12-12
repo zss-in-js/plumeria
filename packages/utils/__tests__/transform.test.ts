@@ -1,4 +1,4 @@
-import { createCSS, createVars, createTokens } from '../src/transform';
+import { createCSS, createVars, createTheme } from '../src/transform';
 import * as zss from 'zss-engine';
 
 describe('createCSS', () => {
@@ -107,9 +107,9 @@ describe('createVars', () => {
   });
 });
 
-describe('createTokens', () => {
+describe('createTheme', () => {
   it('should create root and themed token variables', () => {
-    const tokens = createTokens({
+    const tokens = createTheme({
       color: { default: 'red', dark: 'black' },
     });
 
@@ -120,7 +120,7 @@ describe('createTokens', () => {
   });
 
   it('should handle @media keys specially', () => {
-    const tokens = createTokens({
+    const tokens = createTheme({
       spacing: { '@media (max-width:600px)': '8px' },
     });
 
