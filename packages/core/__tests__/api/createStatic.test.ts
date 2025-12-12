@@ -1,8 +1,8 @@
-import { defineConsts } from '../../src/api/consts';
+import { createStatic } from '../../src/api/createStatic';
 
-describe('defineConsts', () => {
+describe('createStatic', () => {
   it('should generate a hash the first string in the returned static string literals', () => {
-    const breakpoints = defineConsts({
+    const breakpoints = createStatic({
       md: '@media(max-width 768px)',
     });
     expect(breakpoints.md.startsWith('@media(max-width 768px)')).toBe(true);
