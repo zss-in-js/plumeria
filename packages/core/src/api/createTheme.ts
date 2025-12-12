@@ -1,8 +1,8 @@
-import type { CreateTokens, ReturnVariableType } from 'zss-engine';
+import type { CreateTheme, ReturnVariableType } from 'zss-engine';
 import { camelToKebabCase } from 'zss-engine';
 import { global } from './global';
 
-const defineTokens = <const T extends CreateTokens>(object: T) => {
+const createTheme = <const T extends CreateTheme>(object: T) => {
   const styles: Record<string, Record<string, string | number | object>> = {};
   const result = {} as ReturnVariableType<T>;
 
@@ -30,4 +30,4 @@ const defineTokens = <const T extends CreateTokens>(object: T) => {
   return result;
 };
 
-export { defineTokens };
+export { createTheme };
