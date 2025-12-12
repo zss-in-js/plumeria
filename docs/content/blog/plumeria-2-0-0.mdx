@@ -1,0 +1,114 @@
+---
+title: 'Plumeria v2.0.0'
+description: 'Major API rename and improvements. defineConsts → createStatic, defineTokens → createTheme. (5 min read)'
+date: '2025/12/12'
+---
+
+# Plumeria v2.0.0 Release Notes
+
+We're excited to announce Plumeria v2.0.0, a major release focused on improving API clarity and consistency.
+
+## 🎯 Breaking Changes: API Rename
+
+To make the API more intuitive and aligned with modern CSS-in-JS conventions, we've renamed two core functions:
+
+### `defineConsts` → `createStatic`
+
+The old `defineConsts` name was unclear about its purpose. The new `createStatic` name better reflects that it creates static, build-time values.
+
+```ts
+// Before (v1.x)
+const breakpoints = css.defineConsts({
+  sm: '@media (max-width: 640px)',
+  md: '@media (max-width: 768px)',
+});
+
+// After (v2.0)
+const breakpoints = css.createStatic({
+  sm: '@media (max-width: 640px)',
+  md: '@media (max-width: 768px)',
+});
+```
+
+### `defineTokens` → `createTheme`
+
+Similarly, `defineTokens` has been renamed to `createTheme` to better communicate that it creates theme-based CSS variables.
+
+```ts
+// Before (v1.x)
+const theme = css.defineTokens({
+  colors: {
+    default: 'black',
+    dark: 'white'
+  }
+});
+
+// After (v2.0)
+const theme = css.createTheme({
+  colors: {
+    default: 'black',
+    dark: 'white'
+  }
+});
+```
+
+## 🔧 Internal Improvements
+
+### Turbopack Loader Refactor
+
+- Migrated to `TurbopackLoaderContext` for better Next.js 15+ compatibility
+- Removed webpack dependency from turbopack-loader package
+- Improved type safety and error handling
+
+### Core Bug Fixes
+
+- **Pseudo-class handling**: Fixed edge cases in nested pseudo-selector processing
+- **Type improvements**: Enhanced type definitions for `x()` function
+
+## 🚀 Migration Guide
+
+### Step 1: Update Dependencies
+
+```bash
+pnpm install -D @plumeria/core@^2.0.0 @plumeria/compiler@latest @plumeria/next-plugin@latest
+```
+
+### Step 2: Rename API Calls
+
+Use find-and-replace in your project:
+
+1. Replace `css.defineConsts` with `css.createStatic`
+2. Replace `css.defineTokens` with `css.createTheme`
+
+That's it! No other changes are required.
+
+### Example Migration
+
+```diff
+import { css } from '@plumeria/core';
+
+- const media = css.defineConsts({
++ const media = css.createStatic({
+    mobile: '@media (max-width: 480px)',
+  });
+
+- const theme = css.defineTokens({
++ const theme = css.createTheme({
+    colors: {
+      default: 'blue',
+      dark: 'lightblue'
+    }
+  });
+```
+
+## 🎉 What's Next?
+
+We're committed to making Plumeria the best zero-runtime CSS-in-JS solution. Stay tuned for:
+
+- Performance optimizations
+- Enhanced TypeScript support
+- More framework integrations
+
+**Feedback and bug reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)!**
+
+[Discussions](https://github.com/zss-in-js/plumeria/discussions) | [Issues](https://github.com/zss-in-js/plumeria/issues)
