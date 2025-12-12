@@ -2,7 +2,7 @@ import type {
   CSSProperties,
   CreateStyle,
   CreateStyleType,
-  CreateTokens,
+  CreateTheme,
   CreateValues,
   CreateKeyframes,
   ReturnType,
@@ -14,8 +14,8 @@ import { create } from './api/create';
 import { props } from './api/props';
 import { keyframes } from './api/keyframes';
 import { viewTransition } from './api/viewTransition';
-import { defineTokens } from './api/tokens';
-import { defineConsts } from './api/consts';
+import { createTheme } from './api/createTheme';
+import { createStatic } from './api/createStatic';
 import { x } from './api/x';
 
 class StyleSheet {
@@ -41,14 +41,14 @@ class StyleSheet {
     return viewTransition(object);
   }
 
-  static defineConsts<const T extends CreateValues>(object: T): T {
-    return defineConsts(object);
-  }
-
-  static defineTokens<const T extends CreateTokens>(
+  static createTheme<const T extends CreateTheme>(
     object: T,
   ): ReturnVariableType<T> {
-    return defineTokens(object);
+    return createTheme(object);
+  }
+
+  static createStatic<const T extends CreateValues>(object: T): T {
+    return createStatic(object);
   }
 }
 
