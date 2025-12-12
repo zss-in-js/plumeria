@@ -35,7 +35,8 @@ export const noDestructure: Rule.RuleModule = {
                 prop.key.name === 'props' ||
                 prop.key.name === 'keyframes' ||
                 prop.key.name === 'viewTransition' ||
-                prop.key.name.startsWith('define'))
+                prop.key.name === 'createStatic' ||
+                prop.key.name === 'createTheme')
             ) {
               context.report({
                 node: prop,
