@@ -16,27 +16,28 @@ export type CSSObject = {
 };
 
 // Table types for various CSS constructs
-export type ConstTable = Record<string, CSSObject | string>; // varName -> object
-export type TokensTable = Record<string, CSSObject>; // varName -> object
+// Table types for various CSS constructs
+export type StaticTable = Record<string, CSSObject | string>; // varName -> object
+export type ThemeTable = Record<string, CSSObject>; // varName -> object
 export type KeyframesHashTable = Record<string, string>; // varName -> hash
 export type KeyframesObjectTable = Record<string, CSSObject>; // hashKey: { string: { string: string | number }, ... }
 export type ViewTransitionHashTable = Record<string, string>; // varName -> hash
 export type ViewTransitionObjectTable = Record<string, CSSObject>; // hashKey: { new: { string: string| number }, old: { string: string| number } }
-export type DefineTokensObjectTable = Record<string, CSSObject>; // { string: { varName: { varName: value }, ... } }
+export type CreateThemeObjectTable = Record<string, CSSObject>; // { string: { varName: { varName: value }, ... } }
 
 export interface Tables {
-  constTable: ConstTable;
-  tokensTable: TokensTable;
+  staticTable: StaticTable;
+  themeTable: ThemeTable;
   keyframesHashTable: KeyframesHashTable;
   keyframesObjectTable: KeyframesObjectTable;
   viewTransitionHashTable: ViewTransitionHashTable;
   viewTransitionObjectTable: ViewTransitionObjectTable;
-  defineTokensObjectTable: DefineTokensObjectTable;
+  createThemeObjectTable: CreateThemeObjectTable;
 }
 
 export interface FileStyles {
   baseStyles?: string;
   keyframeStyles?: string;
   viewTransitionStyles?: string;
-  tokenStyles?: string;
+  themeStyles?: string;
 }
