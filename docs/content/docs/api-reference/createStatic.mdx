@@ -1,0 +1,48 @@
+---
+title: createStatic
+description: 'API reference for the createStatic method'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+The `createStatic` function defines **static values** that can be used inside `create` or `createTheme` for conditions like media queries or other static references.
+
+It is useful for creating values such as **breakpoints**, spacing scales, or other fixed design tokens that don't rely on CSS variable resolution.
+
+## Example
+
+```ts title="TypeScript"
+// lib/mediaQuery.ts
+import { css } from '@plumeria/core';
+
+export const breakpoints = css.createStatic({
+  xs: '@media (max-width: 480px)',
+  sm: '@media (max-width: 640px)',
+  md: '@media (max-width: 768px)',
+  lg: '@media (max-width: 1024px)',
+  xl: '@media (max-width: 1280px)',
+});
+```
+These values are fully **type-safe, readonly,** and enforced as **as const**.
+
+## Using in styles
+```ts
+import { css } from "@plumeria/core";
+import { breakpoints } from "lib/mediaQuery";
+
+export const styles = css.create({
+  container: {
+    [breakpoints.sm]: {
+      padding: 16,
+    },
+    [breakpoints.lg]: {
+      padding: 32,
+    },
+  },
+});
+```
+You can use these values for any static keys inside styles or tokens.
+
+<Callout title="Good to know">
+  Internal API variables such as keyframes and viewTransition and createTheme are inlined at parse time.
+</Callout>
