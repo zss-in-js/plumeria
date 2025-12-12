@@ -87,18 +87,15 @@ function viewTransition(options: ViewTransitionOptions): string;
   </Tab>
 </Tabs>
 
+## Usage with React
+
+Since it returns a view-transition-name, you apply it to the element that should animate.
+
 ```jsx  title="React ViewTransition"
 import { unstable_ViewTransition as ViewTransition } from 'react';
+import { transition } from './animation';
 
 <ViewTransition name={transition.name}>
   {/* ... */}
 </ViewTransition>
-```
-
-```jsx  title="Next next-link-transitions"
-import { Link } from 'next-link-transitions';
-
-<Link href={href} viewTransitionName={transition.name}>
-  {name}
-</Link>
 ```
