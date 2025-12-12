@@ -32,18 +32,16 @@ pnpm i zss-engine
 export type { CSSProperties } from './types/common/css-properties';
 export type { CreateStyleType, ReturnType, CreateStyle } from './types/main/create';
 export type { CSSHTML, CreateKeyframes } from './types/main/global';
-export type { CreateValues, CreateTokens, ReturnVariableType, RxVariableSet, ReturnRx } from './types/main/variableTypes';
+export type { CreateTheme, CreateValues, ReturnVariableType, XVariableSet, ReturnX } from './types/main/variableTypes';
 export type { ViewTransitionOptions } from './types/main/viewTransitionOptions';
 export { isServer, isDevelopment, isTestingDevelopment } from './utils/helper.js';
 export { genBase36Hash } from './utils/hash.js';
 export { transpile } from './utils/transpile.js';
 export { transpileAtomic } from './utils/transpile-atomic.js';
 export { splitAtomicAndNested, processAtomicProps } from './utils/processor-atomic.js';
+export { overrideLonghand } from './utils/override-longhand.js';
 export { build } from './utils/build.js';
 export { camelToKebabCase, applyCssValue } from './utils/helper.js';
-export { injectClientCSS, injectClientQuery } from './utils/inject-client-css.js';
-export { injectClientGlobalCSS } from './utils/inject-client-global-css.js';
-export { isHashInStyleSheets } from './utils/is-hash-in-style-sheets.js';
 ```
 
 ## API
@@ -95,20 +93,6 @@ Returns: `void`
 build(styleSheet, filePath);
 ```
 
-### `injectClientCSS`
-Argments: `hash: string, styleSheet: string`  
-Returns: `void`
-```ts title="TypeScript" 
-injectClientCSS(base36Hash, styleSheet);
-```
-
-### `injectClientGlobalCSS`
-Argments: `styleSheet: string, scoped: string`  
-Returns: `void`
-```ts title="TypeScript" 
-injectClientGlobalCSS(styleSheet, 'global');
-```
-
 ## Types
 For API development.
 ```ts title="TypeScript"
@@ -127,9 +111,14 @@ CreateKeyframes,
 // ViewTransition method
 ViewTransitionOptions,
 
-// defineConsts method
+// createStatic method
 CreateValues,
 
-// defineTokens method
-CreateTokens,
+// createTheme method
+CreateTheme,
+ReturnVariableType, 
+
+// x function
+XVariableSet,
+ReturnX,
 ```
