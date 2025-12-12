@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 2.0.0
+
+### Major Changes
+
+- ad4a53c: feat: update due to API changes
+
 ## 1.0.4
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 2.0.0
+
+### Major Changes
+
+- ad4a53c: feat: update due to API changes
+
+### Patch Changes
+
+- Updated dependencies [ad4a53c]
+  - @plumeria/utils@2.0.0
+
 ## 1.0.4
 
 ### Patch Changes
