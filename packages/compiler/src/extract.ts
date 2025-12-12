@@ -600,14 +600,14 @@ async function extractVueAndSvelte(filePath: string) {
     'viewTransition',
     code,
   );
-  const cssDefineConstsSection = await extractCssMethod(
+  const cssCreateStaticSection = await extractCssMethod(
     ast,
-    'defineConsts',
+    'createStatic',
     code,
   );
-  const cssDefineTokensSection = await extractCssMethod(
+  const cssCreateThemeSection = await extractCssMethod(
     ast,
-    'defineTokens',
+    'createTheme',
     code,
   );
 
@@ -619,8 +619,8 @@ async function extractVueAndSvelte(filePath: string) {
   if (staticVariableSection) finalCode += staticVariableSection + '\n';
   if (cssKeyframesSection) finalCode += cssKeyframesSection + '\n';
   if (cssViewTransitionSection) finalCode += cssViewTransitionSection + '\n';
-  if (cssDefineConstsSection) finalCode += cssDefineConstsSection + '\n';
-  if (cssDefineTokensSection) finalCode += cssDefineTokensSection + '\n';
+  if (cssCreateStaticSection) finalCode += cssCreateStaticSection + '\n';
+  if (cssCreateThemeSection) finalCode += cssCreateThemeSection + '\n';
   // add style.create section
   if (cssCreateSection) finalCode += cssCreateSection + '\n';
   // add calls as they are
@@ -653,14 +653,14 @@ async function extractTSFile(filePath: string) {
     'viewTransition',
     code,
   );
-  const cssDefineConstsSection = await extractCssMethod(
+  const cssCreateStaticSection = await extractCssMethod(
     ast,
-    'defineConsts',
+    'createStatic',
     code,
   );
-  const cssDefineTokensSection = await extractCssMethod(
+  const cssCreateThemeSection = await extractCssMethod(
     ast,
-    'defineTokens',
+    'createTheme',
     code,
   );
 
@@ -677,8 +677,8 @@ async function extractTSFile(filePath: string) {
   if (staticVariableSection) finalCode += staticVariableSection + '\n';
   if (cssKeyframesSection) finalCode += cssKeyframesSection + '\n';
   if (cssViewTransitionSection) finalCode += cssViewTransitionSection + '\n';
-  if (cssDefineConstsSection) finalCode += cssDefineConstsSection + '\n';
-  if (cssDefineTokensSection) finalCode += cssDefineTokensSection + '\n';
+  if (cssCreateStaticSection) finalCode += cssCreateStaticSection + '\n';
+  if (cssCreateThemeSection) finalCode += cssCreateThemeSection + '\n';
   if (cssCreateSection) finalCode += cssCreateSection + '\n';
   finalCode += calls;
 
