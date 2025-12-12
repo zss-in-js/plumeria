@@ -44,7 +44,7 @@ export class PlumeriaPlugin {
       filePath,
       keyframeStyles: '',
       viewTransitionStyles: '',
-      tokenStyles: '',
+      themeStyles: '',
       baseStyles: '',
     };
 
@@ -66,12 +66,12 @@ export class PlumeriaPlugin {
     }
 
     const sortedStyles = allStyles.sort(
-      (b, a) => (b.lastAccessed || 0) - (a.lastAccessed || 0),
+      (a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0),
     );
 
     const keyframeStylesSet = new Set<string>();
     const viewTransitionStylesSet = new Set<string>();
-    const tokenStylesSet = new Set<string>();
+    const themeStylesSet = new Set<string>();
     const baseStylesSet = new Set<string>();
 
     for (const s of sortedStyles) {
@@ -79,14 +79,14 @@ export class PlumeriaPlugin {
         keyframeStylesSet.add(s.keyframeStyles);
       if (s.viewTransitionStyles?.trim().length > 0)
         viewTransitionStylesSet.add(s.viewTransitionStyles);
-      if (s.tokenStyles?.trim().length > 0) tokenStylesSet.add(s.tokenStyles);
+      if (s.themeStyles?.trim().length > 0) themeStylesSet.add(s.themeStyles);
       if (s.baseStyles?.trim().length > 0) baseStylesSet.add(s.baseStyles);
     }
 
     return [
       ...Array.from(keyframeStylesSet),
       ...Array.from(viewTransitionStylesSet),
-      ...Array.from(tokenStylesSet),
+      ...Array.from(themeStylesSet),
       ...Array.from(baseStylesSet),
     ]
       .filter(Boolean)
