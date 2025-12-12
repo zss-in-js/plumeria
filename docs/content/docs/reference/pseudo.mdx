@@ -1,0 +1,177 @@
+---
+title: 'Pseudo'
+description: 'Complete reference for CSS pseudo-classes and pseudo-elements supported in Plumeria.'
+---
+
+## Overview
+
+This page provides a comprehensive reference for CSS pseudo-classes and pseudo-elements that you can use in Plumeria with `css.create()`.
+
+All standard CSS pseudo-selectors are supported and can be used as keys in your style objects.
+
+## Usage
+
+```ts
+import { css } from '@plumeria/core';
+
+const styles = css.create({
+  button: {
+    background: 'blue',
+    ':hover': {
+      background: 'darkblue',
+    },
+    ':active': {
+      background: 'navy',
+    },
+    '::before': {
+      content: '"→ "',
+    },
+  },
+});
+```
+
+---
+
+## Pseudo-Classes
+
+Pseudo-classes target elements based on their state, position, or user interaction.
+
+### Interactive States
+
+| Pseudo-Class | Description | Example Use Case |
+| ------------ | ----------- | ---------------- |
+| `:hover` | Element when mouse hovers over it | Change background on hover |
+| `:active` | Element when being activated (clicked) | Button press effect |
+| `:focus` | Element that has focus | Input field outline |
+| `:focus-visible` | Element with visible focus (keyboard navigation) | Show focus ring for keyboard users |
+| `:focus-within` | Element containing a focused descendant | Style form when any input is focused |
+
+### Form States
+
+| Pseudo-Class | Description | Example Use Case |
+| ------------ | ----------- | ---------------- |
+| `:checked` | Checked checkboxes or radio buttons | Style checked inputs |
+| `:disabled` | Disabled form elements | Gray out disabled buttons |
+| `:enabled` | Enabled form elements | Style active inputs |
+| `:required` | Required form elements | Highlight required fields |
+| `:optional` | Non-required form elements | Style optional fields |
+| `:valid` | Valid form elements | Green border for valid inputs |
+| `:invalid` | Invalid form elements | Red border for invalid inputs |
+| `:in-range` | Input values within valid range | Highlight valid range |
+| `:out-of-range` | Input values outside valid range | Highlight invalid range |
+| `:read-only` | Read-only form elements | Style read-only inputs |
+| `:read-write` | Editable form elements | Style editable textareas |
+| `:placeholder-shown` | Inputs showing placeholder | Style inputs with placeholders |
+| `:indeterminate` | Indeterminate checkboxes | Style indeterminate state |
+| `:default` | Default element in a group | Highlight default button |
+| `:autofill` | Auto-filled form elements | Customize autofill appearance |
+
+### Structural Pseudo-Classes
+
+| Pseudo-Class | Description | Example Use Case |
+| ------------ | ----------- | ---------------- |
+| `:first-child` | First child of parent | Style first paragraph |
+| `:last-child` | Last child of parent | Style last list item |
+| `:only-child` | Only child of parent | Style lone element |
+| `:first-of-type` | First sibling of its type | Style first heading |
+| `:last-of-type` | Last sibling of its type | Style last paragraph |
+| `:only-of-type` | Only one of its type | Style single heading |
+| `:nth-child(n)` | Nth child of parent | Style every other row |
+| `:nth-last-child(n)` | Nth child from end | Style second-to-last item |
+| `:nth-of-type(n)` | Nth element of type | Style every third div |
+| `:nth-last-of-type(n)` | Nth of type from end | Style last few items |
+| `:empty` | Elements with no children | Hide empty containers |
+
+### Link States
+
+| Pseudo-Class | Description | Example Use Case |
+| ------------ | ----------- | ---------------- |
+| `:link` | Unvisited links | Style unvisited anchors |
+| `:visited` | Visited links | Style visited links |
+| `:any-link` | Any link (visited or unvisited) | Style all links uniformly |
+
+### Other Pseudo-Classes
+
+| Pseudo-Class | Description | Example Use Case |
+| ------------ | ----------- | ---------------- |
+| `:root` | Root element (html) | Define CSS variables |
+| `:target` | Element targeted by URL fragment | Highlight linked section |
+| `:not(selector)` | Elements not matching selector | Style all except specific class |
+| `:is(selector)` | Elements matching any selector | Combine multiple selectors |
+| `:where(selector)` | Like :is() but with zero specificity | Flexible selector grouping |
+| `:has(selector)` | Elements containing specific descendants | Style parent based on children |
+| `:lang(language)` | Elements with specific language | Style for specific languages |
+| `:dir(direction)` | Elements with text direction | Style for RTL/LTR |
+| `:fullscreen` | Element in fullscreen mode | Style fullscreen video |
+| `:modal` | Modal dialogs | Style modal elements |
+| `:open` | Open details/dialog elements | Style open accordions |
+| `:defined` | Defined custom elements | Style web components |
+
+---
+
+## Pseudo-Elements
+
+Pseudo-elements style specific parts of an element or insert generated content.
+
+### Content Generation
+
+| Pseudo-Element | Description | Example Use Case |
+| -------------- | ----------- | ---------------- |
+| `::before` | Insert content before element | Add icons or decorations |
+| `::after` | Insert content after element | Add arrows or indicators |
+
+### Text Styling
+
+| Pseudo-Element | Description | Example Use Case |
+| -------------- | ----------- | ---------------- |
+| `::first-letter` | First letter of text | Drop caps |
+| `::first-line` | First line of text | Emphasize opening line |
+| `::selection` | Selected text | Custom highlight color |
+
+### Form Elements
+
+| Pseudo-Element | Description | Example Use Case |
+| -------------- | ----------- | ---------------- |
+| `::placeholder` | Placeholder text | Style input placeholders |
+| `::marker` | List item markers | Custom bullet styles |
+
+### Media Elements
+
+| Pseudo-Element | Description | Example Use Case |
+| -------------- | ----------- | ---------------- |
+| `::cue` | WebVTT cues (subtitles) | Style video subtitles |
+| `::cue(selector)` | Specific WebVTT cues | Style specific subtitle parts |
+
+### Other Pseudo-Elements
+
+| Pseudo-Element | Description | Example Use Case |
+| -------------- | ----------- | ---------------- |
+| `::backdrop` | Dialog/fullscreen backdrop | Style modal background |
+| `::part(name)` | Shadow DOM parts | Style component internals |
+| `::slotted(selector)` | Slotted shadow DOM content | Style slot content |
+| `::spelling-error` | Spelling errors | Highlight misspellings |
+| `::grammar-error` | Grammar errors | Highlight grammar issues |
+
+---
+
+## View Transitions
+
+Special pseudo-elements for the View Transitions API.
+
+| Pseudo-Element | Description |
+| -------------- | ----------- |
+| `::view-transition` | Root of view transition |
+| `::view-transition-group(name)` | Transition group |
+| `::view-transition-image-pair(name)` | Image pair during transition |
+| `::view-transition-old(name)` | Old content |
+| `::view-transition-new(name)` | New content |
+
+---
+
+## Notes
+
+- All pseudo-classes start with a single colon (`:`)
+- All pseudo-elements start with double colons (`::`)
+- Some older pseudo-elements (like `::before` and `::after`) can use single colon for backwards compatibility
+- Functional pseudo-classes like `:nth-child()` accept arguments
+- Not all pseudo-classes work in all browsers - check compatibility when needed
