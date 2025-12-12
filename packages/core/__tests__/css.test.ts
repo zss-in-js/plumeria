@@ -16,13 +16,13 @@ describe('css static methods', () => {
     expect(typeof res).toBe('string');
   });
 
-  it('delegates defineConsts()', () => {
-    const res = css.defineConsts({ primary: 'blue' });
+  it('delegates createStatic()', () => {
+    const res = css.createStatic({ primary: 'blue' });
     expect(res.primary).toBe('blue');
   });
 
-  it('delegates defineTokens()', () => {
-    const res = css.defineTokens({
+  it('delegates createTheme()', () => {
+    const res = css.createTheme({
       color: { primary: '#fff' },
     });
     expect(res.color.startsWith('var')).toBe(true);
