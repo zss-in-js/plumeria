@@ -1,5 +1,5 @@
 import { css } from '@plumeria/core';
-import { breakpoints } from './define';
+import { breakpoints } from './breakpoints';
 
 const styles = css.create({
   e2e: {
