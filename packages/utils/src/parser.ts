@@ -1,10 +1,10 @@
 import type {
   CSSObject,
-  ConstTable,
+  StaticTable,
   KeyframesHashTable,
   KeyframesObjectTable,
   CSSValue,
-  TokensTable,
+  ThemeTable,
   ViewTransitionObjectTable,
   ViewTransitionHashTable,
   Tables,
@@ -107,13 +107,13 @@ const GLOB_OPTIONS = {
   cwd: PROJECT_ROOT,
 };
 export const tables: Tables = {
-  constTable: {},
-  tokensTable: {},
+  staticTable: {},
+  themeTable: {},
   keyframesHashTable: {},
   keyframesObjectTable: {},
   viewTransitionHashTable: {},
   viewTransitionObjectTable: {},
-  defineTokensObjectTable: {},
+  createThemeObjectTable: {},
 };
 
 /* 
@@ -123,17 +123,17 @@ Implementation details: These are implementation details that are not exposed, a
 
 export function objectExpressionToObject(
   node: ObjectExpression,
-  constTable: ConstTable,
+  staticTable: StaticTable,
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
-  tokensTable: TokensTable,
+  themeTable: ThemeTable,
 ): CSSObject {
   const obj: CSSObject = {};
 
   node.properties.forEach((prop) => {
     if (!t.isObjectProperty(prop)) return;
 
-    const key = getPropertyKey(prop.key, constTable);
+    const key = getPropertyKey(prop.key, staticTable);
     if (!key) return;
 
     const val = prop.value;
@@ -156,9 +156,9 @@ export function objectExpressionToObject(
         obj[key] = 'vt-' + resolvedViewTransitioin;
         return;
       }
-      const resolvedTheme = resolveTokensTableMemberExpressionByNode(
+      const resolvedTheme = resolveThemeTableMemberExpressionByNode(
         val,
-        tokensTable,
+        themeTable,
       );
       if (resolvedTheme !== undefined) {
         obj[key] = resolvedTheme;
@@ -177,17 +177,17 @@ export function objectExpressionToObject(
     } else if (t.isObjectExpression(val)) {
       obj[key] = objectExpressionToObject(
         val,
-        constTable,
+        staticTable,
         keyframesHashTable,
         viewTransitionHashTable,
-        tokensTable,
+        themeTable,
       );
     } else if (t.isMemberExpression(val)) {
-      const resolved = resolveConstTableMemberExpression(val, constTable);
+      const resolved = resolveStaticTableMemberExpression(val, staticTable);
       obj[key] = resolved !== undefined ? resolved : '[unresolved]';
     } else if (t.isIdentifier(val)) {
-      if (constTable[val.value] !== undefined) {
-        obj[key] = constTable[val.value];
+      if (staticTable[val.value] !== undefined) {
+        obj[key] = staticTable[val.value];
       } else {
         obj[key] = '[unresolved identifier]';
       }
@@ -213,7 +213,7 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
             localConsts,
             tables.keyframesHashTable,
             tables.viewTransitionHashTable,
-            tables.tokensTable,
+            tables.themeTable,
           );
         }
       }
@@ -224,10 +224,13 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
 }
 
 /* istanbul ignore next */
-function getPropertyKey(node: any, constTable: ConstTable): string {
+function getPropertyKey(node: any, staticTable: StaticTable): string {
   if (t.isIdentifier(node)) {
-    if (constTable[node.value] && typeof constTable[node.value] === 'string') {
-      return constTable[node.value] as string;
+    if (
+      staticTable[node.value] &&
+      typeof staticTable[node.value] === 'string'
+    ) {
+      return staticTable[node.value] as string;
     }
     return node.value;
   }
@@ -241,31 +244,31 @@ function getPropertyKey(node: any, constTable: ConstTable): string {
     }
     if (t.isIdentifier(expr)) {
       if (
-        constTable[expr.value] &&
-        typeof constTable[expr.value] === 'string'
+        staticTable[expr.value] &&
+        typeof staticTable[expr.value] === 'string'
       ) {
-        return constTable[expr.value] as string;
+        return staticTable[expr.value] as string;
       }
     }
     if (t.isMemberExpression(expr)) {
-      const result = resolveConstTableMemberExpression(expr, constTable);
+      const result = resolveStaticTableMemberExpression(expr, staticTable);
       if (typeof result === 'string') return result;
     }
     if (t.isTemplateLiteral(expr)) {
-      return evaluateTemplateLiteral(expr, constTable);
+      return evaluateTemplateLiteral(expr, staticTable);
     }
     if (t.isBinaryExpression(expr)) {
-      return evaluateBinaryExpression(expr, constTable);
+      return evaluateBinaryExpression(expr, staticTable);
     }
     return '';
   }
 
   if (t.isTemplateLiteral(node)) {
-    return evaluateTemplateLiteral(node, constTable);
+    return evaluateTemplateLiteral(node, staticTable);
   }
 
   if (t.isBinaryExpression(node)) {
-    return evaluateBinaryExpression(node, constTable);
+    return evaluateBinaryExpression(node, staticTable);
   }
 
   return '';
@@ -273,7 +276,7 @@ function getPropertyKey(node: any, constTable: ConstTable): string {
 /* istanbul ignore next */
 function evaluateTemplateLiteral(
   node: TemplateLiteral,
-  constTable: ConstTable,
+  staticTable: StaticTable,
 ): string {
   let result = '';
 
@@ -282,7 +285,7 @@ function evaluateTemplateLiteral(
 
     if (i < node.expressions.length) {
       const expr = node.expressions[i];
-      const evaluatedExpr = evaluateExpression(expr as Expression, constTable);
+      const evaluatedExpr = evaluateExpression(expr as Expression, staticTable);
       result += String(evaluatedExpr);
     }
   }
@@ -293,10 +296,10 @@ function evaluateTemplateLiteral(
 /* istanbul ignore next */
 function evaluateBinaryExpression(
   node: BinaryExpression,
-  constTable: ConstTable,
+  staticTable: StaticTable,
 ): string {
-  const left = evaluateExpression(node.left as Expression, constTable);
-  const right = evaluateExpression(node.right as Expression, constTable);
+  const left = evaluateExpression(node.left as Expression, staticTable);
+  const right = evaluateExpression(node.right as Expression, staticTable);
 
   if (node.operator === '+') {
     return String(left) + String(right);
@@ -308,7 +311,7 @@ function evaluateBinaryExpression(
 /* istanbul ignore next */
 function evaluateExpression(
   node: Expression,
-  constTable: ConstTable,
+  staticTable: StaticTable,
 ): string | number | boolean | null | CSSObject {
   if (t.isStringLiteral(node)) {
     return node.value;
@@ -327,8 +330,8 @@ function evaluateExpression(
   }
 
   if (t.isIdentifier(node)) {
-    if (constTable[node.value] !== undefined) {
-      return constTable[node.value];
+    if (staticTable[node.value] !== undefined) {
+      return staticTable[node.value];
     }
 
     if (tables.keyframesHashTable[node.value] !== undefined) {
@@ -343,14 +346,14 @@ function evaluateExpression(
   }
 
   if (t.isMemberExpression(node)) {
-    const resolved = resolveConstTableMemberExpression(node, constTable);
+    const resolved = resolveStaticTableMemberExpression(node, staticTable);
     if (resolved !== undefined) {
       return resolved;
     }
 
-    const resolvedTheme = resolveTokensTableMemberExpressionByNode(
+    const resolvedTheme = resolveThemeTableMemberExpressionByNode(
       node,
-      tables.tokensTable,
+      tables.themeTable,
     );
     if (resolvedTheme !== undefined) {
       return resolvedTheme;
@@ -360,11 +363,11 @@ function evaluateExpression(
   }
 
   if (t.isBinaryExpression(node)) {
-    return evaluateBinaryExpression(node, constTable);
+    return evaluateBinaryExpression(node, staticTable);
   }
 
   if (t.isTemplateLiteral(node)) {
-    return evaluateTemplateLiteral(node, constTable);
+    return evaluateTemplateLiteral(node, staticTable);
   }
 
   if (t.isUnaryExpression(node)) {
@@ -418,14 +421,14 @@ function resolveViewTransitionTableMemberExpression(
   }
 }
 
-function resolveConstTableMemberExpression(
+function resolveStaticTableMemberExpression(
   node: MemberExpression,
-  constTable: ConstTable,
+  staticTable: StaticTable,
 ): CSSValue | undefined {
   if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
     const varName = node.object.value;
     const key = node.property.value;
-    const tableValue = constTable[varName];
+    const tableValue = staticTable[varName];
 
     if (tableValue && typeof tableValue === 'object' && key in tableValue) {
       return tableValue[key];
@@ -434,9 +437,9 @@ function resolveConstTableMemberExpression(
   return undefined;
 }
 /* istanbul ignore next */
-function resolveTokensTableMemberExpressionByNode(
+function resolveThemeTableMemberExpressionByNode(
   node: Identifier | MemberExpression,
-  tokensTable: TokensTable,
+  themeTable: ThemeTable,
 ): CSSValue | undefined {
   if (t.isMemberExpression(node) && t.isIdentifier(node.object)) {
     const varName = node.object.value;
@@ -449,11 +452,7 @@ function resolveTokensTableMemberExpressionByNode(
     ) {
       key = node.property.expression.value;
     }
-    if (
-      key &&
-      tokensTable[varName] &&
-      tokensTable[varName][key] !== undefined
-    ) {
+    if (key && themeTable[varName] && themeTable[varName][key] !== undefined) {
       const cssVarName = camelToKebabCase(key);
       return `var(--${cssVarName})`;
     }
@@ -507,10 +506,10 @@ export function scanForKeyframes(addDependency: (path: string) => void): {
           const varName = decl.id.value;
           const obj = objectExpressionToObject(
             decl.init.arguments[0].expression as ObjectExpression,
-            tables.constTable,
+            tables.staticTable,
             keyframesHashTableLocal,
             tables.viewTransitionHashTable,
-            tables.tokensTable,
+            tables.themeTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
 
@@ -575,10 +574,10 @@ export function scanForViewTransition(addDependency: (path: string) => void): {
           const varName = decl.id.value;
           const obj = objectExpressionToObject(
             decl.init.arguments[0].expression as ObjectExpression,
-            tables.constTable,
+            tables.staticTable,
             tables.keyframesHashTable,
             viewTransitionHashTableLocal,
-            tables.tokensTable,
+            tables.themeTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
 
@@ -595,14 +594,14 @@ export function scanForViewTransition(addDependency: (path: string) => void): {
   };
 }
 
-export function scanForDefineConsts(
+export function scanForCreateStatic(
   addDependency: (path: string) => void,
-): ConstTable {
-  const constTableLocal: ConstTable = {};
+): StaticTable {
+  const staticTableLocal: StaticTable = {};
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
-    if (!isCSSDefineFile(filePath, 'defineConsts')) continue;
+    if (!isCSSDefineFile(filePath, 'createStatic')) continue;
     addDependency(filePath);
 
     const source = fs.readFileSync(filePath, 'utf8');
@@ -632,36 +631,36 @@ export function scanForDefineConsts(
           t.isCallExpression(decl.init) &&
           t.isMemberExpression(decl.init.callee) &&
           t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
-          t.isIdentifier(decl.init.callee.property, { name: 'defineConsts' }) &&
+          t.isIdentifier(decl.init.callee.property, { name: 'createStatic' }) &&
           decl.init.arguments.length > 0 &&
           t.isObjectExpression(decl.init.arguments[0].expression)
         ) {
           const varName = decl.id.value;
           const obj = objectExpressionToObject(
             decl.init.arguments[0].expression as ObjectExpression,
-            constTableLocal,
+            staticTableLocal,
             tables.keyframesHashTable,
             tables.viewTransitionHashTable,
-            tables.tokensTable,
+            tables.themeTable,
           );
-          constTableLocal[varName] = obj;
+          staticTableLocal[varName] = obj;
         }
       }
     }
   }
-  return constTableLocal;
+  return staticTableLocal;
 }
 
-export function scanForDefineTokens(addDependency: (path: string) => void): {
-  tokensTableLocal: Record<string, Record<string, any>>;
-  defineTokensObjectTableLocal: Record<string, any>;
+export function scanForCreateTheme(addDependency: (path: string) => void): {
+  themeTableLocal: Record<string, Record<string, any>>;
+  createThemeObjectTableLocal: Record<string, any>;
 } {
-  const tokensTableLocal: Record<string, Record<string, any>> = {};
-  const defineTokensObjectTableLocal: Record<string, any> = {};
+  const themeTableLocal: Record<string, Record<string, any>> = {};
+  const createThemeObjectTableLocal: Record<string, any> = {};
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
-    if (!isCSSDefineFile(filePath, 'defineTokens')) continue;
+    if (!isCSSDefineFile(filePath, 'createTheme')) continue;
     addDependency(filePath);
     const source = fs.readFileSync(filePath, 'utf8');
     const ast = parseSync(source, {
@@ -690,26 +689,26 @@ export function scanForDefineTokens(addDependency: (path: string) => void): {
           t.isCallExpression(decl.init) &&
           t.isMemberExpression(decl.init.callee) &&
           t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
-          t.isIdentifier(decl.init.callee.property, { name: 'defineTokens' }) &&
+          t.isIdentifier(decl.init.callee.property, { name: 'createTheme' }) &&
           decl.init.arguments.length > 0 &&
           t.isObjectExpression(decl.init.arguments[0].expression)
         ) {
           const varName = decl.id.value;
           const obj = objectExpressionToObject(
             decl.init.arguments[0].expression as ObjectExpression,
-            tables.constTable,
+            tables.staticTable,
             tables.keyframesHashTable,
             tables.viewTransitionHashTable,
-            tokensTableLocal,
+            themeTableLocal,
           );
-          tokensTableLocal[varName] = obj;
-          defineTokensObjectTableLocal[varName] = obj;
+          themeTableLocal[varName] = obj;
+          createThemeObjectTableLocal[varName] = obj;
         }
       }
     }
   }
 
-  return { tokensTableLocal, defineTokensObjectTableLocal };
+  return { themeTableLocal, createThemeObjectTableLocal };
 }
 
 function isCSSDefineFile(filePath: string, target: string): boolean {
