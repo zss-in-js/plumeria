@@ -31,13 +31,13 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
       },
     },
     {
-      code: 'const breakpoints = css.defineConsts({})',
+      code: 'const breakpoints = css.createStatic({})',
       settings: {
         ecmaVersion: 2021,
       },
     },
     {
-      code: 'const tokens = css.defineTokens({})',
+      code: 'const tokens = css.createTheme({})',
       settings: {
         ecmaVersion: 2021,
       },
@@ -93,11 +93,11 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
       },
     },
     {
-      code: 'const { defineConsts } = css;',
+      code: 'const { createStatic } = css;',
       errors: [
         {
           message:
-            'Do not destructure "defineConsts" from "css". Use dot notation instead.',
+            'Do not destructure "createStatic" from "css". Use dot notation instead.',
         },
       ],
       settings: {
@@ -105,11 +105,11 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
       },
     },
     {
-      code: 'const { defineTokens } = css;',
+      code: 'const { createTheme } = css;',
       errors: [
         {
           message:
-            'Do not destructure "defineTokens" from "css". Use dot notation instead.',
+            'Do not destructure "createTheme" from "css". Use dot notation instead.',
         },
       ],
       settings: {
@@ -117,7 +117,7 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
       },
     },
     {
-      code: 'const { create, props, defineConsts, defineTokens, keyframes } = css;',
+      code: 'const { create, props, createStatic, createTheme, keyframes } = css;',
       errors: [
         {
           message:
@@ -129,11 +129,11 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
         },
         {
           message:
-            'Do not destructure "defineConsts" from "css". Use dot notation instead.',
+            'Do not destructure "createStatic" from "css". Use dot notation instead.',
         },
         {
           message:
-            'Do not destructure "defineTokens" from "css". Use dot notation instead.',
+            'Do not destructure "createTheme" from "css". Use dot notation instead.',
         },
         {
           message:
