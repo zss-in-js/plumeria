@@ -107,7 +107,7 @@ describe('PlumeriaPlugin', () => {
       lastAccessed: now - 100,
       keyframeStyles: 'kf{}',
       viewTransitionStyles: 'vt{}',
-      tokenStyles: 'tk{}',
+      themeStyles: 'tk{}',
       baseStyles: 'base{}',
     });
     (plugin as any).stylesByFile.set('b', {
@@ -115,7 +115,7 @@ describe('PlumeriaPlugin', () => {
       lastAccessed: now,
       keyframeStyles: 'kf2{}',
       viewTransitionStyles: 'vt2{}',
-      tokenStyles: 'tk2{}',
+      themeStyles: 'tk2{}',
       baseStyles: 'base2{}',
     });
     // lastAccessed is undefined
@@ -124,7 +124,7 @@ describe('PlumeriaPlugin', () => {
       lastAccessed: undefined,
       keyframeStyles: 'kf3{}',
       viewTransitionStyles: 'vt3{}',
-      tokenStyles: 'tk3{}',
+      themeStyles: 'tk3{}',
       baseStyles: 'base3{}',
     });
 
@@ -134,7 +134,7 @@ describe('PlumeriaPlugin', () => {
       lastAccessed: 0,
       keyframeStyles: 'kf4{}',
       viewTransitionStyles: 'vt4{}',
-      tokenStyles: 'tk4{}',
+      themeStyles: 'tk4{}',
       baseStyles: 'base4{}',
     });
 
