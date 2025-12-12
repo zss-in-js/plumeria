@@ -5,8 +5,8 @@ import {
   traverse,
   collectLocalConsts,
   scanForKeyframes,
-  scanForDefineConsts,
-  scanForDefineTokens,
+  scanForCreateStatic,
+  scanForCreateTheme,
   scanForViewTransition,
 } from '../src/parser';
 import { parseSync, ObjectExpression } from '@swc/core';
@@ -24,13 +24,13 @@ const mockedFs = fs as jest.Mocked<typeof fs>;
 describe('parser', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    tables.constTable = {};
+    tables.staticTable = {};
     tables.keyframesHashTable = {};
     tables.keyframesObjectTable = {};
     tables.viewTransitionHashTable = {};
     tables.viewTransitionObjectTable = {};
-    tables.tokensTable = {};
-    tables.defineTokensObjectTable = {};
+    tables.themeTable = {};
+    tables.createThemeObjectTable = {};
   });
 
   describe('type guards (t)', () => {
@@ -178,13 +178,13 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const tokensTable = { T: { primary: '#fff' } };
+      const themeTable = { T: { primary: '#fff' } };
       const result = objectExpressionToObject(
         objectExpr,
         {},
         {},
         {},
-        tokensTable,
+        themeTable,
       );
 
       expect(result.color).toBe('var(--primary)');
@@ -265,10 +265,10 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const constTable = { theme: { primary: 'blue' } };
+      const staticTable = { theme: { primary: 'blue' } };
       const result = objectExpressionToObject(
         objectExpr,
-        constTable,
+        staticTable,
         {},
         {},
         {},
@@ -283,10 +283,10 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const constTable = { myColor: 'red' };
+      const staticTable = { myColor: 'red' };
       const result = objectExpressionToObject(
         objectExpr,
-        constTable,
+        staticTable,
         {},
         {},
         {},
@@ -322,7 +322,7 @@ describe('parser', () => {
     });
 
     it('should handle template literal with interpolation', () => {
-      const constTable = { state: 'hover' };
+      const staticTable = { state: 'hover' };
       const source = `const obj = { [\`&:\${state}\`]: { color: 'blue' } }`;
       const ast = parseSync(source, {
         syntax: 'typescript',
@@ -333,7 +333,7 @@ describe('parser', () => {
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
       const result = objectExpressionToObject(
         objectExpr,
-        constTable,
+        staticTable,
         {},
         {},
         {},
@@ -344,7 +344,7 @@ describe('parser', () => {
     });
 
     it('should handle computed property with binary expression', () => {
-      const constTable = { prefix: '&:', state: 'focus' };
+      const staticTable = { prefix: '&:', state: 'focus' };
       const source = `const obj = { [prefix + state]: { outline: 'none' } }`;
       const ast = parseSync(source, {
         syntax: 'typescript',
@@ -355,7 +355,7 @@ describe('parser', () => {
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
       const result = objectExpressionToObject(
         objectExpr,
-        constTable,
+        staticTable,
         {},
         {},
         {},
@@ -381,7 +381,7 @@ describe('parser', () => {
     });
 
     it('should handle identifier computed property with constTable', () => {
-      const constTable = { myKey: '&:disabled' };
+      const staticTable = { myKey: '&:disabled' };
       const source = `const obj = { [myKey]: { opacity: 0.5 } }`;
       const ast = parseSync(source, {
         syntax: 'typescript',
@@ -392,7 +392,7 @@ describe('parser', () => {
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
       const result = objectExpressionToObject(
         objectExpr,
-        constTable,
+        staticTable,
         {},
         {},
         {},
@@ -403,7 +403,7 @@ describe('parser', () => {
     });
 
     it('should handle member expression computed property', () => {
-      const constTable = { selectors: { hover: '&:hover' } };
+      const staticTable = { selectors: { hover: '&:hover' } };
       const source = `const obj = { [selectors.hover]: { backgroundColor: 'lightblue' } }`;
       const ast = parseSync(source, {
         syntax: 'typescript',
@@ -414,7 +414,7 @@ describe('parser', () => {
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
       const result = objectExpressionToObject(
         objectExpr,
-        constTable,
+        staticTable,
         {},
         {},
         {},
@@ -469,32 +469,32 @@ describe('parser', () => {
       expect(result.keyframesObjectTableLocal).toBeDefined();
     });
 
-    it('should scan for defineConsts', () => {
+    it('should scan for createStatic', () => {
       const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/consts.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'export const C = css.defineConsts({ color: "red" });',
+        'export const C = css.createStatic({ color: "red" });',
       );
 
-      const result = scanForDefineConsts(addDependency);
+      const result = scanForCreateStatic(addDependency);
 
       expect(addDependency).toHaveBeenCalledWith('/test/consts.ts');
       expect(result).toHaveProperty('C');
       expect(result.C).toEqual({ color: 'red' });
     });
 
-    it('should scan for defineTokens', () => {
+    it('should scan for createTheme', () => {
       const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/tokens.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'export const T = css.defineTokens({ primary: "#fff" });',
+        'export const T = css.createTheme({ primary: "#fff" });',
       );
 
-      const result = scanForDefineTokens(addDependency);
+      const result = scanForCreateTheme(addDependency);
 
       expect(addDependency).toHaveBeenCalledWith('/test/tokens.ts');
-      expect(result.tokensTableLocal).toHaveProperty('T');
-      expect(result.defineTokensObjectTableLocal).toHaveProperty('T');
+      expect(result.themeTableLocal).toHaveProperty('T');
+      expect(result.createThemeObjectTableLocal).toHaveProperty('T');
     });
 
     it('should scan for viewTransition', () => {
@@ -511,14 +511,14 @@ describe('parser', () => {
       expect(result.viewTransitionObjectTableLocal).toBeDefined();
     });
 
-    it('should handle non-exported defineConsts declarations', () => {
+    it('should handle non-exported createStatic declarations', () => {
       const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/local.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'const C = css.defineConsts({ size: "large" });',
+        'const C = css.createStatic({ size: "large" });',
       );
 
-      const result = scanForDefineConsts(addDependency);
+      const result = scanForCreateStatic(addDependency);
 
       expect(result).toHaveProperty('C');
       expect(result.C).toEqual({ size: 'large' });
@@ -536,16 +536,16 @@ describe('parser', () => {
       expect(result.keyframesHashTableLocal).toHaveProperty('fade');
     });
 
-    it('should handle non-exported defineTokens declarations', () => {
+    it('should handle non-exported createTheme declarations', () => {
       const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/local-tokens.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'const T = css.defineTokens({ primary: "#fff" });',
+        'const T = css.createTheme({ primary: "#fff" });',
       );
 
-      const result = scanForDefineTokens(addDependency);
+      const result = scanForCreateTheme(addDependency);
 
-      expect(result.tokensTableLocal).toHaveProperty('T');
+      expect(result.themeTableLocal).toHaveProperty('T');
     });
 
     it('should handle non-exported viewTransition declarations', () => {
@@ -571,13 +571,13 @@ describe('parser', () => {
         0,
       );
 
-      const resultConsts = scanForDefineConsts(addDependency);
+      const resultConsts = scanForCreateStatic(addDependency);
       expect(addDependency).not.toHaveBeenCalled();
       expect(Object.keys(resultConsts)).toHaveLength(0);
 
-      const resultTokens = scanForDefineTokens(addDependency);
+      const resultTokens = scanForCreateTheme(addDependency);
       expect(addDependency).not.toHaveBeenCalled();
-      expect(Object.keys(resultTokens.tokensTableLocal)).toHaveLength(0);
+      expect(Object.keys(resultTokens.themeTableLocal)).toHaveLength(0);
 
       const resultViewTransition = scanForViewTransition(addDependency);
       expect(addDependency).not.toHaveBeenCalled();
