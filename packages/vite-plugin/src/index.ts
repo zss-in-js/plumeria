@@ -10,17 +10,17 @@ import { parseSync, ObjectExpression } from '@swc/core';
 
 import path from 'path';
 
-import type { CreateStyle, CreateTokens, CSSProperties } from 'zss-engine';
+import type { CreateStyle, CreateTheme, CSSProperties } from 'zss-engine';
 import { transpile } from 'zss-engine';
 
 import type { CSSObject, FileStyles } from '@plumeria/utils';
 import {
   createCSS,
-  createTokens,
+  createTheme,
   collectLocalConsts,
   objectExpressionToObject,
-  scanForDefineConsts,
-  scanForDefineTokens,
+  scanForCreateStatic,
+  scanForCreateTheme,
   scanForKeyframes,
   scanForViewTransition,
   t,
@@ -152,7 +152,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       // --- Parser Logic (Previous Context) ---
 
       // Reset and scan the global table
-      tables.constTable = scanForDefineConsts(addDependency);
+      tables.staticTable = scanForCreateStatic(addDependency);
 
       const { keyframesHashTableLocal, keyframesObjectTableLocal } =
         scanForKeyframes(addDependency);
@@ -164,10 +164,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       tables.viewTransitionHashTable = viewTransitionHashTableLocal;
       tables.viewTransitionObjectTable = viewTransitionObjectTableLocal;
 
-      const { tokensTableLocal, defineTokensObjectTableLocal } =
-        scanForDefineTokens(addDependency);
-      tables.tokensTable = tokensTableLocal;
-      tables.defineTokensObjectTable = defineTokensObjectTableLocal;
+      const { themeTableLocal, createThemeObjectTableLocal } =
+        scanForCreateTheme(addDependency);
+      tables.themeTable = themeTableLocal;
+      tables.createThemeObjectTable = createThemeObjectTableLocal;
 
       const extractedObjects: CSSObject[] = [];
       let ast;
@@ -191,7 +191,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         }
 
         const localConsts = collectLocalConsts(ast);
-        Object.assign(tables.constTable, localConsts);
+        Object.assign(tables.staticTable, localConsts);
 
         traverse(ast, {
           CallExpression({ node }) {
@@ -209,10 +209,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               ) {
                 const obj = objectExpressionToObject(
                   args[0].expression as ObjectExpression,
-                  tables.constTable,
+                  tables.staticTable,
                   tables.keyframesHashTable,
                   tables.viewTransitionHashTable,
-                  tables.tokensTable,
+                  tables.themeTable,
                 );
                 if (obj) {
                   extractedObjects.push(obj);
@@ -272,15 +272,12 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           .join('\n');
       }
 
-      if (Object.keys(tables.defineTokensObjectTable).length > 0) {
-        fileStyles.tokenStyles = Object.values(tables.defineTokensObjectTable)
+      if (Object.keys(tables.createThemeObjectTable).length > 0) {
+        fileStyles.themeStyles = Object.values(tables.createThemeObjectTable)
           .map(
             (obj) =>
-              transpile(
-                createTokens(obj as CreateTokens),
-                undefined,
-                '--global',
-              ).styleSheet,
+              transpile(createTheme(obj as CreateTheme), undefined, '--global')
+                .styleSheet,
           )
           .join('\n');
       }
@@ -290,7 +287,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         sections.push(fileStyles.keyframeStyles);
       if (fileStyles.viewTransitionStyles?.trim())
         sections.push(fileStyles.viewTransitionStyles);
-      if (fileStyles.tokenStyles?.trim()) sections.push(fileStyles.tokenStyles);
+      if (fileStyles.themeStyles?.trim()) sections.push(fileStyles.themeStyles);
       if (fileStyles.baseStyles?.trim()) sections.push(fileStyles.baseStyles);
 
       const generatedCSS = sections.join('\n');
