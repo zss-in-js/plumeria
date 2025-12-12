@@ -119,4 +119,23 @@ describe('create', () => {
     expect(records3?.[0].sheet).not.toContain('padding-top');
     expect(records3?.[0].sheet).toContain('padding');
   });
+
+  it('should handle nested pseudo in query', () => {
+    const mediaQueryNestPseudo = {
+      test: {
+        '@media (min-width: 600px)': {
+          ':hover': {
+            paddingTop: 10,
+            padding: 20,
+          },
+        },
+      },
+    };
+    create(mediaQueryNestPseudo);
+    const records3 = styleAtomMap.get(mediaQueryNestPseudo.test);
+    expect(records3).toBeDefined();
+    expect(records3).toHaveLength(1);
+    expect(records3?.[0].sheet).toContain(':hover');
+    expect(records3?.[0].sheet).toContain(':not(#\\#)');
+  });
 });
