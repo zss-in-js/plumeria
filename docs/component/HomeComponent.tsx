@@ -233,7 +233,7 @@ export const HomeComponent = () => {
             <div className={css.props(styles.featureIcon)}>{svg.TurbopackIcon()}</div>
             <h3 className={css.props(styles.featureTitle)}>Turbopack</h3>
             <p className={css.props(styles.featureDescription)}>
-              Native <span className={css.props(styles.highlight)}>Next.js integration.</span> Instant HMR updates and a
+              Native <span className={css.props(styles.highlight)}>Next.js integration</span>. Instant HMR updates and a
               development flow that stays in full acceleration. Waiting is obsolete.
             </p>
           </div>
@@ -269,9 +269,8 @@ export const HomeComponent = () => {
             <div className={css.props(styles.featureIcon)}>{svg.Feather()}</div>
             <h3 className={css.props(styles.featureTitle)}>Lightweight</h3>
             <p className={css.props(styles.featureDescription)}>
-              Gzip ~6 KB with a <span className={css.props(styles.highlight)}>browser load cost of zero.</span>
-              <br />
-              Styles arrive pre-compiled, weightless, and ready the moment the page wakes up.
+              Brotli ~5.78 kB, with Styles <span className={css.props(styles.highlight)}>arrive pre-compiled</span>,
+              weightless, and ready the moment the page wakes up.
             </p>
           </div>
         </section>
