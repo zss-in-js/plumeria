@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 2.0.1
+
+### Patch Changes
+
+- 84dd781: fix: merging properties in media(container) queries
+
 ## 2.0.0
 
 ### Major Changes
