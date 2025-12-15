@@ -1,6 +1,6 @@
 # Plumeria &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@plumeria/core.svg?color=brightgreen)](https://www.npmjs.com/package/@plumeria/core) [![tests](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml/badge.svg)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml) [![codecov](https://codecov.io/github/zss-in-js/plumeria/graph/badge.svg?token=BMEGY37BYZ)](https://codecov.io/github/zss-in-js/plumeria)
 
-**The atomic on-demand CSS-in-JS:**
+An atomic CSS runtime designed to disappear.
 
 ```ts
 import { css } from '@plumeria/core';
@@ -18,11 +18,6 @@ const styles = css.create({
 const className = css.props(styles.text, styles.size);
 ```
 
-**Output:**
-
-Plumeria compiles each style property into a unique, **atomic**, and **hashed** class name. This prevents style collisions and
-maximizes reusability.
-
 **Generated CSS:**
 
 ```css
@@ -37,10 +32,8 @@ maximizes reusability.
 }
 ```
 
-**Resulting:**
-
 ```
-className: "x1p2jzyu xzie71ek xgpw2mmc"
+"x1p2jzyu xzie71ek xgpw2mmc"
 ```
 
 ## Structure
@@ -54,7 +47,7 @@ plumeria/
     ├── core/              → API built on the zss-engine
     ├── eslint-plugin/     → Plugin for ESLint
     ├── next-plugin/       → Plugin for Integration with Next.js
-    ├── utils/             → Utils  for Plugin parser and transformer
+    ├── utils/             → Utils for Plugin parser and transformer
     ├── turbopack-loader/  → Loader for Integration with Turbopack
     ├── vite-plugin/       → Plugin for integration with Vite
     └── webpack-plugin/    → Plugin for integration with Webpack
