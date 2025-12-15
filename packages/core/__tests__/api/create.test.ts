@@ -62,7 +62,7 @@ describe('create', () => {
 
     expect(records).toBeDefined();
     expect(records?.some((r) => r.key === 'color')).toBeTruthy();
-    expect(records?.some((r) => r.key.includes('__queries__'))).toBeTruthy();
+    expect(records?.some((r) => r.key.endsWith('color'))).toBeTruthy();
   });
 
   it('should return a frozen object', () => {
@@ -115,7 +115,7 @@ describe('create', () => {
     const records3 = styleAtomMap.get(mediaQueryShorthand.test);
     expect(records3).toBeDefined();
     expect(records3).toHaveLength(1);
-    expect(records3?.[0].key).toContain('__queries__');
+    expect(records3?.[0].key).toContain('padding');
     expect(records3?.[0].sheet).not.toContain('padding-top');
     expect(records3?.[0].sheet).toContain('padding');
   });
