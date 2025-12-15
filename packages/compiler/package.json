@@ -1,13 +1,20 @@
 {
   "name": "@plumeria/compiler",
   "version": "2.0.1",
-  "description": "Plumeria Rust-based compiler",
+  "description": "Plumeria swc based compiler",
+  "author": "Refirst 11",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/refirst11",
+  "homepage": "https://plumeria.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zss-in-js/plumeria.git",
     "directory": "packages/compiler"
   },
-  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zss-in-js/plumeria/issues"
+  },
+  "sideEffects": false,
   "files": [
     "bin/",
     "dist/"
