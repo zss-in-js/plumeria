@@ -43,9 +43,8 @@ describe('createCSS', () => {
     });
     jest
       .spyOn(zss, 'processAtomicProps')
-      .mockImplementation((_props, hashes, sheets) => {
-        hashes.add('a1');
-        sheets.add('.a{color:red}');
+      .mockImplementation((_props, atomicMap) => {
+        atomicMap.set('a1', '.a{color:red}');
       });
     jest.spyOn(zss, 'camelToKebabCase').mockImplementation((x) => x);
 
