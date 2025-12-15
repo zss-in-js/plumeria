@@ -34,48 +34,57 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
       sheet: string;
     }> = [];
 
+    // Processing flat atoms and atoms in media
     Object.entries(finalFlat).forEach(([prop, value]) => {
-      const hashes = new Set<string>();
-      const sheets = new Set<string>();
+      // Handle atomic rules inside media queries separately to generate granular keys
+      if (
+        (prop.startsWith('@media') || prop.startsWith('@container')) &&
+        typeof value === 'object' &&
+        value !== null
+      ) {
+        Object.entries(value).forEach(([innerProp, innerValue]) => {
+          const atomicMap = new Map<string, string>();
 
-      processAtomicProps({ [prop]: value }, hashes, sheets);
+          processAtomicProps({ [innerProp]: innerValue }, atomicMap, prop);
 
-      const hashArray = [...hashes];
-      const sheetArray = [...sheets];
+          const querySheetParts: string[] = [];
+          const queryHashParts: string[] = [];
 
-      const baseSheetParts: string[] = [];
-      const baseHashParts: string[] = [];
-      const querySheetParts: string[] = [];
-      const queryHashParts: string[] = [];
+          for (const [hash, sheet] of atomicMap) {
+            querySheetParts.push(
+              sheet.replace(`.${hash}`, `.${hash}:not(#\\#):not(#\\#)`),
+            );
+            queryHashParts.push(hash);
+          }
 
-      for (let i = 0; i < sheetArray.length; i++) {
-        const sheet = sheetArray[i];
-        const hash = hashArray[i];
-        if (sheet.includes('@media') || sheet.includes('@container')) {
-          querySheetParts.push(
-            sheet.replace(`.${hash}`, `.${hash}:not(#\\#):not(#\\#)`),
-          );
-          queryHashParts.push(hash);
-        } else {
+          if (querySheetParts.length > 0) {
+            records.push({
+              key: prop + innerProp,
+              hash: queryHashParts.join(' '),
+              sheet: querySheetParts.join(''),
+            });
+          }
+        });
+      } else {
+        const atomicMap = new Map<string, string>();
+
+        processAtomicProps({ [prop]: value }, atomicMap);
+
+        const baseSheetParts: string[] = [];
+        const baseHashParts: string[] = [];
+
+        for (const [hash, sheet] of atomicMap) {
           baseSheetParts.push(sheet);
           baseHashParts.push(hash);
         }
-      }
 
-      if (baseSheetParts.length > 0) {
-        records.push({
-          key: prop,
-          hash: baseHashParts.join(' '),
-          sheet: baseSheetParts.join(''),
-        });
-      }
-
-      if (querySheetParts.length > 0) {
-        records.push({
-          key: prop + '__queries__',
-          hash: queryHashParts.join(' '),
-          sheet: querySheetParts.join(''),
-        });
+        if (baseSheetParts.length > 0) {
+          records.push({
+            key: prop,
+            hash: baseHashParts.join(' '),
+            sheet: baseSheetParts.join(''),
+          });
+        }
       }
     });
 
