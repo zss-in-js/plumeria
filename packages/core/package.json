@@ -45,7 +45,7 @@
     "stylesheet.css"
   ],
   "scripts": {
-    "build": "tsdown && node strip-comments.ts && node tsdocs.ts"
+    "build": "tsdown && node strip-comments.ts"
   },
   "dependencies": {
     "zss-engine": "catalog:"
