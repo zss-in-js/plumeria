@@ -1,5 +1,17 @@
 # @plumeria/turbopack-loader
 
+## 2.0.2
+
+### Patch Changes
+
+- fd9442f: Improve package.json metadata across all packages
+  - Add homepage field pointing plumeria.dev
+  - Add sideEffects: false for better tree-shaking
+  - Update descriptions and repository information
+
+- Updated dependencies [fd9442f]
+  - @plumeria/utils@2.0.2
+
 ## 2.0.1
 
 ### Patch Changes
