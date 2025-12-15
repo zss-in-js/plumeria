@@ -2,12 +2,18 @@
   "name": "@plumeria/turbopack-loader",
   "version": "2.0.1",
   "description": "Plumeria Turbopack-loader",
+  "author": "Refirst 11",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/refirst11",
+  "homepage": "https://plumeria.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zss-in-js/plumeria.git",
     "directory": "packages/turbopack-loader"
   },
-  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zss-in-js/plumeria/issues"
+  },
   "sideEffects": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
