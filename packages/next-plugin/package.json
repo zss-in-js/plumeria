@@ -2,11 +2,19 @@
   "name": "@plumeria/next-plugin",
   "version": "2.0.1",
   "description": "Plumeria Next.js plugin",
+  "author": "Refirst 11",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/refirst11",
+  "homepage": "https://plumeria.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zss-in-js/plumeria.git",
     "directory": "packages/next-plugin"
   },
+  "bugs": {
+    "url": "https://github.com/zss-in-js/plumeria/issues"
+  },
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -21,7 +29,6 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "license": "MIT",
   "files": [
     "dist/"
   ],
