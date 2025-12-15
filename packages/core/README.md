@@ -1,6 +1,6 @@
 # @plumeria/core
 
-**The atomic on-demand CSS-in-JS:**
+An atomic CSS runtime designed to disappear.
 
 ```ts
 import { css } from '@plumeria/core';
@@ -18,8 +18,6 @@ const styles = css.create({
 const className = css.props(styles.text, styles.size);
 ```
 
-Plumeria compiles each style property into a unique, **atomic**, and **hashed** class name. This prevents style collisions and maximizes reusability.
-
 **Generated CSS:**
 
 ```css
@@ -34,10 +32,8 @@ Plumeria compiles each style property into a unique, **atomic**, and **hashed** 
 }
 ```
 
-**Resulting:**
-
 ```
-className: "x1p2jzyu xzie71ek xgpw2mmc"
+"x1p2jzyu xzie71ek xgpw2mmc"
 ```
 
 ## Documentation
