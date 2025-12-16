@@ -1,5 +1,13 @@
 # @plumeria/webpack-plugin
 
+## 2.0.3
+
+### Patch Changes
+
+- 9082944: chore(deps): bump zss-engine to 1.2.1
+- Updated dependencies [9082944]
+  - @plumeria/utils@2.0.3
+
 ## 2.0.2
 
 ### Patch Changes
