@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 2.0.3
+
+### Patch Changes
+
+- 9082944: chore(deps): bump zss-engine to 1.2.1
+
 ## 2.0.2
 
 ### Patch Changes
