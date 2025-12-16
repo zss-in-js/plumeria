@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/compiler",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Plumeria swc based compiler",
   "author": "Refirst 11",
   "license": "MIT",
