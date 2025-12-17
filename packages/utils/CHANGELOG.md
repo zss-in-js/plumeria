@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 2.1.0
+
+### Minor Changes
+
+- b12b015: chore: version bump only
+
 ## 2.0.3
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 2.1.0
+
+### Minor Changes
+
+- b12b015: chore: version bump only
+
+### Patch Changes
+
+- Updated dependencies [b12b015]
+  - @plumeria/utils@2.1.0
+
 ## 2.0.3
 
 ### Patch Changes
