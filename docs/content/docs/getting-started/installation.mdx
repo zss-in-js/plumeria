@@ -33,8 +33,8 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 </Step>
 <Step>
-## Compiler
 
+## Compiler
 <Tabs items={['npm', 'yarn', 'pnpm']}>
   {/* prettier-ignore */}
   <Tab>
@@ -67,19 +67,17 @@ Display the project styling paths list.
 - argument `--stats`  
 Display the plumeria css bundle stats info.
 
-- argument `--type-check`  
-The  will include compilation type-check.
-
 </Step>
 <Step>
+
 ## Setup
- 
+The plumerialint command installs [`@plumeria/eslint-plugin`](/docs/getting-started/editor-integration). 
 <Tabs items={["Next.js", "Vite"]}>
 <Tab>
 ```json title="package.json"
   "scripts": {
     "dev": "css && next dev",
-    "build": "css --type-check && next build",
+    "build": "plumerialint && css && next build",
   }
 ```
 </Tab>
@@ -87,7 +85,7 @@ The  will include compilation type-check.
 ```json title="package.json"
   "scripts": {
     "dev": "css && vite",
-    "build": "css --type-check && tsc -b && vite build", 
+    "build": "plumerialint && css && tsc -b && vite build", 
   },
 ```
 </Tab>
