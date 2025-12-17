@@ -1,0 +1,57 @@
+---
+title: 'Plumeria v2.1.0'
+description: 'Plumeria v2.1.x Improved style linting and type checking. (3 min read)'
+date: '2025/12/12'
+---
+
+## Minor Update v2.1.x
+
+### 🗑️ Removed Features
+- **Removed the `--type-check` argument from the `css` command**
+- We recommend using alternative methods for type checking going forward.
+
+### ✨ New Features
+- **Added the `plumerialint` command**
+- Available by installing `@plumeria/eslint-plugin`
+- Easily perform static analysis and linting of your code
+- Usage: `npx plumerialint`
+
+### 📦 Dependency Updates
+- **Updated Next.js to `^16.0.10`**
+- Includes the latest features and security patches.
+
+---
+
+### 💡 Migration Guide
+If you were using `--type-check`, please review your project configuration.
+We recommend adopting the new `plumerialint` command.
+
+```json
+"build": "plumerialint && css && next build",
+```
+
+## Previous Release: v2.0.x
+
+## 2.0.3
+
+### Patch Changes
+
+- chore(deps): bump zss-engine to 1.2.1
+csstype version latest update
+
+## 2.0.2
+
+### Patch Changes
+
+- Improve package.json metadata across all packages
+  - Add homepage field pointing plumeria.dev
+  - Add sideEffects: false for better tree-shaking
+  - Update descriptions and repository information
+
+## 2.0.1
+
+### Patch Changes
+
+- fix: merging properties in media(container) queries
+
+**Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria) !**
