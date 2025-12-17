@@ -51,12 +51,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
   let config: ResolvedConfig;
   let devServer: ViteDevServer;
+  let isDev = false;
 
   return {
     name: '@plumeria/vite-plugin',
-    apply: 'serve',
     enforce: 'pre', // Process before transpiling
-
     config: ({ build = {} }) => ({
       build: {
         ...build,
@@ -71,15 +70,18 @@ export function plumeria(options: PluginOptions = {}): Plugin {
     }),
 
     configResolved(resolvedConfig) {
+      isDev = resolvedConfig.command === 'serve';
       config = resolvedConfig;
     },
 
     configureServer(_server) {
+      if (!isDev) return;
       devServer = _server;
     },
 
     // --- Virtual Module Resolution ---
     resolveId(importeeUrl) {
+      if (!isDev) return;
       // Remove queries etc. and get the ID
       const [id] = importeeUrl.split('?', 1);
 
@@ -92,6 +94,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
     },
 
     load(url) {
+      if (!isDev) return;
       const [id] = url.split('?', 1);
       // Return the in-memory CSS
       return cssLookup.get(id);
@@ -99,6 +102,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
     // --- HMR Handling ---
     handleHotUpdate(ctx) {
+      if (!isDev) return;
       // If the module itself has changed, leave it to Vite
       if (ctx.modules.length) {
         return ctx.modules;
@@ -118,6 +122,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
     },
 
     transform(source, url) {
+      if (!isDev) return;
       const [id] = url.split('?', 1);
 
       // excluding node_modules
