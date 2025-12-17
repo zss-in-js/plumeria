@@ -20,6 +20,9 @@
   "files": [
     "dist/"
   ],
+  "bin": {
+    "plumerialint": "bin/plumerialint.js"
+  },
   "scripts": {
     "build": "rimraf dist && pnpm cjs",
     "cjs": "tsc --project tsconfig.cjs.json"
