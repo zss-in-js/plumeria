@@ -5,7 +5,7 @@
   "scripts": {
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
-    "build": "css --type-check && next build",
+    "build": "plumerialint && css && next build",
     "dev": "css & next dev",
     "start": "next start",
     "postinstall": "fumadocs-mdx"
