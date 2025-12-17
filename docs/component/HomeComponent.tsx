@@ -42,8 +42,6 @@ const styles = css.create({
   },
 
   heroContent: {
-    position: 'relative',
-    bottom: 20,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
@@ -115,7 +113,7 @@ const styles = css.create({
 
   featuresSection: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    gridTemplateColumns: 'repeat(4, 1fr)',
     gap: 24,
     width: '100%',
     maxWidth: '1200px',
@@ -201,7 +199,10 @@ export const HomeComponent = () => {
           <div className={css.props(styles.heroContent)}>
             <Plumeria />
             <h2 className={css.props(styles.mainHeadline)}>Atomic CSS-in-JS</h2>
-            <p className={css.props(styles.subHeadline)}>An atomic CSS runtime designed to disappear.</p>
+            <p className={css.props(styles.subHeadline)}>
+              Zero runtime overhead. Full type safety. <br />
+              Build-time compilation for ultimate performance.
+            </p>
             <div className={css.props(styles.buttonGroup)}>
               <ButtonLink href="/docs" variant="gradient" size="medium">
                 Get Started
@@ -219,20 +220,29 @@ export const HomeComponent = () => {
 
         <section className={css.props(styles.featuresSection)}>
           <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>{svg.Vscode()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Type-Safe</h3>
-            <p className={css.props(styles.featureDescription)}>
-              Enjoy complete <span className={css.props(styles.highlight)}>TypeScript safety</span>. Catch typos and
-              invalid values instantly. Intelligent autocomplete makes styling a breeze.
-            </p>
-          </div>
-
-          <div className={css.props(styles.featureCard)}>
             <div className={css.props(styles.featureIcon)}>{svg.Atom()}</div>
             <h3 className={css.props(styles.featureTitle)}>Atomic CSS</h3>
             <p className={css.props(styles.featureDescription)}>
               Generates <span className={css.props(styles.highlight)}>atomic CSS classes</span> at build time. Styles
-              are reused automatically, keeping your CSS bundle minimal and highly efficient.
+              are reused automatically, keeping your CSS bundle minimal.
+            </p>
+          </div>
+
+          <div className={css.props(styles.featureCard)}>
+            <div className={css.props(styles.featureIcon)}>{svg.TurbopackIcon()}</div>
+            <h3 className={css.props(styles.featureTitle)}>Turbopack</h3>
+            <p className={css.props(styles.featureDescription)}>
+              Native <span className={css.props(styles.highlight)}>Next.js integration</span>. Instant HMR updates and a
+              development flow that stays in full acceleration.
+            </p>
+          </div>
+
+          <div className={css.props(styles.featureCard)}>
+            <div className={css.props(styles.featureIcon)}>{svg.Eslint()}</div>
+            <h3 className={css.props(styles.featureTitle)}>Type-Safe</h3>
+            <p className={css.props(styles.featureDescription)}>
+              Complete TypeScript safety with <span className={css.props(styles.highlight)}>build-integrated </span>
+              ESLint validation. Detect typos before compiling.
             </p>
           </div>
 
@@ -242,33 +252,6 @@ export const HomeComponent = () => {
             <p className={css.props(styles.featureDescription)}>
               Styles are compiled to static CSS at <span className={css.props(styles.highlight)}>build time</span>.
               Eliminate runtime overhead and deliver instant page loads.
-            </p>
-          </div>
-
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>{svg.TurbopackIcon()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Turbopack</h3>
-            <p className={css.props(styles.featureDescription)}>
-              Native <span className={css.props(styles.highlight)}>Next.js integration</span>. Instant HMR updates and a
-              development flow that stays in full acceleration. Waiting is obsolete.
-            </p>
-          </div>
-
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>✨</div>
-            <h3 className={css.props(styles.featureTitle)}>Authoring Experience</h3>
-            <p className={css.props(styles.featureDescription)}>
-              Write styles with <span className={css.props(styles.highlight)}>confidence</span> and speed. Full IDE
-              support, instant feedback, and intuitive API design make development a joy.
-            </p>
-          </div>
-
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>{svg.Feather()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Lightweight</h3>
-            <p className={css.props(styles.featureDescription)}>
-              Brotli ~5.78 kB. Pre-compiled styles arrive{' '}
-              <span className={css.props(styles.highlight)}>weightless</span> and ready instantly.
             </p>
           </div>
         </section>
