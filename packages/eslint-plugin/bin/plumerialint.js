@@ -9,7 +9,7 @@ async function run() {
     overrideConfig: [plumeria.flatConfigs.recommended],
   });
 
-  const results = await eslint.lintFiles('**/*.{ts,tsx,js,jsx,vue,svelte}');
+  const results = await eslint.lintFiles('**/*.{ts,tsx,js,jsx}');
 
   const hasProblem = results.some(
     (r) => r.errorCount > 0 || r.warningCount > 0,
