@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 2.1.0
+
+### Minor Changes
+
+- b12b015: feat: The compiler --type-check argument has been removed and the plumerialint command is now provided by the eslint-plugin.
+
 ## 2.0.3
 
 ### Patch Changes
