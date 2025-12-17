@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 2.1.1
+
+### Patch Changes
+
+- 6bd7444: chore: version bump only
+
 ## 2.1.0
 
 ### Minor Changes
