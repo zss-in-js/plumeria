@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const path = require('path');
-const { execSync } = require('child_process');
 const { styleText } = require('util');
 const { enableCompileCache } = require('node:module');
 
@@ -13,22 +12,11 @@ register();
 
 try {
   const checkMark = styleText('greenBright', '✓');
-  const typecheck = process.argv.includes('--type-check');
   const stats = process.argv.includes('--stats');
-
-  if (typecheck) {
-    execSync('tsc --noEmit --incremental false', {
-      stdio: 'inherit',
-      cwd: process.cwd(),
-    });
-  }
 
   require(path.resolve(__dirname, '../dist/index.js'));
 
-  if (!stats) {
-    const compilation = typecheck ? 'Type-check completed' : '';
-    console.log(` ${checkMark} Compiled... ${compilation}`);
-  }
+  if (!stats) console.log(` ${checkMark} Compiled...`);
 } catch (error) {
   console.error('Compilation failed:', error.message);
   process.exit(1);
