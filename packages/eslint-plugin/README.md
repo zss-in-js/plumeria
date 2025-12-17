@@ -40,3 +40,33 @@ Automatically sorts CSS properties in the recommended order for consistency and 
 ### validate-values
 
 Validates CSS property values for correctness. Only standard CSS properties are checked; properties with string literal keys (e.g., computed or dynamic property names) are not validated.
+
+## CLI (plumerialint)
+
+This package also provides a small CLI, `plumerialint`, as a convenient way
+to run only Plumeria’s ESLint rules.
+
+It uses the same recommended configuration internally, so no additional
+setup is required.
+
+```bash
+plumerialint
+```
+
+By default, it lints the following file types:
+
+- `.ts`, `.tsx`
+- `.js`, `.jsx`
+
+The process exits with a non-zero status code if any errors or warnings are found,
+making it suitable for use in CI and build pipelines.
+
+Example usage in `package.json`:
+
+```json
+{
+  "scripts": {
+    "lint": "plumerialint"
+  }
+}
+```
