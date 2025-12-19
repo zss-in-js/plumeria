@@ -7,6 +7,7 @@ async function run() {
   const eslint = new ESLint({
     cwd: process.cwd(),
     overrideConfig: [plumeria.flatConfigs.recommended],
+    ignorePatterns: ['**/.*/**'],
   });
 
   const results = await eslint.lintFiles('**/*.{ts,tsx,js,jsx}');
