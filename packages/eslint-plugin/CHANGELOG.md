@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 2.1.2
+
+### Patch Changes
+
+- e4a9d77: fix: Fixed plumerialint command to ignore directories beginning with a dot
+
 ## 2.1.1
 
 ### Patch Changes
