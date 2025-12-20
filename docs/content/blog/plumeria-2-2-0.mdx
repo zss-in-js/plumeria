@@ -1,0 +1,18 @@
+---
+title: 'Plumeria v2.2.0'
+description: 'Plumeria v2.2.x Improvement plumerialint command migrated to oxlint. (1 min read)'
+date: '2025/12/20'
+---
+
+## Minor Update v2.2.x
+
+### Changed
+- `plumerialint` command now uses oxlint internally for faster linting with improved output
+- oxlint is now required as a dev dependency for using `plumerialint` command
+
+### Required user project environment
+```sh
+pnpm install -D oxlint
+```
+
+- Significantly faster startup and clearer, colored diagnostics.
