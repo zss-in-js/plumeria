@@ -1,5 +1,18 @@
 # @plumeria/next-plugin
 
+## 2.2.0
+
+### Minor Changes
+
+- 509257d: feat: version bump only
+
+### Patch Changes
+
+- Updated dependencies [509257d]
+- Updated dependencies [509257d]
+  - @plumeria/turbopack-loader@2.2.0
+  - @plumeria/webpack-plugin@2.2.0
+
 ## 2.1.2
 
 ### Patch Changes
