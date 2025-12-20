@@ -43,20 +43,24 @@ Validates CSS property values for correctness. Only standard CSS properties are 
 
 ## CLI (plumerialint)
 
-This package also provides a small CLI, `plumerialint`, as a convenient way
-to run only Plumeria’s ESLint rules.
+This package provides a CLI command, `plumerialint`, as a convenient way
+to run Plumeria's custom ESLint rules.
 
-It uses the same recommended configuration internally, so no additional
-setup is required.
+It uses `oxlint` internally for fast linting with code snippets in output.
+
+### Installation
+
+```bash
+npm install -D @plumeria/eslint-plugin oxlint
+# or
+pnpm add -D @plumeria/eslint-plugin oxlint
+```
+
+### Usage
 
 ```bash
 plumerialint
 ```
-
-By default, it lints the following file types:
-
-- `.ts`, `.tsx`
-- `.js`, `.jsx`
 
 The process exits with a non-zero status code if any errors or warnings are found,
 making it suitable for use in CI and build pipelines.
@@ -70,3 +74,5 @@ Example usage in `package.json`:
   }
 }
 ```
+
+**Note:** `oxlint` is required as `plumerialint` uses it internally.
