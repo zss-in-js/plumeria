@@ -71,15 +71,24 @@ Display the plumeria css bundle stats info.
 <Step>
 
 ## Setup
-The plumerialint command installs [`@plumeria/eslint-plugin`](/docs/getting-started/editor-integration). 
+The plumerialint command installs [`@plumeria/eslint-plugin`](/docs/getting-started/editor-integration).   
+`oxlint` is required to run the `plumerialint` command.
+```sh
+pnpm i -D oxlint
+```
+For `Next`, we recommend running rimraf to clean up the cache to accommodate the differences between versions:
 <Tabs items={["Next.js", "Vite"]}>
 <Tab>
 ```json title="package.json"
   "scripts": {
+    "predev": "rimraf .next",
+    "prebuild": "rimraf .next",
     "dev": "css && next dev",
     "build": "plumerialint && css && next build",
-  }
+    "start": "next start",
+  },
 ```
+
 </Tab>
 <Tab>
 ```json title="package.json"
