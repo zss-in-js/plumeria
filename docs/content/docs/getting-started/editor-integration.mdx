@@ -33,25 +33,33 @@ In VScode create a shortcut for the css.props() object expansion in className.
 <Step>
 ## ESLint
 
-It is the plumeria [Linter `@plumeria/eslint-plugin` package](https://www.npmjs.com/package/@plumeria/eslint-plugin)
+It is the plumeria [Linter `@plumeria/eslint-plugin` package](https://www.npmjs.com/package/@plumeria/eslint-plugin)  
+The eslint-plugin `plumerialint` command is integrated with `oxlint`.
+
+
 
 <Tabs items={['npm',  'yarn', 'pnpm']}>
 <Tab>
 ```sh title="Terminal"
-npm i --save-dev @plumeria/eslint-plugin
+npm i --save-dev @plumeria/eslint-plugin oxlint
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-pnpm i --save-dev @plumeria/eslint-plugin
+pnpm i --save-dev @plumeria/eslint-plugin oxlint
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-yarn add -D @plumeria/eslint-plugin
+yarn add -D @plumeria/eslint-plugin oxlint
 ```
 </Tab>
 </Tabs>
+By incorporating it into your build pipeline, you can proactively detect style warnings and errors and immediately terminate the build midway: `plumerialint`.
+```json title="package.json"
+"build": "plumerialint && css && next build",  
+```
+
 <Tabs items={['Flat Config ESM', 'CJS', 'eslint8']}>
   <Tab>
     ```js title="eslint.config.ts"
