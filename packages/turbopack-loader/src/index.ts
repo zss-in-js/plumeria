@@ -200,13 +200,7 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
   const postfix = `\nimport ${virtualCssRequest};`;
 
   // Read current CSS to check for duplicates
-  let css = '';
-  try {
-    css = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
-  } catch (e) {
-    e;
-    // File might not exist yet
-  }
+  const css = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
 
   function generateOrderedCSS(styles: typeof fileStyles): string {
     const sections: string[] = [];
