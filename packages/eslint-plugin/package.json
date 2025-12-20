@@ -18,10 +18,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/"
+    "dist/",
+    "oxlint-plugin.js",
+    "oxlint.json"
   ],
   "bin": {
-    "plumerialint": "bin/plumerialint.js"
+    "plumerialint": "bin/oxlint.js"
   },
   "scripts": {
     "build": "rimraf dist && pnpm cjs",
