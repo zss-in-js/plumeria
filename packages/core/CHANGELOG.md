@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 2.2.0
+
+### Minor Changes
+
+- 509257d: feat: version bump only
+
 ## 2.1.2
 
 ### Patch Changes
