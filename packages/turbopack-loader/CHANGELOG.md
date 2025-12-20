@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 2.2.0
+
+### Minor Changes
+
+- 509257d: fix: remove try catch because the file exists
+
+### Patch Changes
+
+- Updated dependencies [509257d]
+  - @plumeria/utils@2.2.0
+
 ## 2.1.2
 
 ### Patch Changes
