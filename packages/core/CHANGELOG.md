@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 2.2.2
+
+### Patch Changes
+
+- 3af2dee: refactor: variable names have been shortened
+
 ## 2.2.1
 
 ### Patch Changes
