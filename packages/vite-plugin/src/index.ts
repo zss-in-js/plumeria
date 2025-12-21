@@ -131,7 +131,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         return null;
       }
 
-      // excluding virtual modules (e.g. ?astro&type=style)
+      // excluding virtual modules (e.g. ?tsx&type=style)
       if (url.includes('?')) {
         return null;
       }
@@ -302,7 +302,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         return null;
       }
 
-      // --- Register Virtual CSS File (Modifier Logic) ---
+      // --- Register Virtual CSS File ---
 
       const baseId = id.replace(EXTENSION_PATTERN, '');
 
