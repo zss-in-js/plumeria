@@ -64,6 +64,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           external: [
             ...((build.rollupOptions?.external || []) as string[]),
             'fs',
+            'util',
           ],
         },
       },
