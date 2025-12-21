@@ -1,13 +1,4 @@
-import {
-  buildProps,
-  buildGlobal,
-  initPromise_1,
-  resolvePromise_1,
-  globalPromise_1,
-  initPromise_2,
-  resolvePromise_2,
-  globalPromise_2,
-} from '../../src/processors/css';
+import { gQueue, pQueue } from '../../src/processors/css';
 import * as zssEngine from 'zss-engine';
 
 jest.mock('zss-engine', () => ({
@@ -26,98 +17,86 @@ describe('css processor (single sequential test)', () => {
     mockZssEngine = require('zss-engine');
   });
 
-  it('should correctly handle the entire flow of buildProps and buildGlobal', async () => {
-    // --- Test buildProps flow ---
+  it('should correctly handle the entire flow of pQueue and gQueue', async () => {
+    // --- Test pQueue flow (props) ---
 
-    // 1. initPromise_1 should initialize globalPromise_1 as a Promise
-    initPromise_1();
-    expect(globalPromise_1).toBeInstanceOf(Promise);
+    // 1. pQueue.init should initialize promise as a Promise
+    pQueue.init();
+    expect(pQueue.promise).toBeInstanceOf(Promise);
 
-    // 2. resolvePromise_1 should push stylesheet to queue and resolve the promise
+    // 2. pQueue.resolve should push stylesheet to queue and resolve the promise
     const testSheet1 = '.test1 { color: red; }';
-    resolvePromise_1(testSheet1);
-    await expect(globalPromise_1).resolves.toBe(testSheet1);
+    pQueue.resolve(testSheet1);
+    await expect(pQueue.promise).resolves.toBe(testSheet1);
 
-    // 3. buildProps should process the queue when not processing and queue is not empty
-    await buildProps('test1.css');
+    // 3. pQueue.build should process the queue when not processing and queue is not empty
+    await pQueue.build('test1.css');
     expect(mockZssEngine.build).toHaveBeenCalledWith(testSheet1, 'test1.css');
     expect(mockZssEngine.build).toHaveBeenCalledTimes(1);
 
-    // 4. buildProps should not call build in development mode
+    // 4. pQueue.build should not call build in development mode
     mockZssEngine.isDevelopment = true;
     const testSheet2 = '.test2 { color: blue; }';
-    resolvePromise_1(testSheet2);
-    await buildProps('test2.css');
+    pQueue.resolve(testSheet2);
+    await pQueue.build('test2.css');
     expect(mockZssEngine.build).toHaveBeenCalledTimes(1); // Still 1 from previous call
 
     // 5. Reset development mode and add another sheet
     mockZssEngine.isDevelopment = false;
     const testSheet3 = '.test3 { font-size: 12px; }';
-    resolvePromise_1(testSheet3);
-    await buildProps('test3.css');
+    pQueue.resolve(testSheet3);
+    await pQueue.build('test3.css');
     expect(mockZssEngine.build).toHaveBeenCalledWith(testSheet3, 'test3.css');
     expect(mockZssEngine.build).toHaveBeenCalledTimes(2);
 
-    // 6. buildProps should not process if already processing
+    // 6. pQueue.build should not process if already processing
     const testSheet4 = '.test4 { background: yellow; }';
-    resolvePromise_1(testSheet4);
-    const promise1 = buildProps('test4.css');
-    const promise2 = buildProps('test4.css');
+    pQueue.resolve(testSheet4);
+    const promise1 = pQueue.build('test4.css');
+    const promise2 = pQueue.build('test4.css');
     await Promise.all([promise1, promise2]);
     expect(mockZssEngine.build).toHaveBeenCalledTimes(3); // Only one more call
     expect(mockZssEngine.build).toHaveBeenCalledWith(testSheet4, 'test4.css');
 
-    // --- Test buildGlobal flow ---
+    // --- Test gQueue flow (global) ---
 
-    // 7. initPromise_2 should initialize globalPromise_2 as a Promise
-    initPromise_2();
-    expect(globalPromise_2).toBeInstanceOf(Promise);
+    // 7. gQueue.init should initialize promise as a Promise
+    gQueue.init();
+    expect(gQueue.promise).toBeInstanceOf(Promise);
 
-    // 8. resolvePromise_2 should push stylesheet to queue and resolve the promise
+    // 8. gQueue.resolve should push stylesheet to queue and resolve the promise
     const testSheet5 = '.global1 { color: orange; }';
-    resolvePromise_2(testSheet5);
-    await expect(globalPromise_2).resolves.toBe(testSheet5);
+    gQueue.resolve(testSheet5);
+    await expect(gQueue.promise).resolves.toBe(testSheet5);
 
-    // 9. buildGlobal should process the queue when not processing and queue is not empty
-    await buildGlobal('global1.css');
-    expect(mockZssEngine.build).toHaveBeenCalledWith(
-      testSheet5,
-      'global1.css',
-      '--global',
-    );
-    expect(mockZssEngine.build).toHaveBeenCalledTimes(4); // 3 from buildProps + 1 here
+    // 9. gQueue.build should process the queue when not processing and queue is not empty
+    await gQueue.build('global1.css');
+    expect(mockZssEngine.build).toHaveBeenCalledWith(testSheet5, 'global1.css');
+    expect(mockZssEngine.build).toHaveBeenCalledTimes(4); // 3 from pQueue + 1 here
 
-    // 10. buildGlobal should not call build in development mode
+    // 10. gQueue.build should not call build in development mode
     mockZssEngine.isDevelopment = true;
     const testSheet6 = '.global2 { font-weight: bold; }';
-    resolvePromise_2(testSheet6);
-    await buildGlobal('global2.css');
+    gQueue.resolve(testSheet6);
+    await gQueue.build('global2.css');
     expect(mockZssEngine.build).toHaveBeenCalledTimes(4); // Still 4 from previous calls
 
     // 11. Reset development mode and add another sheet
     mockZssEngine.isDevelopment = false;
     const testSheet7 = '.global3 { border: 1px solid black; }';
-    resolvePromise_2(testSheet7);
-    await buildGlobal('global3.css');
-    expect(mockZssEngine.build).toHaveBeenCalledWith(
-      testSheet7,
-      'global3.css',
-      '--global',
-    );
+    gQueue.resolve(testSheet7);
+    await gQueue.build('global3.css');
+    expect(mockZssEngine.build).toHaveBeenCalledWith(testSheet7, 'global3.css');
     expect(mockZssEngine.build).toHaveBeenCalledTimes(5);
 
-    // 12. buildGlobal should not process if already processing
+    // 12. gQueue.build should not process if already processing
     const testSheet8 = '.global4 { padding: 10px; }';
-    resolvePromise_2(testSheet8);
-    const promise3 = buildGlobal('global4.css');
-    const promise4 = buildGlobal('global4.css');
+    gQueue.resolve(testSheet8);
+    const promise3 = gQueue.build('global4.css');
+    const promise4 = gQueue.build('global4.css');
     await Promise.all([promise3, promise4]);
     expect(mockZssEngine.build).toHaveBeenCalledTimes(6); // Only one more call
-    expect(mockZssEngine.build).toHaveBeenCalledWith(
-      testSheet8,
-      'global4.css',
-      '--global',
-    );
+    expect(mockZssEngine.build).toHaveBeenCalledWith(testSheet8, 'global4.css');
   });
 });
 
@@ -126,7 +105,7 @@ describe('css processor lazy initialization', () => {
     jest.resetModules();
   });
 
-  it('buildProps should initialize promise on first call', async () => {
+  it('pQueue should initialize promise on first call', async () => {
     const cssProcessor = require('../../src/processors/css');
     require('zss-engine');
     jest.mock('zss-engine', () => ({
@@ -135,14 +114,14 @@ describe('css processor lazy initialization', () => {
       isDevelopment: false,
     }));
 
-    expect(cssProcessor.resolvePromise_1).toBeUndefined();
-    await cssProcessor.buildProps('test.css');
+    expect(cssProcessor.pQueue.resolve).toBeUndefined();
+    await cssProcessor.pQueue.build('test.css');
 
     const cssProcessorAfter = require('../../src/processors/css');
-    expect(cssProcessorAfter.resolvePromise_1).toBeInstanceOf(Function);
+    expect(cssProcessorAfter.pQueue.resolve).toBeInstanceOf(Function);
   });
 
-  it('buildGlobal should initialize promise on first call', async () => {
+  it('gQueue should initialize promise on first call', async () => {
     const cssProcessor = require('../../src/processors/css');
     require('zss-engine');
     jest.mock('zss-engine', () => ({
@@ -151,10 +130,10 @@ describe('css processor lazy initialization', () => {
       isDevelopment: false,
     }));
 
-    expect(cssProcessor.resolvePromise_2).toBeUndefined();
-    await cssProcessor.buildGlobal('test.css');
+    expect(cssProcessor.gQueue.resolve).toBeUndefined();
+    await cssProcessor.gQueue.build('test.css');
 
     const cssProcessorAfter = require('../../src/processors/css');
-    expect(cssProcessorAfter.resolvePromise_2).toBeInstanceOf(Function);
+    expect(cssProcessorAfter.gQueue.resolve).toBeInstanceOf(Function);
   });
 });
