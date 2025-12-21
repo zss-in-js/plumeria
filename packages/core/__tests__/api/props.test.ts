@@ -17,8 +17,10 @@ jest.mock('zss-engine', () => ({
 
 jest.mock('../../src/processors/css', () => ({
   ...jest.requireActual('../../src/processors/css'),
-  initPromise_1: jest.fn(),
-  resolvePromise_1: jest.fn(),
+  pQueue: {
+    init: jest.fn(),
+    resolve: jest.fn(),
+  },
 }));
 
 describe('props', () => {
@@ -42,7 +44,7 @@ describe('props', () => {
     // If there is an object that is not registered in create,
     // an error occurs in the type, but no class is returned even if it is passed through any.
     expect(result).toMatch(/^x[a-zA-Z0-9]+$/);
-    expect(cssProcessor.resolvePromise_1).toHaveBeenCalledWith(
+    expect(cssProcessor.pQueue.resolve).toHaveBeenCalledWith(
       expect.stringContaining(''),
     );
   });
