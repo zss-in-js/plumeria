@@ -2,17 +2,17 @@ import type { CSSProperties } from 'zss-engine';
 import { styleAtomMap } from './create';
 import { pQueue } from '../processors/css';
 
-const injectedStyleSheets = new Set<string>();
+const setSheets = new Set<string>();
 
 export function props(
   ...objects: (false | CSSProperties | null | undefined)[]
 ): string {
   const seenSheets = new Set<string>();
-  const allStyleSheets: string[] = [];
+  const baseSheets: string[] = [];
   const classList: string[] = [];
   const chosen = new Map(); // key -> {hash, sheet, propsIdx}
-  const rightmostKeys = []; // Keys from the rightmost props
-  const orderedKeys = []; // Other keys to be displayed in the order of left props
+  const rightmostKeys = [];
+  const orderedKeys = [];
 
   for (let i = objects.length - 1; i >= 0; i--) {
     const obj = objects[i];
@@ -51,7 +51,7 @@ export function props(
     if (!seenSheets.has(sheet)) {
       seenSheets.add(sheet);
       classList.push(hash);
-      allStyleSheets.push(sheet);
+      baseSheets.push(sheet);
     }
   }
   // Those that are only used in the rightmost props are output last
@@ -59,21 +59,19 @@ export function props(
     if (!seenSheets.has(sheet)) {
       seenSheets.add(sheet);
       classList.push(hash);
-      allStyleSheets.push(sheet);
+      baseSheets.push(sheet);
     }
   }
 
-  // Extract only non-duplicate styleSheets
-  const uniqueStyleSheets = [...allStyleSheets].filter(
-    (sheet) => !injectedStyleSheets.has(sheet),
-  );
+  // Extract only non-duplicate baseSheets
+  const uniqueSheets = [...baseSheets].filter((sheet) => !setSheets.has(sheet));
 
-  // Add the new styleSheets to injectedStyleSheets.
-  uniqueStyleSheets.forEach((sheet) => injectedStyleSheets.add(sheet));
+  // Add the new baseSheets to setSheets.
+  uniqueSheets.forEach((sheet) => setSheets.add(sheet));
 
   // CSS part compilation by the Processor
   if (typeof pQueue.promise === 'undefined') pQueue.init();
-  pQueue.resolve(uniqueStyleSheets.join(''));
+  pQueue.resolve(uniqueSheets.join(''));
 
   return classList.join(' ');
 }
