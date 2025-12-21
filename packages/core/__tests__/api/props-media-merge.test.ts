@@ -4,8 +4,10 @@ import * as cssProcessor from '../../src/processors/css';
 
 jest.mock('../../src/processors/css', () => ({
   ...jest.requireActual('../../src/processors/css'),
-  initPromise_1: jest.fn(),
-  resolvePromise_1: jest.fn(),
+  pQueue: {
+    init: jest.fn(),
+    resolve: jest.fn(),
+  },
 }));
 
 describe('props media query merge', () => {
@@ -34,7 +36,7 @@ describe('props media query merge', () => {
     props(s1.test, s2.test);
 
     // Get the generated CSS passed to resolvePromise_1
-    const generatedCSS = (cssProcessor.resolvePromise_1 as jest.Mock).mock
+    const generatedCSS = (cssProcessor.pQueue.resolve as jest.Mock).mock
       .calls[0][0];
 
     // Both properties should be present in the CSS
