@@ -35,21 +35,21 @@ npx css
 </Tab>
 <Tab>
 ```sh title="Terminal"
-pnpm exec css
+pnpm css
 ```
 </Tab>
 </Tabs>
 
 ### Success
 ```sh title="Terminal"
- ✓ Compiled... 
+ ✓ extract... 
 ```
 
 ### Usage
 ```json title="json"
   "scripts": {
     "dev": "css & next dev",
-    "build": "css --type-check && next build",
+    "build": "plumerialint && css && next build",
   }
 ```
 
@@ -60,27 +60,35 @@ Use it to visualize your builds and test them as you go.
 Do not include the --view argument in your build script as it will get into the server logs.
 
 ```sh title="Terminal"
-pnpm exec --view
+pnpm css --view
 ```
 Example:
 ```sh title="Terminal"
- ✓ Compiled... 
-props💫:
+
+✓ extract...
 
 .x1dc3zs0 { color: orange; }
 
-props💫:
+────────────────────────────────────────────────────────────
+
+✓ extract...
 
 .x13vu618 { color: pink; }
-@media (max-width: 1024px) { .x15qdpgc { color: aqua; } }
+@media (max-width: 1024px) { .x15qdpgc:not(#\#) { color: aqua; } }
 
-props💫:
+────────────────────────────────────────────────────────────
+
+✓ extract...
 
 .x1x6w4y4:not(#\#) { font-size: 14px; }
 
-props💫:
+────────────────────────────────────────────────────────────
+
+✓ extract...
 
 .x1f4cjxk { color: green; }
+
+────────────────────────────────────────────────────────────
 ```
 
 ### `--paths`
@@ -90,10 +98,9 @@ pnpm exec css --paths
 ```
 Example:
 ```sh title="Terminal"
-✓ Compiled... 
-project/src/component/CodeBlock.tsx
-project/src/component/HomeComponent.tsx
-project/src/component/Plumeria.tsx
+✅: project/src/component/CodeBlock.tsx
+✅: project/src/component/HomeComponent.tsx
+✅: project/src/component/Plumeria.tsx
 ```
 
 ### `--stats`
@@ -116,19 +123,6 @@ Top properties:
 Build time:               0.08s
 ────────────────────────────
 ```
-
-### `--type-check`
-Runs Typescript type checking before compiling.
-```sh title="Terminal"
-pnpm exec css --type-check
-```
-### Success
-```sh
- ✓ Compiled... Type-check completed
-```
-
-
-
 
 <Cards>
   <Card title="See more about Installation" href="/docs/getting-started/installation" />
