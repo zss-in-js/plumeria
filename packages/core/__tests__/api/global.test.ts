@@ -12,8 +12,11 @@ jest.mock('zss-engine', () => ({
 
 jest.mock('../../src/processors/css', () => ({
   ...jest.requireActual('../../src/processors/css'),
-  initPromise_2: jest.fn(),
-  resolvePromise_2: jest.fn(),
+  gQueue: {
+    init: jest.fn(),
+    resolve: jest.fn(),
+    promise: undefined,
+  },
 }));
 
 describe('global', () => {
@@ -36,18 +39,18 @@ describe('global', () => {
     );
   });
 
-  it('should call resolvePromise_2 with the transpiled stylesheet', () => {
+  it('should call gQueue.resolve with the transpiled stylesheet', () => {
     const styles = { h1: { fontSize: '2rem' } };
     global(styles);
-    expect(mockCssProcessor.resolvePromise_2).toHaveBeenCalledWith(
+    expect(mockCssProcessor.gQueue.resolve).toHaveBeenCalledWith(
       '/* transpiled css */',
     );
   });
 
   it('should initialize promise if it is undefined', () => {
-    (mockCssProcessor as any).globalPromise_2 = undefined;
+    (mockCssProcessor as any).gQueue.promise = undefined;
     const styles = { div: { padding: '1em' } };
     global(styles);
-    expect(mockCssProcessor.initPromise_2).toHaveBeenCalled();
+    expect(mockCssProcessor.gQueue.init).toHaveBeenCalled();
   });
 });
