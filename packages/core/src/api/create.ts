@@ -39,14 +39,8 @@ function create<const T extends Record<string, CSSProperties>>(
       sheet: string;
     }> = [];
 
-    // Processing flat atoms and atoms in media
     Object.entries(finalFlat).forEach(([prop, value]) => {
-      // Handle atomic rules inside media queries separately to generate granular keys
-      if (
-        (prop.startsWith('@media') || prop.startsWith('@container')) &&
-        typeof value === 'object' &&
-        value !== null
-      ) {
+      if (prop.startsWith('@media') || prop.startsWith('@container')) {
         Object.entries(value).forEach(([innerProp, innerValue]) => {
           const atomicMap = new Map<string, string>();
 
