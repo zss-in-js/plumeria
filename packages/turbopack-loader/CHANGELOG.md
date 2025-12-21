@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 2.2.2
+
+### Patch Changes
+
+- 3af2dee: chore: bump version to v2.2.2
+- Updated dependencies [3af2dee]
+  - @plumeria/utils@2.2.2
+
 ## 2.2.1
 
 ### Patch Changes
