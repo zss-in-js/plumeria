@@ -41,21 +41,21 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
 
           processAtomicProps({ [innerProp]: innerValue }, atomicMap, prop);
 
-          const querySheetParts: string[] = [];
-          const queryHashParts: string[] = [];
+          const querySheets: string[] = [];
+          const queryHashes: string[] = [];
 
           for (const [hash, sheet] of atomicMap) {
-            querySheetParts.push(
+            querySheets.push(
               sheet.replace(`.${hash}`, `.${hash}:not(#\\#):not(#\\#)`),
             );
-            queryHashParts.push(hash);
+            queryHashes.push(hash);
           }
 
-          if (querySheetParts.length > 0) {
+          if (querySheets.length > 0) {
             records.push({
               key: prop + innerProp,
-              hash: queryHashParts.join(' '),
-              sheet: querySheetParts.join(''),
+              hash: queryHashes.join(' '),
+              sheet: querySheets.join(''),
             });
           }
         });
@@ -64,19 +64,19 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
 
         processAtomicProps({ [prop]: value }, atomicMap);
 
-        const baseSheetParts: string[] = [];
-        const baseHashParts: string[] = [];
+        const sheets: string[] = [];
+        const hashes: string[] = [];
 
         for (const [hash, sheet] of atomicMap) {
-          baseSheetParts.push(sheet);
-          baseHashParts.push(hash);
+          sheets.push(sheet);
+          hashes.push(hash);
         }
 
-        if (baseSheetParts.length > 0) {
+        if (sheets.length > 0) {
           records.push({
             key: prop,
-            hash: baseHashParts.join(' '),
-            sheet: baseSheetParts.join(''),
+            hash: hashes.join(' '),
+            sheet: sheets.join(''),
           });
         }
       }
