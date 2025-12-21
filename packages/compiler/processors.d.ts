@@ -1,4 +1,8 @@
 declare module '@plumeria/core/processors' {
-  export function buildGlobal(filePath: string): Promise<void>;
-  export function buildProps(filePath: string): Promise<void>;
+  export const gQueue: {
+    build(filePath: string): Promise<void>;
+  };
+  export const pQueue: {
+    build(filePath: string): Promise<void>;
+  };
 }
