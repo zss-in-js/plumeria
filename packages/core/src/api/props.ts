@@ -1,10 +1,6 @@
-import { type CSSProperties } from 'zss-engine';
+import type { CSSProperties } from 'zss-engine';
 import { styleAtomMap } from './create';
-import {
-  globalPromise_1,
-  initPromise_1,
-  resolvePromise_1,
-} from '../processors/css';
+import { pQueue } from '../processors/css';
 
 const injectedStyleSheets = new Set<string>();
 
@@ -76,8 +72,8 @@ export function props(
   uniqueStyleSheets.forEach((sheet) => injectedStyleSheets.add(sheet));
 
   // CSS part compilation by the Processor
-  if (typeof globalPromise_1 === 'undefined') initPromise_1();
-  resolvePromise_1(uniqueStyleSheets.join(''));
+  if (typeof pQueue.promise === 'undefined') pQueue.init();
+  pQueue.resolve(uniqueStyleSheets.join(''));
 
   return classList.join(' ');
 }
