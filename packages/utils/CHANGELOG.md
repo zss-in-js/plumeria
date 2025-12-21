@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 2.2.1
+
+### Patch Changes
+
+- 1061552: chore: Removed unnecessary object check in transform
+
 ## 2.2.0
 
 ### Minor Changes

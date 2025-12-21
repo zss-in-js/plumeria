@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 2.2.1
+
+### Patch Changes
+
+- 1061552: chore: build func is changed to Queue object
+
 ## 2.2.0
 
 ### Minor Changes
