@@ -7,7 +7,7 @@ import { globSync } from '@rust-gear/glob';
 import { transform as lightningCSSTransform } from 'lightningcss';
 import { parse } from '@swc/core';
 import { findUp } from 'find-up';
-import { buildGlobal, buildProps } from '@plumeria/core/processors';
+import { gQueue, pQueue } from '@plumeria/core/processors';
 import { extractTSFile, extractVueAndSvelte, generatedTsMap } from './extract';
 
 async function generateStats(buildTime: number, coreFilePath: string) {
@@ -270,8 +270,8 @@ async function main() {
         }
       }
     }
-    await buildGlobal(coreFilePath);
-    await buildProps(coreFilePath);
+    await gQueue.build(coreFilePath);
+    await pQueue.build(coreFilePath);
 
     await optimizeCSS();
     generatedTsMap.clear();
