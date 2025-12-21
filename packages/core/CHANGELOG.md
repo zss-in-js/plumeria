@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 2.2.1
+
+### Patch Changes
+
+- 1061552: refactor: Eliminated processor redundancy using closures
+
 ## 2.2.0
 
 ### Minor Changes

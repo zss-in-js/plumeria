@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 2.2.1
+
+### Patch Changes
+
+- 1061552: chore: add external util
+- Updated dependencies [1061552]
+  - @plumeria/utils@2.2.1
+
 ## 2.2.0
 
 ### Minor Changes
