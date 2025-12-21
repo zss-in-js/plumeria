@@ -11,12 +11,14 @@ const { register } = require('rscute/register');
 register();
 
 try {
-  const checkMark = styleText('greenBright', '✓');
   const stats = process.argv.includes('--stats');
+  const view = process.argv.includes('--view');
+  const paths = process.argv.includes('--paths');
 
   require(path.resolve(__dirname, '../dist/index.js'));
 
-  if (!stats) console.log(` ${checkMark} Compiled...`);
+  if (!stats && !view && !paths)
+    console.log(styleText(['green', 'bold'], '✓ extract...'));
 } catch (error) {
   console.error('Compilation failed:', error.message);
   process.exit(1);
