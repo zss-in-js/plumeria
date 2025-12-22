@@ -61,18 +61,18 @@ This way, flat longs are always overwritten by media shorts, so there are no ord
 ```css
 /* Previous: Unexpected overwrites due to order dependency */
 
-.margin-top:not(#\#) { margin-top: 20px; } /* (0,1,1) - Wins ❌ */
+.xatom2:not(#\#) { margin-top: 20px; } /* (0,1,1) - Wins ❌ */
 
 @media (min-width: 768px) {
-.m-4 { margin: 16px; } /* (0,1,0) */
+.xatom1 { margin: 16px; } /* (0,1,0) */
 }
 
 
 /* v1.0.4 and later: Reliable control with specificity */
-.margin-top:not(#\#) { margin-top: 20px; } /* (0,1,1) */
+.xatom1:not(#\#) { margin-top: 20px; } /* (0,1,1) */
 
 @media (min-width: 768px) {
-.m-4:not(#\#):not(#\#) { margin: 16px; } /* (0,1,2) - Wins ✅ */
+.xatom2:not(#\#):not(#\#) { margin: 16px; } /* (0,1,2) - Wins ✅ */
 }
 ```
 
