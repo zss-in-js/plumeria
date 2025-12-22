@@ -106,4 +106,55 @@ xatom {
 }
 ```
 </Step>
+
+<Step>
+## Why Plumeria is order-independent
+
+Plumeria maintains predictable styling regardless of the order in which styles are defined. This behavior is achieved through a deliberate specificity hierarchy that varies slightly between the build-time compiler and the development HMR environment.
+
+### Core / Compiler side
+
+In production builds, the Plumeria optimizer automatically moves all media queries to the bottom of the CSS bundle. Since rules at the bottom of a CSS file naturally take precedence, a lower specificity level is sufficient to maintain low bundle size while keeping styles consistent.
+
+```sh title="Core-Compiler side"
+- shorthand:             0 - :not(#\#) ✖️ 0
+- longhand:              1 - :not(#\#) ✖️ 1
+- shorthand in query:    1 - :not(#\#) ✖️ 1
+- longhand in query:     2 - :not(#\#) ✖️ 2
+```
+
+### Plugin / HMR side (Complete order independence)
+
+During development, **Hot Module Replacement (HMR)** can inject CSS rules in an unpredictable order. To maintain reliability where media queries are not sorted, Plumeria uses a higher specificity hierarchy to achieve complete order independence.
+
+```sh title="Plugin-HMR side"
+- shorthand:             0 - :not(#\#) ✖️ 0
+- longhand:              1 - :not(#\#) ✖️ 1
+- shorthand in query:    2 - :not(#\#) ✖️ 2
+- longhand in query:     3 - :not(#\#) ✖️ 3
+```
+
+### Example: Media Query Priority
+
+In the following HMR scenario, even if the base longhand style is injected *after* a media query (common during live updates), the media query rule still wins because of its higher specificity level (Level 2).
+
+```css
+/* Shorthand in Query (Level 2) ✅:Wins */
+@media (min-width: 768px) {
+  .xatom2:not(#\#):not(#\#) {
+    margin: 16px;
+  }
+}
+
+/* Base Longhand (Level 1) */
+.xatom1:not(#\#) {
+  margin-top: 20px;
+}
+```
+
+This design provides:
+- ✅ **HMR reliability**: Consistent behavior between development and production.
+- ✅ **Predictable Media Overrides**: Media query styles always take precedence over base styles.
+- ✅ **Optimized Production**: Minimal specificity adjustments in production to keep bundle sizes small.
+</Step>
 </Steps>
