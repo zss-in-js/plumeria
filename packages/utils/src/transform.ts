@@ -15,17 +15,17 @@ import {
 } from 'zss-engine';
 
 function compileToSingleCSS<T extends Record<string, CSSProperties>>(
-  object: CreateStyleType<T>,
+  rule: CreateStyleType<T>,
 ): string {
   const baseSheets: string[] = [];
   const querySheets: string[] = [];
   const processedHashes = new Set<string>();
 
-  Object.entries(object).forEach(([key, styleObj]) => {
+  Object.entries(rule).forEach(([key, styleRule]) => {
     const flat: CreateStyle = {};
     const nonFlat: CreateStyle = {};
 
-    splitAtomicAndNested(styleObj, flat, nonFlat);
+    splitAtomicAndNested(styleRule, flat, nonFlat);
     const finalFlat = overrideLonghand(flat);
 
     const records: Array<{
@@ -138,44 +138,57 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
 }
 
 function createCSS<T extends Record<string, CSSProperties>>(
-  object: CreateStyleType<T>,
+  rule: CreateStyleType<T>,
 ): string {
-  const compiledCSS = compileToSingleCSS(object);
+  const compiledCSS = compileToSingleCSS(rule);
   return compiledCSS;
 }
 
-const createVars = <const T extends CreateValues>(object: T) => {
+const createVars = <const T extends CreateValues>(rule: T) => {
   const styles: Record<string, CreateValues> = {
     ':root': {},
   };
 
-  Object.entries(object).forEach(([key, value]) => {
+  Object.entries(rule).forEach(([key, value]) => {
     styles[':root'][`--${key}`] = value;
   });
 
   return styles;
 };
 
-const createTheme = <const T extends CreateTheme>(object: T) => {
-  const styles: Record<string, Record<string, string | number | object>> = {};
+const createTheme = <const T extends CreateTheme>(rule: T) => {
+  const styles: Record<
+    string,
+    Record<string, string | number | Record<string, string | number>>
+  > = {};
+  for (const key in rule) {
+    const varKey = `--${camelToKebabCase(key)}`;
 
-  Object.entries(object).forEach(([key, value]) => {
-    const kebabKey = camelToKebabCase(key);
-    Object.entries(value).forEach(([subKey, subValue]) => {
-      if (subKey.startsWith('@media')) {
-        styles[':root'] ||= {};
-        styles[':root'][subKey] ||= {};
-        (styles[':root'][subKey] as Record<string, string | number>)[
-          `--${kebabKey}`
-        ] = subValue;
+    const themeMap = rule[key];
+    for (const themeKey in themeMap) {
+      const value = themeMap[themeKey];
+
+      const isQuery =
+        themeKey.startsWith('@media') || themeKey.startsWith('@container');
+
+      const selector =
+        isQuery || themeKey === 'default'
+          ? ':root'
+          : `:root[data-theme="${themeKey}"]`;
+
+      const target = (styles[selector] ||= {});
+
+      if (isQuery) {
+        const queryObj = (target[themeKey] ||= {}) as Record<
+          string,
+          string | number
+        >;
+        queryObj[varKey] = value;
       } else {
-        const themeSelector =
-          subKey === 'default' ? ':root' : `:root[data-theme="${subKey}"]`;
-        styles[themeSelector] ||= {};
-        styles[themeSelector][`--${kebabKey}`] = subValue;
+        target[varKey] = value;
       }
-    });
-  });
+    }
+  }
 
   return styles;
 };
