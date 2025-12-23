@@ -2,30 +2,42 @@ import type { CreateTheme, ReturnVariableType } from 'zss-engine';
 import { camelToKebabCase } from 'zss-engine';
 import { global } from './global';
 
-const createTheme = <const T extends CreateTheme>(object: T) => {
-  const styles: Record<string, Record<string, string | number | object>> = {};
+const createTheme = <const T extends CreateTheme>(rule: T) => {
+  const styles: Record<
+    string,
+    Record<string, string | number | Record<string, string | number>>
+  > = {};
   const result = {} as ReturnVariableType<T>;
+  for (const key in rule) {
+    const varName = `${camelToKebabCase(key)}`;
+    const varKey = `--${varName}`;
+    result[key] = `var(--${varName})`;
 
-  Object.entries(object).forEach(([key, value]) => {
-    const kebabKey = camelToKebabCase(key);
-    (result as any)[key] = `var(--${kebabKey})`;
+    const themeMap = rule[key];
+    for (const themeKey in themeMap) {
+      const value = themeMap[themeKey];
 
-    Object.entries(value).forEach(([subKey, subValue]) => {
-      if (subKey.startsWith('@media')) {
-        styles[':root'] ||= {};
-        styles[':root'][subKey] ||= {};
-        (styles[':root'][subKey] as Record<string, string | number>)[
-          `--${kebabKey}`
-        ] = subValue;
+      const isQuery =
+        themeKey.startsWith('@media') || themeKey.startsWith('@container');
+
+      const selector =
+        isQuery || themeKey === 'default'
+          ? ':root'
+          : `:root[data-theme="${themeKey}"]`;
+
+      const target = (styles[selector] ||= {});
+
+      if (isQuery) {
+        const queryObj = (target[themeKey] ||= {}) as Record<
+          string,
+          string | number
+        >;
+        queryObj[varKey] = value;
       } else {
-        const themeSelector =
-          subKey === 'default' ? ':root' : `:root[data-theme="${subKey}"]`;
-        styles[themeSelector] ||= {};
-        styles[themeSelector][`--${kebabKey}`] = subValue;
+        target[varKey] = value;
       }
-    });
-  });
-
+    }
+  }
   global(styles);
   return result;
 };
