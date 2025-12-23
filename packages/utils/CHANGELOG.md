@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 2.2.3
+
+### Patch Changes
+
+- be8a7b8: refactor: arg name object changed to rule
+
 ## 2.2.2
 
 ### Patch Changes
