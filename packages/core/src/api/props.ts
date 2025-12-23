@@ -5,7 +5,7 @@ import { pQueue } from '../processors/css';
 const setSheets = new Set<string>();
 
 export function props(
-  ...objects: (false | CSSProperties | null | undefined)[]
+  ...rules: (false | CSSProperties | null | undefined)[]
 ): string {
   const seenSheets = new Set<string>();
   const baseSheets: string[] = [];
@@ -14,8 +14,8 @@ export function props(
   const rightmostKeys = [];
   const orderedKeys = [];
 
-  for (let i = objects.length - 1; i >= 0; i--) {
-    const obj = objects[i];
+  for (let i = rules.length - 1; i >= 0; i--) {
+    const obj = rules[i];
     if (!obj) continue;
     const records = styleAtomMap.get(obj);
     if (!records) continue;
@@ -27,8 +27,8 @@ export function props(
   }
 
   // Collect a list of adopted keys for each prop
-  for (let i = 0; i < objects.length; i++) {
-    const obj = objects[i];
+  for (let i = 0; i < rules.length; i++) {
+    const obj = rules[i];
     if (!obj) continue;
     const records = styleAtomMap.get(obj);
     if (!records) continue;
@@ -36,7 +36,7 @@ export function props(
       if (chosen.has(key) && chosen.get(key).propsIdx === i) {
         // The final adoption of this key is the current argument i
         // Change the output timing depending on whether i is the rightmost (last props)
-        if (i === objects.length - 1) {
+        if (i === rules.length - 1) {
           rightmostKeys.push({ ...chosen.get(key), key });
         } else {
           orderedKeys.push({ ...chosen.get(key), key });
