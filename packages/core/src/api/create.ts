@@ -22,15 +22,15 @@ const styleAtomMap = new WeakMap<
 >();
 
 function create<const T extends Record<string, CSSProperties>>(
-  object: CreateStyleType<T>,
+  rule: CreateStyleType<T>,
 ): ReturnType<T> {
   const result = {} as ReturnType<T>;
 
-  Object.entries(object).forEach(([key, styleObj]) => {
+  Object.entries(rule).forEach(([key, styleRule]) => {
     const flat: CreateStyle = {};
     const nonFlat: CreateStyle = {};
 
-    splitAtomicAndNested(styleObj, flat, nonFlat);
+    splitAtomicAndNested(styleRule, flat, nonFlat);
     const finalFlat = overrideLonghand(flat);
 
     const records: Array<{
@@ -121,10 +121,10 @@ function create<const T extends Record<string, CSSProperties>>(
       });
     }
 
-    styleAtomMap.set(styleObj, records);
+    styleAtomMap.set(styleRule, records);
 
     Object.defineProperty(result, key, {
-      get: () => Object.freeze(styleObj),
+      get: () => Object.freeze(styleRule),
     });
   });
 
