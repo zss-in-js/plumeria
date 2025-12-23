@@ -22,33 +22,33 @@ class StyleSheet {
   private constructor() {}
 
   static create<const T extends Record<string, CSSProperties>>(
-    object: CreateStyleType<T>,
+    rule: CreateStyleType<T>,
   ): ReturnType<T> {
-    return create(object);
+    return create(rule);
   }
 
   static props(
-    ...objects: (false | Readonly<CSSProperties> | null | undefined)[]
+    ...rules: (false | Readonly<CSSProperties> | null | undefined)[]
   ): string {
-    return props(...objects);
+    return props(...rules);
   }
 
-  static keyframes(object: CreateKeyframes): string {
-    return keyframes(object);
+  static keyframes(rule: CreateKeyframes): string {
+    return keyframes(rule);
   }
 
-  static viewTransition(object: ViewTransitionOptions): string {
-    return viewTransition(object);
+  static viewTransition(rule: ViewTransitionOptions): string {
+    return viewTransition(rule);
   }
 
   static createTheme<const T extends CreateTheme>(
-    object: T,
+    rule: T,
   ): ReturnVariableType<T> {
-    return createTheme(object);
+    return createTheme(rule);
   }
 
-  static createStatic<const T extends CreateValues>(object: T): T {
-    return createStatic(object);
+  static createStatic<const T extends CreateValues>(rule: T): T {
+    return createStatic(rule);
   }
 }
 
