@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 2.2.3
+
+### Patch Changes
+
+- be8a7b8: chore bump version to v2.2.3
+- Updated dependencies [be8a7b8]
+  - @plumeria/utils@2.2.3
+
 ## 2.2.2
 
 ### Patch Changes
