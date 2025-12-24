@@ -5,12 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "css & vinxi dev",
-    "build": "css && vinxi build",
+    "build": "plumerialint && css && vinxi build",
     "start": "vinxi start",
     "version": "vinxi version"
   },
   "dependencies": {
-    "@plumeria/core": "workspace:^",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
@@ -21,6 +20,7 @@
     "node": ">=22"
   },
   "devDependencies": {
+    "@plumeria/core": "workspace:^",
     "@plumeria/compiler": "workspace:^"
   }
 }
