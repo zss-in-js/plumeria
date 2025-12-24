@@ -4,13 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "css && pnpm typecheck && react-router build",
+    "build": "plumerialint && css && pnpm typecheck && react-router build",
     "dev": "css && react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@plumeria/core": "workspace:^",
     "@react-router/node": "^7.5.3",
     "@react-router/serve": "^7.5.3",
     "isbot": "^5.1.27",
@@ -19,6 +18,7 @@
     "react-router": "^7.5.3"
   },
   "devDependencies": {
+    "@plumeria/core": "workspace:^",
     "@plumeria/compiler": "workspace:^",
     "@plumeria/vite-plugin": "workspace:^",
     "@react-router/dev": "^7.5.3",
