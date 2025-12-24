@@ -3,19 +3,19 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "css && next dev --webpack",
-    "build": "css --type-check && next build",
+    "dev": "css && next dev",
+    "build": "plumerialint && css && next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@plumeria/core": "workspace:^",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@plumeria/core": "workspace:^",
     "@plumeria/compiler": "workspace:^",
     "@plumeria/eslint-plugin": "workspace:^",
     "@plumeria/next-plugin": "workspace:^",
