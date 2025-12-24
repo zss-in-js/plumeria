@@ -22,8 +22,8 @@ catalogs:
       specifier: 5.101.0
       version: 5.101.0
     zss-engine:
-      specifier: 1.2.2
-      version: 1.2.2
+      specifier: 2.0.0
+      version: 2.0.0
 
 importers:
 
@@ -484,7 +484,7 @@ importers:
     dependencies:
       zss-engine:
         specifier: 'catalog:'
-        version: 1.2.2
+        version: 2.0.0
 
   packages/eslint-plugin:
     devDependencies:
@@ -525,7 +525,7 @@ importers:
         version: 1.15.2(@swc/helpers@0.5.17)
       zss-engine:
         specifier: 'catalog:'
-        version: 1.2.2
+        version: 2.0.0
 
   packages/utils:
     dependencies:
@@ -535,7 +535,7 @@ importers:
     devDependencies:
       zss-engine:
         specifier: 'catalog:'
-        version: 1.2.2
+        version: 2.0.0
 
   packages/vite-plugin:
     dependencies:
@@ -551,7 +551,7 @@ importers:
         version: 7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)
       zss-engine:
         specifier: 'catalog:'
-        version: 1.2.2
+        version: 2.0.0
 
   packages/webpack-plugin:
     dependencies:
@@ -567,7 +567,7 @@ importers:
         version: 5.101.0(@swc/core@1.15.2(@swc/helpers@0.5.17))
       zss-engine:
         specifier: 'catalog:'
-        version: 1.2.2
+        version: 2.0.0
 
   test-e2e/site:
     dependencies:
@@ -8031,8 +8031,8 @@ packages:
   zod@4.1.13:
     resolution: {integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==}
 
-  zss-engine@1.2.2:
-    resolution: {integrity: sha512-Qm3JD4PwDTpnH9pnL3Piik5KRgfQUVh9sU8fzPxXnH1IQFxQvdRtNptiPREDnw0NXnMYlIQFI7Nr3yDP8UzM8w==}
+  zss-engine@2.0.0:
+    resolution: {integrity: sha512-x12dUNbKyRGs6f1aodX2A+HDprEfaETryzekgBi9SeHjSTdxjhsXWscmAklv6v+3RVcAGlYiEsDteHgOeoWQMw==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -17106,7 +17106,7 @@ snapshots:
 
   zod@4.1.13: {}
 
-  zss-engine@1.2.2:
+  zss-engine@2.0.0:
     dependencies:
       csstype: 3.2.3
 
