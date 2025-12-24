@@ -1,5 +1,13 @@
 # @plumeria/webpack-plugin
 
+## 2.2.4
+
+### Patch Changes
+
+- da87281: chore: bump version to 2.2.4
+- Updated dependencies [da87281]
+  - @plumeria/utils@2.2.4
+
 ## 2.2.3
 
 ### Patch Changes
