@@ -4,7 +4,14 @@ import type {
 } from 'next/dist/server/config-shared';
 
 export const withPlumeria = (nextConfig: NextConfig = {}): NextConfig => {
-  if (process.env.NODE_ENV === 'production') return nextConfig;
+  const config: NextConfig = {
+    ...nextConfig,
+    serverExternalPackages: [
+      ...(nextConfig.serverExternalPackages ?? []),
+      'zss-engine',
+    ],
+  };
+
   const reactLoaders: TurbopackLoaderItem[] = [
     {
       loader: '@plumeria/turbopack-loader',
@@ -12,10 +19,11 @@ export const withPlumeria = (nextConfig: NextConfig = {}): NextConfig => {
     },
   ];
 
+  if (process.env.NODE_ENV === 'production') return config;
   return {
-    ...nextConfig,
+    ...config,
     turbopack: {
-      ...nextConfig?.turbopack,
+      ...config?.turbopack,
       rules: {
         '*.ts': {
           loaders: reactLoaders,
