@@ -31,10 +31,7 @@ pnpm i --save-dev @plumeria/turbopack-loader
 ### Configuration in Next.js project
 If you use Plumeria with Next.js, customize the `turbopack` in `next.config.ts`:
 ```ts title="next.config.ts"
-import type {
-  NextConfig,
-  TurbopackLoaderItem,
-} from 'next/dist/server/config-shared';
+import type { NextConfig, TurbopackLoaderItem } from 'next/dist/server/config-shared';
 
 const reactLoaders: TurbopackLoaderItem[] = [
   {
@@ -60,7 +57,9 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  serverExternalPackages: ['zss-engine'],
 };
 
 export default nextConfig;
+
 ```    
