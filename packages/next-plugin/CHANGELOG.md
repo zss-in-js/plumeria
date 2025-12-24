@@ -1,5 +1,14 @@
 # @plumeria/next-plugin
 
+## 2.2.4
+
+### Patch Changes
+
+- da87281: fix: turbo mode optimization add zss-engine to serverExternalPackages has bundle size reduce 30 kB
+- Updated dependencies [da87281]
+  - @plumeria/turbopack-loader@2.2.4
+  - @plumeria/webpack-plugin@2.2.4
+
 ## 2.2.3
 
 ### Patch Changes
