@@ -1,0 +1,21 @@
+---
+title: 'Plumeria v2.2.4'
+description: 'Plumeria v2.2.4 Improvement pseudo hash handling. (1 min read)'
+date: '2025/12/20'
+---
+
+## Patch Update v2.2.4
+
+### Fixed
+- Fixed adding `:not(#\#)` to pseudo, it will no longer lose to long-handed flats.
+- Fixed a pseudo hash duplication issue.
+
+### Improvement
+- Added zss-engine to serverExternalPackages, reducing .next bundle size by 30kB when building with turbopack.
+- The turbopack integration documentation has been updated accordingly.
+
+### Release History
+`v2.2.1` to `v2.2.3` have undergone internal refactoring of the core to improve code readability.  
+- The npm `Unpacked Size` has been reduced by over `3 kB`.
+
+**Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria) !**
