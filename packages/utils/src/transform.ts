@@ -94,30 +94,38 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
         }
       });
 
-      [nonFlatBase, nonFlatQuery].forEach((targetNonFlat) => {
-        if (Object.keys(targetNonFlat).length === 0) return;
-
-        const nonFlatObj = { [key]: targetNonFlat };
+      Object.entries(nonFlatBase).forEach(([selector, style]) => {
+        const nonFlatObj = { [key]: { [selector]: style } };
         const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
         const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
-        const isQuery =
-          styleSheet.includes('@media') || styleSheet.includes('@container');
-        const finalSheet = isQuery
-          ? styleSheet.replace(
+
+        records.push({
+          key: selector,
+          hash: nonFlatHash,
+          sheet: styleSheet,
+        });
+      });
+
+      Object.entries(nonFlatQuery).forEach(([atRule, nestedStyles]) => {
+        Object.entries(nestedStyles as CSSProperties).forEach(
+          ([pseudoSelector, style]) => {
+            const nonFlatObj = {
+              [key]: { [atRule]: { [pseudoSelector]: style } },
+            };
+            const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
+            const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
+            const finalSheet = styleSheet.replace(
               `.${nonFlatHash}`,
               `.${nonFlatHash}:not(#\\#):not(#\\#)`,
-            )
-          : styleSheet;
+            );
 
-        Object.entries(targetNonFlat).forEach(([atRule, nestedObj]) => {
-          Object.keys(nestedObj).forEach((prop) => {
             records.push({
-              key: atRule + prop,
+              key: atRule + pseudoSelector,
               hash: nonFlatHash,
               sheet: finalSheet,
             });
-          });
-        });
+          },
+        );
       });
     }
 
