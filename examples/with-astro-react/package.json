@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "css --type-check && astro build",
+    "build": "plumerialint && css && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
