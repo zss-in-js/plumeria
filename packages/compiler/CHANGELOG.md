@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 2.2.4
+
+### Patch Changes
+
+- da87281: chore: bump version to 2.2.4
+
 ## 2.2.3
 
 ### Patch Changes
