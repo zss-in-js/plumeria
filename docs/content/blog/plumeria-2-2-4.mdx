@@ -10,9 +10,8 @@ date: '2025/12/20'
 - Fixed adding `:not(#\#)` to pseudo, it will no longer lose to long-handed flats.
 - Fixed a pseudo hash duplication issue.
 
-### Improvement
-- Added zss-engine to serverExternalPackages, reducing .next bundle size by 30kB when building with turbopack.
-- The turbopack integration documentation has been updated accordingly.
+### Bug (Warning message when building Next.js)
+Next-plugin is experimentally externalizing zss-engine. A warning will be displayed. Please use the later version.
 
 ### Release History
 `v2.2.1` to `v2.2.3` have undergone internal refactoring of the core to improve code readability.  
