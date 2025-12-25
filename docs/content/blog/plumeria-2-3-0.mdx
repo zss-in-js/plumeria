@@ -1,0 +1,24 @@
+---
+title: 'Plumeria v2.3.0'
+description: 'Plumeria v2.3.0 Improvement next-plugin warning. (1 min read)'
+date: '2025/12/25'
+---
+
+## Minor update version
+The change in `v2.2.4` that externalized `zss-engine` has been reverted.  
+So, externalizing it was a mistake.
+
+- Fixed a possibility of `ci failing`
+- Remove unnecessary `type assertions`
+- Use appropriate `parameter names`
+
+This version `2.3.x` is a step forward in stability, and compared to `2.2.x`, fixes such as pseudo handling have been fully applied.
+
+
+### Release v2.2.x
+`v2.2.1` to `v2.2.3` have undergone internal refactoring of the core to improve code readability.  
+- The npm `Unpacked Size` has been reduced by over `3 kB`.
+
+### v2.2.4
+- Fixed adding `:not(#\#)` to pseudo, it will no longer lose to long-handed flats.
+- Fixed a pseudo hash duplication issue.
