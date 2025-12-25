@@ -107,25 +107,23 @@ function compileToSingleCSS<T extends Record<string, CSSProperties>>(
       });
 
       Object.entries(nonFlatQuery).forEach(([atRule, nestedStyles]) => {
-        Object.entries(nestedStyles as CSSProperties).forEach(
-          ([pseudoSelector, style]) => {
-            const nonFlatObj = {
-              [key]: { [atRule]: { [pseudoSelector]: style } },
-            };
-            const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
-            const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
-            const finalSheet = styleSheet.replace(
-              `.${nonFlatHash}`,
-              `.${nonFlatHash}:not(#\\#):not(#\\#)`,
-            );
+        Object.entries(nestedStyles).forEach(([selector, style]) => {
+          const nonFlatObj = {
+            [key]: { [atRule]: { [selector]: style } },
+          };
+          const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
+          const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
+          const finalSheet = styleSheet.replace(
+            `.${nonFlatHash}`,
+            `.${nonFlatHash}:not(#\\#):not(#\\#)`,
+          );
 
-            records.push({
-              key: atRule + pseudoSelector,
-              hash: nonFlatHash,
-              sheet: finalSheet,
-            });
-          },
-        );
+          records.push({
+            key: atRule + selector,
+            hash: nonFlatHash,
+            sheet: finalSheet,
+          });
+        });
       });
     }
 
