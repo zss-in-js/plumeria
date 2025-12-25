@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 2.3.0
+
+### Minor Changes
+
+- e3f9a0b: refactor: fix removed unused assertion and parameter name
+
 ## 2.2.4
 
 ### Patch Changes
