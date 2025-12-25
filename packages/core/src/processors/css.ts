@@ -18,7 +18,7 @@ const createProcessor = () => {
   const process = async (filePath: string) => {
     while (queue.length > 0) {
       const sheet = queue.shift();
-      if (!isDevelopment && sheet) build(sheet, filePath);
+      if (!isDevelopment && sheet) await build(sheet, filePath);
     }
     processing = false;
   };
@@ -27,7 +27,7 @@ const createProcessor = () => {
     if (!promise) init();
     if (!processing && queue.length > 0) {
       processing = true;
-      process(filePath);
+      await process(filePath);
     }
   };
 
