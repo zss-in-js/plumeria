@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 2.3.0
+
+### Minor Changes
+
+- e3f9a0b: chore bump version to v2.3.0
+
 ## 2.2.4
 
 ### Patch Changes
