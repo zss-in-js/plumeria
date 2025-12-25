@@ -1,5 +1,17 @@
 # @plumeria/next-plugin
 
+## 2.3.0
+
+### Minor Changes
+
+- e3f9a0b: fix: Fixed a warning when using zss-engine externally
+
+### Patch Changes
+
+- Updated dependencies [e3f9a0b]
+  - @plumeria/turbopack-loader@2.3.0
+  - @plumeria/webpack-plugin@2.3.0
+
 ## 2.2.4
 
 ### Patch Changes
