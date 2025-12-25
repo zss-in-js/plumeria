@@ -218,70 +218,66 @@ async function main() {
     await writeFile(coreFilePath, optimizedCss, 'utf-8');
   }
 
-  (async () => {
-    const startTime = performance.now();
-    await cleanUp();
+  const startTime = performance.now();
+  await cleanUp();
 
-    const scanRoot = process.cwd();
+  const scanRoot = process.cwd();
 
-    const files: string[] = globSync('**/*.{js,jsx,ts,tsx,vue,svelte}', {
-      cwd: scanRoot,
-      exclude: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/build/**',
-        '**/.next/**',
-      ],
-    });
+  const files: string[] = globSync('**/*.{js,jsx,ts,tsx,vue,svelte}', {
+    cwd: scanRoot,
+    exclude: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**'],
+  });
 
-    const projectName = path.basename(projectRoot);
+  const projectName = path.basename(projectRoot);
 
-    const filesSupportExtensions = await Promise.all(
-      files.map(async (file) => {
-        const ext = path.extname(file);
-        if (ext === '.vue' || ext === '.svelte') {
-          return await extractVueAndSvelte(file);
-        } else {
-          return await extractTSFile(file);
-        }
-      }),
-    );
+  const filesSupportExtensions = await Promise.all(
+    files.map(async (file) => {
+      const ext = path.extname(file);
+      if (ext === '.vue' || ext === '.svelte') {
+        return await extractVueAndSvelte(file);
+      } else {
+        return await extractTSFile(file);
+      }
+    }),
+  );
 
-    const styleFiles = await Promise.all(
-      filesSupportExtensions.map(async (file) => {
-        const code = generatedTsMap.get(file);
-        const isCssFile = code ? await isCSS(code, file) : false;
-        return isCssFile ? file : null;
-      }),
-    )
-      .then((results) => results.filter(Boolean) as string[])
-      .then((results) => results.sort());
-
-    for (const file of styleFiles) {
+  const styleFiles = await Promise.all(
+    filesSupportExtensions.map(async (file) => {
       const code = generatedTsMap.get(file);
+      const isCssFile = code ? await isCSS(code, file) : false;
+      return isCssFile ? file : null;
+    }),
+  )
+    .then((results) => results.filter(Boolean) as string[])
+    .then((results) => results.sort());
 
-      if (code) {
-        const ext = path.extname(file);
-        const tsPath =
-          ext === '.vue' || ext === '.svelte' ? file.replace(ext, '.ts') : file;
-        await executeCode(code, { filePath: tsPath });
-        if (process.argv.includes('--paths')) {
-          console.log(`✅: ${projectName}/${path.relative(projectRoot, file)}`);
-        }
+  for (const file of styleFiles) {
+    const code = generatedTsMap.get(file);
+
+    if (code) {
+      const ext = path.extname(file);
+      const tsPath =
+        ext === '.vue' || ext === '.svelte' ? file.replace(ext, '.ts') : file;
+      await executeCode(code, { filePath: tsPath });
+      if (process.argv.includes('--paths')) {
+        console.log(`✅: ${projectName}/${path.relative(projectRoot, file)}`);
       }
     }
-    await gQueue.build(coreFilePath);
-    await pQueue.build(coreFilePath);
+  }
+  await gQueue.build(coreFilePath);
+  await pQueue.build(coreFilePath);
 
-    await optimizeCSS();
-    generatedTsMap.clear();
+  await optimizeCSS();
+  generatedTsMap.clear();
 
-    if (process.argv.includes('--stats')) {
-      const endTime = performance.now();
-      const buildTime = (endTime - startTime) / 1000;
-      await generateStats(buildTime, coreFilePath);
-    }
-  })();
+  if (process.argv.includes('--stats')) {
+    const endTime = performance.now();
+    const buildTime = (endTime - startTime) / 1000;
+    await generateStats(buildTime, coreFilePath);
+  }
 }
 
-main();
+main().catch((error) => {
+  console.error('Compilation failed:', error);
+  process.exit(1);
+});
