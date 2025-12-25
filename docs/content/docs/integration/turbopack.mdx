@@ -33,12 +33,15 @@ If you use Plumeria with Next.js, customize the `turbopack` in `next.config.ts`:
 ```ts title="next.config.ts"
 import type { NextConfig, TurbopackLoaderItem } from 'next/dist/server/config-shared';
 
-const reactLoaders: TurbopackLoaderItem[] = [
-  {
-    loader: '@plumeria/turbopack-loader',
-    options: {},
-  },
-];
+const isProduction = process.env.NODE_ENV === 'production';
+const reactLoaders: TurbopackLoaderItem[] = isProduction
+  ? []
+  : [
+      {
+        loader: '@plumeria/turbopack-loader',
+        options: {},
+      },
+    ];
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -57,7 +60,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  serverExternalPackages: ['zss-engine'],
 };
 
 export default nextConfig;
