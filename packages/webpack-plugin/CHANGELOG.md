@@ -1,5 +1,16 @@
 # @plumeria/webpack-plugin
 
+## 2.3.0
+
+### Minor Changes
+
+- e3f9a0b: chore bump version to v2.3.0
+
+### Patch Changes
+
+- Updated dependencies [e3f9a0b]
+  - @plumeria/utils@2.3.0
+
 ## 2.2.4
 
 ### Patch Changes

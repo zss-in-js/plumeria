@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 2.3.0
+
+### Minor Changes
+
+- e3f9a0b: ci: Fix for potential github actions failure
+
 ## 2.2.4
 
 ### Patch Changes
