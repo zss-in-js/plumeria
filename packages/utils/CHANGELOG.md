@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 2.4.0
+
+### Minor Changes
+
+- e1a8a72: fix: Fixed pseudo selector edge case handling and updated hash algorithm implementation to 64-bit.
+
 ## 2.3.0
 
 ### Minor Changes

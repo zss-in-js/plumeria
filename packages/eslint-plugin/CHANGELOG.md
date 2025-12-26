@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 2.4.0
+
+### Minor Changes
+
+- e1a8a72: feat: bump version to 2.4.0
+
 ## 2.3.0
 
 ### Minor Changes
