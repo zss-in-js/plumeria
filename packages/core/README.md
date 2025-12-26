@@ -21,19 +21,19 @@ const className = css.props(styles.text, styles.size);
 **Generated CSS:**
 
 ```css
-.x1p2jzyu:not(#\#) {
+.xhrr6ses:not(#\#) {
   font-size: 12px;
 }
-.xzie71ek {
+.xvbwmxqp {
   color: navy;
 }
-.xgpw2mmc {
+.xhk51flp {
   width: 120px;
 }
 ```
 
 ```
-"x1p2jzyu xzie71ek xgpw2mmc"
+"xhrr6ses xvbwmxqp xhk51flp"
 ```
 
 ## Documentation
