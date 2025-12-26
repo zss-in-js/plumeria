@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 2.4.1
+
+### Patch Changes
+
+- 81be627: chore: bump version v2.4.1
+
 ## 2.4.0
 
 ### Minor Changes
