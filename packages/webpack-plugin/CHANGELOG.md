@@ -1,5 +1,13 @@
 # @plumeria/webpack-plugin
 
+## 2.4.1
+
+### Patch Changes
+
+- 81be627: chore: bump version v2.4.1
+- Updated dependencies [81be627]
+  - @plumeria/utils@2.4.1
+
 ## 2.4.0
 
 ### Minor Changes
