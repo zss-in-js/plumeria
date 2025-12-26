@@ -97,33 +97,36 @@ function create<const T extends Record<string, CSSProperties>>(
         }
       });
 
-      Object.entries(nonFlatBase).forEach(([selector, style]) => {
-        const nonFlatObj = { [key]: { [selector]: style } };
-        const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
-        const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
+      Object.entries(nonFlatBase).forEach(([selector, style], index) => {
+        const hashObj = { [key]: { [selector]: style, index } };
+        const hash = genBase36Hash(hashObj, 1, 7);
+
+        const transpileObj = { [key]: { [selector]: style } };
+        const { styleSheet } = transpile(transpileObj, hash);
 
         records.push({
-          key: selector,
-          hash: nonFlatHash,
+          key: selector + index,
+          hash: hash,
           sheet: styleSheet,
         });
       });
 
       Object.entries(nonFlatQuery).forEach(([atRule, nestedStyles]) => {
-        Object.entries(nestedStyles).forEach(([selector, style]) => {
-          const nonFlatObj = {
-            [key]: { [atRule]: { [selector]: style } },
-          };
-          const nonFlatHash = genBase36Hash(nonFlatObj, 1, 7);
-          const { styleSheet } = transpile(nonFlatObj, nonFlatHash);
+        Object.entries(nestedStyles).forEach(([selector, style], index) => {
+          const hashObj = { [key]: { [atRule]: { [selector]: style, index } } };
+          const hash = genBase36Hash(hashObj, 1, 7);
+
+          const transpileObj = { [key]: { [atRule]: { [selector]: style } } };
+          const { styleSheet } = transpile(transpileObj, hash);
+
           const finalSheet = styleSheet.replace(
-            `.${nonFlatHash}`,
-            `.${nonFlatHash}:not(#\\#)`,
+            `.${hash}`,
+            `.${hash}:not(#\\#)`,
           );
 
           records.push({
-            key: atRule + selector,
-            hash: nonFlatHash,
+            key: atRule + selector + index,
+            hash: hash,
             sheet: finalSheet,
           });
         });
