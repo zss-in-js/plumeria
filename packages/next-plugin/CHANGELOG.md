@@ -1,5 +1,14 @@
 # @plumeria/next-plugin
 
+## 2.4.2
+
+### Patch Changes
+
+- 5bf878d: fix: bump version to 2.4.2
+- Updated dependencies [5bf878d]
+  - @plumeria/turbopack-loader@2.4.2
+  - @plumeria/webpack-plugin@2.4.2
+
 ## 2.4.1
 
 ### Patch Changes

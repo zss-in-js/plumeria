@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 2.4.2
+
+### Patch Changes
+
+- 5bf878d: fix: bump version to 2.4.2
+
 ## 2.4.1
 
 ### Patch Changes
