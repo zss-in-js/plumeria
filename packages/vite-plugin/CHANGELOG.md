@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 2.4.2
+
+### Patch Changes
+
+- 5bf878d: fix: bump version to 2.4.2
+- Updated dependencies [5bf878d]
+  - @plumeria/utils@2.4.2
+
 ## 2.4.1
 
 ### Patch Changes
