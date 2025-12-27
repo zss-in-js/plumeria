@@ -1,0 +1,34 @@
+---
+title: 'Plumeria v2.4.2'
+description: 'Plumeria v2.4.2 Improved hash algorithm and edge case handling. (2 min read)'
+date: '2025/12/26'
+---
+
+## ⚠️ Known Issues
+**v2.4.0 - v2.4.1**: TextEncoder error may occur in user environments.
+Please upgrade to **v2.4.2** or later.
+
+## Minor update version
+### Changes
+The `hash` construction method by `zss-engine@2.1.1` has been updated.
+
+Until now, linear congruential algorithms were used to add atoms that were six characters or less, but the entropy of all hash generation algorithms was limited to five or six characters.
+The new version uses 64-bit hash generation and is optimized for 64-bit environments.
+
+### Improved hash appearance
+
+
+**Previous (32-bit + padding):**  
+32-bit version: Padding is linear congruential → Effective 32 bits entropy only is  5-6 character .
+
+**Now (64-bit + slices):**  
+64-bit version: All 7 characters are derived from the hash value → Full 64-bit entropy is utilized (within the 7 characters).
+
+
+### Imporved
+- handling of edge cases with pseudo selectors.
+
+---
+`v2.2.0` and `v2.3.0` include improvements to pseudo-selector output and code refactoring.
+
+**Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria) !**
