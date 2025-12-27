@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 2.4.2
+
+### Patch Changes
+
+- 5bf878d: fix: removed import TextEncoder
+
 ## 2.4.1
 
 ### Patch Changes
