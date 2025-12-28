@@ -1,5 +1,16 @@
 # @plumeria/webpack-plugin
 
+## 3.0.0
+
+### Major Changes
+
+- 2d7407d: feat: Enhancement to remove function calls.
+
+### Patch Changes
+
+- Updated dependencies [2d7407d]
+  - @plumeria/utils@3.0.0
+
 ## 2.4.2
 
 ### Patch Changes
