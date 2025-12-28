@@ -1,5 +1,4 @@
 export type { CSSObject, FileStyles } from './types';
-export { createCSS, createVars, createTheme } from './transform';
 export {
   scanForCreateStatic,
   scanForCreateTheme,
@@ -10,4 +9,7 @@ export {
   traverse,
   t,
   tables,
+  extractOndemandStyles,
 } from './parser';
+export { getStyleRecords } from './create';
+export type { StyleRecord } from './create';
