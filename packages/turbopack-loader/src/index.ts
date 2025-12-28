@@ -156,7 +156,7 @@ export default async function loader(this: LoaderContext, source: string) {
           if (allStatic && Object.keys(merged).length > 0) {
             extractOndemandStyles(merged, extractedSheets);
             const hash = genBase36Hash(merged, 1, 8);
-            const records = getStyleRecords(hash, merged);
+            const records = getStyleRecords(hash, merged, 2);
             records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
             replacements.push({
               start: node.span.start - ast.span.start,
@@ -221,7 +221,17 @@ export default async function loader(this: LoaderContext, source: string) {
           replacements.push({
             start: node.span.start - ast.span.start,
             end: node.span.end - ast.span.start,
-            content: JSON.stringify(`theme-${hash}`),
+            content: JSON.stringify(''),
+          });
+        } else if (
+          callee.property.value === 'createStatic' &&
+          args.length > 0 &&
+          t.isStringLiteral(args[0].expression)
+        ) {
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(''),
           });
         }
       }
@@ -271,12 +281,16 @@ export default async function loader(this: LoaderContext, source: string) {
   const postfix = `\nimport ${virtualCssRequest};`;
 
   if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-    fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join('\n'), 'utf-8');
+    fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join(''), 'utf-8');
   } else if (
     extractedSheets.length > 0 &&
     process.env.NODE_ENV === 'production'
   ) {
     fs.writeFileSync(VIRTUAL_FILE_PATH, '');
   }
+
+  if (process.env.NODE_ENV === 'production')
+    return callback(null, transformedSource);
+
   callback(null, transformedSource + postfix);
 }
