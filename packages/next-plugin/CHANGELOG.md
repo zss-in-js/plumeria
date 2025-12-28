@@ -1,5 +1,14 @@
 # @plumeria/next-plugin
 
+## 3.0.1
+
+### Patch Changes
+
+- 8d36854: chore: refactor bump version to v3.0.1
+- Updated dependencies [8d36854]
+  - @plumeria/turbopack-loader@3.0.1
+  - @plumeria/webpack-plugin@3.0.1
+
 ## 3.0.0
 
 ### Major Changes
