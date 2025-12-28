@@ -6,31 +6,31 @@ describe('css runtime stubs', () => {
   test('create throws runtime error', () => {
     expect(() => {
       css.create({ a: { color: 'red' } });
-    }).toThrow(/runtime not supported/);
+    }).toThrow(/requires bundler-plugin/);
   });
 
   test('createStatic throws runtime error', () => {
     expect(() => {
-      css.createStatic({ a: 'b' } as any);
-    }).toThrow(/runtime not supported/);
+      css.createStatic({ a: 'b' });
+    }).toThrow(/requires bundler-plugin/);
   });
 
   test('createTheme throws runtime error', () => {
     expect(() => {
-      css.createTheme({} as any);
-    }).toThrow(/runtime not supported/);
+      css.createTheme({});
+    }).toThrow(/requires bundler-plugin/);
   });
 
   test('keyframes throws runtime error', () => {
     expect(() => {
-      css.keyframes({} as any);
-    }).toThrow(/runtime not supported/);
+      css.keyframes({});
+    }).toThrow(/requires bundler-plugin/);
   });
 
   test('viewTransition throws runtime error', () => {
     expect(() => {
-      css.viewTransition({} as any);
-    }).toThrow(/runtime not supported/);
+      css.viewTransition({});
+    }).toThrow(/requires bundler-plugin/);
   });
 });
 
