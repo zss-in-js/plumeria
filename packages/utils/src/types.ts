@@ -16,7 +16,6 @@ export type CSSObject = {
 };
 
 // Table types for various CSS constructs
-// Table types for various CSS constructs
 export type StaticTable = Record<string, CSSObject | string>; // varName -> object
 export type ThemeTable = Record<string, CSSObject>; // varName -> object
 export type KeyframesHashTable = Record<string, string>; // varName -> hash
