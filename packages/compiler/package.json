@@ -26,13 +26,17 @@
     "build": "rimraf dist && tsc"
   },
   "dependencies": {
+    "@plumeria/utils": "workspace:^",
+    "rscute": "^1.1.5",
     "@rust-gear/glob": "^0.2.7",
-    "@swc/core": "catalog:",
-    "find-up": "^8.0.0",
     "lightningcss": "^1.30.2",
     "postcss": "^8.5.6",
-    "postcss-combine-media-query": "^2.1.0",
-    "rscute": "^1.1.5"
+    "postcss-combine-media-query": "^2.1.0"
+  },
+  "devDependencies": {
+    "@plumeria/core": "workspace:^",
+    "@swc/core": "catalog:",
+    "zss-engine": "catalog:"
   },
   "publishConfig": {
     "access": "public",
