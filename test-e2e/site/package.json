@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "css && next dev",
+    "predev": "rimraf .next",
+    "prebuild": "rimraf .next",
+    "dev": "next dev",
     "build": "css && next build",
     "start": "next start",
     "lint": "next lint"
