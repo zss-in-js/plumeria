@@ -1,5 +1,17 @@
 # @plumeria/next-plugin
 
+## 3.0.0
+
+### Major Changes
+
+- 2d7407d: feat: It is no longer dev only, as we have removed and replaced the API calls in production mode.
+
+### Patch Changes
+
+- Updated dependencies [2d7407d]
+  - @plumeria/turbopack-loader@3.0.0
+  - @plumeria/webpack-plugin@3.0.0
+
 ## 2.4.2
 
 ### Patch Changes
