@@ -25,7 +25,10 @@ const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
 export default function loader(this: LoaderContext<unknown>, source: string) {
   const callback = this.async();
 
-  if (this.resourcePath.includes('node_modules')) {
+  if (
+    this.resourcePath.includes('node_modules') ||
+    !source.includes('@plumeria/core')
+  ) {
     return callback(null, source);
   }
 
@@ -51,9 +54,8 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   tables.themeTable = themeTableLocal;
   tables.createThemeObjectTable = createThemeObjectTableLocal;
 
-  const fileStyles: FileStyles = {};
   const extractedSheets: string[] = [];
-  let hasCssCreate = false;
+  const fileStyles: FileStyles = {};
 
   const ast = parseSync(source, {
     syntax: 'typescript',
@@ -89,7 +91,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
         );
         if (obj) {
           localCreateStyles[node.id.value] = obj;
-          hasCssCreate = true;
 
           const hashMap: Record<string, string> = {};
           Object.entries(obj).forEach(([key, style]) => {
@@ -98,8 +99,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
             extractOndemandStyles(style, extractedSheets);
             records.forEach((r: StyleRecord) => {
               propMap[r.key] = r.hash;
-              fileStyles.baseStyles =
-                (fileStyles.baseStyles || '') + r.sheet + '\n';
+              extractedSheets.push(r.sheet);
             });
             hashMap[key] = records.map((r) => r.hash).join(' ');
           });
@@ -168,10 +168,9 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
           if (allStatic && Object.keys(merged).length > 0) {
             extractOndemandStyles(merged, extractedSheets);
             const hash = genBase36Hash(merged, 1, 8);
-            const records = getStyleRecords(hash, merged);
+            const records = getStyleRecords(hash, merged, 2);
             records.forEach((r: StyleRecord) => {
-              fileStyles.baseStyles =
-                (fileStyles.baseStyles || '') + r.sheet + '\n';
+              extractedSheets.push(r.sheet);
             });
 
             replacements.push({
@@ -239,7 +238,17 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
           replacements.push({
             start: node.span.start - ast.span.start,
             end: node.span.end - ast.span.start,
-            content: JSON.stringify(`theme-${hash}`),
+            content: JSON.stringify(''),
+          });
+        } else if (
+          callee.property.value === 'createStatic' &&
+          args.length > 0 &&
+          t.isStringLiteral(args[0].expression)
+        ) {
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(''),
           });
         }
       }
@@ -248,7 +257,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
 
   if (extractedSheets.length > 0) {
     fileStyles.baseStyles =
-      (fileStyles.baseStyles || '') + extractedSheets.join('\n') + '\n';
+      (fileStyles.baseStyles || '') + extractedSheets.join('');
   }
 
   // Apply replacements
@@ -266,7 +275,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   parts.push(buffer.subarray(offset));
   const transformedSource = Buffer.concat(parts).toString();
 
-  // --- Restoring path resolution and HMR logic ---
+  // --- Path resolution and virtual CSS import ---
 
   const VIRTUAL_CSS_PATH = require.resolve(VIRTUAL_FILE_PATH);
 
@@ -308,7 +317,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     if (styles.themeStyles?.trim()) {
       if (!css.includes(styles.themeStyles)) sections.push(styles.themeStyles);
     }
-    // Client Consideration
+
     if (styles.baseStyles?.trim()) {
       sections.push(styles.baseStyles);
     }
@@ -330,7 +339,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
       if (!styleEl) {
         styleEl = document.createElement("style");
         styleEl.id = styleId;
-        styleEl.setAttribute("data-plumeria-hmr", "");
         document.head.prepend(styleEl);
         styleEl.__plumeriaStyles = {};
       }
@@ -351,15 +359,8 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     }
   `;
 
-  if (hasCssCreate) {
-    callback(null, transformedSource + hmrCode);
-    return;
-  }
-
-  const useClientDirective = /^\s*['"]use client['"]/;
-
   if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-    fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join('\n'), 'utf-8');
+    fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join(''), 'utf-8');
   } else if (
     extractedSheets.length > 0 &&
     process.env.NODE_ENV === 'production'
@@ -367,10 +368,15 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     fs.writeFileSync(VIRTUAL_FILE_PATH, '');
   }
 
+  const useClientDirective = /^\s*['"]use client['"]/;
+
+  if (process.env.NODE_ENV === 'production')
+    return callback(null, transformedSource);
+
   if (!useClientDirective.test(source)) {
     callback(null, transformedSource + postfix);
     return;
+  } else {
+    callback(null, transformedSource + hmrCode);
   }
-
-  callback(null, transformedSource);
 }
