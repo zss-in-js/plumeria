@@ -25,9 +25,7 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@swc/core": "catalog:"
-  },
-  "devDependencies": {
+    "@swc/core": "catalog:",
     "zss-engine": "catalog:"
   },
   "publishConfig": {
