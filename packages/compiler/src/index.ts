@@ -2,7 +2,7 @@ import { parseSync, ObjectExpression } from '@swc/core';
 import { type CSSProperties, genBase36Hash } from 'zss-engine';
 import path from 'path';
 import fs from 'fs';
-import { globSync } from '@rust-gear/glob';
+
 import {
   tables,
   traverse,
@@ -28,7 +28,6 @@ interface CompilerOptions {
 async function compile(options: CompilerOptions) {
   const { pattern, output, cwd = process.cwd() } = options;
 
-  // 以前のクラスフィールドに対応するローカル変数
   let staticTable: ReturnType<typeof scanForCreateStatic> | null = null;
   let keyframesData: ReturnType<typeof scanForKeyframes> | null = null;
   let viewTransitionData: ReturnType<typeof scanForViewTransition> | null =
@@ -36,32 +35,25 @@ async function compile(options: CompilerOptions) {
   let themeData: ReturnType<typeof scanForCreateTheme> | null = null;
   const allSheets = new Set<string>();
 
-  // テーブル初期化
   const dependencies = new Set<string>();
 
-  // 1. Static: まず静的な定数を解決
   staticTable = scanForCreateStatic((p) => dependencies.add(p));
-  tables.staticTable = staticTable; // 即座に反映
+  tables.staticTable = staticTable;
 
-  // 2. Keyframes: ViewTransitionが依存するため、ここでテーブルを確定させる
   keyframesData = scanForKeyframes((p) => dependencies.add(p));
-  // ここが重要: ViewTransitionのスキャン前に Keyframes のハッシュテーブルをグローバルに供給する
   tables.keyframesHashTable = keyframesData.keyframesHashTableLocal;
   tables.keyframesObjectTable = keyframesData.keyframesObjectTableLocal;
 
-  // 3. ViewTransition: この時点で tables.keyframesHashTable が参照可能になっている
   viewTransitionData = scanForViewTransition((p) => dependencies.add(p));
   tables.viewTransitionHashTable =
     viewTransitionData.viewTransitionHashTableLocal;
   tables.viewTransitionObjectTable =
     viewTransitionData.viewTransitionObjectTableLocal;
 
-  // 4. Theme
   themeData = scanForCreateTheme((p) => dependencies.add(p));
   tables.themeTable = themeData.themeTableLocal;
   tables.createThemeObjectTable = themeData.createThemeObjectTableLocal;
 
-  // ファイル処理関数
   const processFile = (filePath: string): string[] => {
     const source = fs.readFileSync(filePath, 'utf-8');
     const extractedSheets: string[] = [];
@@ -226,8 +218,7 @@ async function compile(options: CompilerOptions) {
     return extractedSheets;
   };
 
-  // ファイル検索と処理
-  const files = globSync(pattern, {
+  const files = fs.globSync(pattern, {
     cwd,
     exclude: ['**/node_modules/**', '**/dist/**', '**/.next/**'],
   });
@@ -237,11 +228,9 @@ async function compile(options: CompilerOptions) {
     sheets.forEach((sheet) => allSheets.add(sheet));
   });
 
-  // 出力
   const outputPath = path.resolve(cwd, output);
   const css = Array.from(allSheets).join('\n');
 
-  // 出力ディレクトリの作成
   const outputDir = path.dirname(outputPath);
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
