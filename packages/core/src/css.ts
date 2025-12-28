@@ -2,25 +2,52 @@ import type {
   CSSProperties,
   CreateStyle,
   CreateStyleType,
+  CreateStatic,
   CreateTheme,
-  CreateValues,
-  CreateKeyframes,
+  Keyframes,
+  ViewTransition,
   ReturnType,
   ReturnVariableType,
-  ViewTransitionOptions,
-} from 'zss-engine';
+  Styles,
+} from './types';
 
-import { create } from './api/create';
-import { props } from './api/props';
-import { keyframes } from './api/keyframes';
-import { viewTransition } from './api/viewTransition';
-import { createTheme } from './api/createTheme';
-import { createStatic } from './api/createStatic';
-import { x } from './api/x';
+function errorFn(fn: string) {
+  throw new Error(
+    'Using the "css.' +
+      fn +
+      '" is runtime not supported. Make sure you have setup bundler-plugin correctly.',
+  );
+}
 
-class StyleSheet {
-  private constructor() {}
+function create<const T extends Record<string, CSSProperties>>(
+  _rule: CreateStyleType<T>,
+): ReturnType<T> {
+  throw errorFn('create');
+}
 
+function props(...rules: (false | CSSProperties | null | undefined)[]): string {
+  return rules.filter(Boolean).join(' ');
+}
+
+function createStatic<const T extends CreateStatic>(_rule: T): T {
+  throw errorFn('createStatic');
+}
+
+function createTheme<const T extends CreateTheme>(
+  _rule: T,
+): ReturnVariableType<T> {
+  throw errorFn('createTheme');
+}
+
+function keyframes(_rule: Keyframes): string {
+  throw errorFn('keyframes');
+}
+
+function viewTransition(_rule: ViewTransition): string {
+  throw errorFn('viewTransition');
+}
+
+class _css {
   static create<const T extends Record<string, CSSProperties>>(
     rule: CreateStyleType<T>,
   ): ReturnType<T> {
@@ -33,26 +60,31 @@ class StyleSheet {
     return props(...rules);
   }
 
-  static keyframes(rule: CreateKeyframes): string {
-    return keyframes(rule);
-  }
-
-  static viewTransition(rule: ViewTransitionOptions): string {
-    return viewTransition(rule);
-  }
-
   static createTheme<const T extends CreateTheme>(
     rule: T,
   ): ReturnVariableType<T> {
     return createTheme(rule);
   }
 
-  static createStatic<const T extends CreateValues>(rule: T): T {
+  static createStatic<const T extends CreateStatic>(rule: T): T {
     return createStatic(rule);
+  }
+
+  static keyframes(rule: Keyframes): string {
+    return keyframes(rule);
+  }
+
+  static viewTransition(rule: ViewTransition): string {
+    return viewTransition(rule);
   }
 }
 
-const css = StyleSheet;
+const x = (className: string, styles: Styles) => ({
+  className,
+  styles,
+});
+
+const css = _css;
 
 export { css, x };
 export type { CreateStyle, CSSProperties };
