@@ -163,7 +163,7 @@ async function compile(options: CompilerOptions) {
             if (allStatic && Object.keys(merged).length > 0) {
               extractOndemandStyles(merged, extractedSheets);
               const hash = genBase36Hash(merged, 1, 8);
-              const records = getStyleRecords(hash, merged);
+              const records = getStyleRecords(hash, merged, 1);
               records.forEach((r: StyleRecord) =>
                 extractedSheets.push(r.sheet),
               );
