@@ -27,28 +27,23 @@
     "./package.json": "./package.json",
     "./stylesheet.css": "./stylesheet.css",
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.js"
-    },
-    "./processors": {
-      "types": "./dist/processors/css.d.ts",
-      "import": "./dist/processors/css.mjs",
-      "default": "./dist/processors/css.js"
+      "types": "./dist/css.d.ts",
+      "import": "./dist/css.mjs",
+      "default": "./dist/css.js"
     }
   },
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "main": "dist/css.js",
+  "module": "dist/css.mjs",
+  "types": "dist/css.d.ts",
   "files": [
     "dist/",
     "stylesheet.css"
   ],
   "scripts": {
-    "build": "tsdown && node strip-comments.ts"
+    "build": "tsdown && node strip.ts"
   },
   "dependencies": {
-    "zss-engine": "catalog:"
+    "csstype": "^3.2.3"
   },
   "publishConfig": {
     "access": "public",
