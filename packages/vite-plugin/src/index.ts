@@ -342,7 +342,17 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 replacements.push({
                   start: node.span.start - ast.span.start,
                   end: node.span.end - ast.span.start,
-                  content: JSON.stringify(`theme-${hash}`),
+                  content: JSON.stringify(''),
+                });
+              } else if (
+                callee.property.value === 'createStatic' &&
+                args.length > 0 &&
+                t.isStringLiteral(args[0].expression)
+              ) {
+                replacements.push({
+                  start: node.span.start - ast.span.start,
+                  end: node.span.end - ast.span.start,
+                  content: JSON.stringify(''),
                 });
               }
             }
@@ -366,7 +376,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       const transformedCode = Buffer.concat(parts).toString();
 
       if (extractedSheets.length > 0) {
-        const generatedCSS = extractedSheets.join('\n');
+        const generatedCSS = extractedSheets.join('');
         const baseId = id.replace(EXTENSION_PATTERN, '');
         const cssFilename = `${baseId}.zero.css`;
         const cssRelativePath = path
