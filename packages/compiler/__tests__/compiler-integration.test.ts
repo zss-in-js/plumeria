@@ -1,7 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
-import { existsSync } from 'fs';
 import fs from 'fs/promises';
 
 const execPromise = promisify(exec);
@@ -14,11 +13,7 @@ const getStylesheetPath = () => {
 test('CSS compilation generates expected stylesheet', async () => {
   const stylesheetPath = getStylesheetPath();
 
-  if (existsSync(stylesheetPath)) {
-    await fs.unlink(stylesheetPath);
-  }
-
-  await execPromise('pnpm exec css --view', {
+  await execPromise('pnpm exec css', {
     cwd: path.join(__dirname, '../../../test-e2e/site'),
   });
 
