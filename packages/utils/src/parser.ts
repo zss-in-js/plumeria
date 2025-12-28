@@ -10,6 +10,8 @@ import type {
   Tables,
 } from './types';
 
+import { createTheme } from './createTheme';
+
 import {
   parseSync,
   Module,
@@ -31,7 +33,8 @@ import {
 } from '@swc/core';
 import path from 'path';
 import fs from 'fs';
-import { camelToKebabCase, genBase36Hash } from 'zss-engine';
+import { camelToKebabCase, genBase36Hash, transpile } from 'zss-engine';
+import { createViewTransition } from './viewTransition';
 
 export const t = {
   isObjectExpression: (node: any): node is ObjectExpression =>
@@ -653,10 +656,11 @@ export function scanForCreateStatic(
 
 export function scanForCreateTheme(addDependency: (path: string) => void): {
   themeTableLocal: Record<string, Record<string, any>>;
-  createThemeObjectTableLocal: Record<string, any>;
+  createThemeObjectTableLocal: Record<string, Record<string, any>>;
 } {
   const themeTableLocal: Record<string, Record<string, any>> = {};
-  const createThemeObjectTableLocal: Record<string, any> = {};
+  const createThemeObjectTableLocal: Record<string, Record<string, any>> = {};
+
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
@@ -701,8 +705,10 @@ export function scanForCreateTheme(addDependency: (path: string) => void): {
             tables.viewTransitionHashTable,
             themeTableLocal,
           );
+
+          const hash = genBase36Hash(obj, 1, 8);
           themeTableLocal[varName] = obj;
-          createThemeObjectTableLocal[varName] = obj;
+          createThemeObjectTableLocal[hash] = obj;
         }
       }
     }
@@ -747,4 +753,72 @@ function isCSSDefineFile(filePath: string, target: string): boolean {
   });
 
   return found;
+}
+
+export function extractOndemandStyles(
+  obj: any,
+  extractedSheets: string[],
+): void {
+  if (!obj || typeof obj !== 'object') return;
+
+  const visited = new Set();
+  const processedThemes = new Set<string>();
+
+  function walk(n: any) {
+    if (!n || typeof n !== 'object' || visited.has(n)) return;
+    visited.add(n);
+
+    Object.values(n).forEach((val) => {
+      if (typeof val === 'string') {
+        if (val.startsWith('kf-')) {
+          const hash = val.slice(3);
+          const definition = tables.keyframesObjectTable[hash];
+          if (definition) {
+            const { styleSheet } = transpile(
+              { [`@keyframes kf-${hash}`]: definition as any },
+              undefined,
+              '--global',
+            );
+            if (!extractedSheets.includes(styleSheet)) {
+              extractedSheets.push(styleSheet);
+            }
+          }
+        } else if (val.startsWith('vt-')) {
+          const hash = val.slice(3);
+          const obj = tables.viewTransitionObjectTable[hash];
+          if (obj) {
+            const { styleSheet } = transpile(
+              createViewTransition(obj, hash),
+              undefined,
+              '--global',
+            );
+            if (!extractedSheets.includes(styleSheet)) {
+              extractedSheets.push(styleSheet);
+            }
+          }
+        } else if (val.includes('var(--')) {
+          Object.keys(tables.themeTable).forEach((themeVarName) => {
+            if (!processedThemes.has(themeVarName)) {
+              processedThemes.add(themeVarName);
+
+              const themeObj = tables.themeTable[themeVarName];
+              const hash = genBase36Hash(themeObj, 1, 8);
+              const definition = tables.createThemeObjectTable[hash];
+
+              if (definition && typeof definition === 'object') {
+                const styles = createTheme(definition as Record<string, any>);
+                const { styleSheet } = transpile(styles, undefined, '--global');
+                if (!extractedSheets.includes(styleSheet)) {
+                  extractedSheets.push(styleSheet);
+                }
+              }
+            }
+          });
+        }
+      } else {
+        walk(val);
+      }
+    });
+  }
+  walk(obj);
 }
