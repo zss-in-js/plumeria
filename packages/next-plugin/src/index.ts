@@ -1,7 +1,6 @@
 import type { NextConfig } from 'next';
 import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
-import { PlumeriaPlugin } from '@plumeria/webpack-plugin';
 
 export function withPlumeria(nextConfig: NextConfig): NextConfig {
   const originalWebpack = nextConfig.webpack;
@@ -13,20 +12,15 @@ export function withPlumeria(nextConfig: NextConfig): NextConfig {
         config = originalWebpack(config, context);
       }
 
-      if (context.dev) {
-        config.watchOptions = {
-          ignored: ['node_modules', '.next', '.git'],
-        };
-        config.module?.rules?.unshift({
-          enforce: 'pre',
-          test: /\.(tsx|ts|jsx|js)$/,
-          exclude: [/node_modules/, /\.next/, /\.git/],
-          use: require.resolve('@plumeria/webpack-plugin/dist/virtual-css-loader'),
-        });
-        if (!config.plugins?.some((p) => p instanceof PlumeriaPlugin)) {
-          config.plugins?.push(new PlumeriaPlugin());
-        }
-      }
+      config.watchOptions = {
+        ignored: ['node_modules', '.next', '.git'],
+      };
+      config.module?.rules?.unshift({
+        enforce: 'pre',
+        test: /\.(tsx|ts|jsx|js)$/,
+        exclude: [/node_modules/, /\.next/, /\.git/],
+        use: require.resolve('@plumeria/webpack-plugin'),
+      });
 
       return config;
     },
