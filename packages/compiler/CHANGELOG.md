@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 3.0.1
+
+### Patch Changes
+
+- 8d36854: chore: refactor bump version to v3.0.1
+- Updated dependencies [8d36854]
+  - @plumeria/utils@3.0.1
+
 ## 3.0.0
 
 ### Major Changes
