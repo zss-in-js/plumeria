@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 3.0.0
+
+### Major Changes
+
+- 2d7407d: feat: The API handling has been replaced by this and each bundler plugin.
+
 ## 2.4.2
 
 ### Patch Changes

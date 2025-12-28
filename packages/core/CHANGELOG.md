@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 3.0.0
+
+### Major Changes
+
+- 2d7407d: feat: I've reduced the runtime code to the bare minimum, which reduces the bundle code to nearly zero.
+
 ## 2.4.2
 
 ### Patch Changes
