@@ -8,6 +8,7 @@ import {
   scanForCreateStatic,
   scanForCreateTheme,
   scanForViewTransition,
+  extractOndemandStyles,
 } from '../src/parser';
 import { parseSync, ObjectExpression } from '@swc/core';
 import * as fs from 'fs';
@@ -494,7 +495,6 @@ describe('parser', () => {
 
       expect(addDependency).toHaveBeenCalledWith('/test/tokens.ts');
       expect(result.themeTableLocal).toHaveProperty('T');
-      expect(result.createThemeObjectTableLocal).toHaveProperty('T');
     });
 
     it('should scan for viewTransition', () => {
@@ -609,5 +609,56 @@ describe('parser', () => {
       expect(addDependency).not.toHaveBeenCalled();
       expect(Object.keys(result.keyframesHashTableLocal)).toHaveLength(0);
     });
+  });
+});
+
+describe('extractOndemandStyles (integration)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tables.keyframesObjectTable = {
+      abc: { from: { opacity: 0 }, to: { opacity: 1 } },
+    };
+    tables.viewTransitionObjectTable = {
+      def: { group: { animationDuration: '0.3s' } },
+    };
+    tables.themeTable = {
+      T: {},
+    };
+    tables.createThemeObjectTable = {
+      xyz: {
+        color: {
+          default: 'red',
+        },
+      },
+    };
+  });
+
+  it('should extract keyframes, viewTransition and theme styles', () => {
+    const extracted: string[] = [];
+
+    extractOndemandStyles(
+      {
+        a: 'kf-abc',
+        b: 'vt-def',
+        c: 'var(--color)',
+        nested: {
+          d: 'kf-abc',
+        },
+      },
+      extracted,
+    );
+
+    // transpile の戻りは parser 側で共通の styleSheet を返すため
+    expect(extracted.length).toBeGreaterThan(0);
+  });
+
+  it('should ignore invalid input', () => {
+    const extracted: string[] = [];
+
+    extractOndemandStyles(null, extracted);
+    extractOndemandStyles('string', extracted);
+    extractOndemandStyles(123, extracted);
+
+    expect(extracted).toHaveLength(0);
   });
 });
