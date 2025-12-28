@@ -28,7 +28,6 @@
   "dependencies": {
     "@plumeria/utils": "workspace:^",
     "rscute": "^1.1.5",
-    "@rust-gear/glob": "^0.2.7",
     "lightningcss": "^1.30.2",
     "postcss": "^8.5.6",
     "postcss-combine-media-query": "^2.1.0"
