@@ -4,7 +4,6 @@ import type {
 } from 'next/dist/server/config-shared';
 
 export const withPlumeria = (nextConfig: NextConfig = {}): NextConfig => {
-  if (process.env.NODE_ENV === 'production') return nextConfig;
   const reactLoaders: TurbopackLoaderItem[] = [
     {
       loader: '@plumeria/turbopack-loader',
