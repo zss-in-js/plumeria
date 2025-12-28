@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 3.0.0
+
+### Major Changes
+
+- 2d7407d: chore: bump version to v3.0.0
+
 ## 2.4.2
 
 ### Patch Changes
