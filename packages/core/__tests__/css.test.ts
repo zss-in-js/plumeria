@@ -1,58 +1,45 @@
 /* eslint-disable @plumeria/no-inner-call */
+
 import { css, x } from '../src/css';
 
-describe('css static methods', () => {
-  new (css as any)();
-  it('delegates keyframes()', () => {
-    const res = css.keyframes({
-      from: { opacity: 0 },
-      to: { opacity: 1 },
-    });
-    expect(typeof res).toBe('string');
+describe('css runtime stubs', () => {
+  test('create throws runtime error', () => {
+    expect(() => {
+      css.create({ a: { color: 'red' } });
+    }).toThrow(/runtime not supported/);
   });
 
-  it('delegates viewTransition()', () => {
-    const res = css.viewTransition({ new: { opacity: 0 } });
-    expect(typeof res).toBe('string');
+  test('createStatic throws runtime error', () => {
+    expect(() => {
+      css.createStatic({ a: 'b' } as any);
+    }).toThrow(/runtime not supported/);
   });
 
-  it('delegates createStatic()', () => {
-    const res = css.createStatic({ primary: 'blue' });
-    expect(res.primary).toBe('blue');
+  test('createTheme throws runtime error', () => {
+    expect(() => {
+      css.createTheme({} as any);
+    }).toThrow(/runtime not supported/);
   });
 
-  it('delegates createTheme()', () => {
-    const res = css.createTheme({
-      color: { primary: '#fff' },
-    });
-    expect(res.color.startsWith('var')).toBe(true);
+  test('keyframes throws runtime error', () => {
+    expect(() => {
+      css.keyframes({} as any);
+    }).toThrow(/runtime not supported/);
   });
 
-  it('delegates create() and props()', () => {
-    const res = css.create({
-      text: {
-        fontSize: 24,
-      },
-    });
-    const className = css.props(res.text);
-    expect(typeof res.text).toBe('object');
-    expect(typeof className).toBe('string');
+  test('viewTransition throws runtime error', () => {
+    expect(() => {
+      css.viewTransition({} as any);
+    }).toThrow(/runtime not supported/);
   });
 });
 
-describe('x', () => {
-  it('should return an object with the given className and varSet as style', () => {
-    const className = 'my-class';
-    const varSet = {
-      '--primary-color': 'blue',
-      '--font-weight': 'bold',
-    };
-
-    const result = x(className, varSet);
-
+describe('x helper', () => {
+  test('returns object as-is', () => {
+    const result = x('cls', { color: 'red' } as any);
     expect(result).toEqual({
-      className: className,
-      style: varSet,
+      className: 'cls',
+      styles: { color: 'red' },
     });
   });
 });
