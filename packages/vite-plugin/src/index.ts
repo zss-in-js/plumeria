@@ -7,16 +7,14 @@ import type {
 } from 'vite';
 import { createFilter } from 'vite';
 import { parseSync, ObjectExpression } from '@swc/core';
-
 import path from 'path';
 
-import type { CreateStyle, CreateTheme, CSSProperties } from 'zss-engine';
-import { transpile } from 'zss-engine';
+import { type CSSProperties, genBase36Hash } from 'zss-engine';
 
-import type { CSSObject, FileStyles } from '@plumeria/utils';
 import {
-  createCSS,
-  createTheme,
+  tables,
+  traverse,
+  getStyleRecords,
   collectLocalConsts,
   objectExpressionToObject,
   scanForCreateStatic,
@@ -24,9 +22,9 @@ import {
   scanForKeyframes,
   scanForViewTransition,
   t,
-  tables,
-  traverse,
+  extractOndemandStyles,
 } from '@plumeria/utils';
+import type { StyleRecord, CSSObject } from '@plumeria/utils';
 
 const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx', 'vue', 'svelte'];
 const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx|vue|svelte)$/;
@@ -56,19 +54,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
   return {
     name: '@plumeria/vite-plugin',
     enforce: 'pre', // Process before transpiling
-    config: ({ build = {} }) => ({
-      build: {
-        ...build,
-        rollupOptions: {
-          ...build.rollupOptions,
-          external: [
-            ...((build.rollupOptions?.external || []) as string[]),
-            'fs',
-            'util',
-          ],
-        },
-      },
-    }),
 
     configResolved(resolvedConfig) {
       isDev = resolvedConfig.command === 'serve';
@@ -83,39 +68,29 @@ export function plumeria(options: PluginOptions = {}): Plugin {
     // --- Virtual Module Resolution ---
     resolveId(importeeUrl) {
       if (!isDev) return;
-      // Remove queries etc. and get the ID
       const [id] = importeeUrl.split('?', 1);
-
-      // If it is already registered as generated CSS, return its ID (do not treat it as an external file)
       if (cssLookup.has(id)) {
         return id;
       }
-      // Resolve URL format to file path
       return cssFileLookup.get(id);
     },
 
     load(url) {
       if (!isDev) return;
       const [id] = url.split('?', 1);
-      // Return the in-memory CSS
       return cssLookup.get(id);
     },
 
     // --- HMR Handling ---
     handleHotUpdate(ctx) {
       if (!isDev) return;
-      // If the module itself has changed, leave it to Vite
       if (ctx.modules.length) {
         return ctx.modules;
       }
-      // If a dependent file (such as a token definition) is changed,
-      // identify the files that depend on it and update them.
       const affected = targets.filter((target) =>
-        // Is the changed file in the dependency list?
         target.dependencies.some((dep) => dep === ctx.file),
       );
 
-      // Identify and return the affected modules
       return affected
         .map((target) => devServer.moduleGraph.getModuleById(target.id))
         .filter((m): m is ModuleNode => !!m)
@@ -123,43 +98,33 @@ export function plumeria(options: PluginOptions = {}): Plugin {
     },
 
     transform(source, url) {
-      if (!isDev) return;
       const [id] = url.split('?', 1);
 
-      // excluding node_modules
       if (id.includes('node_modules')) {
         return null;
       }
 
-      // excluding virtual modules (e.g. ?tsx&type=style)
       if (url.includes('?')) {
         return null;
       }
 
-      // Check the extension
-      const ext = path.extname(id).slice(1);
+      const ext = id.split('.').pop() || '';
       if (!TARGET_EXTENSIONS.includes(ext)) {
         return null;
       }
 
-      // Custom filter
       if (!filter(id)) {
         return null;
       }
 
-      // --- Prepare for dependency collection ---
       const dependencies: string[] = [];
       const addDependency = (depPath: string) => {
         dependencies.push(depPath);
-        // Also added to Vite's watch list
         this.addWatchFile(depPath);
       };
 
-      // --- Parser Logic (Previous Context) ---
-
-      // Reset and scan the global table
+      // Reset and scan
       tables.staticTable = scanForCreateStatic(addDependency);
-
       const { keyframesHashTableLocal, keyframesObjectTableLocal } =
         scanForKeyframes(addDependency);
       tables.keyframesHashTable = keyframesHashTableLocal;
@@ -175,15 +140,19 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       tables.themeTable = themeTableLocal;
       tables.createThemeObjectTable = createThemeObjectTableLocal;
 
-      const extractedObjects: CSSObject[] = [];
-      let ast;
+      const extractedSheets: string[] = [];
+      let ast: any;
 
       const scriptContents = getScriptContents(source, id);
 
+      const replacements: Array<{
+        start: number;
+        end: number;
+        content: string;
+      }> = [];
+
       for (const content of scriptContents) {
-        if (!content.trim()) {
-          continue;
-        }
+        if (!content.trim()) continue;
 
         try {
           ast = parseSync(content, {
@@ -199,8 +168,55 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         const localConsts = collectLocalConsts(ast);
         Object.assign(tables.staticTable, localConsts);
 
+        const localCreateStyles: Record<string, CSSObject> = {};
+
         traverse(ast, {
-          CallExpression({ node }) {
+          VariableDeclarator({ node }: any) {
+            if (
+              node.id.type === 'Identifier' &&
+              node.init &&
+              t.isCallExpression(node.init) &&
+              t.isMemberExpression(node.init.callee) &&
+              t.isIdentifier(node.init.callee.object, { name: 'css' }) &&
+              t.isIdentifier(node.init.callee.property, { name: 'create' }) &&
+              node.init.arguments.length === 1 &&
+              t.isObjectExpression(node.init.arguments[0].expression)
+            ) {
+              const obj = objectExpressionToObject(
+                node.init.arguments[0].expression as ObjectExpression,
+                tables.staticTable,
+                tables.keyframesHashTable,
+                tables.viewTransitionHashTable,
+                tables.themeTable,
+              );
+              if (obj) {
+                localCreateStyles[node.id.value] = obj;
+
+                const hashMap: Record<string, string> = {};
+                Object.entries(obj).forEach(([key, style]) => {
+                  const records = getStyleRecords(
+                    key,
+                    style as CSSProperties,
+                    1,
+                  );
+                  const propMap: Record<string, string> = {};
+                  extractOndemandStyles(style, extractedSheets);
+                  records.forEach((r: StyleRecord) => {
+                    propMap[r.key] = r.hash;
+                    extractedSheets.push(r.sheet);
+                  });
+                  hashMap[key] = records.map((r) => r.hash).join(' ');
+                });
+
+                replacements.push({
+                  start: node.init.span.start - ast.span.start,
+                  end: node.init.span.end - ast.span.start,
+                  content: JSON.stringify(hashMap),
+                });
+              }
+            }
+          },
+          CallExpression({ node }: any) {
             const callee = node.callee;
             if (
               t.isMemberExpression(callee) &&
@@ -208,9 +224,70 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               t.isIdentifier(callee.property)
             ) {
               const args = node.arguments;
-              if (
-                callee.property.value === 'create' &&
-                args.length === 1 &&
+              if (callee.property.value === 'props') {
+                const merged: Record<string, any> = {};
+                let allStatic = true;
+                args.forEach((arg: any) => {
+                  const expr = arg.expression;
+                  if (t.isObjectExpression(expr)) {
+                    const obj = objectExpressionToObject(
+                      expr,
+                      tables.staticTable,
+                      tables.keyframesHashTable,
+                      tables.viewTransitionHashTable,
+                      tables.themeTable,
+                    );
+                    if (obj) {
+                      Object.assign(merged, obj);
+                    } else {
+                      allStatic = false;
+                    }
+                  } else if (t.isMemberExpression(expr)) {
+                    if (
+                      t.isIdentifier(expr.object) &&
+                      t.isIdentifier(expr.property)
+                    ) {
+                      const varName = expr.object.value;
+                      const propName = expr.property.value;
+                      const styleSet = localCreateStyles[varName];
+                      if (styleSet && styleSet[propName]) {
+                        Object.assign(merged, styleSet[propName]);
+                      } else {
+                        allStatic = false;
+                      }
+                    } else {
+                      allStatic = false;
+                    }
+                  } else if (t.isIdentifier(expr)) {
+                    const obj = localCreateStyles[expr.value];
+                    if (obj) {
+                      Object.assign(merged, obj);
+                    } else {
+                      allStatic = false;
+                    }
+                  } else {
+                    allStatic = false;
+                  }
+                });
+                if (allStatic && Object.keys(merged).length > 0) {
+                  extractOndemandStyles(merged, extractedSheets);
+                  const hash = genBase36Hash(merged, 1, 8);
+                  const records = getStyleRecords(hash, merged);
+                  records.forEach((r: StyleRecord) =>
+                    extractedSheets.push(r.sheet),
+                  );
+
+                  replacements.push({
+                    start: node.span.start - ast.span.start,
+                    end: node.span.end - ast.span.start,
+                    content: JSON.stringify(
+                      records.map((r: StyleRecord) => r.hash).join(' '),
+                    ),
+                  });
+                }
+              } else if (
+                callee.property.value === 'keyframes' &&
+                args.length > 0 &&
                 t.isObjectExpression(args[0].expression)
               ) {
                 const obj = objectExpressionToObject(
@@ -220,128 +297,106 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   tables.viewTransitionHashTable,
                   tables.themeTable,
                 );
-                if (obj) {
-                  extractedObjects.push(obj);
-                }
+                const hash = genBase36Hash(obj, 1, 8);
+                tables.keyframesObjectTable[hash] = obj;
+
+                replacements.push({
+                  start: node.span.start - ast.span.start,
+                  end: node.span.end - ast.span.start,
+                  content: JSON.stringify(`kf-${hash}`),
+                });
+              } else if (
+                callee.property.value === 'viewTransition' &&
+                args.length > 0 &&
+                t.isObjectExpression(args[0].expression)
+              ) {
+                const obj = objectExpressionToObject(
+                  args[0].expression as ObjectExpression,
+                  tables.staticTable,
+                  tables.keyframesHashTable,
+                  tables.viewTransitionHashTable,
+                  tables.themeTable,
+                );
+                const hash = genBase36Hash(obj, 1, 8);
+                tables.viewTransitionObjectTable[hash] = obj;
+
+                replacements.push({
+                  start: node.span.start - ast.span.start,
+                  end: node.span.end - ast.span.start,
+                  content: JSON.stringify(`vt-${hash}`),
+                });
+              } else if (
+                callee.property.value === 'createTheme' &&
+                args.length > 0 &&
+                t.isObjectExpression(args[0].expression)
+              ) {
+                const obj = objectExpressionToObject(
+                  args[0].expression as ObjectExpression,
+                  tables.staticTable,
+                  tables.keyframesHashTable,
+                  tables.viewTransitionHashTable,
+                  tables.themeTable,
+                );
+                const hash = genBase36Hash(obj, 1, 8);
+                tables.createThemeObjectTable[hash] = obj;
+                replacements.push({
+                  start: node.span.start - ast.span.start,
+                  end: node.span.end - ast.span.start,
+                  content: JSON.stringify(`theme-${hash}`),
+                });
               }
             }
           },
         });
       }
 
-      // --- CSS Generation ---
-      const fileStyles: FileStyles = {};
+      // Apply replacements
+      const buffer = Buffer.from(source);
+      let offset = 0;
+      const parts: Buffer[] = [];
 
-      if (extractedObjects.length > 0) {
-        const combinedStyles = extractedObjects.reduce<CSSObject>(
-          (acc, obj) => Object.assign(acc, obj),
-          {},
-        );
-        const base = createCSS(combinedStyles as CreateStyle);
-        if (base) fileStyles.baseStyles = base;
-      }
+      replacements
+        .sort((a, b) => a.start - b.start)
+        .forEach((r) => {
+          parts.push(buffer.subarray(offset, r.start));
+          parts.push(Buffer.from(r.content));
+          offset = r.end;
+        });
+      parts.push(buffer.subarray(offset));
+      const transformedCode = Buffer.concat(parts).toString();
 
-      if (Object.keys(tables.keyframesObjectTable).length > 0) {
-        fileStyles.keyframeStyles = Object.entries(tables.keyframesObjectTable)
-          .map(
-            ([hash, obj]) =>
-              transpile(
-                { [`@keyframes kf-${hash}`]: obj },
-                undefined,
-                '--global',
-              ).styleSheet,
-          )
-          .join('\n');
-      }
+      if (extractedSheets.length > 0) {
+        const generatedCSS = extractedSheets.join('\n');
+        const baseId = id.replace(EXTENSION_PATTERN, '');
+        const cssFilename = `${baseId}.zero.css`;
+        const cssRelativePath = path
+          .relative(config.root, cssFilename)
+          .replace(/\\/g, '/');
+        const cssId = `/${cssRelativePath}`;
 
-      if (Object.keys(tables.viewTransitionObjectTable).length > 0) {
-        fileStyles.viewTransitionStyles = Object.entries(
-          tables.viewTransitionObjectTable,
-        )
-          .map(
-            ([hash, obj]) =>
-              transpile(
-                {
-                  [`::view-transition-group(vt-${hash})`]:
-                    obj.group as CSSProperties,
-                  [`::view-transition-image-pair(vt-${hash})`]:
-                    obj.imagePair as CSSProperties,
-                  [`::view-transition-old(vt-${hash})`]:
-                    obj.old as CSSProperties,
-                  [`::view-transition-new(vt-${hash})`]:
-                    obj.new as CSSProperties,
-                },
-                undefined,
-                '--global',
-              ).styleSheet,
-          )
-          .join('\n');
-      }
+        cssLookup.set(cssFilename, generatedCSS);
+        cssFileLookup.set(cssId, cssFilename);
 
-      if (Object.keys(tables.createThemeObjectTable).length > 0) {
-        fileStyles.themeStyles = Object.values(tables.createThemeObjectTable)
-          .map(
-            (obj) =>
-              transpile(createTheme(obj as CreateTheme), undefined, '--global')
-                .styleSheet,
-          )
-          .join('\n');
-      }
-
-      const sections: string[] = [];
-      if (fileStyles.keyframeStyles?.trim())
-        sections.push(fileStyles.keyframeStyles);
-      if (fileStyles.viewTransitionStyles?.trim())
-        sections.push(fileStyles.viewTransitionStyles);
-      if (fileStyles.themeStyles?.trim()) sections.push(fileStyles.themeStyles);
-      if (fileStyles.baseStyles?.trim()) sections.push(fileStyles.baseStyles);
-
-      const generatedCSS = sections.join('\n');
-
-      if (!generatedCSS) {
-        return null;
-      }
-
-      // --- Register Virtual CSS File ---
-
-      const baseId = id.replace(EXTENSION_PATTERN, '');
-
-      // Generate a virtual file name (eg: src/App.tsx -> src/App.zero.css)
-      const cssFilename = `${baseId}.zero.css`;
-
-      // Relative path from config.root
-      const cssRelativePath = path
-        .relative(config.root, cssFilename)
-        .replace(/\\/g, '/');
-
-      // ID in the URL (eg: /src/App.zero.css)
-      const cssId = `/${cssRelativePath}`;
-
-      // Add to map
-      cssLookup.set(cssFilename, generatedCSS);
-      cssFileLookup.set(cssId, cssFilename);
-
-      // Update dependencies target
-      const targetIndex = targets.findIndex((t) => t.id === id);
-      if (targetIndex !== -1) {
-        targets[targetIndex].dependencies = dependencies;
-      } else {
-        targets.push({ id, dependencies });
-      }
-
-      // --- HMR ---
-      // Even if the import statement in the JS file itself has not changed,
-      // it will notify you that the contents of the associated CSS have changed.
-      if (devServer?.moduleGraph) {
-        const cssModule = devServer.moduleGraph.getModuleById(cssFilename);
-        if (cssModule) {
-          devServer.reloadModule(cssModule);
+        const targetIndex = targets.findIndex((t) => t.id === id);
+        if (targetIndex !== -1) {
+          targets[targetIndex].dependencies = dependencies;
+        } else {
+          targets.push({ id, dependencies });
         }
+
+        if (devServer?.moduleGraph) {
+          const cssModule = devServer.moduleGraph.getModuleById(cssFilename);
+          if (cssModule) devServer.reloadModule(cssModule);
+        }
+
+        return {
+          code: injectImport(transformedCode, id, cssFilename),
+          map: null,
+        };
       }
 
-      //  Insert import source
       return {
-        code: injectImport(source, id, cssFilename),
+        code: transformedCode,
         map: null,
       };
     },
@@ -358,15 +413,12 @@ function getScriptContents(code: string, id: string): string[] {
 
 function injectImport(code: string, id: string, importPath: string): string {
   const importStmt = `\nimport ${JSON.stringify(importPath)};`;
-
   if (id.endsWith('.vue') || id.endsWith('.svelte')) {
     return code.replace(
       /(<script[^>]*>)([\s\S]*?)(<\/script>)/,
-      (_match, open, content, close) => {
-        return `${open}${content}${importStmt}\n${close}`;
-      },
+      (_match, open, content, close) =>
+        `${open}${content}${importStmt}\n${close}`,
     );
   }
-
   return `${code}${importStmt}`;
 }
