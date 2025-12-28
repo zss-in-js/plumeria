@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 3.0.0
+
+### Major Changes
+
+- 2d7407d: feat: The runtime execution compiler has been replaced by a static extraction compiler.
+
+### Patch Changes
+
+- Updated dependencies [2d7407d]
+  - @plumeria/utils@3.0.0
+
 ## 2.4.2
 
 ### Patch Changes
