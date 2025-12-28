@@ -1,15 +1,13 @@
 import { parseSync, ObjectExpression } from '@swc/core';
-
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+import { genBase36Hash } from 'zss-engine';
+import type { CSSProperties } from 'zss-engine';
 
-import type { CreateStyle, CreateTheme, CSSProperties } from 'zss-engine';
-import { transpile } from 'zss-engine';
-
-import type { CSSObject, FileStyles } from '@plumeria/utils';
 import {
-  createCSS,
-  createTheme,
+  tables,
+  traverse,
+  getStyleRecords,
   collectLocalConsts,
   objectExpressionToObject,
   scanForCreateStatic,
@@ -17,30 +15,24 @@ import {
   scanForKeyframes,
   scanForViewTransition,
   t,
-  tables,
-  traverse,
+  extractOndemandStyles,
 } from '@plumeria/utils';
+import type { StyleRecord, CSSObject } from '@plumeria/utils';
 
-interface TurbopackLoaderContext {
+interface LoaderContext {
   resourcePath: string;
-  rootContext: string;
-  context: string;
-  clearDependencies: () => void;
+  async: () => (err: Error | null, content?: string) => void;
   addDependency: (path: string) => void;
-  async: () => (
-    err: Error | null,
-    content?: string | Buffer,
-    sourceMap?: any,
-  ) => void;
+  clearDependencies: () => void;
 }
 
-const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
-fs.writeFileSync(VIRTUAL_FILE_PATH, '');
-
-export default function loader(this: TurbopackLoaderContext, source: string) {
+export default async function loader(this: LoaderContext, source: string) {
   const callback = this.async();
 
-  if (this.resourcePath.includes('node_modules')) {
+  if (
+    this.resourcePath.includes('node_modules') ||
+    !source.includes('@plumeria/core')
+  ) {
     return callback(null, source);
   }
 
@@ -66,24 +58,60 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
   tables.themeTable = themeTableLocal;
   tables.createThemeObjectTable = createThemeObjectTableLocal;
 
-  const extractedObjects: CSSObject[] = [];
-  let ast;
-  try {
-    ast = parseSync(source, {
-      syntax: 'typescript',
-      tsx: true,
-      target: 'es2022',
-    });
-  } catch (err) {
-    console.log(err);
-    callback(null, source);
-    return;
-  }
+  const ast = parseSync(source, {
+    syntax: 'typescript',
+    tsx: true,
+    target: 'es2022',
+  });
 
   const localConsts = collectLocalConsts(ast);
   Object.assign(tables.staticTable, localConsts);
 
+  const localCreateStyles: Record<string, CSSObject> = {};
+  const replacements: Array<{ start: number; end: number; content: string }> =
+    [];
+  const extractedSheets: string[] = [];
+
   traverse(ast, {
+    VariableDeclarator({ node }) {
+      if (
+        node.id.type === 'Identifier' &&
+        node.init &&
+        t.isCallExpression(node.init) &&
+        t.isMemberExpression(node.init.callee) &&
+        t.isIdentifier(node.init.callee.object, { name: 'css' }) &&
+        t.isIdentifier(node.init.callee.property, { name: 'create' }) &&
+        node.init.arguments.length === 1 &&
+        t.isObjectExpression(node.init.arguments[0].expression)
+      ) {
+        const obj = objectExpressionToObject(
+          node.init.arguments[0].expression as ObjectExpression,
+          tables.staticTable,
+          tables.keyframesHashTable,
+          tables.viewTransitionHashTable,
+          tables.themeTable,
+        );
+        if (obj) {
+          localCreateStyles[node.id.value] = obj;
+          const hashMap: Record<string, string> = {};
+          Object.entries(obj).forEach(([key, style]) => {
+            const records = getStyleRecords(key, style as CSSProperties, 2);
+            const propMap: Record<string, string> = {};
+            extractOndemandStyles(style, extractedSheets);
+            records.forEach((r: StyleRecord) => {
+              propMap[r.key] = r.hash;
+              extractedSheets.push(r.sheet);
+            });
+            hashMap[key] = records.map((r) => r.hash).join(' ');
+          });
+          replacements.push({
+            start: node.init.span.start - ast.span.start,
+            end: node.init.span.end - ast.span.start,
+            content: JSON.stringify(hashMap),
+          });
+        }
+      }
+    },
     CallExpression({ node }) {
       const callee = node.callee;
       if (
@@ -91,10 +119,56 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
         t.isIdentifier(callee.object, { name: 'css' }) &&
         t.isIdentifier(callee.property)
       ) {
+        const propName = callee.property.value;
         const args = node.arguments;
-        if (
-          callee.property.value === 'create' &&
-          args.length === 1 &&
+
+        if (propName === 'props') {
+          const merged: Record<string, any> = {};
+          let allStatic = true;
+          args.forEach((arg: any) => {
+            const expr = arg.expression;
+            if (t.isObjectExpression(expr)) {
+              const obj = objectExpressionToObject(
+                expr,
+                tables.staticTable,
+                tables.keyframesHashTable,
+                tables.viewTransitionHashTable,
+                tables.themeTable,
+              );
+              obj ? Object.assign(merged, obj) : (allStatic = false);
+            } else if (
+              t.isMemberExpression(expr) &&
+              t.isIdentifier(expr.object) &&
+              t.isIdentifier(expr.property)
+            ) {
+              const styleSet = localCreateStyles[expr.object.value];
+              styleSet && styleSet[expr.property.value]
+                ? Object.assign(merged, styleSet[expr.property.value])
+                : (allStatic = false);
+            } else if (t.isIdentifier(expr)) {
+              const obj = localCreateStyles[expr.value];
+              obj ? Object.assign(merged, obj) : (allStatic = false);
+            } else {
+              allStatic = false;
+            }
+          });
+
+          if (allStatic && Object.keys(merged).length > 0) {
+            extractOndemandStyles(merged, extractedSheets);
+            const hash = genBase36Hash(merged, 1, 8);
+            const records = getStyleRecords(hash, merged);
+            records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
+            replacements.push({
+              start: node.span.start - ast.span.start,
+              end: node.span.end - ast.span.start,
+              content: JSON.stringify(
+                records.map((r: StyleRecord) => r.hash).join(' '),
+              ),
+            });
+          }
+        } else if (
+          propName === 'keyframes' &&
+          args.length > 0 &&
           t.isObjectExpression(args[0].expression)
         ) {
           const obj = objectExpressionToObject(
@@ -104,77 +178,75 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
             tables.viewTransitionHashTable,
             tables.themeTable,
           );
-          if (obj) {
-            extractedObjects.push(obj);
-          }
+          const hash = genBase36Hash(obj, 1, 8);
+          tables.keyframesObjectTable[hash] = obj;
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(`kf-${hash}`),
+          });
+        } else if (
+          propName === 'viewTransition' &&
+          args.length > 0 &&
+          t.isObjectExpression(args[0].expression)
+        ) {
+          const obj = objectExpressionToObject(
+            args[0].expression as ObjectExpression,
+            tables.staticTable,
+            tables.keyframesHashTable,
+            tables.viewTransitionHashTable,
+            tables.themeTable,
+          );
+          const hash = genBase36Hash(obj, 1, 8);
+          tables.viewTransitionObjectTable[hash] = obj;
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(`vt-${hash}`),
+          });
+        } else if (
+          propName === 'createTheme' &&
+          args.length > 0 &&
+          t.isObjectExpression(args[0].expression)
+        ) {
+          const obj = objectExpressionToObject(
+            args[0].expression as ObjectExpression,
+            tables.staticTable,
+            tables.keyframesHashTable,
+            tables.viewTransitionHashTable,
+            tables.themeTable,
+          );
+          const hash = genBase36Hash(obj, 1, 8);
+          tables.createThemeObjectTable[hash] = obj;
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(`theme-${hash}`),
+          });
         }
       }
     },
   });
 
-  const fileStyles: FileStyles = {};
-  if (extractedObjects.length > 0) {
-    const combinedStyles = extractedObjects.reduce<CSSObject>(
-      (acc, obj) => Object.assign(acc, obj),
-      {},
-    );
+  // Apply replacements
+  const buffer = Buffer.from(source);
+  let offset = 0;
+  const parts: Buffer[] = [];
 
-    const base = createCSS(combinedStyles as CreateStyle);
-    if (base) {
-      fileStyles.baseStyles = base;
-    }
-  }
+  replacements
+    .sort((a, b) => a.start - b.start)
+    .forEach((r) => {
+      parts.push(buffer.subarray(offset, r.start));
+      parts.push(Buffer.from(r.content));
+      offset = r.end;
+    });
+  parts.push(buffer.subarray(offset));
+  const transformedSource = Buffer.concat(parts).toString();
 
-  if (Object.keys(tables.keyframesObjectTable).length > 0) {
-    fileStyles.keyframeStyles = Object.entries(tables.keyframesObjectTable)
-      .map(
-        ([hash, obj]) =>
-          transpile({ [`@keyframes kf-${hash}`]: obj }, undefined, '--global')
-            .styleSheet,
-      )
-      .join('\n');
-  }
-
-  if (Object.keys(tables.viewTransitionObjectTable).length > 0) {
-    fileStyles.viewTransitionStyles = Object.entries(
-      tables.viewTransitionObjectTable,
-    )
-      .map(
-        ([hash, obj]) =>
-          transpile(
-            {
-              [`::view-transition-group(vt-${hash})`]:
-                obj.group as CSSProperties,
-              [`::view-transition-image-pair(vt-${hash})`]:
-                obj.imagePair as CSSProperties,
-              [`::view-transition-old(vt-${hash})`]: obj.old as CSSProperties,
-              [`::view-transition-new(vt-${hash})`]: obj.new as CSSProperties,
-            },
-            undefined,
-            '--global',
-          ).styleSheet,
-      )
-      .join('\n');
-  }
-
-  if (Object.keys(tables.createThemeObjectTable).length > 0) {
-    fileStyles.themeStyles = Object.values(tables.createThemeObjectTable)
-      .map(
-        (obj) =>
-          transpile(createTheme(obj as CreateTheme), undefined, '--global')
-            .styleSheet,
-      )
-      .join('\n');
-  }
-
-  // --- Turbopack specific: Write directly to zero-virtual.css ---
-
+  const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
   const VIRTUAL_CSS_PATH = require.resolve(VIRTUAL_FILE_PATH);
 
-  function stringifyRequest(
-    loaderContext: TurbopackLoaderContext,
-    request: string,
-  ) {
+  function stringifyRequest(loaderContext: any, request: string) {
     const context = loaderContext.context || loaderContext.rootContext;
     const relativePath = path.relative(context, request);
     const requestPath = relativePath.startsWith('.')
@@ -195,43 +267,16 @@ export default function loader(this: TurbopackLoaderContext, source: string) {
     importPath = './' + importPath;
   }
 
-  // Note: We don't use urlParams for data passing in Turbopack as we write directly
   const virtualCssRequest = stringifyRequest(this, `${VIRTUAL_CSS_PATH}`);
   const postfix = `\nimport ${virtualCssRequest};`;
 
-  // Read current CSS to check for duplicates
-  const css = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
-
-  function generateOrderedCSS(styles: typeof fileStyles): string {
-    const sections: string[] = [];
-
-    if (styles.keyframeStyles?.trim()) {
-      if (!css.includes(styles.keyframeStyles))
-        sections.push(styles.keyframeStyles);
-    }
-
-    if (styles.viewTransitionStyles?.trim()) {
-      if (!css.includes(styles.viewTransitionStyles))
-        sections.push(styles.viewTransitionStyles);
-    }
-
-    if (styles.themeStyles?.trim()) {
-      if (!css.includes(styles.themeStyles)) sections.push(styles.themeStyles);
-    }
-
-    if (styles.baseStyles?.trim()) {
-      if (!css.includes(styles.baseStyles)) sections.push(styles.baseStyles);
-    }
-
-    return sections.join('\n');
+  if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
+    fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join('\n'), 'utf-8');
+  } else if (
+    extractedSheets.length > 0 &&
+    process.env.NODE_ENV === 'production'
+  ) {
+    fs.writeFileSync(VIRTUAL_FILE_PATH, '');
   }
-
-  const orderedCSS = generateOrderedCSS(fileStyles);
-
-  if (orderedCSS) {
-    if (!css.includes(orderedCSS))
-      fs.appendFileSync(VIRTUAL_FILE_PATH, orderedCSS + '\n');
-  }
-
-  callback(null, source + postfix);
+  callback(null, transformedSource + postfix);
 }
