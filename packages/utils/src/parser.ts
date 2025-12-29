@@ -30,6 +30,7 @@ import {
   VariableDeclaration,
   VariableDeclarator,
   ExportDeclaration,
+  ConditionalExpression,
 } from '@swc/core';
 import path from 'path';
 import fs from 'fs';
@@ -69,6 +70,8 @@ export const t = {
   isCallExpression: (node: any): node is CallExpression =>
     node?.type === 'CallExpression',
   isNullLiteral: (node: any): boolean => node?.type === 'NullLiteral',
+  isConditionalExpression: (node: any): node is ConditionalExpression =>
+    node?.type === 'ConditionalExpression',
 };
 
 export function traverse(
