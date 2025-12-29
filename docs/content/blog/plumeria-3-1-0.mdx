@@ -1,0 +1,138 @@
+---
+title: 'Plumeria v3.1.0'
+description: 'Plumeria breaking changes includes Major updates. (3 min read)'
+date: '2025/12/30'
+---
+
+## Changes
+Previously, Plumeria's `runtime` was pre-executed.  
+The change this time is to reduce the contents of the function to the bare minimum.
+
+`@plumeria/core@2.4.2`:  
+Near Zero-runtime:  
+Bundle size is `18.3 kB -> 6.36 kB (brotli)`
+
+`@plumeria/core@3.1.0`:  
+Phantom runtime:   
+Bundle size is `851 B -> 423 B (brotli)`
+
+Previously, the function was an object containing a hash calculation, but with the breaking change in 3.0.0, the runtime now only has props and x.  
+The biggest benefit of this is the low cost of initially bundling code into your app, and the stability of plugins and static compilers.
+
+However, some things have disappeared.
+Compiler commands such as `--view --paths --stats` were available,
+but since these were all recalculated at runtime, they have now been discontinued.
+
+The compiler is still required in next.js for pre-preparing sheets, but may be replaced by `postcss-plugin` in the future.
+
+For example, the create function in the core API has become a box for objects:
+```ts title="css.ts"
+const css = class _css {
+  static create<const T extends Record<string, CSSProperties>>(
+    _rule: CreateStyleType<T>,
+  ): ReturnType<T> {
+    throw errorFn('create');
+  }
+}
+```
+
+The API functionality has been ported to `bundler plugins` and `utils` and optimized to the maximum.
+
+
+Plumeria's runtime code is essentially reduced to just the following functions:
+```ts title="css.props function"
+function props(...rules: (false | CSSProperties | null | undefined)[]): string {
+  const chosen = new Map<string, { hash: string; propsIdx: number }>();
+  const classList: string[] = [];
+  const orderedKeys: { hash: string; propsIdx: number }[] = [];
+  const rightmostKeys: { hash: string; propsIdx: number }[] = [];
+
+  for (let i = rules.length - 1; i >= 0; i--) {
+    const arg = rules[i];
+    if (!arg || typeof arg === 'string') continue;
+    for (const [key, hash] of Object.entries(arg)) {
+      if (!chosen.has(key)) {
+        chosen.set(key, { hash: hash as string, propsIdx: i });
+      }
+    }
+  }
+
+  for (let i = 0; i < rules.length; i++) {
+    const arg = rules[i];
+    if (!arg) continue;
+
+    if (typeof arg === 'string') {
+      classList.push(arg);
+      continue;
+    }
+
+    for (const [key] of Object.entries(arg)) {
+      const info = chosen.get(key);
+      if (info && info.propsIdx === i) {
+        if (i === rules.length - 1) {
+          rightmostKeys.push(info);
+        } else {
+          orderedKeys.push(info);
+        }
+        chosen.delete(key);
+      }
+    }
+  }
+
+  for (const { hash } of orderedKeys) {
+    classList.push(hash);
+  }
+  for (const { hash } of rightmostKeys) {
+    classList.push(hash);
+  }
+
+  return classList.join(' ');
+}
+```
+
+```ts title="x function"
+const x = (className: string, styles: Styles) => ({
+  className,
+  styles,
+});
+```
+
+All other functions are statically analyzed and processed at build time by a plugin that uses swc as a type-only container.
+
+The same goes for create calls.
+If they're exported, a hash map remains, but if they're statically resolved in the same file, both the props call and the create call are removed, so there's no cost.
+
+The following code before compilation:
+```ts
+const styles = css.create({
+    text: {
+        color: 'navy',
+    }
+})
+
+const class = css.props(styles.text)
+```
+
+After build compilation.
+```ts
+const class = "xxxxxxxx";
+```
+
+
+If you use the conditional expression, props receives a hashmap at runtime, `Reaord<string, string>`. Again, the create call is completely removed, so the cost is overwhelmingly low, close to zero.
+```ts
+const class = css.props({text: "xxxxxxxx"})
+```
+
+The cases where a hashmap remains in the declaration are when it is exported and when it is expanded using brackets. Since both of these can be referenced dynamically, create is replaced with the hashmap object.
+
+```ts
+export const styles = { text: { color: "xxxxxxxx" } }
+```
+
+```ts
+// reference
+import { styles } from './styles'
+css.props(styles.text)
+```
+
