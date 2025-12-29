@@ -1,5 +1,6 @@
 /* eslint-disable @plumeria/validate-values */
-import { parseSync, ObjectExpression } from '@swc/core';
+import { parseSync } from '@swc/core';
+import type { Declaration, Expression, ObjectExpression } from '@swc/core';
 import fs from 'fs';
 import path from 'path';
 import { genBase36Hash } from 'zss-engine';
@@ -77,7 +78,7 @@ export default async function loader(this: LoaderContext, source: string) {
       name: string;
       type: 'create' | 'constant';
       obj: Record<string, any>;
-      hashMap: Record<string, string>;
+      hashMap: Record<string, Record<string, string>>;
       hasDynamicAccess: boolean;
       isExported: boolean;
       initSpan: { start: number; end: number };
@@ -90,6 +91,8 @@ export default async function loader(this: LoaderContext, source: string) {
   const extractedSheets: string[] = [];
 
   const processedDecls = new Set<any>();
+  const excludedSpans = new Set<number>();
+  const idSpans = new Set<number>();
   const registerStyle = (node: any, declSpan: any, isExported: boolean) => {
     if (
       t.isIdentifier(node.id) &&
@@ -113,15 +116,21 @@ export default async function loader(this: LoaderContext, source: string) {
           tables.themeTable,
         );
         if (obj) {
-          const hashMap: Record<string, string> = {};
+          const hashMap: Record<string, Record<string, string>> = {};
           Object.entries(obj).forEach(([key, style]) => {
             const records = getStyleRecords(key, style as CSSProperties, 2);
             extractOndemandStyles(style, extractedSheets);
             records.forEach((r: StyleRecord) => {
               extractedSheets.push(r.sheet);
             });
-            hashMap[key] = records.map((r) => r.hash).join(' ');
+            const atomMap: Record<string, string> = {};
+            records.forEach((r) => (atomMap[r.key] = r.hash));
+            hashMap[key] = atomMap;
           });
+
+          if (t.isIdentifier(node.id)) {
+            idSpans.add(node.id.span.start);
+          }
 
           localCreateStyles[node.id.value] = {
             name: node.id.value,
@@ -169,14 +178,14 @@ export default async function loader(this: LoaderContext, source: string) {
     ExportDeclaration({ node }) {
       if (t.isVariableDeclaration(node.declaration)) {
         processedDecls.add(node.declaration);
-        node.declaration.declarations.forEach((decl: any) => {
+        node.declaration.declarations.forEach((decl: Declaration) => {
           registerStyle(decl, node.span, true);
         });
       }
     },
     VariableDeclaration({ node }) {
       if (processedDecls.has(node)) return;
-      node.declarations.forEach((decl: any) => {
+      node.declarations.forEach((decl: Declaration) => {
         registerStyle(decl, node.span, false);
       });
     },
@@ -266,18 +275,36 @@ export default async function loader(this: LoaderContext, source: string) {
   // Pass 2: Confirm reference replacement
   traverse(ast, {
     MemberExpression({ node }) {
+      if (excludedSpans.has(node.span.start)) return;
       if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
         const styleInfo = localCreateStyles[node.object.value];
         if (styleInfo && !styleInfo.hasDynamicAccess) {
-          const hash = styleInfo.hashMap[node.property.value];
-          if (hash) {
+          const atomMap = styleInfo.hashMap[node.property.value];
+          if (atomMap) {
+            const combinedHash = Object.values(atomMap).join(' ');
             replacements.push({
               start: node.span.start - ast.span.start,
               end: node.span.end - ast.span.start,
-              content: JSON.stringify(hash),
+              content: JSON.stringify(combinedHash),
             });
           }
         }
+      }
+    },
+    Identifier({ node }) {
+      if (excludedSpans.has(node.span.start)) return;
+      if (idSpans.has(node.span.start)) return;
+      const styleInfo = localCreateStyles[node.value];
+      if (styleInfo && !styleInfo.hasDynamicAccess) {
+        const fullHashMap: Record<string, string> = {};
+        Object.entries(styleInfo.hashMap).forEach(([key, atomMap]) => {
+          fullHashMap[key] = Object.values(atomMap).join(' ');
+        });
+        replacements.push({
+          start: node.span.start - ast.span.start,
+          end: node.span.end - ast.span.start,
+          content: JSON.stringify(fullHashMap),
+        });
       }
     },
     CallExpression({ node }) {
@@ -287,59 +314,127 @@ export default async function loader(this: LoaderContext, source: string) {
         t.isIdentifier(callee.object, { name: 'css' }) &&
         t.isIdentifier(callee.property, { name: 'props' })
       ) {
-        const merged: Record<string, any> = {};
-        let allStatic = true;
         const args = node.arguments;
 
-        args.forEach((arg: any) => {
-          const expr = arg.expression;
-          if (t.isObjectExpression(expr)) {
-            const obj = objectExpressionToObject(
-              expr,
-              tables.staticTable,
-              tables.keyframesHashTable,
-              tables.viewTransitionHashTable,
-              tables.themeTable,
-            );
-            obj ? Object.assign(merged, obj) : (allStatic = false);
-          } else if (
+        const checkStatic = (expr: Expression): boolean => {
+          if (
+            t.isObjectExpression(expr) ||
+            t.isStringLiteral(expr) ||
+            t.isNumericLiteral(expr) ||
+            t.isBooleanLiteral(expr) ||
+            t.isNullLiteral(expr)
+          )
+            return true;
+          if (
             t.isMemberExpression(expr) &&
             t.isIdentifier(expr.object) &&
             t.isIdentifier(expr.property)
           ) {
             const styleInfo = localCreateStyles[expr.object.value];
-            if (
+            return !!(
               styleInfo &&
               !styleInfo.hasDynamicAccess &&
-              styleInfo.obj[expr.property.value]
-            ) {
-              Object.assign(merged, styleInfo.obj[expr.property.value]);
-            } else {
-              allStatic = false;
-            }
-          } else if (t.isIdentifier(expr)) {
-            const styleInfo = localCreateStyles[expr.value];
-            if (styleInfo && !styleInfo.hasDynamicAccess) {
-              Object.assign(merged, styleInfo.obj);
-            } else {
-              allStatic = false;
-            }
-          } else {
-            allStatic = false;
+              styleInfo.hashMap[expr.property.value]
+            );
           }
-        });
+          if (t.isIdentifier(expr)) {
+            const styleInfo = localCreateStyles[expr.value];
+            return !!(styleInfo && !styleInfo.hasDynamicAccess);
+          }
+          return false;
+        };
 
-        if (allStatic && Object.keys(merged).length > 0) {
-          extractOndemandStyles(merged, extractedSheets);
-          const hash = genBase36Hash(merged, 1, 8);
-          const records = getStyleRecords(hash, merged, 2);
-          records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
-          const resultHash = records.map((r: StyleRecord) => r.hash).join(' ');
-          replacements.push({
-            start: node.span.start - ast.span.start,
-            end: node.span.end - ast.span.start,
-            content: JSON.stringify(resultHash),
+        const allStatic = args.every((arg: any) => checkStatic(arg.expression));
+
+        if (allStatic) {
+          const merged: Record<string, any> = {};
+          args.forEach((arg: any) => {
+            const expr = arg.expression;
+            if (t.isObjectExpression(expr)) {
+              const obj = objectExpressionToObject(
+                expr,
+                tables.staticTable,
+                tables.keyframesHashTable,
+                tables.viewTransitionHashTable,
+                tables.themeTable,
+              );
+              obj && Object.assign(merged, obj);
+            } else if (
+              t.isMemberExpression(expr) &&
+              t.isIdentifier(expr.object) &&
+              t.isIdentifier(expr.property)
+            ) {
+              const styleInfo = localCreateStyles[expr.object.value];
+              if (styleInfo) {
+                Object.assign(merged, styleInfo.obj[expr.property.value]);
+              }
+            } else if (t.isIdentifier(expr)) {
+              const styleInfo = localCreateStyles[expr.value];
+              if (styleInfo) {
+                Object.assign(merged, styleInfo.obj);
+              }
+            }
           });
+
+          if (Object.keys(merged).length > 0) {
+            extractOndemandStyles(merged, extractedSheets);
+            const hash = genBase36Hash(merged, 1, 8);
+            const records = getStyleRecords(hash, merged, 2);
+            records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
+            const resultHash = records
+              .map((r: StyleRecord) => r.hash)
+              .join(' ');
+            replacements.push({
+              start: node.span.start - ast.span.start,
+              end: node.span.end - ast.span.start,
+              content: JSON.stringify(resultHash),
+            });
+          }
+        } else {
+          // Dynamic case: Replace style references with hashMaps
+          const processExpr = (expr: Expression) => {
+            if (
+              t.isMemberExpression(expr) &&
+              t.isIdentifier(expr.object) &&
+              t.isIdentifier(expr.property)
+            ) {
+              const info = localCreateStyles[expr.object.value];
+              if (info) {
+                const atomMap = info.hashMap[expr.property.value];
+                if (atomMap) {
+                  excludedSpans.add(expr.span.start);
+                  replacements.push({
+                    start: expr.span.start - ast.span.start,
+                    end: expr.span.end - ast.span.start,
+                    content: JSON.stringify(atomMap),
+                  });
+                }
+              }
+            } else if (t.isIdentifier(expr)) {
+              const info = localCreateStyles[expr.value];
+              if (info) {
+                info.hasDynamicAccess = true;
+                excludedSpans.add(expr.span.start);
+                replacements.push({
+                  start: expr.span.start - ast.span.start,
+                  end: expr.span.end - ast.span.start,
+                  content: JSON.stringify(info.hashMap),
+                });
+              }
+            } else if (t.isConditionalExpression(expr)) {
+              processExpr(expr.consequent);
+              processExpr(expr.alternate);
+            } else if (
+              t.isBinaryExpression(expr) &&
+              (expr.operator === '&&' ||
+                expr.operator === '||' ||
+                expr.operator === '??')
+            ) {
+              processExpr(expr.left);
+              processExpr(expr.right);
+            }
+          };
+          args.forEach((arg: any) => processExpr(arg.expression));
         }
       }
     },
