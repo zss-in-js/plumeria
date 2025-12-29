@@ -1,4 +1,4 @@
-import { parseSync, ObjectExpression } from '@swc/core';
+import { parseSync, ObjectExpression, Expression } from '@swc/core';
 import { type CSSProperties, genBase36Hash } from 'zss-engine';
 import path from 'path';
 import fs from 'fs';
@@ -115,59 +115,78 @@ async function compile(options: CompilerOptions) {
           t.isIdentifier(callee.property)
         ) {
           const args = node.arguments;
+
+          const extractStylesFromExpression = (
+            expr: Expression,
+          ): CSSObject[] => {
+            const results: CSSObject[] = [];
+            if (t.isObjectExpression(expr)) {
+              const obj = objectExpressionToObject(
+                expr,
+                tables.staticTable,
+                tables.keyframesHashTable,
+                tables.viewTransitionHashTable,
+                tables.themeTable,
+              );
+              if (obj) results.push(obj);
+            } else if (t.isMemberExpression(expr)) {
+              if (
+                t.isIdentifier(expr.object) &&
+                t.isIdentifier(expr.property)
+              ) {
+                // styles.main (dot access)
+                const varName = expr.object.value;
+                const propName = expr.property.value;
+                const styleSet = localCreateStyles[varName];
+                if (styleSet && styleSet[propName]) {
+                  results.push(styleSet[propName] as CSSObject);
+                }
+              } else if (
+                t.isIdentifier(expr.object) &&
+                expr.property.type === 'Computed'
+              ) {
+                // Brackets/Computed access styles[key]
+                const varName = expr.object.value;
+                const styleSet = localCreateStyles[varName];
+                if (styleSet) {
+                  Object.values(styleSet).forEach((s) =>
+                    results.push(s as CSSObject),
+                  );
+                }
+              }
+            } else if (t.isIdentifier(expr)) {
+              const obj = localCreateStyles[expr.value];
+              if (obj) {
+                results.push(obj);
+              }
+            } else if (t.isConditionalExpression(expr)) {
+              results.push(...extractStylesFromExpression(expr.consequent));
+              results.push(...extractStylesFromExpression(expr.alternate));
+            } else if (
+              t.isBinaryExpression(expr) &&
+              (expr.operator === '&&' ||
+                expr.operator === '||' ||
+                expr.operator === '??')
+            ) {
+              results.push(...extractStylesFromExpression(expr.left));
+              results.push(...extractStylesFromExpression(expr.right));
+            }
+            return results;
+          };
+
+          const processStyle = (style: CSSObject) => {
+            extractOndemandStyles(style, extractedSheets);
+            const hash = genBase36Hash(style, 1, 8);
+            const records = getStyleRecords(hash, style as CSSProperties, 1);
+            records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
+          };
+
           if (callee.property.value === 'props') {
-            const merged: Record<string, any> = {};
-            let allStatic = true;
             args.forEach((arg: any) => {
               const expr = arg.expression;
-              if (t.isObjectExpression(expr)) {
-                const obj = objectExpressionToObject(
-                  expr,
-                  tables.staticTable,
-                  tables.keyframesHashTable,
-                  tables.viewTransitionHashTable,
-                  tables.themeTable,
-                );
-                if (obj) {
-                  Object.assign(merged, obj);
-                } else {
-                  allStatic = false;
-                }
-              } else if (t.isMemberExpression(expr)) {
-                if (
-                  t.isIdentifier(expr.object) &&
-                  t.isIdentifier(expr.property)
-                ) {
-                  const varName = expr.object.value;
-                  const propName = expr.property.value;
-                  const styleSet = localCreateStyles[varName];
-                  if (styleSet && styleSet[propName]) {
-                    Object.assign(merged, styleSet[propName]);
-                  } else {
-                    allStatic = false;
-                  }
-                } else {
-                  allStatic = false;
-                }
-              } else if (t.isIdentifier(expr)) {
-                const obj = localCreateStyles[expr.value];
-                if (obj) {
-                  Object.assign(merged, obj);
-                } else {
-                  allStatic = false;
-                }
-              } else {
-                allStatic = false;
-              }
+              const styles = extractStylesFromExpression(expr);
+              styles.forEach((s) => processStyle(s));
             });
-            if (allStatic && Object.keys(merged).length > 0) {
-              extractOndemandStyles(merged, extractedSheets);
-              const hash = genBase36Hash(merged, 1, 8);
-              const records = getStyleRecords(hash, merged, 1);
-              records.forEach((r: StyleRecord) =>
-                extractedSheets.push(r.sheet),
-              );
-            }
           } else if (
             callee.property.value === 'keyframes' &&
             args.length > 0 &&
@@ -215,7 +234,16 @@ async function compile(options: CompilerOptions) {
       },
     });
 
-    return extractedSheets;
+    const uniqueSheets: string[] = [];
+    const seen = new Set<string>();
+    for (let i = extractedSheets.length - 1; i >= 0; i--) {
+      if (!seen.has(extractedSheets[i])) {
+        seen.add(extractedSheets[i]);
+        uniqueSheets.unshift(extractedSheets[i]);
+      }
+    }
+
+    return uniqueSheets;
   };
 
   const files = fs.globSync(pattern, {
@@ -225,7 +253,10 @@ async function compile(options: CompilerOptions) {
 
   files.forEach((file) => {
     const sheets = processFile(file);
-    sheets.forEach((sheet) => allSheets.add(sheet));
+    sheets.forEach((sheet) => {
+      allSheets.delete(sheet);
+      allSheets.add(sheet);
+    });
   });
 
   const outputPath = path.resolve(cwd, output);
