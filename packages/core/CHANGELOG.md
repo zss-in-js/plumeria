@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 3.1.0
+
+### Minor Changes
+
+- 3fb4cd5: fix: props runtime implementation for the new architecture
+
 ## 3.0.1
 
 ### Patch Changes
