@@ -9,7 +9,7 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 <Steps>
 <Step>
 ## Installing `core`
-
+The **phantom-runtime** distribution size is **less than 500B** for min+brotli.
 <Tabs items={['npm', 'yarn', 'pnpm']}>
   {/* prettier-ignore */}
   <Tab>
@@ -32,42 +32,7 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 </Tabs>
 
 </Step>
-<Step>
 
-## Compiler
-<Tabs items={['npm', 'yarn', 'pnpm']}>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="Terminal"
-    npm i -D @plumeria/compiler
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="Terminal"
-    yarn add -D @plumeria/compiler
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="Terminal"
-    pnpm i -D @plumeria/compiler
-    ```
-  </Tab>
-</Tabs>
-- `npx css`  `pnpm exec css`  
-Compile without type-check.
-
-- arugment `--view`  
-Display the output css log.
-
-- argument `--paths`  
-Display the project styling paths list.
-
-- argument `--stats`  
-Display the plumeria css bundle stats info.
-
-</Step>
 <Step>
 
 ## Setup
@@ -83,7 +48,7 @@ For `Next`, we recommend running rimraf to clean up the cache to accommodate the
   "scripts": {
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
-    "dev": "css && next dev",
+    "dev": "next dev",
     "build": "plumerialint && css && next build",
     "start": "next start",
   },
@@ -93,27 +58,18 @@ For `Next`, we recommend running rimraf to clean up the cache to accommodate the
 <Tab>
 ```json title="package.json"
   "scripts": {
-    "dev": "css && vite",
-    "build": "plumerialint && css && tsc -b && vite build", 
+    "dev": "vite",
+    "build": "plumerialint && tsc -b && vite build", 
   },
 ```
 </Tab>
 </Tabs>
 
 </Step>
-<Step>
 
-## Stylesheet
-
-- Applying a Stylesheet: import `@plumeria/core/stylesheet.css` in your application entry point.
-```ts
-import "@plumeria/core/stylesheet.css";
-```
-
-</Step>
 <Step>
 ## Integration
-Plugin For HMR.
+
 </Step>
 
 ## Next.js
@@ -137,7 +93,42 @@ Plugin For HMR.
   </Tab>
 </Tabs>
 
-## Turbopack mode
+### Stylesheet
+
+- Applying a Stylesheet: import `@plumeria/core/stylesheet.css` in your application entry point.
+```ts
+import "@plumeria/core/stylesheet.css";
+```
+
+### Extraction
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    npm i -D @plumeria/compiler
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    yarn add -D @plumeria/compiler
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    pnpm i -D @plumeria/compiler
+    ```
+  </Tab>
+</Tabs>
+
+Use css command to run as a pipeline before the next build starts.
+```sh title="command"
+css
+```
+
+### Turbopack mode
 ```ts title="Turbopack"
 import type { NextConfig } from "next";
 import { withPlumeria } from "@plumeria/next-plugin/turbopack"; // [!code ++]
@@ -149,20 +140,20 @@ const nextConfig: NextConfig = {
 export default withPlumeria(nextConfig);
 ```
 
-## Webpack mode
+### Webpack mode
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
 import { withPlumeria } from "@plumeria/next-plugin"; // [!code ++]
 
 const nextConfig: NextConfig = {
-  turbopack: {}
+   /* turbopack: {} may be required */
 };
 
 export default withPlumeria(nextConfig); 
 ```
 
 ```json
-"dev": "css & next dev --webpack", // [!code ++]
+"dev": "next build --webpack",
 ```
 ---
 
