@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 3.1.0
+
+### Minor Changes
+
+- 3fb4cd5: fix: compilation speed optimize
+
+### Patch Changes
+
+- Updated dependencies [3fb4cd5]
+  - @plumeria/utils@3.1.0
+
 ## 3.0.1
 
 ### Patch Changes
