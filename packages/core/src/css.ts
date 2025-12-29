@@ -15,15 +15,7 @@ function errorFn(fn: string) {
   throw new Error(`css.${fn} requires bundler-plugin setup`);
 }
 
-function props(
-  ...rules: (
-    | false
-    | CSSProperties
-    | Record<string, string>
-    | null
-    | undefined
-  )[]
-): string {
+function props(...rules: (false | CSSProperties | null | undefined)[]): string {
   const chosen = new Map<string, { hash: string; propsIdx: number }>();
   const classList: string[] = [];
   const orderedKeys: { hash: string; propsIdx: number }[] = [];
