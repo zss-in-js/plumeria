@@ -24,10 +24,10 @@ import {
   t,
   extractOndemandStyles,
 } from '@plumeria/utils';
-import type { StyleRecord, CSSObject } from '@plumeria/utils';
+import type { StyleRecord } from '@plumeria/utils';
 
-const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx', 'vue', 'svelte'];
-const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx|vue|svelte)$/;
+const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx'];
+const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx)$/;
 
 export interface PluginOptions {
   include?: FilterPattern;
@@ -97,26 +97,15 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         .concat(ctx.modules);
     },
 
-    transform(source, url) {
-      const [id] = url.split('?', 1);
-
-      if (id.includes('node_modules')) {
-        return null;
-      }
-
-      if (url.includes('?')) {
-        return null;
-      }
+    transform(source, id) {
+      if (id.includes('node_modules')) return null;
+      if (id.includes('?')) return null;
 
       const ext = id.split('.').pop() || '';
-      if (!TARGET_EXTENSIONS.includes(ext)) {
-        return null;
-      }
+      if (!TARGET_EXTENSIONS.includes(ext)) return null;
+      if (!filter(id)) return null;
 
-      if (!filter(id)) {
-        return null;
-      }
-
+      const isTSFile = id.endsWith('.ts') && !id.endsWith('.tsx');
       const dependencies: string[] = [];
       const addDependency = (depPath: string) => {
         dependencies.push(depPath);
@@ -140,225 +129,325 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       tables.themeTable = themeTableLocal;
       tables.createThemeObjectTable = createThemeObjectTableLocal;
 
-      const extractedSheets: string[] = [];
-      let ast: any;
+      const ast = parseSync(source, {
+        syntax: 'typescript',
+        tsx: true,
+        target: 'es2022',
+      });
 
-      const scriptContents = getScriptContents(source, id);
+      const localConsts = collectLocalConsts(ast);
+      Object.assign(tables.staticTable, localConsts);
+
+      const localCreateStyles: Record<
+        string,
+        {
+          name: string;
+          type: 'create' | 'constant';
+          obj: Record<string, any>;
+          hashMap: Record<string, string>;
+          hasDynamicAccess: boolean;
+          isExported: boolean;
+          initSpan: { start: number; end: number };
+          declSpan: { start: number; end: number };
+        }
+      > = {};
 
       const replacements: Array<{
         start: number;
         end: number;
         content: string;
       }> = [];
+      const extractedSheets: string[] = [];
+      const processedDecls = new Set<any>();
 
-      for (const content of scriptContents) {
-        if (!content.trim()) continue;
+      const registerStyle = (node: any, declSpan: any, isExported: boolean) => {
+        if (
+          t.isIdentifier(node.id) &&
+          node.init &&
+          t.isCallExpression(node.init) &&
+          t.isMemberExpression(node.init.callee) &&
+          t.isIdentifier(node.init.callee.object, { name: 'css' }) &&
+          t.isIdentifier(node.init.callee.property) &&
+          node.init.arguments.length >= 1
+        ) {
+          const propName = node.init.callee.property.value;
+          if (
+            propName === 'create' &&
+            t.isObjectExpression(node.init.arguments[0].expression)
+          ) {
+            const obj = objectExpressionToObject(
+              node.init.arguments[0].expression as ObjectExpression,
+              tables.staticTable,
+              tables.keyframesHashTable,
+              tables.viewTransitionHashTable,
+              tables.themeTable,
+            );
+            if (obj) {
+              const hashMap: Record<string, string> = {};
+              Object.entries(obj).forEach(([key, style]) => {
+                const records = getStyleRecords(key, style as CSSProperties, 2);
+                extractOndemandStyles(style, extractedSheets);
+                records.forEach((r: StyleRecord) => {
+                  extractedSheets.push(r.sheet);
+                });
+                hashMap[key] = records.map((r) => r.hash).join(' ');
+              });
 
-        try {
-          ast = parseSync(content, {
-            syntax: 'typescript',
-            tsx: true,
-            target: 'es2022',
-          });
-        } catch (err) {
-          console.warn(`Zero Styled: Parse error in ${id}`, err);
-          continue;
+              localCreateStyles[node.id.value] = {
+                name: node.id.value,
+                type: 'create',
+                obj,
+                hashMap,
+                hasDynamicAccess: false,
+                isExported,
+                initSpan: {
+                  start: node.init.span.start - ast.span.start,
+                  end: node.init.span.end - ast.span.start,
+                },
+                declSpan: {
+                  start: declSpan.start - ast.span.start,
+                  end: declSpan.end - ast.span.start,
+                },
+              };
+            }
+          } else if (
+            (propName === 'createTheme' || propName === 'createStatic') &&
+            (t.isObjectExpression(node.init.arguments[0].expression) ||
+              t.isStringLiteral(node.init.arguments[0].expression))
+          ) {
+            localCreateStyles[node.id.value] = {
+              name: node.id.value,
+              type: 'constant',
+              obj: {},
+              hashMap: {},
+              hasDynamicAccess: false,
+              isExported,
+              initSpan: {
+                start: node.init.span.start - ast.span.start,
+                end: node.init.span.end - ast.span.start,
+              },
+              declSpan: {
+                start: declSpan.start - ast.span.start,
+                end: declSpan.end - ast.span.start,
+              },
+            };
+          }
         }
+      };
 
-        const localConsts = collectLocalConsts(ast);
-        Object.assign(tables.staticTable, localConsts);
+      traverse(ast, {
+        ExportDeclaration({ node }) {
+          if (t.isVariableDeclaration(node.declaration)) {
+            processedDecls.add(node.declaration);
+            node.declaration.declarations.forEach((decl: any) => {
+              registerStyle(decl, node.span, true);
+            });
+          }
+        },
+        VariableDeclaration({ node }) {
+          if (processedDecls.has(node)) return;
+          node.declarations.forEach((decl: any) => {
+            registerStyle(decl, node.span, false);
+          });
+        },
+        MemberExpression({ node }) {
+          if (t.isIdentifier(node.object)) {
+            const styleInfo = localCreateStyles[node.object.value];
+            if (styleInfo) {
+              if (t.isIdentifier(node.property)) {
+                const hash = styleInfo.hashMap[node.property.value];
+                if (!hash && styleInfo.type !== 'constant') {
+                  styleInfo.hasDynamicAccess = true;
+                }
+              } else {
+                styleInfo.hasDynamicAccess = true;
+              }
+            }
+          }
+        },
 
-        const localCreateStyles: Record<string, CSSObject> = {};
+        CallExpression({ node }) {
+          const callee = node.callee;
+          if (
+            t.isMemberExpression(callee) &&
+            t.isIdentifier(callee.object, { name: 'css' }) &&
+            t.isIdentifier(callee.property)
+          ) {
+            const propName = callee.property.value;
+            const args = node.arguments;
 
-        traverse(ast, {
-          VariableDeclarator({ node }: any) {
             if (
-              node.id.type === 'Identifier' &&
-              node.init &&
-              t.isCallExpression(node.init) &&
-              t.isMemberExpression(node.init.callee) &&
-              t.isIdentifier(node.init.callee.object, { name: 'css' }) &&
-              t.isIdentifier(node.init.callee.property, { name: 'create' }) &&
-              node.init.arguments.length === 1 &&
-              t.isObjectExpression(node.init.arguments[0].expression)
+              propName === 'keyframes' &&
+              args.length > 0 &&
+              t.isObjectExpression(args[0].expression)
             ) {
               const obj = objectExpressionToObject(
-                node.init.arguments[0].expression as ObjectExpression,
+                args[0].expression as ObjectExpression,
                 tables.staticTable,
                 tables.keyframesHashTable,
                 tables.viewTransitionHashTable,
                 tables.themeTable,
               );
-              if (obj) {
-                localCreateStyles[node.id.value] = obj;
-
-                const hashMap: Record<string, string> = {};
-                Object.entries(obj).forEach(([key, style]) => {
-                  const records = getStyleRecords(
-                    key,
-                    style as CSSProperties,
-                    1,
-                  );
-                  const propMap: Record<string, string> = {};
-                  extractOndemandStyles(style, extractedSheets);
-                  records.forEach((r: StyleRecord) => {
-                    propMap[r.key] = r.hash;
-                    extractedSheets.push(r.sheet);
-                  });
-                  hashMap[key] = records.map((r) => r.hash).join(' ');
-                });
-
-                replacements.push({
-                  start: node.init.span.start - ast.span.start,
-                  end: node.init.span.end - ast.span.start,
-                  content: JSON.stringify(hashMap),
-                });
-              }
-            }
-          },
-          CallExpression({ node }: any) {
-            const callee = node.callee;
-            if (
-              t.isMemberExpression(callee) &&
-              t.isIdentifier(callee.object, { name: 'css' }) &&
-              t.isIdentifier(callee.property)
+              const hash = genBase36Hash(obj, 1, 8);
+              tables.keyframesObjectTable[hash] = obj;
+              replacements.push({
+                start: node.span.start - ast.span.start,
+                end: node.span.end - ast.span.start,
+                content: JSON.stringify(`kf-${hash}`),
+              });
+            } else if (
+              propName === 'viewTransition' &&
+              args.length > 0 &&
+              t.isObjectExpression(args[0].expression)
             ) {
-              const args = node.arguments;
-              if (callee.property.value === 'props') {
-                const merged: Record<string, any> = {};
-                let allStatic = true;
-                args.forEach((arg: any) => {
-                  const expr = arg.expression;
-                  if (t.isObjectExpression(expr)) {
-                    const obj = objectExpressionToObject(
-                      expr,
-                      tables.staticTable,
-                      tables.keyframesHashTable,
-                      tables.viewTransitionHashTable,
-                      tables.themeTable,
-                    );
-                    if (obj) {
-                      Object.assign(merged, obj);
-                    } else {
-                      allStatic = false;
-                    }
-                  } else if (t.isMemberExpression(expr)) {
-                    if (
-                      t.isIdentifier(expr.object) &&
-                      t.isIdentifier(expr.property)
-                    ) {
-                      const varName = expr.object.value;
-                      const propName = expr.property.value;
-                      const styleSet = localCreateStyles[varName];
-                      if (styleSet && styleSet[propName]) {
-                        Object.assign(merged, styleSet[propName]);
-                      } else {
-                        allStatic = false;
-                      }
-                    } else {
-                      allStatic = false;
-                    }
-                  } else if (t.isIdentifier(expr)) {
-                    const obj = localCreateStyles[expr.value];
-                    if (obj) {
-                      Object.assign(merged, obj);
-                    } else {
-                      allStatic = false;
-                    }
-                  } else {
-                    allStatic = false;
-                  }
-                });
-                if (allStatic && Object.keys(merged).length > 0) {
-                  extractOndemandStyles(merged, extractedSheets);
-                  const hash = genBase36Hash(merged, 1, 8);
-                  const records = getStyleRecords(hash, merged);
-                  records.forEach((r: StyleRecord) =>
-                    extractedSheets.push(r.sheet),
-                  );
+              const obj = objectExpressionToObject(
+                args[0].expression as ObjectExpression,
+                tables.staticTable,
+                tables.keyframesHashTable,
+                tables.viewTransitionHashTable,
+                tables.themeTable,
+              );
+              const hash = genBase36Hash(obj, 1, 8);
+              tables.viewTransitionObjectTable[hash] = obj;
+              replacements.push({
+                start: node.span.start - ast.span.start,
+                end: node.span.end - ast.span.start,
+                content: JSON.stringify(`vt-${hash}`),
+              });
+            } else if (
+              propName === 'createTheme' &&
+              args.length > 0 &&
+              t.isObjectExpression(args[0].expression)
+            ) {
+              const obj = objectExpressionToObject(
+                args[0].expression as ObjectExpression,
+                tables.staticTable,
+                tables.keyframesHashTable,
+                tables.viewTransitionHashTable,
+                tables.themeTable,
+              );
+              const hash = genBase36Hash(obj, 1, 8);
+              tables.createThemeObjectTable[hash] = obj;
+            }
+          }
+        },
+      });
 
-                  replacements.push({
-                    start: node.span.start - ast.span.start,
-                    end: node.span.end - ast.span.start,
-                    content: JSON.stringify(
-                      records.map((r: StyleRecord) => r.hash).join(' '),
-                    ),
-                  });
-                }
-              } else if (
-                callee.property.value === 'keyframes' &&
-                args.length > 0 &&
-                t.isObjectExpression(args[0].expression)
-              ) {
-                const obj = objectExpressionToObject(
-                  args[0].expression as ObjectExpression,
-                  tables.staticTable,
-                  tables.keyframesHashTable,
-                  tables.viewTransitionHashTable,
-                  tables.themeTable,
-                );
-                const hash = genBase36Hash(obj, 1, 8);
-                tables.keyframesObjectTable[hash] = obj;
-
+      // Pass 2: Confirm reference replacement
+      traverse(ast, {
+        MemberExpression({ node }) {
+          if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
+            const styleInfo = localCreateStyles[node.object.value];
+            if (styleInfo && !styleInfo.hasDynamicAccess) {
+              const hash = styleInfo.hashMap[node.property.value];
+              if (hash) {
                 replacements.push({
                   start: node.span.start - ast.span.start,
                   end: node.span.end - ast.span.start,
-                  content: JSON.stringify(`kf-${hash}`),
-                });
-              } else if (
-                callee.property.value === 'viewTransition' &&
-                args.length > 0 &&
-                t.isObjectExpression(args[0].expression)
-              ) {
-                const obj = objectExpressionToObject(
-                  args[0].expression as ObjectExpression,
-                  tables.staticTable,
-                  tables.keyframesHashTable,
-                  tables.viewTransitionHashTable,
-                  tables.themeTable,
-                );
-                const hash = genBase36Hash(obj, 1, 8);
-                tables.viewTransitionObjectTable[hash] = obj;
-
-                replacements.push({
-                  start: node.span.start - ast.span.start,
-                  end: node.span.end - ast.span.start,
-                  content: JSON.stringify(`vt-${hash}`),
-                });
-              } else if (
-                callee.property.value === 'createTheme' &&
-                args.length > 0 &&
-                t.isObjectExpression(args[0].expression)
-              ) {
-                const obj = objectExpressionToObject(
-                  args[0].expression as ObjectExpression,
-                  tables.staticTable,
-                  tables.keyframesHashTable,
-                  tables.viewTransitionHashTable,
-                  tables.themeTable,
-                );
-                const hash = genBase36Hash(obj, 1, 8);
-                tables.createThemeObjectTable[hash] = obj;
-                replacements.push({
-                  start: node.span.start - ast.span.start,
-                  end: node.span.end - ast.span.start,
-                  content: JSON.stringify(''),
-                });
-              } else if (
-                callee.property.value === 'createStatic' &&
-                args.length > 0 &&
-                t.isStringLiteral(args[0].expression)
-              ) {
-                replacements.push({
-                  start: node.span.start - ast.span.start,
-                  end: node.span.end - ast.span.start,
-                  content: JSON.stringify(''),
+                  content: JSON.stringify(hash),
                 });
               }
             }
-          },
-        });
-      }
+          }
+        },
+        CallExpression({ node }) {
+          const callee = node.callee;
+          if (
+            t.isMemberExpression(callee) &&
+            t.isIdentifier(callee.object, { name: 'css' }) &&
+            t.isIdentifier(callee.property, { name: 'props' })
+          ) {
+            const merged: Record<string, any> = {};
+            let allStatic = true;
+            const args = node.arguments;
+
+            args.forEach((arg: any) => {
+              const expr = arg.expression;
+              if (t.isObjectExpression(expr)) {
+                const obj = objectExpressionToObject(
+                  expr,
+                  tables.staticTable,
+                  tables.keyframesHashTable,
+                  tables.viewTransitionHashTable,
+                  tables.themeTable,
+                );
+                obj ? Object.assign(merged, obj) : (allStatic = false);
+              } else if (
+                t.isMemberExpression(expr) &&
+                t.isIdentifier(expr.object) &&
+                t.isIdentifier(expr.property)
+              ) {
+                const styleInfo = localCreateStyles[expr.object.value];
+                if (
+                  styleInfo &&
+                  !styleInfo.hasDynamicAccess &&
+                  styleInfo.obj[expr.property.value]
+                ) {
+                  Object.assign(merged, styleInfo.obj[expr.property.value]);
+                } else {
+                  allStatic = false;
+                }
+              } else if (t.isIdentifier(expr)) {
+                const styleInfo = localCreateStyles[expr.value];
+                if (styleInfo && !styleInfo.hasDynamicAccess) {
+                  Object.assign(merged, styleInfo.obj);
+                } else {
+                  allStatic = false;
+                }
+              } else {
+                allStatic = false;
+              }
+            });
+
+            if (allStatic && Object.keys(merged).length > 0) {
+              extractOndemandStyles(merged, extractedSheets);
+              const hash = genBase36Hash(merged, 1, 8);
+              const records = getStyleRecords(hash, merged, 2);
+              records.forEach((r: StyleRecord) =>
+                extractedSheets.push(r.sheet),
+              );
+              const resultHash = records
+                .map((r: StyleRecord) => r.hash)
+                .join(' ');
+              replacements.push({
+                start: node.span.start - ast.span.start,
+                end: node.span.end - ast.span.start,
+                content: JSON.stringify(resultHash),
+              });
+            }
+          }
+        },
+      });
+
+      // Confirm the replacement of the styles declaration
+      Object.values(localCreateStyles).forEach((info) => {
+        if (info.isExported) {
+          const content =
+            isTSFile || info.hasDynamicAccess
+              ? JSON.stringify(info.hashMap)
+              : JSON.stringify('');
+
+          replacements.push({
+            start: info.initSpan.start,
+            end: info.initSpan.end,
+            content,
+          });
+        } else {
+          if (info.hasDynamicAccess) {
+            replacements.push({
+              start: info.initSpan.start,
+              end: info.initSpan.end,
+              content: JSON.stringify(info.hashMap),
+            });
+          } else {
+            replacements.push({
+              start: info.declSpan.start,
+              end: info.declSpan.end,
+              content: '',
+            });
+          }
+        }
+      });
 
       // Apply replacements
       const buffer = Buffer.from(source);
@@ -366,8 +455,9 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       const parts: Buffer[] = [];
 
       replacements
-        .sort((a, b) => a.start - b.start)
+        .sort((a, b) => a.start - b.start || b.end - a.end)
         .forEach((r) => {
+          if (r.start < offset) return;
           parts.push(buffer.subarray(offset, r.start));
           parts.push(Buffer.from(r.content));
           offset = r.end;
@@ -413,22 +503,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
   };
 }
 
-function getScriptContents(code: string, id: string): string[] {
-  if (id.endsWith('.vue') || id.endsWith('.svelte')) {
-    const matches = code.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g);
-    return Array.from(matches).map((match) => match[1]);
-  }
-  return [code];
-}
-
-function injectImport(code: string, id: string, importPath: string): string {
+function injectImport(code: string, _id: string, importPath: string): string {
   const importStmt = `\nimport ${JSON.stringify(importPath)};`;
-  if (id.endsWith('.vue') || id.endsWith('.svelte')) {
-    return code.replace(
-      /(<script[^>]*>)([\s\S]*?)(<\/script>)/,
-      (_match, open, content, close) =>
-        `${open}${content}${importStmt}\n${close}`,
-    );
-  }
   return `${code}${importStmt}`;
 }
