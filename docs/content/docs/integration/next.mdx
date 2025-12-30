@@ -13,28 +13,22 @@ AST parse compiles plumeria styles into CSS (HMR) use:
 <Tabs items={['npm',  'yarn', 'pnpm']}>
 <Tab>
 ```sh title="Terminal"
-npm i --save-dev @plumeria/next-plugin
+npm i --save-dev @plumeria/next-plugin @plumeria/postcss-plugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-yarn add -D @plumeria/next-plugin
+yarn add -D @plumeria/next-plugin @plumeria/postcss-plugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-pnpm i --save-dev @plumeria/next-plugin
+pnpm i --save-dev @plumeria/next-plugin @plumeria/postcss-plugin
 ```
 </Tab>
 </Tabs>
 
-## Overview
-```ts title="TypeScript"
-import type { NextConfig } from 'next';
-export declare function withPlumeria(nextConfig?: NextConfig): NextConfig;
-```
-
-## API 
+## next.config.ts 
 If you do not add `turbopack` to the end of the path, it will be `webpack`.
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
@@ -46,6 +40,31 @@ const nextConfig: NextConfig = {
 
 export default withPlumeria(nextConfig);
 ```
+
+##  postcss.config.js
+
+Reduce build times by narrowing the scope using include and exclude.
+```js title='postcss.config.js'
+module.exports = {
+  plugins: {
+    '@plumeria/postcss-plugin': {
+      include: '**/*.{ts,tsx}',
+      exclude: ['**/node_modules/**', '**/.next/**'],
+    },
+  },
+};
+```
+
+## CSS extraction marke
+Inclulde css file `@plumeria` marke.  
+Atomic css is aggregated at build time into marked css files.
+```css title="css"
+/* app/global.css */ 
+/* import in app/layout.tsx */
+@plumeria;
+...
+```
+
 
 <Cards>
   <Card title="See more about Installation" href="/docs/getting-started/installation" />
