@@ -248,6 +248,8 @@ export default async function loader(this: LoaderContext, source: string) {
           );
           const hash = genBase36Hash(obj, 1, 8);
           tables.viewTransitionObjectTable[hash] = obj;
+          extractOndemandStyles(obj, extractedSheets);
+          extractOndemandStyles({ vt: `vt-${hash}` }, extractedSheets);
           replacements.push({
             start: node.span.start - ast.span.start,
             end: node.span.end - ast.span.start,
