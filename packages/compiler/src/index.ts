@@ -1,6 +1,5 @@
 import { parseSync, ObjectExpression, Expression } from '@swc/core';
 import { type CSSProperties, genBase36Hash } from 'zss-engine';
-import path from 'path';
 import fs from 'fs';
 
 import {
@@ -17,16 +16,15 @@ import {
   extractOndemandStyles,
 } from '@plumeria/utils';
 import type { StyleRecord, CSSObject } from '@plumeria/utils';
-import { optimizeCSS } from './optimizer';
 
 interface CompilerOptions {
-  pattern: string;
-  output: string;
+  include: string;
+  exclude: string[];
   cwd?: string;
 }
 
-async function compile(options: CompilerOptions) {
-  const { pattern, output, cwd = process.cwd() } = options;
+export function compileCSS(options: CompilerOptions) {
+  const { include, exclude, cwd = process.cwd() } = options;
 
   let staticTable: ReturnType<typeof scanForCreateStatic> | null = null;
   let keyframesData: ReturnType<typeof scanForKeyframes> | null = null;
@@ -239,37 +237,17 @@ async function compile(options: CompilerOptions) {
     return extractedSheets;
   };
 
-  const files = fs.globSync(pattern, {
+  const files = fs.globSync(include, {
     cwd,
-    exclude: ['**/node_modules/**', '**/dist/**', '**/.next/**'],
+    exclude: exclude,
   });
 
-  files.forEach((file) => {
+  for (const file of files) {
     const sheets = processFile(file);
-    sheets.forEach((sheet) => {
-      allSheets.delete(sheet);
+    for (const sheet of sheets) {
       allSheets.add(sheet);
-    });
-  });
-
-  const outputPath = path.resolve(cwd, output);
-  const css = Array.from(allSheets).join('\n');
-
-  const outputDir = path.dirname(outputPath);
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
+    }
   }
 
-  const optCSS = await optimizeCSS(css);
-
-  fs.writeFileSync(outputPath, optCSS);
+  return Array.from(allSheets).join('\n');
 }
-
-async function main() {
-  const coreFilePath = require.resolve('@plumeria/core/stylesheet.css');
-  await compile({ pattern: '**/*.{js,jsx,ts,tsx}', output: coreFilePath });
-}
-
-main().catch((err) => {
-  console.error(err);
-});
