@@ -19,6 +19,7 @@
     "atomic-css",
     "css-in-js",
     "css",
+    "linaria",
     "stylex",
     "react-native-web"
   ],
