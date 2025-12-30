@@ -509,8 +509,8 @@ importers:
   packages/postcss-plugin:
     dependencies:
       '@plumeria/compiler':
-        specifier: workspace:^
-        version: link:../compiler
+        specifier: ^4.0.0
+        version: 4.0.0(@swc/helpers@0.5.17)
       lightningcss:
         specifier: ^1.30.2
         version: 1.30.2
@@ -1868,6 +1868,12 @@ packages:
     resolution: {integrity: sha512-6TyEnHgd6SArQO8UO2OMTxshln3QMWBtPGrOCgs3wVEmQmwyuNtB10IZMfmYDE0riwNR1cu4q+pPcxMVtaG3TA==}
     engines: {node: '>=18'}
     hasBin: true
+
+  '@plumeria/compiler@4.0.0':
+    resolution: {integrity: sha512-SAjHyRxXXmM2/nQ13ygvHobKV9hGKGv4mQyALP4/+awNBPW6mNOOwfWqoojyhiAMkvm3P+mpIuOgfDnIa5UHdQ==}
+
+  '@plumeria/utils@4.0.0':
+    resolution: {integrity: sha512-2TvwFQ7vWrBbAdZ9+Nw4RCm7gE+eKMtTm9UXbRCcG6e1TEIuyaIrMwqglS8TKDjFz47UkdHS1rZ1HKDGcazHSQ==}
 
   '@poppinss/colors@4.1.5':
     resolution: {integrity: sha512-FvdDqtcRCtz6hThExcFOgW0cWX+xwSMWcRuQe5ZEb2m7cVQOAVZOIMt+/v9RxGiD9/OY16qJBXK4CVKWAPalBw==}
@@ -9363,6 +9369,19 @@ snapshots:
   '@playwright/test@1.57.0':
     dependencies:
       playwright: 1.57.0
+
+  '@plumeria/compiler@4.0.0(@swc/helpers@0.5.17)':
+    dependencies:
+      '@plumeria/utils': 4.0.0(@swc/helpers@0.5.17)
+    transitivePeerDependencies:
+      - '@swc/helpers'
+
+  '@plumeria/utils@4.0.0(@swc/helpers@0.5.17)':
+    dependencies:
+      '@swc/core': 1.15.2(@swc/helpers@0.5.17)
+      zss-engine: 2.1.2
+    transitivePeerDependencies:
+      - '@swc/helpers'
 
   '@poppinss/colors@4.1.5':
     dependencies:
