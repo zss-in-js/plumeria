@@ -23,6 +23,9 @@ import {
 import type { StyleRecord, FileStyles } from '@plumeria/utils';
 
 const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
+if (process.env.NODE_ENV === 'production') {
+  fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */', 'utf-8');
+}
 
 export default function loader(this: LoaderContext<unknown>, source: string) {
   const callback = this.async();
@@ -576,11 +579,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
 
   if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
     fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join(''), 'utf-8');
-  } else if (
-    extractedSheets.length > 0 &&
-    process.env.NODE_ENV === 'production'
-  ) {
-    fs.writeFileSync(VIRTUAL_FILE_PATH, '');
   }
 
   const useClientDirective = /^\s*['"]use client['"]/;
