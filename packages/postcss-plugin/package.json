@@ -25,7 +25,7 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@plumeria/compiler": "^4.0.0",
+    "@plumeria/compiler": "workspace:^",
     "lightningcss": "^1.30.2",
     "postcss": "^8.5.6",
     "postcss-combine-media-query": "^2.1.0"
