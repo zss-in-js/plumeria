@@ -23,15 +23,6 @@
     "react-native-web"
   ],
   "sideEffects": false,
-  "exports": {
-    "./package.json": "./package.json",
-    "./stylesheet.css": "./stylesheet.css",
-    ".": {
-      "types": "./dist/css.d.ts",
-      "import": "./dist/css.mjs",
-      "default": "./dist/css.js"
-    }
-  },
   "main": "dist/css.js",
   "module": "dist/css.mjs",
   "types": "dist/css.d.ts",
