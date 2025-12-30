@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 4.0.2
+
+### Patch Changes
+
+- 648c0fc: chore: bump version to 4.0.2 update readme
+- Updated dependencies [648c0fc]
+  - @plumeria/utils@4.0.2
+
 ## 4.0.1
 
 ### Patch Changes
