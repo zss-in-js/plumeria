@@ -47,6 +47,7 @@ plumeria/
     ├── core/              → API built on the zss-engine
     ├── eslint-plugin/     → Plugin for ESLint
     ├── next-plugin/       → Plugin for Integration with Next.js
+    ├── postcss-plugin/    → Plugin for PostCSS CSS static extraction
     ├── utils/             → Utils for Plugin parser and transformer
     ├── turbopack-loader/  → Loader for Integration with Turbopack
     ├── vite-plugin/       → Plugin for integration with Vite
