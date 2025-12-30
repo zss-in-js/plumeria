@@ -6,7 +6,7 @@
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
     "dev": "next dev",
-    "build": "css && next build",
+    "build": "plumerialint & next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -16,9 +16,9 @@
     "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@plumeria/compiler": "workspace:^",
     "@plumeria/core": "workspace:^",
     "@plumeria/next-plugin": "workspace:^",
+    "@plumeria/postcss-plugin": "workspace:^",
     "@types/node": "^22.13.14",
     "@types/react": "^19",
     "@types/react-dom": "^19",
