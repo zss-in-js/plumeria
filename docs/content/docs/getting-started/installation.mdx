@@ -9,7 +9,7 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 <Steps>
 <Step>
 ## Installing `core`
-The **phantom-runtime** distribution size is **less than 500B** for min+brotli.
+The **phantom-runtime** distribution size is **less than `500B`** for min + `brotli`.
 <Tabs items={['npm', 'yarn', 'pnpm']}>
   {/* prettier-ignore */}
   <Tab>
@@ -49,7 +49,7 @@ For `Next`, we recommend running rimraf to clean up the cache to accommodate the
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
     "dev": "next dev",
-    "build": "plumerialint && css && next build",
+    "build": "plumerialint && next build",
     "start": "next start",
   },
 ```
@@ -78,58 +78,47 @@ For `Next`, we recommend running rimraf to clean up the cache to accommodate the
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    npm i -D @plumeria/next-plugin
+    npm i -D @plumeria/next-plugin @plumeria/postcss-plugin
     ```
   </Tab>
   <Tab>
     ```sh title="Terminal"
-    yarn add -D @plumeria/next-plugin
+    yarn add -D @plumeria/next-plugin @plumeria/postcss-plugin
     ```
   </Tab>
   <Tab>
     ```sh title="Terminal"
-    pnpm add -D @plumeria/next-plugin
+    pnpm add -D @plumeria/next-plugin @plumeria/postcss-plugin
     ```
   </Tab>
 </Tabs>
 
-### Stylesheet
-
-- Applying a Stylesheet: import `@plumeria/core/stylesheet.css` in your application entry point.
-```ts
-import "@plumeria/core/stylesheet.css";
+### postcss.config.js
+Reduce build times by narrowing the scope using `include` and `exclude`.
+```js title="postcss.config.js"
+/* application root */
+module.exports = {
+  plugins: {
+    '@plumeria/postcss-plugin': {
+      include: '**/*.{ts,tsx}',
+      exclude: ['**/node_modules/**', '**/.next/**'],
+    },
+  },
+};
 ```
 
-### Extraction
-
-<Tabs items={['npm', 'yarn', 'pnpm']}>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="Terminal"
-    npm i -D @plumeria/compiler
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="Terminal"
-    yarn add -D @plumeria/compiler
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="Terminal"
-    pnpm i -D @plumeria/compiler
-    ```
-  </Tab>
-</Tabs>
-
-Use css command to run as a pipeline before the next build starts.
-```sh title="command"
-css
+### CSS extraction marke
+Inclulde css file `@plumeria` marke.  
+Atomic css is aggregated at build time into marked css files.
+```css title="css"
+/* app/global.css */ 
+/* import in app/layout.tsx */
+@plumeria;
+...
 ```
 
-### Turbopack mode
-```ts title="Turbopack"
+### Turbopack next.config
+```ts title="next.config.ts"
 import type { NextConfig } from "next";
 import { withPlumeria } from "@plumeria/next-plugin/turbopack"; // [!code ++]
 
@@ -140,7 +129,7 @@ const nextConfig: NextConfig = {
 export default withPlumeria(nextConfig);
 ```
 
-### Webpack mode
+### Webpack next.config
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
 import { withPlumeria } from "@plumeria/next-plugin"; // [!code ++]
@@ -153,7 +142,8 @@ export default withPlumeria(nextConfig);
 ```
 
 ```json
-"dev": "next build --webpack",
+"dev": "next dev --webpack",
+"build": "next build --webpack",
 ```
 ---
 
@@ -176,7 +166,10 @@ export default withPlumeria(nextConfig);
     ```
   </Tab>
 </Tabs>
-Place it before any other plugins.
+Place it before any other plugins.  
+That's all the settings.
+
+### vite.config
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
