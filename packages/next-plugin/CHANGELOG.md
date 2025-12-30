@@ -1,5 +1,14 @@
 # @plumeria/next-plugin
 
+## 4.0.2
+
+### Patch Changes
+
+- 648c0fc: chore: bump version to 4.0.2 update readme
+- Updated dependencies [648c0fc]
+  - @plumeria/turbopack-loader@4.0.2
+  - @plumeria/webpack-plugin@4.0.2
+
 ## 4.0.1
 
 ### Patch Changes
