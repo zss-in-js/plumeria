@@ -1,0 +1,58 @@
+---
+title: 'PostCSS'
+description: 'Learn more about @plumeria/postcss-plugin'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+It is the plumeria [Compiler `@plumeria/postcss-plugin` package](https://www.npmjs.com/package/@plumeria/postcss-plugin).  
+A swc-compiler based postcss-plugin with static extraction in the style of Plumeria.
+ 
+## Installation
+
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i --save-dev @plumeria/postcss-plugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/postcss-plugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i --save-dev @plumeria/postcss-plugin
+```
+</Tab>
+</Tabs>
+
+## Configuration
+
+Reduce build times by narrowing the scope using include and exclude.
+```js title="postcss.config.js"
+module.exports = {
+  plugins: {
+    '@plumeria/postcss-plugin': {
+      include: '**/*.{ts,tsx}',
+      exclude: ['**/node_modules/**', '**/.next/**'],
+    },
+  },
+};
+```
+
+## CSS extraction marke
+Inclulde css file `@plumeria` marke.  
+Atomic css is aggregated at build time into marked css files.
+```css title="css"
+/* import in app entry poinrt */
+@plumeria;
+...
+```
+
+It's works with Next.js `Turbopack` and `Webpack`.
+
+
+<Cards>
+  <Card title="See more about Installation" href="/docs/getting-started/installation" />
+</Cards>
