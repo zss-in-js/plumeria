@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 4.0.1
+
+### Patch Changes
+
+- 5a1fe9d: chore: bump version to 4.0.1 with postcss-plugin OIDC
+
 ## 4.0.0
 
 ### Major Changes
