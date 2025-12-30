@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 4.0.0
+
+### Major Changes
+
+- d66d398: feat: compiler has been changed program and other plugin bugfix
+
 ## 3.1.0
 
 ### Minor Changes

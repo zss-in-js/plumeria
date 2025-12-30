@@ -1,5 +1,17 @@
 # @plumeria/next-plugin
 
+## 4.0.0
+
+### Major Changes
+
+- d66d398: feat: compiler has been changed program and other plugin bugfix
+
+### Patch Changes
+
+- Updated dependencies [d66d398]
+  - @plumeria/turbopack-loader@4.0.0
+  - @plumeria/webpack-plugin@4.0.0
+
 ## 3.1.0
 
 ### Minor Changes
