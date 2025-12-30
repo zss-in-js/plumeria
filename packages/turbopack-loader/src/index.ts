@@ -28,6 +28,11 @@ interface LoaderContext {
   clearDependencies: () => void;
 }
 
+const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
+if (process.env.NODE_ENV === 'production') {
+  fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */', 'utf-8');
+}
+
 export default async function loader(this: LoaderContext, source: string) {
   const callback = this.async();
 
@@ -488,7 +493,6 @@ export default async function loader(this: LoaderContext, source: string) {
   parts.push(buffer.subarray(offset));
   const transformedSource = Buffer.concat(parts).toString();
 
-  const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
   const VIRTUAL_CSS_PATH = require.resolve(VIRTUAL_FILE_PATH);
 
   function stringifyRequest(loaderContext: any, request: string) {
@@ -515,21 +519,12 @@ export default async function loader(this: LoaderContext, source: string) {
   const virtualCssRequest = stringifyRequest(this, `${VIRTUAL_CSS_PATH}`);
   const postfix = `\nimport ${virtualCssRequest};`;
 
-  if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-    fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join(''), 'utf-8');
-  } else if (
-    extractedSheets.length > 0 &&
-    process.env.NODE_ENV === 'production'
-  ) {
-    fs.writeFileSync(VIRTUAL_FILE_PATH, '');
-  }
-
   if (process.env.NODE_ENV === 'production')
     return callback(null, transformedSource);
 
-  if (extractedSheets.length > 0) {
-    return callback(null, transformedSource + postfix);
+  if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
+    fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join(''), 'utf-8');
   }
 
-  callback(null, transformedSource);
+  return callback(null, transformedSource + postfix);
 }
