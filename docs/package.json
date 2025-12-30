@@ -5,7 +5,7 @@
   "scripts": {
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
-    "build": "plumerialint && css && next build",
+    "build": "plumerialint && next build",
     "dev": "next dev",
     "start": "next start",
     "postinstall": "fumadocs-mdx"
@@ -29,6 +29,7 @@
     "@plumeria/core": "workspace:^",
     "@plumeria/eslint-plugin": "workspace:^",
     "@plumeria/next-plugin": "workspace:^",
+    "@plumeria/postcss-plugin": "workspace:^",
     "@types/mdx": "^2.0.13",
     "@types/node": "^22.13.14",
     "@types/react": "^19.1.12",
