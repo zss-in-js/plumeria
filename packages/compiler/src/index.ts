@@ -215,6 +215,8 @@ async function compile(options: CompilerOptions) {
             );
             const hash = genBase36Hash(obj, 1, 8);
             tables.viewTransitionObjectTable[hash] = obj;
+            extractOndemandStyles(obj, extractedSheets);
+            extractOndemandStyles({ vt: `vt-${hash}` }, extractedSheets);
           } else if (
             callee.property.value === 'createTheme' &&
             args.length > 0 &&
@@ -234,16 +236,7 @@ async function compile(options: CompilerOptions) {
       },
     });
 
-    const uniqueSheets: string[] = [];
-    const seen = new Set<string>();
-    for (let i = extractedSheets.length - 1; i >= 0; i--) {
-      if (!seen.has(extractedSheets[i])) {
-        seen.add(extractedSheets[i]);
-        uniqueSheets.unshift(extractedSheets[i]);
-      }
-    }
-
-    return uniqueSheets;
+    return extractedSheets;
   };
 
   const files = fs.globSync(pattern, {
