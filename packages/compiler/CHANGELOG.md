@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 4.0.0
+
+### Major Changes
+
+- 9ee5643: feat: Changed from command to program
+
+### Patch Changes
+
+- Updated dependencies [03441aa]
+  - @plumeria/utils@4.0.0
+
 ## 3.1.0
 
 ### Minor Changes

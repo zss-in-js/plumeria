@@ -1,5 +1,12 @@
 # @plumeria/vite
 
+## 3.1.1
+
+### Patch Changes
+
+- Updated dependencies [03441aa]
+  - @plumeria/utils@4.0.0
+
 ## 3.1.0
 
 ### Minor Changes
