@@ -1,0 +1,57 @@
+---
+title: 'Plumeria v4.0.2'
+description: 'Plumeria Major breaking changes. Removed css command and added postcss-plugin. (3 min read)'
+date: '2025/12/30'
+---
+
+## Changes
+
+The `css` command has been removed from the `@plumeria/compiler`.  
+The compiler will be adapted to be used as a `program`, and may integrate with `lightningcss` and add packages such as a `@plumeria/cli` in the future.
+
+
+### The birth of postcss-plugin
+`@plumeria/compiler`, new in `v4.0.0`, is used inside `postcss-plugin` as an extractor for static analysis.
+For Next.js, `@plumeria/postcss-plugin` is required to extract Plumeria at build time. refer [Installation](/docs/getting-started/installation).
+
+
+## Core Changes
+It no longer has `@plumeria/core/stylesheet.css`.
+This will cause the build to fail in all environments where `@plumeria/core/stylesheet.css` is imported.
+
+```ts title="entrypoint"
+import "@plumeria/core/stylesheet.css";  // [!code --]
+```
+
+Instead extract all atomic styles to a CSS file with `postcss-plugin` for `@plumeria` maker:
+```css title="css"
+@plumeria;
+```
+
+Your configuration should have a `postcss.config.js` like this:
+
+```js title="postcss.config.js"
+module.exports = {
+  plugins: {
+    '@plumeria/postcss-plugin': {
+      include: '**/*.{ts,tsx}',
+      exclude: ['**/node_modules/**', '**/.next/**'],
+    },
+  },
+};
+```
+
+
+## Bugfix
+Fixed a bug where `css.keyframes` would not compile if used in `css.viewTransition`.  
+This fix applies to the following bundler integration plugin packages:
+
+- webpack-plugin
+- turbopack-loader
+- vite-plugin
+
+This indirectly fixes the behavior of `next-plugin`.
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria) !
