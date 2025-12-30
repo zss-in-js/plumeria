@@ -46,7 +46,7 @@ Read the [documentation](https://plumeria.dev/) for more details.
 - [Next](https://plumeria.dev/docs/integration/next)
 - [Turbopack](https://plumeria.dev/docs/integration/turbopack)
 - [Webpack](https://plumeria.dev/docs/integration/webpack)
-- [CLI](https://plumeria.dev/docs/integration/cli)
+- [PostCSS](https://plumeria.dev/docs/integration/postcss)
 - [ESLint](https://plumeria.dev/docs/integration/eslint)
 
 ## Acknowledgement
