@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/compiler",
   "version": "3.1.0",
-  "description": "Plumeria swc based compiler",
+  "description": "Plumeria swc based compiler for statically extracting css",
   "author": "Refirst 11",
   "license": "MIT",
   "funding": "https://github.com/sponsors/refirst11",
@@ -15,25 +15,19 @@
     "url": "https://github.com/zss-in-js/plumeria/issues"
   },
   "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "bin/",
     "dist/"
   ],
-  "bin": {
-    "css": "./bin/css.js"
-  },
   "scripts": {
-    "build": "rimraf dist && tsc"
+    "build": "rimraf dist && pnpm cjs",
+    "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@plumeria/utils": "workspace:^",
-    "rscute": "^1.1.5",
-    "lightningcss": "^1.30.2",
-    "postcss": "^8.5.6",
-    "postcss-combine-media-query": "^2.1.0"
+    "@plumeria/utils": "workspace:^"
   },
   "devDependencies": {
-    "@plumeria/core": "workspace:^",
     "@swc/core": "catalog:",
     "zss-engine": "catalog:"
   },
