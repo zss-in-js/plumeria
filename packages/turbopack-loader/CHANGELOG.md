@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 4.0.1
+
+### Patch Changes
+
+- a92893e: chore: bump version to 4.0.1
+- Updated dependencies [a92893e]
+  - @plumeria/utils@4.0.1
+
 ## 4.0.0
 
 ### Major Changes
