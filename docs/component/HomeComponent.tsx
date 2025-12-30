@@ -200,7 +200,7 @@ export const HomeComponent = () => {
             <Plumeria />
             <h2 className={css.props(styles.mainHeadline)}>Atomic CSS-in-JS</h2>
             <p className={css.props(styles.subHeadline)}>
-              Zero runtime overhead. Full type safety. <br />
+              Extremely low runtime overhead. Full type safety. <br />
               Build-time compilation for ultimate performance.
             </p>
             <div className={css.props(styles.buttonGroup)}>
