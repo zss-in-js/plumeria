@@ -132,6 +132,9 @@ importers:
       '@plumeria/next-plugin':
         specifier: workspace:^
         version: link:../packages/next-plugin
+      '@plumeria/postcss-plugin':
+        specifier: workspace:^
+        version: link:../packages/postcss-plugin
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13
@@ -461,22 +464,7 @@ importers:
       '@plumeria/utils':
         specifier: workspace:^
         version: link:../utils
-      lightningcss:
-        specifier: ^1.30.2
-        version: 1.30.2
-      postcss:
-        specifier: ^8.5.6
-        version: 8.5.6
-      postcss-combine-media-query:
-        specifier: ^2.1.0
-        version: 2.1.0(postcss@8.5.6)
-      rscute:
-        specifier: ^1.1.5
-        version: 1.1.5(@swc/helpers@0.5.17)
     devDependencies:
-      '@plumeria/core':
-        specifier: workspace:^
-        version: link:../core
       '@swc/core':
         specifier: 'catalog:'
         version: 1.15.2(@swc/helpers@0.5.17)
@@ -517,6 +505,21 @@ importers:
       webpack:
         specifier: 'catalog:'
         version: 5.101.0
+
+  packages/postcss-plugin:
+    dependencies:
+      '@plumeria/compiler':
+        specifier: workspace:^
+        version: link:../compiler
+      lightningcss:
+        specifier: ^1.30.2
+        version: 1.30.2
+      postcss:
+        specifier: ^8.5.6
+        version: 8.5.6
+      postcss-combine-media-query:
+        specifier: ^2.1.0
+        version: 2.1.0(postcss@8.5.6)
 
   packages/turbopack-loader:
     dependencies:
@@ -6803,10 +6806,6 @@ packages:
   rollup@4.53.3:
     resolution: {integrity: sha512-w8GmOxZfBmKknvdXU1sdM9NHcoQejwF/4mNgj2JuEEdRaHwwF12K7e9eXn1nLZ07ad+du76mkVsyeb2rKGllsA==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
-    hasBin: true
-
-  rscute@1.1.5:
-    resolution: {integrity: sha512-vFn5zDGCGMy1lHqI/6HriPLMsaBO6+tzb2yeV5eS6uzeV954Pu/PG2HsheFFQxwJC/VJTUsLqKpqisBnuk/DXQ==}
     hasBin: true
 
   run-parallel@1.2.0:
@@ -15539,12 +15538,6 @@ snapshots:
       '@rollup/rollup-win32-x64-gnu': 4.53.3
       '@rollup/rollup-win32-x64-msvc': 4.53.3
       fsevents: 2.3.3
-
-  rscute@1.1.5(@swc/helpers@0.5.17):
-    dependencies:
-      '@swc/core': 1.15.2(@swc/helpers@0.5.17)
-    transitivePeerDependencies:
-      - '@swc/helpers'
 
   run-parallel@1.2.0:
     dependencies:
