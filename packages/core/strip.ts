@@ -60,8 +60,7 @@ function clean(file: string) {
 
   const cleaned = resultLines.join('\n');
 
-  // Leave a single newline at the end of the file (common practice)
-  fs.writeFileSync(file, cleaned + (cleaned ? '\n' : ''));
+  fs.writeFileSync(file, cleaned);
 }
 
 function walk(dir: string) {
