@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 4.0.5
+
+### Patch Changes
+
+- ecbeff7: chore: security dev dependencies update
+
 ## 4.0.4
 
 ### Patch Changes
