@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 4.1.0
+
+### Minor Changes
+
+- df9ee80: fix: Fixed a bug where static style pseudo-elements merged incorrectly in production
+
+### Patch Changes
+
+- Updated dependencies [df9ee80]
+  - @plumeria/utils@4.1.0
+
 ## 4.0.5
 
 ### Patch Changes
