@@ -124,7 +124,7 @@ type CreateStatic = Record<string, string | number>;
 type CreateTheme = Record<string, Record<string, string | number>>;
 type ReturnVariableType<T> = { [K in keyof T]: CSSVariableValue };
 
-type Styles = { [key: CSSVariableKey]: string };
+type Style = { [key: CSSVariableKey]: string };
 
 type KeyframesInSelector = 'from' | 'to' | `${number}%`;
 
@@ -149,5 +149,5 @@ export {
   ViewTransition,
   ReturnType,
   ReturnVariableType,
-  Styles,
+  Style,
 };
