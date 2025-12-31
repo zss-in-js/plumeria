@@ -24,6 +24,7 @@ import {
   scanForViewTransition,
   t,
   extractOndemandStyles,
+  deepMerge,
 } from '@plumeria/utils';
 import type { StyleRecord } from '@plumeria/utils';
 
@@ -424,38 +425,38 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               checkStatic(arg.expression),
             );
 
-            if (allStatic) {
-              const merged: Record<string, any> = {};
-              args.forEach((arg: any) => {
-                const expr = arg.expression;
-                if (t.isObjectExpression(expr)) {
-                  excludedSpans.add(expr.span.start);
-                  const obj = objectExpressionToObject(
-                    expr,
-                    tables.staticTable,
-                    tables.keyframesHashTable,
-                    tables.viewTransitionHashTable,
-                    tables.themeTable,
-                  );
-                  obj && Object.assign(merged, obj);
-                } else if (
-                  t.isMemberExpression(expr) &&
-                  t.isIdentifier(expr.object) &&
-                  t.isIdentifier(expr.property)
-                ) {
-                  excludedSpans.add(expr.span.start);
-                  const styleInfo = localCreateStyles[expr.object.value];
-                  if (styleInfo) {
-                    Object.assign(merged, styleInfo.obj[expr.property.value]);
+            if (allStatic && args.length > 0) {
+              const merged = args.reduce(
+                (acc: Record<string, any>, arg: any) => {
+                  const expr = arg.expression;
+
+                  if (t.isObjectExpression(expr)) {
+                    const obj = objectExpressionToObject(
+                      expr,
+                      tables.staticTable,
+                      tables.keyframesHashTable,
+                      tables.viewTransitionHashTable,
+                      tables.themeTable,
+                    );
+                    return obj ? deepMerge(acc, obj) : acc;
+                  } else if (
+                    t.isMemberExpression(expr) &&
+                    t.isIdentifier(expr.object) &&
+                    t.isIdentifier(expr.property)
+                  ) {
+                    const styleInfo = localCreateStyles[expr.object.value];
+                    return styleInfo
+                      ? deepMerge(acc, styleInfo.obj[expr.property.value])
+                      : acc;
+                  } else if (t.isIdentifier(expr)) {
+                    const styleInfo = localCreateStyles[expr.value];
+                    return styleInfo ? deepMerge(acc, styleInfo.obj) : acc;
                   }
-                } else if (t.isIdentifier(expr)) {
-                  excludedSpans.add(expr.span.start);
-                  const styleInfo = localCreateStyles[expr.value];
-                  if (styleInfo) {
-                    Object.assign(merged, styleInfo.obj);
-                  }
-                }
-              });
+
+                  return acc;
+                },
+                {},
+              );
 
               if (Object.keys(merged).length > 0) {
                 extractOndemandStyles(merged, extractedSheets);
