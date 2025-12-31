@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 4.0.3
+
+### Patch Changes
+
+- 9aaef89: refactor: package.json to removed stylesheet.css and props function is refactored for optimize
+
 ## 4.0.2
 
 ### Patch Changes
