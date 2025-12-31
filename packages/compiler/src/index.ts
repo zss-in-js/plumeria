@@ -18,7 +18,7 @@ import {
 import type { StyleRecord, CSSObject } from '@plumeria/utils';
 
 interface CompilerOptions {
-  include: string;
+  include: string[];
   exclude: string[];
   cwd?: string;
 }
