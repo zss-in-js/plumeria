@@ -26,31 +26,14 @@ pnpm i --save-dev @plumeria/webpack-plugin
 </Tab>
 </Tabs>
 
-## Overview
-```ts title="TypeScript"
-import type { Compiler } from 'webpack';
-export declare class PlumeriaPlugin {
-    private outputFileName;
-    private stylesByFile;
-    private outFile;
-    constructor(outputFileName?: string);
-    apply(compiler: Compiler): void;
-    registerFileStyles(filePath: string, styles: Partial<any>): void;
-    private generateOrderedCSS;
-    private writeCSS;
-}
-```
-
-
 ## API
 Example for: [`Github next-plugin ↗`](https://github.com/zss-in-js/plumeria/blob/main/packages/next-plugin/src/index.ts)
 
-```ts title="webpack.config.js"
-const { PlumeriaPlugin } = require("@plumeria/webpack-plugin");
- 
-module.exports = {
-  plugins: [
-    new PlumeriaPlugin(),
-  ],
-};
+```ts title="next.config.ts"
+config.module?.rules?.unshift({
+  enforce: 'pre',
+  test: /\.(tsx|ts)$/,
+  exclude: [/node_modules/, /\.next/, /\.git/],
+  use: require.resolve('@plumeria/webpack-plugin'),
+});
 ```
