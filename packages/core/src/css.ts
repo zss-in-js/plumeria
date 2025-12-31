@@ -16,52 +16,47 @@ function errorFn(fn: string) {
 }
 
 function props(...rules: (false | CSSProperties | null | undefined)[]): string {
-  const chosen = new Map<string, { hash: string; propsIdx: number }>();
-  const classList: string[] = [];
-  const orderedKeys: { hash: string; propsIdx: number }[] = [];
-  const rightmostKeys: { hash: string; propsIdx: number }[] = [];
+  const chosen = new Map<string, number>();
+  const lastIdx = rules.length - 1;
 
-  // Traverse from right to left and determine the rightmost hash for each key (property)
-  for (let i = rules.length - 1; i >= 0; i--) {
+  // 1st time: Determine which key is used in which index (in reverse order)
+  for (let i = lastIdx; i >= 0; i--) {
     const arg = rules[i];
     if (!arg || typeof arg === 'string') continue;
-    for (const [key, hash] of Object.entries(arg)) {
+    // Avoid generating [key, value] array by directly iterating over keys
+    for (const key in arg) {
       if (!chosen.has(key)) {
-        chosen.set(key, { hash: hash as string, propsIdx: i });
+        chosen.set(key, i);
       }
     }
   }
 
-  // Scan from left to right to determine output order
-  for (let i = 0; i < rules.length; i++) {
-    const arg = rules[i];
+  const classList: string[] = [];
+  const rightmostList: string[] = []; // For the last class
+
+  // 2nd time: Construct the result in the original order (forward order)
+  for (let i = 0; i <= lastIdx; i++) {
+    const arg = rules[i] as Record<string, string>;
     if (!arg) continue;
 
     if (typeof arg === 'string') {
-      // Statically resolved strings are added as is
       classList.push(arg);
       continue;
     }
 
-    for (const [key] of Object.entries(arg)) {
-      const info = chosen.get(key);
-      if (info && info.propsIdx === i) {
-        // Only output if this argument is the final adopter of this key
-        if (i === rules.length - 1) {
-          rightmostKeys.push(info);
+    for (const key in arg) {
+      // Only output if this argument is the final adopter of this key
+      if (chosen.get(key) === i && arg[key]) {
+        if (i === lastIdx) {
+          rightmostList.push(arg[key]);
         } else {
-          orderedKeys.push(info);
+          classList.push(arg[key]);
         }
-        chosen.delete(key);
       }
     }
   }
 
-  // Maintain output order (normal key -> right-most property)
-  for (const { hash } of orderedKeys) {
-    classList.push(hash);
-  }
-  for (const { hash } of rightmostKeys) {
+  for (const hash of rightmostList) {
     classList.push(hash);
   }
 
