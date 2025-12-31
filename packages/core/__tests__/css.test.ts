@@ -40,7 +40,7 @@ describe('x helper', () => {
     const result = x('cls', { color: 'red' } as any);
     expect(result).toEqual({
       className: 'cls',
-      styles: { color: 'red' },
+      style: { color: 'red' },
     });
   });
 });
