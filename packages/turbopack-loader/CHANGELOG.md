@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 4.0.5
+
+### Patch Changes
+
+- ecbeff7: chore: security dev dependencies update
+- Updated dependencies [ecbeff7]
+  - @plumeria/utils@4.0.5
+
 ## 4.0.4
 
 ### Patch Changes
