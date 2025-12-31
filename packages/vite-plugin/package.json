@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/vite-plugin",
-  "version": "4.0.4",
+  "version": "4.0.5",
   "type": "module",
   "description": "Plumeria Vite plugin",
   "author": "Refirst 11",
