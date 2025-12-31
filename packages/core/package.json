@@ -28,8 +28,7 @@
   "module": "dist/css.mjs",
   "types": "dist/css.d.ts",
   "files": [
-    "dist/",
-    "stylesheet.css"
+    "dist/"
   ],
   "scripts": {
     "build": "tsdown && node strip.ts"
