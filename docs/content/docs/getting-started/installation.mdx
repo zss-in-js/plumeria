@@ -37,7 +37,8 @@ The **phantom-runtime** distribution size is **less than `500B`** for min + `bro
 
 ## Setup
 The plumerialint command installs [`@plumeria/eslint-plugin`](/docs/getting-started/editor-integration).   
-`oxlint` is required to run the `plumerialint` command.
+`oxlint` is required to run the `plumerialint` command.  
+By running it in parallel with the build, errors are detected with zero runtime.
 ```sh
 pnpm i -D oxlint
 ```
@@ -49,7 +50,7 @@ For `Next`, we recommend running rimraf to clean up the cache to accommodate the
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
     "dev": "next dev",
-    "build": "plumerialint && next build",
+    "build": "plumerialint & next build",
     "start": "next start",
   },
 ```
@@ -59,7 +60,7 @@ For `Next`, we recommend running rimraf to clean up the cache to accommodate the
 ```json title="package.json"
   "scripts": {
     "dev": "vite",
-    "build": "plumerialint && tsc -b && vite build", 
+    "build": "plumerialint & tsc -b && vite build", 
   },
 ```
 </Tab>
