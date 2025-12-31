@@ -3,7 +3,7 @@ import { optimizeCSS } from './optimizer';
 import { compileCSS } from '@plumeria/compiler';
 
 interface PlumeriaOptions {
-  include?: string;
+  include?: string[];
   exclude?: string[];
   cwd?: string;
 }
@@ -26,7 +26,7 @@ const plugin: PluginCreator<PlumeriaOptions> = (options = {}) => {
       const {
         cwd = process.cwd(),
         exclude = ['**/node_modules/**', '**/dist/**', '**/.next/**'],
-        include = '**/*.{js,jsx,ts,tsx}',
+        include = ['**/*.{js,jsx,ts,tsx}'],
       } = options;
 
       const genCSS = compileCSS({
