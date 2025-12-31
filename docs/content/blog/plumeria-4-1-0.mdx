@@ -1,0 +1,75 @@
+---
+title: 'Plumeria v4.1.0'
+description: 'Plumeria Minor update. nest selector bugfix and improve. (3 min read)'
+date: '2025/12/31'
+---
+
+## Fixed
+
+- Fixed a bug where pseudo disappeared after **merging** by aligning the behavior of the compiler and plugin.
+
+**The following packages have been modified:**
+- `compiler`
+- `vite-plugin`
+- `webpack-plugin`
+- `turbopack-loader`
+- `utils`
+
+The compiler and plugin merging process used in postcss-plugin has been unified with the `deepMerge` function.
+This has corrected the behavior of `postcss-plugin` and it now outputs correctly.
+
+
+
+## Other improved
+- In 4.0.3 and above, the runtime `css.props` function is over 1.5x more efficient.  
+Implementation [core/css.ts:Github](https://github.com/zss-in-js/plumeria/blob/main/packages/core/src/css.ts)
+
+- Fixed a bug that caused the `x` function to not work.
+
+--- 
+
+It's improvements behavior bug fixes and includes `Next.js` security improvements, so please update to the latest version 4.1.0 or later if possible.
+
+## release note v4.0.x
+
+# @plumeria/core
+
+## 4.0.5
+
+### Patch Changes
+
+- chore: security dev dependencies update
+
+## 4.0.4
+
+### Patch Changes
+
+- fix: Fixed a bug that caused the x function to not work
+
+## 4.0.3
+
+### Patch Changes
+
+- refactor: package.json to removed stylesheet.css and props function is refactored for optimize
+
+## 4.0.2
+
+### Patch Changes
+
+- chore: bump version to 4.0.2 update readme
+
+## 4.0.1
+
+### Patch Changes
+
+- chore: bump version to 4.0.1 with postcss-plugin OIDC
+
+## 4.0.0
+
+### Major Changes
+
+- feat: compiler has been changed program and other plugin bugfix
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria) !
