@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 4.0.4
+
+### Patch Changes
+
+- 647c06e: fix: Fixed a bug that caused the x function to not work
+
 ## 4.0.3
 
 ### Patch Changes
