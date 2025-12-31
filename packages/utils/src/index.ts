@@ -10,6 +10,7 @@ export {
   t,
   tables,
   extractOndemandStyles,
+  deepMerge,
 } from './parser';
 export { getStyleRecords } from './create';
 export type { StyleRecord } from './create';
