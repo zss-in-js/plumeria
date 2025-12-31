@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 4.1.0
+
+### Minor Changes
+
+- df9ee80: feat: Add deepMerge function and use it in loader and plugin
+
 ## 4.0.5
 
 ### Patch Changes
