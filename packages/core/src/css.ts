@@ -8,7 +8,7 @@ import type {
   ViewTransition,
   ReturnType,
   ReturnVariableType,
-  Styles,
+  Style,
 } from './types';
 
 function errorFn(fn: string) {
@@ -90,9 +90,9 @@ const css = class _css {
   }
 };
 
-const x = (className: string, styles: Styles) => ({
+const x = (className: string, style: Style) => ({
   className,
-  styles,
+  style,
 });
 
 export { css, x };
