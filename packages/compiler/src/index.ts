@@ -14,6 +14,7 @@ import {
   scanForCreateTheme,
   t,
   extractOndemandStyles,
+  deepMerge,
 } from '@plumeria/utils';
 import type { StyleRecord, CSSObject } from '@plumeria/utils';
 
@@ -180,11 +181,27 @@ export function compileCSS(options: CompilerOptions) {
           };
 
           if (callee.property.value === 'props') {
+            const staticStyles: CSSObject[] = [];
+            let isAllStatic = true;
+
             args.forEach((arg: any) => {
               const expr = arg.expression;
               const styles = extractStylesFromExpression(expr);
-              styles.forEach((s) => processStyle(s));
+              if (styles.length === 0) {
+                isAllStatic = false;
+              }
+              staticStyles.push(...styles);
             });
+
+            if (isAllStatic && staticStyles.length > 0) {
+              const merged = staticStyles.reduce(
+                (acc, style) => deepMerge(acc, style),
+                {},
+              );
+              processStyle(merged);
+            } else {
+              staticStyles.forEach((s) => processStyle(s));
+            }
           } else if (
             callee.property.value === 'keyframes' &&
             args.length > 0 &&
