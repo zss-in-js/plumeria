@@ -12,11 +12,13 @@ The change this time is to reduce the contents of the function to the bare minim
 
 `@plumeria/core@2.4.2`:  
 Near Zero-runtime:  
-Bundle size is `18.3 kB -> 6.36 kB (brotli)`
+Bundle size is `18.3 kB -> 6.36 kB (brotli)` 
 
 `@plumeria/core@3.1.0`:  
 Phantom runtime:   
 Bundle size is `851 B -> 423 B (brotli)`
+
+The reduction rate is **95.4%** for normal and **93.3%** for brotli.
 
 Previously, the function was an object containing a hash calculation, but with the breaking change in 3.0.0, the runtime now only has props and x.  
 The biggest benefit of this is the low cost of initially bundling code into your app, and the stability of plugins and static compilers.
