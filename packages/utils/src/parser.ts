@@ -825,3 +825,25 @@ export function extractOndemandStyles(
   }
   walk(obj);
 }
+
+export function deepMerge(
+  target: Record<string, any>,
+  source: Record<string, any>,
+): Record<string, any> {
+  const result = { ...target };
+
+  for (const key in source) {
+    const val = source[key];
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      if (result[key] && typeof result[key] === 'object') {
+        result[key] = deepMerge(result[key], val);
+      } else {
+        result[key] = val;
+      }
+    } else {
+      result[key] = val;
+    }
+  }
+
+  return result;
+}
