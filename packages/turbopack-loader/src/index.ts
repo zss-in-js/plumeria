@@ -18,6 +18,7 @@ import {
   scanForViewTransition,
   t,
   extractOndemandStyles,
+  deepMerge,
 } from '@plumeria/utils';
 import { StyleRecord } from '@plumeria/utils';
 
@@ -353,10 +354,10 @@ export default async function loader(this: LoaderContext, source: string) {
 
         const allStatic = args.every((arg: any) => checkStatic(arg.expression));
 
-        if (allStatic) {
-          const merged: Record<string, any> = {};
-          args.forEach((arg: any) => {
+        if (allStatic && args.length > 0) {
+          const merged = args.reduce((acc: Record<string, any>, arg: any) => {
             const expr = arg.expression;
+
             if (t.isObjectExpression(expr)) {
               const obj = objectExpressionToObject(
                 expr,
@@ -365,23 +366,23 @@ export default async function loader(this: LoaderContext, source: string) {
                 tables.viewTransitionHashTable,
                 tables.themeTable,
               );
-              obj && Object.assign(merged, obj);
+              return obj ? deepMerge(acc, obj) : acc;
             } else if (
               t.isMemberExpression(expr) &&
               t.isIdentifier(expr.object) &&
               t.isIdentifier(expr.property)
             ) {
               const styleInfo = localCreateStyles[expr.object.value];
-              if (styleInfo) {
-                Object.assign(merged, styleInfo.obj[expr.property.value]);
-              }
+              return styleInfo
+                ? deepMerge(acc, styleInfo.obj[expr.property.value])
+                : acc;
             } else if (t.isIdentifier(expr)) {
               const styleInfo = localCreateStyles[expr.value];
-              if (styleInfo) {
-                Object.assign(merged, styleInfo.obj);
-              }
+              return styleInfo ? deepMerge(acc, styleInfo.obj) : acc;
             }
-          });
+
+            return acc;
+          }, {});
 
           if (Object.keys(merged).length > 0) {
             extractOndemandStyles(merged, extractedSheets);
