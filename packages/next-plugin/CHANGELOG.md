@@ -1,5 +1,17 @@
 # @plumeria/next-plugin
 
+## 4.1.0
+
+### Minor Changes
+
+- df9ee80: chore: bump version to 4.1.0
+
+### Patch Changes
+
+- Updated dependencies [df9ee80]
+  - @plumeria/turbopack-loader@4.1.0
+  - @plumeria/webpack-plugin@4.1.0
+
 ## 4.0.5
 
 ### Patch Changes
