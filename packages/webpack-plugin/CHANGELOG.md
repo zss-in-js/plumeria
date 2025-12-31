@@ -1,5 +1,13 @@
 # @plumeria/webpack-plugin
 
+## 4.0.3
+
+### Patch Changes
+
+- 9aaef89: chore: bump version to 4.0.3
+- Updated dependencies [9aaef89]
+  - @plumeria/utils@4.0.3
+
 ## 4.0.2
 
 ### Patch Changes
