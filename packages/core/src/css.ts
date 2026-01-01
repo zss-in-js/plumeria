@@ -15,25 +15,28 @@ function errorFn(fn: string) {
   throw new Error(`css.${fn} requires bundler-plugin setup`);
 }
 
-function props(
-  ...rules: (false | CSSProperties | null | undefined | string)[]
-): string {
-  const seen = new Set<string>();
-  const classList: string[] = [];
+function props(...rules: (false | CSSProperties | null | undefined)[]): string {
+  const defined: string[] = [];
+  let result = '';
 
   for (let i = rules.length - 1; i >= 0; i--) {
     const arg = rules[i] as Record<string, string>;
     if (!arg || typeof arg !== 'object') continue;
 
+    let chunk = '';
     for (const key in arg) {
-      if (arg[key] && !seen.has(key)) {
-        seen.add(key);
-        classList.push(arg[key]);
+      if (arg[key] && !defined.includes(key)) {
+        defined.push(key);
+        chunk += chunk ? ' ' + arg[key] : arg[key];
       }
+    }
+
+    if (chunk) {
+      result = result ? chunk + ' ' + result : chunk;
     }
   }
 
-  return classList.join(' ');
+  return result;
 }
 
 const css = class _css {
