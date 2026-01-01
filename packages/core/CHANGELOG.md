@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 4.1.1
+
+### Patch Changes
+
+- d46b8ee: refactor: improvements props function runtime efficiency
+
 ## 4.1.0
 
 ### Minor Changes
