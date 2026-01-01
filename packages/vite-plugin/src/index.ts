@@ -358,11 +358,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             if (styleInfo && !styleInfo.hasDynamicAccess) {
               const atomMap = styleInfo.hashMap[node.property.value];
               if (atomMap) {
-                const combinedHash = Object.values(atomMap).join(' ');
                 replacements.push({
                   start: node.span.start - ast.span.start,
                   end: node.span.end - ast.span.start,
-                  content: JSON.stringify(combinedHash),
+                  content: JSON.stringify(atomMap),
                 });
               }
             }
