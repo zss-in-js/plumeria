@@ -1,5 +1,13 @@
 # @plumeria/webpack-plugin
 
+## 4.1.1
+
+### Patch Changes
+
+- d46b8ee: fix: The output of the create function is now a hashMap for debugging
+- Updated dependencies [d46b8ee]
+  - @plumeria/utils@4.1.1
+
 ## 4.1.0
 
 ### Minor Changes
