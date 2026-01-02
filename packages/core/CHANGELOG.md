@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 4.1.2
+
+### Patch Changes
+
+- 2c12ea9: perf: props function add a Set that is instantiated only once
+
 ## 4.1.1
 
 ### Patch Changes
