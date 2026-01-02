@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 4.1.3
+
+### Patch Changes
+
+- 2f1cbb8: chore: bump version to 4.1.3
+- Updated dependencies [2f1cbb8]
+  - @plumeria/utils@4.1.3
+
 ## 4.1.2
 
 ### Patch Changes
