@@ -1,0 +1,66 @@
+---
+title: 'Plumeria v4.1.3'
+description: 'Bug fix & props 82.7% performance improvement with Set optimization (3 min read)'
+date: '2025/12/31'
+---
+
+## v4.1.3
+
+### Fixed
+- Removed debug console output that was accidentally included in v4.1.2 (turbopack-loader)
+
+## release note v4.1.2
+
+### Props function performance improvements
+
+The `css.props` function has been significantly refactored and optimized across versions, achieving **82.7% performance improvement** over the v3.1.0 implementation.
+
+#### Key optimization: Set-based deduplication
+
+The major breakthrough came from using a **persistent Set instance** (`defined`) that is cleared at the start of each call, rather than creating a new array on every invocation. This approach:
+
+- **Eliminates array allocation overhead** - Reuses the same Set instance across calls
+- **Provides O(1) lookup performance** - Set.has() is significantly faster than array operations
+- **Reduces memory pressure** - No new objects created per function call
+
+#### Implementation
+
+```typescript
+const defined = new Set<string>();
+
+function props(...rules: (false | CSSProperties | null | undefined)[]): string {
+  defined.clear();
+  let result = '';
+
+  for (let i = rules.length - 1; i >= 0; i--) {
+    const arg = rules[i] as Record<string, string>;
+    if (!arg || typeof arg !== 'object') continue;
+
+    let chunk = '';
+    for (const key in arg) {
+      if (arg[key] && !defined.has(key)) {
+        defined.add(key);
+        chunk += chunk ? ' ' + arg[key] : arg[key];
+      }
+    }
+
+    if (chunk) result = result ? chunk + ' ' + result : chunk;
+  }
+
+  return result;
+}
+```
+
+#### Benchmark results
+
+Performance comparison (200 iterations, each processing 5 objects with 300 properties):
+
+| Version | Implementation | Execution Time | Throughput | Improvement |
+|---------|----------------|----------------|------------|-------------|
+| **v3.1.0** | Original   | 74.00ms       | ~2,703 ops/sec | baseline |
+| **v4.1.1** | Improved   | 58.21ms        | ~3,436 ops/sec | **21.3% faster** |
+| **v4.1.2+** | Set (current) | 12.78ms     | ~15,650 ops/sec | **82.7% faster** |
+
+The Set-based implementation (v4.1.2+) is **nearly 6x faster** than the original v3.1.0, making it highly efficient for runtime style composition with large property sets.
+
+View the full implementation: [core/css.ts on GitHub](https://github.com/zss-in-js/plumeria/blob/main/packages/core/src/css.ts)
