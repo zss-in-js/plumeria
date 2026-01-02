@@ -420,11 +420,44 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               return false;
             };
 
+            // Check if there's any dynamic access (bracket notation like styles[variant])
+            const hasDynamicAccess = (expr: Expression): boolean => {
+              if (t.isMemberExpression(expr) && t.isIdentifier(expr.object)) {
+                const info = localCreateStyles[expr.object.value];
+                if (info && info.hasDynamicAccess) return true;
+              }
+              if (t.isIdentifier(expr)) {
+                const info = localCreateStyles[expr.value];
+                if (info && info.hasDynamicAccess) return true;
+              }
+              if (t.isConditionalExpression(expr)) {
+                return (
+                  hasDynamicAccess(expr.consequent) ||
+                  hasDynamicAccess(expr.alternate)
+                );
+              }
+              if (
+                t.isBinaryExpression(expr) &&
+                (expr.operator === '&&' ||
+                  expr.operator === '||' ||
+                  expr.operator === '??')
+              ) {
+                return (
+                  hasDynamicAccess(expr.left) || hasDynamicAccess(expr.right)
+                );
+              }
+              return false;
+            };
+
             const allStatic = args.every((arg: any) =>
               checkStatic(arg.expression),
             );
+            const anyDynamic = args.some((arg: any) =>
+              hasDynamicAccess(arg.expression),
+            );
 
             if (allStatic && args.length > 0) {
+              // Pattern A: Fully static - merge and optimize into a single hash
               const merged = args.reduce(
                 (acc: Record<string, any>, arg: any) => {
                   const expr = arg.expression;
@@ -473,8 +506,31 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   content: JSON.stringify(resultHash),
                 });
               }
+            } else if (anyDynamic) {
+              // Pattern B: Contains dynamic access - don't inline static references
+              // Keep styles.button as-is to avoid duplication with styles object
+              const processExpr = (expr: Expression) => {
+                if (t.isIdentifier(expr)) {
+                  const info = localCreateStyles[expr.value];
+                  if (info && info.hasDynamicAccess) {
+                    excludedSpans.add(expr.span.start);
+                  }
+                } else if (t.isConditionalExpression(expr)) {
+                  processExpr(expr.consequent);
+                  processExpr(expr.alternate);
+                } else if (
+                  t.isBinaryExpression(expr) &&
+                  (expr.operator === '&&' ||
+                    expr.operator === '||' ||
+                    expr.operator === '??')
+                ) {
+                  processExpr(expr.left);
+                  processExpr(expr.right);
+                }
+              };
+              args.forEach((arg: any) => processExpr(arg.expression));
             } else {
-              // Dynamic case: Replace style references with hashMaps
+              // Pattern C: Conditional/runtime only - replace static style references with hashmaps
               const processExpr = (expr: Expression) => {
                 if (
                   t.isMemberExpression(expr) &&
