@@ -571,7 +571,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
   const virtualCssRequest = stringifyRequest(this, `${VIRTUAL_CSS_PATH}`);
   const postfix = `\nimport ${virtualCssRequest};`;
-  console.log(transformedSource);
+
   if (process.env.NODE_ENV === 'production')
     return callback(null, transformedSource);
 
