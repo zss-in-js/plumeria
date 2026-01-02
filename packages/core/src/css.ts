@@ -15,8 +15,10 @@ function errorFn(fn: string) {
   throw new Error(`css.${fn} requires bundler-plugin setup`);
 }
 
+const defined = new Set<string>();
+
 function props(...rules: (false | CSSProperties | null | undefined)[]): string {
-  const defined: string[] = [];
+  defined.clear();
   let result = '';
 
   for (let i = rules.length - 1; i >= 0; i--) {
@@ -25,15 +27,13 @@ function props(...rules: (false | CSSProperties | null | undefined)[]): string {
 
     let chunk = '';
     for (const key in arg) {
-      if (arg[key] && !defined.includes(key)) {
-        defined.push(key);
+      if (arg[key] && !defined.has(key)) {
+        defined.add(key);
         chunk += chunk ? ' ' + arg[key] : arg[key];
       }
     }
 
-    if (chunk) {
-      result = result ? chunk + ' ' + result : chunk;
-    }
+    if (chunk) result = result ? chunk + ' ' + result : chunk;
   }
 
   return result;
