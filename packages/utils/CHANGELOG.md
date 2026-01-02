@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 4.1.2
+
+### Patch Changes
+
+- 2c12ea9: chore: bump version to 4.1.2
+
 ## 4.1.1
 
 ### Patch Changes
