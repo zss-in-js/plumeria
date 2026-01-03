@@ -52,7 +52,7 @@ export default async function loader(this: LoaderContext, source: string) {
     target: 'es2022',
   });
 
-  const localConsts = collectLocalConsts(ast);
+  const localConsts = collectLocalConsts(ast, this.resourcePath);
   Object.assign(tables.staticTable, localConsts);
 
   const isTSFile =
