@@ -355,14 +355,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           if (idSpans.has(node.span.start)) return;
           const styleInfo = localCreateStyles[node.value];
           if (styleInfo && !styleInfo.hasDynamicAccess) {
-            const fullHashMap: Record<string, string> = {};
-            Object.entries(styleInfo.hashMap).forEach(([key, atomMap]) => {
-              fullHashMap[key] = Object.values(atomMap).join(' ');
-            });
             replacements.push({
               start: node.span.start - ast.span.start,
               end: node.span.end - ast.span.start,
-              content: JSON.stringify(fullHashMap),
+              content: JSON.stringify(styleInfo.hashMap),
             });
           }
         },
