@@ -18,13 +18,10 @@ import {
   getStyleRecords,
   collectLocalConsts,
   objectExpressionToObject,
-  scanForCreateStatic,
-  scanForCreateTheme,
-  scanForKeyframes,
-  scanForViewTransition,
   t,
   extractOndemandStyles,
   deepMerge,
+  scanAll,
 } from '@plumeria/utils';
 import type { StyleRecord } from '@plumeria/utils';
 
@@ -115,21 +112,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       };
 
       // Reset and scan
-      tables.staticTable = scanForCreateStatic(addDependency);
-      const { keyframesHashTableLocal, keyframesObjectTableLocal } =
-        scanForKeyframes(addDependency);
-      tables.keyframesHashTable = keyframesHashTableLocal;
-      tables.keyframesObjectTable = keyframesObjectTableLocal;
-
-      const { viewTransitionHashTableLocal, viewTransitionObjectTableLocal } =
-        scanForViewTransition(addDependency);
-      tables.viewTransitionHashTable = viewTransitionHashTableLocal;
-      tables.viewTransitionObjectTable = viewTransitionObjectTableLocal;
-
-      const { themeTableLocal, createThemeObjectTableLocal } =
-        scanForCreateTheme(addDependency);
-      tables.themeTable = themeTableLocal;
-      tables.createThemeObjectTable = createThemeObjectTableLocal;
+      scanAll(addDependency);
 
       const ast = parseSync(source, {
         syntax: 'typescript',
