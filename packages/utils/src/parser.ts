@@ -131,7 +131,7 @@ function genFileId(filePath: string): string {
     .relative(PROJECT_ROOT, filePath)
     .split(path.sep)
     .join('/');
-  return genBase36Hash(relativePath, 1, 8);
+  return genBase36Hash({ __file: relativePath }, 1, 8);
 }
 
 export function objectExpressionToObject(
