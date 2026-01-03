@@ -8,13 +8,10 @@ import {
   getStyleRecords,
   collectLocalConsts,
   objectExpressionToObject,
-  scanForCreateStatic,
-  scanForKeyframes,
-  scanForViewTransition,
-  scanForCreateTheme,
   t,
   extractOndemandStyles,
   deepMerge,
+  scanAll,
 } from '@plumeria/utils';
 import type { StyleRecord, CSSObject } from '@plumeria/utils';
 
@@ -27,31 +24,10 @@ interface CompilerOptions {
 export function compileCSS(options: CompilerOptions) {
   const { include, exclude, cwd = process.cwd() } = options;
 
-  let staticTable: ReturnType<typeof scanForCreateStatic> | null = null;
-  let keyframesData: ReturnType<typeof scanForKeyframes> | null = null;
-  let viewTransitionData: ReturnType<typeof scanForViewTransition> | null =
-    null;
-  let themeData: ReturnType<typeof scanForCreateTheme> | null = null;
   const allSheets = new Set<string>();
 
   const dependencies = new Set<string>();
-
-  staticTable = scanForCreateStatic((p) => dependencies.add(p));
-  tables.staticTable = staticTable;
-
-  keyframesData = scanForKeyframes((p) => dependencies.add(p));
-  tables.keyframesHashTable = keyframesData.keyframesHashTableLocal;
-  tables.keyframesObjectTable = keyframesData.keyframesObjectTableLocal;
-
-  viewTransitionData = scanForViewTransition((p) => dependencies.add(p));
-  tables.viewTransitionHashTable =
-    viewTransitionData.viewTransitionHashTableLocal;
-  tables.viewTransitionObjectTable =
-    viewTransitionData.viewTransitionObjectTableLocal;
-
-  themeData = scanForCreateTheme((p) => dependencies.add(p));
-  tables.themeTable = themeData.themeTableLocal;
-  tables.createThemeObjectTable = themeData.createThemeObjectTableLocal;
+  scanAll((p) => dependencies.add(p));
 
   const processFile = (filePath: string): string[] => {
     const source = fs.readFileSync(filePath, 'utf-8');
