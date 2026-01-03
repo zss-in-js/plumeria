@@ -577,11 +577,6 @@ interface CachedData {
 const fileCache: Record<string, CachedData> = {};
 
 export function scanAll(addDependency: (path: string) => void): Tables {
-  // Clear existing tables
-  for (const key in tables) {
-    (tables as any)[key] = {};
-  }
-
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
