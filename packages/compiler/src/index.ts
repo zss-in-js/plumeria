@@ -45,7 +45,7 @@ export function compileCSS(options: CompilerOptions) {
       return [];
     }
 
-    const localConsts = collectLocalConsts(ast);
+    const localConsts = collectLocalConsts(ast, filePath);
     Object.assign(tables.staticTable, localConsts);
 
     const localCreateStyles: Record<string, CSSObject> = {};
