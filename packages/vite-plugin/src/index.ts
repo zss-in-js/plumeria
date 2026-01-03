@@ -120,7 +120,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         target: 'es2022',
       });
 
-      const localConsts = collectLocalConsts(ast);
+      const localConsts = collectLocalConsts(ast, id);
       Object.assign(tables.staticTable, localConsts);
 
       const localCreateStyles: Record<
