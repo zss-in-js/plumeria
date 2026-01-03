@@ -118,7 +118,7 @@ describe('parser', () => {
       const ast = parseSync('const color = "red"; const size = "large";', {
         syntax: 'typescript',
       });
-      const consts = collectLocalConsts(ast);
+      const consts = collectLocalConsts(ast, 'test.ts');
 
       expect(consts.color).toBe('red');
       expect(consts.size).toBe('large');
@@ -128,7 +128,7 @@ describe('parser', () => {
       const ast = parseSync('const theme = { primary: "blue" };', {
         syntax: 'typescript',
       });
-      const consts = collectLocalConsts(ast);
+      const consts = collectLocalConsts(ast, 'test.ts');
 
       expect(consts.theme).toEqual({ primary: 'blue' });
     });
@@ -464,7 +464,8 @@ describe('parser', () => {
       const result = scanAll(addDependency);
 
       expect(addDependency).toHaveBeenCalledWith('/test/anim.ts');
-      expect(result.keyframesHashTable).toHaveProperty('fade');
+      const keys = Object.keys(result.keyframesHashTable);
+      expect(keys.some((key) => key.endsWith('-fade'))).toBe(true);
       expect(result.keyframesObjectTable).toBeDefined();
     });
 
@@ -478,8 +479,10 @@ describe('parser', () => {
       const result = scanAll(addDependency);
 
       expect(addDependency).toHaveBeenCalledWith('/test/consts.ts');
-      expect(result.staticTable).toHaveProperty('C');
-      expect(result.staticTable.C).toEqual({ color: 'red' });
+      const keys = Object.keys(result.staticTable);
+      const cKey = keys.find((key) => key.endsWith('-C'));
+      expect(cKey).toBeDefined();
+      expect(result.staticTable[cKey!]).toEqual({ color: 'red' });
     });
 
     it('should scan for createTheme', () => {
@@ -492,7 +495,8 @@ describe('parser', () => {
       const result = scanAll(addDependency);
 
       expect(addDependency).toHaveBeenCalledWith('/test/tokens.ts');
-      expect(result.themeTable).toHaveProperty('T');
+      const keys = Object.keys(result.themeTable);
+      expect(keys.some((key) => key.endsWith('-T'))).toBe(true);
     });
 
     it('should scan for viewTransition', () => {
@@ -505,7 +509,8 @@ describe('parser', () => {
       const result = scanAll(addDependency);
 
       expect(addDependency).toHaveBeenCalledWith('/test/vt.ts');
-      expect(result.viewTransitionHashTable).toHaveProperty('slide');
+      const keys = Object.keys(result.viewTransitionHashTable);
+      expect(keys.some((key) => key.endsWith('-slide'))).toBe(true);
       expect(result.viewTransitionObjectTable).toBeDefined();
     });
 
@@ -518,8 +523,10 @@ describe('parser', () => {
 
       const result = scanAll(addDependency);
 
-      expect(result.staticTable).toHaveProperty('C');
-      expect(result.staticTable.C).toEqual({ size: 'large' });
+      const keys = Object.keys(result.staticTable);
+      const cKey = keys.find((key) => key.endsWith('-C'));
+      expect(cKey).toBeDefined();
+      expect(result.staticTable[cKey!]).toEqual({ size: 'large' });
     });
 
     it('should handle non-exported keyframes declarations', () => {
@@ -531,7 +538,8 @@ describe('parser', () => {
 
       const result = scanAll(addDependency);
 
-      expect(result.keyframesHashTable).toHaveProperty('fade');
+      const keys = Object.keys(result.keyframesHashTable);
+      expect(keys.some((key) => key.endsWith('-fade'))).toBe(true);
     });
 
     it('should handle non-exported createTheme declarations', () => {
@@ -543,7 +551,8 @@ describe('parser', () => {
 
       const result = scanAll(addDependency);
 
-      expect(result.themeTable).toHaveProperty('T');
+      const keys = Object.keys(result.themeTable);
+      expect(keys.some((key) => key.endsWith('-T'))).toBe(true);
     });
 
     it('should handle non-exported viewTransition declarations', () => {
@@ -555,7 +564,8 @@ describe('parser', () => {
 
       const result = scanAll(addDependency);
 
-      expect(result.viewTransitionHashTable).toHaveProperty('slide');
+      const keys = Object.keys(result.viewTransitionHashTable);
+      expect(keys.some((key) => key.endsWith('-slide'))).toBe(true);
     });
 
     it('should skip files without target definition', () => {
