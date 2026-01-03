@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 4.2.0
+
+### Minor Changes
+
+- 73a6ec7: chore: bump version to 4.2.0
+
 ## 4.1.3
 
 ### Patch Changes
