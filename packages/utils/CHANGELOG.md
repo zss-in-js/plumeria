@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 4.2.0
+
+### Minor Changes
+
+- 73a6ec7: perf: scan for incremental loading
+
 ## 4.1.3
 
 ### Patch Changes
