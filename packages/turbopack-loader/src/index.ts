@@ -12,15 +12,12 @@ import {
   getStyleRecords,
   collectLocalConsts,
   objectExpressionToObject,
-  scanForCreateStatic,
-  scanForCreateTheme,
-  scanForKeyframes,
-  scanForViewTransition,
   t,
   extractOndemandStyles,
   deepMerge,
+  scanAll,
 } from '@plumeria/utils';
-import { StyleRecord } from '@plumeria/utils';
+import type { StyleRecord } from '@plumeria/utils';
 
 interface LoaderContext {
   resourcePath: string;
@@ -47,24 +44,7 @@ export default async function loader(this: LoaderContext, source: string) {
   this.clearDependencies();
   this.addDependency(this.resourcePath);
 
-  tables.staticTable = scanForCreateStatic((path) => this.addDependency(path));
-
-  const { keyframesHashTableLocal, keyframesObjectTableLocal } =
-    scanForKeyframes((path) => this.addDependency(path));
-  tables.keyframesHashTable = keyframesHashTableLocal;
-  tables.keyframesObjectTable = keyframesObjectTableLocal;
-
-  const { viewTransitionHashTableLocal, viewTransitionObjectTableLocal } =
-    scanForViewTransition((path) => this.addDependency(path));
-  tables.viewTransitionHashTable = viewTransitionHashTableLocal;
-  tables.viewTransitionObjectTable = viewTransitionObjectTableLocal;
-
-  const { themeTableLocal, createThemeObjectTableLocal } = scanForCreateTheme(
-    (path) => this.addDependency(path),
-  );
-
-  tables.themeTable = themeTableLocal;
-  tables.createThemeObjectTable = createThemeObjectTableLocal;
+  scanAll((path) => this.addDependency(path));
 
   const ast = parseSync(source, {
     syntax: 'typescript',
