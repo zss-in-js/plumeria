@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 4.2.0
+
+### Minor Changes
+
+- 73a6ec7: perf: reduce scan times o(n^2) to o(n)
+
+### Patch Changes
+
+- Updated dependencies [73a6ec7]
+  - @plumeria/utils@4.2.0
+
 ## 4.1.3
 
 ### Patch Changes
