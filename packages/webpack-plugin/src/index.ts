@@ -119,26 +119,23 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     },
   });
 
-  const mergedStaticTable = {
-    ...tables.staticTable,
-    ...localConsts,
-    ...importMap,
-  };
-
-  const mergedKeyframesTable = {
-    ...tables.keyframesHashTable,
-    ...importMap,
-  };
-
-  const mergedViewTransitionTable = {
-    ...tables.viewTransitionHashTable,
-    ...importMap,
-  };
-
-  const mergedThemeTable = {
-    ...tables.themeTable,
-    ...importMap,
-  };
+  const mergedStaticTable = Object.assign(
+    Object.create(tables.staticTable),
+    localConsts,
+    importMap,
+  );
+  const mergedKeyframesTable = Object.assign(
+    Object.create(tables.keyframesHashTable),
+    importMap,
+  );
+  const mergedViewTransitionTable = Object.assign(
+    Object.create(tables.viewTransitionHashTable),
+    importMap,
+  );
+  const mergedThemeTable = Object.assign(
+    Object.create(tables.themeTable),
+    importMap,
+  );
 
   const isTSFile =
     this.resourcePath.endsWith('.ts') && !this.resourcePath.endsWith('.tsx');
