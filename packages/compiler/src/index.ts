@@ -116,26 +116,23 @@ export function compileCSS(options: CompilerOptions) {
       },
     });
 
-    const mergedStaticTable = {
-      ...tables.staticTable,
-      ...localConsts,
-      ...importMap,
-    };
-
-    const mergedKeyframesTable = {
-      ...tables.keyframesHashTable,
-      ...importMap,
-    };
-
-    const mergedViewTransitionTable = {
-      ...tables.viewTransitionHashTable,
-      ...importMap,
-    };
-
-    const mergedThemeTable = {
-      ...tables.themeTable,
-      ...importMap,
-    };
+    const mergedStaticTable = Object.assign(
+      Object.create(tables.staticTable),
+      localConsts,
+      importMap,
+    );
+    const mergedKeyframesTable = Object.assign(
+      Object.create(tables.keyframesHashTable),
+      importMap,
+    );
+    const mergedViewTransitionTable = Object.assign(
+      Object.create(tables.viewTransitionHashTable),
+      importMap,
+    );
+    const mergedThemeTable = Object.assign(
+      Object.create(tables.themeTable),
+      importMap,
+    );
 
     const localCreateStyles: Record<string, CSSObject> = {};
 
