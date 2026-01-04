@@ -52,8 +52,71 @@ export default async function loader(this: LoaderContext, source: string) {
     target: 'es2022',
   });
 
-  const localConsts = collectLocalConsts(ast, this.resourcePath);
-  Object.assign(tables.staticTable, localConsts);
+  const localConsts = collectLocalConsts(ast);
+  const resourcePath = this.resourcePath;
+  const importMap: Record<string, any> = {};
+
+  traverse(ast, {
+    ImportDeclaration({ node }) {
+      const sourcePath = node.source.value;
+      let resolvedPath = '';
+      if (sourcePath.startsWith('.')) {
+        resolvedPath = path.resolve(path.dirname(resourcePath), sourcePath);
+      } else {
+        let currentDir = path.dirname(resourcePath);
+        while (currentDir !== path.parse(currentDir).root) {
+          if (fs.existsSync(path.join(currentDir, 'package.json'))) {
+            resolvedPath = path.resolve(currentDir, sourcePath);
+            break;
+          }
+          currentDir = path.dirname(currentDir);
+        }
+      }
+
+      if (resolvedPath) {
+        const exts = [
+          '.ts',
+          '.tsx',
+          '.js',
+          '.jsx',
+          '/index.ts',
+          '/index.tsx',
+          '/index.js',
+          '/index.jsx',
+        ];
+        let actualPath = resolvedPath;
+        if (!fs.existsSync(actualPath)) {
+          for (const ext of exts) {
+            if (fs.existsSync(resolvedPath + ext)) {
+              actualPath = resolvedPath + ext;
+              break;
+            }
+          }
+        }
+
+        if (fs.existsSync(actualPath)) {
+          node.specifiers.forEach((specifier: any) => {
+            if (specifier.type === 'ImportSpecifier') {
+              const importedName = specifier.imported
+                ? (specifier.imported as any).value
+                : specifier.local.value;
+              const localName = specifier.local.value;
+              const uniqueKey = `${actualPath}-${importedName}`;
+              if (tables.staticTable[uniqueKey]) {
+                importMap[localName] = tables.staticTable[uniqueKey];
+              }
+            }
+          });
+        }
+      }
+    },
+  });
+
+  const mergedStaticTable = {
+    ...tables.staticTable,
+    ...localConsts,
+    ...importMap,
+  };
 
   const isTSFile =
     this.resourcePath.endsWith('.ts') && !this.resourcePath.endsWith('.tsx');
@@ -96,7 +159,7 @@ export default async function loader(this: LoaderContext, source: string) {
       ) {
         const obj = objectExpressionToObject(
           node.init.arguments[0].expression as ObjectExpression,
-          tables.staticTable,
+          mergedStaticTable,
           tables.keyframesHashTable,
           tables.viewTransitionHashTable,
           tables.themeTable,
@@ -208,7 +271,7 @@ export default async function loader(this: LoaderContext, source: string) {
         ) {
           const obj = objectExpressionToObject(
             args[0].expression as ObjectExpression,
-            tables.staticTable,
+            mergedStaticTable,
             tables.keyframesHashTable,
             tables.viewTransitionHashTable,
             tables.themeTable,
@@ -227,7 +290,7 @@ export default async function loader(this: LoaderContext, source: string) {
         ) {
           const obj = objectExpressionToObject(
             args[0].expression as ObjectExpression,
-            tables.staticTable,
+            mergedStaticTable,
             tables.keyframesHashTable,
             tables.viewTransitionHashTable,
             tables.themeTable,
@@ -248,7 +311,7 @@ export default async function loader(this: LoaderContext, source: string) {
         ) {
           const obj = objectExpressionToObject(
             args[0].expression as ObjectExpression,
-            tables.staticTable,
+            mergedStaticTable,
             tables.keyframesHashTable,
             tables.viewTransitionHashTable,
             tables.themeTable,
@@ -367,7 +430,7 @@ export default async function loader(this: LoaderContext, source: string) {
             if (t.isObjectExpression(expr)) {
               const obj = objectExpressionToObject(
                 expr,
-                tables.staticTable,
+                mergedStaticTable,
                 tables.keyframesHashTable,
                 tables.viewTransitionHashTable,
                 tables.themeTable,
