@@ -1,6 +1,7 @@
 import { parseSync, ObjectExpression, Expression } from '@swc/core';
 import { type CSSProperties, genBase36Hash } from 'zss-engine';
 import fs from 'fs';
+import path from 'path';
 
 import {
   tables,
@@ -45,8 +46,71 @@ export function compileCSS(options: CompilerOptions) {
       return [];
     }
 
-    const localConsts = collectLocalConsts(ast, filePath);
-    Object.assign(tables.staticTable, localConsts);
+    const localConsts = collectLocalConsts(ast);
+    const resourcePath = filePath;
+    const importMap: Record<string, any> = {};
+
+    traverse(ast, {
+      ImportDeclaration({ node }) {
+        const sourcePath = node.source.value;
+        let resolvedPath = '';
+        if (sourcePath.startsWith('.')) {
+          resolvedPath = path.resolve(path.dirname(resourcePath), sourcePath);
+        } else {
+          let currentDir = path.dirname(resourcePath);
+          while (currentDir !== path.parse(currentDir).root) {
+            if (fs.existsSync(path.join(currentDir, 'package.json'))) {
+              resolvedPath = path.resolve(currentDir, sourcePath);
+              break;
+            }
+            currentDir = path.dirname(currentDir);
+          }
+        }
+
+        if (resolvedPath) {
+          const exts = [
+            '.ts',
+            '.tsx',
+            '.js',
+            '.jsx',
+            '/index.ts',
+            '/index.tsx',
+            '/index.js',
+            '/index.jsx',
+          ];
+          let actualPath = resolvedPath;
+          if (!fs.existsSync(actualPath)) {
+            for (const ext of exts) {
+              if (fs.existsSync(resolvedPath + ext)) {
+                actualPath = resolvedPath + ext;
+                break;
+              }
+            }
+          }
+
+          if (fs.existsSync(actualPath)) {
+            node.specifiers.forEach((specifier: any) => {
+              if (specifier.type === 'ImportSpecifier') {
+                const importedName = specifier.imported
+                  ? (specifier.imported as any).value
+                  : specifier.local.value;
+                const localName = specifier.local.value;
+                const uniqueKey = `${actualPath}-${importedName}`;
+                if (tables.staticTable[uniqueKey]) {
+                  importMap[localName] = tables.staticTable[uniqueKey];
+                }
+              }
+            });
+          }
+        }
+      },
+    });
+
+    const mergedStaticTable = {
+      ...tables.staticTable,
+      ...localConsts,
+      ...importMap,
+    };
 
     const localCreateStyles: Record<string, CSSObject> = {};
 
@@ -64,7 +128,7 @@ export function compileCSS(options: CompilerOptions) {
         ) {
           const obj = objectExpressionToObject(
             node.init.arguments[0].expression as ObjectExpression,
-            tables.staticTable,
+            mergedStaticTable,
             tables.keyframesHashTable,
             tables.viewTransitionHashTable,
             tables.themeTable,
@@ -98,7 +162,7 @@ export function compileCSS(options: CompilerOptions) {
             if (t.isObjectExpression(expr)) {
               const obj = objectExpressionToObject(
                 expr,
-                tables.staticTable,
+                mergedStaticTable,
                 tables.keyframesHashTable,
                 tables.viewTransitionHashTable,
                 tables.themeTable,
@@ -185,7 +249,7 @@ export function compileCSS(options: CompilerOptions) {
           ) {
             const obj = objectExpressionToObject(
               args[0].expression as ObjectExpression,
-              tables.staticTable,
+              mergedStaticTable,
               tables.keyframesHashTable,
               tables.viewTransitionHashTable,
               tables.themeTable,
@@ -199,7 +263,7 @@ export function compileCSS(options: CompilerOptions) {
           ) {
             const obj = objectExpressionToObject(
               args[0].expression as ObjectExpression,
-              tables.staticTable,
+              mergedStaticTable,
               tables.keyframesHashTable,
               tables.viewTransitionHashTable,
               tables.themeTable,
@@ -215,7 +279,7 @@ export function compileCSS(options: CompilerOptions) {
           ) {
             const obj = objectExpressionToObject(
               args[0].expression as ObjectExpression,
-              tables.staticTable,
+              mergedStaticTable,
               tables.keyframesHashTable,
               tables.viewTransitionHashTable,
               tables.themeTable,
