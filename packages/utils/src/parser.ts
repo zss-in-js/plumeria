@@ -126,20 +126,13 @@ These internal functions are executed through the loader function, so they are a
 Implementation details: These are implementation details that are not exposed, and you end up testing the implementation instead of the behavior.
  */
 
-function genFileId(filePath: string): string {
-  const relativePath = path
-    .relative(PROJECT_ROOT, filePath)
-    .split(path.sep)
-    .join('/');
-  return genBase36Hash({ __file: relativePath }, 1, 8);
-}
-
 export function objectExpressionToObject(
   node: ObjectExpression,
   staticTable: StaticTable,
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
   themeTable: ThemeTable,
+  resolveVariable?: (name: string) => any,
 ): CSSObject {
   const obj: CSSObject = {};
 
@@ -200,11 +193,19 @@ export function objectExpressionToObject(
         keyframesHashTable,
         viewTransitionHashTable,
         themeTable,
+        resolveVariable,
       );
     } else if (t.isMemberExpression(val)) {
       const resolved = resolveStaticTableMemberExpression(val, staticTable);
       obj[key] = resolved !== undefined ? resolved : '[unresolved]';
     } else if (t.isIdentifier(val)) {
+      if (resolveVariable) {
+        const resolved = resolveVariable(val.value);
+        if (resolved !== undefined) {
+          obj[key] = resolved;
+          return;
+        }
+      }
       if (staticTable[val.value] !== undefined) {
         obj[key] = staticTable[val.value];
       } else {
@@ -218,41 +219,55 @@ export function objectExpressionToObject(
   return obj;
 }
 
-export function collectLocalConsts(
-  ast: Module,
-  filePath: string,
-): Record<string, any> {
+export function collectLocalConsts(ast: Module): Record<string, any> {
   const localConsts: Record<string, any> = {};
-  const fileId = genFileId(filePath);
-
-  const createProxy = (table: Record<string, any>) => {
-    return new Proxy(table, {
-      get: (target, prop) => {
-        if (typeof prop === 'string') {
-          return target[`${fileId}-${prop}`];
-        }
-        return Reflect.get(target, prop);
-      },
-    });
-  };
+  const decls = new Map<string, any>();
 
   traverse(ast, {
     VariableDeclarator({ node }: { node: VariableDeclarator }) {
       if (t.isIdentifier(node.id) && node.init) {
-        if (t.isStringLiteral(node.init)) {
-          localConsts[node.id.value] = node.init.value;
-        } else if (t.isObjectExpression(node.init)) {
-          localConsts[node.id.value] = objectExpressionToObject(
-            node.init,
-            localConsts,
-            createProxy(tables.keyframesHashTable),
-            createProxy(tables.viewTransitionHashTable),
-            createProxy(tables.themeTable),
-          );
-        }
+        decls.set(node.id.value, node.init);
       }
     },
   });
+
+  const visiting = new Set<string>();
+
+  function resolveValue(name: string): any {
+    if (localConsts[name] !== undefined) return localConsts[name];
+    if (!decls.has(name) || visiting.has(name)) return undefined;
+
+    visiting.add(name);
+    const init = decls.get(name);
+    let result: any;
+
+    if (
+      t.isStringLiteral(init) ||
+      t.isNumericLiteral(init) ||
+      t.isBooleanLiteral(init)
+    ) {
+      result = init.value;
+    } else if (t.isObjectExpression(init)) {
+      result = objectExpressionToObject(
+        init,
+        localConsts,
+        tables.keyframesHashTable,
+        tables.viewTransitionHashTable,
+        tables.themeTable,
+        resolveValue,
+      );
+    }
+
+    visiting.delete(name);
+    if (result !== undefined) {
+      localConsts[name] = result;
+    }
+    return result;
+  }
+
+  for (const name of decls.keys()) {
+    resolveValue(name);
+  }
 
   return localConsts;
 }
@@ -577,6 +592,14 @@ interface CachedData {
 const fileCache: Record<string, CachedData> = {};
 
 export function scanAll(addDependency: (path: string) => void): Tables {
+  // Clear tables while preserving object references
+  for (const key in tables) {
+    const table = (tables as any)[key];
+    for (const prop in table) {
+      delete table[prop];
+    }
+  }
+
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
@@ -626,7 +649,6 @@ export function scanAll(addDependency: (path: string) => void): Tables {
 
       addDependency(filePath);
 
-      const fileId = genFileId(filePath);
       const localStaticTable: StaticTable = {};
       const localKeyframesHashTable: KeyframesHashTable = {};
       const localViewTransitionHashTable: ViewTransitionHashTable = {};
@@ -669,7 +691,7 @@ export function scanAll(addDependency: (path: string) => void): Tables {
               localThemeTable,
             );
 
-            const uniqueKey = `${fileId}-${name}`;
+            const uniqueKey = `${filePath}-${name}`;
 
             if (method === 'createStatic') {
               localStaticTable[name] = obj;
