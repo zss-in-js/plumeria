@@ -1,5 +1,13 @@
 # @plumeria/webpack-plugin
 
+## 4.2.1
+
+### Patch Changes
+
+- 27431e6: fix: parser and compiler and plugin resolving exported value
+- Updated dependencies [27431e6]
+  - @plumeria/utils@4.2.1
+
 ## 4.2.0
 
 ### Minor Changes

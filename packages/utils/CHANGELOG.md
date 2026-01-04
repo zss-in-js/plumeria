@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 4.2.1
+
+### Patch Changes
+
+- 27431e6: fix: parser and compiler and plugin resolving exported value
+
 ## 4.2.0
 
 ### Minor Changes
