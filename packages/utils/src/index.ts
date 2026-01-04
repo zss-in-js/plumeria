@@ -11,3 +11,4 @@ export {
 } from './parser';
 export { getStyleRecords } from './create';
 export type { StyleRecord } from './create';
+export { resolveImportPath } from './resolver';
