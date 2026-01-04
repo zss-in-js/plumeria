@@ -174,6 +174,16 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   if (tables.staticTable[uniqueKey]) {
                     importMap[localName] = tables.staticTable[uniqueKey];
                   }
+                  if (tables.keyframesHashTable[uniqueKey]) {
+                    importMap[localName] = tables.keyframesHashTable[uniqueKey];
+                  }
+                  if (tables.viewTransitionHashTable[uniqueKey]) {
+                    importMap[localName] =
+                      tables.viewTransitionHashTable[uniqueKey];
+                  }
+                  if (tables.themeTable[uniqueKey]) {
+                    importMap[localName] = tables.themeTable[uniqueKey];
+                  }
                 }
               });
             }
@@ -184,6 +194,21 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       const mergedStaticTable = {
         ...tables.staticTable,
         ...localConsts,
+        ...importMap,
+      };
+
+      const mergedKeyframesTable = {
+        ...tables.keyframesHashTable,
+        ...importMap,
+      };
+
+      const mergedViewTransitionTable = {
+        ...tables.viewTransitionHashTable,
+        ...importMap,
+      };
+
+      const mergedThemeTable = {
+        ...tables.themeTable,
         ...importMap,
       };
 
@@ -233,9 +258,9 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             const obj = objectExpressionToObject(
               node.init.arguments[0].expression as ObjectExpression,
               mergedStaticTable,
-              tables.keyframesHashTable,
-              tables.viewTransitionHashTable,
-              tables.themeTable,
+              mergedKeyframesTable,
+              mergedViewTransitionTable,
+              mergedThemeTable,
             );
             if (obj) {
               const hashMap: Record<string, Record<string, string>> = {};
@@ -345,9 +370,9 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               const obj = objectExpressionToObject(
                 args[0].expression as ObjectExpression,
                 mergedStaticTable,
-                tables.keyframesHashTable,
-                tables.viewTransitionHashTable,
-                tables.themeTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedThemeTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
               tables.keyframesObjectTable[hash] = obj;
@@ -364,9 +389,9 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               const obj = objectExpressionToObject(
                 args[0].expression as ObjectExpression,
                 mergedStaticTable,
-                tables.keyframesHashTable,
-                tables.viewTransitionHashTable,
-                tables.themeTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedThemeTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
               tables.viewTransitionObjectTable[hash] = obj;
@@ -385,9 +410,9 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               const obj = objectExpressionToObject(
                 args[0].expression as ObjectExpression,
                 mergedStaticTable,
-                tables.keyframesHashTable,
-                tables.viewTransitionHashTable,
-                tables.themeTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedThemeTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
               tables.createThemeObjectTable[hash] = obj;
@@ -509,9 +534,9 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                     const obj = objectExpressionToObject(
                       expr,
                       mergedStaticTable,
-                      tables.keyframesHashTable,
-                      tables.viewTransitionHashTable,
-                      tables.themeTable,
+                      mergedKeyframesTable,
+                      mergedViewTransitionTable,
+                      mergedThemeTable,
                     );
                     return obj ? deepMerge(acc, obj) : acc;
                   } else if (
