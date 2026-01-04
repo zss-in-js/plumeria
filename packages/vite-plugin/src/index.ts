@@ -23,6 +23,7 @@ import {
   extractOndemandStyles,
   deepMerge,
   scanAll,
+  resolveImportPath,
 } from '@plumeria/utils';
 import type { StyleRecord } from '@plumeria/utils';
 
@@ -128,41 +129,9 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       traverse(ast, {
         ImportDeclaration({ node }) {
           const sourcePath = node.source.value;
-          let resolvedPath = '';
-          if (sourcePath.startsWith('.')) {
-            resolvedPath = path.resolve(path.dirname(resourcePath), sourcePath);
-          } else {
-            let currentDir = path.dirname(resourcePath);
-            while (currentDir !== path.parse(currentDir).root) {
-              if (fs.existsSync(path.join(currentDir, 'package.json'))) {
-                resolvedPath = path.resolve(currentDir, sourcePath);
-                break;
-              }
-              currentDir = path.dirname(currentDir);
-            }
-          }
+          const actualPath = resolveImportPath(sourcePath, resourcePath);
 
-          if (resolvedPath) {
-            const exts = [
-              '.ts',
-              '.tsx',
-              '.js',
-              '.jsx',
-              '/index.ts',
-              '/index.tsx',
-              '/index.js',
-              '/index.jsx',
-            ];
-            let actualPath = resolvedPath;
-            if (!fs.existsSync(actualPath)) {
-              for (const ext of exts) {
-                if (fs.existsSync(resolvedPath + ext)) {
-                  actualPath = resolvedPath + ext;
-                  break;
-                }
-              }
-            }
-
+          if (actualPath && fs.existsSync(actualPath)) {
             if (fs.existsSync(actualPath)) {
               node.specifiers.forEach((specifier: any) => {
                 if (specifier.type === 'ImportSpecifier') {
