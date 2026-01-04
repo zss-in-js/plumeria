@@ -1,0 +1,49 @@
+---
+title: "Plumeria v4.2.1"
+description: "Minor: Performance improvements: o(n²) to o(n) and in-memory caching"
+date: '2026-01-04'
+---
+
+# Minor Performance Improvements:  
+Edge case bugfix and Increases build speed improvements.
+
+We're excited to announce a significant performance update that dramatically improves build speeds and fixes critical collision issues. This release brings three major improvements that will make your development experience noticeably faster.
+
+### 🚀 Optimized Scanning Algorithm: O(n²) → O(n)
+
+We've completely reimplemented our scanning logic with the new `scanAll` function. Previously, the scanner would traverse the codebase multiple times, resulting in O(n²) complexity. Now, with a single-pass algorithm, we've reduced this to O(n), meaning scan times scale linearly with your codebase size.
+
+**Impact**: Projects with large codebases will see the most dramatic improvements, with scan times reduced by orders of magnitude in some cases.
+
+### ⚡ In-Memory Incremental Caching
+
+We've introduced an intelligent in-memory cache that eliminates redundant scanning. Once a file is scanned, the results are cached. The loader no longer needs to rescan everything on each run.
+
+**Impact**: Incremental loading are now blazingly fast. After the initial scan, next loader run only process changed files, dramatically reducing build times during development.
+
+## 🔧 Fixed:
+### Table Collision Issues
+We've resolved a critical bug where object tables variable name could conflicts. By adding unique IDs as keys, tables are now properly isolated and won't interfere with each other.  
+**Impact:** `keyframes` - `viewTransition` - `createStatic` - `createTheme`
+### output bug
+
+- Fixed: output of `styles:` variable to be a `type-safe` hashmap
+
+## Improvements Details
+
+These improvements span across all our build tool integrations:
+
+- **turbopack-loader**: optimize for utils impact  
+- **webpack-plugin**: optimize for utils impact  
+- **vite-plugin**: optimize for utils impact  
+- **compiler**: optimize for utils impact
+- **utils/parser**: implementation o(n) scan in-memory incremental loader
+
+
+## What's Next
+
+With these performance foundations in place, we're focusing on stability and developer experience improvements. The current API is solid, and we're committed to maintaining compatibility while exploring new optimization opportunities.
+
+---
+
+We'd love to hear about your experience with these improvements! Feel free to share your build time comparisons or report any issues on our GitHub repository.
