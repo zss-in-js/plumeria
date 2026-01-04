@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 4.2.1
+
+### Patch Changes
+
+- 27431e6: chore: bump version to 4.2.1
+- Updated dependencies [27431e6]
+  - @plumeria/compiler@4.2.1
+
 ## 4.2.0
 
 ### Minor Changes
