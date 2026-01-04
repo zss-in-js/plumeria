@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 4.2.1
+
+### Patch Changes
+
+- 27431e6: chore: bump version to 4.2.1
+
 ## 4.2.0
 
 ### Minor Changes
