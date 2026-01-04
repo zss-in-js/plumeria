@@ -118,7 +118,7 @@ describe('parser', () => {
       const ast = parseSync('const color = "red"; const size = "large";', {
         syntax: 'typescript',
       });
-      const consts = collectLocalConsts(ast, 'test.ts');
+      const consts = collectLocalConsts(ast);
 
       expect(consts.color).toBe('red');
       expect(consts.size).toBe('large');
@@ -128,7 +128,7 @@ describe('parser', () => {
       const ast = parseSync('const theme = { primary: "blue" };', {
         syntax: 'typescript',
       });
-      const consts = collectLocalConsts(ast, 'test.ts');
+      const consts = collectLocalConsts(ast);
 
       expect(consts.theme).toEqual({ primary: 'blue' });
     });
