@@ -1,7 +1,12 @@
 /* eslint-disable @plumeria/validate-values */
 import type { LoaderContext } from 'webpack';
 import { parseSync } from '@swc/core';
-import type { Declaration, Expression, ObjectExpression } from '@swc/core';
+import type {
+  Declaration,
+  Expression,
+  ImportSpecifier,
+  ObjectExpression,
+} from '@swc/core';
 import fs from 'fs';
 import path from 'path';
 
@@ -60,10 +65,10 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
       const actualPath = resolveImportPath(sourcePath, resourcePath);
 
       if (actualPath && fs.existsSync(actualPath)) {
-        node.specifiers.forEach((specifier: any) => {
+        node.specifiers.forEach((specifier: ImportSpecifier) => {
           if (specifier.type === 'ImportSpecifier') {
             const importedName = specifier.imported
-              ? (specifier.imported as any).value
+              ? specifier.imported.value
               : specifier.local.value;
             const localName = specifier.local.value;
             const uniqueKey = `${actualPath}-${importedName}`;
