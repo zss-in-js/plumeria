@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 5.0.0
+
+### Major Changes
+
+- a64bc0c: perf: The core is now ESM-only, and no longer supports cjs syntax calls.
+
 ## 4.2.1
 
 ### Patch Changes

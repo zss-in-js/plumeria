@@ -1,5 +1,16 @@
 # @plumeria/postcss-plugin
 
+## 5.0.0
+
+### Major Changes
+
+- a64bc0c: perf: The core is now ESM-only, and no longer supports cjs syntax calls.
+
+### Patch Changes
+
+- Updated dependencies [a64bc0c]
+  - @plumeria/compiler@5.0.0
+
 ## 4.2.1
 
 ### Patch Changes
