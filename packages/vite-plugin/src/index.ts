@@ -160,23 +160,28 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         },
       });
 
-      const mergedStaticTable = Object.assign(
-        Object.create(tables.staticTable),
-        localConsts,
-        importMap,
-      );
-      const mergedKeyframesTable = Object.assign(
-        Object.create(tables.keyframesHashTable),
-        importMap,
-      );
-      const mergedViewTransitionTable = Object.assign(
-        Object.create(tables.viewTransitionHashTable),
-        importMap,
-      );
-      const mergedThemeTable = Object.assign(
-        Object.create(tables.themeTable),
-        importMap,
-      );
+      const mergedStaticTable = { ...tables.staticTable };
+      for (const key of Object.keys(localConsts)) {
+        mergedStaticTable[key] = localConsts[key];
+      }
+      for (const key of Object.keys(importMap)) {
+        mergedStaticTable[key] = importMap[key];
+      }
+
+      const mergedKeyframesTable = { ...tables.keyframesHashTable };
+      for (const key of Object.keys(importMap)) {
+        mergedKeyframesTable[key] = importMap[key];
+      }
+
+      const mergedViewTransitionTable = { ...tables.viewTransitionHashTable };
+      for (const key of Object.keys(importMap)) {
+        mergedViewTransitionTable[key] = importMap[key];
+      }
+
+      const mergedThemeTable = { ...tables.themeTable };
+      for (const key of Object.keys(importMap)) {
+        mergedThemeTable[key] = importMap[key];
+      }
 
       const localCreateStyles: Record<
         string,
