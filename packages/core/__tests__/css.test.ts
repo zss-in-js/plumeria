@@ -7,31 +7,31 @@ describe('css runtime stubs', () => {
   test('create throws runtime error', () => {
     expect(() => {
       css.create({ a: { color: 'red' } });
-    }).toThrow(/requires bundler-plugin/);
+    }).toThrow('Runtime execution is not supported');
   });
 
   test('createStatic throws runtime error', () => {
     expect(() => {
       css.createStatic({ a: 'b' });
-    }).toThrow(/requires bundler-plugin/);
+    }).toThrow('Runtime execution is not supported');
   });
 
   test('createTheme throws runtime error', () => {
     expect(() => {
       css.createTheme({});
-    }).toThrow(/requires bundler-plugin/);
+    }).toThrow('Runtime execution is not supported');
   });
 
   test('keyframes throws runtime error', () => {
     expect(() => {
       css.keyframes({});
-    }).toThrow(/requires bundler-plugin/);
+    }).toThrow('Runtime execution is not supported');
   });
 
   test('viewTransition throws runtime error', () => {
     expect(() => {
       css.viewTransition({});
-    }).toThrow(/requires bundler-plugin/);
+    }).toThrow('Runtime execution is not supported');
   });
 });
 
