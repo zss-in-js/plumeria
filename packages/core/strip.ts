@@ -68,7 +68,7 @@ function walk(dir: string) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       walk(full);
-    } else if (/\.(js|mjs|d\.ts)$/.test(entry.name)) {
+    } else if (/\.(js|mjs|d\.mts)$/.test(entry.name)) {
       clean(full);
     }
   }
