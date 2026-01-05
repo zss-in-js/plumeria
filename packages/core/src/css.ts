@@ -11,13 +11,15 @@ import type {
   Style,
 } from './types';
 
-function errorFn(fn: string) {
-  throw new Error(`css.${fn} requires bundler-plugin setup`);
-}
+const errorFn = () => {
+  throw new Error('Runtime execution is not supported');
+};
 
 const defined = new Set<string>();
 
-function props(...rules: (false | CSSProperties | null | undefined)[]): string {
+const props = (
+  ...rules: (false | CSSProperties | null | undefined)[]
+): string => {
   defined.clear();
   let result = '';
 
@@ -37,39 +39,33 @@ function props(...rules: (false | CSSProperties | null | undefined)[]): string {
   }
 
   return result;
-}
-
-const css = class _css {
-  static create<const T extends Record<string, CSSProperties>>(
-    _rule: CreateStyleType<T>,
-  ): ReturnType<T> {
-    throw errorFn('create');
-  }
-  static props = props;
-
-  static createTheme<const T extends CreateTheme>(
-    _rule: T,
-  ): ReturnVariableType<T> {
-    throw errorFn('createTheme');
-  }
-
-  static createStatic<const T extends CreateStatic>(_rule: T): T {
-    throw errorFn('createStatic');
-  }
-
-  static keyframes(_rule: Keyframes): string {
-    throw errorFn('keyframes');
-  }
-
-  static viewTransition(_rule: ViewTransition): string {
-    throw errorFn('viewTransition');
-  }
 };
 
-const x = (className: string, style: Style) => ({
-  className,
-  style,
-});
+const create = <const T extends Record<string, CSSProperties>>(
+  _rule: CreateStyleType<T>,
+): ReturnType<T> => errorFn();
+
+const createTheme = <const T extends CreateTheme>(
+  _rule: T,
+): ReturnVariableType<T> => errorFn();
+
+const createStatic = <const T extends CreateStatic>(_rule: T): T => errorFn();
+
+const keyframes = (_rule: Keyframes): string => errorFn();
+
+const viewTransition = (_rule: ViewTransition): string => errorFn();
+
+const x = (className: string, style: Style) => ({ className, style });
+
+const css = {
+  create,
+  props,
+  createTheme,
+  createStatic,
+  keyframes,
+  viewTransition,
+};
+type css = typeof css;
 
 export { css, x };
 export type { CreateStyle, CSSProperties };
