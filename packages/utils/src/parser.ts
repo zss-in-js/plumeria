@@ -591,14 +591,21 @@ interface CachedData {
 
 const fileCache: Record<string, CachedData> = {};
 
-export function scanAll(addDependency: (path: string) => void): Tables {
-  // Clear tables while preserving object references
-  for (const key in tables) {
-    const table = (tables as any)[key];
-    for (const prop in table) {
-      delete table[prop];
-    }
+function clearTable(table: Record<string, any>) {
+  const keys = Object.keys(table);
+  for (let i = 0; i < keys.length; i++) {
+    delete table[keys[i]];
   }
+}
+
+export function scanAll(addDependency: (path: string) => void): Tables {
+  clearTable(tables.staticTable);
+  clearTable(tables.keyframesHashTable);
+  clearTable(tables.keyframesObjectTable);
+  clearTable(tables.viewTransitionHashTable);
+  clearTable(tables.viewTransitionObjectTable);
+  clearTable(tables.themeTable);
+  clearTable(tables.createThemeObjectTable);
 
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
@@ -607,21 +614,26 @@ export function scanAll(addDependency: (path: string) => void): Tables {
       const stats = fs.statSync(filePath);
       const cached = fileCache[filePath];
 
-      // Use cache if file hasn't changed
       if (cached && cached.mtimeMs === stats.mtimeMs) {
         if (cached.hasCssUsage) {
           addDependency(filePath);
-          Object.assign(tables.staticTable, cached.staticTable);
-          Object.assign(tables.keyframesHashTable, cached.keyframesHashTable);
-          Object.assign(
-            tables.viewTransitionHashTable,
-            cached.viewTransitionHashTable,
-          );
-          Object.assign(tables.themeTable, cached.themeTable);
-          Object.assign(
-            tables.createThemeObjectTable,
-            cached.createThemeObjectTable,
-          );
+          for (const key of Object.keys(cached.staticTable)) {
+            tables.staticTable[key] = cached.staticTable[key];
+          }
+          for (const key of Object.keys(cached.keyframesHashTable)) {
+            tables.keyframesHashTable[key] = cached.keyframesHashTable[key];
+          }
+          for (const key of Object.keys(cached.viewTransitionHashTable)) {
+            tables.viewTransitionHashTable[key] =
+              cached.viewTransitionHashTable[key];
+          }
+          for (const key of Object.keys(cached.themeTable)) {
+            tables.themeTable[key] = cached.themeTable[key];
+          }
+          for (const key of Object.keys(cached.createThemeObjectTable)) {
+            tables.createThemeObjectTable[key] =
+              cached.createThemeObjectTable[key];
+          }
         }
         continue;
       }
