@@ -1,6 +1,11 @@
 /* eslint-disable @plumeria/validate-values */
 import { parseSync } from '@swc/core';
-import type { Declaration, Expression, ObjectExpression } from '@swc/core';
+import type {
+  Declaration,
+  Expression,
+  ImportSpecifier,
+  ObjectExpression,
+} from '@swc/core';
 import fs from 'fs';
 import path from 'path';
 import { genBase36Hash } from 'zss-engine';
@@ -22,6 +27,8 @@ import type { StyleRecord } from '@plumeria/utils';
 
 interface LoaderContext {
   resourcePath: string;
+  context: string;
+  rootContext: string;
   async: () => (err: Error | null, content?: string) => void;
   addDependency: (path: string) => void;
   clearDependencies: () => void;
@@ -64,10 +71,10 @@ export default async function loader(this: LoaderContext, source: string) {
 
       if (actualPath && fs.existsSync(actualPath)) {
         if (fs.existsSync(actualPath)) {
-          node.specifiers.forEach((specifier: any) => {
+          node.specifiers.forEach((specifier: ImportSpecifier) => {
             if (specifier.type === 'ImportSpecifier') {
               const importedName = specifier.imported
-                ? (specifier.imported as any).value
+                ? specifier.imported.value
                 : specifier.local.value;
               const localName = specifier.local.value;
               const uniqueKey = `${actualPath}-${importedName}`;
@@ -578,7 +585,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
   const VIRTUAL_CSS_PATH = require.resolve(VIRTUAL_FILE_PATH);
 
-  function stringifyRequest(loaderContext: any, request: string) {
+  function stringifyRequest(loaderContext: LoaderContext, request: string) {
     const context = loaderContext.context || loaderContext.rootContext;
     const relativePath = path.relative(context, request);
     const requestPath = relativePath.startsWith('.')
