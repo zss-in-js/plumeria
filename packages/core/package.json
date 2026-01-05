@@ -24,9 +24,9 @@
     "react-native-web"
   ],
   "sideEffects": false,
-  "main": "dist/css.js",
+  "main": "dist/css.mjs",
   "module": "dist/css.mjs",
-  "types": "dist/css.d.ts",
+  "types": "dist/css.d.mts",
   "files": [
     "dist/"
   ],
