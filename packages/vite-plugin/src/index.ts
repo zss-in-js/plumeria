@@ -7,7 +7,12 @@ import type {
 } from 'vite';
 import { createFilter } from 'vite';
 import { parseSync } from '@swc/core';
-import type { Declaration, Expression, ObjectExpression } from '@swc/core';
+import type {
+  Declaration,
+  Expression,
+  ImportSpecifier,
+  ObjectExpression,
+} from '@swc/core';
 import path from 'path';
 import fs from 'fs';
 
@@ -133,10 +138,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
           if (actualPath && fs.existsSync(actualPath)) {
             if (fs.existsSync(actualPath)) {
-              node.specifiers.forEach((specifier: any) => {
+              node.specifiers.forEach((specifier: ImportSpecifier) => {
                 if (specifier.type === 'ImportSpecifier') {
                   const importedName = specifier.imported
-                    ? (specifier.imported as any).value
+                    ? specifier.imported.value
                     : specifier.local.value;
                   const localName = specifier.local.value;
                   const uniqueKey = `${actualPath}-${importedName}`;
