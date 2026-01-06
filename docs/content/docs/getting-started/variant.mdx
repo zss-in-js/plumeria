@@ -15,7 +15,7 @@ eg: `color: keyof typeof styles`.
 ```tsx
 import { css } from '@plumeria/core';
 
-const styles = css.create({
+const colorVariant = css.create({
   white: {
     color: 'white',
   },
@@ -27,14 +27,21 @@ const styles = css.create({
   },
 });
 
-export const Button = ({ color }: { color: keyof typeof styles }) => {
-  return <button className={css.props(styles[color])}>Button</button>;
+type ColorVariant = keyof typeof colorVariant;
+// or
+type ColorVariantProps = 'white' | 'pink' | 'green';
+
+export const Button = ({ color }: { color: ColorVariant }) => {
+  return <button className={css.props(colorVariant[color])}>Button</button>;
 };
 
 <Button color="white" />;
 <Button color="pink" />;
 <Button color="green" />;
 ```
+
+Since variants refer to all of their creates, there is a cost associated with keeping a hash map as a reference.  
+To minimize this cost, it is best practice to separate create and limit it to variants only, such as colorVariant, and separate it from the regular styles = create.
 
 <Cards>
   <Card title="See more about API create" href="/docs/api-reference/create" />
