@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 5.0.1
+
+### Patch Changes
+
+- 9e60b5b: chore: bump version to 5.0.1
+
 ## 5.0.0
 
 ### Major Changes
