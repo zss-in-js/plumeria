@@ -1,11 +1,13 @@
 import type {
   CSSObject,
-  StaticTable,
-  KeyframesHashTable,
   CSSValue,
   ThemeTable,
-  ViewTransitionHashTable,
   Tables,
+  StaticTable,
+  KeyframesHashTable,
+  KeyframesObjectTable,
+  ViewTransitionHashTable,
+  ViewTransitionObjectTable,
   CreateThemeObjectTable,
 } from './types';
 
@@ -583,7 +585,9 @@ interface CachedData {
   mtimeMs: number;
   staticTable: StaticTable;
   keyframesHashTable: KeyframesHashTable;
+  keyframesObjectTable: KeyframesObjectTable;
   viewTransitionHashTable: ViewTransitionHashTable;
+  viewTransitionObjectTable: ViewTransitionObjectTable;
   themeTable: ThemeTable;
   createThemeObjectTable: CreateThemeObjectTable;
   hasCssUsage: boolean;
@@ -614,9 +618,16 @@ export function scanAll(addDependency: (path: string) => void): Tables {
           for (const key of Object.keys(cached.keyframesHashTable)) {
             tables.keyframesHashTable[key] = cached.keyframesHashTable[key];
           }
+          for (const key of Object.keys(cached.keyframesObjectTable)) {
+            tables.keyframesObjectTable[key] = cached.keyframesObjectTable[key];
+          }
           for (const key of Object.keys(cached.viewTransitionHashTable)) {
             tables.viewTransitionHashTable[key] =
               cached.viewTransitionHashTable[key];
+          }
+          for (const key of Object.keys(cached.viewTransitionObjectTable)) {
+            tables.viewTransitionObjectTable[key] =
+              cached.viewTransitionObjectTable[key];
           }
           for (const key of Object.keys(cached.themeTable)) {
             tables.themeTable[key] = cached.themeTable[key];
@@ -636,7 +647,9 @@ export function scanAll(addDependency: (path: string) => void): Tables {
           mtimeMs: stats.mtimeMs,
           staticTable: {},
           keyframesHashTable: {},
+          keyframesObjectTable: {},
           viewTransitionHashTable: {},
+          viewTransitionObjectTable: {},
           themeTable: {},
           createThemeObjectTable: {},
           hasCssUsage: false,
@@ -654,7 +667,9 @@ export function scanAll(addDependency: (path: string) => void): Tables {
 
       const localStaticTable: StaticTable = {};
       const localKeyframesHashTable: KeyframesHashTable = {};
+      const localKeyframesObjectTable: KeyframesObjectTable = {};
       const localViewTransitionHashTable: ViewTransitionHashTable = {};
+      const localViewTransitionObjectTable: ViewTransitionObjectTable = {};
       const localThemeTable: ThemeTable = {};
       const localCreateThemeObjectTable: CreateThemeObjectTable = {};
 
@@ -704,11 +719,13 @@ export function scanAll(addDependency: (path: string) => void): Tables {
               localKeyframesHashTable[name] = hash;
               tables.keyframesHashTable[uniqueKey] = hash;
               tables.keyframesObjectTable[hash] = obj;
+              localKeyframesObjectTable[hash] = obj;
             } else if (method === 'viewTransition') {
               const hash = genBase36Hash(obj, 1, 8);
               localViewTransitionHashTable[name] = hash;
               tables.viewTransitionHashTable[uniqueKey] = hash;
               tables.viewTransitionObjectTable[hash] = obj;
+              localViewTransitionObjectTable[hash] = obj;
             } else if (method === 'createTheme') {
               const hash = genBase36Hash(obj, 1, 8);
               localThemeTable[name] = obj;
@@ -725,7 +742,9 @@ export function scanAll(addDependency: (path: string) => void): Tables {
         mtimeMs: stats.mtimeMs,
         staticTable: localStaticTable,
         keyframesHashTable: localKeyframesHashTable,
+        keyframesObjectTable: localKeyframesObjectTable,
         viewTransitionHashTable: localViewTransitionHashTable,
+        viewTransitionObjectTable: localViewTransitionObjectTable,
         themeTable: localThemeTable,
         createThemeObjectTable: localCreateThemeObjectTable,
         hasCssUsage: true,
