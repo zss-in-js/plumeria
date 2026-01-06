@@ -591,22 +591,13 @@ interface CachedData {
 
 const fileCache: Record<string, CachedData> = {};
 
-function clearTable(table: Record<string, any>) {
-  const keys = Object.keys(table);
-  for (let i = 0; i < keys.length; i++) {
-    delete table[keys[i]];
-  }
-}
-
 export function scanAll(addDependency: (path: string) => void): Tables {
-  clearTable(tables.staticTable);
-  clearTable(tables.keyframesHashTable);
-  clearTable(tables.keyframesObjectTable);
-  clearTable(tables.viewTransitionHashTable);
-  clearTable(tables.viewTransitionObjectTable);
-  clearTable(tables.themeTable);
-  clearTable(tables.createThemeObjectTable);
-
+  for (const key in tables) {
+    const table = tables[key as keyof Tables];
+    for (const prop in table) {
+      delete table[prop];
+    }
+  }
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
