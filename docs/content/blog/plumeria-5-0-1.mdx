@@ -1,0 +1,22 @@
+---
+title: 'Plumeria v5.0.1'
+description: 'Plumeria v5.0.1 Improvement build efficiency and no longer supports CJS. (2 min read)'
+date: '2026/01/06'
+---
+
+## v5.0.1
+
+※: `5.0.0` has a bug in the loader (utils logic) of each plugin that causes the hashmap to disappear.
+Please use `5.0.1` or later.
+
+## Breaking Change
+- Now supports `ESM` only.
+- CJS is not supported from v5.0.x onwards.  
+Since cjs syntax is not used in Vite Next, we have discontinued support for it due to the ESM that swc can parse and the maintainability considerations, which is a modern library approach that benefits from overwhelming maintainability and tree shaking.
+
+
+
+
+### Improvements
+- `postcss-plugin` is no longer started in dev mode, making `next dev` start faster.
+- The `Object.assign` processing has been replaced with a `for` statement, `improving build speed`.
