@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 5.0.1
+
+### Patch Changes
+
+- 9e60b5b: fix: fixed HMR restoring from the cache table failed.
+
 ## 5.0.0
 
 ### Major Changes
