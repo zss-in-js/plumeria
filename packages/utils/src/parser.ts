@@ -670,7 +670,7 @@ interface CachedData {
 
 const fileCache: Record<string, CachedData> = {};
 
-export function scanAll(addDependency: (path: string) => void): Tables {
+export function scanAll(): Tables {
   const localTables: Tables = {
     staticTable: {},
     themeTable: {},
@@ -694,7 +694,6 @@ export function scanAll(addDependency: (path: string) => void): Tables {
 
       if (cached && cached.mtimeMs === stats.mtimeMs) {
         if (cached.hasCssUsage) {
-          addDependency(filePath);
           for (const key of Object.keys(cached.staticTable)) {
             localTables.staticTable[`${filePath}-${key}`] =
               cached.staticTable[key];
@@ -768,8 +767,6 @@ export function scanAll(addDependency: (path: string) => void): Tables {
         tsx: true,
         target: 'es2022',
       });
-
-      addDependency(filePath);
 
       const localStaticTable: StaticTable = {};
       const localKeyframesHashTable: KeyframesHashTable = {};
