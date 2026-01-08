@@ -5,10 +5,6 @@ import { breakpoints } from 'lib/mediaQuery';
 import Link from 'next/link';
 
 const styles = css.create({
-  content: {
-    position: 'relative',
-    zIndex: 1,
-  },
   button: {
     position: 'relative',
     display: 'inline-flex',
@@ -88,20 +84,27 @@ const styles = css.create({
   },
 });
 
-type ButtonVariant = 'gradient' | 'metallic';
-
-type ButtonSize = 'small' | 'medium' | 'large';
+const getButtonStyle = css.variants({
+  variant: {
+    gradient: styles.gradient,
+    metallic: styles.metallic,
+  },
+  size: {
+    small: styles.small,
+    medium: styles.medium,
+    large: styles.large,
+  },
+});
 
 interface Props {
   children: ReactNode;
-  variant: ButtonVariant;
-  size: ButtonSize;
+  variant: 'gradient' | 'metallic';
   href: string;
 }
 
-export const ButtonLink = ({ children, variant, size, href }: Props) => {
+export const ButtonLink = ({ children, variant, href }: Props) => {
   return (
-    <Link href={href} className={css.props(styles.button, styles[variant], styles[size])}>
+    <Link href={href} className={css.props(styles.button, getButtonStyle({ variant, size: 'medium' }))}>
       {children}
     </Link>
   );
