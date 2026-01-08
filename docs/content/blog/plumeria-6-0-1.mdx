@@ -1,0 +1,63 @@
+---
+title: 'Plumeria v6.0.1'
+description: 'Plumeria v6.0.1 True Zero Runtime and Zero Bundle new API css.variants. (3 min read)'
+date: '2026/01/08'
+---
+
+## Features
+### Zero Runtime and Zero Bundle
+- deprecation of `***bracket variant***` and new `css.variants`
+- `props` are now stubbed and in Zero Runtime.
+- create is now resolved statically and no longer always leaves a hashmap.
+
+References to imported css objects will be resolved at build time and will no longer reference them, and the bundle will no longer contain `core` code.
+
+
+## Variants
+```tsx
+const getButtonStyle = css.variants({
+  variant: {
+    gradient: styles.gradient,
+    metallic: styles.metallic,
+  },
+  size: {
+    small: styles.small,
+    medium: styles.medium,
+    large: styles.large,
+  },
+});
+
+interface Props {
+  children: ReactNode;
+  variant: 'gradient' | 'metallic';
+  href: string;
+}
+
+export const ButtonLink = ({ children, variant, href }: Props) => {
+  return (
+    <Link href={href} className={css.props(getButtonStyle({ variant, size: 'medium' }))}>
+      {children}
+    </Link>
+  );
+};
+// call Components
+<Link href={"/docs"} variant="metallic">{...}</Link>
+```
+
+If entered at the caller, all patterns will be expanded to className using bitwise expressions.
+If entered statically at the definition source of the created getButton, patterns can be saved as bit expressions.
+
+
+## Improvements
+- Conditional expression expansion has been replaced with bitwise operation.  
+The role of props for pre-merging operations within the props argument has been moved to the plugin and loader.
+This means that props is never called, as it is replaced in all cases.
+
+
+---
+
+## Acknowledgements
+- Linaria
+- StyleX
+- pigment-css
+
