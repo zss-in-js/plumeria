@@ -1,4 +1,18 @@
-export type { CSSObject, FileStyles } from './types';
+export type {
+  CSSObject,
+  FileStyles,
+  StaticTable,
+  ThemeTable,
+  KeyframesHashTable,
+  KeyframesObjectTable,
+  ViewTransitionHashTable,
+  ViewTransitionObjectTable,
+  CreateThemeObjectTable,
+  CreateHashTable,
+  CreateObjectTable,
+  VariantsHashTable,
+  VariantsObjectTable,
+} from './types';
 export {
   objectExpressionToObject,
   collectLocalConsts,
