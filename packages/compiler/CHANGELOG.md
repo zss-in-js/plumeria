@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 6.0.0
+
+### Major Changes
+
+- f1d353d: feat: by creating an intermediate table, the create hash map has completely disappeared.
+
+### Patch Changes
+
+- Updated dependencies [f1d353d]
+  - @plumeria/utils@6.0.0
+
 ## 5.0.1
 
 ### Patch Changes
