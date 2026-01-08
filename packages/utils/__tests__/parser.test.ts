@@ -561,30 +561,25 @@ describe('parser', () => {
     });
 
     it('should scan for keyframes', () => {
-      const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/anim.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
       );
 
-      const result = scanAll(addDependency);
-
-      expect(addDependency).toHaveBeenCalledWith('/test/anim.ts');
+      const result = scanAll();
       const keys = Object.keys(result.keyframesHashTable);
       expect(keys.some((key) => key.endsWith('-fade'))).toBe(true);
       expect(result.keyframesObjectTable).toBeDefined();
     });
 
     it('should scan for createStatic', () => {
-      const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/consts.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'export const C = css.createStatic({ color: "red" });',
       );
 
-      const result = scanAll(addDependency);
+      const result = scanAll();
 
-      expect(addDependency).toHaveBeenCalledWith('/test/consts.ts');
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((key) => key.endsWith('-C'));
       expect(cKey).toBeDefined();
@@ -592,42 +587,35 @@ describe('parser', () => {
     });
 
     it('should scan for createTheme', () => {
-      const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/tokens.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'export const T = css.createTheme({ primary: "#fff" });',
       );
 
-      const result = scanAll(addDependency);
-
-      expect(addDependency).toHaveBeenCalledWith('/test/tokens.ts');
+      const result = scanAll();
       const keys = Object.keys(result.themeTable);
       expect(keys.some((key) => key.endsWith('-T'))).toBe(true);
     });
 
     it('should scan for viewTransition', () => {
-      const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/vt.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'export const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
       );
 
-      const result = scanAll(addDependency);
-
-      expect(addDependency).toHaveBeenCalledWith('/test/vt.ts');
+      const result = scanAll();
       const keys = Object.keys(result.viewTransitionHashTable);
       expect(keys.some((key) => key.endsWith('-slide'))).toBe(true);
       expect(result.viewTransitionObjectTable).toBeDefined();
     });
 
     it('should handle non-exported createStatic declarations', () => {
-      const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/local.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'const C = css.createStatic({ size: "large" });',
       );
 
-      const result = scanAll(addDependency);
+      const result = scanAll();
 
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((key) => key.endsWith('-C'));
@@ -636,76 +624,66 @@ describe('parser', () => {
     });
 
     it('should handle non-exported keyframes declarations', () => {
-      const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/local-kf.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
       );
 
-      const result = scanAll(addDependency);
+      const result = scanAll();
 
       const keys = Object.keys(result.keyframesHashTable);
       expect(keys.some((key) => key.endsWith('-fade'))).toBe(true);
     });
 
     it('should handle non-exported createTheme declarations', () => {
-      const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/local-tokens.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'const T = css.createTheme({ primary: "#fff" });',
       );
 
-      const result = scanAll(addDependency);
+      const result = scanAll();
 
       const keys = Object.keys(result.themeTable);
       expect(keys.some((key) => key.endsWith('-T'))).toBe(true);
     });
 
     it('should handle non-exported viewTransition declarations', () => {
-      const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/local-vt.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
       );
 
-      const result = scanAll(addDependency);
+      const result = scanAll();
 
       const keys = Object.keys(result.viewTransitionHashTable);
       expect(keys.some((key) => key.endsWith('-slide'))).toBe(true);
     });
 
     it('should skip files without target definition', () => {
-      const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/normal.ts'] as any);
       mockedFs.readFileSync.mockReturnValue('const x = 1;');
 
-      const resultKeyframes = scanAll(addDependency);
-      expect(addDependency).not.toHaveBeenCalled();
+      const resultKeyframes = scanAll();
       expect(Object.keys(resultKeyframes.keyframesHashTable)).toHaveLength(0);
 
-      const resultConsts = scanAll(addDependency);
-      expect(addDependency).not.toHaveBeenCalled();
+      const resultConsts = scanAll();
       expect(Object.keys(resultConsts.staticTable)).toHaveLength(0);
 
-      const resultTokens = scanAll(addDependency);
-      expect(addDependency).not.toHaveBeenCalled();
+      const resultTokens = scanAll();
       expect(Object.keys(resultTokens.themeTable)).toHaveLength(0);
 
-      const resultViewTransition = scanAll(addDependency);
-      expect(addDependency).not.toHaveBeenCalled();
+      const resultViewTransition = scanAll();
       expect(
         Object.keys(resultViewTransition.viewTransitionHashTable),
       ).toHaveLength(0);
     });
 
     it('should skip directories', () => {
-      const addDependency = jest.fn();
       mockedFs.globSync.mockReturnValue(['/test/dir'] as any);
       mockedFs.statSync.mockReturnValue({ isDirectory: () => true } as any);
 
-      const result = scanAll(addDependency);
+      const result = scanAll();
 
-      expect(addDependency).not.toHaveBeenCalled();
       expect(Object.keys(result.keyframesHashTable)).toHaveLength(0);
     });
   });
