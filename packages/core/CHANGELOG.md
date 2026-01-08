@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 6.0.0
+
+### Major Changes
+
+- f1d353d: feat: with the implementation of the variant API, static "create" and "props" no longer work at runtime.
+
 ## 5.0.1
 
 ### Patch Changes
