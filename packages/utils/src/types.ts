@@ -16,13 +16,17 @@ export type CSSObject = {
 };
 
 // Table types for various CSS constructs
-export type StaticTable = Record<string, CSSObject | string>; // varName -> object
+export type StaticTable = Record<string, CSSValue>; // varName -> object
 export type ThemeTable = Record<string, CSSObject>; // varName -> object
 export type KeyframesHashTable = Record<string, string>; // varName -> hash
 export type KeyframesObjectTable = Record<string, CSSObject>; // hashKey: { string: { string: string | number }, ... }
 export type ViewTransitionHashTable = Record<string, string>; // varName -> hash
 export type ViewTransitionObjectTable = Record<string, CSSObject>; // hashKey: { new: { string: string| number }, old: { string: string| number } }
 export type CreateThemeObjectTable = Record<string, CSSObject>; // { string: { varName: { varName: value }, ... } }
+export type CreateHashTable = Record<string, string>; // varName -> hash
+export type CreateObjectTable = Record<string, CSSObject>; // hash -> { styleName: { prop: value }, ... }
+export type VariantsHashTable = Record<string, string>; // varName -> hash
+export type VariantsObjectTable = Record<string, CSSObject>; // hash -> Variant object
 
 export interface Tables {
   staticTable: StaticTable;
@@ -32,6 +36,10 @@ export interface Tables {
   viewTransitionHashTable: ViewTransitionHashTable;
   viewTransitionObjectTable: ViewTransitionObjectTable;
   createThemeObjectTable: CreateThemeObjectTable;
+  createHashTable: CreateHashTable;
+  createObjectTable: CreateObjectTable;
+  variantsHashTable: VariantsHashTable;
+  variantsObjectTable: VariantsObjectTable;
 }
 
 export interface FileStyles {
