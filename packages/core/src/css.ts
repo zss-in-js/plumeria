@@ -12,10 +12,10 @@ import type {
   Variant,
 } from './types';
 
+type css = typeof css;
+
 const errorFn = () => {
-  throw new Error(
-    'Runtime execution is not supported. Configure the bundler plugin.',
-  );
+  throw new Error('Runtime is not supported. Configure the bundler plugin.');
 };
 
 const props = (
@@ -52,7 +52,6 @@ const css = {
   viewTransition,
   variants,
 };
-type css = typeof css;
 
 export { css, x };
 export type { CreateStyle, CSSProperties };
