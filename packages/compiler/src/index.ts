@@ -1,9 +1,13 @@
-import { parseSync, ObjectExpression, Expression } from '@swc/core';
+import {
+  parseSync,
+  ObjectExpression,
+  Expression,
+  ImportSpecifier,
+} from '@swc/core';
 import { type CSSProperties, genBase36Hash } from 'zss-engine';
 import fs from 'fs';
 
 import {
-  tables,
   traverse,
   getStyleRecords,
   collectLocalConsts,
@@ -14,7 +18,16 @@ import {
   scanAll,
   resolveImportPath,
 } from '@plumeria/utils';
-import type { StyleRecord, CSSObject } from '@plumeria/utils';
+import type {
+  StyleRecord,
+  CSSObject,
+  VariantsHashTable,
+  CreateHashTable,
+  ThemeTable,
+  ViewTransitionHashTable,
+  KeyframesHashTable,
+  StaticTable,
+} from '@plumeria/utils';
 
 interface CompilerOptions {
   include: string[];
@@ -24,11 +37,7 @@ interface CompilerOptions {
 
 export function compileCSS(options: CompilerOptions) {
   const { include, exclude, cwd = process.cwd() } = options;
-
   const allSheets = new Set<string>();
-
-  const dependencies = new Set<string>();
-  scanAll((p) => dependencies.add(p));
 
   const processFile = (filePath: string): string[] => {
     const source = fs.readFileSync(filePath, 'utf-8');
@@ -46,6 +55,7 @@ export function compileCSS(options: CompilerOptions) {
       return [];
     }
 
+    const scannedTables = scanAll();
     const localConsts = collectLocalConsts(ast);
     const resourcePath = filePath;
     const importMap: Record<string, any> = {};
@@ -55,54 +65,97 @@ export function compileCSS(options: CompilerOptions) {
         const sourcePath = node.source.value;
         const actualPath = resolveImportPath(sourcePath, resourcePath);
 
-        if (actualPath && fs.existsSync(actualPath)) {
-          if (fs.existsSync(actualPath)) {
-            node.specifiers.forEach((specifier: any) => {
-              if (specifier.type === 'ImportSpecifier') {
-                const importedName = specifier.imported
-                  ? (specifier.imported as any).value
-                  : specifier.local.value;
-                const localName = specifier.local.value;
-                const uniqueKey = `${actualPath}-${importedName}`;
-                if (tables.staticTable[uniqueKey]) {
-                  importMap[localName] = tables.staticTable[uniqueKey];
-                }
-                if (tables.keyframesHashTable[uniqueKey]) {
-                  importMap[localName] = tables.keyframesHashTable[uniqueKey];
-                }
-                if (tables.viewTransitionHashTable[uniqueKey]) {
-                  importMap[localName] =
-                    tables.viewTransitionHashTable[uniqueKey];
-                }
-                if (tables.themeTable[uniqueKey]) {
-                  importMap[localName] = tables.themeTable[uniqueKey];
-                }
+        if (actualPath) {
+          node.specifiers.forEach((specifier: ImportSpecifier) => {
+            if (specifier.type === 'ImportSpecifier') {
+              const importedName = specifier.imported
+                ? specifier.imported.value
+                : specifier.local.value;
+              const localName = specifier.local.value;
+              const uniqueKey = `${actualPath}-${importedName}`;
+              if (scannedTables.staticTable[uniqueKey]) {
+                importMap[localName] = scannedTables.staticTable[uniqueKey];
               }
-            });
-          }
+              if (scannedTables.keyframesHashTable[uniqueKey]) {
+                importMap[localName] =
+                  scannedTables.keyframesHashTable[uniqueKey];
+              }
+              if (scannedTables.viewTransitionHashTable[uniqueKey]) {
+                importMap[localName] =
+                  scannedTables.viewTransitionHashTable[uniqueKey];
+              }
+              if (scannedTables.themeTable[uniqueKey]) {
+                importMap[localName] = scannedTables.themeTable[uniqueKey];
+              }
+              if (scannedTables.createHashTable[uniqueKey]) {
+                importMap[localName] = scannedTables.createHashTable[uniqueKey];
+              }
+              if (scannedTables.variantsHashTable[uniqueKey]) {
+                importMap[localName] =
+                  scannedTables.variantsHashTable[uniqueKey];
+              }
+            }
+          });
         }
       },
     });
 
-    const mergedStaticTable = Object.assign(
-      Object.create(tables.staticTable),
-      localConsts,
-      importMap,
-    );
-    const mergedKeyframesTable = Object.assign(
-      Object.create(tables.keyframesHashTable),
-      importMap,
-    );
-    const mergedViewTransitionTable = Object.assign(
-      Object.create(tables.viewTransitionHashTable),
-      importMap,
-    );
-    const mergedThemeTable = Object.assign(
-      Object.create(tables.themeTable),
-      importMap,
-    );
+    const mergedStaticTable: StaticTable = {};
+    for (const key of Object.keys(scannedTables.staticTable)) {
+      mergedStaticTable[key] = scannedTables.staticTable[key];
+    }
+    for (const key of Object.keys(localConsts)) {
+      mergedStaticTable[key] = localConsts[key];
+    }
+    for (const key of Object.keys(importMap)) {
+      mergedStaticTable[key] = importMap[key];
+    }
 
-    const localCreateStyles: Record<string, CSSObject> = {};
+    const mergedKeyframesTable: KeyframesHashTable = {};
+    for (const key of Object.keys(scannedTables.keyframesHashTable)) {
+      mergedKeyframesTable[key] = scannedTables.keyframesHashTable[key];
+    }
+    for (const key of Object.keys(importMap)) {
+      mergedKeyframesTable[key] = importMap[key];
+    }
+
+    const mergedViewTransitionTable: ViewTransitionHashTable = {};
+    for (const key of Object.keys(scannedTables.viewTransitionHashTable)) {
+      mergedViewTransitionTable[key] =
+        scannedTables.viewTransitionHashTable[key];
+    }
+    for (const key of Object.keys(importMap)) {
+      mergedViewTransitionTable[key] = importMap[key];
+    }
+
+    const mergedThemeTable: ThemeTable = {};
+    for (const key of Object.keys(scannedTables.themeTable)) {
+      mergedThemeTable[key] = scannedTables.themeTable[key];
+    }
+    for (const key of Object.keys(importMap)) {
+      mergedThemeTable[key] = importMap[key];
+    }
+
+    const mergedCreateTable: CreateHashTable = {};
+    for (const key of Object.keys(scannedTables.createHashTable)) {
+      mergedCreateTable[key] = scannedTables.createHashTable[key];
+    }
+    for (const key of Object.keys(importMap)) {
+      mergedCreateTable[key] = importMap[key];
+    }
+
+    const mergedVariantsTable: VariantsHashTable = {};
+    for (const key of Object.keys(scannedTables.variantsHashTable)) {
+      mergedVariantsTable[key] = scannedTables.variantsHashTable[key];
+    }
+    for (const key of Object.keys(importMap)) {
+      mergedVariantsTable[key] = importMap[key];
+    }
+
+    const localCreateStyles: Record<
+      string,
+      { type: 'create' | 'variant'; obj: CSSObject }
+    > = {};
 
     traverse(ast, {
       VariableDeclarator({ node }) {
@@ -112,27 +165,53 @@ export function compileCSS(options: CompilerOptions) {
           t.isCallExpression(node.init) &&
           t.isMemberExpression(node.init.callee) &&
           t.isIdentifier(node.init.callee.object, { name: 'css' }) &&
-          t.isIdentifier(node.init.callee.property, { name: 'create' }) &&
+          t.isIdentifier(node.init.callee.property) &&
           node.init.arguments.length === 1 &&
           t.isObjectExpression(node.init.arguments[0].expression)
         ) {
-          const obj = objectExpressionToObject(
-            node.init.arguments[0].expression as ObjectExpression,
-            mergedStaticTable,
-            mergedKeyframesTable,
-            mergedViewTransitionTable,
-            mergedThemeTable,
-          );
-          if (obj) {
-            localCreateStyles[node.id.value] = obj;
+          const resolveVariable = (name: string) => {
+            if (localCreateStyles[name]) {
+              return localCreateStyles[name].obj;
+            }
+          };
 
-            Object.entries(obj).forEach(([key, style]) => {
-              const records = getStyleRecords(key, style as CSSProperties, 1);
-              extractOndemandStyles(style, extractedSheets);
-              records.forEach((r: StyleRecord) => {
-                extractedSheets.push(r.sheet);
+          const propName = node.init.callee.property.value;
+          if (propName === 'create') {
+            const obj = objectExpressionToObject(
+              node.init.arguments[0].expression as ObjectExpression,
+              mergedStaticTable,
+              mergedKeyframesTable,
+              mergedViewTransitionTable,
+              mergedThemeTable,
+              mergedCreateTable,
+              mergedVariantsTable,
+              resolveVariable,
+            );
+            if (obj) {
+              localCreateStyles[node.id.value] = { type: 'create', obj };
+
+              Object.entries(obj).forEach(([key, style]) => {
+                const records = getStyleRecords(key, style as CSSProperties, 1);
+                extractOndemandStyles(style, extractedSheets, scannedTables);
+                records.forEach((r: StyleRecord) => {
+                  extractedSheets.push(r.sheet);
+                });
               });
-            });
+            }
+          } else if (propName === 'variants') {
+            const obj = objectExpressionToObject(
+              node.init.arguments[0].expression as ObjectExpression,
+              mergedStaticTable,
+              mergedKeyframesTable,
+              mergedViewTransitionTable,
+              mergedThemeTable,
+              mergedCreateTable,
+              mergedVariantsTable,
+              resolveVariable,
+            );
+            if (obj) {
+              localCreateStyles[node.id.value] = { type: 'variant', obj };
+            }
           }
         }
       },
@@ -156,6 +235,8 @@ export function compileCSS(options: CompilerOptions) {
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
                 mergedThemeTable,
+                mergedCreateTable,
+                mergedVariantsTable,
               );
               if (obj) results.push(obj);
             } else if (t.isMemberExpression(expr)) {
@@ -167,26 +248,35 @@ export function compileCSS(options: CompilerOptions) {
                 const varName = expr.object.value;
                 const propName = expr.property.value;
                 const styleSet = localCreateStyles[varName];
-                if (styleSet && styleSet[propName]) {
-                  results.push(styleSet[propName] as CSSObject);
+                if (styleSet && styleSet.obj[propName]) {
+                  results.push(styleSet.obj[propName] as CSSObject);
+                } else {
+                  // Check imported
+                  const hash = mergedCreateTable[varName];
+                  if (hash) {
+                    const obj = scannedTables.createObjectTable[hash];
+                    if (obj && obj[propName]) {
+                      results.push(obj[propName] as CSSObject);
+                    }
+                  }
                 }
               } else if (
                 t.isIdentifier(expr.object) &&
                 expr.property.type === 'Computed'
               ) {
-                // Brackets/Computed access styles[key]
-                const varName = expr.object.value;
-                const styleSet = localCreateStyles[varName];
-                if (styleSet) {
-                  Object.values(styleSet).forEach((s) =>
-                    results.push(s as CSSObject),
-                  );
-                }
+                // Ignore bracket notation for complete staticization
+                return [];
               }
             } else if (t.isIdentifier(expr)) {
               const obj = localCreateStyles[expr.value];
               if (obj) {
-                results.push(obj);
+                results.push(obj.obj);
+              } else {
+                const hash = mergedCreateTable[expr.value];
+                if (hash) {
+                  const obj = scannedTables.createObjectTable[hash];
+                  if (obj) results.push(obj as CSSObject);
+                }
               }
             } else if (t.isConditionalExpression(expr)) {
               results.push(...extractStylesFromExpression(expr.consequent));
@@ -204,33 +294,173 @@ export function compileCSS(options: CompilerOptions) {
           };
 
           const processStyle = (style: CSSObject) => {
-            extractOndemandStyles(style, extractedSheets);
+            extractOndemandStyles(style, extractedSheets, scannedTables);
             const hash = genBase36Hash(style, 1, 8);
             const records = getStyleRecords(hash, style as CSSProperties, 1);
             records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
           };
 
           if (callee.property.value === 'props') {
-            const staticStyles: CSSObject[] = [];
-            let isAllStatic = true;
+            const conditionals: Array<{
+              test: Expression;
+              truthy: Record<string, any>;
+              falsy: Record<string, any>;
+              groupId?: number;
+            }> = [];
 
-            args.forEach((arg: any) => {
-              const expr = arg.expression;
+            let groupIdCounter = 0;
+            let baseStyle: Record<string, any> = {};
+
+            const resolveStyleObject = (
+              expr: Expression,
+            ): Record<string, any> | null => {
               const styles = extractStylesFromExpression(expr);
-              if (styles.length === 0) {
-                isAllStatic = false;
-              }
-              staticStyles.push(...styles);
-            });
+              if (styles.length === 1) return styles[0] as Record<string, any>;
+              return null;
+            };
 
-            if (isAllStatic && staticStyles.length > 0) {
-              const merged = staticStyles.reduce(
-                (acc, style) => deepMerge(acc, style),
-                {},
-              );
-              processStyle(merged);
-            } else {
-              staticStyles.forEach((s) => processStyle(s));
+            for (const arg of args) {
+              const expr = arg.expression;
+
+              if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
+                const varName = expr.callee.value;
+                let variantObj: Record<string, any> | undefined;
+
+                if (
+                  localCreateStyles[varName] &&
+                  localCreateStyles[varName].type === 'variant'
+                ) {
+                  variantObj = localCreateStyles[varName].obj;
+                } else if (mergedVariantsTable[varName]) {
+                  const hash = mergedVariantsTable[varName];
+                  if (scannedTables.variantsObjectTable[hash]) {
+                    variantObj = scannedTables.variantsObjectTable[
+                      hash
+                    ] as Record<string, any>;
+                  }
+                }
+
+                if (variantObj) {
+                  const callArgs = expr.arguments;
+                  if (callArgs.length === 1 && !callArgs[0].spread) {
+                    const arg = callArgs[0].expression;
+
+                    if (t.isObjectExpression(arg)) {
+                      for (const prop of arg.properties) {
+                        let groupName: string | undefined;
+                        let valExpr: any;
+
+                        if (
+                          prop.type === 'KeyValueProperty' &&
+                          prop.key.type === 'Identifier'
+                        ) {
+                          groupName = prop.key.value;
+                          valExpr = prop.value;
+                        } else if (prop.type === 'Identifier') {
+                          groupName = prop.value;
+                          valExpr = prop;
+                        }
+
+                        if (groupName && valExpr) {
+                          const groupVariants = variantObj[groupName];
+                          if (!groupVariants) continue;
+
+                          const currentGroupId = ++groupIdCounter;
+
+                          // Static optimization
+                          if (valExpr.type === 'StringLiteral') {
+                            if (groupVariants[valExpr.value]) {
+                              baseStyle = deepMerge(
+                                baseStyle,
+                                groupVariants[valExpr.value],
+                              );
+                            }
+                            continue;
+                          }
+
+                          // Dynamic selection - generate all options
+                          Object.entries(
+                            groupVariants as Record<string, any>,
+                          ).forEach(([_optionName, style]) => {
+                            conditionals.push({
+                              test: valExpr, // Placeholder
+                              truthy: style as Record<string, any>,
+                              falsy: {},
+                              groupId: currentGroupId,
+                            });
+                          });
+                        }
+                      }
+                      continue;
+                    }
+
+                    // Simple variant(string) case
+                    if (t.isStringLiteral(arg)) {
+                      if (variantObj[arg.value]) {
+                        baseStyle = deepMerge(baseStyle, variantObj[arg.value]);
+                      }
+                      continue;
+                    }
+
+                    // Dynamic simple variant
+                    const currentGroupId = ++groupIdCounter;
+                    Object.entries(variantObj).forEach(([_key, style]) => {
+                      conditionals.push({
+                        test: arg, // Placeholder
+                        truthy: style as Record<string, any>,
+                        falsy: {},
+                        groupId: currentGroupId,
+                      });
+                    });
+                    continue;
+                  }
+
+                  break;
+                }
+              }
+
+              const staticStyle = resolveStyleObject(expr);
+              if (staticStyle) {
+                baseStyle = deepMerge(baseStyle, staticStyle);
+                continue;
+              } else if (expr.type === 'ConditionalExpression') {
+                const truthyStyle = resolveStyleObject(expr.consequent);
+                const falsyStyle = resolveStyleObject(expr.alternate);
+
+                if (truthyStyle !== null && falsyStyle !== null) {
+                  conditionals.push({
+                    test: expr.test,
+                    truthy: truthyStyle,
+                    falsy: falsyStyle,
+                  });
+                  continue;
+                }
+              }
+
+              const styles = extractStylesFromExpression(expr);
+              if (styles.length > 0) {
+                styles.forEach(processStyle);
+                continue;
+              }
+            }
+
+            if (Object.keys(baseStyle).length > 0) {
+              processStyle(baseStyle);
+            }
+
+            if (conditionals.length > 0) {
+              const allStyles: CSSObject[] = [];
+
+              conditionals.forEach((cond) => {
+                if (Object.keys(cond.truthy).length > 0) {
+                  allStyles.push(cond.truthy);
+                }
+                if (Object.keys(cond.falsy).length > 0) {
+                  allStyles.push(cond.falsy);
+                }
+              });
+
+              allStyles.forEach(processStyle);
             }
           } else if (
             callee.property.value === 'keyframes' &&
@@ -243,9 +473,11 @@ export function compileCSS(options: CompilerOptions) {
               mergedKeyframesTable,
               mergedViewTransitionTable,
               mergedThemeTable,
+              mergedCreateTable,
+              mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
-            tables.keyframesObjectTable[hash] = obj;
+            scannedTables.keyframesObjectTable[hash] = obj;
           } else if (
             callee.property.value === 'viewTransition' &&
             args.length > 0 &&
@@ -257,11 +489,17 @@ export function compileCSS(options: CompilerOptions) {
               mergedKeyframesTable,
               mergedViewTransitionTable,
               mergedThemeTable,
+              mergedCreateTable,
+              mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
-            tables.viewTransitionObjectTable[hash] = obj;
-            extractOndemandStyles(obj, extractedSheets);
-            extractOndemandStyles({ vt: `vt-${hash}` }, extractedSheets);
+            scannedTables.viewTransitionObjectTable[hash] = obj;
+            extractOndemandStyles(obj, extractedSheets, scannedTables);
+            extractOndemandStyles(
+              { vt: `vt-${hash}` },
+              extractedSheets,
+              scannedTables,
+            );
           } else if (
             callee.property.value === 'createTheme' &&
             args.length > 0 &&
@@ -273,9 +511,11 @@ export function compileCSS(options: CompilerOptions) {
               mergedKeyframesTable,
               mergedViewTransitionTable,
               mergedThemeTable,
+              mergedCreateTable,
+              mergedVariantsTable,
             );
             const themeHash = genBase36Hash(obj, 1, 8);
-            tables.createThemeObjectTable[themeHash] = obj;
+            scannedTables.createThemeObjectTable[themeHash] = obj;
           }
         }
       },
