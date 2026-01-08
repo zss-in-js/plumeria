@@ -148,6 +148,8 @@ describe('parser', () => {
         keyframesHash,
         {},
         {},
+        {},
+        {},
       );
 
       expect(result.animation).toBe('kf-abc123');
@@ -165,6 +167,8 @@ describe('parser', () => {
         {},
         {},
         viewTransitionHash,
+        {},
+        {},
         {},
       );
 
@@ -184,6 +188,8 @@ describe('parser', () => {
         {},
         {},
         themeTable,
+        {},
+        {},
       );
 
       expect(result.color).toBe('var(--primary)');
@@ -195,7 +201,15 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result.visible).toBe(true);
       expect(result.hidden).toBe(false);
@@ -207,7 +221,15 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result.width).toBe(100);
       expect(result.height).toBe(200);
@@ -219,7 +241,15 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result.value).toBe(-50);
       expect(result.positive).toBe(25);
@@ -231,7 +261,15 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result.outer).toEqual({ inner: 'value' });
     });
@@ -242,7 +280,15 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result.color).toBe('[unresolved identifier]');
     });
@@ -253,7 +299,15 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result.color).toBe('[unresolved]');
     });
@@ -268,6 +322,8 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
+        {},
+        {},
         {},
         {},
         {},
@@ -289,6 +345,8 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
       );
 
       expect(result.color).toBe('red');
@@ -300,7 +358,15 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result.func).toBe('[unsupported value type]');
     });
@@ -314,7 +380,15 @@ describe('parser', () => {
 
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result).toHaveProperty('&:hover');
       expect(result['&:hover']).toEqual({ color: 'red' });
@@ -333,6 +407,8 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
+        {},
+        {},
         {},
         {},
         {},
@@ -358,6 +434,8 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
       );
 
       expect(result).toHaveProperty('&:focus');
@@ -373,7 +451,15 @@ describe('parser', () => {
 
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result).toHaveProperty('&:active');
       expect(result['&:active']).toEqual({ transform: 'scale(0.95)' });
@@ -392,6 +478,8 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
+        {},
+        {},
         {},
         {},
         {},
@@ -417,6 +505,8 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
       );
 
       expect(result).toHaveProperty('&:hover');
@@ -429,7 +519,15 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result.color).toBe('red');
       expect(Object.keys(result)).toHaveLength(1);
@@ -442,7 +540,15 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const result = objectExpressionToObject(objectExpr, {}, {}, {}, {});
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
 
       expect(result.valid).toBe('ok');
       expect(Object.keys(result)).toHaveLength(1);
