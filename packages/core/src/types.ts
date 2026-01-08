@@ -139,6 +139,8 @@ type ViewTransition = {
   old?: CSSProperties;
 };
 
+type Variant = Record<string, Record<string, CSSProperties>>;
+
 export {
   CSSProperties,
   CreateStyle,
@@ -150,4 +152,5 @@ export {
   ReturnType,
   ReturnVariableType,
   Style,
+  Variant,
 };
