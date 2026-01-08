@@ -5,6 +5,8 @@ import type {
   Expression,
   ImportSpecifier,
   ObjectExpression,
+  MemberExpression,
+  Identifier,
 } from '@swc/core';
 import fs from 'fs';
 import path from 'path';
@@ -12,7 +14,6 @@ import { genBase36Hash } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 
 import {
-  tables,
   traverse,
   getStyleRecords,
   collectLocalConsts,
@@ -23,7 +24,15 @@ import {
   scanAll,
   resolveImportPath,
 } from '@plumeria/utils';
-import type { StyleRecord } from '@plumeria/utils';
+import type {
+  StyleRecord,
+  StaticTable,
+  KeyframesHashTable,
+  ViewTransitionHashTable,
+  ThemeTable,
+  CreateHashTable,
+  VariantsHashTable,
+} from '@plumeria/utils';
 
 interface LoaderContext {
   resourcePath: string;
@@ -40,7 +49,9 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 export default async function loader(this: LoaderContext, source: string) {
+  const loaderContext = this;
   const callback = this.async();
+  const isProduction = process.env.NODE_ENV === 'production';
 
   if (
     this.resourcePath.includes('node_modules') ||
@@ -51,8 +62,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
   this.clearDependencies();
   this.addDependency(this.resourcePath);
-
-  scanAll((path) => this.addDependency(path));
+  const scannedTables = scanAll();
 
   const ast = parseSync(source, {
     syntax: 'typescript',
@@ -69,36 +79,45 @@ export default async function loader(this: LoaderContext, source: string) {
       const sourcePath = node.source.value;
       const actualPath = resolveImportPath(sourcePath, resourcePath);
 
-      if (actualPath && fs.existsSync(actualPath)) {
-        if (fs.existsSync(actualPath)) {
-          node.specifiers.forEach((specifier: ImportSpecifier) => {
-            if (specifier.type === 'ImportSpecifier') {
-              const importedName = specifier.imported
-                ? specifier.imported.value
-                : specifier.local.value;
-              const localName = specifier.local.value;
-              const uniqueKey = `${actualPath}-${importedName}`;
-              if (tables.staticTable[uniqueKey]) {
-                importMap[localName] = tables.staticTable[uniqueKey];
-              }
-              if (tables.keyframesHashTable[uniqueKey]) {
-                importMap[localName] = tables.keyframesHashTable[uniqueKey];
-              }
-              if (tables.viewTransitionHashTable[uniqueKey]) {
-                importMap[localName] =
-                  tables.viewTransitionHashTable[uniqueKey];
-              }
-              if (tables.themeTable[uniqueKey]) {
-                importMap[localName] = tables.themeTable[uniqueKey];
-              }
+      if (actualPath) {
+        loaderContext.addDependency(actualPath);
+        node.specifiers.forEach((specifier: ImportSpecifier) => {
+          if (specifier.type === 'ImportSpecifier') {
+            const importedName = specifier.imported
+              ? specifier.imported.value
+              : specifier.local.value;
+            const localName = specifier.local.value;
+            const uniqueKey = `${actualPath}-${importedName}`;
+            if (scannedTables.staticTable[uniqueKey]) {
+              importMap[localName] = scannedTables.staticTable[uniqueKey];
             }
-          });
-        }
+            if (scannedTables.keyframesHashTable[uniqueKey]) {
+              importMap[localName] =
+                scannedTables.keyframesHashTable[uniqueKey];
+            }
+            if (scannedTables.viewTransitionHashTable[uniqueKey]) {
+              importMap[localName] =
+                scannedTables.viewTransitionHashTable[uniqueKey];
+            }
+            if (scannedTables.themeTable[uniqueKey]) {
+              importMap[localName] = scannedTables.themeTable[uniqueKey];
+            }
+            if (scannedTables.createHashTable[uniqueKey]) {
+              importMap[localName] = scannedTables.createHashTable[uniqueKey];
+            }
+            if (scannedTables.variantsHashTable[uniqueKey]) {
+              importMap[localName] = scannedTables.variantsHashTable[uniqueKey];
+            }
+          }
+        });
       }
     },
   });
 
-  const mergedStaticTable = { ...tables.staticTable };
+  const mergedStaticTable: StaticTable = {};
+  for (const key of Object.keys(scannedTables.staticTable)) {
+    mergedStaticTable[key] = scannedTables.staticTable[key];
+  }
   for (const key of Object.keys(localConsts)) {
     mergedStaticTable[key] = localConsts[key];
   }
@@ -106,32 +125,53 @@ export default async function loader(this: LoaderContext, source: string) {
     mergedStaticTable[key] = importMap[key];
   }
 
-  const mergedKeyframesTable = { ...tables.keyframesHashTable };
+  const mergedKeyframesTable: KeyframesHashTable = {};
+  for (const key of Object.keys(scannedTables.keyframesHashTable)) {
+    mergedKeyframesTable[key] = scannedTables.keyframesHashTable[key];
+  }
   for (const key of Object.keys(importMap)) {
     mergedKeyframesTable[key] = importMap[key];
   }
 
-  const mergedViewTransitionTable = { ...tables.viewTransitionHashTable };
+  const mergedViewTransitionTable: ViewTransitionHashTable = {};
+  for (const key of Object.keys(scannedTables.viewTransitionHashTable)) {
+    mergedViewTransitionTable[key] = scannedTables.viewTransitionHashTable[key];
+  }
   for (const key of Object.keys(importMap)) {
     mergedViewTransitionTable[key] = importMap[key];
   }
 
-  const mergedThemeTable = { ...tables.themeTable };
+  const mergedThemeTable: ThemeTable = {};
+  for (const key of Object.keys(scannedTables.themeTable)) {
+    mergedThemeTable[key] = scannedTables.themeTable[key];
+  }
   for (const key of Object.keys(importMap)) {
     mergedThemeTable[key] = importMap[key];
   }
 
-  const isTSFile =
-    this.resourcePath.endsWith('.ts') && !this.resourcePath.endsWith('.tsx');
+  const mergedCreateTable: CreateHashTable = {};
+  for (const key of Object.keys(scannedTables.createHashTable)) {
+    mergedCreateTable[key] = scannedTables.createHashTable[key];
+  }
+  for (const key of Object.keys(importMap)) {
+    mergedCreateTable[key] = importMap[key];
+  }
+
+  const mergedVariantsTable: VariantsHashTable = {};
+  for (const key of Object.keys(scannedTables.variantsHashTable)) {
+    mergedVariantsTable[key] = scannedTables.variantsHashTable[key];
+  }
+  for (const key of Object.keys(importMap)) {
+    mergedVariantsTable[key] = importMap[key];
+  }
 
   const localCreateStyles: Record<
     string,
     {
       name: string;
-      type: 'create' | 'constant';
+      type: 'create' | 'constant' | 'variant';
       obj: Record<string, any>;
       hashMap: Record<string, Record<string, string>>;
-      hasDynamicAccess: boolean;
       isExported: boolean;
       initSpan: { start: number; end: number };
       declSpan: { start: number; end: number };
@@ -141,10 +181,31 @@ export default async function loader(this: LoaderContext, source: string) {
   const replacements: Array<{ start: number; end: number; content: string }> =
     [];
   const extractedSheets: string[] = [];
-
   const processedDecls = new Set<any>();
-  const excludedSpans = new Set<number>();
   const idSpans = new Set<number>();
+  const excludedSpans = new Set<number>();
+
+  const checkVariantAssignment = (decl: any) => {
+    if (
+      decl.init &&
+      t.isCallExpression(decl.init) &&
+      t.isIdentifier(decl.init.callee)
+    ) {
+      const varName = decl.init.callee.value;
+      if (
+        (localCreateStyles[varName] &&
+          localCreateStyles[varName].type === 'variant') ||
+        mergedVariantsTable[varName]
+      ) {
+        throw new Error(
+          `Plumeria: Assigning the return value of "css.variants" to a variable is not supported.\nPlease pass the variant function directly to "css.props". Found assignment to: ${
+            t.isIdentifier(decl.id) ? decl.id.value : 'unknown'
+          }`,
+        );
+      }
+    }
+  };
+
   const registerStyle = (node: any, declSpan: any, isExported: boolean) => {
     if (
       t.isIdentifier(node.id) &&
@@ -166,15 +227,19 @@ export default async function loader(this: LoaderContext, source: string) {
           mergedKeyframesTable,
           mergedViewTransitionTable,
           mergedThemeTable,
+          mergedCreateTable,
+          mergedVariantsTable,
         );
         if (obj) {
           const hashMap: Record<string, Record<string, string>> = {};
           Object.entries(obj).forEach(([key, style]) => {
             const records = getStyleRecords(key, style as CSSProperties, 2);
-            extractOndemandStyles(style, extractedSheets);
-            records.forEach((r: StyleRecord) => {
-              extractedSheets.push(r.sheet);
-            });
+            if (!isProduction) {
+              extractOndemandStyles(style, extractedSheets, scannedTables);
+              records.forEach((r: StyleRecord) => {
+                extractedSheets.push(r.sheet);
+              });
+            }
             const atomMap: Record<string, string> = {};
             records.forEach((r) => (atomMap[r.key] = r.hash));
             hashMap[key] = atomMap;
@@ -189,7 +254,6 @@ export default async function loader(this: LoaderContext, source: string) {
             type: 'create',
             obj,
             hashMap,
-            hasDynamicAccess: false,
             isExported,
             initSpan: {
               start: node.init.span.start - ast.span.start,
@@ -211,7 +275,46 @@ export default async function loader(this: LoaderContext, source: string) {
           type: 'constant',
           obj: {},
           hashMap: {},
-          hasDynamicAccess: false,
+          isExported,
+          initSpan: {
+            start: node.init.span.start - ast.span.start,
+            end: node.init.span.end - ast.span.start,
+          },
+          declSpan: {
+            start: declSpan.start - ast.span.start,
+            end: declSpan.end - ast.span.start,
+          },
+        };
+      } else if (
+        propName === 'variants' &&
+        t.isObjectExpression(node.init.arguments[0].expression)
+      ) {
+        const obj = objectExpressionToObject(
+          node.init.arguments[0].expression as ObjectExpression,
+          mergedStaticTable,
+          mergedKeyframesTable,
+          mergedViewTransitionTable,
+          mergedThemeTable,
+          mergedCreateTable,
+          mergedVariantsTable,
+          (name: string) => {
+            if (localCreateStyles[name]) {
+              return localCreateStyles[name].obj;
+            }
+            if (mergedCreateTable[name]) {
+              const hash = mergedCreateTable[name];
+              if (scannedTables.createObjectTable[hash]) {
+                return scannedTables.createObjectTable[hash];
+              }
+            }
+            return undefined;
+          },
+        );
+        localCreateStyles[node.id.value] = {
+          name: node.id.value,
+          type: 'variant', // reused for simple object storage
+          obj,
+          hashMap: {},
           isExported,
           initSpan: {
             start: node.init.span.start - ast.span.start,
@@ -227,10 +330,23 @@ export default async function loader(this: LoaderContext, source: string) {
   };
 
   traverse(ast, {
+    ImportDeclaration({ node }) {
+      if (node.specifiers) {
+        node.specifiers.forEach((specifier: any) => {
+          if (specifier.local) {
+            excludedSpans.add(specifier.local.span.start);
+          }
+          if (specifier.imported) {
+            excludedSpans.add(specifier.imported.span.start);
+          }
+        });
+      }
+    },
     ExportDeclaration({ node }) {
       if (t.isVariableDeclaration(node.declaration)) {
         processedDecls.add(node.declaration);
         node.declaration.declarations.forEach((decl: Declaration) => {
+          checkVariantAssignment(decl);
           registerStyle(decl, node.span, true);
         });
       }
@@ -238,23 +354,9 @@ export default async function loader(this: LoaderContext, source: string) {
     VariableDeclaration({ node }) {
       if (processedDecls.has(node)) return;
       node.declarations.forEach((decl: Declaration) => {
+        checkVariantAssignment(decl);
         registerStyle(decl, node.span, false);
       });
-    },
-    MemberExpression({ node }) {
-      if (t.isIdentifier(node.object)) {
-        const styleInfo = localCreateStyles[node.object.value];
-        if (styleInfo) {
-          if (t.isIdentifier(node.property)) {
-            const hash = styleInfo.hashMap[node.property.value];
-            if (!hash && styleInfo.type !== 'constant') {
-              styleInfo.hasDynamicAccess = true;
-            }
-          } else {
-            styleInfo.hasDynamicAccess = true;
-          }
-        }
-      }
     },
 
     CallExpression({ node }) {
@@ -278,9 +380,11 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedKeyframesTable,
             mergedViewTransitionTable,
             mergedThemeTable,
+            mergedCreateTable,
+            mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          tables.keyframesObjectTable[hash] = obj;
+          scannedTables.keyframesObjectTable[hash] = obj;
           replacements.push({
             start: node.span.start - ast.span.start,
             end: node.span.end - ast.span.start,
@@ -297,11 +401,19 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedKeyframesTable,
             mergedViewTransitionTable,
             mergedThemeTable,
+            mergedCreateTable,
+            mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          tables.viewTransitionObjectTable[hash] = obj;
-          extractOndemandStyles(obj, extractedSheets);
-          extractOndemandStyles({ vt: `vt-${hash}` }, extractedSheets);
+          scannedTables.viewTransitionObjectTable[hash] = obj;
+          if (!isProduction) {
+            extractOndemandStyles(obj, extractedSheets, scannedTables);
+            extractOndemandStyles(
+              { vt: `vt-${hash}` },
+              extractedSheets,
+              scannedTables,
+            );
+          }
           replacements.push({
             start: node.span.start - ast.span.start,
             end: node.span.end - ast.span.start,
@@ -318,9 +430,38 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedKeyframesTable,
             mergedViewTransitionTable,
             mergedThemeTable,
+            mergedCreateTable,
+            mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          tables.createThemeObjectTable[hash] = obj;
+          scannedTables.createThemeObjectTable[hash] = obj;
+        } else if (
+          propName === 'create' &&
+          args.length > 0 &&
+          t.isObjectExpression(args[0].expression)
+        ) {
+          const obj = objectExpressionToObject(
+            args[0].expression as ObjectExpression,
+            mergedStaticTable,
+            mergedKeyframesTable,
+            mergedViewTransitionTable,
+            mergedThemeTable,
+            mergedCreateTable,
+            mergedVariantsTable,
+          );
+          const hash = genBase36Hash(obj, 1, 8);
+          scannedTables.createObjectTable[hash] = obj;
+          Object.entries(obj).forEach(([key, style]) => {
+            if (typeof style === 'object' && style !== null) {
+              const records = getStyleRecords(key, style as CSSProperties, 2);
+              if (!isProduction) {
+                extractOndemandStyles(style, extractedSheets, scannedTables);
+                records.forEach((r: StyleRecord) =>
+                  extractedSheets.push(r.sheet),
+                );
+              }
+            }
+          });
         }
       }
     },
@@ -329,31 +470,53 @@ export default async function loader(this: LoaderContext, source: string) {
   // Pass 2: Confirm reference replacement
   traverse(ast, {
     MemberExpression({ node }) {
-      if (excludedSpans.has(node.span.start)) return;
       if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
-        const styleInfo = localCreateStyles[node.object.value];
-        if (styleInfo && !styleInfo.hasDynamicAccess) {
-          const atomMap = styleInfo.hashMap[node.property.value];
+        const varName = node.object.value;
+        const propName = node.property.value;
+
+        // First check local styles
+        const styleInfo = localCreateStyles[varName];
+        if (styleInfo) {
+          const atomMap = styleInfo.hashMap[propName];
           if (atomMap) {
             replacements.push({
               start: node.span.start - ast.span.start,
               end: node.span.end - ast.span.start,
               content: JSON.stringify(atomMap),
             });
+            return;
           }
         }
-      }
-    },
-    Identifier({ node }) {
-      if (excludedSpans.has(node.span.start)) return;
-      if (idSpans.has(node.span.start)) return;
-      const styleInfo = localCreateStyles[node.value];
-      if (styleInfo && !styleInfo.hasDynamicAccess) {
-        replacements.push({
-          start: node.span.start - ast.span.start,
-          end: node.span.end - ast.span.start,
-          content: JSON.stringify(styleInfo.hashMap),
-        });
+
+        // If not found locally, check if it's an imported/exported style
+        const hash = mergedCreateTable[varName];
+        if (hash) {
+          const obj = scannedTables.createObjectTable[hash];
+          if (obj && obj[propName]) {
+            // Generate atomMap for the style
+            const style = obj[propName];
+            if (typeof style === 'object' && style !== null) {
+              const records = getStyleRecords(propName, style as any, 2);
+              if (!isProduction) {
+                extractOndemandStyles(style, extractedSheets, scannedTables);
+
+                records.forEach((r: StyleRecord) =>
+                  extractedSheets.push(r.sheet),
+                );
+              }
+              const atomMap: Record<string, string> = {};
+              records.forEach((r: any) => (atomMap[r.key] = r.hash));
+
+              if (Object.keys(atomMap).length > 0) {
+                replacements.push({
+                  start: node.span.start - ast.span.start,
+                  end: node.span.end - ast.span.start,
+                  content: JSON.stringify(atomMap),
+                });
+              }
+            }
+          }
+        }
       }
     },
     CallExpression({ node }) {
@@ -365,178 +528,341 @@ export default async function loader(this: LoaderContext, source: string) {
       ) {
         const args = node.arguments;
 
-        const checkStatic = (expr: Expression): boolean => {
-          if (
-            t.isObjectExpression(expr) ||
-            t.isStringLiteral(expr) ||
-            t.isNumericLiteral(expr) ||
-            t.isBooleanLiteral(expr) ||
-            t.isNullLiteral(expr)
-          )
-            return true;
-          if (
+        const resolveStyleObject = (
+          expr: Expression,
+        ): Record<string, any> | null => {
+          if (t.isObjectExpression(expr)) {
+            return objectExpressionToObject(
+              expr,
+              mergedStaticTable,
+              mergedKeyframesTable,
+              mergedViewTransitionTable,
+              mergedThemeTable,
+              mergedCreateTable,
+              mergedVariantsTable,
+            );
+          } else if (
             t.isMemberExpression(expr) &&
             t.isIdentifier(expr.object) &&
-            t.isIdentifier(expr.property)
+            (t.isIdentifier(expr.property) || expr.property.type === 'Computed')
           ) {
-            const styleInfo = localCreateStyles[expr.object.value];
-            return !!(
-              styleInfo &&
-              !styleInfo.hasDynamicAccess &&
-              styleInfo.hashMap[expr.property.value]
-            );
-          }
-          if (t.isIdentifier(expr)) {
-            const styleInfo = localCreateStyles[expr.value];
-            return !!(styleInfo && !styleInfo.hasDynamicAccess);
-          }
-          return false;
-        };
+            if (expr.property.type === 'Computed') {
+              // Ignore bracket notation for complete staticization
+              return {};
+            }
+            const varName = ((expr as MemberExpression).object as Identifier)
+              .value;
+            const propName = ((expr as MemberExpression).property as Identifier)
+              .value;
 
-        // Check if there's any dynamic access (bracket notation like styles[variant])
-        const hasDynamicAccess = (expr: Expression): boolean => {
-          if (t.isMemberExpression(expr) && t.isIdentifier(expr.object)) {
-            const info = localCreateStyles[expr.object.value];
-            if (info && info.hasDynamicAccess) return true;
-          }
-          if (t.isIdentifier(expr)) {
-            const info = localCreateStyles[expr.value];
-            if (info && info.hasDynamicAccess) return true;
-          }
-          if (t.isConditionalExpression(expr)) {
-            return (
-              hasDynamicAccess(expr.consequent) ||
-              hasDynamicAccess(expr.alternate)
-            );
-          }
-          if (
-            t.isBinaryExpression(expr) &&
-            (expr.operator === '&&' ||
-              expr.operator === '||' ||
-              expr.operator === '??')
-          ) {
-            return hasDynamicAccess(expr.left) || hasDynamicAccess(expr.right);
-          }
-          return false;
-        };
-
-        const allStatic = args.every((arg: any) => checkStatic(arg.expression));
-        const anyDynamic = args.some((arg: any) =>
-          hasDynamicAccess(arg.expression),
-        );
-
-        if (allStatic && args.length > 0) {
-          // Pattern A: Fully static - merge and optimize into a single hash
-          const merged = args.reduce((acc: Record<string, any>, arg: any) => {
-            const expr = arg.expression;
-
-            if (t.isObjectExpression(expr)) {
-              const obj = objectExpressionToObject(
-                expr,
-                mergedStaticTable,
-                mergedKeyframesTable,
-                mergedViewTransitionTable,
-                mergedThemeTable,
-              );
-              return obj ? deepMerge(acc, obj) : acc;
-            } else if (
-              t.isMemberExpression(expr) &&
-              t.isIdentifier(expr.object) &&
-              t.isIdentifier(expr.property)
-            ) {
-              const styleInfo = localCreateStyles[expr.object.value];
-              return styleInfo
-                ? deepMerge(acc, styleInfo.obj[expr.property.value])
-                : acc;
-            } else if (t.isIdentifier(expr)) {
-              const styleInfo = localCreateStyles[expr.value];
-              return styleInfo ? deepMerge(acc, styleInfo.obj) : acc;
+            const styleInfo = localCreateStyles[varName];
+            if (styleInfo && styleInfo.obj[propName]) {
+              const style = styleInfo.obj[propName];
+              if (typeof style === 'object' && style !== null) {
+                return style;
+              }
             }
 
-            return acc;
-          }, {});
+            const hash = mergedCreateTable[varName];
+            if (hash) {
+              const obj = scannedTables.createObjectTable[hash];
+              if (obj && obj[propName]) {
+                const style = obj[propName];
+                if (typeof style === 'object' && style !== null) {
+                  return style as Record<string, any>;
+                }
+              }
+            }
+          } else if (t.isIdentifier(expr)) {
+            const varName = expr.value;
 
-          if (Object.keys(merged).length > 0) {
-            extractOndemandStyles(merged, extractedSheets);
-            const hash = genBase36Hash(merged, 1, 8);
-            const records = getStyleRecords(hash, merged, 2);
-            records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
-            const resultHash = records
-              .map((r: StyleRecord) => r.hash)
-              .join(' ');
+            const styleInfo = localCreateStyles[varName];
+            if (styleInfo && styleInfo.obj) {
+              return styleInfo.obj;
+            }
+
+            const hash = mergedCreateTable[varName];
+            if (hash) {
+              const obj = scannedTables.createObjectTable[hash];
+              if (obj && typeof obj === 'object') {
+                return obj;
+              }
+            }
+
+            // Checks for direct variant object reference if passed as variable
+            if (localCreateStyles[varName]) {
+              return localCreateStyles[varName].obj;
+            }
+            const vHash = mergedVariantsTable[varName];
+            if (vHash) {
+              return scannedTables.variantsObjectTable[vHash];
+            }
+          }
+          return null;
+        };
+
+        const conditionals: Array<{
+          test: Expression;
+          testString?: string;
+          truthy: Record<string, any>;
+          falsy: Record<string, any>;
+          groupId?: number;
+        }> = [];
+
+        let groupIdCounter = 0;
+
+        let baseStyle: Record<string, any> = {};
+        let isOptimizable = true;
+
+        for (const arg of args) {
+          const expr = arg.expression;
+
+          if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
+            const varName = expr.callee.value;
+            let variantObj: Record<string, any> | undefined;
+
+            if (localCreateStyles[varName] && localCreateStyles[varName].obj) {
+              variantObj = localCreateStyles[varName].obj;
+            } else if (mergedVariantsTable[varName]) {
+              const hash = mergedVariantsTable[varName];
+              if (scannedTables.variantsObjectTable[hash]) {
+                variantObj = scannedTables.variantsObjectTable[hash];
+              }
+            }
+
+            if (variantObj) {
+              const callArgs = expr.arguments;
+              if (callArgs.length === 1 && !callArgs[0].spread) {
+                const arg = callArgs[0].expression;
+                if (arg.type === 'ObjectExpression') {
+                  for (const prop of arg.properties) {
+                    let groupName: string | undefined;
+                    let valExpr: any;
+
+                    if (
+                      prop.type === 'KeyValueProperty' &&
+                      prop.key.type === 'Identifier'
+                    ) {
+                      groupName = prop.key.value;
+                      valExpr = prop.value;
+                    } else if (prop.type === 'Identifier') {
+                      groupName = prop.value;
+                      valExpr = prop;
+                    }
+
+                    if (groupName && valExpr) {
+                      const groupVariants = variantObj[groupName];
+                      if (!groupVariants) continue;
+
+                      const currentGroupId = ++groupIdCounter;
+                      const valStart =
+                        (valExpr as any).span.start - ast.span.start;
+                      const valEnd = (valExpr as any).span.end - ast.span.start;
+                      const valSource = source.substring(valStart, valEnd);
+
+                      // Static optimization
+                      if (valExpr.type === 'StringLiteral') {
+                        if (groupVariants[valExpr.value]) {
+                          baseStyle = deepMerge(
+                            baseStyle,
+                            groupVariants[valExpr.value],
+                          );
+                        }
+                        continue;
+                      }
+
+                      // Dynamic selection
+                      Object.entries(
+                        groupVariants as Record<string, any>,
+                      ).forEach(([optionName, style]) => {
+                        conditionals.push({
+                          test: valExpr,
+                          testString: `${valSource} === '${optionName}'`,
+                          truthy: style as Record<string, any>,
+                          falsy: {},
+                          groupId: currentGroupId,
+                        });
+                      });
+                    }
+                  }
+                  continue;
+                }
+                const argStart = (arg as any).span.start - ast.span.start;
+                const argEnd = (arg as any).span.end - ast.span.start;
+                const argSource = source.substring(argStart, argEnd);
+
+                if (t.isStringLiteral(arg)) {
+                  if (variantObj[arg.value]) {
+                    baseStyle = deepMerge(baseStyle, variantObj[arg.value]);
+                  }
+                  continue;
+                }
+
+                const currentGroupId = ++groupIdCounter;
+                Object.entries(variantObj).forEach(([key, style]) => {
+                  conditionals.push({
+                    test: arg, // We repurpose the arg node, but rely on testString for the output
+                    testString: `${argSource} === '${key}'`,
+                    truthy: style,
+                    falsy: {},
+                    groupId: currentGroupId,
+                  });
+                });
+                continue;
+              }
+
+              // Fallback if arguments are complex (e.g. spread)
+              isOptimizable = false;
+              break;
+            }
+          }
+
+          const staticStyle = resolveStyleObject(expr);
+          if (staticStyle) {
+            baseStyle = deepMerge(baseStyle, staticStyle);
+            continue;
+          } else if (expr.type === 'ConditionalExpression') {
+            const truthyStyle = resolveStyleObject(expr.consequent);
+            const falsyStyle = resolveStyleObject(expr.alternate);
+
+            if (truthyStyle !== null && falsyStyle !== null) {
+              conditionals.push({
+                test: expr.test,
+                truthy: truthyStyle,
+                falsy: falsyStyle,
+              });
+              continue;
+            }
+          } else if (
+            expr.type === 'BinaryExpression' &&
+            expr.operator === '&&'
+          ) {
+            const truthyStyle = resolveStyleObject(expr.right);
+            if (truthyStyle !== null) {
+              conditionals.push({
+                test: expr.left,
+                truthy: truthyStyle,
+                falsy: {},
+              });
+              continue;
+            }
+          } else if (expr.type === 'ParenthesisExpression') {
+            const inner = expr.expression;
+            const innerStatic = resolveStyleObject(inner);
+            if (innerStatic) {
+              baseStyle = deepMerge(baseStyle, innerStatic);
+              continue;
+            }
+          }
+
+          isOptimizable = false;
+          break;
+        }
+
+        if (
+          isOptimizable &&
+          (args.length > 0 || Object.keys(baseStyle).length > 0)
+        ) {
+          if (conditionals.length === 0) {
+            if (!isProduction) {
+              extractOndemandStyles(baseStyle, extractedSheets, scannedTables);
+            }
+            const hash = genBase36Hash(baseStyle, 1, 8);
+            const records = getStyleRecords(hash, baseStyle, 2);
+            if (!isProduction) {
+              records.forEach((r: StyleRecord) =>
+                extractedSheets.push(r.sheet),
+              );
+            }
+            const className = records.map((r: StyleRecord) => r.hash).join(' ');
+
             replacements.push({
               start: node.span.start - ast.span.start,
               end: node.span.end - ast.span.start,
-              content: JSON.stringify(resultHash),
+              content: JSON.stringify(className),
             });
-          }
-        } else if (anyDynamic) {
-          // Pattern B: Contains dynamic access - don't inline static references
-          // Keep styles.button as-is to avoid duplication with styles object
-          const processExpr = (expr: Expression) => {
-            if (t.isIdentifier(expr)) {
-              const info = localCreateStyles[expr.value];
-              if (info && info.hasDynamicAccess) {
-                excludedSpans.add(expr.span.start);
-              }
-            } else if (t.isConditionalExpression(expr)) {
-              processExpr(expr.consequent);
-              processExpr(expr.alternate);
-            } else if (
-              t.isBinaryExpression(expr) &&
-              (expr.operator === '&&' ||
-                expr.operator === '||' ||
-                expr.operator === '??')
-            ) {
-              processExpr(expr.left);
-              processExpr(expr.right);
-            }
-          };
-          args.forEach((arg: any) => processExpr(arg.expression));
-        } else {
-          // Pattern C: Conditional/runtime only - replace static style references with hashmaps
-          const processExpr = (expr: Expression) => {
-            if (
-              t.isMemberExpression(expr) &&
-              t.isIdentifier(expr.object) &&
-              t.isIdentifier(expr.property)
-            ) {
-              const info = localCreateStyles[expr.object.value];
-              if (info) {
-                const atomMap = info.hashMap[expr.property.value];
-                if (atomMap) {
-                  excludedSpans.add(expr.span.start);
-                  replacements.push({
-                    start: expr.span.start - ast.span.start,
-                    end: expr.span.end - ast.span.start,
-                    content: JSON.stringify(atomMap),
-                  });
+          } else {
+            const table: Record<number, string> = {};
+            const combinations = 1 << conditionals.length;
+
+            for (let i = 0; i < combinations; i++) {
+              let currentStyle = { ...baseStyle };
+              const seenGroups = new Set<number>();
+              let impossible = false;
+
+              for (let j = 0; j < conditionals.length; j++) {
+                if ((i >> j) & 1) {
+                  // Truthy case
+                  if (conditionals[j].groupId !== undefined) {
+                    if (seenGroups.has(conditionals[j].groupId!)) {
+                      impossible = true;
+                      break;
+                    }
+                    seenGroups.add(conditionals[j].groupId!);
+                  }
+                  currentStyle = deepMerge(
+                    currentStyle,
+                    conditionals[j].truthy,
+                  );
+                } else {
+                  // Falsy case
+                  currentStyle = deepMerge(currentStyle, conditionals[j].falsy);
                 }
               }
-            } else if (t.isIdentifier(expr)) {
-              const info = localCreateStyles[expr.value];
-              if (info) {
-                excludedSpans.add(expr.span.start);
-                replacements.push({
-                  start: expr.span.start - ast.span.start,
-                  end: expr.span.end - ast.span.start,
-                  content: JSON.stringify(info.hashMap),
-                });
+
+              if (impossible) {
+                table[i] = '';
+                continue;
               }
-            } else if (t.isConditionalExpression(expr)) {
-              processExpr(expr.consequent);
-              processExpr(expr.alternate);
-            } else if (
-              t.isBinaryExpression(expr) &&
-              (expr.operator === '&&' ||
-                expr.operator === '||' ||
-                expr.operator === '??')
-            ) {
-              processExpr(expr.left);
-              processExpr(expr.right);
+
+              if (process.env.NODE_ENV !== 'production') {
+                extractOndemandStyles(
+                  currentStyle,
+                  extractedSheets,
+                  scannedTables,
+                );
+              }
+              const hash = genBase36Hash(currentStyle, 1, 8);
+              const records = getStyleRecords(hash, currentStyle, 2);
+              if (process.env.NODE_ENV !== 'production') {
+                records.forEach((r: StyleRecord) =>
+                  extractedSheets.push(r.sheet),
+                );
+              }
+              const className = records
+                .map((r: StyleRecord) => r.hash)
+                .join(' ');
+
+              table[i] = className;
             }
-          };
-          args.forEach((arg: any) => processExpr(arg.expression));
+
+            // Generate index expression
+            // (!!cond0 << 0) | (!!cond1 << 1) ...
+            let indexExpr = '';
+            if (conditionals.length === 0) {
+              indexExpr = '0';
+            } else {
+              const parts = conditionals.map((c, idx) => {
+                if (c.testString) {
+                  return `(!!(${c.testString}) << ${idx})`;
+                }
+                const start = (c.test as any).span.start - ast.span.start;
+                const end = (c.test as any).span.end - ast.span.start;
+                const testStr = source.substring(start, end);
+                return `(!!(${testStr}) << ${idx})`;
+              });
+              indexExpr = parts.join(' | ');
+            }
+
+            const tableStr = JSON.stringify(table);
+            const replacement = `${tableStr}[${indexExpr}]`;
+
+            replacements.push({
+              start: node.span.start - ast.span.start,
+              end: node.span.end - ast.span.start,
+              content: replacement,
+            });
+          }
         }
       }
     },
@@ -545,30 +871,17 @@ export default async function loader(this: LoaderContext, source: string) {
   // Confirm the replacement of the styles declaration
   Object.values(localCreateStyles).forEach((info) => {
     if (info.isExported) {
-      const content =
-        isTSFile || info.hasDynamicAccess
-          ? JSON.stringify(info.hashMap)
-          : JSON.stringify('');
-
       replacements.push({
-        start: info.initSpan.start,
-        end: info.initSpan.end,
-        content,
+        start: info.declSpan.start,
+        end: info.declSpan.end,
+        content: JSON.stringify(''),
       });
     } else {
-      if (info.hasDynamicAccess) {
-        replacements.push({
-          start: info.initSpan.start,
-          end: info.initSpan.end,
-          content: JSON.stringify(info.hashMap),
-        });
-      } else {
-        replacements.push({
-          start: info.declSpan.start,
-          end: info.declSpan.end,
-          content: '',
-        });
-      }
+      replacements.push({
+        start: info.declSpan.start,
+        end: info.declSpan.end,
+        content: '',
+      });
     }
   });
 
