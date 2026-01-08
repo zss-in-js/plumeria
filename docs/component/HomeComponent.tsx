@@ -204,10 +204,10 @@ export const HomeComponent = () => {
               Build-time compilation for ultimate performance.
             </p>
             <div className={css.props(styles.buttonGroup)}>
-              <ButtonLink href="/docs" variant="gradient" size="medium">
+              <ButtonLink href="/docs" variant="gradient">
                 Get Started
               </ButtonLink>
-              <ButtonLink href="/docs/getting-started/installation" variant="metallic" size="medium">
+              <ButtonLink href="/docs/getting-started/installation" variant="metallic">
                 Installation
               </ButtonLink>
             </div>
