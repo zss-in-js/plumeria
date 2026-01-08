@@ -9,6 +9,10 @@ import type {
   ViewTransitionHashTable,
   ViewTransitionObjectTable,
   CreateThemeObjectTable,
+  CreateHashTable,
+  CreateObjectTable,
+  VariantsHashTable,
+  VariantsObjectTable,
 } from './types';
 
 import { createTheme } from './createTheme';
@@ -37,6 +41,8 @@ import path from 'path';
 import fs from 'fs';
 import { camelToKebabCase, genBase36Hash, transpile } from 'zss-engine';
 import { createViewTransition } from './viewTransition';
+import { getStyleRecords } from './create';
+import type { StyleRecord } from './create';
 
 export const t = {
   isObjectExpression: (node: any): node is ObjectExpression =>
@@ -121,6 +127,10 @@ export const tables: Tables = {
   viewTransitionHashTable: {},
   viewTransitionObjectTable: {},
   createThemeObjectTable: {},
+  createHashTable: {},
+  createObjectTable: {},
+  variantsHashTable: {},
+  variantsObjectTable: {},
 };
 
 /* 
@@ -134,6 +144,8 @@ export function objectExpressionToObject(
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
   themeTable: ThemeTable,
+  createHashTable: CreateHashTable,
+  variantsHashTable: VariantsHashTable,
   resolveVariable?: (name: string) => any,
 ): CSSObject {
   const obj: CSSObject = {};
@@ -153,6 +165,17 @@ export function objectExpressionToObject(
     const val = prop.value;
 
     if (t.isIdentifier(val) || t.isMemberExpression(val)) {
+      if (resolveVariable && t.isMemberExpression(val)) {
+        if (t.isIdentifier(val.object) && t.isIdentifier(val.property)) {
+          const resolved = resolveVariable(val.object.value);
+          const prop = val.property.value;
+          if (resolved && resolved[prop]) {
+            obj[key] = resolved[prop];
+            return;
+          }
+        }
+      }
+
       const resolvedKeyframe = resolveKeyframesTableMemberExpression(
         val,
         keyframesHashTable,
@@ -170,12 +193,28 @@ export function objectExpressionToObject(
         obj[key] = 'vt-' + resolvedViewTransitioin;
         return;
       }
+      const resolvedCreate = resolveCreateTableMemberExpression(
+        val,
+        createHashTable,
+      );
+      if (resolvedCreate !== undefined) {
+        obj[key] = 'cr-' + resolvedCreate;
+        return;
+      }
       const resolvedTheme = resolveThemeTableMemberExpressionByNode(
         val,
         themeTable,
       );
       if (resolvedTheme !== undefined) {
         obj[key] = resolvedTheme;
+        return;
+      }
+      const resolvedVariants = resolveVariantsTableMemberExpression(
+        val,
+        variantsHashTable,
+      );
+      if (resolvedVariants !== undefined) {
+        obj[key] = 'vr-' + resolvedVariants;
         return;
       }
     }
@@ -195,6 +234,8 @@ export function objectExpressionToObject(
         keyframesHashTable,
         viewTransitionHashTable,
         themeTable,
+        createHashTable,
+        variantsHashTable,
         resolveVariable,
       );
     } else if (t.isMemberExpression(val)) {
@@ -256,6 +297,8 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
         tables.keyframesHashTable,
         tables.viewTransitionHashTable,
         tables.themeTable,
+        tables.createHashTable,
+        tables.variantsHashTable,
         resolveValue,
       );
     }
@@ -541,6 +584,34 @@ function resolveViewTransitionTableMemberExpression(
   }
 }
 
+function resolveCreateTableMemberExpression(
+  node: Identifier | MemberExpression,
+  createHashTable: CreateHashTable,
+): string | undefined {
+  if (t.isIdentifier(node)) {
+    return createHashTable[node.value];
+  }
+  if (t.isMemberExpression(node)) {
+    if (t.isIdentifier(node.object)) {
+      return createHashTable[node.object.value];
+    }
+  }
+}
+
+function resolveVariantsTableMemberExpression(
+  node: Identifier | MemberExpression,
+  variantsHashTable: VariantsHashTable,
+): string | undefined {
+  if (t.isIdentifier(node)) {
+    return variantsHashTable[node.value];
+  }
+  if (t.isMemberExpression(node)) {
+    if (t.isIdentifier(node.object)) {
+      return variantsHashTable[node.object.value];
+    }
+  }
+}
+
 function resolveStaticTableMemberExpression(
   node: MemberExpression,
   staticTable: StaticTable,
@@ -590,18 +661,30 @@ interface CachedData {
   viewTransitionObjectTable: ViewTransitionObjectTable;
   themeTable: ThemeTable;
   createThemeObjectTable: CreateThemeObjectTable;
+  createHashTable: CreateHashTable;
+  createObjectTable: CreateObjectTable;
+  variantsHashTable: VariantsHashTable;
+  variantsObjectTable: VariantsObjectTable;
   hasCssUsage: boolean;
 }
 
 const fileCache: Record<string, CachedData> = {};
 
 export function scanAll(addDependency: (path: string) => void): Tables {
-  for (const key in tables) {
-    const table = tables[key as keyof Tables];
-    for (const prop in table) {
-      delete table[prop];
-    }
-  }
+  const localTables: Tables = {
+    staticTable: {},
+    themeTable: {},
+    keyframesHashTable: {},
+    keyframesObjectTable: {},
+    viewTransitionHashTable: {},
+    viewTransitionObjectTable: {},
+    createThemeObjectTable: {},
+    createHashTable: {},
+    createObjectTable: {},
+    variantsHashTable: {},
+    variantsObjectTable: {},
+  };
+
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   for (const filePath of files) {
@@ -613,28 +696,47 @@ export function scanAll(addDependency: (path: string) => void): Tables {
         if (cached.hasCssUsage) {
           addDependency(filePath);
           for (const key of Object.keys(cached.staticTable)) {
-            tables.staticTable[key] = cached.staticTable[key];
+            localTables.staticTable[`${filePath}-${key}`] =
+              cached.staticTable[key];
           }
           for (const key of Object.keys(cached.keyframesHashTable)) {
-            tables.keyframesHashTable[key] = cached.keyframesHashTable[key];
+            localTables.keyframesHashTable[`${filePath}-${key}`] =
+              cached.keyframesHashTable[key];
           }
           for (const key of Object.keys(cached.keyframesObjectTable)) {
-            tables.keyframesObjectTable[key] = cached.keyframesObjectTable[key];
+            localTables.keyframesObjectTable[key] =
+              cached.keyframesObjectTable[key];
           }
           for (const key of Object.keys(cached.viewTransitionHashTable)) {
-            tables.viewTransitionHashTable[key] =
+            localTables.viewTransitionHashTable[`${filePath}-${key}`] =
               cached.viewTransitionHashTable[key];
           }
           for (const key of Object.keys(cached.viewTransitionObjectTable)) {
-            tables.viewTransitionObjectTable[key] =
+            localTables.viewTransitionObjectTable[key] =
               cached.viewTransitionObjectTable[key];
           }
           for (const key of Object.keys(cached.themeTable)) {
-            tables.themeTable[key] = cached.themeTable[key];
+            localTables.themeTable[`${filePath}-${key}`] =
+              cached.themeTable[key];
           }
           for (const key of Object.keys(cached.createThemeObjectTable)) {
-            tables.createThemeObjectTable[key] =
+            localTables.createThemeObjectTable[key] =
               cached.createThemeObjectTable[key];
+          }
+          for (const key of Object.keys(cached.createHashTable)) {
+            localTables.createHashTable[`${filePath}-${key}`] =
+              cached.createHashTable[key];
+          }
+          for (const key of Object.keys(cached.createObjectTable)) {
+            localTables.createObjectTable[key] = cached.createObjectTable[key];
+          }
+          for (const key of Object.keys(cached.variantsHashTable)) {
+            localTables.variantsHashTable[`${filePath}-${key}`] =
+              cached.variantsHashTable[key];
+          }
+          for (const key of Object.keys(cached.variantsObjectTable)) {
+            localTables.variantsObjectTable[key] =
+              cached.variantsObjectTable[key];
           }
         }
         continue;
@@ -652,6 +754,10 @@ export function scanAll(addDependency: (path: string) => void): Tables {
           viewTransitionObjectTable: {},
           themeTable: {},
           createThemeObjectTable: {},
+          createHashTable: {},
+          createObjectTable: {},
+          variantsHashTable: {},
+          variantsObjectTable: {},
           hasCssUsage: false,
         };
         continue;
@@ -672,6 +778,10 @@ export function scanAll(addDependency: (path: string) => void): Tables {
       const localViewTransitionObjectTable: ViewTransitionObjectTable = {};
       const localThemeTable: ThemeTable = {};
       const localCreateThemeObjectTable: CreateThemeObjectTable = {};
+      const localCreateHashTable: CreateHashTable = {};
+      const localCreateObjectTable: CreateObjectTable = {};
+      const localVariantsHashTable: VariantsHashTable = {};
+      const localVariantsObjectTable: VariantsObjectTable = {};
 
       for (const node of ast.body) {
         let declarations: VariableDeclarator[] = [];
@@ -701,37 +811,60 @@ export function scanAll(addDependency: (path: string) => void): Tables {
             const name = decl.id.value;
             const init = decl.init;
 
+            const resolveVariable = (name: string) => {
+              const hash = localCreateHashTable[name];
+              if (hash && localCreateObjectTable[hash]) {
+                return localCreateObjectTable[hash];
+              }
+              return undefined;
+            };
+
             const obj = objectExpressionToObject(
               init.arguments[0].expression as ObjectExpression,
               localStaticTable,
               localKeyframesHashTable,
               localViewTransitionHashTable,
               localThemeTable,
+              localCreateHashTable,
+              localVariantsHashTable,
+              resolveVariable,
             );
 
             const uniqueKey = `${filePath}-${name}`;
 
             if (method === 'createStatic') {
               localStaticTable[name] = obj;
-              tables.staticTable[uniqueKey] = obj;
+              localTables.staticTable[uniqueKey] = obj;
             } else if (method === 'keyframes') {
               const hash = genBase36Hash(obj, 1, 8);
               localKeyframesHashTable[name] = hash;
-              tables.keyframesHashTable[uniqueKey] = hash;
-              tables.keyframesObjectTable[hash] = obj;
+              localTables.keyframesHashTable[uniqueKey] = hash;
+              localTables.keyframesObjectTable[hash] = obj;
               localKeyframesObjectTable[hash] = obj;
             } else if (method === 'viewTransition') {
               const hash = genBase36Hash(obj, 1, 8);
               localViewTransitionHashTable[name] = hash;
-              tables.viewTransitionHashTable[uniqueKey] = hash;
-              tables.viewTransitionObjectTable[hash] = obj;
+              localTables.viewTransitionHashTable[uniqueKey] = hash;
+              localTables.viewTransitionObjectTable[hash] = obj;
               localViewTransitionObjectTable[hash] = obj;
             } else if (method === 'createTheme') {
               const hash = genBase36Hash(obj, 1, 8);
               localThemeTable[name] = obj;
-              tables.themeTable[uniqueKey] = obj;
-              tables.createThemeObjectTable[hash] = obj;
+              localTables.themeTable[uniqueKey] = obj;
+              localTables.createThemeObjectTable[hash] = obj;
               localCreateThemeObjectTable[hash] = obj;
+            } else if (method === 'create') {
+              const hash = genBase36Hash(obj, 1, 8);
+              localCreateHashTable[name] = hash;
+              localTables.createHashTable[uniqueKey] = hash;
+              localTables.createObjectTable[hash] = obj;
+              localCreateObjectTable[hash] = obj;
+            } else if (method === 'variants') {
+              const hash = genBase36Hash(obj, 1, 8);
+              localVariantsHashTable[name] = hash;
+              localTables.variantsHashTable[uniqueKey] = hash;
+              localTables.variantsObjectTable[hash] = obj;
+              localVariantsObjectTable[hash] = obj;
             }
           }
         }
@@ -747,6 +880,10 @@ export function scanAll(addDependency: (path: string) => void): Tables {
         viewTransitionObjectTable: localViewTransitionObjectTable,
         themeTable: localThemeTable,
         createThemeObjectTable: localCreateThemeObjectTable,
+        createHashTable: localCreateHashTable,
+        createObjectTable: localCreateObjectTable,
+        variantsHashTable: localVariantsHashTable,
+        variantsObjectTable: localVariantsObjectTable,
         hasCssUsage: true,
       };
     } catch (e) {
@@ -754,18 +891,20 @@ export function scanAll(addDependency: (path: string) => void): Tables {
     }
   }
 
-  return tables;
+  return localTables;
 }
 
 export function extractOndemandStyles(
   obj: any,
   extractedSheets: string[],
+  t: Tables = tables,
 ): void {
   if (!obj || typeof obj !== 'object') return;
 
   const visited = new Set();
   const keyframesHashes = new Set<string>();
   const viewTransitionHashes = new Set<string>();
+  const createHashes = new Set<string>();
   let needsTheme = false;
 
   function walk(n: any) {
@@ -779,6 +918,8 @@ export function extractOndemandStyles(
           keyframesHashes.add(val.slice(3));
         } else if (val.startsWith('vt-')) {
           viewTransitionHashes.add(val.slice(3));
+        } else if (val.startsWith('cr-')) {
+          createHashes.add(val.slice(3));
         } else if (!needsTheme && val.includes('var(--')) {
           needsTheme = true;
         }
@@ -799,7 +940,7 @@ export function extractOndemandStyles(
 
   if (keyframesHashes.size > 0) {
     for (const hash of keyframesHashes) {
-      const definition = tables.keyframesObjectTable[hash];
+      const definition = t.keyframesObjectTable[hash];
       if (definition) {
         const { styleSheet } = transpile(
           { [`@keyframes kf-${hash}`]: definition as any },
@@ -813,7 +954,7 @@ export function extractOndemandStyles(
 
   if (viewTransitionHashes.size > 0) {
     for (const hash of viewTransitionHashes) {
-      const obj = tables.viewTransitionObjectTable[hash];
+      const obj = t.viewTransitionObjectTable[hash];
       if (obj) {
         const { styleSheet } = transpile(
           createViewTransition(obj, hash),
@@ -825,11 +966,23 @@ export function extractOndemandStyles(
     }
   }
 
+  if (createHashes.size > 0) {
+    for (const hash of createHashes) {
+      const obj = t.createObjectTable[hash];
+      if (obj) {
+        Object.entries(obj).forEach(([key, style]) => {
+          const records = getStyleRecords(key, style as any, 2);
+          records.forEach((r: StyleRecord) => addSheet(r.sheet));
+        });
+      }
+    }
+  }
+
   if (needsTheme) {
-    for (const themeVarName in tables.themeTable) {
-      const themeObj = tables.themeTable[themeVarName];
+    for (const themeVarName in t.themeTable) {
+      const themeObj = t.themeTable[themeVarName];
       const hash = genBase36Hash(themeObj, 1, 8);
-      const definition = tables.createThemeObjectTable[hash];
+      const definition = t.createThemeObjectTable[hash];
 
       if (definition && typeof definition === 'object') {
         const styles = createTheme(definition as Record<string, any>);
