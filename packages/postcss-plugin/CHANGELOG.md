@@ -1,5 +1,16 @@
 # @plumeria/postcss-plugin
 
+## 6.0.0
+
+### Major Changes
+
+- f1d353d: fix: this makes compiling build-only
+
+### Patch Changes
+
+- Updated dependencies [f1d353d]
+  - @plumeria/compiler@6.0.0
+
 ## 5.0.1
 
 ### Patch Changes
