@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 6.0.1
+
+### Patch Changes
+
+- 918302c: chore: fix Patch 6.0.1 conditional style merging
+- Updated dependencies [918302c]
+  - @plumeria/utils@6.0.1
+
 ## 6.0.0
 
 ### Major Changes
