@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 6.0.0
+
+### Major Changes
+
+- f1d353d: feat: added variants and create tables, the loader will completely wipe them when collected and extracted.
+
 ## 5.0.1
 
 ### Patch Changes
