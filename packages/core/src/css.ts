@@ -9,37 +9,18 @@ import type {
   ReturnType,
   ReturnVariableType,
   Style,
+  Variant,
 } from './types';
 
 const errorFn = () => {
-  throw new Error('Runtime execution is not supported');
+  throw new Error(
+    'Runtime execution is not supported. Configure the bundler plugin.',
+  );
 };
-
-const defined = new Set<string>();
 
 const props = (
-  ...rules: (false | CSSProperties | null | undefined)[]
-): string => {
-  defined.clear();
-  let result = '';
-
-  for (let i = rules.length - 1; i >= 0; i--) {
-    const arg = rules[i] as Record<string, string>;
-    if (!arg || typeof arg !== 'object') continue;
-
-    let chunk = '';
-    for (const key in arg) {
-      if (arg[key] && !defined.has(key)) {
-        defined.add(key);
-        chunk += chunk ? ' ' + arg[key] : arg[key];
-      }
-    }
-
-    if (chunk) result = result ? chunk + ' ' + result : chunk;
-  }
-
-  return result;
-};
+  ..._rules: (false | CSSProperties | null | undefined)[]
+): string => errorFn();
 
 const create = <const T extends Record<string, CSSProperties>>(
   _rule: CreateStyleType<T>,
@@ -55,6 +36,11 @@ const keyframes = (_rule: Keyframes): string => errorFn();
 
 const viewTransition = (_rule: ViewTransition): string => errorFn();
 
+const variants =
+  <T extends Variant>(_rule: T) =>
+  (_props: { [K in keyof T]?: keyof T[K] }): CSSProperties =>
+    errorFn();
+
 const x = (className: string, style: Style) => ({ className, style });
 
 const css = {
@@ -64,6 +50,7 @@ const css = {
   createStatic,
   keyframes,
   viewTransition,
+  variants,
 };
 type css = typeof css;
 
