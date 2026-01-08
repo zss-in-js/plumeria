@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 6.0.1
+
+### Patch Changes
+
+- 918302c: chore: fix Patch 6.0.1 conditional style merging
+
 ## 6.0.0
 
 ### Major Changes
