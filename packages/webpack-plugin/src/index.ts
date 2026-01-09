@@ -76,10 +76,27 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   const localConsts = collectLocalConsts(ast);
   const resourcePath = this.resourcePath;
   const importMap: Record<string, any> = {};
+  const plumeriaAliases: Record<string, string> = {};
 
   traverse(ast, {
     ImportDeclaration({ node }) {
       const sourcePath = node.source.value;
+
+      if (sourcePath === '@plumeria/core') {
+        node.specifiers.forEach((specifier: any) => {
+          if (specifier.type === 'ImportNamespaceSpecifier') {
+            plumeriaAliases[specifier.local.value] = 'NAMESPACE';
+          } else if (specifier.type === 'ImportDefaultSpecifier') {
+            plumeriaAliases[specifier.local.value] = 'NAMESPACE';
+          } else if (specifier.type === 'ImportSpecifier') {
+            const importedName = specifier.imported
+              ? specifier.imported.value
+              : specifier.local.value;
+            plumeriaAliases[specifier.local.value] = importedName;
+          }
+        });
+      }
+
       const actualPath = resolveImportPath(sourcePath, resourcePath);
 
       if (actualPath) {
@@ -214,16 +231,38 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   };
 
   const registerStyle = (node: any, declSpan: any, isExported: boolean) => {
+    let propName: string | undefined;
+
     if (
       t.isIdentifier(node.id) &&
       node.init &&
       t.isCallExpression(node.init) &&
-      t.isMemberExpression(node.init.callee) &&
-      t.isIdentifier(node.init.callee.object, { name: 'css' }) &&
-      t.isIdentifier(node.init.callee.property) &&
       node.init.arguments.length >= 1
     ) {
-      const propName = node.init.callee.property.value;
+      const callee = node.init.callee;
+
+      if (
+        t.isMemberExpression(callee) &&
+        t.isIdentifier(callee.object) &&
+        t.isIdentifier(callee.property)
+      ) {
+        const objectName = callee.object.value;
+        const propertyName = callee.property.value;
+        const alias = plumeriaAliases[objectName];
+
+        if (alias === 'NAMESPACE' || objectName === 'css') {
+          propName = propertyName;
+        }
+      } else if (t.isIdentifier(callee)) {
+        const calleeName = callee.value;
+        const originalName = plumeriaAliases[calleeName];
+        if (originalName) {
+          propName = originalName;
+        }
+      }
+    }
+
+    if (propName) {
       if (
         propName === 'create' &&
         t.isObjectExpression(node.init.arguments[0].expression)
@@ -319,7 +358,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
         );
         localCreateStyles[node.id.value] = {
           name: node.id.value,
-          type: 'variant', // reused for simple object storage
+          type: 'variant',
           obj,
           hashMap: {},
           isExported,
@@ -368,12 +407,29 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
 
     CallExpression({ node }) {
       const callee = node.callee;
+      let propName: string | undefined;
+
       if (
         t.isMemberExpression(callee) &&
-        t.isIdentifier(callee.object, { name: 'css' }) &&
+        t.isIdentifier(callee.object) &&
         t.isIdentifier(callee.property)
       ) {
-        const propName = callee.property.value;
+        const objectName = callee.object.value;
+        const propertyName = callee.property.value;
+        const alias = plumeriaAliases[objectName];
+
+        if (alias === 'NAMESPACE' || objectName === 'css') {
+          propName = propertyName;
+        }
+      } else if (t.isIdentifier(callee)) {
+        const calleeName = callee.value;
+        const originalName = plumeriaAliases[calleeName];
+        if (originalName) {
+          propName = originalName;
+        }
+      }
+
+      if (propName) {
         const args = node.arguments;
 
         if (
@@ -479,7 +535,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
         const varName = node.object.value;
         const propName = node.property.value;
 
-        // First check local styles
         const styleInfo = localCreateStyles[varName];
         if (styleInfo) {
           const atomMap = styleInfo.hashMap[propName];
@@ -493,12 +548,10 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
           }
         }
 
-        // If not found locally, check if it's an imported/exported style
         const hash = mergedCreateTable[varName];
         if (hash) {
           const obj = scannedTables.createObjectTable[hash];
           if (obj && obj[propName]) {
-            // Generate atomMap for the style
             const style = obj[propName];
             if (typeof style === 'object' && style !== null) {
               const records = getStyleRecords(propName, style as any, 2);
@@ -524,11 +577,31 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     },
     CallExpression({ node }) {
       const callee = node.callee;
+      let isPropsCall = false;
+
       if (
         t.isMemberExpression(callee) &&
-        t.isIdentifier(callee.object, { name: 'css' }) &&
-        t.isIdentifier(callee.property, { name: 'props' })
+        t.isIdentifier(callee.object) &&
+        t.isIdentifier(callee.property)
       ) {
+        const objectName = callee.object.value;
+        const propertyName = callee.property.value;
+        const alias = plumeriaAliases[objectName];
+        if (
+          (alias === 'NAMESPACE' || objectName === 'css') &&
+          propertyName === 'props'
+        ) {
+          isPropsCall = true;
+        }
+      } else if (t.isIdentifier(callee)) {
+        const calleeName = callee.value;
+        const originalName = plumeriaAliases[calleeName];
+        if (originalName === 'props') {
+          isPropsCall = true;
+        }
+      }
+
+      if (isPropsCall) {
         const args = node.arguments;
 
         const resolveStyleObject = (
@@ -593,7 +666,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               }
             }
 
-            // Checks for direct variant object reference if passed as variable
             if (localCreateStyles[varName]) {
               return localCreateStyles[varName].obj;
             }
@@ -638,8 +710,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               const callArgs = expr.arguments;
               if (callArgs.length === 1 && !callArgs[0].spread) {
                 const arg = callArgs[0].expression;
-
-                // Handle new Grouped API: getStyle({ variant: 'gradient', size: 'small' })
                 if (arg.type === 'ObjectExpression') {
                   for (const prop of arg.properties) {
                     let groupName: string | undefined;
@@ -657,7 +727,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
                     }
 
                     if (groupName && valExpr) {
-                      const groupVariants = variantObj[groupName]; // Expect nested record: { option: style }
+                      const groupVariants = variantObj[groupName];
                       if (!groupVariants) continue;
 
                       const currentGroupId = ++groupIdCounter;
@@ -707,7 +777,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
                 const currentGroupId = ++groupIdCounter;
                 Object.entries(variantObj).forEach(([key, style]) => {
                   conditionals.push({
-                    test: arg, // We repurpose the arg node, but rely on testString for the output
+                    test: arg,
                     testString: `${argSource} === '${key}'`,
                     truthy: style,
                     falsy: {},
