@@ -1,5 +1,16 @@
 # @plumeria/webpack-plugin
 
+## 6.1.0
+
+### Minor Changes
+
+- d52839e: feat: support namespace import
+
+### Patch Changes
+
+- Updated dependencies [d52839e]
+  - @plumeria/utils@6.1.0
+
 ## 6.0.2
 
 ### Patch Changes

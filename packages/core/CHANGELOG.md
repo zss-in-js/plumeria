@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 6.1.0
+
+### Minor Changes
+
+- d52839e: perf: removed x api, I'll use React inline style from now on
+
 ## 6.0.2
 
 ### Patch Changes
