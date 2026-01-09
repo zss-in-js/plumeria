@@ -3,7 +3,7 @@
 An atomic CSS runtime designed to disappear.
 
 ```ts
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 const styles = css.create({
   text: {
@@ -18,6 +18,12 @@ const styles = css.create({
 const className = css.props(styles.text, styles.size);
 ```
 
+**Compiled:**
+
+```tsx
+className="xhrr6ses xvbwmxqp xhk51flp"
+```
+
 **Generated CSS:**
 
 ```css
@@ -30,10 +36,6 @@ const className = css.props(styles.text, styles.size);
 .xhk51flp {
   width: 120px;
 }
-```
-
-```
-"xhrr6ses xvbwmxqp xhk51flp"
 ```
 
 ## Documentation
