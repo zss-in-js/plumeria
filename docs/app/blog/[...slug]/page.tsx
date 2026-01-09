@@ -5,7 +5,7 @@ import { JSX } from 'react';
 import { DocsBody } from 'fumadocs-ui/page';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { styles } from './styles';
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
 

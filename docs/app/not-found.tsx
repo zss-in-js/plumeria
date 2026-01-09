@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { JSX } from 'react';
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 const styles = css.create({
   container: {
