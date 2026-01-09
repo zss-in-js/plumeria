@@ -1,5 +1,5 @@
 import { codeToHtml } from 'shiki';
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 
 const stylesCode = css.create({

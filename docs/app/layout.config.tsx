@@ -1,6 +1,6 @@
 import React from 'react';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 import Image from 'next/image';
 import { gradientShift } from 'component/animation';
 

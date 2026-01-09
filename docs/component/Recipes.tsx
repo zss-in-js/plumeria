@@ -1,4 +1,4 @@
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 import { ps } from 'lib/pseudos';
 import { rotateFocus, rotateHover } from 'lib/animation';
 import { breakpoints } from 'lib/mediaQuery';

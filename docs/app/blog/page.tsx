@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next/types';
 import { blog } from 'lib/source';
 import { styles } from './styles';
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 import { JSX } from 'react';
 import generateSEOData from 'lib/generateSEOData';
 

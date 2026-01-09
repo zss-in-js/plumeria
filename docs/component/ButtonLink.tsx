@@ -1,4 +1,4 @@
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 import type { ReactNode } from 'react';
 import { gradientShift } from './animation';
 import { breakpoints } from 'lib/mediaQuery';

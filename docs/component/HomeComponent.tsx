@@ -1,4 +1,4 @@
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import { ps } from 'lib/pseudos';
 import { Plumeria } from './Plumeria';
@@ -200,7 +200,7 @@ export const HomeComponent = () => {
             <Plumeria />
             <h2 className={css.props(styles.mainHeadline)}>Atomic CSS-in-JS</h2>
             <p className={css.props(styles.subHeadline)}>
-              Extremely low runtime overhead. Full type safety. <br />
+              Zero runtime overhead. Full type safety. <br />
               Build-time compilation for ultimate performance.
             </p>
             <div className={css.props(styles.buttonGroup)}>
