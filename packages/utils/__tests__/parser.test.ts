@@ -1,3 +1,4 @@
+/* eslint-disable @plumeria/validate-values */
 import {
   objectExpressionToObject,
   tables,
@@ -9,6 +10,7 @@ import {
   deepMerge,
 } from '../src/parser';
 import { parseSync, ObjectExpression } from '@swc/core';
+import { genBase36Hash } from 'zss-engine';
 import * as fs from 'fs';
 
 jest.mock('fs', () => ({
@@ -76,6 +78,13 @@ describe('parser', () => {
       const init = varDecl.declarations[0].init;
       expect(t.isNullLiteral(init)).toBe(true);
     });
+
+    it('should identify ConditionalExpression', () => {
+      const ast = parseSync('const x = true ? 1 : 0', { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const init = varDecl.declarations[0].init;
+      expect(t.isConditionalExpression(init)).toBe(true);
+    });
   });
 
   describe('traverse', () => {
@@ -131,6 +140,33 @@ describe('parser', () => {
       const consts = collectLocalConsts(ast);
 
       expect(consts.theme).toEqual({ primary: 'blue' });
+    });
+
+    it('should resolve variable references in objects', () => {
+      const ast = parseSync('const x = 1; const obj = { val: x };', {
+        syntax: 'typescript',
+      });
+      const consts = collectLocalConsts(ast);
+
+      expect(consts.x).toBe(1);
+      expect(consts.obj).toEqual({ val: 1 });
+    });
+
+    it('should handle circular dependency in constants', () => {
+      // Direct recursion via object to trigger visiting.has(name)
+      const ast = parseSync('const a = { prop: a };', { syntax: 'typescript' });
+      const consts = collectLocalConsts(ast);
+      expect(consts.a).toBeDefined(); // { prop: '[unresolved identifier]' }
+      expect(consts.a.prop).toBe('[unresolved identifier]');
+    });
+
+    it('should handle references to non-local variables', () => {
+      // Triggers !decls.has(name)
+      const ast = parseSync('const a = { prop: external };', {
+        syntax: 'typescript',
+      });
+      const consts = collectLocalConsts(ast);
+      expect(consts.a.prop).toBe('[unresolved identifier]');
     });
   });
 
@@ -563,7 +599,7 @@ describe('parser', () => {
     it('should scan for keyframes', () => {
       mockedFs.globSync.mockReturnValue(['/test/anim.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
+        'import * as css from "@plumeria/core"; export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
       );
 
       const result = scanAll();
@@ -575,7 +611,7 @@ describe('parser', () => {
     it('should scan for createStatic', () => {
       mockedFs.globSync.mockReturnValue(['/test/consts.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'export const C = css.createStatic({ color: "red" });',
+        'import * as css from "@plumeria/core"; export const C = css.createStatic({ color: "red" });',
       );
 
       const result = scanAll();
@@ -589,7 +625,7 @@ describe('parser', () => {
     it('should scan for createTheme', () => {
       mockedFs.globSync.mockReturnValue(['/test/tokens.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'export const T = css.createTheme({ primary: "#fff" });',
+        'import { createTheme } from "@plumeria/core"; export const T = createTheme({ primary: "#fff" });',
       );
 
       const result = scanAll();
@@ -600,7 +636,7 @@ describe('parser', () => {
     it('should scan for viewTransition', () => {
       mockedFs.globSync.mockReturnValue(['/test/vt.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'export const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
+        'import * as css from "@plumeria/core"; export const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
       );
 
       const result = scanAll();
@@ -612,7 +648,7 @@ describe('parser', () => {
     it('should handle non-exported createStatic declarations', () => {
       mockedFs.globSync.mockReturnValue(['/test/local.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'const C = css.createStatic({ size: "large" });',
+        'import * as css from "@plumeria/core"; const C = css.createStatic({ size: "large" });',
       );
 
       const result = scanAll();
@@ -626,7 +662,7 @@ describe('parser', () => {
     it('should handle non-exported keyframes declarations', () => {
       mockedFs.globSync.mockReturnValue(['/test/local-kf.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
+        'import * as css from "@plumeria/core"; const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
       );
 
       const result = scanAll();
@@ -638,7 +674,7 @@ describe('parser', () => {
     it('should handle non-exported createTheme declarations', () => {
       mockedFs.globSync.mockReturnValue(['/test/local-tokens.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'const T = css.createTheme({ primary: "#fff" });',
+        'import * as css from "@plumeria/core"; const T = css.createTheme({ primary: "#fff" });',
       );
 
       const result = scanAll();
@@ -650,7 +686,7 @@ describe('parser', () => {
     it('should handle non-exported viewTransition declarations', () => {
       mockedFs.globSync.mockReturnValue(['/test/local-vt.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
+        'import * as css from "@plumeria/core"; const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
       );
 
       const result = scanAll();
@@ -686,6 +722,179 @@ describe('parser', () => {
 
       expect(Object.keys(result.keyframesHashTable)).toHaveLength(0);
     });
+
+    it('should scan for create', () => {
+      mockedFs.globSync.mockReturnValue(['/test/create.ts'] as any);
+      mockedFs.readFileSync.mockReturnValue(
+        'import * as css from "@plumeria/core"; export const style = css.create({ color: "red" });',
+      );
+
+      const result = scanAll();
+      const keys = Object.keys(result.createHashTable);
+      expect(keys.some((key) => key.endsWith('-style'))).toBe(true);
+      expect(result.createObjectTable).toBeDefined();
+    });
+
+    it('should scan for variants', () => {
+      mockedFs.globSync.mockReturnValue(['/test/variants.ts'] as any);
+      mockedFs.readFileSync.mockReturnValue(
+        'import * as css from "@plumeria/core"; export const btn = css.variants({ variants: { size: { sm: { padding: 4 } } } });',
+      );
+
+      const result = scanAll();
+      const keys = Object.keys(result.variantsHashTable);
+      expect(keys.some((key) => key.endsWith('-btn'))).toBe(true);
+      expect(result.variantsObjectTable).toBeDefined();
+    });
+
+    it('should resolve variables from create table', () => {
+      mockedFs.globSync.mockReturnValue(['/test/resolve.ts'] as any);
+      // We need a case where resolveVariable is called.
+      // resolveVariable is passed to objectExpressionToObject.
+      // It is called when value is Identifier or MemberExpression.
+      mockedFs.readFileSync.mockReturnValue(
+        `
+         import * as css from "@plumeria/core";
+         const base = css.create({ color: "red" });
+         const derived = css.createStatic({
+           ref: base.color
+         });
+         `,
+      );
+
+      const result = scanAll();
+      // "derived" static table entry should have { ref: "red" }
+      const keys = Object.keys(result.staticTable);
+      const derivedKey = keys.find((k) => k.endsWith('-derived'));
+      expect(derivedKey).toBeDefined();
+      expect(result.staticTable[derivedKey!]).toEqual({ ref: 'red' });
+    });
+
+    it('should resolve variants from variants table', () => {
+      mockedFs.globSync.mockReturnValue(['/test/resolve_var.ts'] as any);
+      mockedFs.readFileSync.mockReturnValue(
+        `
+         import * as css from "@plumeria/core";
+         const btn = css.variants({ variants: {} });
+         const derived = css.createStatic({
+           ref: btn
+         });
+         `,
+      );
+      const result = scanAll();
+      const keys = Object.keys(result.staticTable);
+      const derivedKey = keys.find((k) => k.endsWith('-derived'));
+      expect(derivedKey).toBeDefined();
+      // Expect ref to start with 'vr-'
+      const val = result.staticTable[derivedKey!] as any;
+      expect(val.ref).toMatch(/^vr-/);
+    });
+
+    it('should handle aliased named import', () => {
+      mockedFs.globSync.mockReturnValue(['/test/aliased.ts'] as any);
+      mockedFs.readFileSync.mockReturnValue(
+        'import { createStatic as cs } from "@plumeria/core"; export const C = cs({ color: "green" });',
+      );
+      const result = scanAll();
+      const keys = Object.keys(result.staticTable);
+      const cKey = keys.find((k) => k.endsWith('-C'));
+      expect(result.staticTable[cKey!]).toEqual({ color: 'green' });
+    });
+
+    it('should handle named css import', () => {
+      // Covers objectName === 'css' path
+      mockedFs.globSync.mockReturnValue(['/test/named_css.ts'] as any);
+      mockedFs.readFileSync.mockReturnValue(
+        'import { css } from "@plumeria/core"; export const C = css.createStatic({ color: "purple" });',
+      );
+      const result = scanAll();
+      const keys = Object.keys(result.staticTable);
+      const cKey = keys.find((k) => k.endsWith('-C'));
+      expect(result.staticTable[cKey!]).toEqual({ color: 'purple' });
+    });
+
+    it('should support create reference as value', () => {
+      mockedFs.globSync.mockReturnValue(['/test/ref.ts'] as any);
+      mockedFs.readFileSync.mockReturnValue(
+        'import * as css from "@plumeria/core"; const base = css.create({ color: "red" }); const ref = css.createStatic({ link: base });',
+      );
+      const result = scanAll();
+      const keys = Object.keys(result.staticTable);
+      const refKey = keys.find((k) => k.endsWith('-ref'));
+      const val = result.staticTable[refKey!] as any;
+      expect(val.link).toMatch(/^cr-/);
+    });
+
+    it('should handle unresolved variables in createStatic', () => {
+      mockedFs.globSync.mockReturnValue(['/test/unresolved.ts'] as any);
+      mockedFs.readFileSync.mockReturnValue(
+        'import * as css from "@plumeria/core"; const C = css.createStatic({ color: unknownVar });',
+      );
+      const result = scanAll();
+      const keys = Object.keys(result.staticTable);
+      const cKey = keys.find((k) => k.endsWith('-C'));
+      expect(result.staticTable[cKey!]).toEqual({
+        color: '[unresolved identifier]',
+      });
+    });
+
+    it('should use cache on second run', () => {
+      const mtimeMs = 12345;
+      mockedFs.globSync.mockReturnValue(['/test/cache.ts'] as any);
+      mockedFs.statSync.mockReturnValue({
+        isDirectory: () => false,
+        mtimeMs,
+      } as any);
+      mockedFs.readFileSync.mockReturnValue(
+        `import * as css from "@plumeria/core";
+         export const C = css.createStatic({ color: "red" });
+         export const T = css.createTheme({ p: 1 });
+         export const S = css.create({ c: "blue" });
+         export const V = css.variants({ variants: {} });
+         export const K = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
+         export const VT = css.viewTransition({ group: { name: "none" } });
+        `,
+      );
+
+      // First run
+      scanAll();
+
+      // Second run - should use cache
+      mockedFs.readFileSync.mockReturnValue('INVALID CONTENT');
+      const result = scanAll();
+
+      const keys = Object.keys(result.staticTable);
+      const cKey = keys.find((k) => k.endsWith('-C'));
+      expect(result.staticTable[cKey!]).toEqual({ color: 'red' });
+
+      // Check other tables are restored
+      const themeKeys = Object.keys(result.themeTable);
+      expect(themeKeys.some((k) => k.endsWith('-T'))).toBe(true);
+
+      const createKeys = Object.keys(result.createHashTable);
+      expect(createKeys.some((k) => k.endsWith('-S'))).toBe(true);
+
+      const variantKeys = Object.keys(result.variantsHashTable);
+      expect(variantKeys.some((k) => k.endsWith('-V'))).toBe(true);
+
+      const kfKeys = Object.keys(result.keyframesHashTable);
+      expect(kfKeys.some((k) => k.endsWith('-K'))).toBe(true);
+
+      const vtKeys = Object.keys(result.viewTransitionHashTable);
+      expect(vtKeys.some((k) => k.endsWith('-VT'))).toBe(true);
+    });
+
+    it('should handle default import', () => {
+      mockedFs.globSync.mockReturnValue(['/test/default.ts'] as any);
+      mockedFs.readFileSync.mockReturnValue(
+        'import css from "@plumeria/core"; export const C = css.createStatic({ color: "blue" });',
+      );
+
+      const result = scanAll();
+      const keys = Object.keys(result.staticTable);
+      const cKey = keys.find((k) => k.endsWith('-C'));
+      expect(result.staticTable[cKey!]).toEqual({ color: 'blue' });
+    });
   });
 });
 
@@ -710,14 +919,25 @@ describe('extractOndemandStyles (integration)', () => {
     };
   });
 
-  it('should extract keyframes, viewTransition and theme styles', () => {
+  it('should extract keyframes, viewTransition, create and theme styles', () => {
     const extracted: string[] = [];
+
+    // Setup matching theme table
+    const themeObj = { primary: 'blue' };
+    const themeHash = genBase36Hash(themeObj, 1, 8);
+    tables.themeTable['T'] = themeObj;
+    tables.createThemeObjectTable[themeHash] = themeObj;
+
+    // Setup create table
+    const createHash = 'myhash';
+    tables.createObjectTable[createHash] = { color: 'red' };
 
     extractOndemandStyles(
       {
         a: 'kf-abc',
         b: 'vt-def',
         c: 'var(--color)',
+        d: `cr-${createHash}`,
         nested: {
           d: 'kf-abc',
         },
@@ -727,6 +947,15 @@ describe('extractOndemandStyles (integration)', () => {
 
     // transpile の戻りは parser 側で共通の styleSheet を返すため
     expect(extracted.length).toBeGreaterThan(0);
+  });
+
+  it('should handle circular objects without crashing', () => {
+    const extracted: string[] = [];
+    const obj: any = { a: 'val' };
+    obj.b = obj; // Circular reference
+
+    extractOndemandStyles(obj, extracted);
+    expect(extracted).toHaveLength(0);
   });
 
   it('should ignore invalid input', () => {
