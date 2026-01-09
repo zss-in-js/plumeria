@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 6.1.0
+
+### Minor Changes
+
+- d52839e: feat: support namespace import
+
 ## 6.0.2
 
 ### Patch Changes
