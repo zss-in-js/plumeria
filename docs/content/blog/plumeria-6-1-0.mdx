@@ -1,0 +1,73 @@
+---
+title: 'Plumeria v6.1.0'
+description: 'Plumeria v6.1.0 Removed x function and changed to namespace import. (3 min read)'
+date: '2026/01/09'
+---
+
+## Changes
+
+- Imports have been changed to individual named exports.
+
+```ts
+import { css } from "@plumeria/core"; // old // [!code --]
+
+import * as css from '@plumeria/core'; // new // [!code ++]
+// or 
+import { create, props, keyframes } from "@plumeria/core";
+```
+As of version 5.0.0, the following syntax is no longer available:
+```ts
+const css = require("@plumeria/core") // [!code --]
+const { create } = css; // [!code --]
+```
+
+## Removed API
+The `x` function was removed because it was just a bridge.  
+Recommend using React inline styles directly.
+
+```tsx
+<div {...x(css.props(styles.color), {"--color": color})}> // [!code --]
+<div style={{background: color}}>
+```
+
+## Features
+
+
+
+**core bundle size is 274 B:**
+```mjs
+const errorFn = () => {
+	throw new Error("Runtime is not supported. Configure the bundler plugin.");
+};
+const create = (_rule) => errorFn();
+const props = (..._rules) => errorFn();
+const createTheme = (_rule) => errorFn();
+const createStatic = (_rule) => errorFn();
+const keyframes = (_rule) => errorFn();
+const viewTransition = (_rule) => errorFn();
+const variants = (_rule) => (_props) => errorFn();
+
+export { create, createStatic, createTheme, keyframes, props, variants, viewTransition };
+```
+
+**The actual bundle size is minified by brotli 182 B:**
+```mjs
+var e=()=>{throw new Error("Runtime is not supported. Configure the bundler
+plugin.")},o=r=>e(),n=(...r)=>e(),s=r=>e(),u=r=>e(),a=r=>e(),c=r=>e(),l=r=>t=>e();
+export{o as create,u as createStatic,s as createTheme,a as keyframes,n as props,l
+as variants,c as viewTransition};
+```
+
+All APIs are non-runtime, runtime bundling is zero because no imports are referenced.
+
+## Others
+We've given our APIs individual types.  
+This makes it clear that `props`, `create`, and other APIs are statically resolved, as they're displayed in the same color as their `types`.
+
+- Build efficiency improvements
+- Loader edge case improvements
+- Atomic output edge case improvements
+- Documentation improvements
+
+---
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria) !
