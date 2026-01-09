@@ -8,23 +8,28 @@ import type {
   ViewTransition,
   ReturnType,
   ReturnVariableType,
-  Style,
   Variant,
 } from './types';
 
-type css = typeof css;
+type create = typeof create;
+type props = typeof props;
+type createTheme = typeof createTheme;
+type createStatic = typeof createStatic;
+type keyframes = typeof keyframes;
+type viewTransition = typeof viewTransition;
+type variants = typeof variants;
 
 const errorFn = () => {
   throw new Error('Runtime is not supported. Configure the bundler plugin.');
 };
 
-const props = (
-  ..._rules: (false | CSSProperties | null | undefined)[]
-): string => errorFn();
-
 const create = <const T extends Record<string, CSSProperties>>(
   _rule: CreateStyleType<T>,
 ): ReturnType<T> => errorFn();
+
+const props = (
+  ..._rules: (false | CSSProperties | null | undefined)[]
+): string => errorFn();
 
 const createTheme = <const T extends CreateTheme>(
   _rule: T,
@@ -41,9 +46,7 @@ const variants =
   (_props: { [K in keyof T]?: keyof T[K] }): CSSProperties =>
     errorFn();
 
-const x = (className: string, style: Style) => ({ className, style });
-
-const css = {
+export {
   create,
   props,
   createTheme,
@@ -52,6 +55,4 @@ const css = {
   viewTransition,
   variants,
 };
-
-export { css, x };
 export type { CreateStyle, CSSProperties };
