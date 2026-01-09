@@ -1,0 +1,107 @@
+import { getStyleRecords } from '../src/create';
+
+describe('getStyleRecords', () => {
+  it('should generate atomic records for simple properties', () => {
+    const result = getStyleRecords('test', { color: 'red' });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].key).toBe('color');
+    // hash depends on zss-engine implementation, checking format or presence
+    expect(result[0].hash).toBeDefined();
+    // sheet should contain the declaration
+    expect(result[0].sheet).toMatch(/color:\s*red/);
+  });
+
+  it('should generate multiple records for multiple properties', () => {
+    const result = getStyleRecords('test', { color: 'red', fontSize: '16px' });
+
+    expect(result).toHaveLength(2);
+    const keys = result.map((r) => r.key).sort();
+    expect(keys).toEqual(['color', 'fontSize']);
+  });
+
+  it('should handle nested pseudo-classes', () => {
+    const result = getStyleRecords('test', {
+      '&:hover': { color: 'blue' },
+    } as any);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].key).toContain('&:hover'); // key usually includes selector info for nested
+    expect(result[0].sheet).toMatch(/color:\s*blue/);
+    expect(result[0].sheet).toContain(':hover');
+  });
+
+  it('should handle @media queries', () => {
+    const result = getStyleRecords('test', {
+      '@media (min-width: 500px)': {
+        color: 'green',
+      },
+    } as any);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].key).toBe('@media (min-width: 500px)color');
+    expect(result[0].sheet).toContain('@media (min-width: 500px)');
+    expect(result[0].sheet).toMatch(/color:\s*green/);
+  });
+
+  it('should handle priority 1 (default)', () => {
+    const result = getStyleRecords(
+      'test',
+      { '@media (min-width:0)': { color: 'red' } },
+      1,
+    );
+    // priority 1 usually adds :not(#\#)
+    expect(result[0].sheet).toContain(':not(#\\#)');
+    expect(result[0].sheet).not.toContain(':not(#\\#):not(#\\#)');
+  });
+
+  it('should handle priority 2', () => {
+    const result = getStyleRecords(
+      'test',
+      { '@media (min-width:0)': { color: 'red' } },
+      2,
+    );
+    // priority 2 should add double :not(#\#)
+    expect(result[0].sheet).toContain(':not(#\\#):not(#\\#)');
+  });
+
+  it('should handle complex nested styles', () => {
+    const result = getStyleRecords('test', {
+      color: 'red',
+      '&:hover': {
+        background: 'white',
+        '@media (max-width: 400px)': {
+          background: 'gray',
+        },
+      },
+    } as any);
+
+    // 1 atomic (color) + 1 nested (hover background) + 1 nested media (hover media background)
+    expect(result.length).toBeGreaterThanOrEqual(2);
+
+    const sheetContent = result.map((r) => r.sheet).join('\n');
+    expect(sheetContent).toMatch(/color:\s*red/);
+    expect(sheetContent).toMatch(/background:\s*white/);
+    expect(sheetContent).toMatch(/background:\s*gray/);
+    expect(sheetContent).toContain(':hover');
+    expect(sheetContent).toContain('@media (max-width: 400px)');
+  });
+
+  it('should handle nested selectors within @media queries', () => {
+    const result = getStyleRecords('test', {
+      '@media (min-width: 100px)': {
+        '&:hover': {
+          color: 'blue',
+        },
+      },
+    } as any);
+
+    // This covers lines 85 and 106-119 in create.ts (nonFlatQuery path)
+    expect(result).toHaveLength(1);
+    expect(result[0].key).toContain('@media (min-width: 100px)');
+    expect(result[0].key).toContain('&:hover');
+    expect(result[0].sheet).toContain('@media (min-width: 100px)');
+    expect(result[0].sheet).toContain(':hover');
+    expect(result[0].sheet).toMatch(/color:\s*blue/);
+  });
+});
