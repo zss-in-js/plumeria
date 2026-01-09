@@ -742,7 +742,7 @@ export function scanAll(): Tables {
       }
 
       const source = fs.readFileSync(filePath, 'utf8');
-      if (!source.includes('css.')) {
+      if (!source.includes('@plumeria/core')) {
         // Cache negative result
         fileCache[filePath] = {
           mtimeMs: stats.mtimeMs,
@@ -779,6 +779,32 @@ export function scanAll(): Tables {
       const localCreateObjectTable: CreateObjectTable = {};
       const localVariantsHashTable: VariantsHashTable = {};
       const localVariantsObjectTable: VariantsObjectTable = {};
+      const plumeriaAliases: Record<string, string> = {};
+
+      for (const node of ast.body) {
+        if (node.type === 'ImportDeclaration') {
+          const sourceValue = node.source.value;
+          if (sourceValue === '@plumeria/core') {
+            node.specifiers.forEach((specifier: any) => {
+              if (specifier.type === 'ImportNamespaceSpecifier') {
+                if (specifier.local) {
+                  plumeriaAliases[specifier.local.value] = 'NAMESPACE';
+                }
+              } else if (specifier.type === 'ImportSpecifier') {
+                const importedName = specifier.imported
+                  ? specifier.imported.value
+                  : specifier.local.value;
+                const localName = specifier.local.value;
+                plumeriaAliases[localName] = importedName;
+              } else if (specifier.type === 'ImportDefaultSpecifier') {
+                if (specifier.local) {
+                  plumeriaAliases[specifier.local.value] = 'NAMESPACE';
+                }
+              }
+            });
+          }
+        }
+      }
 
       for (const node of ast.body) {
         let declarations: VariableDeclarator[] = [];
@@ -798,70 +824,93 @@ export function scanAll(): Tables {
             t.isIdentifier(decl.id) &&
             decl.init &&
             t.isCallExpression(decl.init) &&
-            t.isMemberExpression(decl.init.callee) &&
-            t.isIdentifier(decl.init.callee.object, { name: 'css' }) &&
-            t.isIdentifier(decl.init.callee.property) &&
-            decl.init.arguments.length > 0 &&
-            t.isObjectExpression(decl.init.arguments[0].expression)
+            t.isCallExpression(decl.init)
           ) {
-            const method = decl.init.callee.property.value;
-            const name = decl.id.value;
-            const init = decl.init;
+            const callee = decl.init.callee;
+            let method: string | undefined;
 
-            const resolveVariable = (name: string) => {
-              const hash = localCreateHashTable[name];
-              if (hash && localCreateObjectTable[hash]) {
-                return localCreateObjectTable[hash];
+            if (
+              t.isMemberExpression(callee) &&
+              t.isIdentifier(callee.object) &&
+              t.isIdentifier(callee.property)
+            ) {
+              const objectName = callee.object.value;
+              const propertyName = callee.property.value;
+              const alias = plumeriaAliases[objectName];
+              if (alias === 'NAMESPACE' || objectName === 'css') {
+                method = propertyName;
               }
-              return undefined;
-            };
+            } else if (t.isIdentifier(callee)) {
+              const calleeName = callee.value;
+              const originalName = plumeriaAliases[calleeName];
+              if (originalName) {
+                method = originalName;
+              }
+            }
 
-            const obj = objectExpressionToObject(
-              init.arguments[0].expression as ObjectExpression,
-              localStaticTable,
-              localKeyframesHashTable,
-              localViewTransitionHashTable,
-              localThemeTable,
-              localCreateHashTable,
-              localVariantsHashTable,
-              resolveVariable,
-            );
+            if (
+              method &&
+              decl.init.arguments.length > 0 &&
+              t.isObjectExpression(decl.init.arguments[0].expression)
+            ) {
+              const name = decl.id.value;
+              const init = decl.init;
 
-            const uniqueKey = `${filePath}-${name}`;
+              const resolveVariable = (name: string) => {
+                const hash = localCreateHashTable[name];
+                if (hash && localCreateObjectTable[hash]) {
+                  return localCreateObjectTable[hash];
+                }
+                return undefined;
+              };
 
-            if (method === 'createStatic') {
-              localStaticTable[name] = obj;
-              localTables.staticTable[uniqueKey] = obj;
-            } else if (method === 'keyframes') {
-              const hash = genBase36Hash(obj, 1, 8);
-              localKeyframesHashTable[name] = hash;
-              localTables.keyframesHashTable[uniqueKey] = hash;
-              localTables.keyframesObjectTable[hash] = obj;
-              localKeyframesObjectTable[hash] = obj;
-            } else if (method === 'viewTransition') {
-              const hash = genBase36Hash(obj, 1, 8);
-              localViewTransitionHashTable[name] = hash;
-              localTables.viewTransitionHashTable[uniqueKey] = hash;
-              localTables.viewTransitionObjectTable[hash] = obj;
-              localViewTransitionObjectTable[hash] = obj;
-            } else if (method === 'createTheme') {
-              const hash = genBase36Hash(obj, 1, 8);
-              localThemeTable[name] = obj;
-              localTables.themeTable[uniqueKey] = obj;
-              localTables.createThemeObjectTable[hash] = obj;
-              localCreateThemeObjectTable[hash] = obj;
-            } else if (method === 'create') {
-              const hash = genBase36Hash(obj, 1, 8);
-              localCreateHashTable[name] = hash;
-              localTables.createHashTable[uniqueKey] = hash;
-              localTables.createObjectTable[hash] = obj;
-              localCreateObjectTable[hash] = obj;
-            } else if (method === 'variants') {
-              const hash = genBase36Hash(obj, 1, 8);
-              localVariantsHashTable[name] = hash;
-              localTables.variantsHashTable[uniqueKey] = hash;
-              localTables.variantsObjectTable[hash] = obj;
-              localVariantsObjectTable[hash] = obj;
+              const obj = objectExpressionToObject(
+                init.arguments[0].expression as ObjectExpression,
+                localStaticTable,
+                localKeyframesHashTable,
+                localViewTransitionHashTable,
+                localThemeTable,
+                localCreateHashTable,
+                localVariantsHashTable,
+                resolveVariable,
+              );
+
+              const uniqueKey = `${filePath}-${name}`;
+
+              if (method === 'createStatic') {
+                localStaticTable[name] = obj;
+                localTables.staticTable[uniqueKey] = obj;
+              } else if (method === 'keyframes') {
+                const hash = genBase36Hash(obj, 1, 8);
+                localKeyframesHashTable[name] = hash;
+                localTables.keyframesHashTable[uniqueKey] = hash;
+                localTables.keyframesObjectTable[hash] = obj;
+                localKeyframesObjectTable[hash] = obj;
+              } else if (method === 'viewTransition') {
+                const hash = genBase36Hash(obj, 1, 8);
+                localViewTransitionHashTable[name] = hash;
+                localTables.viewTransitionHashTable[uniqueKey] = hash;
+                localTables.viewTransitionObjectTable[hash] = obj;
+                localViewTransitionObjectTable[hash] = obj;
+              } else if (method === 'createTheme') {
+                const hash = genBase36Hash(obj, 1, 8);
+                localThemeTable[name] = obj;
+                localTables.themeTable[uniqueKey] = obj;
+                localTables.createThemeObjectTable[hash] = obj;
+                localCreateThemeObjectTable[hash] = obj;
+              } else if (method === 'create') {
+                const hash = genBase36Hash(obj, 1, 8);
+                localCreateHashTable[name] = hash;
+                localTables.createHashTable[uniqueKey] = hash;
+                localTables.createObjectTable[hash] = obj;
+                localCreateObjectTable[hash] = obj;
+              } else if (method === 'variants') {
+                const hash = genBase36Hash(obj, 1, 8);
+                localVariantsHashTable[name] = hash;
+                localTables.variantsHashTable[uniqueKey] = hash;
+                localTables.variantsObjectTable[hash] = obj;
+                localVariantsObjectTable[hash] = obj;
+              }
             }
           }
         }
