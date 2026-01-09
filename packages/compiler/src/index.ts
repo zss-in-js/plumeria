@@ -39,6 +39,11 @@ export function compileCSS(options: CompilerOptions) {
   const { include, exclude, cwd = process.cwd() } = options;
   const allSheets = new Set<string>();
 
+  const files = fs.globSync(include, {
+    cwd,
+    exclude: exclude,
+  });
+
   const processFile = (filePath: string): string[] => {
     const source = fs.readFileSync(filePath, 'utf-8');
     const extractedSheets: string[] = [];
@@ -59,10 +64,27 @@ export function compileCSS(options: CompilerOptions) {
     const localConsts = collectLocalConsts(ast);
     const resourcePath = filePath;
     const importMap: Record<string, any> = {};
+    const plumeriaAliases: Record<string, string> = {};
 
     traverse(ast, {
       ImportDeclaration({ node }) {
         const sourcePath = node.source.value;
+
+        if (sourcePath === '@plumeria/core') {
+          node.specifiers.forEach((specifier: any) => {
+            if (specifier.type === 'ImportNamespaceSpecifier') {
+              plumeriaAliases[specifier.local.value] = 'NAMESPACE';
+            } else if (specifier.type === 'ImportDefaultSpecifier') {
+              plumeriaAliases[specifier.local.value] = 'NAMESPACE';
+            } else if (specifier.type === 'ImportSpecifier') {
+              const importedName = specifier.imported
+                ? specifier.imported.value
+                : specifier.local.value;
+              plumeriaAliases[specifier.local.value] = importedName;
+            }
+          });
+        }
+
         const actualPath = resolveImportPath(sourcePath, resourcePath);
 
         if (actualPath) {
@@ -162,66 +184,111 @@ export function compileCSS(options: CompilerOptions) {
         if (
           node.id.type === 'Identifier' &&
           node.init &&
-          t.isCallExpression(node.init) &&
-          t.isMemberExpression(node.init.callee) &&
-          t.isIdentifier(node.init.callee.object, { name: 'css' }) &&
-          t.isIdentifier(node.init.callee.property) &&
-          node.init.arguments.length === 1 &&
-          t.isObjectExpression(node.init.arguments[0].expression)
+          t.isCallExpression(node.init)
         ) {
-          const resolveVariable = (name: string) => {
-            if (localCreateStyles[name]) {
-              return localCreateStyles[name].obj;
+          let propName: string | undefined;
+          const callee = node.init.callee;
+
+          if (
+            t.isMemberExpression(callee) &&
+            t.isIdentifier(callee.object) &&
+            t.isIdentifier(callee.property)
+          ) {
+            const objectName = callee.object.value;
+            const propertyName = callee.property.value;
+            const alias = plumeriaAliases[objectName];
+
+            if (alias === 'NAMESPACE' || objectName === 'css') {
+              propName = propertyName;
             }
-          };
+          } else if (t.isIdentifier(callee)) {
+            const calleeName = callee.value;
+            const originalName = plumeriaAliases[calleeName];
+            if (originalName) {
+              propName = originalName;
+            }
+          }
 
-          const propName = node.init.callee.property.value;
-          if (propName === 'create') {
-            const obj = objectExpressionToObject(
-              node.init.arguments[0].expression as ObjectExpression,
-              mergedStaticTable,
-              mergedKeyframesTable,
-              mergedViewTransitionTable,
-              mergedThemeTable,
-              mergedCreateTable,
-              mergedVariantsTable,
-              resolveVariable,
-            );
-            if (obj) {
-              localCreateStyles[node.id.value] = { type: 'create', obj };
+          if (
+            propName &&
+            node.init.arguments.length === 1 &&
+            t.isObjectExpression(node.init.arguments[0].expression)
+          ) {
+            const resolveVariable = (name: string) => {
+              if (localCreateStyles[name]) {
+                return localCreateStyles[name].obj;
+              }
+            };
 
-              Object.entries(obj).forEach(([key, style]) => {
-                const records = getStyleRecords(key, style as CSSProperties, 1);
-                extractOndemandStyles(style, extractedSheets, scannedTables);
-                records.forEach((r: StyleRecord) => {
-                  extractedSheets.push(r.sheet);
+            if (propName === 'create') {
+              const obj = objectExpressionToObject(
+                node.init.arguments[0].expression as ObjectExpression,
+                mergedStaticTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedThemeTable,
+                mergedCreateTable,
+                mergedVariantsTable,
+                resolveVariable,
+              );
+              if (obj) {
+                localCreateStyles[node.id.value] = { type: 'create', obj };
+
+                Object.entries(obj).forEach(([key, style]) => {
+                  const records = getStyleRecords(
+                    key,
+                    style as CSSProperties,
+                    1,
+                  );
+                  extractOndemandStyles(style, extractedSheets, scannedTables);
+                  records.forEach((r: StyleRecord) => {
+                    extractedSheets.push(r.sheet);
+                  });
                 });
-              });
-            }
-          } else if (propName === 'variants') {
-            const obj = objectExpressionToObject(
-              node.init.arguments[0].expression as ObjectExpression,
-              mergedStaticTable,
-              mergedKeyframesTable,
-              mergedViewTransitionTable,
-              mergedThemeTable,
-              mergedCreateTable,
-              mergedVariantsTable,
-              resolveVariable,
-            );
-            if (obj) {
-              localCreateStyles[node.id.value] = { type: 'variant', obj };
+              }
+            } else if (propName === 'variants') {
+              const obj = objectExpressionToObject(
+                node.init.arguments[0].expression as ObjectExpression,
+                mergedStaticTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedThemeTable,
+                mergedCreateTable,
+                mergedVariantsTable,
+                resolveVariable,
+              );
+              if (obj) {
+                localCreateStyles[node.id.value] = { type: 'variant', obj };
+              }
             }
           }
         }
       },
       CallExpression({ node }) {
         const callee = node.callee;
+
+        let propName: string | undefined;
+
         if (
           t.isMemberExpression(callee) &&
-          t.isIdentifier(callee.object, { name: 'css' }) &&
+          t.isIdentifier(callee.object) &&
           t.isIdentifier(callee.property)
         ) {
+          const objectName = callee.object.value;
+          const propertyName = callee.property.value;
+          const alias = plumeriaAliases[objectName];
+          if (alias === 'NAMESPACE' || objectName === 'css') {
+            propName = propertyName;
+          }
+        } else if (t.isIdentifier(callee)) {
+          const calleeName = callee.value;
+          const originalName = plumeriaAliases[calleeName];
+          if (originalName) {
+            propName = originalName;
+          }
+        }
+
+        if (propName) {
           const args = node.arguments;
 
           const extractStylesFromExpression = (
@@ -302,7 +369,7 @@ export function compileCSS(options: CompilerOptions) {
             records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
           };
 
-          if (callee.property.value === 'props') {
+          if (propName === 'props') {
             const conditionals: Array<{
               test: Expression;
               truthy: Record<string, any>;
@@ -509,7 +576,7 @@ export function compileCSS(options: CompilerOptions) {
               }
             }
           } else if (
-            callee.property.value === 'keyframes' &&
+            propName === 'keyframes' &&
             args.length > 0 &&
             t.isObjectExpression(args[0].expression)
           ) {
@@ -525,7 +592,7 @@ export function compileCSS(options: CompilerOptions) {
             const hash = genBase36Hash(obj, 1, 8);
             scannedTables.keyframesObjectTable[hash] = obj;
           } else if (
-            callee.property.value === 'viewTransition' &&
+            propName === 'viewTransition' &&
             args.length > 0 &&
             t.isObjectExpression(args[0].expression)
           ) {
@@ -547,7 +614,7 @@ export function compileCSS(options: CompilerOptions) {
               scannedTables,
             );
           } else if (
-            callee.property.value === 'createTheme' &&
+            propName === 'createTheme' &&
             args.length > 0 &&
             t.isObjectExpression(args[0].expression)
           ) {
@@ -569,11 +636,6 @@ export function compileCSS(options: CompilerOptions) {
 
     return extractedSheets;
   };
-
-  const files = fs.globSync(include, {
-    cwd,
-    exclude: exclude,
-  });
 
   for (const file of files) {
     const sheets = processFile(file);
