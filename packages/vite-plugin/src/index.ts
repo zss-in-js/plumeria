@@ -125,13 +125,23 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         this.addWatchFile(depPath);
       };
 
-      const scannedTables = scanAll();
-
       const ast = parseSync(source, {
         syntax: 'typescript',
         tsx: true,
         target: 'es2022',
       });
+
+      for (const node of ast.body) {
+        if (node.type === 'ImportDeclaration') {
+          const sourcePath = node.source.value;
+          const actualPath = resolveImportPath(sourcePath, id);
+          if (actualPath) {
+            addDependency(actualPath);
+          }
+        }
+      }
+
+      const scannedTables = scanAll();
 
       const localConsts = collectLocalConsts(ast);
       const resourcePath = id;
@@ -143,7 +153,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           const actualPath = resolveImportPath(sourcePath, resourcePath);
 
           if (actualPath) {
-            addDependency(actualPath);
             node.specifiers.forEach((specifier: ImportSpecifier) => {
               if (specifier.type === 'ImportSpecifier') {
                 const importedName = specifier.imported
@@ -250,6 +259,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         content: string;
       }> = [];
       const extractedSheets: string[] = [];
+      const addSheet = (sheet: string) => {
+        if (!extractedSheets.includes(sheet)) {
+          extractedSheets.push(sheet);
+        }
+      };
       const processedDecls = new Set<any>();
       const idSpans = new Set<number>();
       const excludedSpans = new Set<number>();
@@ -305,7 +319,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 const records = getStyleRecords(key, style as CSSProperties, 2);
                 extractOndemandStyles(style, extractedSheets, scannedTables);
                 records.forEach((r: StyleRecord) => {
-                  extractedSheets.push(r.sheet);
+                  addSheet(r.sheet);
                 });
                 const atomMap: Record<string, string> = {};
                 records.forEach((r) => (atomMap[r.key] = r.hash));
@@ -524,9 +538,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                     2,
                   );
                   extractOndemandStyles(style, extractedSheets, scannedTables);
-                  records.forEach((r: StyleRecord) =>
-                    extractedSheets.push(r.sheet),
-                  );
+                  records.forEach((r: StyleRecord) => addSheet(r.sheet));
                 }
               });
             }
@@ -566,9 +578,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   const records = getStyleRecords(propName, style as any, 2);
                   extractOndemandStyles(style, extractedSheets, scannedTables);
 
-                  records.forEach((r: StyleRecord) =>
-                    extractedSheets.push(r.sheet),
-                  );
+                  records.forEach((r: StyleRecord) => addSheet(r.sheet));
                   const atomMap: Record<string, string> = {};
                   records.forEach((r: any) => (atomMap[r.key] = r.hash));
 
@@ -843,9 +853,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 );
                 const hash = genBase36Hash(baseStyle, 1, 8);
                 const records = getStyleRecords(hash, baseStyle, 2);
-                records.forEach((r: StyleRecord) =>
-                  extractedSheets.push(r.sheet),
-                );
+                records.forEach((r: StyleRecord) => addSheet(r.sheet));
                 const className = records
                   .map((r: StyleRecord) => r.hash)
                   .join(' ');
@@ -897,9 +905,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   );
                   const hash = genBase36Hash(currentStyle, 1, 8);
                   const records = getStyleRecords(hash, currentStyle, 2);
-                  records.forEach((r: StyleRecord) =>
-                    extractedSheets.push(r.sheet),
-                  );
+                  records.forEach((r: StyleRecord) => addSheet(r.sheet));
                   const className = records
                     .map((r: StyleRecord) => r.hash)
                     .join(' ');
