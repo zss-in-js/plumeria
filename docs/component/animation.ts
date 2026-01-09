@@ -1,4 +1,4 @@
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 export const gradientShift = css.keyframes({
   '0%': { backgroundPosition: '0% 50%' },
