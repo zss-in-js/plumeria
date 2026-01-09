@@ -42,7 +42,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 export default function loader(this: LoaderContext<unknown>, source: string) {
-  const loaderContext = this;
   const callback = this.async();
   const isProduction = process.env.NODE_ENV === 'production';
 
@@ -53,17 +52,26 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     return callback(null, source);
   }
 
+  const fileStyles: FileStyles = {};
   this.clearDependencies();
   this.addDependency(this.resourcePath);
-  const scannedTables = scanAll();
-
-  const fileStyles: FileStyles = {};
-
   const ast = parseSync(source, {
     syntax: 'typescript',
     tsx: true,
     target: 'es2022',
   });
+
+  for (const node of ast.body) {
+    if (node.type === 'ImportDeclaration') {
+      const sourcePath = node.source.value;
+      const actualPath = resolveImportPath(sourcePath, this.resourcePath);
+      if (actualPath) {
+        this.addDependency(actualPath);
+      }
+    }
+  }
+
+  const scannedTables = scanAll();
 
   const localConsts = collectLocalConsts(ast);
   const resourcePath = this.resourcePath;
@@ -75,7 +83,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
       const actualPath = resolveImportPath(sourcePath, resourcePath);
 
       if (actualPath) {
-        loaderContext.addDependency(actualPath);
         node.specifiers.forEach((specifier: ImportSpecifier) => {
           if (specifier.type === 'ImportSpecifier') {
             const importedName = specifier.imported
@@ -176,6 +183,11 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   const replacements: Array<{ start: number; end: number; content: string }> =
     [];
   const extractedSheets: string[] = [];
+  const addSheet = (sheet: string) => {
+    if (!extractedSheets.includes(sheet)) {
+      extractedSheets.push(sheet);
+    }
+  };
   const processedDecls = new Set<any>();
   const idSpans = new Set<number>();
   const excludedSpans = new Set<number>();
@@ -232,7 +244,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
             if (!isProduction) {
               extractOndemandStyles(style, extractedSheets, scannedTables);
               records.forEach((r: StyleRecord) => {
-                extractedSheets.push(r.sheet);
+                addSheet(r.sheet);
               });
             }
             const atomMap: Record<string, string> = {};
@@ -451,9 +463,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               const records = getStyleRecords(key, style as CSSProperties, 2);
               if (!isProduction) {
                 extractOndemandStyles(style, extractedSheets, scannedTables);
-                records.forEach((r: StyleRecord) =>
-                  extractedSheets.push(r.sheet),
-                );
+                records.forEach((r: StyleRecord) => addSheet(r.sheet));
               }
             }
           });
@@ -495,9 +505,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               if (!isProduction) {
                 extractOndemandStyles(style, extractedSheets, scannedTables);
 
-                records.forEach((r: StyleRecord) =>
-                  extractedSheets.push(r.sheet),
-                );
+                records.forEach((r: StyleRecord) => addSheet(r.sheet));
               }
               const atomMap: Record<string, string> = {};
               records.forEach((r: any) => (atomMap[r.key] = r.hash));
@@ -768,9 +776,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
             const hash = genBase36Hash(baseStyle, 1, 8);
             const records = getStyleRecords(hash, baseStyle, 2);
             if (!isProduction) {
-              records.forEach((r: StyleRecord) =>
-                extractedSheets.push(r.sheet),
-              );
+              records.forEach((r: StyleRecord) => addSheet(r.sheet));
             }
             const className = records.map((r: StyleRecord) => r.hash).join(' ');
 
