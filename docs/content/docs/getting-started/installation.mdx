@@ -9,7 +9,7 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 <Steps>
 <Step>
 ## Installing `core`
-The **phantom-runtime** distribution size is **less than `500B`** for min + `brotli`.
+The **phantom-runtime** distribution size is **less than `200B`** for min + `brotli`.
 <Tabs items={['npm', 'yarn', 'pnpm']}>
   {/* prettier-ignore */}
   <Tab>
@@ -101,7 +101,8 @@ Reduce build times by narrowing the scope using `include` and `exclude`.
 module.exports = {
   plugins: {
     '@plumeria/postcss-plugin': {
-      include: '**/*.{ts,tsx}',
+      // use src directory
+      include: './src/**/*.{ts,tsx}',
       exclude: ['**/node_modules/**', '**/.next/**'],
     },
   },
