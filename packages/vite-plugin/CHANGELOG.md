@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 6.0.2
+
+### Patch Changes
+
+- 44f3bba: chore: hmr and atom output improvements
+- Updated dependencies [44f3bba]
+  - @plumeria/utils@6.0.2
+
 ## 6.0.1
 
 ### Patch Changes
