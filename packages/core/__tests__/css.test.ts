@@ -1,6 +1,6 @@
 /* eslint-disable @plumeria/no-inner-call */
 
-import { css, x } from '../src/css';
+import * as css from '../src/css';
 
 describe('css runtime stubs', () => {
   test('create throws runtime error', () => {
@@ -44,15 +44,5 @@ describe('css runtime stubs', () => {
     expect(() => {
       getVariants({});
     }).toThrow('Runtime is not supported. Configure the bundler plugin.');
-  });
-});
-
-describe('x helper', () => {
-  test('returns object as-is', () => {
-    const result = x('cls', { color: 'red' } as any);
-    expect(result).toEqual({
-      className: 'cls',
-      style: { color: 'red' },
-    });
   });
 });
