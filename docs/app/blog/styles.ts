@@ -1,4 +1,4 @@
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 export const styles = css.create({
   container: {

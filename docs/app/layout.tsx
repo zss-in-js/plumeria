@@ -5,7 +5,7 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { Analytics } from '@vercel/analytics/next';
 import type { ReactNode } from 'react';
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 export const dynamicParams = false;
 export const dynamic = 'force-static';
