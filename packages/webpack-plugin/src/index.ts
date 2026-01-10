@@ -208,6 +208,9 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   const processedDecls = new Set<any>();
   const idSpans = new Set<number>();
   const excludedSpans = new Set<number>();
+  if (scannedTables.extractedSheet) {
+    addSheet(scannedTables.extractedSheet);
+  }
 
   const checkVariantAssignment = (decl: any) => {
     if (
@@ -535,42 +538,61 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
         const varName = node.object.value;
         const propName = node.property.value;
 
-        const styleInfo = localCreateStyles[varName];
-        if (styleInfo) {
-          const atomMap = styleInfo.hashMap[propName];
+        const uniqueKey = `${this.resourcePath}-${varName}`;
+
+        // Prioritize scanAll tables for local variables
+        let hash = scannedTables.createHashTable[uniqueKey];
+        if (!hash) {
+          hash = mergedCreateTable[varName];
+        }
+
+        // Keep local fallback just in case scanAll missed something (e.g. fresh edit before save),
+        // but prefer hash from table if available.
+        if (!hash) {
+          const styleInfo = localCreateStyles[varName];
+          if (styleInfo) {
+            const atomMap = styleInfo.hashMap[propName];
+            if (atomMap) {
+              replacements.push({
+                start: node.span.start - ast.span.start,
+                end: node.span.end - ast.span.start,
+                content: JSON.stringify(atomMap),
+              });
+              return;
+            }
+          }
+        }
+
+        if (hash) {
+          let atomMap: Record<string, any> | undefined;
+
+          if (scannedTables.createAtomicMapTable[hash]) {
+            atomMap = scannedTables.createAtomicMapTable[hash][propName];
+          }
+
+          if (!atomMap) {
+            const obj = scannedTables.createObjectTable[hash];
+            if (obj && obj[propName]) {
+              const style = obj[propName];
+              if (typeof style === 'object' && style !== null) {
+                const records = getStyleRecords(propName, style as any, 2);
+                if (!isProduction) {
+                  extractOndemandStyles(style, extractedSheets, scannedTables);
+
+                  records.forEach((r: StyleRecord) => addSheet(r.sheet));
+                }
+                atomMap = {};
+                records.forEach((r: any) => (atomMap![r.key] = r.hash));
+              }
+            }
+          }
+
           if (atomMap) {
             replacements.push({
               start: node.span.start - ast.span.start,
               end: node.span.end - ast.span.start,
               content: JSON.stringify(atomMap),
             });
-            return;
-          }
-        }
-
-        const hash = mergedCreateTable[varName];
-        if (hash) {
-          const obj = scannedTables.createObjectTable[hash];
-          if (obj && obj[propName]) {
-            const style = obj[propName];
-            if (typeof style === 'object' && style !== null) {
-              const records = getStyleRecords(propName, style as any, 2);
-              if (!isProduction) {
-                extractOndemandStyles(style, extractedSheets, scannedTables);
-
-                records.forEach((r: StyleRecord) => addSheet(r.sheet));
-              }
-              const atomMap: Record<string, string> = {};
-              records.forEach((r: any) => (atomMap[r.key] = r.hash));
-
-              if (Object.keys(atomMap).length > 0) {
-                replacements.push({
-                  start: node.span.start - ast.span.start,
-                  end: node.span.end - ast.span.start,
-                  content: JSON.stringify(atomMap),
-                });
-              }
-            }
           }
         }
       }
