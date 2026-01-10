@@ -551,23 +551,6 @@ export default async function loader(this: LoaderContext, source: string) {
           hash = mergedCreateTable[varName];
         }
 
-        // Keep local fallback just in case scanAll missed something (e.g. fresh edit before save),
-        // but prefer hash from table if available.
-        if (!hash) {
-          const styleInfo = localCreateStyles[varName];
-          if (styleInfo) {
-            const atomMap = styleInfo.hashMap[propName];
-            if (atomMap) {
-              replacements.push({
-                start: node.span.start - ast.span.start,
-                end: node.span.end - ast.span.start,
-                content: JSON.stringify(atomMap),
-              });
-              return;
-            }
-          }
-        }
-
         if (hash) {
           let atomMap: Record<string, any> | undefined;
 
@@ -582,8 +565,50 @@ export default async function loader(this: LoaderContext, source: string) {
               end: node.span.end - ast.span.start,
               content: JSON.stringify(atomMap),
             });
-            return;
           }
+        }
+      }
+    },
+    Identifier({ node }) {
+      if (excludedSpans.has(node.span.start)) return;
+      if (idSpans.has(node.span.start)) return;
+
+      const styleInfo = localCreateStyles[node.value];
+      if (styleInfo) {
+        replacements.push({
+          start: node.span.start - ast.span.start,
+          end: node.span.end - ast.span.start,
+          content: JSON.stringify(styleInfo.hashMap),
+        });
+        return;
+      }
+
+      const varName = node.value;
+      const uniqueKey = `${this.resourcePath}-${varName}`;
+
+      let hash = scannedTables.createHashTable[uniqueKey];
+      if (!hash) {
+        hash = mergedCreateTable[varName];
+      }
+
+      if (hash) {
+        const obj = scannedTables.createObjectTable[hash];
+        const atomicMap = scannedTables.createAtomicMapTable[hash];
+
+        if (obj && atomicMap) {
+          // Reconstruct hashMap from createObjectTable + createAtomicMapTable
+          const hashMap: Record<string, Record<string, string>> = {};
+          Object.keys(obj).forEach((key) => {
+            if (atomicMap[key]) {
+              hashMap[key] = atomicMap[key];
+            }
+          });
+
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(hashMap),
+          });
         }
       }
     },
