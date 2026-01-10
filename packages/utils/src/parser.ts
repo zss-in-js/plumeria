@@ -41,6 +41,7 @@ import {
 import path from 'path';
 import fs from 'fs';
 import { camelToKebabCase, genBase36Hash, transpile } from 'zss-engine';
+import type { CSSProperties } from 'zss-engine';
 import { createViewTransition } from './viewTransition';
 import { getStyleRecords } from './create';
 import type { StyleRecord } from './create';
@@ -1050,7 +1051,7 @@ export function extractOndemandStyles(
       const definition = t.keyframesObjectTable[hash];
       if (definition) {
         const { styleSheet } = transpile(
-          { [`@keyframes kf-${hash}`]: definition as any },
+          { [`@keyframes kf-${hash}`]: definition },
           undefined,
           '--global',
         );
@@ -1078,7 +1079,7 @@ export function extractOndemandStyles(
       const obj = t.createObjectTable[hash];
       if (obj) {
         Object.entries(obj).forEach(([key, style]) => {
-          const records = getStyleRecords(key, style as any, 2);
+          const records = getStyleRecords(key, style as CSSProperties, 2);
           records.forEach((r: StyleRecord) => addSheet(r.sheet));
         });
       }
