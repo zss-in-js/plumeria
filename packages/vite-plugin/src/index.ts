@@ -643,27 +643,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 atomMap = scannedTables.createAtomicMapTable[hash][propName];
               }
 
-              if (!atomMap) {
-                const obj = scannedTables.createObjectTable[hash];
-                if (obj && obj[propName]) {
-                  const style = obj[propName];
-                  if (typeof style === 'object' && style !== null) {
-                    const records = getStyleRecords(propName, style as any, 2);
-                    if (process.env.NODE_ENV !== 'production') {
-                      extractOndemandStyles(
-                        style,
-                        extractedSheets,
-                        scannedTables,
-                      );
-
-                      records.forEach((r: StyleRecord) => addSheet(r.sheet));
-                    }
-                    atomMap = {};
-                    records.forEach((r: any) => (atomMap![r.key] = r.hash));
-                  }
-                }
-              }
-
               if (atomMap) {
                 replacements.push({
                   start: node.span.start - ast.span.start,
