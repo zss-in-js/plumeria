@@ -5,13 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "plumerialint && css && astro build",
+    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
-    "@plumeria/core": "workspace:^",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "astro": "^5.16.4",
@@ -19,7 +18,7 @@
     "react-dom": "^19.2.1"
   },
   "devDependencies": {
-    "@plumeria/compiler": "workspace:^",
+    "@plumeria/core": "workspace:^",
     "@plumeria/vite-plugin": "workspace:^"
   }
 }
