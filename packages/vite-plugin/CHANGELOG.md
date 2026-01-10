@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 6.1.2
+
+### Patch Changes
+
+- 7318647: fix: fix build error
+- Updated dependencies [7318647]
+  - @plumeria/utils@6.1.2
+
 ## 6.1.1
 
 ### Patch Changes

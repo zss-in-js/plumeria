@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 6.1.2
+
+### Patch Changes
+
+- 7318647: chore: support namespace import and named export
+
 ## 6.1.1
 
 ### Patch Changes
