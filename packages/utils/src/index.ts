@@ -18,7 +18,6 @@ export {
   collectLocalConsts,
   traverse,
   t,
-  tables,
   extractOndemandStyles,
   deepMerge,
   scanAll,
