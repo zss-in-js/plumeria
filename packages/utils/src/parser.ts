@@ -11,6 +11,7 @@ import type {
   CreateThemeObjectTable,
   CreateHashTable,
   CreateObjectTable,
+  CreateAtomicMapTable,
   VariantsHashTable,
   VariantsObjectTable,
 } from './types';
@@ -129,6 +130,7 @@ export const tables: Tables = {
   createThemeObjectTable: {},
   createHashTable: {},
   createObjectTable: {},
+  createAtomicMapTable: {},
   variantsHashTable: {},
   variantsObjectTable: {},
 };
@@ -326,12 +328,6 @@ function getPropertyKey(
   themeTable: ThemeTable,
 ): string {
   if (t.isIdentifier(node)) {
-    if (
-      staticTable[node.value] &&
-      typeof staticTable[node.value] === 'string'
-    ) {
-      return staticTable[node.value] as string;
-    }
     return node.value;
   }
   if (t.isStringLiteral(node)) {
@@ -663,9 +659,11 @@ interface CachedData {
   createThemeObjectTable: CreateThemeObjectTable;
   createHashTable: CreateHashTable;
   createObjectTable: CreateObjectTable;
+  createAtomicMapTable: CreateAtomicMapTable;
   variantsHashTable: VariantsHashTable;
   variantsObjectTable: VariantsObjectTable;
   hasCssUsage: boolean;
+  extractedSheet?: string;
 }
 
 const fileCache: Record<string, CachedData> = {};
@@ -681,11 +679,14 @@ export function scanAll(): Tables {
     createThemeObjectTable: {},
     createHashTable: {},
     createObjectTable: {},
+    createAtomicMapTable: {},
     variantsHashTable: {},
     variantsObjectTable: {},
+    extractedSheet: '',
   };
 
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
+  const totalExtractedSheets: string[] = [];
 
   for (const filePath of files) {
     try {
@@ -729,6 +730,10 @@ export function scanAll(): Tables {
           for (const key of Object.keys(cached.createObjectTable)) {
             localTables.createObjectTable[key] = cached.createObjectTable[key];
           }
+          for (const key of Object.keys(cached.createAtomicMapTable)) {
+            localTables.createAtomicMapTable[key] =
+              cached.createAtomicMapTable[key];
+          }
           for (const key of Object.keys(cached.variantsHashTable)) {
             localTables.variantsHashTable[`${filePath}-${key}`] =
               cached.variantsHashTable[key];
@@ -736,6 +741,9 @@ export function scanAll(): Tables {
           for (const key of Object.keys(cached.variantsObjectTable)) {
             localTables.variantsObjectTable[key] =
               cached.variantsObjectTable[key];
+          }
+          if (cached.extractedSheet) {
+            totalExtractedSheets.push(cached.extractedSheet);
           }
         }
         continue;
@@ -755,9 +763,11 @@ export function scanAll(): Tables {
           createThemeObjectTable: {},
           createHashTable: {},
           createObjectTable: {},
+          createAtomicMapTable: {},
           variantsHashTable: {},
           variantsObjectTable: {},
           hasCssUsage: false,
+          extractedSheet: '',
         };
         continue;
       }
@@ -777,9 +787,12 @@ export function scanAll(): Tables {
       const localCreateThemeObjectTable: CreateThemeObjectTable = {};
       const localCreateHashTable: CreateHashTable = {};
       const localCreateObjectTable: CreateObjectTable = {};
+      const localCreateAtomicMapTable: CreateAtomicMapTable = {};
       const localVariantsHashTable: VariantsHashTable = {};
       const localVariantsObjectTable: VariantsObjectTable = {};
       const plumeriaAliases: Record<string, string> = {};
+      const fileExtractedSheets: string[] = [];
+      const isProduction = process.env.NODE_ENV === 'production';
 
       for (const node of ast.body) {
         if (node.type === 'ImportDeclaration') {
@@ -885,13 +898,32 @@ export function scanAll(): Tables {
                 localKeyframesHashTable[name] = hash;
                 localTables.keyframesHashTable[uniqueKey] = hash;
                 localTables.keyframesObjectTable[hash] = obj;
+                localTables.keyframesObjectTable[hash] = obj;
                 localKeyframesObjectTable[hash] = obj;
+
+                if (!isProduction) {
+                  extractOndemandStyles(
+                    { kf: `kf-${hash}` },
+                    fileExtractedSheets,
+                    localTables,
+                  );
+                }
               } else if (method === 'viewTransition') {
                 const hash = genBase36Hash(obj, 1, 8);
                 localViewTransitionHashTable[name] = hash;
                 localTables.viewTransitionHashTable[uniqueKey] = hash;
                 localTables.viewTransitionObjectTable[hash] = obj;
+                localTables.viewTransitionObjectTable[hash] = obj;
                 localViewTransitionObjectTable[hash] = obj;
+
+                if (!isProduction) {
+                  extractOndemandStyles(obj, fileExtractedSheets, localTables);
+                  extractOndemandStyles(
+                    { vt: `vt-${hash}` },
+                    fileExtractedSheets,
+                    localTables,
+                  );
+                }
               } else if (method === 'createTheme') {
                 const hash = genBase36Hash(obj, 1, 8);
                 localThemeTable[name] = obj;
@@ -904,6 +936,29 @@ export function scanAll(): Tables {
                 localTables.createHashTable[uniqueKey] = hash;
                 localTables.createObjectTable[hash] = obj;
                 localCreateObjectTable[hash] = obj;
+
+                const hashMap: Record<string, Record<string, string>> = {};
+                Object.entries(obj).forEach(([key, style]) => {
+                  const records = getStyleRecords(key, style as any, 2);
+                  const atomMap: Record<string, string> = {};
+                  records.forEach((r) => (atomMap[r.key] = r.hash));
+                  hashMap[key] = atomMap;
+
+                  if (!isProduction) {
+                    extractOndemandStyles(
+                      style,
+                      fileExtractedSheets,
+                      localTables,
+                    );
+                    records.forEach((r) => {
+                      if (!fileExtractedSheets.includes(r.sheet)) {
+                        fileExtractedSheets.push(r.sheet);
+                      }
+                    });
+                  }
+                });
+                localCreateAtomicMapTable[hash] = hashMap;
+                localTables.createAtomicMapTable[hash] = hashMap;
               } else if (method === 'variants') {
                 const hash = genBase36Hash(obj, 1, 8);
                 localVariantsHashTable[name] = hash;
@@ -928,15 +983,21 @@ export function scanAll(): Tables {
         createThemeObjectTable: localCreateThemeObjectTable,
         createHashTable: localCreateHashTable,
         createObjectTable: localCreateObjectTable,
+        createAtomicMapTable: localCreateAtomicMapTable,
         variantsHashTable: localVariantsHashTable,
         variantsObjectTable: localVariantsObjectTable,
         hasCssUsage: true,
+        extractedSheet: fileExtractedSheets.join(''),
       };
+      if (fileExtractedSheets.length > 0) {
+        totalExtractedSheets.push(fileExtractedSheets.join(''));
+      }
     } catch (e) {
       // Ignore parsing errors for non-relevant files or syntax errors
     }
   }
 
+  localTables.extractedSheet = totalExtractedSheets.join('');
   return localTables;
 }
 
