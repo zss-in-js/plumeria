@@ -1,6 +1,6 @@
 import logoDark from './logo-dark.svg';
 import logoLight from './logo-light.svg';
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 const styles = css.create({
   color: {
