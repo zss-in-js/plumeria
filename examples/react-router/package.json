@@ -1,5 +1,5 @@
 {
-  "name": "with-react-router-v7",
+  "name": "react-router",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,8 +14,7 @@
     "@react-router/serve": "^7.5.3",
     "isbot": "^5.1.27",
     "react": "catalog:",
-    "react-dom": "catalog:",
-    "react-router": "^0.0.0"
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@plumeria/core": "workspace:^",
