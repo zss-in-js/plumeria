@@ -1,0 +1,22 @@
+{
+  "name": "vite-qwik",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "serve dist"
+  },
+  "devDependencies": {
+    "@plumeria/core": "workspace:^",
+    "@plumeria/vite-plugin": "workspace:^",
+    "@types/node": "^24.10.1",
+    "serve": "^14.2.5",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4"
+  },
+  "dependencies": {
+    "@builder.io/qwik": "^1.17.2"
+  }
+}
