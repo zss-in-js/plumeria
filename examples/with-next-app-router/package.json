@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "css && next dev",
-    "build": "plumerialint && css && next build",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -16,8 +16,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@plumeria/core": "workspace:^",
-    "@plumeria/compiler": "workspace:^",
-    "@plumeria/eslint-plugin": "workspace:^",
+    "@plumeria/postcss-plugin": "workspace:^",
     "@plumeria/next-plugin": "workspace:^",
     "@types/node": "^22.10.7",
     "@types/react": "^19.1.12",
