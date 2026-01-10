@@ -1,5 +1,14 @@
 # @plumeria/next-plugin
 
+## 6.1.1
+
+### Patch Changes
+
+- c8e0d8a: chore: bump version to 6.1.1
+- Updated dependencies [c8e0d8a]
+  - @plumeria/turbopack-loader@6.1.1
+  - @plumeria/webpack-plugin@6.1.1
+
 ## 6.1.0
 
 ### Minor Changes
