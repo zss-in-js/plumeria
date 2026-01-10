@@ -214,6 +214,9 @@ export default async function loader(this: LoaderContext, source: string) {
   const processedDecls = new Set<any>();
   const idSpans = new Set<number>();
   const excludedSpans = new Set<number>();
+  if (scannedTables.extractedSheet) {
+    addSheet(scannedTables.extractedSheet);
+  }
 
   const checkVariantAssignment = (decl: any) => {
     if (
@@ -540,11 +543,56 @@ export default async function loader(this: LoaderContext, source: string) {
       if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
         const varName = node.object.value;
         const propName = node.property.value;
+        const uniqueKey = `${this.resourcePath}-${varName}`;
 
-        // First check local styles
-        const styleInfo = localCreateStyles[varName];
-        if (styleInfo) {
-          const atomMap = styleInfo.hashMap[propName];
+        // Prioritize scanAll tables for local variables
+        let hash = scannedTables.createHashTable[uniqueKey];
+        if (!hash) {
+          hash = mergedCreateTable[varName];
+        }
+
+        // Keep local fallback just in case scanAll missed something (e.g. fresh edit before save),
+        // but prefer hash from table if available.
+        if (!hash) {
+          const styleInfo = localCreateStyles[varName];
+          if (styleInfo) {
+            const atomMap = styleInfo.hashMap[propName];
+            if (atomMap) {
+              replacements.push({
+                start: node.span.start - ast.span.start,
+                end: node.span.end - ast.span.start,
+                content: JSON.stringify(atomMap),
+              });
+              return;
+            }
+          }
+        }
+
+        if (hash) {
+          let atomMap: Record<string, any> | undefined;
+
+          // Check atomic map first
+          if (scannedTables.createAtomicMapTable[hash]) {
+            atomMap = scannedTables.createAtomicMapTable[hash][propName];
+          }
+
+          if (!atomMap) {
+            const obj = scannedTables.createObjectTable[hash];
+            if (obj && obj[propName]) {
+              const style = obj[propName];
+              if (typeof style === 'object' && style !== null) {
+                const records = getStyleRecords(propName, style as any, 2);
+                if (!isProduction) {
+                  extractOndemandStyles(style, extractedSheets, scannedTables);
+
+                  records.forEach((r: StyleRecord) => addSheet(r.sheet));
+                }
+                atomMap = {};
+                records.forEach((r: any) => (atomMap![r.key] = r.hash));
+              }
+            }
+          }
+
           if (atomMap) {
             replacements.push({
               start: node.span.start - ast.span.start,
@@ -552,32 +600,6 @@ export default async function loader(this: LoaderContext, source: string) {
               content: JSON.stringify(atomMap),
             });
             return;
-          }
-        }
-
-        const hash = mergedCreateTable[varName];
-        if (hash) {
-          const obj = scannedTables.createObjectTable[hash];
-          if (obj && obj[propName]) {
-            const style = obj[propName];
-            if (typeof style === 'object' && style !== null) {
-              const records = getStyleRecords(propName, style as any, 2);
-              if (!isProduction) {
-                extractOndemandStyles(style, extractedSheets, scannedTables);
-
-                records.forEach((r: StyleRecord) => addSheet(r.sheet));
-              }
-              const atomMap: Record<string, string> = {};
-              records.forEach((r: any) => (atomMap[r.key] = r.hash));
-
-              if (Object.keys(atomMap).length > 0) {
-                replacements.push({
-                  start: node.span.start - ast.span.start,
-                  end: node.span.end - ast.span.start,
-                  content: JSON.stringify(atomMap),
-                });
-              }
-            }
           }
         }
       }
@@ -658,18 +680,23 @@ export default async function loader(this: LoaderContext, source: string) {
             }
           } else if (t.isIdentifier(expr)) {
             const varName = expr.value;
+            const uniqueKey = `${this.resourcePath}-${varName}`;
 
-            const styleInfo = localCreateStyles[varName];
-            if (styleInfo && styleInfo.obj) {
-              return styleInfo.obj;
+            let hash = scannedTables.createHashTable[uniqueKey];
+            if (!hash) {
+              hash = mergedCreateTable[varName];
             }
 
-            const hash = mergedCreateTable[varName];
             if (hash) {
               const obj = scannedTables.createObjectTable[hash];
               if (obj && typeof obj === 'object') {
                 return obj;
               }
+            }
+
+            const styleInfo = localCreateStyles[varName];
+            if (styleInfo && styleInfo.obj) {
+              return styleInfo.obj;
             }
 
             if (localCreateStyles[varName]) {
@@ -702,13 +729,23 @@ export default async function loader(this: LoaderContext, source: string) {
           if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
             const varName = expr.callee.value;
             let variantObj: Record<string, any> | undefined;
+            const uniqueKey = `${this.resourcePath}-${varName}`;
 
-            if (localCreateStyles[varName] && localCreateStyles[varName].obj) {
-              variantObj = localCreateStyles[varName].obj;
-            } else if (mergedVariantsTable[varName]) {
-              const hash = mergedVariantsTable[varName];
-              if (scannedTables.variantsObjectTable[hash]) {
-                variantObj = scannedTables.variantsObjectTable[hash];
+            let hash = scannedTables.variantsHashTable[uniqueKey];
+            if (!hash) {
+              hash = mergedVariantsTable[varName];
+            }
+
+            if (hash && scannedTables.variantsObjectTable[hash]) {
+              variantObj = scannedTables.variantsObjectTable[hash];
+            }
+
+            if (!variantObj) {
+              if (
+                localCreateStyles[varName] &&
+                localCreateStyles[varName].obj
+              ) {
+                variantObj = localCreateStyles[varName].obj;
               }
             }
 
