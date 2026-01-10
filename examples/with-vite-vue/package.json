@@ -5,15 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "css && vue-tsc -b && vite build",
+    "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plumeria/core": "workspace:^",
     "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@plumeria/compiler": "workspace:^",
+    "@plumeria/core": "workspace:^",
     "@plumeria/vite-plugin": "workspace:^",
     "@vitejs/plugin-vue": "^6.0.3",
     "@vue/tsconfig": "^0.7.0",
