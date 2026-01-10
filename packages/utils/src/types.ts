@@ -27,6 +27,10 @@ export type CreateHashTable = Record<string, string>; // varName -> hash
 export type CreateObjectTable = Record<string, CSSObject>; // hash -> { styleName: { prop: value }, ... }
 export type VariantsHashTable = Record<string, string>; // varName -> hash
 export type VariantsObjectTable = Record<string, CSSObject>; // hash -> Variant object
+export type CreateAtomicMapTable = Record<
+  string,
+  Record<string, Record<string, string>>
+>;
 
 export interface Tables {
   staticTable: StaticTable;
@@ -38,8 +42,10 @@ export interface Tables {
   createThemeObjectTable: CreateThemeObjectTable;
   createHashTable: CreateHashTable;
   createObjectTable: CreateObjectTable;
+  createAtomicMapTable: CreateAtomicMapTable;
   variantsHashTable: VariantsHashTable;
   variantsObjectTable: VariantsObjectTable;
+  extractedSheet?: string;
 }
 
 export interface FileStyles {
