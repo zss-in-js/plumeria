@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 6.1.1
+
+### Patch Changes
+
+- c8e0d8a: chore: The timing of local tables and import tables is handled in the same process with scanAll
+- Updated dependencies [c8e0d8a]
+  - @plumeria/utils@6.1.1
+
 ## 6.1.0
 
 ### Minor Changes
