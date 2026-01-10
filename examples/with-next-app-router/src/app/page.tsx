@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import styles from './page.module.css';
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 const style = css.create({
   color: {
