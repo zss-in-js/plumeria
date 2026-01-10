@@ -576,23 +576,6 @@ export default async function loader(this: LoaderContext, source: string) {
             atomMap = scannedTables.createAtomicMapTable[hash][propName];
           }
 
-          if (!atomMap) {
-            const obj = scannedTables.createObjectTable[hash];
-            if (obj && obj[propName]) {
-              const style = obj[propName];
-              if (typeof style === 'object' && style !== null) {
-                const records = getStyleRecords(propName, style as any, 2);
-                if (!isProduction) {
-                  extractOndemandStyles(style, extractedSheets, scannedTables);
-
-                  records.forEach((r: StyleRecord) => addSheet(r.sheet));
-                }
-                atomMap = {};
-                records.forEach((r: any) => (atomMap![r.key] = r.hash));
-              }
-            }
-          }
-
           if (atomMap) {
             replacements.push({
               start: node.span.start - ast.span.start,
