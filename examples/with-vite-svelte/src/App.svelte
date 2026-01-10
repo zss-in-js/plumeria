@@ -2,16 +2,7 @@
   import svelteLogo from './assets/svelte.svg';
   import viteLogo from '/vite.svg';
   import Counter from './lib/Counter.svelte';
-  import { css } from '@plumeria/core';
-
-  const styles = css.create({
-    color: {
-      WebkitTextFillColor: 'transparent',
-      background:
-        'linear-gradient(90deg, #58c6ff 0%, #3e5875 50%, #ff3bef 100%)',
-      backgroundClip: 'text',
-    },
-  });
+  import { svelteClass } from './style';
 </script>
 
 <main>
@@ -23,7 +14,7 @@
       <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
     </a>
   </div>
-  <h1 class={css.props(styles.color)}>Vite + Svelte + Plumeria</h1>
+  <h1 class={svelteClass}>Vite + Svelte + Plumeria</h1>
 
   <div class="card">
     <Counter />
