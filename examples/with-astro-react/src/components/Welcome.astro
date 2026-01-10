@@ -1,7 +1,7 @@
 ---
 import astroLogo from '../assets/astro.svg';
 import background from '../assets/background.svg';
-import { Sample } from './sample';
+import { astroClass } from './style';
 ---
 
 <div id="container">
@@ -9,10 +9,8 @@ import { Sample } from './sample';
 	<main>
 		
 		<section id="hero">
-			<a href="https://astro.build"
-				><img src={astroLogo.src} width="115" height="48" alt="Astro Homepage" /></a
-			>	<Sample/ client:idle />
-			<h1>
+			<a href="https://astro.build"><img src={astroLogo.src} width="115" height="48" alt="Astro Homepage" /></a>	
+			<h1 class={astroClass} >
 				To get started, open the <code><pre>src/pages</pre></code> directory in your project.
 			</h1>
 			<section id="links">
