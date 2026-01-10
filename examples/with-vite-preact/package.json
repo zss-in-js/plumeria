@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "plumerialint && css && tsc -b && vite build",
+    "build": "plumerialint && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -13,7 +13,6 @@
     "preact": "^10.26.9"
   },
   "devDependencies": {
-    "@plumeria/compiler": "workspace:^",
     "@plumeria/vite-plugin": "workspace:^",
     "@preact/preset-vite": "^2.10.2",
     "typescript": "~5.8.3",

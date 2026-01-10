@@ -2,7 +2,7 @@ import { useState } from 'preact/hooks';
 import preactLogo from './assets/preact.svg';
 import viteLogo from '/vite.svg';
 import './app.css';
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 const styles = css.create({
   highlighted: {
