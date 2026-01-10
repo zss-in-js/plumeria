@@ -10,13 +10,14 @@
   "ignore": [
     "site",
     "plumeria-docs",
-    "with-astro",
-    "with-next-app-router",
-    "with-react-router-v7",
-    "with-solid",
-    "with-vite-preact",
-    "with-vite-react",
-    "with-vite-svelte",
-    "with-vite-vue"
+    "next-app",
+    "react-router",
+    "vite-astro-ts",  
+    "vite-preact",
+    "vite-qwik",
+    "vite-react",
+    "vite-solid",
+    "vite-svelte-ts",
+    "vite-vue-ts"
     ]
 }
