@@ -81,7 +81,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
     // --- Virtual Module Resolution ---
     resolveId(importeeUrl) {
-      if (!isDev) return;
       const [id] = importeeUrl.split('?', 1);
       if (cssLookup.has(id)) {
         return id;
@@ -90,7 +89,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
     },
 
     load(url) {
-      if (!isDev) return;
       const [id] = url.split('?', 1);
       return cssLookup.get(id);
     },
