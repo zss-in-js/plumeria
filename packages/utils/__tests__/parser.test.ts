@@ -589,6 +589,29 @@ describe('parser', () => {
       expect(result.valid).toBe('ok');
       expect(Object.keys(result)).toHaveLength(1);
     });
+
+    it('should NOT resolve identifier keys against staticTable', () => {
+      // This reproduces the bug where `transition` key is replaced by `transition` variable's value
+      const staticTable = { transition: '0.8s ease' };
+      const source = `const obj = { transition: '0.3s' }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const result = objectExpressionToObject(
+        objectExpr,
+        staticTable,
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      // Should remain "transition", not become "0.8s ease"
+      expect(result).toHaveProperty('transition');
+      expect(result.transition).toBe('0.3s');
+    });
   });
 
   describe('scan functions', () => {
