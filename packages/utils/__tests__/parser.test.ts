@@ -813,6 +813,26 @@ describe('parser', () => {
       expect(val.ref).toMatch(/^vr-/);
     });
 
+    it('should use global cache in production', () => {
+      const originalEnv = process.env.NODE_ENV;
+      (process.env as any).NODE_ENV = 'production';
+
+      mockedFs.globSync.mockReturnValue(['/test/prod.ts'] as any);
+      mockedFs.readFileSync.mockReturnValue(
+        'import * as css from "@plumeria/core"; export const S = css.createStatic({ key: "val" });',
+      );
+
+      // First call populates globalAgregatedTables
+      const result1 = scanAll();
+      expect(result1.staticTable).toBeDefined();
+
+      // Second call should return cached globalAggregatedTables
+      const result2 = scanAll();
+      expect(result2).toBe(result1);
+
+      (process.env as any).NODE_ENV = originalEnv;
+    });
+
     it('should handle aliased named import', () => {
       mockedFs.globSync.mockReturnValue(['/test/aliased.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
