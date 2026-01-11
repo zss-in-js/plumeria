@@ -1,5 +1,16 @@
 # @plumeria/webpack-plugin
 
+## 6.2.0
+
+### Minor Changes
+
+- 19b0e55: fix: Fixed missing hashMap value for styles
+
+### Patch Changes
+
+- Updated dependencies [19b0e55]
+  - @plumeria/utils@6.2.0
+
 ## 6.1.2
 
 ### Patch Changes
