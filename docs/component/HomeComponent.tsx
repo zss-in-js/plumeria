@@ -56,7 +56,7 @@ const styles = css.create({
     position: 'relative',
     zIndex: 1,
     marginBottom: 12,
-    fontSize: 52,
+    fontSize: 47,
     fontWeight: 600,
     lineHeight: 1,
     color: 'var(--text-main-header-line)',
@@ -200,8 +200,8 @@ export const HomeComponent = () => {
             <Plumeria />
             <h2 className={css.props(styles.mainHeadline)}>Atomic CSS-in-JS</h2>
             <p className={css.props(styles.subHeadline)}>
-              Zero runtime overhead. Full type safety. <br />
-              Build-time compilation for ultimate performance.
+              Zero-Runtime overhead. Full type-safety. <br />
+              Eliminate completely styles at build time.
             </p>
             <div className={css.props(styles.buttonGroup)}>
               <ButtonLink href="/docs" variant="gradient">
