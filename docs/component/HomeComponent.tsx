@@ -64,7 +64,7 @@ const styles = css.create({
     letterSpacing: '-0.04em',
     [breakpoints.md]: {
       marginBottom: '16px',
-      fontSize: 32,
+      fontSize: 28,
       textAlign: 'center',
     },
   },
@@ -83,8 +83,9 @@ const styles = css.create({
     [breakpoints.md]: {
       maxWidth: '90%',
       marginBottom: '32px',
-      fontSize: 18,
+      fontSize: 14,
       textAlign: 'center',
+      textWrap: 'balance',
     },
   },
 
