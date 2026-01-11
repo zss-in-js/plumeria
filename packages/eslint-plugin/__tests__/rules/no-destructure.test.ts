@@ -30,6 +30,9 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
     {
       code: `import { "create" as c } from '@plumeria/core';`,
     },
+    {
+      code: `import { create } from '@plumeria/core';`,
+    },
   ],
   invalid: [
     {
