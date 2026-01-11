@@ -668,8 +668,13 @@ interface CachedData {
 }
 
 const fileCache: Record<string, CachedData> = {};
+let globalAgregatedTables: Tables | null = null;
 
 export function scanAll(): Tables {
+  if (process.env.NODE_ENV === 'production' && globalAgregatedTables) {
+    return globalAgregatedTables;
+  }
+
   const localTables: Tables = {
     staticTable: {},
     themeTable: {},
@@ -999,6 +1004,11 @@ export function scanAll(): Tables {
   }
 
   localTables.extractedSheet = totalExtractedSheets.join('');
+
+  if (process.env.NODE_ENV === 'production') {
+    globalAgregatedTables = localTables;
+  }
+
   return localTables;
 }
 
