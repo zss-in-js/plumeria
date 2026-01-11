@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 6.2.0
+
+### Minor Changes
+
+- 19b0e55: feat: treat pseudos as atomic, combinators are semantic
+
 ## 6.1.2
 
 ### Patch Changes
