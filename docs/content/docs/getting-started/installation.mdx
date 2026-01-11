@@ -110,7 +110,7 @@ module.exports = {
 ```
 
 ### CSS extraction marke
-Inclulde css file `@plumeria` marke.  
+Inclulde css file `@plumeria` mark.  
 Atomic css is aggregated at build time into marked css files.
 ```css title="css"
 /* app/global.css */ 
@@ -119,7 +119,7 @@ Atomic css is aggregated at build time into marked css files.
 ...
 ```
 
-### Turbopack next.config
+### Turbopack
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
 import { withPlumeria } from "@plumeria/next-plugin/turbopack"; // [!code ++]
@@ -131,7 +131,7 @@ const nextConfig: NextConfig = {
 export default withPlumeria(nextConfig);
 ```
 
-### Webpack next.config
+### Webpack
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
 import { withPlumeria } from "@plumeria/next-plugin"; // [!code ++]
@@ -175,10 +175,10 @@ That's all the settings.
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import { plumeria } from '@plumeria/vite'; // [!code ++]
+import { plumeria } from '@plumeria/vite-plugin'; // [!code ++]
 
 export default defineConfig({
-  plugins: [plumeria(), react()],
+  plugins: [react(), plumeria()],
 });
 
 ```
