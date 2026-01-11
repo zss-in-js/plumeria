@@ -94,7 +94,7 @@ export const noInnerCall: Rule.RuleModule = {
             context.report({
               node,
               messageId: 'noInnerCall',
-              data: { name: fullName || propertyName },
+              data: { name: fullName },
             });
           }
         }
