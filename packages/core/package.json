@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "6.1.2",
+  "version": "6.2.0",
   "description": "An atomic CSS runtime designed to disappear.",
   "author": "Refirst 11",
   "license": "MIT",
