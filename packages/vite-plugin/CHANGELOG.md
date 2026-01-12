@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 6.2.1
+
+### Patch Changes
+
+- b14bc9d: fix: createStatic and createTheme expand even with export
+- Updated dependencies [b14bc9d]
+  - @plumeria/utils@6.2.1
+
 ## 6.2.0
 
 ### Minor Changes
