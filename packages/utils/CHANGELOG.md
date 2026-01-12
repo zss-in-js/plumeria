@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 6.2.1
+
+### Patch Changes
+
+- b14bc9d: fix: createStatic and createTheme expand even with export
+
 ## 6.2.0
 
 ### Minor Changes
