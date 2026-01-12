@@ -1,7 +1,6 @@
 import type {
   CSSObject,
   CSSValue,
-  ThemeTable,
   Tables,
   StaticTable,
   KeyframesHashTable,
@@ -14,6 +13,9 @@ import type {
   CreateAtomicMapTable,
   VariantsHashTable,
   VariantsObjectTable,
+  CreateThemeHashTable,
+  CreateStaticHashTable,
+  CreateStaticObjectTable,
 } from './types';
 
 import { createTheme } from './createTheme';
@@ -37,6 +39,7 @@ import {
   VariableDeclarator,
   ExportDeclaration,
   ConditionalExpression,
+  ImportSpecifier,
 } from '@swc/core';
 import path from 'path';
 import fs from 'fs';
@@ -45,6 +48,7 @@ import type { CSSProperties } from 'zss-engine';
 import { createViewTransition } from './viewTransition';
 import { getStyleRecords } from './create';
 import type { StyleRecord } from './create';
+import { resolveImportPath } from './resolver';
 
 export const t = {
   isObjectExpression: (node: any): node is ObjectExpression =>
@@ -121,20 +125,6 @@ const GLOB_OPTIONS = {
   exclude: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**'],
   cwd: PROJECT_ROOT,
 };
-export const tables: Tables = {
-  staticTable: {},
-  themeTable: {},
-  keyframesHashTable: {},
-  keyframesObjectTable: {},
-  viewTransitionHashTable: {},
-  viewTransitionObjectTable: {},
-  createThemeObjectTable: {},
-  createHashTable: {},
-  createObjectTable: {},
-  createAtomicMapTable: {},
-  variantsHashTable: {},
-  variantsObjectTable: {},
-};
 
 /* 
 These internal functions are executed through the loader function, so they are already comprehensively covered by the current tests.
@@ -146,8 +136,11 @@ export function objectExpressionToObject(
   staticTable: StaticTable,
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
-  themeTable: ThemeTable,
+  createThemeHashTable: CreateThemeHashTable,
+  createThemeObjectTable: CreateThemeObjectTable,
   createHashTable: CreateHashTable,
+  createStaticHashTable: CreateStaticHashTable,
+  createStaticObjectTable: CreateStaticObjectTable,
   variantsHashTable: VariantsHashTable,
   resolveVariable?: (name: string) => any,
 ): CSSObject {
@@ -161,7 +154,10 @@ export function objectExpressionToObject(
       staticTable,
       keyframesHashTable,
       viewTransitionHashTable,
-      themeTable,
+      createThemeHashTable,
+      createThemeObjectTable,
+      createStaticHashTable,
+      createStaticObjectTable,
     );
     if (!key) return;
 
@@ -204,12 +200,22 @@ export function objectExpressionToObject(
         obj[key] = 'cr-' + resolvedCreate;
         return;
       }
-      const resolvedTheme = resolveThemeTableMemberExpressionByNode(
+      const resolvedTheme = resolveCreateThemeTableMemberExpressionByNode(
         val,
-        themeTable,
+        createThemeHashTable,
+        createThemeObjectTable,
       );
       if (resolvedTheme !== undefined) {
         obj[key] = resolvedTheme;
+        return;
+      }
+      const resolvedStatic = resolveCreateStaticTableMemberExpression(
+        val,
+        createStaticHashTable,
+        createStaticObjectTable,
+      );
+      if (resolvedStatic !== undefined) {
+        obj[key] = resolvedStatic;
         return;
       }
       const resolvedVariants = resolveVariantsTableMemberExpression(
@@ -236,8 +242,11 @@ export function objectExpressionToObject(
         staticTable,
         keyframesHashTable,
         viewTransitionHashTable,
-        themeTable,
+        createThemeHashTable,
+        createThemeObjectTable,
         createHashTable,
+        createStaticHashTable,
+        createStaticObjectTable,
         variantsHashTable,
         resolveVariable,
       );
@@ -297,11 +306,14 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
       result = objectExpressionToObject(
         init,
         localConsts,
-        tables.keyframesHashTable,
-        tables.viewTransitionHashTable,
-        tables.themeTable,
-        tables.createHashTable,
-        tables.variantsHashTable,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
         resolveValue,
       );
     }
@@ -326,7 +338,10 @@ function getPropertyKey(
   staticTable: StaticTable,
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
-  themeTable: ThemeTable,
+  createThemeHashTable: CreateThemeHashTable,
+  createThemeObjectTable: CreateThemeObjectTable,
+  createStaticHashTable: CreateStaticHashTable,
+  createStaticObjectTable: CreateStaticObjectTable,
 ): string {
   if (t.isIdentifier(node)) {
     return node.value;
@@ -350,6 +365,13 @@ function getPropertyKey(
     if (t.isMemberExpression(expr)) {
       const result = resolveStaticTableMemberExpression(expr, staticTable);
       if (typeof result === 'string') return result;
+
+      const staticResult = resolveCreateStaticTableMemberExpression(
+        expr,
+        createStaticHashTable,
+        createStaticObjectTable,
+      );
+      if (typeof staticResult === 'string') return staticResult;
     }
     if (t.isTemplateLiteral(expr)) {
       return evaluateTemplateLiteral(
@@ -357,7 +379,10 @@ function getPropertyKey(
         staticTable,
         keyframesHashTable,
         viewTransitionHashTable,
-        themeTable,
+        createThemeHashTable,
+        createThemeObjectTable,
+        createStaticHashTable,
+        createStaticObjectTable,
       );
     }
     if (t.isBinaryExpression(expr)) {
@@ -366,7 +391,10 @@ function getPropertyKey(
         staticTable,
         keyframesHashTable,
         viewTransitionHashTable,
-        themeTable,
+        createThemeHashTable,
+        createThemeObjectTable,
+        createStaticHashTable,
+        createStaticObjectTable,
       );
     }
     return '';
@@ -378,7 +406,10 @@ function getPropertyKey(
       staticTable,
       keyframesHashTable,
       viewTransitionHashTable,
-      themeTable,
+      createThemeHashTable,
+      createThemeObjectTable,
+      createStaticHashTable,
+      createStaticObjectTable,
     );
   }
 
@@ -388,7 +419,10 @@ function getPropertyKey(
       staticTable,
       keyframesHashTable,
       viewTransitionHashTable,
-      themeTable,
+      createThemeHashTable,
+      createThemeObjectTable,
+      createStaticHashTable,
+      createStaticObjectTable,
     );
   }
 
@@ -400,7 +434,10 @@ function evaluateTemplateLiteral(
   staticTable: StaticTable,
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
-  themeTable: ThemeTable,
+  createThemeHashTable: CreateThemeHashTable,
+  createThemeObjectTable: CreateThemeObjectTable,
+  createStaticHashTable: CreateStaticHashTable,
+  createStaticObjectTable: CreateStaticObjectTable,
 ): string {
   let result = '';
 
@@ -414,7 +451,10 @@ function evaluateTemplateLiteral(
         staticTable,
         keyframesHashTable,
         viewTransitionHashTable,
-        themeTable,
+        createThemeHashTable,
+        createThemeObjectTable,
+        createStaticHashTable,
+        createStaticObjectTable,
       );
       result += String(evaluatedExpr);
     }
@@ -429,21 +469,30 @@ function evaluateBinaryExpression(
   staticTable: StaticTable,
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
-  themeTable: ThemeTable,
+  createThemeHashTable: CreateThemeHashTable,
+  createThemeObjectTable: CreateThemeObjectTable,
+  createStaticHashTable: CreateStaticHashTable,
+  createStaticObjectTable: CreateStaticObjectTable,
 ): string {
   const left = evaluateExpression(
     node.left as Expression,
     staticTable,
     keyframesHashTable,
     viewTransitionHashTable,
-    themeTable,
+    createThemeHashTable,
+    createThemeObjectTable,
+    createStaticHashTable,
+    createStaticObjectTable,
   );
   const right = evaluateExpression(
     node.right as Expression,
     staticTable,
     keyframesHashTable,
     viewTransitionHashTable,
-    themeTable,
+    createThemeHashTable,
+    createThemeObjectTable,
+    createStaticHashTable,
+    createStaticObjectTable,
   );
 
   if (node.operator === '+') {
@@ -459,7 +508,10 @@ function evaluateExpression(
   staticTable: StaticTable,
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
-  themeTable: ThemeTable,
+  createThemeHashTable: CreateThemeHashTable,
+  createThemeObjectTable: CreateThemeObjectTable,
+  createStaticHashTable: CreateStaticHashTable,
+  createStaticObjectTable: CreateStaticObjectTable,
 ): string | number | boolean | null | CSSObject {
   if (t.isStringLiteral(node)) {
     return node.value;
@@ -499,12 +551,22 @@ function evaluateExpression(
       return resolved;
     }
 
-    const resolvedTheme = resolveThemeTableMemberExpressionByNode(
+    const resolvedTheme = resolveCreateThemeTableMemberExpressionByNode(
       node,
-      themeTable,
+      createThemeHashTable,
+      createThemeObjectTable,
     );
     if (resolvedTheme !== undefined) {
       return resolvedTheme;
+    }
+
+    const resolvedStatic = resolveCreateStaticTableMemberExpression(
+      node,
+      createStaticHashTable,
+      createStaticObjectTable,
+    );
+    if (resolvedStatic !== undefined) {
+      return resolvedStatic;
     }
 
     return `[unresolved member expression]`;
@@ -516,7 +578,10 @@ function evaluateExpression(
       staticTable,
       keyframesHashTable,
       viewTransitionHashTable,
-      themeTable,
+      createThemeHashTable,
+      createThemeObjectTable,
+      createStaticHashTable,
+      createStaticObjectTable,
     );
   }
 
@@ -526,7 +591,10 @@ function evaluateExpression(
       staticTable,
       keyframesHashTable,
       viewTransitionHashTable,
-      themeTable,
+      createThemeHashTable,
+      createThemeObjectTable,
+      createStaticHashTable,
+      createStaticObjectTable,
     );
   }
 
@@ -625,24 +693,64 @@ function resolveStaticTableMemberExpression(
   return undefined;
 }
 /* istanbul ignore next */
-function resolveThemeTableMemberExpressionByNode(
+function resolveCreateThemeTableMemberExpressionByNode(
   node: Identifier | MemberExpression,
-  themeTable: ThemeTable,
+  createThemeHashTable: CreateThemeHashTable,
+  createThemeObjectTable: CreateThemeObjectTable,
 ): CSSValue | undefined {
   if (t.isMemberExpression(node) && t.isIdentifier(node.object)) {
     const varName = node.object.value;
-    let key: string | undefined;
-    if (t.isIdentifier(node.property)) {
-      key = node.property.value;
-    } else if (
-      node.property.type === 'Computed' &&
-      t.isStringLiteral(node.property.expression)
-    ) {
-      key = node.property.expression.value;
+    const hash = createThemeHashTable[varName];
+
+    if (hash) {
+      const themeObj = createThemeObjectTable[hash];
+      if (themeObj) {
+        let key: string | undefined;
+        if (t.isIdentifier(node.property)) {
+          key = node.property.value;
+        } else if (
+          node.property.type === 'Computed' &&
+          t.isStringLiteral(node.property.expression)
+        ) {
+          key = node.property.expression.value;
+        }
+
+        if (key && themeObj[key] !== undefined) {
+          const cssVarName = camelToKebabCase(key);
+          return `var(--${cssVarName})`;
+        }
+      }
     }
-    if (key && themeTable[varName] && themeTable[varName][key] !== undefined) {
-      const cssVarName = camelToKebabCase(key);
-      return `var(--${cssVarName})`;
+  }
+  return undefined;
+}
+
+function resolveCreateStaticTableMemberExpression(
+  node: Identifier | MemberExpression,
+  createStaticHashTable: CreateStaticHashTable,
+  createStaticObjectTable: CreateStaticObjectTable,
+): CSSValue | undefined {
+  if (t.isMemberExpression(node) && t.isIdentifier(node.object)) {
+    const varName = node.object.value;
+    const hash = createStaticHashTable[varName];
+
+    if (hash) {
+      const staticObj = createStaticObjectTable[hash];
+      if (staticObj) {
+        let key: string | undefined;
+        if (t.isIdentifier(node.property)) {
+          key = node.property.value;
+        } else if (
+          node.property.type === 'Computed' &&
+          t.isStringLiteral(node.property.expression)
+        ) {
+          key = node.property.expression.value;
+        }
+
+        if (key && staticObj[key] !== undefined) {
+          return staticObj[key];
+        }
+      }
     }
   }
   return undefined;
@@ -656,13 +764,15 @@ interface CachedData {
   keyframesObjectTable: KeyframesObjectTable;
   viewTransitionHashTable: ViewTransitionHashTable;
   viewTransitionObjectTable: ViewTransitionObjectTable;
-  themeTable: ThemeTable;
+  createThemeHashTable: CreateThemeHashTable;
   createThemeObjectTable: CreateThemeObjectTable;
   createHashTable: CreateHashTable;
   createObjectTable: CreateObjectTable;
   createAtomicMapTable: CreateAtomicMapTable;
   variantsHashTable: VariantsHashTable;
   variantsObjectTable: VariantsObjectTable;
+  createStaticHashTable: CreateStaticHashTable;
+  createStaticObjectTable: CreateStaticObjectTable;
   hasCssUsage: boolean;
   extractedSheet?: string;
 }
@@ -677,7 +787,6 @@ export function scanAll(): Tables {
 
   const localTables: Tables = {
     staticTable: {},
-    themeTable: {},
     keyframesHashTable: {},
     keyframesObjectTable: {},
     viewTransitionHashTable: {},
@@ -688,320 +797,433 @@ export function scanAll(): Tables {
     createAtomicMapTable: {},
     variantsHashTable: {},
     variantsObjectTable: {},
+    createThemeHashTable: {},
+    createStaticHashTable: {},
+    createStaticObjectTable: {},
     extractedSheet: '',
   };
 
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
+
+  // Sort files to process dependencies first (lib/, utils/, etc.)
+  // This ensures createStatic definitions are available before they're used
+  files.sort((a, b) => {
+    const aPriority =
+      a.includes('/lib/') || a.includes('/utils/') || a.includes('/common/')
+        ? 0
+        : 1;
+    const bPriority =
+      b.includes('/lib/') || b.includes('/utils/') || b.includes('/common/')
+        ? 0
+        : 1;
+    if (aPriority !== bPriority) return aPriority - bPriority;
+    return a.localeCompare(b);
+  });
   const totalExtractedSheets: string[] = [];
 
-  for (const filePath of files) {
-    try {
-      const stats = fs.statSync(filePath);
-      const cached = fileCache[filePath];
+  // Two-pass scanning:
+  // Pass 1: Collect all createStatic and createTheme definitions
+  // Pass 2: Process css.create, keyframes, viewTransition, variants (with all createStatic/createTheme available)
 
-      if (cached && cached.mtimeMs === stats.mtimeMs) {
-        if (cached.hasCssUsage) {
-          for (const key of Object.keys(cached.staticTable)) {
-            localTables.staticTable[`${filePath}-${key}`] =
-              cached.staticTable[key];
-          }
-          for (const key of Object.keys(cached.keyframesHashTable)) {
-            localTables.keyframesHashTable[`${filePath}-${key}`] =
-              cached.keyframesHashTable[key];
-          }
-          for (const key of Object.keys(cached.keyframesObjectTable)) {
-            localTables.keyframesObjectTable[key] =
-              cached.keyframesObjectTable[key];
-          }
-          for (const key of Object.keys(cached.viewTransitionHashTable)) {
-            localTables.viewTransitionHashTable[`${filePath}-${key}`] =
-              cached.viewTransitionHashTable[key];
-          }
-          for (const key of Object.keys(cached.viewTransitionObjectTable)) {
-            localTables.viewTransitionObjectTable[key] =
-              cached.viewTransitionObjectTable[key];
-          }
-          for (const key of Object.keys(cached.themeTable)) {
-            localTables.themeTable[`${filePath}-${key}`] =
-              cached.themeTable[key];
-          }
-          for (const key of Object.keys(cached.createThemeObjectTable)) {
-            localTables.createThemeObjectTable[key] =
-              cached.createThemeObjectTable[key];
-          }
-          for (const key of Object.keys(cached.createHashTable)) {
-            localTables.createHashTable[`${filePath}-${key}`] =
-              cached.createHashTable[key];
-          }
-          for (const key of Object.keys(cached.createObjectTable)) {
-            localTables.createObjectTable[key] = cached.createObjectTable[key];
-          }
-          for (const key of Object.keys(cached.createAtomicMapTable)) {
-            localTables.createAtomicMapTable[key] =
-              cached.createAtomicMapTable[key];
-          }
-          for (const key of Object.keys(cached.variantsHashTable)) {
-            localTables.variantsHashTable[`${filePath}-${key}`] =
-              cached.variantsHashTable[key];
-          }
-          for (const key of Object.keys(cached.variantsObjectTable)) {
-            localTables.variantsObjectTable[key] =
-              cached.variantsObjectTable[key];
-          }
-          if (cached.extractedSheet) {
-            totalExtractedSheets.push(cached.extractedSheet);
-          }
-        }
-        continue;
-      }
+  // Execute two passes
+  for (let passNumber = 1; passNumber <= 2; passNumber++) {
+    const isFirstPass = passNumber === 1;
 
-      const source = fs.readFileSync(filePath, 'utf8');
-      if (!source.includes('@plumeria/core')) {
-        // Cache negative result
-        fileCache[filePath] = {
-          mtimeMs: stats.mtimeMs,
-          staticTable: {},
-          keyframesHashTable: {},
-          keyframesObjectTable: {},
-          viewTransitionHashTable: {},
-          viewTransitionObjectTable: {},
-          themeTable: {},
-          createThemeObjectTable: {},
-          createHashTable: {},
-          createObjectTable: {},
-          createAtomicMapTable: {},
-          variantsHashTable: {},
-          variantsObjectTable: {},
-          hasCssUsage: false,
-          extractedSheet: '',
-        };
-        continue;
-      }
+    for (const filePath of files) {
+      try {
+        const stats = fs.statSync(filePath);
+        const cached = fileCache[filePath];
 
-      const ast = parseSync(source, {
-        syntax: 'typescript',
-        tsx: true,
-        target: 'es2022',
-      });
-
-      const localStaticTable: StaticTable = {};
-      const localKeyframesHashTable: KeyframesHashTable = {};
-      const localKeyframesObjectTable: KeyframesObjectTable = {};
-      const localViewTransitionHashTable: ViewTransitionHashTable = {};
-      const localViewTransitionObjectTable: ViewTransitionObjectTable = {};
-      const localThemeTable: ThemeTable = {};
-      const localCreateThemeObjectTable: CreateThemeObjectTable = {};
-      const localCreateHashTable: CreateHashTable = {};
-      const localCreateObjectTable: CreateObjectTable = {};
-      const localCreateAtomicMapTable: CreateAtomicMapTable = {};
-      const localVariantsHashTable: VariantsHashTable = {};
-      const localVariantsObjectTable: VariantsObjectTable = {};
-      const plumeriaAliases: Record<string, string> = {};
-      const fileExtractedSheets: string[] = [];
-      const isProduction = process.env.NODE_ENV === 'production';
-
-      for (const node of ast.body) {
-        if (node.type === 'ImportDeclaration') {
-          const sourceValue = node.source.value;
-          if (sourceValue === '@plumeria/core') {
-            node.specifiers.forEach((specifier: any) => {
-              if (specifier.type === 'ImportNamespaceSpecifier') {
-                if (specifier.local) {
-                  plumeriaAliases[specifier.local.value] = 'NAMESPACE';
-                }
-              } else if (specifier.type === 'ImportSpecifier') {
-                const importedName = specifier.imported
-                  ? specifier.imported.value
-                  : specifier.local.value;
-                const localName = specifier.local.value;
-                plumeriaAliases[localName] = importedName;
-              } else if (specifier.type === 'ImportDefaultSpecifier') {
-                if (specifier.local) {
-                  plumeriaAliases[specifier.local.value] = 'NAMESPACE';
-                }
-              }
-            });
-          }
-        }
-      }
-
-      for (const node of ast.body) {
-        let declarations: VariableDeclarator[] = [];
-
-        if (t.isVariableDeclaration(node)) {
-          declarations = node.declarations;
-        } else if (
-          t.isExportDeclaration(node) &&
-          t.isVariableDeclaration(node.declaration)
-        ) {
-          declarations = node.declaration.declarations;
-        }
-
-        for (const decl of declarations) {
-          if (
-            t.isVariableDeclarator(decl) &&
-            t.isIdentifier(decl.id) &&
-            decl.init &&
-            t.isCallExpression(decl.init) &&
-            t.isCallExpression(decl.init)
-          ) {
-            const callee = decl.init.callee;
-            let method: string | undefined;
-
-            if (
-              t.isMemberExpression(callee) &&
-              t.isIdentifier(callee.object) &&
-              t.isIdentifier(callee.property)
-            ) {
-              const objectName = callee.object.value;
-              const propertyName = callee.property.value;
-              const alias = plumeriaAliases[objectName];
-              if (alias === 'NAMESPACE' || objectName === 'css') {
-                method = propertyName;
-              }
-            } else if (t.isIdentifier(callee)) {
-              const calleeName = callee.value;
-              const originalName = plumeriaAliases[calleeName];
-              if (originalName) {
-                method = originalName;
-              }
+        if (cached && cached.mtimeMs === stats.mtimeMs) {
+          if (cached.hasCssUsage) {
+            for (const key of Object.keys(cached.staticTable)) {
+              localTables.staticTable[`${filePath}-${key}`] =
+                cached.staticTable[key];
+            }
+            for (const key of Object.keys(cached.keyframesHashTable)) {
+              localTables.keyframesHashTable[`${filePath}-${key}`] =
+                cached.keyframesHashTable[key];
+            }
+            for (const key of Object.keys(cached.keyframesObjectTable)) {
+              localTables.keyframesObjectTable[key] =
+                cached.keyframesObjectTable[key];
+            }
+            for (const key of Object.keys(cached.viewTransitionHashTable)) {
+              localTables.viewTransitionHashTable[`${filePath}-${key}`] =
+                cached.viewTransitionHashTable[key];
+            }
+            for (const key of Object.keys(cached.viewTransitionObjectTable)) {
+              localTables.viewTransitionObjectTable[key] =
+                cached.viewTransitionObjectTable[key];
+            }
+            for (const key of Object.keys(cached.createThemeHashTable)) {
+              localTables.createThemeHashTable[`${filePath}-${key}`] =
+                cached.createThemeHashTable[key];
+            }
+            for (const key of Object.keys(cached.createThemeObjectTable)) {
+              localTables.createThemeObjectTable[key] =
+                cached.createThemeObjectTable[key];
+            }
+            for (const key of Object.keys(cached.createStaticHashTable)) {
+              localTables.createStaticHashTable[`${filePath}-${key}`] =
+                cached.createStaticHashTable[key];
+            }
+            for (const key of Object.keys(cached.createStaticObjectTable)) {
+              localTables.createStaticObjectTable[key] =
+                cached.createStaticObjectTable[key];
+            }
+            for (const key of Object.keys(cached.createHashTable)) {
+              localTables.createHashTable[`${filePath}-${key}`] =
+                cached.createHashTable[key];
+            }
+            for (const key of Object.keys(cached.createObjectTable)) {
+              localTables.createObjectTable[key] =
+                cached.createObjectTable[key];
+            }
+            for (const key of Object.keys(cached.createAtomicMapTable)) {
+              localTables.createAtomicMapTable[key] =
+                cached.createAtomicMapTable[key];
+            }
+            for (const key of Object.keys(cached.variantsHashTable)) {
+              localTables.variantsHashTable[`${filePath}-${key}`] =
+                cached.variantsHashTable[key];
+            }
+            for (const key of Object.keys(cached.variantsObjectTable)) {
+              localTables.variantsObjectTable[key] =
+                cached.variantsObjectTable[key];
             }
 
+            if (cached.extractedSheet) {
+              totalExtractedSheets.push(cached.extractedSheet);
+            }
+          }
+          continue;
+        }
+
+        const source = fs.readFileSync(filePath, 'utf8');
+        if (!source.includes('@plumeria/core')) {
+          // Cache negative result
+          fileCache[filePath] = {
+            mtimeMs: stats.mtimeMs,
+            staticTable: {},
+            keyframesHashTable: {},
+            keyframesObjectTable: {},
+            viewTransitionHashTable: {},
+            viewTransitionObjectTable: {},
+            createThemeHashTable: {},
+            createThemeObjectTable: {},
+            createHashTable: {},
+            createObjectTable: {},
+            createAtomicMapTable: {},
+            variantsHashTable: {},
+            variantsObjectTable: {},
+            createStaticHashTable: {},
+            createStaticObjectTable: {},
+            hasCssUsage: false,
+            extractedSheet: '',
+          };
+          continue;
+        }
+
+        const ast = parseSync(source, {
+          syntax: 'typescript',
+          tsx: true,
+          target: 'es2022',
+        });
+
+        const localStaticTable: StaticTable = {};
+        const localKeyframesHashTable: KeyframesHashTable = {};
+        const localKeyframesObjectTable: KeyframesObjectTable = {};
+        const localViewTransitionHashTable: ViewTransitionHashTable = {};
+        const localViewTransitionObjectTable: ViewTransitionObjectTable = {};
+        const localCreateThemeObjectTable: CreateThemeObjectTable = {};
+        const localCreateHashTable: CreateHashTable = {};
+        const localCreateObjectTable: CreateObjectTable = {};
+        const localCreateAtomicMapTable: CreateAtomicMapTable = {};
+        const localVariantsHashTable: VariantsHashTable = {};
+        const localVariantsObjectTable: VariantsObjectTable = {};
+        const localCreateThemeHashTable: CreateThemeHashTable = {};
+        const localCreateStaticHashTable: CreateStaticHashTable = {};
+        const localCreateStaticObjectTable: CreateStaticObjectTable = {};
+        const plumeriaAliases: Record<string, string> = {};
+        const fileExtractedSheets: string[] = [];
+        const isProduction = process.env.NODE_ENV === 'production';
+
+        for (const node of ast.body) {
+          if (node.type === 'ImportDeclaration') {
+            const sourceValue = node.source.value;
+            if (sourceValue === '@plumeria/core') {
+              node.specifiers.forEach((specifier: ImportSpecifier) => {
+                if (specifier.type === 'ImportNamespaceSpecifier') {
+                  if (specifier.local) {
+                    plumeriaAliases[specifier.local.value] = 'NAMESPACE';
+                  }
+                } else if (specifier.type === 'ImportSpecifier') {
+                  const importedName = specifier.imported
+                    ? specifier.imported.value
+                    : specifier.local.value;
+                  const localName = specifier.local.value;
+                  plumeriaAliases[localName] = importedName;
+                } else if (specifier.type === 'ImportDefaultSpecifier') {
+                  if (specifier.local) {
+                    plumeriaAliases[specifier.local.value] = 'NAMESPACE';
+                  }
+                }
+              });
+            } else {
+              // Resolve imports from user modules (e.g., lib/mediaQuery)
+              const actualPath = resolveImportPath(sourceValue, filePath);
+              if (actualPath) {
+                node.specifiers.forEach((specifier: ImportSpecifier) => {
+                  if (specifier.type === 'ImportSpecifier') {
+                    const importedName = specifier.imported
+                      ? specifier.imported.value
+                      : specifier.local.value;
+                    const localName = specifier.local.value;
+                    const uniqueKey = `${actualPath}-${importedName}`;
+
+                    // Resolve createStatic from global tables
+                    if (localTables.createStaticHashTable[uniqueKey]) {
+                      const hash = localTables.createStaticHashTable[uniqueKey];
+                      localCreateStaticHashTable[localName] = hash;
+                      if (localTables.createStaticObjectTable[hash]) {
+                        localCreateStaticObjectTable[hash] =
+                          localTables.createStaticObjectTable[hash];
+                      }
+                    }
+                    // Resolve createTheme from global tables
+                    if (localTables.createThemeHashTable[uniqueKey]) {
+                      const hash = localTables.createThemeHashTable[uniqueKey];
+                      localCreateThemeHashTable[localName] = hash;
+                      if (localTables.createThemeObjectTable[hash]) {
+                        localCreateThemeObjectTable[hash] =
+                          localTables.createThemeObjectTable[hash];
+                      }
+                    }
+                  }
+                });
+              }
+            }
+          }
+        }
+
+        for (const node of ast.body) {
+          let declarations: VariableDeclarator[] = [];
+
+          if (t.isVariableDeclaration(node)) {
+            declarations = node.declarations;
+          } else if (
+            t.isExportDeclaration(node) &&
+            t.isVariableDeclaration(node.declaration)
+          ) {
+            declarations = node.declaration.declarations;
+          }
+
+          for (const decl of declarations) {
             if (
-              method &&
-              decl.init.arguments.length > 0 &&
-              t.isObjectExpression(decl.init.arguments[0].expression)
+              t.isVariableDeclarator(decl) &&
+              t.isIdentifier(decl.id) &&
+              decl.init &&
+              t.isCallExpression(decl.init) &&
+              t.isCallExpression(decl.init)
             ) {
-              const name = decl.id.value;
-              const init = decl.init;
+              const callee = decl.init.callee;
+              let method: string | undefined;
 
-              const resolveVariable = (name: string) => {
-                const hash = localCreateHashTable[name];
-                if (hash && localCreateObjectTable[hash]) {
-                  return localCreateObjectTable[hash];
+              if (
+                t.isMemberExpression(callee) &&
+                t.isIdentifier(callee.object) &&
+                t.isIdentifier(callee.property)
+              ) {
+                const objectName = callee.object.value;
+                const propertyName = callee.property.value;
+                const alias = plumeriaAliases[objectName];
+                if (alias === 'NAMESPACE' || objectName === 'css') {
+                  method = propertyName;
                 }
-                return undefined;
-              };
-
-              const obj = objectExpressionToObject(
-                init.arguments[0].expression as ObjectExpression,
-                localStaticTable,
-                localKeyframesHashTable,
-                localViewTransitionHashTable,
-                localThemeTable,
-                localCreateHashTable,
-                localVariantsHashTable,
-                resolveVariable,
-              );
-
-              const uniqueKey = `${filePath}-${name}`;
-
-              if (method === 'createStatic') {
-                localStaticTable[name] = obj;
-                localTables.staticTable[uniqueKey] = obj;
-              } else if (method === 'keyframes') {
-                const hash = genBase36Hash(obj, 1, 8);
-                localKeyframesHashTable[name] = hash;
-                localTables.keyframesHashTable[uniqueKey] = hash;
-                localTables.keyframesObjectTable[hash] = obj;
-                localTables.keyframesObjectTable[hash] = obj;
-                localKeyframesObjectTable[hash] = obj;
-
-                if (!isProduction) {
-                  extractOndemandStyles(
-                    { kf: `kf-${hash}` },
-                    fileExtractedSheets,
-                    localTables,
-                  );
+              } else if (t.isIdentifier(callee)) {
+                const calleeName = callee.value;
+                const originalName = plumeriaAliases[calleeName];
+                if (originalName) {
+                  method = originalName;
                 }
-              } else if (method === 'viewTransition') {
-                const hash = genBase36Hash(obj, 1, 8);
-                localViewTransitionHashTable[name] = hash;
-                localTables.viewTransitionHashTable[uniqueKey] = hash;
-                localTables.viewTransitionObjectTable[hash] = obj;
-                localTables.viewTransitionObjectTable[hash] = obj;
-                localViewTransitionObjectTable[hash] = obj;
+              }
 
-                if (!isProduction) {
-                  extractOndemandStyles(obj, fileExtractedSheets, localTables);
-                  extractOndemandStyles(
-                    { vt: `vt-${hash}` },
-                    fileExtractedSheets,
-                    localTables,
-                  );
-                }
-              } else if (method === 'createTheme') {
-                const hash = genBase36Hash(obj, 1, 8);
-                localThemeTable[name] = obj;
-                localTables.themeTable[uniqueKey] = obj;
-                localTables.createThemeObjectTable[hash] = obj;
-                localCreateThemeObjectTable[hash] = obj;
-              } else if (method === 'create') {
-                const hash = genBase36Hash(obj, 1, 8);
-                localCreateHashTable[name] = hash;
-                localTables.createHashTable[uniqueKey] = hash;
-                localTables.createObjectTable[hash] = obj;
-                localCreateObjectTable[hash] = obj;
+              if (
+                method &&
+                decl.init.arguments.length > 0 &&
+                t.isObjectExpression(decl.init.arguments[0].expression)
+              ) {
+                const name = decl.id.value;
+                const init = decl.init;
 
-                const hashMap: Record<string, Record<string, string>> = {};
-                Object.entries(obj).forEach(([key, style]) => {
-                  const records = getStyleRecords(key, style as any, 2);
-                  const atomMap: Record<string, string> = {};
-                  records.forEach((r) => (atomMap[r.key] = r.hash));
-                  hashMap[key] = atomMap;
+                const resolveVariable = (name: string) => {
+                  const hash = localCreateHashTable[name];
+                  if (hash && localCreateObjectTable[hash]) {
+                    return localCreateObjectTable[hash];
+                  }
+                  return undefined;
+                };
+
+                const obj = objectExpressionToObject(
+                  init.arguments[0].expression as ObjectExpression,
+                  localStaticTable,
+                  localKeyframesHashTable,
+                  localViewTransitionHashTable,
+                  localCreateThemeHashTable,
+                  localCreateThemeObjectTable,
+                  localCreateHashTable,
+                  localCreateStaticHashTable,
+                  localCreateStaticObjectTable,
+                  localVariantsHashTable,
+                  resolveVariable,
+                );
+
+                const uniqueKey = `${filePath}-${name}`;
+
+                // Pass 1: Only collect createStatic and createTheme for global resolution
+                // Pass 2: Process ALL methods. We need to process createStatic/createTheme again
+                // in Pass 2 to populate the local variable maps for the current file correctly.
+                const isPassOneMethod =
+                  method === 'createStatic' || method === 'createTheme';
+                if (isFirstPass && !isPassOneMethod) continue;
+
+                if (method === 'createStatic') {
+                  localStaticTable[name] = obj;
+                  localTables.staticTable[uniqueKey] = obj;
+
+                  const hash = genBase36Hash(obj, 1, 8);
+                  localCreateStaticHashTable[name] = hash;
+                  localTables.createStaticHashTable[uniqueKey] = hash;
+
+                  localTables.createStaticObjectTable[hash] = obj;
+                  localCreateStaticObjectTable[hash] = obj;
+
+                  // Generate atomic maps for each property of createStatic
+                  // This allows createStatic values to work as computed keys in create calls
+                  const hashMap: Record<string, Record<string, string>> = {
+                    __static: {},
+                  };
+                  for (const [key, value] of Object.entries(obj)) {
+                    if (typeof value === 'string') {
+                      // For string values (like media queries), store the value directly
+                      hashMap.__static[key] = value;
+                    }
+                  }
+                  localTables.createAtomicMapTable[hash] = hashMap;
+                } else if (method === 'keyframes') {
+                  const hash = genBase36Hash(obj, 1, 8);
+                  localKeyframesHashTable[name] = hash;
+                  localTables.keyframesHashTable[uniqueKey] = hash;
+                  localTables.keyframesObjectTable[hash] = obj;
+                  localTables.keyframesObjectTable[hash] = obj;
+                  localKeyframesObjectTable[hash] = obj;
 
                   if (!isProduction) {
                     extractOndemandStyles(
-                      style,
+                      { kf: `kf-${hash}` },
                       fileExtractedSheets,
                       localTables,
                     );
-                    records.forEach((r) => {
-                      if (!fileExtractedSheets.includes(r.sheet)) {
-                        fileExtractedSheets.push(r.sheet);
-                      }
-                    });
                   }
-                });
-                localCreateAtomicMapTable[hash] = hashMap;
-                localTables.createAtomicMapTable[hash] = hashMap;
-              } else if (method === 'variants') {
-                const hash = genBase36Hash(obj, 1, 8);
-                localVariantsHashTable[name] = hash;
-                localTables.variantsHashTable[uniqueKey] = hash;
-                localTables.variantsObjectTable[hash] = obj;
-                localVariantsObjectTable[hash] = obj;
+                } else if (method === 'viewTransition') {
+                  const hash = genBase36Hash(obj, 1, 8);
+                  localViewTransitionHashTable[name] = hash;
+                  localTables.viewTransitionHashTable[uniqueKey] = hash;
+                  localTables.viewTransitionObjectTable[hash] = obj;
+                  localTables.viewTransitionObjectTable[hash] = obj;
+                  localViewTransitionObjectTable[hash] = obj;
+
+                  if (!isProduction) {
+                    extractOndemandStyles(
+                      obj,
+                      fileExtractedSheets,
+                      localTables,
+                    );
+                    extractOndemandStyles(
+                      { vt: `vt-${hash}` },
+                      fileExtractedSheets,
+                      localTables,
+                    );
+                  }
+                } else if (method === 'createTheme') {
+                  const hash = genBase36Hash(obj, 1, 8);
+                  localTables.createThemeObjectTable[hash] = obj;
+                  localCreateThemeObjectTable[hash] = obj;
+
+                  localCreateThemeHashTable[name] = hash;
+                  localTables.createThemeHashTable[uniqueKey] = hash;
+                } else if (method === 'create') {
+                  const hash = genBase36Hash(obj, 1, 8);
+                  localCreateHashTable[name] = hash;
+                  localTables.createHashTable[uniqueKey] = hash;
+                  localTables.createObjectTable[hash] = obj;
+                  localCreateObjectTable[hash] = obj;
+
+                  const hashMap: Record<string, Record<string, string>> = {};
+                  Object.entries(obj).forEach(([key, style]) => {
+                    const records = getStyleRecords(key, style as any, 2);
+                    const atomMap: Record<string, string> = {};
+                    records.forEach((r) => (atomMap[r.key] = r.hash));
+                    hashMap[key] = atomMap;
+
+                    if (!isProduction) {
+                      extractOndemandStyles(
+                        style,
+                        fileExtractedSheets,
+                        localTables,
+                      );
+                      records.forEach((r) => {
+                        if (!fileExtractedSheets.includes(r.sheet)) {
+                          fileExtractedSheets.push(r.sheet);
+                        }
+                      });
+                    }
+                  });
+                  localCreateAtomicMapTable[hash] = hashMap;
+                  localTables.createAtomicMapTable[hash] = hashMap;
+                } else if (method === 'variants') {
+                  const hash = genBase36Hash(obj, 1, 8);
+                  localVariantsHashTable[name] = hash;
+                  localTables.variantsHashTable[uniqueKey] = hash;
+                  localTables.variantsObjectTable[hash] = obj;
+                  localVariantsObjectTable[hash] = obj;
+                }
               }
             }
           }
         }
-      }
 
-      // Update cache
-      fileCache[filePath] = {
-        mtimeMs: stats.mtimeMs,
-        staticTable: localStaticTable,
-        keyframesHashTable: localKeyframesHashTable,
-        keyframesObjectTable: localKeyframesObjectTable,
-        viewTransitionHashTable: localViewTransitionHashTable,
-        viewTransitionObjectTable: localViewTransitionObjectTable,
-        themeTable: localThemeTable,
-        createThemeObjectTable: localCreateThemeObjectTable,
-        createHashTable: localCreateHashTable,
-        createObjectTable: localCreateObjectTable,
-        createAtomicMapTable: localCreateAtomicMapTable,
-        variantsHashTable: localVariantsHashTable,
-        variantsObjectTable: localVariantsObjectTable,
-        hasCssUsage: true,
-        extractedSheet: fileExtractedSheets.join(''),
-      };
-      if (fileExtractedSheets.length > 0) {
-        totalExtractedSheets.push(fileExtractedSheets.join(''));
+        // Update cache (only in second pass to ensure all data is collected)
+        if (!isFirstPass) {
+          fileCache[filePath] = {
+            mtimeMs: stats.mtimeMs,
+            staticTable: localStaticTable,
+            keyframesHashTable: localKeyframesHashTable,
+            keyframesObjectTable: localKeyframesObjectTable,
+            viewTransitionHashTable: localViewTransitionHashTable,
+            viewTransitionObjectTable: localViewTransitionObjectTable,
+            createThemeHashTable: localCreateThemeHashTable,
+            createThemeObjectTable: localCreateThemeObjectTable,
+            createHashTable: localCreateHashTable,
+            createObjectTable: localCreateObjectTable,
+            createAtomicMapTable: localCreateAtomicMapTable,
+            variantsHashTable: localVariantsHashTable,
+            variantsObjectTable: localVariantsObjectTable,
+            createStaticHashTable: localCreateStaticHashTable,
+            createStaticObjectTable: localCreateStaticObjectTable,
+            hasCssUsage: true,
+            extractedSheet: fileExtractedSheets.join(''),
+          };
+          if (fileExtractedSheets.length > 0) {
+            totalExtractedSheets.push(fileExtractedSheets.join(''));
+          }
+        }
+      } catch (e) {
+        // Ignore parsing errors for non-relevant files or syntax errors
       }
-    } catch (e) {
-      // Ignore parsing errors for non-relevant files or syntax errors
     }
-  }
+  } // End of two-pass scanning
 
   localTables.extractedSheet = totalExtractedSheets.join('');
 
@@ -1015,7 +1237,7 @@ export function scanAll(): Tables {
 export function extractOndemandStyles(
   obj: any,
   extractedSheets: string[],
-  t: Tables = tables,
+  t: Tables,
 ): void {
   if (!obj || typeof obj !== 'object') return;
 
@@ -1097,9 +1319,8 @@ export function extractOndemandStyles(
   }
 
   if (needsTheme) {
-    for (const themeVarName in t.themeTable) {
-      const themeObj = t.themeTable[themeVarName];
-      const hash = genBase36Hash(themeObj, 1, 8);
+    for (const themeVarName in t.createThemeHashTable) {
+      const hash = t.createThemeHashTable[themeVarName];
       const definition = t.createThemeObjectTable[hash];
 
       if (definition && typeof definition === 'object') {
