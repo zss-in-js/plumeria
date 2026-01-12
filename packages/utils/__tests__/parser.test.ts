@@ -1,7 +1,6 @@
 /* eslint-disable @plumeria/validate-values */
 import {
   objectExpressionToObject,
-  tables,
   t,
   traverse,
   collectLocalConsts,
@@ -12,26 +11,26 @@ import {
 import { parseSync, ObjectExpression } from '@swc/core';
 import { genBase36Hash } from 'zss-engine';
 import * as fs from 'fs';
+import path from 'path';
 
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
   globSync: jest.fn(),
   readFileSync: jest.fn(),
   statSync: jest.fn(),
+  existsSync: jest.fn(),
 }));
 
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
+let tables: any;
+
 describe('parser', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    tables.staticTable = {};
-    tables.keyframesHashTable = {};
-    tables.keyframesObjectTable = {};
-    tables.viewTransitionHashTable = {};
-    tables.viewTransitionObjectTable = {};
-    tables.themeTable = {};
-    tables.createThemeObjectTable = {};
+    // Default mock for scanAll to return empty tables
+    mockedFs.globSync.mockReturnValue([]);
+    tables = scanAll();
   });
 
   describe('type guards (t)', () => {
@@ -186,6 +185,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result.animation).toBe('kf-abc123');
@@ -206,6 +208,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result.viewTransitionName).toBe('vt-xyz789');
@@ -217,14 +222,26 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const themeTable = { T: { primary: '#fff' } };
       const result = objectExpressionToObject(
+        // node
         objectExpr,
+        // staticTable
         {},
+        // keyframesHashTable
         {},
+        // viewTransitionHashTable
         {},
-        themeTable,
+        // createThemeHashTable
+        { T: 'hashT' },
+        // createThemeObjectTable
+        { hashT: { primary: '#fff' } },
+        // createHashTable
         {},
+        // createStaticHashTable
+        {},
+        // createStaticObjectTable
+        {},
+        // variantsHashTable
         {},
       );
 
@@ -239,6 +256,9 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
+        {},
+        {},
+        {},
         {},
         {},
         {},
@@ -265,6 +285,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result.width).toBe(100);
@@ -279,6 +302,9 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
+        {},
+        {},
+        {},
         {},
         {},
         {},
@@ -305,6 +331,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result.outer).toEqual({ inner: 'value' });
@@ -324,6 +353,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result.color).toBe('[unresolved identifier]');
@@ -337,6 +369,9 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
+        {},
+        {},
+        {},
         {},
         {},
         {},
@@ -363,6 +398,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result.color).toBe('blue');
@@ -378,6 +416,9 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
+        {},
+        {},
+        {},
         {},
         {},
         {},
@@ -402,6 +443,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result.func).toBe('[unsupported value type]');
@@ -418,6 +462,9 @@ describe('parser', () => {
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
       const result = objectExpressionToObject(
         objectExpr,
+        {},
+        {},
+        {},
         {},
         {},
         {},
@@ -448,6 +495,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result).toHaveProperty('&:hover');
@@ -472,6 +522,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result).toHaveProperty('&:focus');
@@ -489,6 +542,9 @@ describe('parser', () => {
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
       const result = objectExpressionToObject(
         objectExpr,
+        {},
+        {},
+        {},
         {},
         {},
         {},
@@ -519,6 +575,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result).toHaveProperty('&:disabled');
@@ -538,6 +597,9 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
+        {},
+        {},
+        {},
         {},
         {},
         {},
@@ -563,6 +625,9 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       expect(result.color).toBe('red');
@@ -578,6 +643,9 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
+        {},
+        {},
+        {},
         {},
         {},
         {},
@@ -606,11 +674,36 @@ describe('parser', () => {
         {},
         {},
         {},
+        {},
+        {},
+        {},
       );
 
       // Should remain "transition", not become "0.8s ease"
       expect(result).toHaveProperty('transition');
       expect(result.transition).toBe('0.3s');
+    });
+
+    it('should resolve createStatic member expressions with computed keys', () => {
+      const source = `const obj = { color: breakpoints['md'] }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        { breakpoints: 'bkHash' },
+        { bkHash: { md: '@media (max-width: 768px)' } },
+        {},
+      );
+
+      expect(result.color).toBe('@media (max-width: 768px)');
     });
   });
 
@@ -629,6 +722,50 @@ describe('parser', () => {
       const keys = Object.keys(result.keyframesHashTable);
       expect(keys.some((key) => key.endsWith('-fade'))).toBe(true);
       expect(result.keyframesObjectTable).toBeDefined();
+    });
+
+    it('should sort files with lib/ utils/ common/ priority', () => {
+      // Setup file structure where /app/home.ts depends on /lib/utils.ts
+      const libFile = path.resolve(process.cwd(), 'lib/utils.ts');
+      const appFile = path.resolve(process.cwd(), 'app/home.ts');
+
+      mockedFs.globSync.mockReturnValue([
+        appFile,
+        libFile,
+        path.resolve(process.cwd(), 'utils/core.ts'),
+        path.resolve(process.cwd(), 'common/types.ts'),
+      ]);
+      mockedFs.statSync.mockImplementation(
+        () =>
+          ({
+            mtimeMs: 1,
+            isDirectory: () => false,
+            isFile: () => true,
+          }) as any,
+      );
+      mockedFs.existsSync.mockImplementation((p: any) =>
+        [
+          libFile,
+          appFile,
+          path.resolve(process.cwd(), 'utils/core.ts'),
+          path.resolve(process.cwd(), 'common/types.ts'),
+        ].includes(path.resolve(p)),
+      );
+
+      const fileContents: Record<string, string> = {
+        [libFile]:
+          'import { css } from "@plumeria/core"; export const C = css.createStatic({ val: "priority" });',
+        [appFile]:
+          'import { C } from "../lib/utils"; import { css } from "@plumeria/core"; export const style = css.createStatic({ ref: C.val });',
+      };
+      mockedFs.readFileSync.mockImplementation(
+        (path: any) => fileContents[path] || '',
+      );
+
+      const result = scanAll();
+      const keys = Object.keys(result.staticTable);
+      const homeKey = keys.find((k) => k.startsWith(appFile));
+      expect(result.staticTable[homeKey!]).toEqual({ ref: 'priority' });
     });
 
     it('should scan for createStatic', () => {
@@ -652,7 +789,7 @@ describe('parser', () => {
       );
 
       const result = scanAll();
-      const keys = Object.keys(result.themeTable);
+      const keys = Object.keys(result.createThemeHashTable);
       expect(keys.some((key) => key.endsWith('-T'))).toBe(true);
     });
 
@@ -702,7 +839,7 @@ describe('parser', () => {
 
       const result = scanAll();
 
-      const keys = Object.keys(result.themeTable);
+      const keys = Object.keys(result.createThemeHashTable);
       expect(keys.some((key) => key.endsWith('-T'))).toBe(true);
     });
 
@@ -729,7 +866,7 @@ describe('parser', () => {
       expect(Object.keys(resultConsts.staticTable)).toHaveLength(0);
 
       const resultTokens = scanAll();
-      expect(Object.keys(resultTokens.themeTable)).toHaveLength(0);
+      expect(Object.keys(resultTokens.createThemeHashTable)).toHaveLength(0);
 
       const resultViewTransition = scanAll();
       expect(
@@ -911,7 +1048,7 @@ describe('parser', () => {
       expect(result.staticTable[cKey!]).toEqual({ color: 'red' });
 
       // Check other tables are restored
-      const themeKeys = Object.keys(result.themeTable);
+      const themeKeys = Object.keys(result.createThemeHashTable);
       expect(themeKeys.some((k) => k.endsWith('-T'))).toBe(true);
 
       const createKeys = Object.keys(result.createHashTable);
@@ -938,20 +1075,161 @@ describe('parser', () => {
       const cKey = keys.find((k) => k.endsWith('-C'));
       expect(result.staticTable[cKey!]).toEqual({ color: 'blue' });
     });
+
+    it('should handle manual AST injection for un-aliased import (falsy imported)', () => {
+      // This test forces the 'else' branch of 'if (specifier.imported)'
+      const libFile = path.resolve(process.cwd(), 'lib/utils-unique.ts');
+      const appFile = path.resolve(process.cwd(), 'app/check-unique.ts');
+
+      mockedFs.globSync.mockReturnValue([libFile, appFile]);
+      mockedFs.statSync.mockReturnValue({
+        mtimeMs: 2, // Use different mtime just in case
+        isDirectory: () => false,
+        isFile: () => true,
+      } as any);
+
+      // Setup lib file normally to populate the table (so resolution works)
+      const fileContents: Record<string, string> = {
+        [libFile]:
+          'import * as css from "@plumeria/core"; export const C = css.createStatic({ color: "red" });',
+        // The app file content contains the special marker to trigger our mock AST
+        [appFile]:
+          '/* __MOCK_AST_FORCE_NO_IMPORTED__ */ import { C } from "../lib/utils-unique"; import * as css from "@plumeria/core"; export const S = css.createStatic({ ref: C.color });',
+      };
+
+      mockedFs.readFileSync.mockImplementation(
+        (p: any) => fileContents[p] || '',
+      );
+      mockedFs.existsSync.mockImplementation((p: any) =>
+        [libFile, appFile].includes(path.resolve(p)),
+      );
+
+      const result = scanAll();
+      const keys = Object.keys(result.staticTable);
+      const sKey = keys.find((k) => k.endsWith('-S'));
+      expect(sKey).toBeDefined();
+      // If resolution worked despite 'imported' being undefined in AST (falling back to local 'C'),
+      // then S.ref should resolve to C.color which is "red"
+      expect(result.staticTable[sKey!]).toEqual({ ref: 'red' });
+    });
+
+    it('should handle aliased named import from user module', () => {
+      // This test covers the 'if (specifier.imported)' true branch for user modules
+      const libFile = path.resolve(process.cwd(), 'lib/utils-aliased.ts');
+      const appFile = path.resolve(process.cwd(), 'app/check-aliased.ts');
+
+      mockedFs.globSync.mockReturnValue([libFile, appFile]);
+      mockedFs.statSync.mockReturnValue({
+        mtimeMs: 3,
+        isDirectory: () => false,
+        isFile: () => true,
+      } as any);
+
+      const fileContents: Record<string, string> = {
+        [libFile]:
+          'import * as css from "@plumeria/core"; export const C = css.createStatic({ color: "red" });',
+        [appFile]:
+          'import { C as AliasedC } from "../lib/utils-aliased"; import * as css from "@plumeria/core"; export const S = css.createStatic({ ref: AliasedC.color });',
+      };
+
+      mockedFs.readFileSync.mockImplementation(
+        (p: any) => fileContents[p] || '',
+      );
+      mockedFs.existsSync.mockImplementation((p: any) =>
+        [libFile, appFile].includes(path.resolve(p)),
+      );
+
+      const result = scanAll();
+      const keys = Object.keys(result.staticTable);
+      const sKey = keys.find((k) => k.endsWith('-S'));
+      expect(sKey).toBeDefined();
+      expect(result.staticTable[sKey!]).toEqual({ ref: 'red' });
+    });
+
+    it('should resolve cross-file imports for createTheme in Pass 2', () => {
+      const themeFile = path.resolve(process.cwd(), 'lib/theme.ts');
+      const pageFile = path.resolve(process.cwd(), 'app/page.ts');
+
+      mockedFs.globSync.mockReturnValue([themeFile, pageFile]);
+      mockedFs.statSync.mockReturnValue({
+        mtimeMs: 1,
+        isDirectory: () => false,
+        isFile: () => true,
+      } as any);
+      mockedFs.existsSync.mockImplementation((p: any) =>
+        [themeFile, pageFile].includes(path.resolve(p)),
+      );
+
+      const fileContents: Record<string, string> = {
+        [themeFile]:
+          'import { css } from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
+        [pageFile]:
+          'import { T } from "../lib/theme"; import { css } from "@plumeria/core"; export const S = css.create({ c: T.p });',
+      };
+      mockedFs.readFileSync.mockImplementation(
+        (path: any) => fileContents[path] || '',
+      );
+
+      const result = scanAll();
+      // Verify that T was resolved to hash and its property used in S
+      const createKey = Object.keys(result.createHashTable).find((k) =>
+        k.includes('app/page.ts'),
+      );
+      const hash = result.createHashTable[createKey!];
+      const obj = result.createObjectTable[hash];
+      expect(obj.c).toBe('var(--p)');
+    });
+
+    it('should resolve aliased cross-file imports for createTheme in Pass 2', () => {
+      const themeFile = path.resolve(process.cwd(), 'lib/theme.ts');
+      const pageFile = path.resolve(process.cwd(), 'app/page.ts');
+
+      mockedFs.globSync.mockReturnValue([themeFile, pageFile]);
+      mockedFs.statSync.mockImplementation(
+        () =>
+          ({
+            mtimeMs: 1,
+            isDirectory: () => false,
+            isFile: () => true,
+          }) as any,
+      );
+      mockedFs.existsSync.mockImplementation((p: any) =>
+        [themeFile, pageFile].includes(path.resolve(p)),
+      );
+
+      const fileContents: Record<string, string> = {
+        [themeFile]:
+          'import { css } from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
+        [pageFile]:
+          'import { T as AliasedT } from "../lib/theme"; import { css } from "@plumeria/core"; export const S = css.create({ c: AliasedT.p });',
+      };
+      mockedFs.readFileSync.mockImplementation(
+        (path: any) => fileContents[path] || '',
+      );
+
+      const result = scanAll();
+      // Verify that AliasedT was resolved to hash and its property used in S
+      const createKey = Object.keys(result.createHashTable).find((k) =>
+        k.includes('app/page.ts'),
+      );
+      const hash = result.createHashTable[createKey!];
+      const obj = result.createObjectTable[hash];
+      expect(obj.c).toBe('var(--p)');
+    });
   });
 });
 
 describe('extractOndemandStyles (integration)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedFs.globSync.mockReturnValue([]);
+    tables = scanAll();
+
     tables.keyframesObjectTable = {
       abc: { from: { opacity: 0 }, to: { opacity: 1 } },
     };
     tables.viewTransitionObjectTable = {
       def: { group: { animationDuration: '0.3s' } },
-    };
-    tables.themeTable = {
-      T: {},
     };
     tables.createThemeObjectTable = {
       xyz: {
@@ -968,25 +1246,25 @@ describe('extractOndemandStyles (integration)', () => {
     // Setup matching theme table
     const themeObj = { primary: 'blue' };
     const themeHash = genBase36Hash(themeObj, 1, 8);
-    tables.themeTable['T'] = themeObj;
     tables.createThemeObjectTable[themeHash] = themeObj;
+    tables.createThemeHashTable['T'] = themeHash;
 
     // Setup create table
     const createHash = 'myhash';
     tables.createObjectTable[createHash] = { color: 'red' };
 
-    extractOndemandStyles(
-      {
-        a: 'kf-abc',
-        b: 'vt-def',
-        c: 'var(--color)',
-        d: `cr-${createHash}`,
-        nested: {
-          d: 'kf-abc',
-        },
+    const style = {
+      // Defined style object for clarity
+      a: 'kf-abc',
+      b: 'vt-def',
+      c: 'var(--color)',
+      d: `cr-${createHash}`,
+      nested: {
+        d: 'kf-abc',
       },
-      extracted,
-    );
+    };
+
+    extractOndemandStyles(style, extracted, tables);
 
     // transpile の戻りは parser 側で共通の styleSheet を返すため
     expect(extracted.length).toBeGreaterThan(0);
@@ -997,16 +1275,32 @@ describe('extractOndemandStyles (integration)', () => {
     const obj: any = { a: 'val' };
     obj.b = obj; // Circular reference
 
-    extractOndemandStyles(obj, extracted);
+    extractOndemandStyles(obj, extracted, tables);
     expect(extracted).toHaveLength(0);
   });
 
+  it('should extract theme styles when var(--) is found', () => {
+    const extracted: string[] = [];
+    // createTheme expects a map of property keys to theme maps: { key: { themeName: value } }
+    const themeObj = { primary: { default: 'blue' } };
+    const themeHash = 'themeHash';
+    tables.createThemeObjectTable[themeHash] = themeObj;
+    // Map variable name 'T' to its hash
+    tables.createThemeHashTable['T'] = themeHash;
+
+    const style = { color: 'var(--primary)' };
+    extractOndemandStyles(style, extracted, tables);
+
+    // Should have theme styles extracted
+    expect(extracted.length).toBeGreaterThan(0);
+    expect(extracted[0]).toContain('--primary: blue');
+  });
   it('should ignore invalid input', () => {
     const extracted: string[] = [];
 
-    extractOndemandStyles(null, extracted);
-    extractOndemandStyles('string', extracted);
-    extractOndemandStyles(123, extracted);
+    extractOndemandStyles(null, extracted, tables);
+    extractOndemandStyles('string', extracted, tables);
+    extractOndemandStyles(123, extracted, tables);
 
     expect(extracted).toHaveLength(0);
   });
