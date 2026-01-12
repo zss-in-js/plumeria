@@ -35,9 +35,10 @@ import type {
   StaticTable,
   KeyframesHashTable,
   ViewTransitionHashTable,
-  ThemeTable,
   CreateHashTable,
   VariantsHashTable,
+  CreateThemeHashTable,
+  CreateStaticHashTable,
 } from '@plumeria/utils';
 
 const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx'];
@@ -186,9 +187,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   importMap[localName] =
                     scannedTables.viewTransitionHashTable[uniqueKey];
                 }
-                if (scannedTables.themeTable[uniqueKey]) {
-                  importMap[localName] = scannedTables.themeTable[uniqueKey];
-                }
+
                 if (scannedTables.createHashTable[uniqueKey]) {
                   importMap[localName] =
                     scannedTables.createHashTable[uniqueKey];
@@ -196,6 +195,14 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 if (scannedTables.variantsHashTable[uniqueKey]) {
                   importMap[localName] =
                     scannedTables.variantsHashTable[uniqueKey];
+                }
+                if (scannedTables.createThemeHashTable[uniqueKey]) {
+                  importMap[localName] =
+                    scannedTables.createThemeHashTable[uniqueKey];
+                }
+                if (scannedTables.createStaticHashTable[uniqueKey]) {
+                  importMap[localName] =
+                    scannedTables.createStaticHashTable[uniqueKey];
                 }
               }
             });
@@ -231,12 +238,22 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         mergedViewTransitionTable[key] = importMap[key];
       }
 
-      const mergedThemeTable: ThemeTable = {};
-      for (const key of Object.keys(scannedTables.themeTable)) {
-        mergedThemeTable[key] = scannedTables.themeTable[key];
+      const mergedCreateThemeHashTable: CreateThemeHashTable = {};
+      for (const key of Object.keys(scannedTables.createThemeHashTable)) {
+        mergedCreateThemeHashTable[key] =
+          scannedTables.createThemeHashTable[key];
       }
       for (const key of Object.keys(importMap)) {
-        mergedThemeTable[key] = importMap[key];
+        mergedCreateThemeHashTable[key] = importMap[key];
+      }
+
+      const mergedCreateStaticHashTable: CreateStaticHashTable = {};
+      for (const key of Object.keys(scannedTables.createStaticHashTable)) {
+        mergedCreateStaticHashTable[key] =
+          scannedTables.createStaticHashTable[key];
+      }
+      for (const key of Object.keys(importMap)) {
+        mergedCreateStaticHashTable[key] = importMap[key];
       }
 
       const mergedCreateTable: CreateHashTable = {};
@@ -349,8 +366,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
-              mergedThemeTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
               mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
               mergedVariantsTable,
             );
             if (obj) {
@@ -415,8 +435,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
-              mergedThemeTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
               mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
               mergedVariantsTable,
               (name: string) => {
                 if (localCreateStyles[name]) {
@@ -517,8 +540,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
-                mergedThemeTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
                 mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
@@ -538,8 +564,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
-                mergedThemeTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
                 mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
@@ -565,8 +594,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
-                mergedThemeTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
                 mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
@@ -581,8 +613,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
-                mergedThemeTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
                 mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
@@ -632,6 +667,44 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 });
               }
             }
+
+            // Check createTheme
+            let themeHash = scannedTables.createThemeHashTable[uniqueKey];
+            if (!themeHash) {
+              themeHash = mergedCreateThemeHashTable[varName];
+            }
+
+            if (themeHash) {
+              const themeObj = scannedTables.createThemeObjectTable[themeHash];
+              if (themeObj && themeObj[propName] !== undefined) {
+                const camelToKebabCase = (str: string) =>
+                  str.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+                const cssVarName = camelToKebabCase(propName);
+                replacements.push({
+                  start: node.span.start - ast.span.start,
+                  end: node.span.end - ast.span.start,
+                  content: JSON.stringify(`var(--${cssVarName})`),
+                });
+              }
+            }
+
+            // Check createStatic
+            let staticHash = scannedTables.createStaticHashTable[uniqueKey];
+            if (!staticHash) {
+              staticHash = mergedCreateStaticHashTable[varName];
+            }
+
+            if (staticHash) {
+              const staticObj =
+                scannedTables.createStaticObjectTable[staticHash];
+              if (staticObj && staticObj[propName] !== undefined) {
+                replacements.push({
+                  start: node.span.start - ast.span.start,
+                  end: node.span.end - ast.span.start,
+                  content: JSON.stringify(staticObj[propName]),
+                });
+              }
+            }
           }
         },
         Identifier({ node }) {
@@ -649,7 +722,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           }
 
           const varName = node.value;
-          const uniqueKey = `${this.resourcePath}-${varName}`;
+          const uniqueKey = `${id}-${varName}`;
 
           let hash = scannedTables.createHashTable[uniqueKey];
           if (!hash) {
@@ -673,6 +746,74 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 start: node.span.start - ast.span.start,
                 end: node.span.end - ast.span.start,
                 content: JSON.stringify(hashMap),
+              });
+            }
+          }
+
+          // Check keyframes
+          let kfHash = scannedTables.keyframesHashTable[uniqueKey];
+          if (!kfHash) {
+            kfHash = mergedKeyframesTable[varName];
+          }
+          if (kfHash) {
+            replacements.push({
+              start: node.span.start - ast.span.start,
+              end: node.span.end - ast.span.start,
+              content: JSON.stringify(`kf-${kfHash}`),
+            });
+            return;
+          }
+
+          // Check viewTransition
+          let vtHash = scannedTables.viewTransitionHashTable[uniqueKey];
+          if (!vtHash) {
+            vtHash = mergedViewTransitionTable[varName];
+          }
+          if (vtHash) {
+            replacements.push({
+              start: node.span.start - ast.span.start,
+              end: node.span.end - ast.span.start,
+              content: JSON.stringify(`vt-${vtHash}`),
+            });
+            return;
+          }
+
+          // Check createTheme
+          let themeHash = scannedTables.createThemeHashTable[uniqueKey];
+          if (!themeHash) {
+            themeHash = mergedCreateThemeHashTable[varName];
+          }
+
+          if (themeHash) {
+            const themeObj = scannedTables.createThemeObjectTable[themeHash];
+            if (themeObj) {
+              const themeVars: Record<string, string> = {};
+              const camelToKebabCase = (str: string) =>
+                str.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+              Object.keys(themeObj).forEach((key) => {
+                themeVars[key] = `var(--${camelToKebabCase(key)})`;
+              });
+              replacements.push({
+                start: node.span.start - ast.span.start,
+                end: node.span.end - ast.span.start,
+                content: JSON.stringify(themeVars),
+              });
+            }
+          }
+
+          // Check createStatic
+          let staticHash = scannedTables.createStaticHashTable[uniqueKey];
+          if (!staticHash) {
+            staticHash = mergedCreateStaticHashTable[varName];
+          }
+
+          if (staticHash) {
+            const staticObj = scannedTables.createStaticObjectTable[staticHash];
+            if (staticObj) {
+              replacements.push({
+                start: node.span.start - ast.span.start,
+                end: node.span.end - ast.span.start,
+                content: JSON.stringify(staticObj),
               });
             }
           }
@@ -715,17 +856,20 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   mergedStaticTable,
                   mergedKeyframesTable,
                   mergedViewTransitionTable,
-                  mergedThemeTable,
+                  mergedCreateThemeHashTable,
+                  scannedTables.createThemeObjectTable,
                   mergedCreateTable,
+                  mergedCreateStaticHashTable,
+                  scannedTables.createStaticObjectTable,
                   mergedVariantsTable,
                 );
               } else if (
                 t.isMemberExpression(expr) &&
-                t.isIdentifier(expr.object) &&
-                (t.isIdentifier(expr.property) ||
-                  expr.property.type === 'Computed')
+                t.isIdentifier((expr as MemberExpression).object) &&
+                (t.isIdentifier((expr as MemberExpression).property) ||
+                  (expr as MemberExpression).property.type === 'Computed')
               ) {
-                if (expr.property.type === 'Computed') {
+                if ((expr as MemberExpression).property.type === 'Computed') {
                   // Ignore bracket notation for complete staticization
                   return {};
                 }
@@ -755,7 +899,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   }
                 }
               } else if (t.isIdentifier(expr)) {
-                const varName = expr.value;
+                const varName = (expr as Identifier).value;
 
                 const styleInfo = localCreateStyles[varName];
                 if (styleInfo && styleInfo.obj) {
