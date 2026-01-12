@@ -2,7 +2,6 @@ export type {
   CSSObject,
   FileStyles,
   StaticTable,
-  ThemeTable,
   KeyframesHashTable,
   KeyframesObjectTable,
   ViewTransitionHashTable,
@@ -12,6 +11,9 @@ export type {
   CreateObjectTable,
   VariantsHashTable,
   VariantsObjectTable,
+  CreateThemeHashTable,
+  CreateStaticHashTable,
+  CreateStaticObjectTable,
 } from './types';
 export {
   objectExpressionToObject,
