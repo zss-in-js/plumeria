@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 6.2.1
+
+### Patch Changes
+
+- b14bc9d: chore: bump version to 6.2.1
+- Updated dependencies [b14bc9d]
+  - @plumeria/compiler@6.2.1
+
 ## 6.2.0
 
 ### Minor Changes
