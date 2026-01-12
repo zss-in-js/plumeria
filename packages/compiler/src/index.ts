@@ -23,7 +23,8 @@ import type {
   CSSObject,
   VariantsHashTable,
   CreateHashTable,
-  ThemeTable,
+  CreateThemeHashTable,
+  CreateStaticHashTable,
   ViewTransitionHashTable,
   KeyframesHashTable,
   StaticTable,
@@ -106,15 +107,21 @@ export function compileCSS(options: CompilerOptions) {
                 importMap[localName] =
                   scannedTables.viewTransitionHashTable[uniqueKey];
               }
-              if (scannedTables.themeTable[uniqueKey]) {
-                importMap[localName] = scannedTables.themeTable[uniqueKey];
-              }
+
               if (scannedTables.createHashTable[uniqueKey]) {
                 importMap[localName] = scannedTables.createHashTable[uniqueKey];
               }
               if (scannedTables.variantsHashTable[uniqueKey]) {
                 importMap[localName] =
                   scannedTables.variantsHashTable[uniqueKey];
+              }
+              if (scannedTables.createThemeHashTable[uniqueKey]) {
+                importMap[localName] =
+                  scannedTables.createThemeHashTable[uniqueKey];
+              }
+              if (scannedTables.createStaticHashTable[uniqueKey]) {
+                importMap[localName] =
+                  scannedTables.createStaticHashTable[uniqueKey];
               }
             }
           });
@@ -150,12 +157,21 @@ export function compileCSS(options: CompilerOptions) {
       mergedViewTransitionTable[key] = importMap[key];
     }
 
-    const mergedThemeTable: ThemeTable = {};
-    for (const key of Object.keys(scannedTables.themeTable)) {
-      mergedThemeTable[key] = scannedTables.themeTable[key];
+    const mergedCreateThemeHashTable: CreateThemeHashTable = {};
+    for (const key of Object.keys(scannedTables.createThemeHashTable)) {
+      mergedCreateThemeHashTable[key] = scannedTables.createThemeHashTable[key];
     }
     for (const key of Object.keys(importMap)) {
-      mergedThemeTable[key] = importMap[key];
+      mergedCreateThemeHashTable[key] = importMap[key];
+    }
+
+    const mergedCreateStaticHashTable: CreateStaticHashTable = {};
+    for (const key of Object.keys(scannedTables.createStaticHashTable)) {
+      mergedCreateStaticHashTable[key] =
+        scannedTables.createStaticHashTable[key];
+    }
+    for (const key of Object.keys(importMap)) {
+      mergedCreateStaticHashTable[key] = importMap[key];
     }
 
     const mergedCreateTable: CreateHashTable = {};
@@ -226,8 +242,11 @@ export function compileCSS(options: CompilerOptions) {
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
-                mergedThemeTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
                 mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
                 resolveVariable,
               );
@@ -252,8 +271,11 @@ export function compileCSS(options: CompilerOptions) {
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
-                mergedThemeTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
                 mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
                 resolveVariable,
               );
@@ -301,8 +323,11 @@ export function compileCSS(options: CompilerOptions) {
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
-                mergedThemeTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
                 mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
               );
               if (obj) results.push(obj);
@@ -585,8 +610,11 @@ export function compileCSS(options: CompilerOptions) {
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
-              mergedThemeTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
               mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
               mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
@@ -601,8 +629,11 @@ export function compileCSS(options: CompilerOptions) {
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
-              mergedThemeTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
               mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
               mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
@@ -623,8 +654,11 @@ export function compileCSS(options: CompilerOptions) {
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
-              mergedThemeTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
               mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
               mergedVariantsTable,
             );
             const themeHash = genBase36Hash(obj, 1, 8);
