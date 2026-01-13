@@ -30,11 +30,19 @@ describe('resolver', () => {
   beforeEach(() => {
     jest.resetModules(); // Clear cache of all modules including resolver.ts and fs
     jest.clearAllMocks();
+    jest.restoreAllMocks();
+
+    // Mock process.cwd to return the test root
+    jest.spyOn(process, 'cwd').mockReturnValue(root);
 
     // Re-require fs to get the fresh mock instance for this test context
     mockedFs = require('fs');
     // Re-require resolver to ensure fresh module-level caches (tsConfigCache, etc.)
     resolveImportPath = require('../src/resolver').resolveImportPath;
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('relative imports', () => {
