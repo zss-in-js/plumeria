@@ -372,6 +372,13 @@ function getPropertyKey(
         createStaticObjectTable,
       );
       if (typeof staticResult === 'string') return staticResult;
+
+      const themeResult = resolveCreateThemeTableMemberExpressionByNode(
+        expr,
+        createThemeHashTable,
+        createThemeObjectTable,
+      );
+      if (typeof themeResult === 'string') return themeResult;
     }
     if (t.isTemplateLiteral(expr)) {
       return evaluateTemplateLiteral(
@@ -1245,7 +1252,7 @@ export function extractOndemandStyles(
           viewTransitionHashes.add(val.slice(3));
         } else if (val.startsWith('cr-')) {
           createHashes.add(val.slice(3));
-        } else if (!needsTheme && val.includes('var(--')) {
+        } else if (val.includes('var(--')) {
           needsTheme = true;
         }
       } else {
