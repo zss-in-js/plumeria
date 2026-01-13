@@ -25,5 +25,6 @@ export {
   scanAll,
 } from './parser';
 export { getStyleRecords } from './create';
+export { createTheme } from './createTheme';
 export type { StyleRecord } from './create';
 export { resolveImportPath } from './resolver';
