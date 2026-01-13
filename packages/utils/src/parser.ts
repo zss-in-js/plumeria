@@ -804,21 +804,6 @@ export function scanAll(): Tables {
   };
 
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
-
-  // Sort files to process dependencies first (lib/, utils/, etc.)
-  // This ensures createStatic definitions are available before they're used
-  files.sort((a, b) => {
-    const aPriority =
-      a.includes('/lib/') || a.includes('/utils/') || a.includes('/common/')
-        ? 0
-        : 1;
-    const bPriority =
-      b.includes('/lib/') || b.includes('/utils/') || b.includes('/common/')
-        ? 0
-        : 1;
-    if (aPriority !== bPriority) return aPriority - bPriority;
-    return a.localeCompare(b);
-  });
   const totalExtractedSheets: string[] = [];
 
   // Two-pass scanning:
@@ -1135,11 +1120,6 @@ export function scanAll(): Tables {
                   localViewTransitionObjectTable[hash] = obj;
 
                   if (!isProduction) {
-                    extractOndemandStyles(
-                      obj,
-                      fileExtractedSheets,
-                      localTables,
-                    );
                     extractOndemandStyles(
                       { vt: `vt-${hash}` },
                       fileExtractedSheets,
