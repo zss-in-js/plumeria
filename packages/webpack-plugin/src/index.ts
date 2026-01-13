@@ -11,11 +11,7 @@ import type {
 import fs from 'fs';
 import path from 'path';
 
-import {
-  type CSSProperties,
-  genBase36Hash,
-  camelToKebabCase,
-} from 'zss-engine';
+import { type CSSProperties, genBase36Hash } from 'zss-engine';
 
 import {
   traverse,
@@ -59,6 +55,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   const fileStyles: FileStyles = {};
   this.clearDependencies();
   this.addDependency(this.resourcePath);
+
   const ast = parseSync(source, {
     syntax: 'typescript',
     tsx: true,
@@ -80,6 +77,8 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   const localConsts = collectLocalConsts(ast);
   const resourcePath = this.resourcePath;
   const importMap: Record<string, any> = {};
+  const createThemeImportMap: Record<string, any> = {};
+  const createStaticImportMap: Record<string, any> = {};
   const plumeriaAliases: Record<string, string> = {};
 
   traverse(ast, {
@@ -111,6 +110,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               : specifier.local.value;
             const localName = specifier.local.value;
             const uniqueKey = `${actualPath}-${importedName}`;
+
             if (scannedTables.staticTable[uniqueKey]) {
               importMap[localName] = scannedTables.staticTable[uniqueKey];
             }
@@ -122,7 +122,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               importMap[localName] =
                 scannedTables.viewTransitionHashTable[uniqueKey];
             }
-
             if (scannedTables.createHashTable[uniqueKey]) {
               importMap[localName] = scannedTables.createHashTable[uniqueKey];
             }
@@ -130,11 +129,11 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               importMap[localName] = scannedTables.variantsHashTable[uniqueKey];
             }
             if (scannedTables.createThemeHashTable[uniqueKey]) {
-              importMap[localName] =
+              createThemeImportMap[localName] =
                 scannedTables.createThemeHashTable[uniqueKey];
             }
             if (scannedTables.createStaticHashTable[uniqueKey]) {
-              importMap[localName] =
+              createStaticImportMap[localName] =
                 scannedTables.createStaticHashTable[uniqueKey];
             }
           }
@@ -170,22 +169,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
     mergedViewTransitionTable[key] = importMap[key];
   }
 
-  const mergedCreateThemeHashTable: CreateThemeHashTable = {};
-  for (const key of Object.keys(scannedTables.createThemeHashTable)) {
-    mergedCreateThemeHashTable[key] = scannedTables.createThemeHashTable[key];
-  }
-  for (const key of Object.keys(importMap)) {
-    mergedCreateThemeHashTable[key] = importMap[key];
-  }
-
-  const mergedCreateStaticHashTable: CreateStaticHashTable = {};
-  for (const key of Object.keys(scannedTables.createStaticHashTable)) {
-    mergedCreateStaticHashTable[key] = scannedTables.createStaticHashTable[key];
-  }
-  for (const key of Object.keys(importMap)) {
-    mergedCreateStaticHashTable[key] = importMap[key];
-  }
-
   const mergedCreateTable: CreateHashTable = {};
   for (const key of Object.keys(scannedTables.createHashTable)) {
     mergedCreateTable[key] = scannedTables.createHashTable[key];
@@ -200,6 +183,32 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
   }
   for (const key of Object.keys(importMap)) {
     mergedVariantsTable[key] = importMap[key];
+  }
+
+  const mergedCreateThemeHashTable: CreateThemeHashTable = {};
+  for (const key of Object.keys(scannedTables.createThemeHashTable)) {
+    mergedCreateThemeHashTable[key] = scannedTables.createThemeHashTable[key];
+    if (key.startsWith(`${resourcePath}-`)) {
+      const varName = key.slice(resourcePath.length + 1);
+      mergedCreateThemeHashTable[varName] =
+        scannedTables.createThemeHashTable[key];
+    }
+  }
+  for (const key of Object.keys(createThemeImportMap)) {
+    mergedCreateThemeHashTable[key] = createThemeImportMap[key];
+  }
+
+  const mergedCreateStaticHashTable: CreateStaticHashTable = {};
+  for (const key of Object.keys(scannedTables.createStaticHashTable)) {
+    mergedCreateStaticHashTable[key] = scannedTables.createStaticHashTable[key];
+    if (key.startsWith(`${resourcePath}-`)) {
+      const varName = key.slice(resourcePath.length + 1);
+      mergedCreateStaticHashTable[varName] =
+        scannedTables.createStaticHashTable[key];
+    }
+  }
+  for (const key of Object.keys(createStaticImportMap)) {
+    mergedCreateStaticHashTable[key] = createStaticImportMap[key];
   }
 
   const localCreateStyles: Record<
@@ -300,6 +309,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
           scannedTables.createStaticObjectTable,
           mergedVariantsTable,
         );
+
         if (obj) {
           const hashMap: Record<string, Record<string, string>> = {};
           Object.entries(obj).forEach(([key, style]) => {
@@ -336,29 +346,12 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
           };
         }
       } else if (
-        (propName === 'createTheme' || propName === 'createStatic') &&
-        (t.isObjectExpression(node.init.arguments[0].expression) ||
-          t.isStringLiteral(node.init.arguments[0].expression))
-      ) {
-        localCreateStyles[node.id.value] = {
-          name: node.id.value,
-          type: 'constant',
-          obj: {},
-          hashMap: {},
-          isExported,
-          initSpan: {
-            start: node.init.span.start - ast.span.start,
-            end: node.init.span.end - ast.span.start,
-          },
-          declSpan: {
-            start: declSpan.start - ast.span.start,
-            end: declSpan.end - ast.span.start,
-          },
-        };
-      } else if (
         propName === 'variants' &&
         t.isObjectExpression(node.init.arguments[0].expression)
       ) {
+        if (t.isIdentifier(node.id)) {
+          idSpans.add(node.id.span.start);
+        }
         const obj = objectExpressionToObject(
           node.init.arguments[0].expression as ObjectExpression,
           mergedStaticTable,
@@ -388,6 +381,48 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
           type: 'variant',
           obj,
           hashMap: {},
+          isExported,
+          initSpan: {
+            start: node.init.span.start - ast.span.start,
+            end: node.init.span.end - ast.span.start,
+          },
+          declSpan: {
+            start: declSpan.start - ast.span.start,
+            end: declSpan.end - ast.span.start,
+          },
+        };
+      } else if (
+        propName === 'createTheme' &&
+        t.isObjectExpression(node.init.arguments[0].expression)
+      ) {
+        if (t.isIdentifier(node.id)) {
+          idSpans.add(node.id.span.start);
+        }
+
+        const obj = objectExpressionToObject(
+          node.init.arguments[0].expression as ObjectExpression,
+          mergedStaticTable,
+          mergedKeyframesTable,
+          mergedViewTransitionTable,
+          mergedCreateThemeHashTable,
+          scannedTables.createThemeObjectTable,
+          mergedCreateTable,
+          mergedCreateStaticHashTable,
+          scannedTables.createStaticObjectTable,
+          mergedVariantsTable,
+        );
+
+        const hash = genBase36Hash(obj, 1, 8);
+        const uniqueKey = `${resourcePath}-${node.id.value}`;
+
+        scannedTables.createThemeHashTable[uniqueKey] = hash;
+        scannedTables.createThemeObjectTable[hash] = obj;
+
+        localCreateStyles[node.id.value] = {
+          name: node.id.value,
+          type: 'constant',
+          obj,
+          hashMap: scannedTables.createAtomicMapTable[hash],
           isExported,
           initSpan: {
             start: node.init.span.start - ast.span.start,
@@ -503,7 +538,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.viewTransitionObjectTable[hash] = obj;
           if (!isProduction) {
-            extractOndemandStyles(obj, extractedSheets, scannedTables);
             extractOndemandStyles(
               { vt: `vt-${hash}` },
               extractedSheets,
@@ -516,7 +550,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
             content: JSON.stringify(`vt-${hash}`),
           });
         } else if (
-          propName === 'createTheme' &&
+          (propName === 'createTheme' || propName === 'createStatic') &&
           args.length > 0 &&
           t.isObjectExpression(args[0].expression)
         ) {
@@ -533,7 +567,17 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
             mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          scannedTables.createThemeObjectTable[hash] = obj;
+          if (propName === 'createTheme') {
+            scannedTables.createThemeObjectTable[hash] = obj;
+          } else {
+            scannedTables.createStaticObjectTable[hash] = obj;
+          }
+          const prefix = propName === 'createTheme' ? 'tm-' : 'st-';
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(`${prefix}${hash}`),
+          });
         } else if (
           propName === 'create' &&
           args.length > 0 &&
@@ -573,7 +617,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
       if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
         const varName = node.object.value;
         const propName = node.property.value;
-        const uniqueKey = `${this.resourcePath}-${varName}`;
+        const uniqueKey = `${resourcePath}-${varName}`;
 
         // Prioritize scanAll tables for local variables
         let hash = scannedTables.createHashTable[uniqueKey];
@@ -584,6 +628,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
         if (hash) {
           let atomMap: Record<string, any> | undefined;
 
+          // Check atomic map first
           if (scannedTables.createAtomicMapTable[hash]) {
             atomMap = scannedTables.createAtomicMapTable[hash][propName];
           }
@@ -597,20 +642,20 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
           }
         }
 
-        // Check createTheme
+        // Check createTheme using atomic map
         let themeHash = scannedTables.createThemeHashTable[uniqueKey];
         if (!themeHash) {
           themeHash = mergedCreateThemeHashTable[varName];
         }
 
         if (themeHash) {
-          const themeObj = scannedTables.createThemeObjectTable[themeHash];
-          if (themeObj && themeObj[propName] !== undefined) {
-            const cssVarName = camelToKebabCase(propName);
+          // Use createAtomicMapTable for consistency with parser
+          const atomicMap = scannedTables.createAtomicMapTable[themeHash];
+          if (atomicMap && atomicMap && atomicMap[propName]) {
             replacements.push({
               start: node.span.start - ast.span.start,
               end: node.span.end - ast.span.start,
-              content: JSON.stringify(`var(--${cssVarName})`),
+              content: JSON.stringify(atomicMap[propName]),
             });
           }
         }
@@ -648,7 +693,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
       }
 
       const varName = node.value;
-      const uniqueKey = `${this.resourcePath}-${varName}`;
+      const uniqueKey = `${resourcePath}-${varName}`;
 
       let hash = scannedTables.createHashTable[uniqueKey];
       if (!hash) {
@@ -676,52 +721,22 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
         }
       }
 
-      // Check keyframes
-      let kfHash = scannedTables.keyframesHashTable[uniqueKey];
-      if (!kfHash) {
-        kfHash = mergedKeyframesTable[varName];
-      }
-      if (kfHash) {
-        replacements.push({
-          start: node.span.start - ast.span.start,
-          end: node.span.end - ast.span.start,
-          content: JSON.stringify(`kf-${kfHash}`),
-        });
-        return;
-      }
-
-      // Check viewTransition
-      let vtHash = scannedTables.viewTransitionHashTable[uniqueKey];
-      if (!vtHash) {
-        vtHash = mergedViewTransitionTable[varName];
-      }
-      if (vtHash) {
-        replacements.push({
-          start: node.span.start - ast.span.start,
-          end: node.span.end - ast.span.start,
-          content: JSON.stringify(`vt-${vtHash}`),
-        });
-        return;
-      }
-
-      // Check createTheme
+      // Check createTheme using atomic map
       let themeHash = scannedTables.createThemeHashTable[uniqueKey];
       if (!themeHash) {
         themeHash = mergedCreateThemeHashTable[varName];
       }
 
       if (themeHash) {
-        const themeObj = scannedTables.createThemeObjectTable[themeHash];
-        if (themeObj) {
-          const themeVars: Record<string, string> = {};
-          Object.keys(themeObj).forEach((key) => {
-            themeVars[key] = `var(--${camelToKebabCase(key)})`;
-          });
+        // Use createAtomicMapTable to get resolved CSS variables
+        const atomicMap = scannedTables.createAtomicMapTable[themeHash];
+        if (atomicMap) {
           replacements.push({
             start: node.span.start - ast.span.start,
             end: node.span.end - ast.span.start,
-            content: JSON.stringify(themeVars),
+            content: JSON.stringify(atomicMap),
           });
+          return;
         }
       }
 
@@ -797,7 +812,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               // Ignore bracket notation for complete staticization
               return {};
             }
-
             const varName = ((expr as any).object as Identifier).value;
             const propName = ((expr as any).property as Identifier).value;
 
@@ -821,18 +835,23 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
             }
           } else if (t.isIdentifier(expr)) {
             const varName = (expr as Identifier).value;
+            const uniqueKey = `${this.resourcePath}-${varName}`;
 
-            const styleInfo = localCreateStyles[varName];
-            if (styleInfo && styleInfo.obj) {
-              return styleInfo.obj;
+            let hash = scannedTables.createHashTable[uniqueKey];
+            if (!hash) {
+              hash = mergedCreateTable[varName];
             }
 
-            const hash = mergedCreateTable[varName];
             if (hash) {
               const obj = scannedTables.createObjectTable[hash];
               if (obj && typeof obj === 'object') {
                 return obj;
               }
+            }
+
+            const styleInfo = localCreateStyles[varName];
+            if (styleInfo && styleInfo.obj) {
+              return styleInfo.obj;
             }
 
             if (localCreateStyles[varName]) {
@@ -865,13 +884,23 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
           if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
             const varName = expr.callee.value;
             let variantObj: Record<string, any> | undefined;
+            const uniqueKey = `${this.resourcePath}-${varName}`;
 
-            if (localCreateStyles[varName] && localCreateStyles[varName].obj) {
-              variantObj = localCreateStyles[varName].obj;
-            } else if (mergedVariantsTable[varName]) {
-              const hash = mergedVariantsTable[varName];
-              if (scannedTables.variantsObjectTable[hash]) {
-                variantObj = scannedTables.variantsObjectTable[hash];
+            let hash = scannedTables.variantsHashTable[uniqueKey];
+            if (!hash) {
+              hash = mergedVariantsTable[varName];
+            }
+
+            if (hash && scannedTables.variantsObjectTable[hash]) {
+              variantObj = scannedTables.variantsObjectTable[hash];
+            }
+
+            if (!variantObj) {
+              if (
+                localCreateStyles[varName] &&
+                localCreateStyles[varName].obj
+              ) {
+                variantObj = localCreateStyles[varName].obj;
               }
             }
 
@@ -1035,6 +1064,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
 
               for (let j = 0; j < conditionals.length; j++) {
                 if ((i >> j) & 1) {
+                  // Truthy case
                   if (conditionals[j].groupId !== undefined) {
                     if (seenGroups.has(conditionals[j].groupId!)) {
                       impossible = true;
@@ -1047,6 +1077,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
                     conditionals[j].truthy,
                   );
                 } else {
+                  // Falsy case
                   currentStyle = deepMerge(currentStyle, conditionals[j].falsy);
                 }
               }
@@ -1056,7 +1087,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
                 continue;
               }
 
-              if (!isProduction) {
+              if (process.env.NODE_ENV !== 'production') {
                 extractOndemandStyles(
                   currentStyle,
                   extractedSheets,
@@ -1065,7 +1096,7 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
               }
               const hash = genBase36Hash(currentStyle, 1, 8);
               const records = getStyleRecords(hash, currentStyle, 2);
-              if (!isProduction) {
+              if (process.env.NODE_ENV !== 'production') {
                 records.forEach((r: StyleRecord) =>
                   extractedSheets.push(r.sheet),
                 );
@@ -1111,6 +1142,9 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
 
   // Confirm the replacement of the styles declaration
   Object.values(localCreateStyles).forEach((info) => {
+    if (info.type === 'constant' || info.type === 'variant') {
+      return;
+    }
     if (info.isExported) {
       replacements.push({
         start: info.declSpan.start,
@@ -1125,11 +1159,6 @@ export default function loader(this: LoaderContext<unknown>, source: string) {
       });
     }
   });
-
-  if (extractedSheets.length > 0) {
-    fileStyles.baseStyles =
-      (fileStyles.baseStyles || '') + extractedSheets.join('');
-  }
 
   // Apply replacements
   const buffer = Buffer.from(source);
