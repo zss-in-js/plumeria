@@ -38,7 +38,7 @@ function getTsConfig(startDir: string): {
 
       return {
         config: tsConfigCache.get(tsConfigPath) ?? null,
-        basePath: currentDir,
+        basePath: path.dirname(tsConfigPath),
       };
     }
     currentDir = path.dirname(currentDir);
