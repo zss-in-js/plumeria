@@ -4,11 +4,8 @@ import {
   Expression,
   ImportSpecifier,
 } from '@swc/core';
-import {
-  camelToKebabCase,
-  type CSSProperties,
-  genBase36Hash,
-} from 'zss-engine';
+import { type CSSProperties, genBase36Hash } from 'zss-engine';
+
 import fs from 'fs';
 
 import {
@@ -305,15 +302,6 @@ export function compileCSS(options: CompilerOptions) {
 
               scannedTables.createThemeHashTable[uniqueKey] = hash;
               scannedTables.createThemeObjectTable[hash] = obj;
-
-              if (!scannedTables.createAtomicMapTable[hash]) {
-                const hashMap: Record<string, string> = {};
-                for (const [key] of Object.entries(obj)) {
-                  const cssVarName = camelToKebabCase(key);
-                  hashMap[key] = `var(--${cssVarName})`;
-                }
-                scannedTables.createAtomicMapTable[hash] = hashMap as any;
-              }
 
               localCreateStyles[node.id.value] = {
                 type: 'theme',
