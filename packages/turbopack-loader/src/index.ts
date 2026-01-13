@@ -9,12 +9,11 @@ import type {
 } from '@swc/core';
 import fs from 'fs';
 import path from 'path';
-import { genBase36Hash, camelToKebabCase, transpile } from 'zss-engine';
-import type { CSSProperties, CreateTheme } from 'zss-engine';
+import { genBase36Hash, camelToKebabCase } from 'zss-engine';
+import type { CSSProperties } from 'zss-engine';
 
 import {
   traverse,
-  createTheme,
   getStyleRecords,
   collectLocalConsts,
   objectExpressionToObject,
@@ -417,11 +416,6 @@ export default async function loader(this: LoaderContext, source: string) {
         scannedTables.createThemeHashTable[uniqueKey] = hash;
         scannedTables.createThemeObjectTable[hash] = obj;
 
-        if (!isProduction) {
-          const styles = createTheme(obj as CreateTheme);
-          const { styleSheet } = transpile(styles, undefined, '--global');
-          addSheet(styleSheet);
-        }
         if (!scannedTables.createAtomicMapTable[hash]) {
           const hashMap: Record<string, string> = {};
           for (const [key] of Object.entries(obj)) {
