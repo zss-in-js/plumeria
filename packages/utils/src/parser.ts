@@ -1130,9 +1130,14 @@ export function scanAll(): Tables {
                   const hash = genBase36Hash(obj, 1, 8);
                   localTables.createThemeObjectTable[hash] = obj;
                   localCreateThemeObjectTable[hash] = obj;
-
                   localCreateThemeHashTable[name] = hash;
                   localTables.createThemeHashTable[uniqueKey] = hash;
+                  const hashMap: Record<string, any> = {};
+                  for (const [key] of Object.entries(obj)) {
+                    const cssVarName = camelToKebabCase(key);
+                    hashMap[key] = `var(--${cssVarName})`;
+                  }
+                  localTables.createAtomicMapTable[hash] = hashMap;
                 } else if (method === 'create') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localCreateHashTable[name] = hash;
