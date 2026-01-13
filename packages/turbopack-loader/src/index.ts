@@ -9,11 +9,12 @@ import type {
 } from '@swc/core';
 import fs from 'fs';
 import path from 'path';
-import { genBase36Hash, camelToKebabCase } from 'zss-engine';
-import type { CSSProperties } from 'zss-engine';
+import { genBase36Hash, camelToKebabCase, transpile } from 'zss-engine';
+import type { CSSProperties, CreateTheme } from 'zss-engine';
 
 import {
   traverse,
+  createTheme,
   getStyleRecords,
   collectLocalConsts,
   objectExpressionToObject,
@@ -193,6 +194,11 @@ export default async function loader(this: LoaderContext, source: string) {
   const mergedCreateThemeHashTable: CreateThemeHashTable = {};
   for (const key of Object.keys(scannedTables.createThemeHashTable)) {
     mergedCreateThemeHashTable[key] = scannedTables.createThemeHashTable[key];
+    if (key.startsWith(`${resourcePath}-`)) {
+      const varName = key.slice(resourcePath.length + 1);
+      mergedCreateThemeHashTable[varName] =
+        scannedTables.createThemeHashTable[key];
+    }
   }
   for (const key of Object.keys(createThemeImportMap)) {
     mergedCreateThemeHashTable[key] = createThemeImportMap[key];
@@ -201,6 +207,11 @@ export default async function loader(this: LoaderContext, source: string) {
   const mergedCreateStaticHashTable: CreateStaticHashTable = {};
   for (const key of Object.keys(scannedTables.createStaticHashTable)) {
     mergedCreateStaticHashTable[key] = scannedTables.createStaticHashTable[key];
+    if (key.startsWith(`${resourcePath}-`)) {
+      const varName = key.slice(resourcePath.length + 1);
+      mergedCreateStaticHashTable[varName] =
+        scannedTables.createStaticHashTable[key];
+    }
   }
   for (const key of Object.keys(createStaticImportMap)) {
     mergedCreateStaticHashTable[key] = createStaticImportMap[key];
@@ -373,6 +384,58 @@ export default async function loader(this: LoaderContext, source: string) {
           type: 'variant',
           obj,
           hashMap: {},
+          isExported,
+          initSpan: {
+            start: node.init.span.start - ast.span.start,
+            end: node.init.span.end - ast.span.start,
+          },
+          declSpan: {
+            start: declSpan.start - ast.span.start,
+            end: declSpan.end - ast.span.start,
+          },
+        };
+      } else if (
+        propName === 'createTheme' &&
+        t.isObjectExpression(node.init.arguments[0].expression)
+      ) {
+        const obj = objectExpressionToObject(
+          node.init.arguments[0].expression as ObjectExpression,
+          mergedStaticTable,
+          mergedKeyframesTable,
+          mergedViewTransitionTable,
+          mergedCreateThemeHashTable,
+          scannedTables.createThemeObjectTable,
+          mergedCreateTable,
+          mergedCreateStaticHashTable,
+          scannedTables.createStaticObjectTable,
+          mergedVariantsTable,
+        );
+
+        const hash = genBase36Hash(obj, 1, 8);
+        const uniqueKey = `${resourcePath}-${node.id.value}`;
+
+        scannedTables.createThemeHashTable[uniqueKey] = hash;
+        scannedTables.createThemeObjectTable[hash] = obj;
+
+        if (!isProduction) {
+          const styles = createTheme(obj as CreateTheme);
+          const { styleSheet } = transpile(styles, undefined, '--global');
+          addSheet(styleSheet);
+        }
+        if (!scannedTables.createAtomicMapTable[hash]) {
+          const hashMap: Record<string, string> = {};
+          for (const [key] of Object.entries(obj)) {
+            const cssVarName = camelToKebabCase(key);
+            hashMap[key] = `var(--${cssVarName})`;
+          }
+          scannedTables.createAtomicMapTable[hash] = hashMap as any;
+        }
+
+        localCreateStyles[node.id.value] = {
+          name: node.id.value,
+          type: 'constant',
+          obj,
+          hashMap: scannedTables.createAtomicMapTable[hash],
           isExported,
           initSpan: {
             start: node.init.span.start - ast.span.start,
@@ -568,7 +631,7 @@ export default async function loader(this: LoaderContext, source: string) {
       if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
         const varName = node.object.value;
         const propName = node.property.value;
-        const uniqueKey = `${this.resourcePath}-${varName}`;
+        const uniqueKey = `${resourcePath}-${varName}`;
 
         // Prioritize scanAll tables for local variables
         let hash = scannedTables.createHashTable[uniqueKey];
@@ -593,20 +656,20 @@ export default async function loader(this: LoaderContext, source: string) {
           }
         }
 
-        // Check createTheme
+        // Check createTheme using atomic map
         let themeHash = scannedTables.createThemeHashTable[uniqueKey];
         if (!themeHash) {
           themeHash = mergedCreateThemeHashTable[varName];
         }
 
         if (themeHash) {
-          const themeObj = scannedTables.createThemeObjectTable[themeHash];
-          if (themeObj && themeObj[propName] !== undefined) {
-            const cssVarName = camelToKebabCase(propName);
+          // Use createAtomicMapTable for consistency with parser
+          const atomicMap = scannedTables.createAtomicMapTable[themeHash];
+          if (atomicMap && atomicMap && atomicMap[propName]) {
             replacements.push({
               start: node.span.start - ast.span.start,
               end: node.span.end - ast.span.start,
-              content: JSON.stringify(`var(--${cssVarName})`),
+              content: JSON.stringify(atomicMap[propName]),
             });
           }
         }
@@ -644,7 +707,7 @@ export default async function loader(this: LoaderContext, source: string) {
       }
 
       const varName = node.value;
-      const uniqueKey = `${this.resourcePath}-${varName}`;
+      const uniqueKey = `${resourcePath}-${varName}`;
 
       let hash = scannedTables.createHashTable[uniqueKey];
       if (!hash) {
@@ -672,52 +735,22 @@ export default async function loader(this: LoaderContext, source: string) {
         }
       }
 
-      // Check keyframes
-      let kfHash = scannedTables.keyframesHashTable[uniqueKey];
-      if (!kfHash) {
-        kfHash = mergedKeyframesTable[varName];
-      }
-      if (kfHash) {
-        replacements.push({
-          start: node.span.start - ast.span.start,
-          end: node.span.end - ast.span.start,
-          content: JSON.stringify(`kf-${kfHash}`),
-        });
-        return;
-      }
-
-      // Check viewTransition
-      let vtHash = scannedTables.viewTransitionHashTable[uniqueKey];
-      if (!vtHash) {
-        vtHash = mergedViewTransitionTable[varName];
-      }
-      if (vtHash) {
-        replacements.push({
-          start: node.span.start - ast.span.start,
-          end: node.span.end - ast.span.start,
-          content: JSON.stringify(`vt-${vtHash}`),
-        });
-        return;
-      }
-
-      // Check createTheme
+      // Check createTheme using atomic map
       let themeHash = scannedTables.createThemeHashTable[uniqueKey];
       if (!themeHash) {
         themeHash = mergedCreateThemeHashTable[varName];
       }
 
       if (themeHash) {
-        const themeObj = scannedTables.createThemeObjectTable[themeHash];
-        if (themeObj) {
-          const themeVars: Record<string, string> = {};
-          Object.keys(themeObj).forEach((key) => {
-            themeVars[key] = `var(--${camelToKebabCase(key)})`;
-          });
+        // Use createAtomicMapTable to get resolved CSS variables
+        const atomicMap = scannedTables.createAtomicMapTable[themeHash];
+        if (atomicMap) {
           replacements.push({
             start: node.span.start - ast.span.start,
             end: node.span.end - ast.span.start,
-            content: JSON.stringify(themeVars),
+            content: JSON.stringify(atomicMap),
           });
+          return;
         }
       }
 
@@ -1184,7 +1217,20 @@ export default async function loader(this: LoaderContext, source: string) {
     return callback(null, transformedSource);
 
   if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-    fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join(''), 'utf-8');
+    let currentContent = '';
+    try {
+      currentContent = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
+    } catch (e) {
+      // Ignore
+    }
+
+    const newContent = extractedSheets
+      .filter((sheet) => !currentContent.includes(sheet))
+      .join('');
+
+    if (newContent) {
+      fs.appendFileSync(VIRTUAL_FILE_PATH, newContent, 'utf-8');
+    }
   }
 
   return callback(null, transformedSource + postfix);
