@@ -618,6 +618,11 @@ export function compileCSS(options: CompilerOptions) {
               mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
+            extractOndemandStyles(
+              { kf: `kf-${hash}` },
+              extractedSheets,
+              scannedTables,
+            );
             scannedTables.keyframesObjectTable[hash] = obj;
           } else if (
             propName === 'viewTransition' &&
@@ -638,7 +643,6 @@ export function compileCSS(options: CompilerOptions) {
             );
             const hash = genBase36Hash(obj, 1, 8);
             scannedTables.viewTransitionObjectTable[hash] = obj;
-            extractOndemandStyles(obj, extractedSheets, scannedTables);
             extractOndemandStyles(
               { vt: `vt-${hash}` },
               extractedSheets,
