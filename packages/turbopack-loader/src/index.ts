@@ -354,6 +354,9 @@ export default async function loader(this: LoaderContext, source: string) {
         propName === 'variants' &&
         t.isObjectExpression(node.init.arguments[0].expression)
       ) {
+        if (t.isIdentifier(node.id)) {
+          idSpans.add(node.id.span.start);
+        }
         const obj = objectExpressionToObject(
           node.init.arguments[0].expression as ObjectExpression,
           mergedStaticTable,
@@ -397,6 +400,10 @@ export default async function loader(this: LoaderContext, source: string) {
         propName === 'createTheme' &&
         t.isObjectExpression(node.init.arguments[0].expression)
       ) {
+        if (t.isIdentifier(node.id)) {
+          idSpans.add(node.id.span.start);
+        }
+
         const obj = objectExpressionToObject(
           node.init.arguments[0].expression as ObjectExpression,
           mergedStaticTable,
@@ -1150,6 +1157,9 @@ export default async function loader(this: LoaderContext, source: string) {
 
   // Confirm the replacement of the styles declaration
   Object.values(localCreateStyles).forEach((info) => {
+    if (info.type === 'constant' || info.type === 'variant') {
+      return;
+    }
     if (info.isExported) {
       replacements.push({
         start: info.declSpan.start,
