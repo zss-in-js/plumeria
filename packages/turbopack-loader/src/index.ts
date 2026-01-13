@@ -9,7 +9,7 @@ import type {
 } from '@swc/core';
 import fs from 'fs';
 import path from 'path';
-import { genBase36Hash, camelToKebabCase } from 'zss-engine';
+import { genBase36Hash } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 
 import {
@@ -423,15 +423,6 @@ export default async function loader(this: LoaderContext, source: string) {
         scannedTables.createThemeHashTable[uniqueKey] = hash;
         scannedTables.createThemeObjectTable[hash] = obj;
 
-        if (!scannedTables.createAtomicMapTable[hash]) {
-          const hashMap: Record<string, string> = {};
-          for (const [key] of Object.entries(obj)) {
-            const cssVarName = camelToKebabCase(key);
-            hashMap[key] = `var(--${cssVarName})`;
-          }
-          scannedTables.createAtomicMapTable[hash] = hashMap as any;
-        }
-
         localCreateStyles[node.id.value] = {
           name: node.id.value,
           type: 'constant',
@@ -552,7 +543,6 @@ export default async function loader(this: LoaderContext, source: string) {
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.viewTransitionObjectTable[hash] = obj;
           if (!isProduction) {
-            extractOndemandStyles(obj, extractedSheets, scannedTables);
             extractOndemandStyles(
               { vt: `vt-${hash}` },
               extractedSheets,
