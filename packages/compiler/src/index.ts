@@ -4,7 +4,11 @@ import {
   Expression,
   ImportSpecifier,
 } from '@swc/core';
-import { type CSSProperties, genBase36Hash } from 'zss-engine';
+import {
+  camelToKebabCase,
+  type CSSProperties,
+  genBase36Hash,
+} from 'zss-engine';
 import fs from 'fs';
 
 import {
@@ -192,7 +196,7 @@ export function compileCSS(options: CompilerOptions) {
 
     const localCreateStyles: Record<
       string,
-      { type: 'create' | 'variant'; obj: CSSObject }
+      { type: 'create' | 'variant' | 'theme'; obj: CSSObject }
     > = {};
 
     traverse(ast, {
@@ -282,6 +286,39 @@ export function compileCSS(options: CompilerOptions) {
               if (obj) {
                 localCreateStyles[node.id.value] = { type: 'variant', obj };
               }
+            } else if (propName === 'createTheme') {
+              const obj = objectExpressionToObject(
+                node.init.arguments[0].expression as ObjectExpression,
+                mergedStaticTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
+                mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
+                mergedVariantsTable,
+              );
+
+              const hash = genBase36Hash(obj, 1, 8);
+              const uniqueKey = `${resourcePath}-${node.id.value}`;
+
+              scannedTables.createThemeHashTable[uniqueKey] = hash;
+              scannedTables.createThemeObjectTable[hash] = obj;
+
+              if (!scannedTables.createAtomicMapTable[hash]) {
+                const hashMap: Record<string, string> = {};
+                for (const [key] of Object.entries(obj)) {
+                  const cssVarName = camelToKebabCase(key);
+                  hashMap[key] = `var(--${cssVarName})`;
+                }
+                scannedTables.createAtomicMapTable[hash] = hashMap as any;
+              }
+
+              localCreateStyles[node.id.value] = {
+                type: 'theme',
+                obj: scannedTables.createAtomicMapTable[hash],
+              };
             }
           }
         }
@@ -667,6 +704,7 @@ export function compileCSS(options: CompilerOptions) {
             );
             const themeHash = genBase36Hash(obj, 1, 8);
             scannedTables.createThemeObjectTable[themeHash] = obj;
+            extractOndemandStyles(obj, extractedSheets, scannedTables);
           }
         }
       },
