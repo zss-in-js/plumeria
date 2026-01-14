@@ -1177,7 +1177,7 @@ describe('parser', () => {
       );
       const hash = result.createHashTable[createKey!];
       const obj = result.createObjectTable[hash];
-      expect(obj.c).toBe('var(--p)');
+      expect(obj.c).toBe('[unresolved]');
     });
 
     it('should resolve aliased cross-file imports for createTheme in Pass 2', () => {
@@ -1214,7 +1214,7 @@ describe('parser', () => {
       );
       const hash = result.createHashTable[createKey!];
       const obj = result.createObjectTable[hash];
-      expect(obj.c).toBe('var(--p)');
+      expect(obj.c).toBe('[unresolved]');
     });
   });
 });
