@@ -813,6 +813,10 @@ export function scanAll(): Tables {
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
   const totalExtractedSheets: string[] = [];
 
+  // Track themes found in current scan only (not from cache)
+  // This prevents stale cached themes from being included in sheet
+  const currentScanThemeObjectTable: Record<string, Record<string, any>> = {};
+
   // Two-pass scanning:
   // Pass 1: Collect all createStatic and createTheme definitions
   // Pass 2: Process css.create, keyframes, viewTransition, variants (with all createStatic/createTheme available)
@@ -854,6 +858,9 @@ export function scanAll(): Tables {
             }
             for (const key of Object.keys(cached.createThemeObjectTable)) {
               localTables.createThemeObjectTable[key] =
+                cached.createThemeObjectTable[key];
+              // Ensure cached themes are included in the current scan for CSS generation
+              currentScanThemeObjectTable[key] =
                 cached.createThemeObjectTable[key];
             }
             for (const key of Object.keys(cached.createStaticHashTable)) {
@@ -987,10 +994,9 @@ export function scanAll(): Tables {
                     if (localTables.createThemeHashTable[uniqueKey]) {
                       const hash = localTables.createThemeHashTable[uniqueKey];
                       localCreateThemeHashTable[localName] = hash;
-                      if (localTables.createThemeObjectTable[hash]) {
-                        localCreateThemeObjectTable[hash] =
-                          localTables.createThemeObjectTable[hash];
-                      }
+                      // Do NOT populate localCreateThemeObjectTable with imported definitions.
+                      // This avoids caching imported themes as if they were defined in this file,
+                      // effectively preventing duplicate CSS output on cache restore.
                     }
                   }
                 });
@@ -1139,6 +1145,8 @@ export function scanAll(): Tables {
                   localCreateThemeObjectTable[hash] = obj;
                   localCreateThemeHashTable[name] = hash;
                   localTables.createThemeHashTable[uniqueKey] = hash;
+                  // It embeds hash recovery logic.
+                  currentScanThemeObjectTable[hash] = obj;
                   const hashMap: Record<string, any> = {};
                   for (const [key] of Object.entries(obj)) {
                     const cssVarName = camelToKebabCase(key);
@@ -1159,18 +1167,16 @@ export function scanAll(): Tables {
                     records.forEach((r) => (atomMap[r.key] = r.hash));
                     hashMap[key] = atomMap;
 
-                    if (!isProduction) {
-                      extractOndemandStyles(
-                        style,
-                        fileExtractedSheets,
-                        localTables,
-                      );
-                      records.forEach((r) => {
-                        if (!fileExtractedSheets.includes(r.sheet)) {
-                          fileExtractedSheets.push(r.sheet);
-                        }
-                      });
-                    }
+                    extractOndemandStyles(
+                      style,
+                      fileExtractedSheets,
+                      localTables,
+                    );
+                    records.forEach((r) => {
+                      if (!fileExtractedSheets.includes(r.sheet)) {
+                        fileExtractedSheets.push(r.sheet);
+                      }
+                    });
                   });
                   localCreateAtomicMapTable[hash] = hashMap;
                   localTables.createAtomicMapTable[hash] = hashMap;
