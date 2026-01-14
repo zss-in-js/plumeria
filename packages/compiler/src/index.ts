@@ -238,6 +238,19 @@ export function compileCSS(options: CompilerOptions) {
             };
 
             if (propName === 'create') {
+              const resolveVariable = (name: string) => {
+                // Resolved from localCreateStyles
+                if (localCreateStyles[name]) {
+                  return localCreateStyles[name].obj;
+                }
+                // Resolved from imported createTheme
+                if (mergedCreateThemeHashTable[name]) {
+                  const themeHash = mergedCreateThemeHashTable[name];
+                  return scannedTables.createAtomicMapTable[themeHash];
+                }
+                return undefined;
+              };
+
               const obj = objectExpressionToObject(
                 node.init.arguments[0].expression as ObjectExpression,
                 mergedStaticTable,
@@ -304,7 +317,7 @@ export function compileCSS(options: CompilerOptions) {
               scannedTables.createThemeObjectTable[hash] = obj;
 
               localCreateStyles[node.id.value] = {
-                type: 'theme',
+                type: 'create',
                 obj: scannedTables.createAtomicMapTable[hash],
               };
             }
