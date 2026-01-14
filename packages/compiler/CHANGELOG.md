@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 6.3.0
+
+### Minor Changes
+
+- de2046a: fix: fix createTheme export HMR logic and compiling
+
+### Patch Changes
+
+- Updated dependencies [de2046a]
+  - @plumeria/utils@6.3.0
+
 ## 6.2.1
 
 ### Patch Changes
