@@ -1211,20 +1211,7 @@ export default async function loader(this: LoaderContext, source: string) {
     return callback(null, transformedSource);
 
   if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-    let currentContent = '';
-    try {
-      currentContent = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
-    } catch (e) {
-      // Ignore
-    }
-
-    const newContent = extractedSheets
-      .filter((sheet) => !currentContent.includes(sheet))
-      .join('');
-
-    if (newContent) {
-      fs.appendFileSync(VIRTUAL_FILE_PATH, newContent, 'utf-8');
-    }
+    fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join(''), 'utf-8');
   }
 
   return callback(null, transformedSource + postfix);
