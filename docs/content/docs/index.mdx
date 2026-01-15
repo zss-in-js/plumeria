@@ -4,39 +4,19 @@ description: 'Introduction to Plumeria - A CSS-in-JS framework for fast, type-sa
 ---
 
 <br/>
-## What it's like
+## Thinking in Plumeria
 
 ---
 
+## Atomic CSS
+It creates optimized styles using collision-free atomic classes, reducing refactoring needs while scaling components efficiently.
 
+## ESLint (oxlint) linting for CI
+This approach provides a more refined and maintainable means to automate workflows.
 
-**Zero-runtime Atomic CSS-in-JS library**.  
+## Zero-code design
+Zero app bundle and zero runtime code.
+Typical CSS-in-JS solutions use several kilobytes in initial bundle size, but this library is designed to eliminate all code in the bundle by eliminate completely function calls.
 
-flat syntax and compilation.
-It creates optimized styles using collision-free atomic CSS, reducing refactoring needs while scaling components efficiently.
-It helps developers focus on what to style, not how to style it.
-**This approach provides a more refined and maintainable alternative to manual workflows**.
-
-### Purpose
-Spend less time writing CSS, keep styles beautiful.  
-Declarative and intuitive by design.  
-Portability, migration ease, and forward-thinking architecture.
-
-### Principles
-JavaScript/TypeScript-first, powered by a **simple CLI**.  
-**Two** constraints: **type-safe** styles・**flat** nesting structure.  
-
-### Strengths
-- Fully **static compiler**
-- Fully **zero-runtime architecture**
-- Fully **type-safe TypeScript and csstype lib**
-- Completely **predictable**
-- **More** flexible — **more** lightweight
-
-### Culture
-Plumeria embraces an optimistic syntax philosophy.  
-It avoids unnecessary constraints and deep nesting,  
-offering a declarative, TS-guided authoring experience that  
-makes migrating from other libraries effortless.
-
----
+## Optimization
+Normally, build speed increases linearly as the application size increases, but Plumeria's compiler builds all tables in a few milliseconds, and the build then finishes at the same speed as a normal build.
