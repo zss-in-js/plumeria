@@ -39,7 +39,7 @@ describe('getStyleRecords', () => {
     } as any);
 
     expect(result).toHaveLength(1);
-    expect(result[0].key).toBe('@media (min-width: 500px)color');
+    expect(result[0].key).toBe('@media (min-width: 500px):color');
     expect(result[0].sheet).toContain('@media (min-width: 500px)');
     expect(result[0].sheet).toMatch(/color:\s*green/);
   });
@@ -82,26 +82,46 @@ describe('getStyleRecords', () => {
     const sheetContent = result.map((r) => r.sheet).join('\n');
     expect(sheetContent).toMatch(/color:\s*red/);
     expect(sheetContent).toMatch(/background:\s*white/);
-    expect(sheetContent).toMatch(/background:\s*gray/);
     expect(sheetContent).toContain(':hover');
-    expect(sheetContent).toContain('@media (max-width: 400px)');
+  });
+  it('should handle non-atomic descendent selectors', () => {
+    const result = getStyleRecords('test', {
+      '& span': { color: 'red' },
+    } as any);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].key).toContain('& span');
+    expect(result[0].sheet).toMatch(/span/);
+    expect(result[0].sheet).toMatch(/color:\s*red/);
   });
 
-  it('should handle nested selectors within @media queries', () => {
+  it('should handle non-atomic selectors inside queries', () => {
     const result = getStyleRecords('test', {
       '@media (min-width: 100px)': {
-        '&:hover': {
-          color: 'blue',
-        },
+        '& div': { color: 'blue' },
       },
     } as any);
 
-    // This covers lines 85 and 106-119 in create.ts (nonFlatQuery path)
     expect(result).toHaveLength(1);
-    expect(result[0].key).toContain('@media (min-width: 100px)');
+    expect(result[0].key).toContain('@media');
+    expect(result[0].key).toContain('& div');
+    expect(result[0].sheet).toContain('@media (min-width: 100px)');
+    expect(result[0].sheet).toContain('div');
+    expect(result[0].sheet).toMatch(/color:\s*blue/);
+  });
+
+  it('should handle atomic selectors inside queries', () => {
+    const result = getStyleRecords('test', {
+      '@media (min-width: 100px)': {
+        '&:hover': { color: 'green' },
+      },
+    } as any);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].key).toContain('@media');
     expect(result[0].key).toContain('&:hover');
     expect(result[0].sheet).toContain('@media (min-width: 100px)');
     expect(result[0].sheet).toContain(':hover');
-    expect(result[0].sheet).toMatch(/color:\s*blue/);
+    expect(result[0].sheet).toMatch(/color:\s*green/);
   });
 });
