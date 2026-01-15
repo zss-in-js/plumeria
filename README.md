@@ -76,7 +76,7 @@ Read the [documentation](https://plumeria.dev/) for more details.
 - [PostCSS](https://plumeria.dev/docs/integration/postcss)
 - [ESLint](https://plumeria.dev/docs/integration/eslint)
 
-## Acknowledgement
+## Acknowledgements
 
 - [Linaria](https://linaria.dev/) - for inspiring the Zero-Runtime architecture
 - [React Native](https://reactnative.dev/docs/stylesheet) - for inspiring the class API and inline styling
