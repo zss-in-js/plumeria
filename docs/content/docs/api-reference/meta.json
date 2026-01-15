@@ -1,5 +1,5 @@
 {
   "defaultOpen": true,
   "title": "API reference",
-  "pages": ["create", "props", "keyframes", "viewTransition", "createTheme", "createStatic", "x"]
+  "pages": ["create", "props", "keyframes", "viewTransition", "variants", "createTheme", "createStatic"]
 }
