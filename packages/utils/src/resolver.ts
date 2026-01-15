@@ -23,7 +23,7 @@ function getTsConfig(startDir: string): {
   }
 
   while (currentDir !== path.parse(currentDir).root) {
-    const tsConfigPath = path.join(currentDir, 'tsconfig.json');
+    const tsConfigPath = path.join(process.cwd(), 'tsconfig.json');
     if (fs.existsSync(tsConfigPath)) {
       if (!tsConfigCache.has(tsConfigPath)) {
         try {
@@ -38,7 +38,7 @@ function getTsConfig(startDir: string): {
 
       return {
         config: tsConfigCache.get(tsConfigPath) ?? null,
-        basePath: currentDir,
+        basePath: path.dirname(tsConfigPath),
       };
     }
     currentDir = path.dirname(currentDir);
