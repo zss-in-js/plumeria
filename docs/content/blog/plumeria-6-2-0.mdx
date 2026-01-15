@@ -1,0 +1,32 @@
+---
+title: 'Plumeria v6.2.0'
+description: 'Plumeria v6.2.0 pseudo has been atomicalize and compilation optimization. (2 min read)'
+date: '2026/01/11'
+---
+
+## Atomic pseudos
+Pseudo-class pseudo-elements were semantically scoped as a six-character hash, but have been atomized to accommodate scaling.
+```sh
+{
+  '::before:display': 'x6lhpo6k',
+  '::before:width': 'xuxybnne',
+  '::before:height': 'xefh6uws',
+  '::before:content': 'xw4ahafk',
+  '::before:backgroundColor': 'xjhvq7pr'
+}
+```
+## Compile scan count is o(1)
+The scan is now skipped after all caches are resolved for the first time:
+- postcss-plugin compiling
+- Loading the loader for the first time
+
+Build speed is improved, and the initial scan takes just a few milliseconds to fill the entire hash table.  
+The postcss-plugin is now enabled again when starting development mode. This will speed up initial rendering by filling the atomic map table.
+
+## Other
+- Fixed an issue where styles did not have the correct values by building it from an atomic map table.
+- The example repository has been expanded: [`monorepo/examples`](https://github.com/zss-in-js/plumeria/tree/main/examples).
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
