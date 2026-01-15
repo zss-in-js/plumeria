@@ -8,7 +8,7 @@ const stylesCode = css.create({
     zIndex: 0,
     display: 'flex',
     width: '100%',
-    maxWidth: '600px',
+    maxWidth: '590px',
     padding: '20px 24px',
     overflow: 'hidden',
     fontFamily: 'var(--font-geist-mono)',
