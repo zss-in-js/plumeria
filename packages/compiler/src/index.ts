@@ -5,6 +5,7 @@ import {
   ImportSpecifier,
 } from '@swc/core';
 import { type CSSProperties, genBase36Hash } from 'zss-engine';
+
 import fs from 'fs';
 
 import {
@@ -23,7 +24,8 @@ import type {
   CSSObject,
   VariantsHashTable,
   CreateHashTable,
-  ThemeTable,
+  CreateThemeHashTable,
+  CreateStaticHashTable,
   ViewTransitionHashTable,
   KeyframesHashTable,
   StaticTable,
@@ -106,15 +108,21 @@ export function compileCSS(options: CompilerOptions) {
                 importMap[localName] =
                   scannedTables.viewTransitionHashTable[uniqueKey];
               }
-              if (scannedTables.themeTable[uniqueKey]) {
-                importMap[localName] = scannedTables.themeTable[uniqueKey];
-              }
+
               if (scannedTables.createHashTable[uniqueKey]) {
                 importMap[localName] = scannedTables.createHashTable[uniqueKey];
               }
               if (scannedTables.variantsHashTable[uniqueKey]) {
                 importMap[localName] =
                   scannedTables.variantsHashTable[uniqueKey];
+              }
+              if (scannedTables.createThemeHashTable[uniqueKey]) {
+                importMap[localName] =
+                  scannedTables.createThemeHashTable[uniqueKey];
+              }
+              if (scannedTables.createStaticHashTable[uniqueKey]) {
+                importMap[localName] =
+                  scannedTables.createStaticHashTable[uniqueKey];
               }
             }
           });
@@ -150,12 +158,21 @@ export function compileCSS(options: CompilerOptions) {
       mergedViewTransitionTable[key] = importMap[key];
     }
 
-    const mergedThemeTable: ThemeTable = {};
-    for (const key of Object.keys(scannedTables.themeTable)) {
-      mergedThemeTable[key] = scannedTables.themeTable[key];
+    const mergedCreateThemeHashTable: CreateThemeHashTable = {};
+    for (const key of Object.keys(scannedTables.createThemeHashTable)) {
+      mergedCreateThemeHashTable[key] = scannedTables.createThemeHashTable[key];
     }
     for (const key of Object.keys(importMap)) {
-      mergedThemeTable[key] = importMap[key];
+      mergedCreateThemeHashTable[key] = importMap[key];
+    }
+
+    const mergedCreateStaticHashTable: CreateStaticHashTable = {};
+    for (const key of Object.keys(scannedTables.createStaticHashTable)) {
+      mergedCreateStaticHashTable[key] =
+        scannedTables.createStaticHashTable[key];
+    }
+    for (const key of Object.keys(importMap)) {
+      mergedCreateStaticHashTable[key] = importMap[key];
     }
 
     const mergedCreateTable: CreateHashTable = {};
@@ -176,7 +193,7 @@ export function compileCSS(options: CompilerOptions) {
 
     const localCreateStyles: Record<
       string,
-      { type: 'create' | 'variant'; obj: CSSObject }
+      { type: 'create' | 'variant' | 'theme'; obj: CSSObject }
     > = {};
 
     traverse(ast, {
@@ -221,13 +238,29 @@ export function compileCSS(options: CompilerOptions) {
             };
 
             if (propName === 'create') {
+              const resolveVariable = (name: string) => {
+                // Resolved from localCreateStyles
+                if (localCreateStyles[name]) {
+                  return localCreateStyles[name].obj;
+                }
+                // Resolved from imported createTheme
+                if (mergedCreateThemeHashTable[name]) {
+                  const themeHash = mergedCreateThemeHashTable[name];
+                  return scannedTables.createAtomicMapTable[themeHash];
+                }
+                return undefined;
+              };
+
               const obj = objectExpressionToObject(
                 node.init.arguments[0].expression as ObjectExpression,
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
-                mergedThemeTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
                 mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
                 resolveVariable,
               );
@@ -252,14 +285,41 @@ export function compileCSS(options: CompilerOptions) {
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
-                mergedThemeTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
                 mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
                 resolveVariable,
               );
               if (obj) {
                 localCreateStyles[node.id.value] = { type: 'variant', obj };
               }
+            } else if (propName === 'createTheme') {
+              const obj = objectExpressionToObject(
+                node.init.arguments[0].expression as ObjectExpression,
+                mergedStaticTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
+                mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
+                mergedVariantsTable,
+              );
+
+              const hash = genBase36Hash(obj, 1, 8);
+              const uniqueKey = `${resourcePath}-${node.id.value}`;
+
+              scannedTables.createThemeHashTable[uniqueKey] = hash;
+              scannedTables.createThemeObjectTable[hash] = obj;
+
+              localCreateStyles[node.id.value] = {
+                type: 'create',
+                obj: scannedTables.createAtomicMapTable[hash],
+              };
             }
           }
         }
@@ -301,8 +361,11 @@ export function compileCSS(options: CompilerOptions) {
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
-                mergedThemeTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
                 mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
               );
               if (obj) results.push(obj);
@@ -585,11 +648,19 @@ export function compileCSS(options: CompilerOptions) {
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
-              mergedThemeTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
               mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
               mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
+            extractOndemandStyles(
+              { kf: `kf-${hash}` },
+              extractedSheets,
+              scannedTables,
+            );
             scannedTables.keyframesObjectTable[hash] = obj;
           } else if (
             propName === 'viewTransition' &&
@@ -601,13 +672,15 @@ export function compileCSS(options: CompilerOptions) {
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
-              mergedThemeTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
               mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
               mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
             scannedTables.viewTransitionObjectTable[hash] = obj;
-            extractOndemandStyles(obj, extractedSheets, scannedTables);
             extractOndemandStyles(
               { vt: `vt-${hash}` },
               extractedSheets,
@@ -623,12 +696,16 @@ export function compileCSS(options: CompilerOptions) {
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
-              mergedThemeTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
               mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
               mergedVariantsTable,
             );
             const themeHash = genBase36Hash(obj, 1, 8);
             scannedTables.createThemeObjectTable[themeHash] = obj;
+            extractOndemandStyles(obj, extractedSheets, scannedTables);
           }
         }
       },
