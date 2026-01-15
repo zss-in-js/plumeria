@@ -7,125 +7,112 @@ const ruleTester = new RuleTester();
 ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
   valid: [
     {
-      code: 'const styles = css.create({})',
-      settings: {
-        ecmaVersion: 2021,
-      },
+      code: `import * as css from '@plumeria/core'; const styles = css.create({})`,
     },
     {
-      code: 'css.props()',
-      settings: {
-        ecmaVersion: 2021,
-      },
+      code: `import * as css from '@plumeria/core'; css.props()`,
     },
     {
-      code: 'const animate = css.keyframes({})',
-      settings: {
-        ecmaVersion: 2021,
-      },
+      code: `import * as css from '@plumeria/core'; const animate = css.keyframes({})`,
     },
     {
-      code: 'const transitionName = css.viewTransition({})',
-      settings: {
-        ecmaVersion: 2021,
-      },
+      code: `import * as css from '@plumeria/core'; const transitionName = css.viewTransition({})`,
     },
     {
-      code: 'const breakpoints = css.createStatic({})',
-      settings: {
-        ecmaVersion: 2021,
-      },
+      code: `import * as css from '@plumeria/core'; const breakpoints = css.createStatic({})`,
     },
     {
-      code: 'const tokens = css.createTheme({})',
-      settings: {
-        ecmaVersion: 2021,
-      },
+      code: `import * as css from '@plumeria/core'; const tokens = css.createTheme({})`,
+    },
+    {
+      code: `import css from '@plumeria/core'; const styles = css.create({})`,
+    },
+    {
+      code: `import { "create" as c } from '@plumeria/core';`,
+    },
+    {
+      code: `import { create } from '@plumeria/core';`,
     },
   ],
   invalid: [
     {
-      code: 'const { create } = css;',
+      code: `import * as css from '@plumeria/core'; const { create } = css;`,
       errors: [
         {
           message:
             'Do not destructure "create" from "css". Use dot notation instead.',
         },
       ],
-      settings: {
-        ecmaVersion: 2021,
-      },
     },
     {
-      code: 'const { props } = css;',
+      code: `import * as css from '@plumeria/core'; const { props } = css;`,
       errors: [
         {
           message:
             'Do not destructure "props" from "css". Use dot notation instead.',
         },
       ],
-      settings: {
-        ecmaVersion: 2021,
-      },
     },
     {
-      code: 'const { keyframes } = css;',
+      code: `import * as css from '@plumeria/core'; const { variants } = css;`,
+      errors: [
+        {
+          message:
+            'Do not destructure "variants" from "css". Use dot notation instead.',
+        },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const { keyframes } = css;`,
       errors: [
         {
           message:
             'Do not destructure "keyframes" from "css". Use dot notation instead.',
         },
       ],
-      settings: {
-        ecmaVersion: 2021,
-      },
     },
     {
-      code: 'const { viewTransition } = css;',
+      code: `import * as css from '@plumeria/core'; const { viewTransition } = css;`,
       errors: [
         {
           message:
             'Do not destructure "viewTransition" from "css". Use dot notation instead.',
         },
       ],
-      settings: {
-        ecmaVersion: 2021,
-      },
     },
     {
-      code: 'const { createStatic } = css;',
+      code: `import * as css from '@plumeria/core'; const { createStatic } = css;`,
       errors: [
         {
           message:
             'Do not destructure "createStatic" from "css". Use dot notation instead.',
         },
       ],
-      settings: {
-        ecmaVersion: 2021,
-      },
     },
     {
-      code: 'const { createTheme } = css;',
+      code: `import * as css from '@plumeria/core'; const { createTheme } = css;`,
       errors: [
         {
           message:
             'Do not destructure "createTheme" from "css". Use dot notation instead.',
         },
       ],
-      settings: {
-        ecmaVersion: 2021,
-      },
     },
     {
-      code: 'const { create, props, createStatic, createTheme, keyframes } = css;',
+      code: `import css from '@plumeria/core'; const { create } = css;`,
       errors: [
         {
           message:
             'Do not destructure "create" from "css". Use dot notation instead.',
         },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const { create, createStatic, createTheme, keyframes, props, variants } = css;`,
+      errors: [
         {
           message:
-            'Do not destructure "props" from "css". Use dot notation instead.',
+            'Do not destructure "create" from "css". Use dot notation instead.',
         },
         {
           message:
@@ -139,10 +126,24 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
           message:
             'Do not destructure "keyframes" from "css". Use dot notation instead.',
         },
+        {
+          message:
+            'Do not destructure "props" from "css". Use dot notation instead.',
+        },
+        {
+          message:
+            'Do not destructure "variants" from "css". Use dot notation instead.',
+        },
       ],
-      settings: {
-        ecmaVersion: 2021,
-      },
+    },
+    {
+      code: `import * as style from '@plumeria/core'; const { create } = style;`,
+      errors: [
+        {
+          message:
+            'Do not destructure "create" from "style". Use dot notation instead.',
+        },
+      ],
     },
   ],
 });
