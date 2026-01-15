@@ -17,7 +17,6 @@ export type CSSObject = {
 
 // Table types for various CSS constructs
 export type StaticTable = Record<string, CSSValue>; // varName -> object
-export type ThemeTable = Record<string, CSSObject>; // varName -> object
 export type KeyframesHashTable = Record<string, string>; // varName -> hash
 export type KeyframesObjectTable = Record<string, CSSObject>; // hashKey: { string: { string: string | number }, ... }
 export type ViewTransitionHashTable = Record<string, string>; // varName -> hash
@@ -31,18 +30,23 @@ export type CreateAtomicMapTable = Record<
   string,
   Record<string, Record<string, string>>
 >;
+export type CreateStaticHashTable = Record<string, string>; // varName -> hash
+export type CreateStaticObjectTable = Record<string, CSSObject>;
+export type CreateThemeHashTable = Record<string, string>; // varName -> hash
 
 export interface Tables {
   staticTable: StaticTable;
-  themeTable: ThemeTable;
   keyframesHashTable: KeyframesHashTable;
   keyframesObjectTable: KeyframesObjectTable;
   viewTransitionHashTable: ViewTransitionHashTable;
   viewTransitionObjectTable: ViewTransitionObjectTable;
+  createThemeHashTable: CreateThemeHashTable;
   createThemeObjectTable: CreateThemeObjectTable;
   createHashTable: CreateHashTable;
   createObjectTable: CreateObjectTable;
   createAtomicMapTable: CreateAtomicMapTable;
+  createStaticHashTable: CreateStaticHashTable;
+  createStaticObjectTable: CreateStaticObjectTable;
   variantsHashTable: VariantsHashTable;
   variantsObjectTable: VariantsObjectTable;
   extractedSheet?: string;
