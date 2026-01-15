@@ -1,6 +1,6 @@
 ---
 title: createStatic
-description: 'API reference for the createStatic method'
+description: 'API reference for the createStatic'
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
@@ -13,7 +13,7 @@ It is useful for creating values such as **breakpoints**, spacing scales, or oth
 
 ```ts title="TypeScript"
 // lib/mediaQuery.ts
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 export const breakpoints = css.createStatic({
   xs: '@media (max-width: 480px)',
