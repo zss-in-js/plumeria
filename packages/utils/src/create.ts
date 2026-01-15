@@ -6,6 +6,7 @@ import {
   genBase36Hash,
   transpile,
   overrideLonghand,
+  transpileAtomic,
 } from 'zss-engine';
 
 export interface StyleRecord {
@@ -44,10 +45,10 @@ export function getStyleRecords(
           );
           queryHashes.push(hash);
         }
-
+        const queryKey = prop + ':' + innerProp;
         if (querySheets.length > 0) {
           records.push({
-            key: prop + innerProp,
+            key: queryKey,
             hash: queryHashes.join(' '),
             sheet: querySheets.join(''),
           });
@@ -88,41 +89,88 @@ export function getStyleRecords(
       }
     });
 
+    const processSelectorStyle = (
+      selector: string,
+      style: CSSProperties,
+      atRule?: string,
+      index?: number,
+    ) => {
+      const isAtomic =
+        selector.startsWith(':') ||
+        (selector.startsWith('&') &&
+          (selector.startsWith('&:') || selector.startsWith('&[')));
+
+      if (isAtomic) {
+        const normalizedSelector = selector.replace('&', '');
+        Object.entries(style).forEach(([prop, value]) => {
+          let hashSource = { [prop]: value };
+          if (atRule) {
+            hashSource = { [atRule]: { [selector]: hashSource } };
+          } else {
+            hashSource = { [selector]: hashSource };
+          }
+
+          const suffix = atRule ? notNormalize : ':not(#\\#)';
+          const hash = genBase36Hash(hashSource, 1, 8);
+
+          let sheet = transpileAtomic(
+            prop,
+            value as string | number,
+            hash,
+            normalizedSelector,
+          );
+
+          sheet = sheet.replace(`.${hash}`, `.${hash}${suffix}`);
+
+          if (atRule) {
+            sheet = `${atRule} { ${sheet} }`;
+          }
+
+          records.push({
+            key: atRule
+              ? `${atRule}:${selector}:${prop}`
+              : `${selector}:${prop}`,
+            hash,
+            sheet: sheet + '\n',
+          });
+        });
+      } else {
+        const hashObj = {
+          [key]: { [atRule || 'base']: { [selector]: style, index } },
+        };
+
+        const hash = genBase36Hash(hashObj, 1, 7);
+
+        const transpileObj = atRule
+          ? { [key]: { [atRule]: { [selector]: style } } }
+          : { [key]: { [selector]: style } };
+
+        const { styleSheet } = transpile(transpileObj, hash);
+
+        const sheet = atRule
+          ? styleSheet.replace(`.${hash}`, `.${hash}${notNormalize}`)
+          : styleSheet;
+
+        const recordKey = atRule
+          ? `${atRule}:${selector}:${index}`
+          : `${selector}:${index}`;
+
+        records.push({
+          key: recordKey,
+          hash: hash,
+          sheet: sheet,
+        });
+      }
+    };
+
     Object.entries(nonFlatBase).forEach(([selector, style], index) => {
-      const hashObj = { [key]: { [selector]: style, index } };
-      const hash = genBase36Hash(hashObj, 1, 7);
-
-      const transpileObj = { [key]: { [selector]: style } };
-      const { styleSheet } = transpile(transpileObj, hash);
-
-      records.push({
-        key: selector + index,
-        hash: hash,
-        sheet: styleSheet,
-      });
+      processSelectorStyle(selector, style as CSSProperties, undefined, index);
     });
 
     Object.entries(nonFlatQuery).forEach(([atRule, nestedStyles]) => {
-      Object.entries(nestedStyles as any).forEach(
-        ([selector, style], index) => {
-          const hashObj = { [key]: { [atRule]: { [selector]: style, index } } };
-          const hash = genBase36Hash(hashObj, 1, 7);
-
-          const transpileObj = { [key]: { [atRule]: { [selector]: style } } };
-          const { styleSheet } = transpile(transpileObj, hash);
-
-          const finalSheet = styleSheet.replace(
-            `.${hash}`,
-            `.${hash}${notNormalize}`,
-          );
-
-          records.push({
-            key: atRule + selector + index,
-            hash: hash,
-            sheet: finalSheet,
-          });
-        },
-      );
+      Object.entries(nestedStyles).forEach(([selector, style], index) => {
+        processSelectorStyle(selector, style as CSSProperties, atRule, index);
+      });
     });
   }
 
