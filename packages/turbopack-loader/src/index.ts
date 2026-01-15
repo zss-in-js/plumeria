@@ -5,7 +5,6 @@ import type {
   Expression,
   ImportSpecifier,
   ObjectExpression,
-  MemberExpression,
   Identifier,
 } from '@swc/core';
 import fs from 'fs';
@@ -29,9 +28,10 @@ import type {
   StaticTable,
   KeyframesHashTable,
   ViewTransitionHashTable,
-  ThemeTable,
   CreateHashTable,
   VariantsHashTable,
+  CreateThemeHashTable,
+  CreateStaticHashTable,
 } from '@plumeria/utils';
 
 interface LoaderContext {
@@ -82,6 +82,8 @@ export default async function loader(this: LoaderContext, source: string) {
   const localConsts = collectLocalConsts(ast);
   const resourcePath = this.resourcePath;
   const importMap: Record<string, any> = {};
+  const createThemeImportMap: Record<string, any> = {};
+  const createStaticImportMap: Record<string, any> = {};
   const plumeriaAliases: Record<string, string> = {};
 
   traverse(ast, {
@@ -113,6 +115,7 @@ export default async function loader(this: LoaderContext, source: string) {
               : specifier.local.value;
             const localName = specifier.local.value;
             const uniqueKey = `${actualPath}-${importedName}`;
+
             if (scannedTables.staticTable[uniqueKey]) {
               importMap[localName] = scannedTables.staticTable[uniqueKey];
             }
@@ -124,14 +127,19 @@ export default async function loader(this: LoaderContext, source: string) {
               importMap[localName] =
                 scannedTables.viewTransitionHashTable[uniqueKey];
             }
-            if (scannedTables.themeTable[uniqueKey]) {
-              importMap[localName] = scannedTables.themeTable[uniqueKey];
-            }
             if (scannedTables.createHashTable[uniqueKey]) {
               importMap[localName] = scannedTables.createHashTable[uniqueKey];
             }
             if (scannedTables.variantsHashTable[uniqueKey]) {
               importMap[localName] = scannedTables.variantsHashTable[uniqueKey];
+            }
+            if (scannedTables.createThemeHashTable[uniqueKey]) {
+              createThemeImportMap[localName] =
+                scannedTables.createThemeHashTable[uniqueKey];
+            }
+            if (scannedTables.createStaticHashTable[uniqueKey]) {
+              createStaticImportMap[localName] =
+                scannedTables.createStaticHashTable[uniqueKey];
             }
           }
         });
@@ -166,14 +174,6 @@ export default async function loader(this: LoaderContext, source: string) {
     mergedViewTransitionTable[key] = importMap[key];
   }
 
-  const mergedThemeTable: ThemeTable = {};
-  for (const key of Object.keys(scannedTables.themeTable)) {
-    mergedThemeTable[key] = scannedTables.themeTable[key];
-  }
-  for (const key of Object.keys(importMap)) {
-    mergedThemeTable[key] = importMap[key];
-  }
-
   const mergedCreateTable: CreateHashTable = {};
   for (const key of Object.keys(scannedTables.createHashTable)) {
     mergedCreateTable[key] = scannedTables.createHashTable[key];
@@ -188,6 +188,32 @@ export default async function loader(this: LoaderContext, source: string) {
   }
   for (const key of Object.keys(importMap)) {
     mergedVariantsTable[key] = importMap[key];
+  }
+
+  const mergedCreateThemeHashTable: CreateThemeHashTable = {};
+  for (const key of Object.keys(scannedTables.createThemeHashTable)) {
+    mergedCreateThemeHashTable[key] = scannedTables.createThemeHashTable[key];
+    if (key.startsWith(`${resourcePath}-`)) {
+      const varName = key.slice(resourcePath.length + 1);
+      mergedCreateThemeHashTable[varName] =
+        scannedTables.createThemeHashTable[key];
+    }
+  }
+  for (const key of Object.keys(createThemeImportMap)) {
+    mergedCreateThemeHashTable[key] = createThemeImportMap[key];
+  }
+
+  const mergedCreateStaticHashTable: CreateStaticHashTable = {};
+  for (const key of Object.keys(scannedTables.createStaticHashTable)) {
+    mergedCreateStaticHashTable[key] = scannedTables.createStaticHashTable[key];
+    if (key.startsWith(`${resourcePath}-`)) {
+      const varName = key.slice(resourcePath.length + 1);
+      mergedCreateStaticHashTable[varName] =
+        scannedTables.createStaticHashTable[key];
+    }
+  }
+  for (const key of Object.keys(createStaticImportMap)) {
+    mergedCreateStaticHashTable[key] = createStaticImportMap[key];
   }
 
   const localCreateStyles: Record<
@@ -281,10 +307,14 @@ export default async function loader(this: LoaderContext, source: string) {
           mergedStaticTable,
           mergedKeyframesTable,
           mergedViewTransitionTable,
-          mergedThemeTable,
+          mergedCreateThemeHashTable,
+          scannedTables.createThemeObjectTable,
           mergedCreateTable,
+          mergedCreateStaticHashTable,
+          scannedTables.createStaticObjectTable,
           mergedVariantsTable,
         );
+
         if (obj) {
           const hashMap: Record<string, Record<string, string>> = {};
           Object.entries(obj).forEach(([key, style]) => {
@@ -321,36 +351,22 @@ export default async function loader(this: LoaderContext, source: string) {
           };
         }
       } else if (
-        (propName === 'createTheme' || propName === 'createStatic') &&
-        (t.isObjectExpression(node.init.arguments[0].expression) ||
-          t.isStringLiteral(node.init.arguments[0].expression))
-      ) {
-        localCreateStyles[node.id.value] = {
-          name: node.id.value,
-          type: 'constant',
-          obj: {},
-          hashMap: {},
-          isExported,
-          initSpan: {
-            start: node.init.span.start - ast.span.start,
-            end: node.init.span.end - ast.span.start,
-          },
-          declSpan: {
-            start: declSpan.start - ast.span.start,
-            end: declSpan.end - ast.span.start,
-          },
-        };
-      } else if (
         propName === 'variants' &&
         t.isObjectExpression(node.init.arguments[0].expression)
       ) {
+        if (t.isIdentifier(node.id)) {
+          idSpans.add(node.id.span.start);
+        }
         const obj = objectExpressionToObject(
           node.init.arguments[0].expression as ObjectExpression,
           mergedStaticTable,
           mergedKeyframesTable,
           mergedViewTransitionTable,
-          mergedThemeTable,
+          mergedCreateThemeHashTable,
+          scannedTables.createThemeObjectTable,
           mergedCreateTable,
+          mergedCreateStaticHashTable,
+          scannedTables.createStaticObjectTable,
           mergedVariantsTable,
           (name: string) => {
             if (localCreateStyles[name]) {
@@ -370,6 +386,48 @@ export default async function loader(this: LoaderContext, source: string) {
           type: 'variant',
           obj,
           hashMap: {},
+          isExported,
+          initSpan: {
+            start: node.init.span.start - ast.span.start,
+            end: node.init.span.end - ast.span.start,
+          },
+          declSpan: {
+            start: declSpan.start - ast.span.start,
+            end: declSpan.end - ast.span.start,
+          },
+        };
+      } else if (
+        propName === 'createTheme' &&
+        t.isObjectExpression(node.init.arguments[0].expression)
+      ) {
+        if (t.isIdentifier(node.id)) {
+          idSpans.add(node.id.span.start);
+        }
+
+        const obj = objectExpressionToObject(
+          node.init.arguments[0].expression as ObjectExpression,
+          mergedStaticTable,
+          mergedKeyframesTable,
+          mergedViewTransitionTable,
+          mergedCreateThemeHashTable,
+          scannedTables.createThemeObjectTable,
+          mergedCreateTable,
+          mergedCreateStaticHashTable,
+          scannedTables.createStaticObjectTable,
+          mergedVariantsTable,
+        );
+
+        const hash = genBase36Hash(obj, 1, 8);
+        const uniqueKey = `${resourcePath}-${node.id.value}`;
+
+        scannedTables.createThemeHashTable[uniqueKey] = hash;
+        scannedTables.createThemeObjectTable[hash] = obj;
+
+        localCreateStyles[node.id.value] = {
+          name: node.id.value,
+          type: 'constant',
+          obj,
+          hashMap: scannedTables.createAtomicMapTable[hash],
           isExported,
           initSpan: {
             start: node.init.span.start - ast.span.start,
@@ -451,8 +509,11 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedStaticTable,
             mergedKeyframesTable,
             mergedViewTransitionTable,
-            mergedThemeTable,
+            mergedCreateThemeHashTable,
+            scannedTables.createThemeObjectTable,
             mergedCreateTable,
+            mergedCreateStaticHashTable,
+            scannedTables.createStaticObjectTable,
             mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
@@ -472,14 +533,16 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedStaticTable,
             mergedKeyframesTable,
             mergedViewTransitionTable,
-            mergedThemeTable,
+            mergedCreateThemeHashTable,
+            scannedTables.createThemeObjectTable,
             mergedCreateTable,
+            mergedCreateStaticHashTable,
+            scannedTables.createStaticObjectTable,
             mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.viewTransitionObjectTable[hash] = obj;
           if (!isProduction) {
-            extractOndemandStyles(obj, extractedSheets, scannedTables);
             extractOndemandStyles(
               { vt: `vt-${hash}` },
               extractedSheets,
@@ -492,7 +555,7 @@ export default async function loader(this: LoaderContext, source: string) {
             content: JSON.stringify(`vt-${hash}`),
           });
         } else if (
-          propName === 'createTheme' &&
+          (propName === 'createTheme' || propName === 'createStatic') &&
           args.length > 0 &&
           t.isObjectExpression(args[0].expression)
         ) {
@@ -501,12 +564,25 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedStaticTable,
             mergedKeyframesTable,
             mergedViewTransitionTable,
-            mergedThemeTable,
+            mergedCreateThemeHashTable,
+            scannedTables.createThemeObjectTable,
             mergedCreateTable,
+            mergedCreateStaticHashTable,
+            scannedTables.createStaticObjectTable,
             mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          scannedTables.createThemeObjectTable[hash] = obj;
+          if (propName === 'createTheme') {
+            scannedTables.createThemeObjectTable[hash] = obj;
+          } else {
+            scannedTables.createStaticObjectTable[hash] = obj;
+          }
+          const prefix = propName === 'createTheme' ? 'tm-' : 'st-';
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(`${prefix}${hash}`),
+          });
         } else if (
           propName === 'create' &&
           args.length > 0 &&
@@ -517,8 +593,11 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedStaticTable,
             mergedKeyframesTable,
             mergedViewTransitionTable,
-            mergedThemeTable,
+            mergedCreateThemeHashTable,
+            scannedTables.createThemeObjectTable,
             mergedCreateTable,
+            mergedCreateStaticHashTable,
+            scannedTables.createStaticObjectTable,
             mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
@@ -543,29 +622,12 @@ export default async function loader(this: LoaderContext, source: string) {
       if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
         const varName = node.object.value;
         const propName = node.property.value;
-        const uniqueKey = `${this.resourcePath}-${varName}`;
+        const uniqueKey = `${resourcePath}-${varName}`;
 
         // Prioritize scanAll tables for local variables
         let hash = scannedTables.createHashTable[uniqueKey];
         if (!hash) {
           hash = mergedCreateTable[varName];
-        }
-
-        // Keep local fallback just in case scanAll missed something (e.g. fresh edit before save),
-        // but prefer hash from table if available.
-        if (!hash) {
-          const styleInfo = localCreateStyles[varName];
-          if (styleInfo) {
-            const atomMap = styleInfo.hashMap[propName];
-            if (atomMap) {
-              replacements.push({
-                start: node.span.start - ast.span.start,
-                end: node.span.end - ast.span.start,
-                content: JSON.stringify(atomMap),
-              });
-              return;
-            }
-          }
         }
 
         if (hash) {
@@ -582,8 +644,121 @@ export default async function loader(this: LoaderContext, source: string) {
               end: node.span.end - ast.span.start,
               content: JSON.stringify(atomMap),
             });
-            return;
           }
+        }
+
+        // Check createTheme using atomic map
+        let themeHash = scannedTables.createThemeHashTable[uniqueKey];
+        if (!themeHash) {
+          themeHash = mergedCreateThemeHashTable[varName];
+        }
+
+        if (themeHash) {
+          // Use createAtomicMapTable for consistency with parser
+          const atomicMap = scannedTables.createAtomicMapTable[themeHash];
+          if (atomicMap && atomicMap && atomicMap[propName]) {
+            replacements.push({
+              start: node.span.start - ast.span.start,
+              end: node.span.end - ast.span.start,
+              content: JSON.stringify(atomicMap[propName]),
+            });
+          }
+        }
+
+        // Check createStatic
+        let staticHash = scannedTables.createStaticHashTable[uniqueKey];
+        if (!staticHash) {
+          staticHash = mergedCreateStaticHashTable[varName];
+        }
+
+        if (staticHash) {
+          const staticObj = scannedTables.createStaticObjectTable[staticHash];
+          if (staticObj && staticObj[propName] !== undefined) {
+            replacements.push({
+              start: node.span.start - ast.span.start,
+              end: node.span.end - ast.span.start,
+              content: JSON.stringify(staticObj[propName]),
+            });
+          }
+        }
+      }
+    },
+    Identifier({ node }) {
+      if (excludedSpans.has(node.span.start)) return;
+      if (idSpans.has(node.span.start)) return;
+
+      const styleInfo = localCreateStyles[node.value];
+      if (styleInfo) {
+        replacements.push({
+          start: node.span.start - ast.span.start,
+          end: node.span.end - ast.span.start,
+          content: JSON.stringify(styleInfo.hashMap),
+        });
+        return;
+      }
+
+      const varName = node.value;
+      const uniqueKey = `${resourcePath}-${varName}`;
+
+      let hash = scannedTables.createHashTable[uniqueKey];
+      if (!hash) {
+        hash = mergedCreateTable[varName];
+      }
+
+      if (hash) {
+        const obj = scannedTables.createObjectTable[hash];
+        const atomicMap = scannedTables.createAtomicMapTable[hash];
+
+        if (obj && atomicMap) {
+          // Reconstruct hashMap from createObjectTable + createAtomicMapTable
+          const hashMap: Record<string, Record<string, string>> = {};
+          Object.keys(obj).forEach((key) => {
+            if (atomicMap[key]) {
+              hashMap[key] = atomicMap[key];
+            }
+          });
+
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(hashMap),
+          });
+        }
+      }
+
+      // Check createTheme using atomic map
+      let themeHash = scannedTables.createThemeHashTable[uniqueKey];
+      if (!themeHash) {
+        themeHash = mergedCreateThemeHashTable[varName];
+      }
+
+      if (themeHash) {
+        // Use createAtomicMapTable to get resolved CSS variables
+        const atomicMap = scannedTables.createAtomicMapTable[themeHash];
+        if (atomicMap) {
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(atomicMap),
+          });
+          return;
+        }
+      }
+
+      // Check createStatic
+      let staticHash = scannedTables.createStaticHashTable[uniqueKey];
+      if (!staticHash) {
+        staticHash = mergedCreateStaticHashTable[varName];
+      }
+
+      if (staticHash) {
+        const staticObj = scannedTables.createStaticObjectTable[staticHash];
+        if (staticObj) {
+          replacements.push({
+            start: node.span.start - ast.span.start,
+            end: node.span.end - ast.span.start,
+            content: JSON.stringify(staticObj),
+          });
         }
       }
     },
@@ -625,23 +800,25 @@ export default async function loader(this: LoaderContext, source: string) {
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
-              mergedThemeTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
               mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
               mergedVariantsTable,
             );
           } else if (
             t.isMemberExpression(expr) &&
-            t.isIdentifier(expr.object) &&
-            (t.isIdentifier(expr.property) || expr.property.type === 'Computed')
+            t.isIdentifier((expr as any).object) &&
+            (t.isIdentifier((expr as any).property) ||
+              (expr as any).property.type === 'Computed')
           ) {
-            if (expr.property.type === 'Computed') {
+            if ((expr as any).property.type === 'Computed') {
               // Ignore bracket notation for complete staticization
               return {};
             }
-            const varName = ((expr as MemberExpression).object as Identifier)
-              .value;
-            const propName = ((expr as MemberExpression).property as Identifier)
-              .value;
+            const varName = ((expr as any).object as Identifier).value;
+            const propName = ((expr as any).property as Identifier).value;
 
             const styleInfo = localCreateStyles[varName];
             if (styleInfo && styleInfo.obj[propName]) {
@@ -662,7 +839,7 @@ export default async function loader(this: LoaderContext, source: string) {
               }
             }
           } else if (t.isIdentifier(expr)) {
-            const varName = expr.value;
+            const varName = (expr as Identifier).value;
             const uniqueKey = `${this.resourcePath}-${varName}`;
 
             let hash = scannedTables.createHashTable[uniqueKey];
@@ -970,6 +1147,9 @@ export default async function loader(this: LoaderContext, source: string) {
 
   // Confirm the replacement of the styles declaration
   Object.values(localCreateStyles).forEach((info) => {
+    if (info.type === 'constant' || info.type === 'variant') {
+      return;
+    }
     if (info.isExported) {
       replacements.push({
         start: info.declSpan.start,
