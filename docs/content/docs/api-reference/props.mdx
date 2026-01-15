@@ -1,13 +1,13 @@
 ---
 title: 'props'
-description: 'API reference for the props method'
+description: 'API reference for the props'
 ---
 
-The css.props() function returns style object as hashed classes together while **filtering out falsy values** like **undefined**, **false**, or **null**. It is useful when conditionally combining styles.
+The `props()` returns style object as hashed classes together while **filtering out falsy values** like **undefined**, **false**, or **null**. It is useful when conditionally combining styles.
 
 ## Example
 ```ts title="TypeScript"
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 const styles = css.create({
   one: {
@@ -64,8 +64,7 @@ css.props(styles.one, false, undefined, styles.two);
 ## See Also
 
 <Callout title="Good to know">
-  Since falsy values are filtered out, you can use logical and, ternary
-  operators, etc. in argument expressions.
+  props, like all APIs, have no runtime. They are controlled at build time by plugins, so functions themselves are replaced by hashes.
 </Callout>
 
 ### More
