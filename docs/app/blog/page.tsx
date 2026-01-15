@@ -18,7 +18,7 @@ function Page(): JSX.Element {
     <main className={css.props(styles.container)}>
       <div className={css.props(styles.header)}>
         <h1 className={css.props(styles.title)}>Blog</h1>
-        <span>The latest updates and releases from the Plumeria team at ZSS-in-JS.</span>
+        <span>The latest updates and releases from the Plumeria at ZSS-in-JS.</span>
       </div>
 
       {posts
