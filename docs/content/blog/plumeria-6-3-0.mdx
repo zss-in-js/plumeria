@@ -1,0 +1,35 @@
+---
+title: 'Plumeria v6.3.0'
+description: 'Plumeria v6.2.1 fixes API fixes createStatic and createTheme. (1 min read)'
+date: '2026-01-13'
+---
+
+### ✨ Features
+- **createTheme and createStatic are now fully functional**
+- In previous versions, these APIs were not working correctly.
+- This fix fully supports theming and static inline generation.
+
+###
+```ts
+export const theme = createTheme({ primaryColor: { default:'#FF6B6B' } });
+export const breakpoints = createStatic({ mobile: '768px' });
+```
+
+
+
+## Changes
+### internal
+
+
+- resolver path bugfix for createTheme and createStatic export case.
+- bug that caused createTheme and createStatic not to work
+- fix: resolver get tsconfig.json
+
+
+
+
+Plumeria is in use at plumeria.dev. Let's try using plumeria together.
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
