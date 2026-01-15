@@ -19,8 +19,26 @@ export const noInnerCall: Rule.RuleModule = {
   },
   create(context) {
     let functionDepth = 0;
+    const plumeriaAliases: Record<string, string> = {};
 
     return {
+      ImportDeclaration(node) {
+        if (node.source.value === '@plumeria/core') {
+          node.specifiers.forEach((specifier) => {
+            if (specifier.type === 'ImportNamespaceSpecifier') {
+              plumeriaAliases[specifier.local.name] = 'NAMESPACE';
+            } else if (specifier.type === 'ImportDefaultSpecifier') {
+              plumeriaAliases[specifier.local.name] = 'NAMESPACE';
+            } else if (specifier.type === 'ImportSpecifier') {
+              const importedName =
+                specifier.imported.type === 'Identifier'
+                  ? specifier.imported.name
+                  : String(specifier.imported.value);
+              plumeriaAliases[specifier.local.name] = importedName;
+            }
+          });
+        }
+      },
       FunctionDeclaration() {
         functionDepth++;
       },
@@ -41,30 +59,43 @@ export const noInnerCall: Rule.RuleModule = {
       },
       CallExpression(node) {
         if (functionDepth > 0) {
-          if (
-            node.callee.type === 'MemberExpression' &&
-            'name' in node.callee.object &&
-            'name' in node.callee.property
-          ) {
-            const objectName = node.callee.object.name;
-            const propertyName = node.callee.property.name;
+          const callee = node.callee;
+          let propertyName: string | undefined;
+          let fullName: string | undefined;
 
-            if (objectName === 'css') {
-              const fullName = `${objectName}.${propertyName}`;
-              if (
-                propertyName === 'create' ||
-                propertyName === 'keyframes' ||
-                propertyName === 'viewTransition' ||
-                propertyName === 'createStatic' ||
-                propertyName === 'createTheme'
-              ) {
-                context.report({
-                  node,
-                  messageId: 'noInnerCall',
-                  data: { name: fullName },
-                });
-              }
+          if (
+            callee.type === 'MemberExpression' &&
+            callee.object.type === 'Identifier' &&
+            callee.property.type === 'Identifier'
+          ) {
+            const objectName = callee.object.name;
+            const alias = plumeriaAliases[objectName];
+            if (alias === 'NAMESPACE') {
+              propertyName = callee.property.name;
+              fullName = `${objectName}.${propertyName}`;
             }
+          } else if (callee.type === 'Identifier') {
+            const name = callee.name;
+            const alias = plumeriaAliases[name];
+            if (alias && alias !== 'NAMESPACE') {
+              propertyName = alias;
+              fullName = name;
+            }
+          }
+
+          if (
+            propertyName === 'create' ||
+            propertyName === 'createStatic' ||
+            propertyName === 'createTheme' ||
+            propertyName === 'keyframes' ||
+            propertyName === 'viewTransition' ||
+            propertyName === 'variants'
+          ) {
+            context.report({
+              node,
+              messageId: 'noInnerCall',
+              data: { name: fullName },
+            });
           }
         }
       },
