@@ -2,7 +2,6 @@ export type {
   CSSObject,
   FileStyles,
   StaticTable,
-  ThemeTable,
   KeyframesHashTable,
   KeyframesObjectTable,
   ViewTransitionHashTable,
@@ -12,6 +11,9 @@ export type {
   CreateObjectTable,
   VariantsHashTable,
   VariantsObjectTable,
+  CreateThemeHashTable,
+  CreateStaticHashTable,
+  CreateStaticObjectTable,
 } from './types';
 export {
   objectExpressionToObject,
@@ -23,5 +25,6 @@ export {
   scanAll,
 } from './parser';
 export { getStyleRecords } from './create';
+export { createTheme } from './createTheme';
 export type { StyleRecord } from './create';
 export { resolveImportPath } from './resolver';
