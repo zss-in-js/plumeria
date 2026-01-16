@@ -51,7 +51,7 @@ Read the [documentation](https://plumeria.dev/) for more details.
 - [PostCSS](https://plumeria.dev/docs/integration/postcss)
 - [ESLint](https://plumeria.dev/docs/integration/eslint)
 
-## Acknowledgement
+## Acknowledgements
 
 Plumeria is made possible thanks to the inspirations from the following projects:
 
