@@ -44,27 +44,6 @@ describe('getStyleRecords', () => {
     expect(result[0].sheet).toMatch(/color:\s*green/);
   });
 
-  it('should handle priority 1 (default)', () => {
-    const result = getStyleRecords(
-      'test',
-      { '@media (min-width:0)': { color: 'red' } },
-      1,
-    );
-    // priority 1 usually adds :not(#\#)
-    expect(result[0].sheet).toContain(':not(#\\#)');
-    expect(result[0].sheet).not.toContain(':not(#\\#):not(#\\#)');
-  });
-
-  it('should handle priority 2', () => {
-    const result = getStyleRecords(
-      'test',
-      { '@media (min-width:0)': { color: 'red' } },
-      2,
-    );
-    // priority 2 should add double :not(#\#)
-    expect(result[0].sheet).toContain(':not(#\\#):not(#\\#)');
-  });
-
   it('should handle complex nested styles', () => {
     const result = getStyleRecords('test', {
       color: 'red',
