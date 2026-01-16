@@ -12,6 +12,9 @@ catalogs:
     next:
       specifier: ^16.1.1
       version: 16.1.1
+    postcss:
+      specifier: 8.5.6
+      version: 8.5.6
     react:
       specifier: ^19.2.1
       version: 19.2.1
@@ -512,15 +515,13 @@ importers:
       '@plumeria/compiler':
         specifier: workspace:^
         version: link:../compiler
-      lightningcss:
-        specifier: ^1.30.2
-        version: 1.30.2
       postcss:
-        specifier: ^8.5.6
+        specifier: 'catalog:'
         version: 8.5.6
-      postcss-combine-media-query:
-        specifier: ^2.1.0
-        version: 2.1.0(postcss@8.5.6)
+    devDependencies:
+      '@plumeria/utils':
+        specifier: workspace:^
+        version: link:../utils
 
   packages/turbopack-loader:
     dependencies:
@@ -540,6 +541,15 @@ importers:
       '@swc/core':
         specifier: 'catalog:'
         version: 1.15.8(@swc/helpers@0.5.17)
+      lightningcss:
+        specifier: ^1.30.2
+        version: 1.30.2
+      postcss:
+        specifier: 'catalog:'
+        version: 8.5.6
+      postcss-combine-media-query:
+        specifier: ^2.1.0
+        version: 2.1.0(postcss@8.5.6)
       zss-engine:
         specifier: 'catalog:'
         version: 2.2.0
