@@ -18,11 +18,10 @@ export interface StyleRecord {
 export function getStyleRecords(
   key: string,
   styleRule: CSSProperties,
-  priority: number = 1 | 2,
 ): StyleRecord[] {
   const flat: CreateStyle = {};
   const nonFlat: CreateStyle = {};
-  const notNormalize = priority === 1 ? ':not(#\\#)' : ':not(#\\#):not(#\\#)';
+  const notNormalize = ':not(#\\#)';
 
   splitAtomicAndNested(styleRule, flat, nonFlat);
   const finalFlat = overrideLonghand(flat);
@@ -110,7 +109,6 @@ export function getStyleRecords(
             hashSource = { [selector]: hashSource };
           }
 
-          const suffix = atRule ? notNormalize : ':not(#\\#)';
           const hash = genBase36Hash(hashSource, 1, 8);
 
           let sheet = transpileAtomic(
@@ -120,7 +118,7 @@ export function getStyleRecords(
             normalizedSelector,
           );
 
-          sheet = sheet.replace(`.${hash}`, `.${hash}${suffix}`);
+          sheet = sheet.replace(`.${hash}`, `.${hash}${notNormalize}`);
 
           if (atRule) {
             sheet = `${atRule} { ${sheet} }`;
