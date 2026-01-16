@@ -1,5 +1,5 @@
 import type { PluginCreator, Root, AtRule } from 'postcss';
-import { optimizeCSS } from './optimizer';
+import { optimizer } from '@plumeria/utils';
 import { compileCSS } from '@plumeria/compiler';
 
 interface PlumeriaOptions {
@@ -36,7 +36,7 @@ const plugin: PluginCreator<PlumeriaOptions> = (options = {}) => {
         exclude: exclude,
         cwd: cwd,
       });
-      const optInCSS = await optimizeCSS(genCSS);
+      const optInCSS = await optimizer(genCSS);
 
       plumeriaAtRules.forEach((atRule) => {
         atRule.replaceWith(optInCSS);
