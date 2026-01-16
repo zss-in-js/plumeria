@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 6.3.1
+
+### Patch Changes
+
+- 0fdf28f: fix: Fixed issue where keyframes were not inlined in edge cases such as cross-files
+
 ## 6.3.0
 
 ### Minor Changes

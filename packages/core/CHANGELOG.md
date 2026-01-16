@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 6.3.1
+
+### Patch Changes
+
+- 0fdf28f: chore: bump version to 6.3.1
+
 ## 6.3.0
 
 ### Minor Changes
