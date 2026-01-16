@@ -28,6 +28,7 @@ import {
   deepMerge,
   scanAll,
   resolveImportPath,
+  optimizer,
 } from '@plumeria/utils';
 import type {
   StyleRecord,
@@ -72,6 +73,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
     configResolved(resolvedConfig) {
       isDev = resolvedConfig.command === 'serve';
       config = resolvedConfig;
+      config.build.cssCodeSplit = false;
     },
 
     configureServer(_server) {
@@ -109,7 +111,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         .concat(ctx.modules);
     },
 
-    transform(source, id) {
+    async transform(source, id) {
       if (id.includes('node_modules')) return null;
       if (id.includes('?')) return null;
 
@@ -388,7 +390,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             if (obj) {
               const hashMap: Record<string, Record<string, string>> = {};
               Object.entries(obj).forEach(([key, style]) => {
-                const records = getStyleRecords(key, style as CSSProperties, 2);
+                const records = getStyleRecords(key, style as CSSProperties);
                 extractOndemandStyles(style, extractedSheets, scannedTables);
                 records.forEach((r: StyleRecord) => {
                   addSheet(r.sheet);
@@ -586,6 +588,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               );
               const hash = genBase36Hash(obj, 1, 8);
               scannedTables.keyframesObjectTable[hash] = obj;
+              extractOndemandStyles(
+                { kf: `kf-${hash}` },
+                extractedSheets,
+                scannedTables,
+              );
               replacements.push({
                 start: node.span.start - ast.span.start,
                 end: node.span.end - ast.span.start,
@@ -670,11 +677,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               scannedTables.createObjectTable[hash] = obj;
               Object.entries(obj).forEach(([key, style]) => {
                 if (typeof style === 'object' && style !== null) {
-                  const records = getStyleRecords(
-                    key,
-                    style as CSSProperties,
-                    2,
-                  );
+                  const records = getStyleRecords(key, style as CSSProperties);
                   extractOndemandStyles(style, extractedSheets, scannedTables);
                   records.forEach((r: StyleRecord) => addSheet(r.sheet));
                 }
@@ -1119,7 +1122,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   scannedTables,
                 );
                 const hash = genBase36Hash(baseStyle, 1, 8);
-                const records = getStyleRecords(hash, baseStyle, 2);
+                const records = getStyleRecords(hash, baseStyle);
                 records.forEach((r: StyleRecord) => addSheet(r.sheet));
                 const className = records
                   .map((r: StyleRecord) => r.hash)
@@ -1174,7 +1177,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   );
 
                   const hash = genBase36Hash(currentStyle, 1, 8);
-                  const records = getStyleRecords(hash, currentStyle, 2);
+                  const records = getStyleRecords(hash, currentStyle);
 
                   records.forEach((r: StyleRecord) =>
                     extractedSheets.push(r.sheet),
@@ -1221,7 +1224,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
       // Confirm the replacement of the styles declaration
       Object.values(localCreateStyles).forEach((info) => {
-        if (info.type === 'constant' || info.type === 'variant') {
+        if (info.type === 'constant') {
           return;
         }
         if (info.isExported) {
@@ -1238,6 +1241,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           });
         }
       });
+      const optInCSS = await optimizer(extractedSheets.join(''));
 
       // Apply replacements
       const buffer = Buffer.from(source);
@@ -1256,7 +1260,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       const transformedSource = Buffer.concat(parts).toString();
 
       if (extractedSheets.length > 0) {
-        const generatedCSS = extractedSheets.join('');
         const baseId = id.replace(EXTENSION_PATTERN, '');
         const cssFilename = `${baseId}.zero.css`;
         const cssRelativePath = path
@@ -1264,7 +1267,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           .replace(/\\/g, '/');
         const cssId = `/${cssRelativePath}`;
 
-        cssLookup.set(cssFilename, generatedCSS);
+        cssLookup.set(cssFilename, optInCSS);
         cssFileLookup.set(cssId, cssFilename);
 
         const targetIndex = targets.findIndex((t) => t.id === id);
