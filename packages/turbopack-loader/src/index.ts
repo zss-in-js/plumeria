@@ -7,7 +7,7 @@ import type {
   ObjectExpression,
   Identifier,
 } from '@swc/core';
-import fs from 'fs';
+import { appendFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { genBase36Hash } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
@@ -22,6 +22,7 @@ import {
   deepMerge,
   scanAll,
   resolveImportPath,
+  optimizer,
 } from '@plumeria/utils';
 import type {
   StyleRecord,
@@ -45,7 +46,7 @@ interface LoaderContext {
 
 const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
 if (process.env.NODE_ENV === 'production') {
-  fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */', 'utf-8');
+  writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
 }
 
 export default async function loader(this: LoaderContext, source: string) {
@@ -318,7 +319,7 @@ export default async function loader(this: LoaderContext, source: string) {
         if (obj) {
           const hashMap: Record<string, Record<string, string>> = {};
           Object.entries(obj).forEach(([key, style]) => {
-            const records = getStyleRecords(key, style as CSSProperties, 2);
+            const records = getStyleRecords(key, style as CSSProperties);
             if (!isProduction) {
               extractOndemandStyles(style, extractedSheets, scannedTables);
               records.forEach((r: StyleRecord) => {
@@ -518,6 +519,13 @@ export default async function loader(this: LoaderContext, source: string) {
           );
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.keyframesObjectTable[hash] = obj;
+          if (!isProduction) {
+            extractOndemandStyles(
+              { kf: `kf-${hash}` },
+              extractedSheets,
+              scannedTables,
+            );
+          }
           replacements.push({
             start: node.span.start - ast.span.start,
             end: node.span.end - ast.span.start,
@@ -604,7 +612,7 @@ export default async function loader(this: LoaderContext, source: string) {
           scannedTables.createObjectTable[hash] = obj;
           Object.entries(obj).forEach(([key, style]) => {
             if (typeof style === 'object' && style !== null) {
-              const records = getStyleRecords(key, style as CSSProperties, 2);
+              const records = getStyleRecords(key, style as CSSProperties);
               if (!isProduction) {
                 extractOndemandStyles(style, extractedSheets, scannedTables);
                 records.forEach((r: StyleRecord) => addSheet(r.sheet));
@@ -1047,7 +1055,7 @@ export default async function loader(this: LoaderContext, source: string) {
               extractOndemandStyles(baseStyle, extractedSheets, scannedTables);
             }
             const hash = genBase36Hash(baseStyle, 1, 8);
-            const records = getStyleRecords(hash, baseStyle, 2);
+            const records = getStyleRecords(hash, baseStyle);
             if (!isProduction) {
               records.forEach((r: StyleRecord) => addSheet(r.sheet));
             }
@@ -1100,7 +1108,7 @@ export default async function loader(this: LoaderContext, source: string) {
                 );
               }
               const hash = genBase36Hash(currentStyle, 1, 8);
-              const records = getStyleRecords(hash, currentStyle, 2);
+              const records = getStyleRecords(hash, currentStyle);
               if (process.env.NODE_ENV !== 'production') {
                 records.forEach((r: StyleRecord) =>
                   extractedSheets.push(r.sheet),
@@ -1147,7 +1155,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
   // Confirm the replacement of the styles declaration
   Object.values(localCreateStyles).forEach((info) => {
-    if (info.type === 'constant' || info.type === 'variant') {
+    if (info.type === 'constant') {
       return;
     }
     if (info.isExported) {
@@ -1164,6 +1172,7 @@ export default async function loader(this: LoaderContext, source: string) {
       });
     }
   });
+  const optInCSS = await optimizer(extractedSheets.join(''));
 
   // Apply replacements
   const buffer = Buffer.from(source);
@@ -1211,7 +1220,7 @@ export default async function loader(this: LoaderContext, source: string) {
     return callback(null, transformedSource);
 
   if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-    fs.appendFileSync(VIRTUAL_FILE_PATH, extractedSheets.join(''), 'utf-8');
+    appendFileSync(VIRTUAL_FILE_PATH, optInCSS, 'utf-8');
   }
 
   return callback(null, transformedSource + postfix);
