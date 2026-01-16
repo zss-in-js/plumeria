@@ -768,6 +768,185 @@ describe('parser', () => {
       expect(result.staticTable[homeKey!]).toEqual({ ref: 'priority' });
     });
 
+    it('should resolve cross-file imports for createTheme in Pass 2', () => {
+      const themeFile = path.resolve(process.cwd(), 'lib/theme.ts');
+      const pageFile = path.resolve(process.cwd(), 'app/page.ts');
+
+      mockedFs.globSync.mockReturnValue([themeFile, pageFile]);
+      mockedFs.statSync.mockReturnValue({
+        mtimeMs: 1,
+        isDirectory: () => false,
+        isFile: () => true,
+      } as any);
+      mockedFs.existsSync.mockImplementation((p: any) =>
+        [themeFile, pageFile].includes(path.resolve(p)),
+      );
+
+      const fileContents: Record<string, string> = {
+        [themeFile]:
+          'import { css } from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
+        [pageFile]:
+          'import { T } from "../lib/theme"; import { css } from "@plumeria/core"; export const S = css.create({ c: T.p });',
+      };
+      mockedFs.readFileSync.mockImplementation(
+        (path: any) => fileContents[path] || '',
+      );
+
+      const result = scanAll();
+      // Verify that T was resolved to hash and its property used in S
+      const createKey = Object.keys(result.createHashTable).find((k) =>
+        k.includes('app/page.ts'),
+      );
+      const hash = result.createHashTable[createKey!];
+      const obj = result.createObjectTable[hash];
+      expect(obj.c).toBe('[unresolved]');
+    });
+
+    it('should resolve aliased cross-file imports for createTheme in Pass 2', () => {
+      const themeFile = path.resolve(process.cwd(), 'lib/theme.ts');
+      const pageFile = path.resolve(process.cwd(), 'app/page.ts');
+
+      mockedFs.globSync.mockReturnValue([themeFile, pageFile]);
+      mockedFs.statSync.mockImplementation(
+        () =>
+          ({
+            mtimeMs: 1,
+            isDirectory: () => false,
+            isFile: () => true,
+          }) as any,
+      );
+      mockedFs.existsSync.mockImplementation((p: any) =>
+        [themeFile, pageFile].includes(path.resolve(p)),
+      );
+
+      const fileContents: Record<string, string> = {
+        [themeFile]:
+          'import { css } from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
+        [pageFile]:
+          'import { T as AliasedT } from "../lib/theme"; import { css } from "@plumeria/core"; export const S = css.create({ c: AliasedT.p });',
+      };
+      mockedFs.readFileSync.mockImplementation(
+        (path: any) => fileContents[path] || '',
+      );
+
+      const result = scanAll();
+      // Verify that AliasedT was resolved to hash and its property used in S
+      const createKey = Object.keys(result.createHashTable).find((k) =>
+        k.includes('app/page.ts'),
+      );
+      const hash = result.createHashTable[createKey!];
+      const obj = result.createObjectTable[hash];
+      expect(obj.c).toBe('[unresolved]');
+    });
+
+    it('should resolve exported keyframes in other files', () => {
+      const libFile = path.resolve(process.cwd(), 'lib/anim.ts');
+      const appFile = path.resolve(process.cwd(), 'app/usage.ts');
+
+      mockedFs.globSync.mockReturnValue([
+        appFile,
+        libFile,
+        path.resolve(process.cwd(), 'utils/core.ts'),
+      ]);
+      mockedFs.statSync.mockImplementation(
+        () =>
+          ({
+            mtimeMs: 1,
+            isDirectory: () => false,
+            isFile: () => true,
+          }) as any,
+      );
+      mockedFs.existsSync.mockImplementation((p: any) =>
+        [
+          libFile,
+          appFile,
+          path.resolve(process.cwd(), 'utils/core.ts'),
+        ].includes(path.resolve(p)),
+      );
+
+      const fileContents: Record<string, string> = {
+        [libFile]:
+          'import { css } from "@plumeria/core"; export const fadeIn = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
+        [appFile]:
+          'import { fadeIn } from "../lib/anim"; import { css } from "@plumeria/core"; export const style = css.create({ animate: { animationName: fadeIn } });',
+      };
+      mockedFs.readFileSync.mockImplementation(
+        (path: any) => fileContents[path] || '',
+      );
+
+      const result = scanAll();
+
+      // Verify keyframes hash is resolved in usage file
+      const libKey = Object.keys(result.keyframesHashTable).find((k) =>
+        k.startsWith(libFile),
+      );
+      const kfHash = result.keyframesHashTable[libKey!];
+
+      const createKey = Object.keys(result.createHashTable).find((k) =>
+        k.startsWith(appFile),
+      );
+      const createHash = result.createHashTable[createKey!];
+      const createObj = result.createObjectTable[createHash!] as any;
+
+      expect(libKey).toBeDefined();
+      expect(createObj).toBeDefined();
+      expect(createObj.animate.animationName).toBe(`kf-${kfHash}`);
+    });
+
+    it('should resolve exported viewTransition in other files', () => {
+      const libFile = path.resolve(process.cwd(), 'lib/vt.ts');
+      const appFile = path.resolve(process.cwd(), 'app/page-vt.ts');
+
+      mockedFs.globSync.mockReturnValue([
+        appFile,
+        libFile,
+        path.resolve(process.cwd(), 'utils/core.ts'),
+      ]);
+      mockedFs.statSync.mockImplementation(
+        () =>
+          ({
+            mtimeMs: 1,
+            isDirectory: () => false,
+            isFile: () => true,
+          }) as any,
+      );
+      mockedFs.existsSync.mockImplementation((p: any) =>
+        [
+          libFile,
+          appFile,
+          path.resolve(process.cwd(), 'utils/core.ts'),
+        ].includes(path.resolve(p)),
+      );
+
+      const fileContents: Record<string, string> = {
+        [libFile]:
+          'import { css } from "@plumeria/core"; export const slide = css.viewTransition({ group: { animationDuration: "300ms" } });',
+        [appFile]:
+          'import { slide } from "../lib/vt"; import { css } from "@plumeria/core"; export const style = css.create({ transition: { viewTransitionName: slide } });',
+      };
+      mockedFs.readFileSync.mockImplementation(
+        (path: any) => fileContents[path] || '',
+      );
+
+      const result = scanAll();
+
+      // Verify viewTransition hash is resolved in usage file
+      const libKey = Object.keys(result.viewTransitionHashTable).find((k) =>
+        k.startsWith(libFile),
+      );
+      const vtHash = result.viewTransitionHashTable[libKey!];
+
+      const createKey = Object.keys(result.createHashTable).find((k) =>
+        k.startsWith(appFile),
+      );
+      const createHash = result.createHashTable[createKey!];
+      const createObj = result.createObjectTable[createHash!] as any;
+
+      expect(libKey).toBeDefined();
+      expect(createObj).toBeDefined();
+      expect(createObj.transition.viewTransitionName).toBe(`vt-${vtHash}`);
+    });
+
     it('should scan for createStatic', () => {
       mockedFs.globSync.mockReturnValue(['/test/consts.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
@@ -1144,77 +1323,6 @@ describe('parser', () => {
       const sKey = keys.find((k) => k.endsWith('-S'));
       expect(sKey).toBeDefined();
       expect(result.staticTable[sKey!]).toEqual({ ref: 'red' });
-    });
-
-    it('should resolve cross-file imports for createTheme in Pass 2', () => {
-      const themeFile = path.resolve(process.cwd(), 'lib/theme.ts');
-      const pageFile = path.resolve(process.cwd(), 'app/page.ts');
-
-      mockedFs.globSync.mockReturnValue([themeFile, pageFile]);
-      mockedFs.statSync.mockReturnValue({
-        mtimeMs: 1,
-        isDirectory: () => false,
-        isFile: () => true,
-      } as any);
-      mockedFs.existsSync.mockImplementation((p: any) =>
-        [themeFile, pageFile].includes(path.resolve(p)),
-      );
-
-      const fileContents: Record<string, string> = {
-        [themeFile]:
-          'import { css } from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
-        [pageFile]:
-          'import { T } from "../lib/theme"; import { css } from "@plumeria/core"; export const S = css.create({ c: T.p });',
-      };
-      mockedFs.readFileSync.mockImplementation(
-        (path: any) => fileContents[path] || '',
-      );
-
-      const result = scanAll();
-      // Verify that T was resolved to hash and its property used in S
-      const createKey = Object.keys(result.createHashTable).find((k) =>
-        k.includes('app/page.ts'),
-      );
-      const hash = result.createHashTable[createKey!];
-      const obj = result.createObjectTable[hash];
-      expect(obj.c).toBe('[unresolved]');
-    });
-
-    it('should resolve aliased cross-file imports for createTheme in Pass 2', () => {
-      const themeFile = path.resolve(process.cwd(), 'lib/theme.ts');
-      const pageFile = path.resolve(process.cwd(), 'app/page.ts');
-
-      mockedFs.globSync.mockReturnValue([themeFile, pageFile]);
-      mockedFs.statSync.mockImplementation(
-        () =>
-          ({
-            mtimeMs: 1,
-            isDirectory: () => false,
-            isFile: () => true,
-          }) as any,
-      );
-      mockedFs.existsSync.mockImplementation((p: any) =>
-        [themeFile, pageFile].includes(path.resolve(p)),
-      );
-
-      const fileContents: Record<string, string> = {
-        [themeFile]:
-          'import { css } from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
-        [pageFile]:
-          'import { T as AliasedT } from "../lib/theme"; import { css } from "@plumeria/core"; export const S = css.create({ c: AliasedT.p });',
-      };
-      mockedFs.readFileSync.mockImplementation(
-        (path: any) => fileContents[path] || '',
-      );
-
-      const result = scanAll();
-      // Verify that AliasedT was resolved to hash and its property used in S
-      const createKey = Object.keys(result.createHashTable).find((k) =>
-        k.includes('app/page.ts'),
-      );
-      const hash = result.createHashTable[createKey!];
-      const obj = result.createObjectTable[hash];
-      expect(obj.c).toBe('[unresolved]');
     });
   });
 });
