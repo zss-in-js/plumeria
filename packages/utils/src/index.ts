@@ -24,7 +24,8 @@ export {
   deepMerge,
   scanAll,
 } from './parser';
+export type { StyleRecord } from './create';
 export { getStyleRecords } from './create';
 export { createTheme } from './createTheme';
-export type { StyleRecord } from './create';
 export { resolveImportPath } from './resolver';
+export { optimizer } from './optimizer';
