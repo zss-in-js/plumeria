@@ -998,6 +998,25 @@ export function scanAll(): Tables {
                       // This avoids caching imported themes as if they were defined in this file,
                       // effectively preventing duplicate CSS output on cache restore.
                     }
+                    // Resolve keyframes from global tables
+                    if (localTables.keyframesHashTable[uniqueKey]) {
+                      const hash = localTables.keyframesHashTable[uniqueKey];
+                      localKeyframesHashTable[localName] = hash;
+                      if (localTables.keyframesObjectTable[hash]) {
+                        localKeyframesObjectTable[hash] =
+                          localTables.keyframesObjectTable[hash];
+                      }
+                    }
+                    // Resolve viewTransition from global tables
+                    if (localTables.viewTransitionHashTable[uniqueKey]) {
+                      const hash =
+                        localTables.viewTransitionHashTable[uniqueKey];
+                      localViewTransitionHashTable[localName] = hash;
+                      if (localTables.viewTransitionObjectTable[hash]) {
+                        localViewTransitionObjectTable[hash] =
+                          localTables.viewTransitionObjectTable[hash];
+                      }
+                    }
                   }
                 });
               }
@@ -1083,7 +1102,10 @@ export function scanAll(): Tables {
                 // Pass 2: Process ALL methods. We need to process createStatic/createTheme again
                 // in Pass 2 to populate the local variable maps for the current file correctly.
                 const isPassOneMethod =
-                  method === 'createStatic' || method === 'createTheme';
+                  method === 'createStatic' ||
+                  method === 'createTheme' ||
+                  method === 'keyframes' ||
+                  method === 'viewTransition';
                 if (isFirstPass && !isPassOneMethod) continue;
 
                 if (method === 'createStatic') {
@@ -1161,22 +1183,27 @@ export function scanAll(): Tables {
                   localCreateObjectTable[hash] = obj;
 
                   const hashMap: Record<string, Record<string, string>> = {};
+
                   Object.entries(obj).forEach(([key, style]) => {
-                    const records = getStyleRecords(key, style as any, 2);
+                    const records = getStyleRecords(
+                      key,
+                      style as CSSProperties,
+                    );
                     const atomMap: Record<string, string> = {};
                     records.forEach((r) => (atomMap[r.key] = r.hash));
                     hashMap[key] = atomMap;
-
-                    extractOndemandStyles(
-                      style,
-                      fileExtractedSheets,
-                      localTables,
-                    );
-                    records.forEach((r) => {
-                      if (!fileExtractedSheets.includes(r.sheet)) {
-                        fileExtractedSheets.push(r.sheet);
-                      }
-                    });
+                    if (!isProduction) {
+                      extractOndemandStyles(
+                        style,
+                        fileExtractedSheets,
+                        localTables,
+                      );
+                      records.forEach((r) => {
+                        if (!fileExtractedSheets.includes(r.sheet)) {
+                          fileExtractedSheets.push(r.sheet);
+                        }
+                      });
+                    }
                   });
                   localCreateAtomicMapTable[hash] = hashMap;
                   localTables.createAtomicMapTable[hash] = hashMap;
@@ -1309,7 +1336,7 @@ export function extractOndemandStyles(
       const obj = t.createObjectTable[hash];
       if (obj) {
         Object.entries(obj).forEach(([key, style]) => {
-          const records = getStyleRecords(key, style as CSSProperties, 2);
+          const records = getStyleRecords(key, style as CSSProperties);
           records.forEach((r: StyleRecord) => addSheet(r.sheet));
         });
       }
