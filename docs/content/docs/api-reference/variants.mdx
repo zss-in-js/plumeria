@@ -1,0 +1,45 @@
+---
+title: 'variants'
+description: 'API reference for the variants'
+---
+
+Define a variant that can receive arguments dynamically.
+
+## Example
+
+```tsx
+import * as css from "@plumeria/core";
+
+const getButtonStyle = css.variants({
+  variant: {
+    gradient: styles.gradient,
+    metallic: styles.metallic,
+  },
+  size: {
+    small: styles.small,
+    medium: styles.medium,
+    large: styles.large,
+  },
+});
+
+interface Props {
+  children: ReactNode;
+  variant: 'gradient' | 'metallic';
+  href: string;
+}
+
+export const ButtonLink = ({ children, variant, href }: Props) => {
+  return (
+    <Link href={href} className={css.props(getButtonStyle({ variant, size: 'medium' }))}>
+      {children}
+    </Link>
+  );
+};
+// call Components
+<ButtonLink href={"/docs"} variant="metallic">{...}</ButtonLink>
+```
+
+<Callout title="Good to know">
+    After being expanded to className, it is safely deleted.  
+    If it is statically determined first, only styles for that key are generated.
+</Callout>
