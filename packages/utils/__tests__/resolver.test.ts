@@ -162,6 +162,10 @@ describe('resolver', () => {
         { virtual: true },
       );
 
+      // First call (uncached)
+      expect(resolveImportPath('@/utils', importer)).toBeNull();
+
+      // Second call (cached) - this hits lines 18-20 with a null config
       expect(resolveImportPath('@/utils', importer)).toBeNull();
     });
   });
@@ -219,13 +223,14 @@ describe('resolver', () => {
       setupMockFs([]);
 
       // First call
-      resolveImportPath('./foo', importer);
+      // Use non-relative path to bypass early return for relative imports
+      resolveImportPath('pkg/foo', importer);
 
       // Clear calls
       mockedFs.existsSync.mockClear();
 
       // Second call
-      resolveImportPath('./foo', importer);
+      resolveImportPath('pkg/foo', importer);
 
       // Should not check for tsconfig.json in the dir loop
       // The importer dir is /project/app
