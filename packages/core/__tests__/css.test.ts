@@ -1,5 +1,3 @@
-/* eslint-disable @plumeria/no-inner-call */
-
 import * as css from '../src/css';
 
 describe('css runtime stubs', () => {
@@ -43,6 +41,18 @@ describe('css runtime stubs', () => {
     const getVariants = css.variants({});
     expect(() => {
       getVariants({});
+    }).toThrow('Runtime is not supported. Configure the bundler plugin.');
+  });
+
+  test('marker throws runtime error', () => {
+    expect(() => {
+      css.marker('a', 'b');
+    }).toThrow('Runtime is not supported. Configure the bundler plugin.');
+  });
+
+  test('extended throws runtime error', () => {
+    expect(() => {
+      css.extended('a', 'b');
     }).toThrow('Runtime is not supported. Configure the bundler plugin.');
   });
 });
