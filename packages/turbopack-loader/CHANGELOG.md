@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 7.0.0
+
+### Major Changes
+
+- 2dc194c: chore: minor refactoring for major changes
+
+### Patch Changes
+
+- Updated dependencies [2dc194c]
+  - @plumeria/utils@7.0.0
+
 ## 6.3.2
 
 ### Patch Changes
