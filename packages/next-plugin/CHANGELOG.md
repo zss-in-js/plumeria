@@ -1,5 +1,14 @@
 # @plumeria/next-plugin
 
+## 6.3.2
+
+### Patch Changes
+
+- 59705b6: chore: bump version to 6.3.2
+- Updated dependencies [59705b6]
+  - @plumeria/turbopack-loader@6.3.2
+  - @plumeria/webpack-plugin@6.3.2
+
 ## 6.3.1
 
 ### Patch Changes
