@@ -3,7 +3,7 @@
  * Compatible with eslint 8 and below or 9 and above
  */
 
-import type { Property } from 'estree';
+import type { Property, SpreadElement } from 'estree';
 import type { Rule } from 'eslint';
 
 import { propertyGroups } from '../util/propertyGroups';
@@ -80,14 +80,36 @@ export const sortProperties: Rule.RuleModule = {
         const sourceCode = getSourceCode(context);
         const isTopLevel = !node.parent || node.parent.type !== 'Property';
         const properties = node.properties.filter(
-          (prop) => 'key' in prop && !!prop.key,
+          (prop) =>
+            ('key' in prop && !!prop.key) || prop.type === 'SpreadElement',
         );
 
-        const sorted = [...properties].sort((a, b) => {
-          const indexA = getPropertyIndex(a as Property, isTopLevel);
-          const indexB = getPropertyIndex(b as Property, isTopLevel);
-          return indexA === null || indexB === null ? 0 : indexA - indexB;
+        const chunks: (Property | SpreadElement)[][] = [];
+        let currentChunk: (Property | SpreadElement)[] = [];
+
+        properties.forEach((prop) => {
+          if (prop.type === 'SpreadElement') {
+            if (currentChunk.length > 0) chunks.push(currentChunk);
+            chunks.push([prop]);
+            currentChunk = [];
+          } else {
+            currentChunk.push(prop);
+          }
         });
+        if (currentChunk.length > 0) chunks.push(currentChunk);
+
+        const sorted = chunks
+          .map((chunk) => {
+            if (chunk.length === 1 && chunk[0].type === 'SpreadElement') {
+              return chunk;
+            }
+            return [...chunk].sort((a, b) => {
+              const indexA = getPropertyIndex(a as Property, isTopLevel);
+              const indexB = getPropertyIndex(b as Property, isTopLevel);
+              return indexA === null || indexB === null ? 0 : indexA - indexB;
+            });
+          })
+          .flat();
 
         const misordered = properties.filter((prop, i) => prop !== sorted[i]);
 
@@ -96,6 +118,8 @@ export const sortProperties: Rule.RuleModule = {
         const match = sourceCode.getText(node).match(/^{\s*\n(\s*)/);
         const indent = match ? match[1] : '';
         const lineEnding = match ? '\n' : ' ';
+        const closingIndentMatch = sourceCode.getText(node).match(/\n(\s*)}$/);
+        const closingIndent = closingIndentMatch ? closingIndentMatch[1] : '';
 
         misordered.forEach((prop) => {
           context.report({
@@ -103,7 +127,10 @@ export const sortProperties: Rule.RuleModule = {
             messageId: 'sortProperties',
             data: {
               position: String(sorted.indexOf(prop) + 1),
-              property: getPropertyName(prop as Property),
+              property:
+                prop.type === 'SpreadElement'
+                  ? '...spread'
+                  : getPropertyName(prop as Property),
             },
             fix(fixer) {
               const newText = sorted
@@ -117,7 +144,7 @@ export const sortProperties: Rule.RuleModule = {
                   (node.range as [number, number])[0] + 1,
                   (node.range as [number, number])[1] - 1,
                 ],
-                `${lineEnding}${newText}${lineEnding}`,
+                `${lineEnding}${newText}${lineEnding}${closingIndent}`,
               );
             },
           });
