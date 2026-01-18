@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 6.3.2
+
+### Patch Changes
+
+- 59705b6: chore: bump version to 6.3.2
+- Updated dependencies [59705b6]
+  - @plumeria/utils@6.3.2
+
 ## 6.3.1
 
 ### Patch Changes

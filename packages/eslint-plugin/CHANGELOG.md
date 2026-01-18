@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 6.3.2
+
+### Patch Changes
+
+- 59705b6: chore: bump version to 6.3.2
+
 ## 6.3.1
 
 ### Patch Changes
