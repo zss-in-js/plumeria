@@ -77,6 +77,24 @@ ruleTester.run(
           "const styles = { key1: { display: 'block', [`z-prop`]: 'value' } };",
         settings: { ecmaVersion: 2021 },
       },
+      {
+        code: `const styles = {
+          key1: {
+            ...spread,
+            display: "block",
+            position: "absolute"
+          }
+        };`,
+        errors: 2,
+        output: `const styles = {
+          key1: {
+            ...spread,
+            position: "absolute",
+            display: "block"
+          }
+        };`,
+        settings: { ecmaVersion: 2021 },
+      },
     ],
   },
 );
