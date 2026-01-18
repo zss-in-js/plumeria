@@ -705,6 +705,105 @@ describe('parser', () => {
 
       expect(result.color).toBe('@media (max-width: 768px)');
     });
+
+    it('should handle css.marker used as spread', () => {
+      const source = `const obj = { ...css.marker('id', ':hover') }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      // Verify getMarkerVar logic (lines 54-55): pseudo ':hover' -> state 'hover', var is --id-hover
+      expect(result).toEqual({
+        ':hover': {
+          '--id-hover': 1,
+        },
+      });
+    });
+
+    it('should handle css.extended used as computed key', () => {
+      const source = `const obj = { [css.extended('id', ':hover')]: { op: 1 } }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      // Verify getMarkerVar logic (lines 54-55) used in extended
+      expect(result).toHaveProperty('@container style(--id-hover: 1)');
+      expect(result['@container style(--id-hover: 1)']).toEqual({ op: 1 });
+    });
+
+    it('should merge spread objects', () => {
+      // Covers line 168: Object.assign(obj, spreadVal)
+      const source = `const obj = { ...base, b: 2 }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const staticTable = { base: { a: 1 } };
+
+      const result = objectExpressionToObject(
+        objectExpr,
+        staticTable,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      expect(result).toEqual({ a: 1, b: 2 });
+    });
+
+    it('should ignore non-KeyValueProperty properties (e.g. methods and getters)', () => {
+      // Covers line 173: if (!t.isObjectProperty(prop)) return;
+      const source = `const obj = { get p() { return 1; }, m() {}, valid: 123 }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      expect(result).toEqual({ valid: 123 });
+    });
   });
 
   describe('scan functions', () => {
