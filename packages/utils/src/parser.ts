@@ -153,7 +153,7 @@ export function objectExpressionToObject(
 
   node.properties.forEach((prop) => {
     if (prop.type === 'SpreadElement') {
-      const arg = (prop as any).arguments || (prop as any).argument;
+      const arg = prop.arguments;
       const spreadVal = evaluateExpression(
         arg,
         staticTable,
