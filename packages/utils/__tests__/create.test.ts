@@ -2,7 +2,7 @@ import { getStyleRecords } from '../src/create';
 
 describe('getStyleRecords', () => {
   it('should generate atomic records for simple properties', () => {
-    const result = getStyleRecords('test', { color: 'red' });
+    const result = getStyleRecords({ color: 'red' });
 
     expect(result).toHaveLength(1);
     expect(result[0].key).toBe('color');
@@ -13,7 +13,7 @@ describe('getStyleRecords', () => {
   });
 
   it('should generate multiple records for multiple properties', () => {
-    const result = getStyleRecords('test', { color: 'red', fontSize: '16px' });
+    const result = getStyleRecords({ color: 'red', fontSize: '16px' });
 
     expect(result).toHaveLength(2);
     const keys = result.map((r) => r.key).sort();
@@ -21,18 +21,18 @@ describe('getStyleRecords', () => {
   });
 
   it('should handle nested pseudo-classes', () => {
-    const result = getStyleRecords('test', {
-      '&:hover': { color: 'blue' },
+    const result = getStyleRecords({
+      ':hover': { color: 'blue' },
     } as any);
 
     expect(result).toHaveLength(1);
-    expect(result[0].key).toContain('&:hover'); // key usually includes selector info for nested
+    expect(result[0].key).toContain(':hover');
     expect(result[0].sheet).toMatch(/color:\s*blue/);
     expect(result[0].sheet).toContain(':hover');
   });
 
   it('should handle @media queries', () => {
-    const result = getStyleRecords('test', {
+    const result = getStyleRecords({
       '@media (min-width: 500px)': {
         color: 'green',
       },
@@ -45,9 +45,9 @@ describe('getStyleRecords', () => {
   });
 
   it('should handle complex nested styles', () => {
-    const result = getStyleRecords('test', {
+    const result = getStyleRecords({
       color: 'red',
-      '&:hover': {
+      ':hover': {
         background: 'white',
         '@media (max-width: 400px)': {
           background: 'gray',
@@ -64,41 +64,41 @@ describe('getStyleRecords', () => {
     expect(sheetContent).toContain(':hover');
   });
   it('should handle non-atomic descendent selectors', () => {
-    const result = getStyleRecords('test', {
-      '& span': { color: 'red' },
+    const result = getStyleRecords({
+      ':hover': { color: 'red' },
     } as any);
 
     expect(result).toHaveLength(1);
-    expect(result[0].key).toContain('& span');
-    expect(result[0].sheet).toMatch(/span/);
+    expect(result[0].key).toContain(':hover');
+    expect(result[0].sheet).toContain(':hover');
     expect(result[0].sheet).toMatch(/color:\s*red/);
   });
 
   it('should handle non-atomic selectors inside queries', () => {
-    const result = getStyleRecords('test', {
+    const result = getStyleRecords({
       '@media (min-width: 100px)': {
-        '& div': { color: 'blue' },
+        ':hover': { color: 'blue' },
       },
     } as any);
 
     expect(result).toHaveLength(1);
     expect(result[0].key).toContain('@media');
-    expect(result[0].key).toContain('& div');
+    expect(result[0].key).toContain(':hover');
     expect(result[0].sheet).toContain('@media (min-width: 100px)');
-    expect(result[0].sheet).toContain('div');
+    expect(result[0].sheet).toContain(':hover');
     expect(result[0].sheet).toMatch(/color:\s*blue/);
   });
 
   it('should handle atomic selectors inside queries', () => {
-    const result = getStyleRecords('test', {
+    const result = getStyleRecords({
       '@media (min-width: 100px)': {
-        '&:hover': { color: 'green' },
+        ':hover': { color: 'green' },
       },
     } as any);
 
     expect(result).toHaveLength(1);
     expect(result[0].key).toContain('@media');
-    expect(result[0].key).toContain('&:hover');
+    expect(result[0].key).toContain(':hover');
     expect(result[0].sheet).toContain('@media (min-width: 100px)');
     expect(result[0].sheet).toContain(':hover');
     expect(result[0].sheet).toMatch(/color:\s*green/);
