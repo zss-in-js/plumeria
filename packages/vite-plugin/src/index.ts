@@ -1135,39 +1135,51 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 });
               } else {
                 const table: Record<number, string> = {};
-                const combinations = 1 << conditionals.length;
+                const groups: Record<number, typeof conditionals> = {};
+                let strayIdCounter = groupIdCounter + 1;
 
-                for (let i = 0; i < combinations; i++) {
+                conditionals.forEach((c) => {
+                  const gid =
+                    c.groupId !== undefined ? c.groupId : strayIdCounter++;
+                  if (!groups[gid]) {
+                    groups[gid] = [];
+                  }
+                  groups[gid].push(c);
+                });
+
+                const sortedGroupIds = Object.keys(groups)
+                  .map(Number)
+                  .sort((a, b) => a - b);
+
+                let totalCombinations = 1;
+                const groupMeta = sortedGroupIds.map((gid) => {
+                  const options = groups[gid];
+                  const isVariantGroup = options[0].groupId !== undefined;
+                  const size = isVariantGroup ? options.length : 2;
+                  const stride = totalCombinations;
+                  totalCombinations *= size;
+                  return { gid, options, size, stride, isVariantGroup };
+                });
+
+                for (let i = 0; i < totalCombinations; i++) {
                   let currentStyle = { ...baseStyle };
-                  const seenGroups = new Set<number>();
-                  let impossible = false;
 
-                  for (let j = 0; j < conditionals.length; j++) {
-                    if ((i >> j) & 1) {
-                      // Truthy case
-                      if (conditionals[j].groupId !== undefined) {
-                        if (seenGroups.has(conditionals[j].groupId!)) {
-                          impossible = true;
-                          break;
-                        }
-                        seenGroups.add(conditionals[j].groupId!);
-                      }
+                  for (const meta of groupMeta) {
+                    const localIndex = Math.floor(i / meta.stride) % meta.size;
+
+                    if (meta.isVariantGroup) {
                       currentStyle = deepMerge(
                         currentStyle,
-                        conditionals[j].truthy,
+                        meta.options[localIndex].truthy,
                       );
                     } else {
-                      // Falsy case
-                      currentStyle = deepMerge(
-                        currentStyle,
-                        conditionals[j].falsy,
-                      );
+                      const cond = meta.options[0];
+                      if (localIndex === 1) {
+                        currentStyle = deepMerge(currentStyle, cond.truthy);
+                      } else {
+                        currentStyle = deepMerge(currentStyle, cond.falsy);
+                      }
                     }
-                  }
-
-                  if (impossible) {
-                    table[i] = '';
-                    continue;
                   }
 
                   extractOndemandStyles(
@@ -1190,24 +1202,54 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   table[i] = className;
                 }
 
-                // Generate index expression
-                // (!!cond0 << 0) | (!!cond1 << 1) ...
-                let indexExpr = '';
-                if (conditionals.length === 0) {
-                  indexExpr = '0';
-                } else {
-                  const parts = conditionals.map((c, idx) => {
-                    if (c.testString) {
-                      return `(!!(${c.testString}) << ${idx})`;
+                // Generate product-sum formula
+                const indexParts: string[] = [];
+                for (const meta of groupMeta) {
+                  if (meta.isVariantGroup) {
+                    const exprs = meta.options
+                      .map((opt, idx) => {
+                        if (idx === 0) return null;
+
+                        let testStr = opt.testString;
+                        if (!testStr && opt.test) {
+                          const start =
+                            (opt.test as any).span.start - ast.span.start;
+                          const end =
+                            (opt.test as any).span.end - ast.span.start;
+                          testStr = source.substring(start, end);
+                        }
+
+                        return `(!!(${testStr}) * ${idx})`;
+                      })
+                      .filter(Boolean);
+
+                    if (exprs.length > 0) {
+                      const groupSum = `(${exprs.join(' + ')})`;
+                      if (meta.stride > 1) {
+                        indexParts.push(`(${groupSum} * ${meta.stride})`);
+                      } else {
+                        indexParts.push(groupSum);
+                      }
                     }
-                    const start = (c.test as any).span.start - ast.span.start;
-                    const end = (c.test as any).span.end - ast.span.start;
-                    const testStr = source.substring(start, end);
-                    return `(!!(${testStr}) << ${idx})`;
-                  });
-                  indexExpr = parts.join(' | ');
+                  } else {
+                    const cond = meta.options[0];
+                    let testStr = cond.testString;
+                    if (!testStr && cond.test) {
+                      const start =
+                        (cond.test as any).span.start - ast.span.start;
+                      const end = (cond.test as any).span.end - ast.span.start;
+                      testStr = source.substring(start, end);
+                    }
+                    const expr = `(!!(${testStr}))`;
+                    if (meta.stride > 1) {
+                      indexParts.push(`(${expr} * ${meta.stride})`);
+                    } else {
+                      indexParts.push(`(${expr} * 1)`);
+                    }
+                  }
                 }
 
+                const indexExpr = indexParts.join(' + ') || '0';
                 const tableStr = JSON.stringify(table);
                 const replacement = `${tableStr}[${indexExpr}]`;
 
