@@ -4,7 +4,6 @@ import {
   splitAtomicAndNested,
   processAtomicProps,
   genBase36Hash,
-  transpile,
   overrideLonghand,
   transpileAtomic,
 } from 'zss-engine';
@@ -15,10 +14,7 @@ export interface StyleRecord {
   sheet: string;
 }
 
-export function getStyleRecords(
-  key: string,
-  styleRule: CSSProperties,
-): StyleRecord[] {
+export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
   const flat: CreateStyle = {};
   const nonFlat: CreateStyle = {};
   const notNormalize = ':not(#\\#)';
@@ -32,6 +28,7 @@ export function getStyleRecords(
     if (prop.startsWith('@media') || prop.startsWith('@container')) {
       Object.entries(value).forEach(([innerProp, innerValue]) => {
         const atomicMap = new Map<string, string>();
+        const notSuffix = innerProp.startsWith('--') ? '' : notNormalize;
 
         processAtomicProps({ [innerProp]: innerValue }, atomicMap, prop);
 
@@ -39,9 +36,7 @@ export function getStyleRecords(
         const queryHashes: string[] = [];
 
         for (const [hash, sheet] of atomicMap) {
-          querySheets.push(
-            sheet.replace(`.${hash}`, `.${hash}${notNormalize}`),
-          );
+          querySheets.push(sheet.replace(`.${hash}`, `.${hash}${notSuffix}`));
           queryHashes.push(hash);
         }
         const queryKey = prop + ':' + innerProp;
@@ -92,15 +87,10 @@ export function getStyleRecords(
       selector: string,
       style: CSSProperties,
       atRule?: string,
-      index?: number,
     ) => {
-      const isAtomic =
-        selector.startsWith(':') ||
-        (selector.startsWith('&') &&
-          (selector.startsWith('&:') || selector.startsWith('&[')));
+      const isAtomic = selector.startsWith(':') || selector.startsWith('[');
 
       if (isAtomic) {
-        const normalizedSelector = selector.replace('&', '');
         Object.entries(style).forEach(([prop, value]) => {
           let hashSource = { [prop]: value };
           if (atRule) {
@@ -110,15 +100,16 @@ export function getStyleRecords(
           }
 
           const hash = genBase36Hash(hashSource, 1, 8);
+          const notSuffix = prop.startsWith('--') ? '' : notNormalize;
 
           let sheet = transpileAtomic(
             prop,
             value as string | number,
             hash,
-            normalizedSelector,
+            selector,
           );
 
-          sheet = sheet.replace(`.${hash}`, `.${hash}${notNormalize}`);
+          sheet = sheet.replace(`.${hash}`, `.${hash}${notSuffix}`);
 
           if (atRule) {
             sheet = `${atRule} { ${sheet} }`;
@@ -132,42 +123,16 @@ export function getStyleRecords(
             sheet: sheet + '\n',
           });
         });
-      } else {
-        const hashObj = {
-          [key]: { [atRule || 'base']: { [selector]: style, index } },
-        };
-
-        const hash = genBase36Hash(hashObj, 1, 7);
-
-        const transpileObj = atRule
-          ? { [key]: { [atRule]: { [selector]: style } } }
-          : { [key]: { [selector]: style } };
-
-        const { styleSheet } = transpile(transpileObj, hash);
-
-        const sheet = atRule
-          ? styleSheet.replace(`.${hash}`, `.${hash}${notNormalize}`)
-          : styleSheet;
-
-        const recordKey = atRule
-          ? `${atRule}:${selector}:${index}`
-          : `${selector}:${index}`;
-
-        records.push({
-          key: recordKey,
-          hash: hash,
-          sheet: sheet,
-        });
       }
     };
 
-    Object.entries(nonFlatBase).forEach(([selector, style], index) => {
-      processSelectorStyle(selector, style as CSSProperties, undefined, index);
+    Object.entries(nonFlatBase).forEach(([selector, style]) => {
+      processSelectorStyle(selector, style as CSSProperties, undefined);
     });
 
     Object.entries(nonFlatQuery).forEach(([atRule, nestedStyles]) => {
-      Object.entries(nestedStyles).forEach(([selector, style], index) => {
-        processSelectorStyle(selector, style as CSSProperties, atRule, index);
+      Object.entries(nestedStyles).forEach(([selector, style]) => {
+        processSelectorStyle(selector, style as CSSProperties, atRule);
       });
     });
   }
