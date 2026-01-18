@@ -71,12 +71,12 @@ interface CommonProperties extends BaseCSSProperties {
 
 type ArrayString = `[${string}`;
 type ArraySelector = {
-  [key in ArrayString]: CommonProperties;
+  [key in ArrayString]: CommonProperties | CSSVariableProperty;
 };
 
 type ColonString = `:${string}`;
 type ColonSelector = {
-  [key in ColonString]: CommonProperties;
+  [key in ColonString]: CommonProperties | CSSVariableProperty;
 };
 
 type Query = `@media ${string}` | `@container ${string}`;
