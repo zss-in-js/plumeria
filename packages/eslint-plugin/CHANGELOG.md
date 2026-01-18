@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.0.0
+
+### Major Changes
+
+- 2dc194c: chore: bump version to v7.0.0
+
 ## 6.3.2
 
 ### Patch Changes
