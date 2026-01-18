@@ -69,9 +69,9 @@ interface CommonProperties extends BaseCSSProperties {
   columnRuleColor?: CSSColorProperty;
 }
 
-type AndString = `&${string}`;
-type AndSelector = {
-  [key in AndString]: CommonProperties;
+type ArrayString = `[${string}`;
+type ArraySelector = {
+  [key in ArrayString]: CommonProperties;
 };
 
 type ColonString = `:${string}`;
@@ -84,13 +84,13 @@ type QuerySelector = {
   [K in Query]:
     | CommonProperties
     | ColonSelector
-    | AndSelector
+    | ArraySelector
     | CSSVariableProperty;
 };
 
 type CSSProperties =
   | CommonProperties
-  | AndSelector
+  | ArraySelector
   | ColonSelector
   | QuerySelector
   | CSSVariableProperty;
@@ -113,7 +113,7 @@ type ReturnType<T> = {
       | `@media ${string}`
       | `@container ${string}`
       | `:${string}`
-      | `&${string}`
+      | `[${string}`
       ? Selector<keyof T[K][P]>
       : T[K][P];
   }>;
@@ -138,6 +138,8 @@ type ViewTransition = {
 
 type Variant = Record<string, Record<string, CSSProperties>>;
 
+type ContainerStyleQuery = `@container style(--${string}: 1)`;
+
 export {
   CSSProperties,
   CreateStyle,
@@ -149,4 +151,5 @@ export {
   ReturnType,
   ReturnVariableType,
   Variant,
+  ContainerStyleQuery,
 };
