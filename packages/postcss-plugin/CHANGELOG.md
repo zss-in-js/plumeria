@@ -1,5 +1,16 @@
 # @plumeria/postcss-plugin
 
+## 7.0.0
+
+### Major Changes
+
+- 2dc194c: chore: bump version to v7.0.0
+
+### Patch Changes
+
+- Updated dependencies [2dc194c]
+  - @plumeria/compiler@7.0.0
+
 ## 6.3.2
 
 ### Patch Changes
