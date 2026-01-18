@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.0.0
+
+### Major Changes
+
+- 2dc194c: feat: new api marker and extended
+
 ## 6.3.2
 
 ### Patch Changes
