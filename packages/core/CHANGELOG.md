@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 6.3.2
+
+### Patch Changes
+
+- 59705b6: perf: variants changed arguments from optional to required
+
 ## 6.3.1
 
 ### Patch Changes
