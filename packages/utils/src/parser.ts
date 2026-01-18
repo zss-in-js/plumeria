@@ -50,6 +50,11 @@ import { getStyleRecords } from './create';
 import type { StyleRecord } from './create';
 import { resolveImportPath } from './resolver';
 
+const getMarkerVar = (id: string, pseudo: string): string => {
+  const state = pseudo.replace(/:/g, '');
+  return `--${id}-${state}`;
+};
+
 export const t = {
   isObjectExpression: (node: any): node is ObjectExpression =>
     node?.type === 'ObjectExpression',
@@ -147,6 +152,24 @@ export function objectExpressionToObject(
   const obj: CSSObject = {};
 
   node.properties.forEach((prop) => {
+    if (prop.type === 'SpreadElement') {
+      const arg = (prop as any).arguments || (prop as any).argument;
+      const spreadVal = evaluateExpression(
+        arg,
+        staticTable,
+        keyframesHashTable,
+        viewTransitionHashTable,
+        createThemeHashTable,
+        createThemeObjectTable,
+        createStaticHashTable,
+        createStaticObjectTable,
+      );
+      if (typeof spreadVal === 'object' && spreadVal !== null) {
+        Object.assign(obj, spreadVal);
+      }
+      return;
+    }
+
     if (!t.isObjectProperty(prop)) return;
 
     const key = getPropertyKey(
@@ -362,6 +385,19 @@ function getPropertyKey(
         return staticTable[expr.value] as string;
       }
     }
+    if (t.isCallExpression(expr)) {
+      const result = evaluateExpression(
+        expr,
+        staticTable,
+        keyframesHashTable,
+        viewTransitionHashTable,
+        createThemeHashTable,
+        createThemeObjectTable,
+        createStaticHashTable,
+        createStaticObjectTable,
+      );
+      if (typeof result === 'string') return result;
+    }
     if (t.isMemberExpression(expr)) {
       const result = resolveStaticTableMemberExpression(expr, staticTable);
       if (typeof result === 'string') return result;
@@ -510,6 +546,89 @@ function evaluateBinaryExpression(
 }
 
 /* istanbul ignore next */
+function evaluateCallExpression(
+  node: CallExpression,
+  staticTable: StaticTable,
+): string | CSSObject | null {
+  const callee = node.callee;
+  let method: string | undefined;
+
+  if (t.isIdentifier(callee)) {
+    method = callee.value;
+  } else if (t.isMemberExpression(callee) && t.isIdentifier(callee.property)) {
+    method = callee.property.value;
+  }
+
+  if (!method) return null;
+
+  if (method === 'marker') {
+    const args = node.arguments;
+    if (args.length >= 2) {
+      const id = evaluateExpression(
+        args[0].expression,
+        staticTable,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+      const pseudo = evaluateExpression(
+        args[1].expression,
+        staticTable,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+      if (typeof id === 'string' && typeof pseudo === 'string') {
+        const varName = getMarkerVar(id, pseudo);
+        return {
+          [pseudo]: {
+            [varName]: 1,
+          },
+        };
+      }
+    }
+  }
+
+  if (method === 'extended') {
+    const args = node.arguments;
+    if (args.length >= 2) {
+      const id = evaluateExpression(
+        args[0].expression,
+        staticTable,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+      const pseudo = evaluateExpression(
+        args[1].expression,
+        staticTable,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+      if (typeof id === 'string' && typeof pseudo === 'string') {
+        const varName = getMarkerVar(id, pseudo);
+        return `@container style(${varName}: 1)`;
+      }
+    }
+  }
+
+  return null;
+}
+
+/* istanbul ignore next */
 function evaluateExpression(
   node: Expression,
   staticTable: StaticTable,
@@ -520,6 +639,9 @@ function evaluateExpression(
   createStaticHashTable: CreateStaticHashTable,
   createStaticObjectTable: CreateStaticObjectTable,
 ): string | number | boolean | null | CSSObject {
+  if (t.isCallExpression(node)) {
+    return evaluateCallExpression(node, staticTable);
+  }
   if (t.isStringLiteral(node)) {
     return node.value;
   }
@@ -1185,10 +1307,7 @@ export function scanAll(): Tables {
                   const hashMap: Record<string, Record<string, string>> = {};
 
                   Object.entries(obj).forEach(([key, style]) => {
-                    const records = getStyleRecords(
-                      key,
-                      style as CSSProperties,
-                    );
+                    const records = getStyleRecords(style as CSSProperties);
                     const atomMap: Record<string, string> = {};
                     records.forEach((r) => (atomMap[r.key] = r.hash));
                     hashMap[key] = atomMap;
@@ -1335,8 +1454,8 @@ export function extractOndemandStyles(
     for (const hash of createHashes) {
       const obj = t.createObjectTable[hash];
       if (obj) {
-        Object.entries(obj).forEach(([key, style]) => {
-          const records = getStyleRecords(key, style as CSSProperties);
+        Object.entries(obj).forEach(([_key, style]) => {
+          const records = getStyleRecords(style as CSSProperties);
           records.forEach((r: StyleRecord) => addSheet(r.sheet));
         });
       }
