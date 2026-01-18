@@ -1,0 +1,70 @@
+---
+title: 'Plumeria v7.0.0'
+description: 'Plumeria v7.0.0 add no-combinator rule and new marker extended API. (2 min read)'
+date: '2026-01-19'
+---
+import MarkerExtended from '../../component/MarkerExtended';
+
+## 7.0.0
+### ✨ Features
+- **Add eslint-plugin no-combinator rule**
+- **Add marker extended API**
+
+## Changes
+
+- "&" is not allowed.
+- selector combinator is not allowed.
+- Selectors starting with "[" are now allowed.
+
+### Syntax forbidden to maintain atomicity
+I get an error due to eslint rules.
+```ts
+":hover > div": {...}
+```
+
+## new API
+`marker` and `extended`.
+<MarkerExtended />
+
+```tsx
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  table: {
+    ...css.marker('table', ':hover'), // [!code ++]
+    width: '100%',
+    height: 200,
+    listStyleType: 'none',
+  },
+  list: {
+    transition: 'all 0.5s',
+    [css.extended('table', ':hover')]: { // [!code ++]
+      color: 'green',
+      scale: 1.2,
+      ':hover': {
+        color: 'pink',
+        scale: 1.5,
+      },
+    },
+  },
+});;
+
+const Test = () => {
+  return (
+    <div>
+      <ul className={css.props(styles.table)}>
+        <li className={css.props(styles.list)}>Tests</li>
+      </ul>
+    </div>
+  );
+};
+```
+
+## Migrate guide
+- Replace `"&"` selector with `":"` or `"["`
+- Replace combinator syntax with `marker` `extended`.
+
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
