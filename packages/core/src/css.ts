@@ -9,6 +9,7 @@ import type {
   ReturnType,
   ReturnVariableType,
   Variant,
+  ContainerStyleQuery,
 } from './types';
 
 type create = typeof create;
@@ -18,6 +19,8 @@ type createStatic = typeof createStatic;
 type keyframes = typeof keyframes;
 type viewTransition = typeof viewTransition;
 type variants = typeof variants;
+type marker = typeof marker;
+type extended = typeof extended;
 
 const errorFn = () => {
   throw new Error('Runtime is not supported. Configure the bundler plugin.');
@@ -46,6 +49,10 @@ const variants =
   (_props: { [K in keyof T]: keyof T[K] }): CSSProperties =>
     errorFn();
 
+const marker = (_id: string, _pseudo: string): CSSProperties => errorFn();
+const extended = (_id: string, _pseudo: string): ContainerStyleQuery =>
+  errorFn();
+
 export {
   create,
   props,
@@ -54,5 +61,8 @@ export {
   keyframes,
   viewTransition,
   variants,
+  marker,
+  extended,
 };
+
 export type { CreateStyle, CSSProperties };
