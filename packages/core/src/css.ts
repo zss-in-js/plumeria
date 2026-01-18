@@ -43,7 +43,7 @@ const viewTransition = (_rule: ViewTransition): string => errorFn();
 
 const variants =
   <T extends Variant>(_rule: T) =>
-  (_props: { [K in keyof T]?: keyof T[K] }): CSSProperties =>
+  (_props: { [K in keyof T]: keyof T[K] }): CSSProperties =>
     errorFn();
 
 export {
