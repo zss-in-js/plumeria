@@ -22,23 +22,23 @@ const styles = css.create({
     borderRadius: 'var(--border-radius)',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.2s ease-in-out',
-    '&:hover': {
+    '[disabled]': {
+      pointerEvents: 'none',
+      cursor: 'not-allowed',
+      opacity: 0.6,
+    },
+    ':hover': {
       boxShadow: '0 7px 10px rgba(0, 0, 0, 0.15)',
       filter: 'brightness(0.95)',
       transform: 'translateY(-1px)',
     },
-    '&:active': {
+    ':active': {
       boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
       filter: 'brightness(0.9)',
       transform: 'translateY(-1px) scale(0.98)',
     },
-    '&:focus': {
+    ':focus': {
       outline: 'none',
-    },
-    '&[disabled]': {
-      pointerEvents: 'none',
-      cursor: 'not-allowed',
-      opacity: 0.6,
     },
   },
   // Variants
@@ -58,7 +58,7 @@ const styles = css.create({
     backgroundSize: '200% 200%',
     border: '1px solid rgba(0,0,0,0.2)',
     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.2)',
-    '&:hover': {
+    ':hover': {
       filter: 'brightness(1.1)',
     },
   },
