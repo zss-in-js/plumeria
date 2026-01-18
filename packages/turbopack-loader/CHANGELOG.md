@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 6.3.2
+
+### Patch Changes
+
+- 59705b6: perf: bit expression changed to sum of products
+- Updated dependencies [59705b6]
+  - @plumeria/utils@6.3.2
+
 ## 6.3.1
 
 ### Patch Changes
