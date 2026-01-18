@@ -9,7 +9,7 @@ export const noDestructure: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow destructuring css.props and css.global',
+      description: 'Disallow destructuring API',
     },
     messages: {
       noDestructure:
