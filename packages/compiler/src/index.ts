@@ -267,8 +267,8 @@ export function compileCSS(options: CompilerOptions) {
               if (obj) {
                 localCreateStyles[node.id.value] = { type: 'create', obj };
 
-                Object.entries(obj).forEach(([key, style]) => {
-                  const records = getStyleRecords(key, style as CSSProperties);
+                Object.entries(obj).forEach(([_key, style]) => {
+                  const records = getStyleRecords(style as CSSProperties);
                   extractOndemandStyles(style, extractedSheets, scannedTables);
                   records.forEach((r: StyleRecord) => {
                     extractedSheets.push(r.sheet);
@@ -423,8 +423,7 @@ export function compileCSS(options: CompilerOptions) {
 
           const processStyle = (style: CSSObject) => {
             extractOndemandStyles(style, extractedSheets, scannedTables);
-            const hash = genBase36Hash(style, 1, 8);
-            const records = getStyleRecords(hash, style as CSSProperties);
+            const records = getStyleRecords(style as CSSProperties);
             records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
           };
 
