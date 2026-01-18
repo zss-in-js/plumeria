@@ -1,3 +1,4 @@
+import { noCombinator } from './rules/no-combinator';
 import { noDestructure } from './rules/no-destructure';
 import { noInnerCall } from './rules/no-inner-call';
 import { noUnusedKeys } from './rules/no-unused-keys';
@@ -16,6 +17,7 @@ type PlumeriaPlugin = ESLint.Plugin & {
 };
 
 const rules: Record<string, Rule.RuleModule> = {
+  'no-combinator': noCombinator,
   'no-destructure': noDestructure,
   'no-inner-call': noInnerCall,
   'no-unused-keys': noUnusedKeys,
@@ -27,6 +29,7 @@ const configs: PlumeriaPlugin['configs'] = {
   recommended: {
     plugins: ['@plumeria'],
     rules: {
+      '@plumeria/no-combinator': 'error',
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inner-call': 'error',
       '@plumeria/no-unused-keys': 'warn',
@@ -43,6 +46,7 @@ const flatConfigs: PlumeriaPlugin['flatConfigs'] = {
       },
     },
     rules: {
+      '@plumeria/no-combinator': 'error',
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inner-call': 'error',
       '@plumeria/no-unused-keys': 'warn',
