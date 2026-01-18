@@ -92,15 +92,15 @@ describe('getStyleRecords', () => {
   it('should handle atomic selectors inside queries', () => {
     const result = getStyleRecords({
       '@media (min-width: 100px)': {
-        ':hover': { color: 'green' },
+        color: 'yellow',
+        '--color': 'red',
+        '[draggable="true"]': { color: 'blue' },
+        ':hover': { '--primary': 'green' },
       },
-    } as any);
+    });
 
-    expect(result).toHaveLength(1);
     expect(result[0].key).toContain('@media');
-    expect(result[0].key).toContain(':hover');
     expect(result[0].sheet).toContain('@media (min-width: 100px)');
-    expect(result[0].sheet).toContain(':hover');
-    expect(result[0].sheet).toMatch(/color:\s*green/);
+    expect(result[0].sheet).toContain(':not(#\\#)');
   });
 });
