@@ -319,7 +319,7 @@ export default async function loader(this: LoaderContext, source: string) {
         if (obj) {
           const hashMap: Record<string, Record<string, string>> = {};
           Object.entries(obj).forEach(([key, style]) => {
-            const records = getStyleRecords(key, style as CSSProperties);
+            const records = getStyleRecords(style as CSSProperties);
             if (!isProduction) {
               extractOndemandStyles(style, extractedSheets, scannedTables);
               records.forEach((r: StyleRecord) => {
@@ -610,9 +610,9 @@ export default async function loader(this: LoaderContext, source: string) {
           );
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.createObjectTable[hash] = obj;
-          Object.entries(obj).forEach(([key, style]) => {
+          Object.entries(obj).forEach(([_key, style]) => {
             if (typeof style === 'object' && style !== null) {
-              const records = getStyleRecords(key, style as CSSProperties);
+              const records = getStyleRecords(style as CSSProperties);
               if (!isProduction) {
                 extractOndemandStyles(style, extractedSheets, scannedTables);
                 records.forEach((r: StyleRecord) => addSheet(r.sheet));
@@ -1054,8 +1054,7 @@ export default async function loader(this: LoaderContext, source: string) {
             if (!isProduction) {
               extractOndemandStyles(baseStyle, extractedSheets, scannedTables);
             }
-            const hash = genBase36Hash(baseStyle, 1, 8);
-            const records = getStyleRecords(hash, baseStyle);
+            const records = getStyleRecords(baseStyle);
             if (!isProduction) {
               records.forEach((r: StyleRecord) => addSheet(r.sheet));
             }
@@ -1122,8 +1121,7 @@ export default async function loader(this: LoaderContext, source: string) {
                   scannedTables,
                 );
               }
-              const hash = genBase36Hash(currentStyle, 1, 8);
-              const records = getStyleRecords(hash, currentStyle);
+              const records = getStyleRecords(currentStyle);
               if (process.env.NODE_ENV !== 'production') {
                 records.forEach((r: StyleRecord) =>
                   extractedSheets.push(r.sheet),
