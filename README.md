@@ -45,9 +45,9 @@ plumeria/
 ├── docs/               → Documentation website
 ├── examples/           → Example apps and integrations
 └── packages/
-    ├── compiler/          → CLI for swc-based static extraction
-    ├── core/              → API built on the zss-engine
-    ├── eslint-plugin/     → Plugin for ESLint
+    ├── compiler/          → Compiler for programmable static extraction
+    ├── core/              → Core zero-runtime implementation built on csstype
+    ├── eslint-plugin/     → Plugin for ESLint plumeria rules
     ├── next-plugin/       → Plugin for Integration with Next.js
     ├── postcss-plugin/    → Plugin for PostCSS CSS static extraction
     ├── utils/             → Utils for Plugin parser and transformer
