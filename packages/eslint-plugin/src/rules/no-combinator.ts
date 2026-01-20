@@ -23,6 +23,11 @@ export const noCombinator: Rule.RuleModule = {
 
     function isCombinatorAllowed(selector: string): boolean {
       const s = selector.trim();
+
+      if (s.startsWith('@')) {
+        return true;
+      }
+
       const len = s.length;
       let i = 0;
 
@@ -162,28 +167,32 @@ export const noCombinator: Rule.RuleModule = {
               node.callee.property.type === 'Identifier'
                 ? node.callee.property.name
                 : null;
-            if (
-              propertyName === 'create' ||
-              propertyName === 'createStatic' ||
-              propertyName === 'variants'
-            ) {
+            if (propertyName === 'create' || propertyName === 'variants') {
               node.arguments.forEach((arg) => {
                 if (arg.type === 'ObjectExpression') {
                   checkForCombinatorsRecursively(arg);
+                }
+              });
+            } else if (propertyName === 'createStatic') {
+              node.arguments.forEach((arg) => {
+                if (arg.type === 'ObjectExpression') {
+                  checkCreateStaticValues(arg);
                 }
               });
             }
           }
         } else if (node.callee.type === 'Identifier') {
           const alias = plumeriaAliases[node.callee.name];
-          if (
-            alias === 'create' ||
-            alias === 'createStatic' ||
-            alias === 'variants'
-          ) {
+          if (alias === 'create' || alias === 'variants') {
             node.arguments.forEach((arg) => {
               if (arg.type === 'ObjectExpression') {
                 checkForCombinatorsRecursively(arg);
+              }
+            });
+          } else if (alias === 'createStatic') {
+            node.arguments.forEach((arg) => {
+              if (arg.type === 'ObjectExpression') {
+                checkCreateStaticValues(arg);
               }
             });
           }
@@ -202,38 +211,53 @@ export const noCombinator: Rule.RuleModule = {
           }
 
           if (keyName) {
-            if (
-              keyName.includes('>') ||
-              keyName.includes('+') ||
-              keyName.includes('~') ||
-              keyName.includes(' ') || // Simple space check is usually enough for class names but let's be safe
-              keyName.includes('\t') ||
-              keyName.includes('\n')
-            ) {
-              if (!isCombinatorAllowed(keyName)) {
-                let found = '';
-                if (keyName.includes('>')) found = '>';
-                else if (keyName.includes('+')) found = '+';
-                else if (keyName.includes('~')) found = '~';
-                else if (
-                  keyName.includes(' ') ||
-                  keyName.includes('\t') ||
-                  keyName.includes('\n')
-                )
-                  found = '(space)';
-
-                context.report({
-                  node: prop.key,
-                  messageId: 'noCombinator',
-                  data: { combinator: found },
-                });
-              }
-            }
+            checkAndReport(keyName, prop.key);
           }
 
           if (prop.value.type === 'ObjectExpression') {
             checkForCombinatorsRecursively(prop.value);
           }
+        }
+      }
+    }
+
+    function checkCreateStaticValues(node: any) {
+      for (const prop of node.properties) {
+        if (prop.type === 'Property') {
+          if (prop.value.type === 'Literal') {
+            const value = String(prop.value.value);
+            checkAndReport(value, prop.value);
+          }
+        }
+      }
+    }
+
+    function checkAndReport(text: string, node: any) {
+      if (
+        text.includes('>') ||
+        text.includes('+') ||
+        text.includes('~') ||
+        text.includes(' ') || // Simple space check is usually enough for class names but let's be safe
+        text.includes('\t') ||
+        text.includes('\n')
+      ) {
+        if (!isCombinatorAllowed(text)) {
+          let found = '';
+          if (text.includes('>')) found = '>';
+          else if (text.includes('+')) found = '+';
+          else if (text.includes('~')) found = '~';
+          else if (
+            text.includes(' ') ||
+            text.includes('\t') ||
+            text.includes('\n')
+          )
+            found = '(space)';
+
+          context.report({
+            node: node,
+            messageId: 'noCombinator',
+            data: { combinator: found },
+          });
         }
       }
     }
