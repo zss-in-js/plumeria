@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.0.1
+
+### Patch Changes
+
+- 1d16d33: chore: bump version to 7.0.1
+
 ## 7.0.0
 
 ### Major Changes

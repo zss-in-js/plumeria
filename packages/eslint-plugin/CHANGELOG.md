@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.0.1
+
+### Patch Changes
+
+- 1d16d33: chore: readme add no-combinator rule
+
 ## 7.0.0
 
 ### Major Changes
