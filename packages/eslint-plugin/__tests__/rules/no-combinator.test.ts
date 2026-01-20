@@ -128,6 +128,26 @@ ruleTester.run('no-combinator', noCombinator as unknown as JSRuleDefinition, {
     {
       code: `import { variants as v } from '@plumeria/core'; v({ container: { 'div': {} } })`,
     },
+    {
+      // createStatic simple
+      code: `import * as css from '@plumeria/core'; css.createStatic({ hover: ':hover' })`,
+    },
+    {
+      // createStatic complex
+      code: `import * as css from '@plumeria/core'; css.createStatic({ complex: ':where(div > span)' })`,
+    },
+    {
+      // Media queries should be allowed despite having spaces
+      code: `import * as css from '@plumeria/core'; css.create({ container: { '@media (max-width: 768px)': { padding: '20px' } } })`,
+    },
+    {
+      // Container queries should be allowed despite having spaces
+      code: `import * as css from '@plumeria/core'; css.create({ container: { '@container (min-width: 700px)': { padding: '20px' } } })`,
+    },
+    {
+      // Supports queries should be allowed
+      code: `import * as css from '@plumeria/core'; css.create({ container: { '@supports (display: grid)': { display: 'grid' } } })`,
+    },
   ],
   invalid: [
     {
@@ -260,8 +280,8 @@ ruleTester.run('no-combinator', noCombinator as unknown as JSRuleDefinition, {
       ],
     },
     {
-      // createStatic invalid usage
-      code: `import * as css from '@plumeria/core'; css.createStatic({ container: { '> div': {} } })`,
+      // createStatic invalid usage (value contains combinator)
+      code: `import * as css from '@plumeria/core'; css.createStatic({ direct: ':hover > div' })`,
       errors: [
         {
           message:
@@ -269,6 +289,17 @@ ruleTester.run('no-combinator', noCombinator as unknown as JSRuleDefinition, {
         },
       ],
     },
+    {
+      // createStatic invalid usage (value contains space combinator)
+      code: `import * as css from '@plumeria/core'; css.createStatic({ descend: ':hover div span' })`,
+      errors: [
+        {
+          message:
+            'Combinator "(space)" is not allowed unless inside functional pseudo-classes.',
+        },
+      ],
+    },
+
     {
       // variants invalid usage
       code: `import * as css from '@plumeria/core'; css.variants({ container: { '> div': {} } })`,
