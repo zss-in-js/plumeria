@@ -1,0 +1,109 @@
+---
+title: 'Plumeria v7.0.0'
+description: 'Plumeria v7.0.0 add eslint-plugin no-combinator rule and new API marker extended. (4 min read)'
+date: '2026-01-20'
+---
+import MarkerExtended from 'component/MarkerExtended';
+
+The theme of this update is atomicity and a departure from **DOM structure-reliant styling**.  
+Starting with this major version, all create syntax will be atomic.
+
+This was implemented by completely breaking away from the DOM structure implied by combinator syntax.
+
+## Breaking Changes
+
+- The '&' selector has been changed to not be allowed.
+- A rule has been created that disallows combinator syntax outside arguments.
+- Changed to allow selectors that start with an array "[]".
+
+### Syntax forbidden to maintain atomicity
+Get an error due to eslint `no-combinator` rule.
+```ts
+":hover > div": {...} // Error
+```
+
+## How to migrate
+- Replace `"&"` selector with `":"` or `"[]"`
+- Replace combinator syntax with `marker` `extended`.
+
+## Features
+new API `marker` and `extended`.  
+These two APIs are atomic and context-agnostic.
+
+```ts
+const marker = (_id: string, _pseudo: string): CSSProperties
+const extended = (_id: string, _pseudo: string): ContainerStyleQuery
+```
+<MarkerExtended />
+```tsx
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  table: {
+    ...css.marker('ul', ':hover'), // [!code ++]
+    width: '100%',
+    height: 200,
+    listStyleType: 'none',
+  },
+  list: {
+    transition: 'all 0.5s',
+    [css.extended('ul', ':hover')]: { // [!code ++]
+      color: 'orange',
+      scale: 1.2,
+      ':hover': {
+        scale: 1.8,
+      },
+    },
+  },
+});;
+
+const Test = () => {
+  return (
+    <div>
+      <ul className={css.props(styles.table)}>
+        <li className={css.props(styles.list)}>Tests</li>
+      </ul>
+    </div>
+  );
+};
+```
+
+## Internal Implementation:
+Use a css variable and pass it to the extended container style query.
+```css
+.xa3bzzr2:hover {
+  --ul-hover: 1;
+}
+
+@container style(--ul-hover:1) {
+  .xhsfb1p9:not(#\#) {
+    color: orange;
+  }
+  .xw7nub6k:not(#\#) {
+    scale: 1.2;
+  }
+  .xwntwjm5:not(#\#):hover {
+    scale: 1.8;
+  }
+}
+```
+
+It connects logical IDs and pseudo-IDs as identifiers, and it works in all cases, whether they are remote, separate components, or adjacent tags.
+
+
+## Performance
+It is inlined at build time, and like all other APIs, it does not leave references to imports.  
+This means that zero-runtime overhead is maintained.
+
+
+## Next
+Currently, @container style() (style queries) is not supported in Firefox, so we plan to enable warnings for combinators in arguments once we have confirmed that Firefox supports it.
+(It has already been confirmed to work in Chrome/Edge.)
+
+## Others
+In the v6.3.2 patch, the conditional expressions and variant expansions were refactored from bitwise operations to sum-of-products expressions, which reduces the number of calculations and improves performance in build and production environments.
+
+- The 7.0.1 Patch fixed the eslint no-combinator rule to not affect the @rule.
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
