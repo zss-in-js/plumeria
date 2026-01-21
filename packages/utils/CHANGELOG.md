@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 7.0.2
+
+### Patch Changes
+
+- b1a1ef0: chore: next security update
+
 ## 7.0.1
 
 ### Patch Changes
