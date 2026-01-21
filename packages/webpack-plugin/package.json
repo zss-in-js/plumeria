@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/webpack-plugin",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "description": "Plumeria Webpack plugin",
   "author": "Refirst 11",
   "license": "MIT",
