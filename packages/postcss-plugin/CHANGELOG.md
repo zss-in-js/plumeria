@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 7.0.2
+
+### Patch Changes
+
+- b1a1ef0: chore: next security update
+- Updated dependencies [b1a1ef0]
+  - @plumeria/compiler@7.0.2
+
 ## 7.0.1
 
 ### Patch Changes

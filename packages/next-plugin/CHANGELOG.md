@@ -1,5 +1,14 @@
 # @plumeria/next-plugin
 
+## 7.0.2
+
+### Patch Changes
+
+- b1a1ef0: chore: next security update
+- Updated dependencies [b1a1ef0]
+  - @plumeria/turbopack-loader@7.0.2
+  - @plumeria/webpack-plugin@7.0.2
+
 ## 7.0.1
 
 ### Patch Changes
