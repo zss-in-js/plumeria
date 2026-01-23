@@ -39,6 +39,31 @@ export const ButtonLink = ({ children, variant, href }: Props) => {
 <ButtonLink href={"/docs"} variant="metallic">{...}</ButtonLink>
 ```
 
+
+## Best Practices for build time
+
+Plumeria's variants are **zero runtime overhead** — all style combinations are generated **at build time** by static analysis. The number of variations generated directly impacts build performance.
+
+### Guideline
+Keep the total number of generated variant combinations **under 3500** as a rough safe limit for most projects.  
+Beyond this, build times can become noticeably slower (depending on your machine and project size).
+
+### Static vs Dynamic Usage
+
+The more **statically analyzable** your variant calls are, the fewer styles the compiler generates.
+
+```tsx
+// Pattern all combinations
+// e.g. 5 colors × 4 sizes = 20
+css.props(variantButton({ color, size }));
+
+// ✅ Best: exactly one combination
+css.props(variantButton({ color: 'blue', size: 'md' }));
+
+// ✅ Partial: only color varies (e.g. 5)
+css.props(variantButton({ color, size: 'md' }));
+```
+
 <Callout title="Good to know">
     After being expanded to className, it is safely deleted.  
     If it is statically determined first, only styles for that key are generated.
