@@ -3,17 +3,11 @@ export type {
   FileStyles,
   StaticTable,
   KeyframesHashTable,
-  KeyframesObjectTable,
   ViewTransitionHashTable,
-  ViewTransitionObjectTable,
-  CreateThemeObjectTable,
   CreateHashTable,
-  CreateObjectTable,
   VariantsHashTable,
-  VariantsObjectTable,
   CreateThemeHashTable,
   CreateStaticHashTable,
-  CreateStaticObjectTable,
 } from './types';
 export {
   objectExpressionToObject,
