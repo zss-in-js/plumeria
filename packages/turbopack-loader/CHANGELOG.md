@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 7.1.0
+
+### Minor Changes
+
+- 7e4cff1: perf: variants performance o(n^k) to o(n)
+
+### Patch Changes
+
+- Updated dependencies [7e4cff1]
+  - @plumeria/utils@7.1.0
+
 ## 7.0.2
 
 ### Patch Changes
