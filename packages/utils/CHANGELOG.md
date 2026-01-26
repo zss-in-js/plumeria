@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 7.1.1
+
+### Patch Changes
+
+- fb385a8: chore: zss-engine v2.2.4 update
+
 ## 7.1.0
 
 ### Minor Changes
