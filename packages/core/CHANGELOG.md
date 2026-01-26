@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.1.0
+
+### Minor Changes
+
+- 7e4cff1: feat: update error function and all static
+
 ## 7.0.2
 
 ### Patch Changes
