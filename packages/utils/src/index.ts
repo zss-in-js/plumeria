@@ -29,3 +29,4 @@ export { getStyleRecords } from './create';
 export { createTheme } from './createTheme';
 export { resolveImportPath } from './resolver';
 export { optimizer } from './optimizer';
+export { processVariants } from './variants';
