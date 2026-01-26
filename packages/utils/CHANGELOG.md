@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 7.1.0
+
+### Minor Changes
+
+- 7e4cff1: feat: variant.ts processVariants
+
 ## 7.0.2
 
 ### Patch Changes
