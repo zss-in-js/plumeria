@@ -1,5 +1,17 @@
 # @plumeria/next-plugin
 
+## 7.1.0
+
+### Minor Changes
+
+- 7e4cff1: chore: bump version to 7.1.0
+
+### Patch Changes
+
+- Updated dependencies [7e4cff1]
+  - @plumeria/turbopack-loader@7.1.0
+  - @plumeria/webpack-plugin@7.1.0
+
 ## 7.0.2
 
 ### Patch Changes
