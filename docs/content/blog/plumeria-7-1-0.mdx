@@ -1,0 +1,76 @@
+---
+title: 'Plumeria v7.1.0'
+description: 'Optimized variant calculation from O(n * m) to O(1) constant time, and improved conflict resolution. (3 min read)'
+date: '2026-01-26'
+---
+
+This update brings a massive performance optimization to how `css.variants` and `css.props` handles variants, along with robust conflict resolution logic.
+
+## Variant Calculation Optimization: O(n^k) -> O(1)
+`variants` lookup implemented version is v6.0.1 or higher.
+
+- `O(n)` Additive (v7.1.0 or higher)
+- `O(n^k)` Product-sum (v6.3.2 or higher)
+- `O(2^n)` Bitwise (v6.3.1 or below)
+
+Until v7.0.x, determining the final class name for a set of variants involved logic that could scale linearly or super-linearly depending on the number of variants and their interactions (O(n^k)).
+Specifically, it relied on iterative calculations to parse keys, which was not optimal for performance in tight loops (like React render cycles).
+
+**v7.1.0 introduces a fundamental shift to O(n) Constant Time lookup.**
+
+### How it works
+
+The build tool now analyzes your styles and splits them into two categories:
+
+1. **Independent Variants**: Variants that do not share any CSS properties with others.
+2. **Conflicting Variants**: Variants that modify the same CSS properties (e.g., `color` in both `primary` and `active` variants).
+
+#### Constant Time Lookup table
+
+For conflicting variants, the compiler pre-calculates a **Product-Sum (Cartesian Product)** table at build time.
+At runtime, instead of calculating logic, it simply looks up the result in a hash map using a generated key.
+
+```ts
+// Core Logic (Simplified)
+// O(1) access
+const className = lookupTable[props.variant] || baseClass;
+```
+
+This guarantees that **no matter how complex your variants are, the runtime cost remains effectively zero** (constant dictionary lookup).
+
+## Independent Variants Optimization
+
+Non-conflicting variants are handled completely separately. They are treated as additive.
+This prevents the "combinatorial explosion" of CSS generation.
+
+- **Before**: 3 variants with 3 options each might have generated 27 (3x3x3) combined definitions.
+- **After**: If they are independent, we only generate 9 (3+3+3) atomic definitions and concatenate the classes.
+
+## Additive Conflict Resolution
+
+With the new logic, conflicting styles are strictly ordered.
+If a Variant and Base style conflict, or multiple Variants conflict, the lookup table ensures the correct winner is applied based on the definition order, without relying on CSS cascade fragility.
+
+
+## Migration
+
+This is a non-breaking change for valid usages.
+However, if you were relying on undefined behavior of conflicting variants (which was previously unstable), you might see stricter, more correct results now.
+
+## Component Libraries
+
+This performance optimization makes Plumeria fully viable for **production component libraries**.
+
+Previously, complex variant systems with deep nesting or multiple conditional variants could introduce measurable runtime overhead. Now, with O(n) lookups and optimized conflict resolution, you can:
+
+- Build design systems with dozens of variants without performance concerns
+- Create reusable UI component libraries that scale to enterprise applications
+- Compose variants freely, knowing the cost is constant regardless of complexity
+
+Whether you're building an internal design system or publishing a public component library on npm, Plumeria v7.1.0 ensures your styling layer is never the bottleneck.
+
+Upgrade today to experience the speed up!
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
