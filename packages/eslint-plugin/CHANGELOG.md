@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.1.1
+
+### Patch Changes
+
+- fb385a8: chore: bump version to 7.1.1
+
 ## 7.1.0
 
 ### Minor Changes

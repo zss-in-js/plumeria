@@ -1,5 +1,13 @@
 # @plumeria/webpack-plugin
 
+## 7.1.1
+
+### Patch Changes
+
+- fb385a8: chore: zss-engine v2.2.4 update
+- Updated dependencies [fb385a8]
+  - @plumeria/utils@7.1.1
+
 ## 7.1.0
 
 ### Minor Changes
