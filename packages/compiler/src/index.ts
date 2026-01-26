@@ -3,6 +3,11 @@ import {
   ObjectExpression,
   Expression,
   ImportSpecifier,
+  MemberExpression,
+  Identifier,
+  ConditionalExpression,
+  BinaryExpression,
+  ParenthesisExpression,
 } from '@swc/core';
 import { type CSSProperties, genBase36Hash } from 'zss-engine';
 
@@ -50,17 +55,11 @@ export function compileCSS(options: CompilerOptions) {
     const source = fs.readFileSync(filePath, 'utf-8');
     const extractedSheets: string[] = [];
 
-    let ast;
-    try {
-      ast = parseSync(source, {
-        syntax: 'typescript',
-        tsx: true,
-        target: 'es2022',
-      });
-    } catch (err) {
-      console.warn(`Failed to parse ${filePath}:`, err);
-      return [];
-    }
+    const ast = parseSync(source, {
+      syntax: 'typescript',
+      tsx: true,
+      target: 'es2022',
+    });
 
     const scannedTables = scanAll();
     const localConsts = collectLocalConsts(ast);
@@ -196,63 +195,426 @@ export function compileCSS(options: CompilerOptions) {
       { type: 'create' | 'variant' | 'theme'; obj: CSSObject }
     > = {};
 
-    traverse(ast, {
-      VariableDeclarator({ node }) {
+    const processCall = (node: any) => {
+      node._processed = true;
+
+      // Resolve propName logic (similar to existing)
+      const callee = node.callee;
+      let propName: string | undefined;
+      if (
+        t.isMemberExpression(callee) &&
+        t.isIdentifier(callee.object) &&
+        t.isIdentifier(callee.property)
+      ) {
+        const objectName = callee.object.value;
+        const propertyName = callee.property.value;
+        const alias = plumeriaAliases[objectName];
+        if (alias === 'NAMESPACE' || objectName === 'css')
+          propName = propertyName;
+      } else if (t.isIdentifier(callee)) {
+        const originalName = plumeriaAliases[callee.value];
+        if (originalName) propName = originalName;
+      }
+
+      // Special handling for local styling calls (styles({...}))
+      let localVariantName: string | undefined;
+      if (!propName && t.isIdentifier(callee)) {
+        const varName = callee.value;
         if (
-          node.id.type === 'Identifier' &&
+          localCreateStyles[varName] &&
+          localCreateStyles[varName].type === 'variant'
+        ) {
+          localVariantName = varName;
+          propName = 'props'; // Treat as usage
+        }
+      }
+
+      if (propName) {
+        const args = node.arguments;
+        // Helper to extract styles (recursive)
+        const extractStylesFromExpression = (
+          expression: Expression,
+        ): CSSObject[] => {
+          const results: CSSObject[] = [];
+          if (t.isObjectExpression(expression)) {
+            const object = objectExpressionToObject(
+              expression,
+              mergedStaticTable,
+              mergedKeyframesTable,
+              mergedViewTransitionTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
+              mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
+              mergedVariantsTable,
+            );
+            if (object) results.push(object);
+          } else if (t.isMemberExpression(expression)) {
+            const memberExpr = expression as MemberExpression;
+            // Handle static member access logic
+            if (
+              t.isIdentifier(memberExpr.object) &&
+              t.isIdentifier(memberExpr.property)
+            ) {
+              const variableName = (memberExpr.object as Identifier).value;
+              const propertyName = (memberExpr.property as Identifier).value;
+              const styleSet = localCreateStyles[variableName];
+              if (styleSet && styleSet.obj[propertyName]) {
+                results.push(styleSet.obj[propertyName] as CSSObject);
+              } else {
+                const hash = mergedCreateTable[variableName];
+                if (hash) {
+                  const object = scannedTables.createObjectTable[hash];
+                  if (object && object[propertyName]) {
+                    results.push(object[propertyName] as CSSObject);
+                  }
+                }
+              }
+            }
+          } else if (t.isIdentifier(expression)) {
+            const identifier = expression as Identifier;
+            const object = localCreateStyles[identifier.value];
+            if (object) results.push(object.obj);
+            else {
+              const hash = mergedCreateTable[identifier.value];
+              if (hash) {
+                const objectFromTable = scannedTables.createObjectTable[hash];
+                if (objectFromTable) results.push(objectFromTable as CSSObject);
+              }
+            }
+          } else if (t.isConditionalExpression(expression)) {
+            const conditionalExpr = expression as ConditionalExpression;
+            results.push(
+              ...extractStylesFromExpression(conditionalExpr.consequent),
+            );
+            results.push(
+              ...extractStylesFromExpression(conditionalExpr.alternate),
+            );
+          } else if (
+            t.isBinaryExpression(expression) &&
+            ['&&', '||', '??'].includes(
+              (expression as BinaryExpression).operator,
+            )
+          ) {
+            const binaryExpr = expression as BinaryExpression;
+            results.push(...extractStylesFromExpression(binaryExpr.left));
+            results.push(...extractStylesFromExpression(binaryExpr.right));
+          } else if (expression.type === 'ParenthesisExpression') {
+            const parenExpr = expression as unknown as ParenthesisExpression;
+            results.push(...extractStylesFromExpression(parenExpr.expression));
+          }
+          return results;
+        };
+
+        const processStyle = (style: CSSObject) => {
+          extractOndemandStyles(style, extractedSheets, scannedTables);
+          const records = getStyleRecords(style as CSSProperties);
+          records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
+        };
+
+        if (propName === 'props') {
+          const conditionals: Array<{
+            test: Expression;
+            testString?: string;
+            truthy: Record<string, any>;
+            falsy: Record<string, any>;
+            groupId?: number;
+            groupName?: string;
+            valueName?: string;
+            varName?: string;
+          }> = [];
+          let groupIdCounter = 0;
+          let baseStyle: Record<string, any> = {};
+
+          const resolveStyleObject = (
+            expression: Expression,
+          ): Record<string, any> | null => {
+            const styles = extractStylesFromExpression(expression);
+            return styles.length === 1
+              ? (styles[0] as Record<string, any>)
+              : null;
+          };
+
+          for (const arg of args) {
+            const expr = arg.expression;
+
+            // Variant Usage Logic (styles({ variant: ... }))
+            // Handle if ARGUMENT is ObjectExpression (direct usage) - for localVariantName case
+            let handledAsObjectArg = false;
+            if (localVariantName && t.isObjectExpression(expr)) {
+              // This is styles({ ... }) where styles is local variants wrapper
+              // We can reuse the logic that parses object arguments for variants
+              // But logic below expects "expr" to be CallExpression usually?
+              // Actually logic below handles `t.isCallExpression(expr)` which is `styles( variants(...) )`.
+              // We need to handle `t.isObjectExpression(expr)`.
+
+              const variantObj = localCreateStyles[localVariantName].obj;
+              // Reuse logic?
+              if (variantObj) {
+                const props = expr.properties;
+
+                // Handle "base" styles if they exist
+                if (variantObj.base && typeof variantObj.base === 'object') {
+                  baseStyle = deepMerge(baseStyle, variantObj.base);
+                }
+
+                // Determine where variants are located
+                const variantsMap = (variantObj.variants ||
+                  variantObj) as Record<string, any>;
+
+                for (const prop of props) {
+                  let groupName: string | undefined;
+                  let valueExpression: any;
+                  if (
+                    prop.type === 'KeyValueProperty' &&
+                    prop.key.type === 'Identifier'
+                  ) {
+                    groupName = prop.key.value;
+                    valueExpression = prop.value;
+                  } else if (prop.type === 'Identifier') {
+                    groupName = prop.value;
+                    valueExpression = prop;
+                  }
+
+                  if (groupName && valueExpression && variantsMap[groupName]) {
+                    const groupVariants = variantsMap[groupName];
+                    if (!groupVariants || typeof groupVariants !== 'object')
+                      continue;
+
+                    const currentGroupId = ++groupIdCounter;
+
+                    if (valueExpression.type === 'StringLiteral') {
+                      // @ts-ignore
+                      if (
+                        (groupVariants as Record<string, any>)[
+                          valueExpression.value
+                        ]
+                      ) {
+                        baseStyle = deepMerge(
+                          baseStyle,
+                          (groupVariants as Record<string, any>)[
+                            valueExpression.value
+                          ],
+                        );
+                      }
+                      continue;
+                    }
+
+                    Object.entries(
+                      groupVariants as unknown as Record<string, any>,
+                    ).forEach(([optionName, style]) => {
+                      conditionals.push({
+                        test: valueExpression,
+                        truthy: style as any,
+                        falsy: {},
+                        groupId: currentGroupId,
+                        groupName: groupName,
+                        valueName: optionName,
+                        varName: localVariantName,
+                      });
+                    });
+                  }
+                }
+                handledAsObjectArg = true;
+              }
+            }
+            if (handledAsObjectArg) continue;
+
+            // Recursive Conditionals
+            const getSource = (node: any) =>
+              source.substring(
+                node.span.start - ast.span.start,
+                node.span.end - ast.span.start,
+              );
+            const collectConditions = (
+              node: Expression,
+              testStrings: string[] = [],
+            ): boolean => {
+              const staticStyle = resolveStyleObject(node);
+              if (staticStyle) {
+                if (testStrings.length === 0)
+                  baseStyle = deepMerge(baseStyle, staticStyle);
+                else
+                  conditionals.push({
+                    test: node,
+                    testString: testStrings.join(' && '),
+                    truthy: staticStyle,
+                    falsy: {},
+                  });
+                return true;
+              }
+              if (node.type === 'ConditionalExpression') {
+                const testSource = getSource(node.test);
+                collectConditions(node.consequent, [
+                  ...testStrings,
+                  `(${testSource})`,
+                ]);
+                collectConditions(node.alternate, [
+                  ...testStrings,
+                  `!(${testSource})`,
+                ]);
+                return true;
+              } else if (
+                node.type === 'BinaryExpression' &&
+                node.operator === '&&'
+              ) {
+                collectConditions(node.right, [
+                  ...testStrings,
+                  `(${getSource(node.left)})`,
+                ]);
+                return true;
+              } else if (node.type === 'ParenthesisExpression') {
+                return collectConditions(node.expression, testStrings);
+              }
+              return false;
+            };
+
+            if (collectConditions(expr)) continue;
+
+            // Fallback
+            const extractedStyles = extractStylesFromExpression(expr);
+            if (extractedStyles.length > 0) {
+              extractedStyles.forEach(processStyle);
+              continue;
+            }
+          }
+
+          if (Object.keys(baseStyle).length > 0) {
+            processStyle(baseStyle);
+          }
+
+          // Generate styles for all conditionals independently
+          // This aligns with the new independent map-based class generation in loaders
+          // and avoids combinatorial explosion + pruning issues.
+          for (const cond of conditionals) {
+            if (cond.truthy && Object.keys(cond.truthy).length > 0) {
+              processStyle(cond.truthy);
+            }
+            if (cond.falsy && Object.keys(cond.falsy).length > 0) {
+              processStyle(cond.falsy);
+            }
+          }
+        } else if (
+          propName === 'keyframes' &&
+          args.length > 0 &&
+          t.isObjectExpression(args[0].expression)
+        ) {
+          const obj = objectExpressionToObject(
+            args[0].expression as ObjectExpression,
+            mergedStaticTable,
+            mergedKeyframesTable,
+            mergedViewTransitionTable,
+            mergedCreateThemeHashTable,
+            scannedTables.createThemeObjectTable,
+            mergedCreateTable,
+            mergedCreateStaticHashTable,
+            scannedTables.createStaticObjectTable,
+            mergedVariantsTable,
+          );
+          const hash = genBase36Hash(obj, 1, 8);
+          extractOndemandStyles(
+            { kf: `kf-${hash}` },
+            extractedSheets,
+            scannedTables,
+          );
+          scannedTables.keyframesObjectTable[hash] = obj;
+        } else if (
+          propName === 'viewTransition' &&
+          args.length > 0 &&
+          t.isObjectExpression(args[0].expression)
+        ) {
+          const obj = objectExpressionToObject(
+            args[0].expression as ObjectExpression,
+            mergedStaticTable,
+            mergedKeyframesTable,
+            mergedViewTransitionTable,
+            mergedCreateThemeHashTable,
+            scannedTables.createThemeObjectTable,
+            mergedCreateTable,
+            mergedCreateStaticHashTable,
+            scannedTables.createStaticObjectTable,
+            mergedVariantsTable,
+          );
+          const hash = genBase36Hash(obj, 1, 8);
+          scannedTables.viewTransitionObjectTable[hash] = obj;
+          extractOndemandStyles(
+            { vt: `vt-${hash}` },
+            extractedSheets,
+            scannedTables,
+          );
+        } else if (
+          propName === 'createTheme' &&
+          args.length > 0 &&
+          t.isObjectExpression(args[0].expression)
+        ) {
+          const obj = objectExpressionToObject(
+            args[0].expression as ObjectExpression,
+            mergedStaticTable,
+            mergedKeyframesTable,
+            mergedViewTransitionTable,
+            mergedCreateThemeHashTable,
+            scannedTables.createThemeObjectTable,
+            mergedCreateTable,
+            mergedCreateStaticHashTable,
+            scannedTables.createStaticObjectTable,
+            mergedVariantsTable,
+          );
+          const hash = genBase36Hash(obj, 1, 8);
+          scannedTables.createThemeObjectTable[hash] = obj;
+          extractOndemandStyles(obj, extractedSheets, scannedTables);
+        }
+      }
+    };
+
+    const traverseInternal = (node: any) => {
+      if (!node || typeof node !== 'object') return;
+      if (t.isCallExpression(node)) processCall(node);
+      for (const k in node)
+        if (k !== 'span' && k !== 'loc') traverseInternal(node[k]);
+    };
+
+    traverse(ast, {
+      VariableDeclarator({ node }: { node: any }) {
+        // Definition Logic
+        if (
+          t.isIdentifier(node.id) &&
           node.init &&
           t.isCallExpression(node.init)
         ) {
-          let propName: string | undefined;
           const callee = node.init.callee;
-
+          let pName: string | undefined;
           if (
             t.isMemberExpression(callee) &&
             t.isIdentifier(callee.object) &&
             t.isIdentifier(callee.property)
           ) {
-            const objectName = callee.object.value;
-            const propertyName = callee.property.value;
-            const alias = plumeriaAliases[objectName];
-
-            if (alias === 'NAMESPACE' || objectName === 'css') {
-              propName = propertyName;
-            }
-          } else if (t.isIdentifier(callee)) {
-            const calleeName = callee.value;
-            const originalName = plumeriaAliases[calleeName];
-            if (originalName) {
-              propName = originalName;
-            }
+            if (
+              callee.object.value === 'css' ||
+              plumeriaAliases[callee.object.value] === 'NAMESPACE'
+            )
+              pName = callee.property.value;
+          } else if (t.isIdentifier(callee) && plumeriaAliases[callee.value]) {
+            pName = plumeriaAliases[callee.value];
           }
 
           if (
-            propName &&
+            pName &&
             node.init.arguments.length === 1 &&
             t.isObjectExpression(node.init.arguments[0].expression)
           ) {
-            const resolveVariable = (name: string) => {
-              if (localCreateStyles[name]) {
-                return localCreateStyles[name].obj;
-              }
-            };
+            const arg = node.init.arguments[0].expression as ObjectExpression;
+            const resolveVariable = (name: string) =>
+              localCreateStyles[name]?.obj ||
+              (mergedCreateThemeHashTable[name]
+                ? scannedTables.createAtomicMapTable[
+                    mergedCreateThemeHashTable[name]
+                  ]
+                : undefined);
 
-            if (propName === 'create') {
-              const resolveVariable = (name: string) => {
-                // Resolved from localCreateStyles
-                if (localCreateStyles[name]) {
-                  return localCreateStyles[name].obj;
-                }
-                // Resolved from imported createTheme
-                if (mergedCreateThemeHashTable[name]) {
-                  const themeHash = mergedCreateThemeHashTable[name];
-                  return scannedTables.createAtomicMapTable[themeHash];
-                }
-                return undefined;
-              };
-
+            if (pName === 'create') {
               const obj = objectExpressionToObject(
-                node.init.arguments[0].expression as ObjectExpression,
+                arg,
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
@@ -266,18 +628,16 @@ export function compileCSS(options: CompilerOptions) {
               );
               if (obj) {
                 localCreateStyles[node.id.value] = { type: 'create', obj };
-
-                Object.entries(obj).forEach(([_key, style]) => {
-                  const records = getStyleRecords(style as CSSProperties);
-                  extractOndemandStyles(style, extractedSheets, scannedTables);
-                  records.forEach((r: StyleRecord) => {
-                    extractedSheets.push(r.sheet);
-                  });
+                Object.entries(obj).forEach(([, s]) => {
+                  extractOndemandStyles(s, extractedSheets, scannedTables);
+                  getStyleRecords(s as CSSProperties).forEach(
+                    (r: StyleRecord) => extractedSheets.push(r.sheet),
+                  );
                 });
               }
-            } else if (propName === 'variants') {
+            } else if (pName === 'variants') {
               const obj = objectExpressionToObject(
-                node.init.arguments[0].expression as ObjectExpression,
+                arg,
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
@@ -289,12 +649,11 @@ export function compileCSS(options: CompilerOptions) {
                 mergedVariantsTable,
                 resolveVariable,
               );
-              if (obj) {
+              if (obj)
                 localCreateStyles[node.id.value] = { type: 'variant', obj };
-              }
-            } else if (propName === 'createTheme') {
+            } else if (pName === 'createTheme') {
               const obj = objectExpressionToObject(
-                node.init.arguments[0].expression as ObjectExpression,
+                arg,
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
@@ -305,13 +664,10 @@ export function compileCSS(options: CompilerOptions) {
                 scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
               );
-
               const hash = genBase36Hash(obj, 1, 8);
-              const uniqueKey = `${resourcePath}-${node.id.value}`;
-
-              scannedTables.createThemeHashTable[uniqueKey] = hash;
+              const uKey = `${resourcePath}-${node.id.value}`;
+              scannedTables.createThemeHashTable[uKey] = hash;
               scannedTables.createThemeObjectTable[hash] = obj;
-
               localCreateStyles[node.id.value] = {
                 type: 'create',
                 obj: scannedTables.createAtomicMapTable[hash],
@@ -319,393 +675,18 @@ export function compileCSS(options: CompilerOptions) {
             }
           }
         }
+        // Scope Tracking
+        if (t.isIdentifier(node.id)) {
+          if (node.init) traverseInternal(node.init);
+        }
       },
-      CallExpression({ node }) {
-        const callee = node.callee;
-
-        let propName: string | undefined;
-
-        if (
-          t.isMemberExpression(callee) &&
-          t.isIdentifier(callee.object) &&
-          t.isIdentifier(callee.property)
-        ) {
-          const objectName = callee.object.value;
-          const propertyName = callee.property.value;
-          const alias = plumeriaAliases[objectName];
-          if (alias === 'NAMESPACE' || objectName === 'css') {
-            propName = propertyName;
-          }
-        } else if (t.isIdentifier(callee)) {
-          const calleeName = callee.value;
-          const originalName = plumeriaAliases[calleeName];
-          if (originalName) {
-            propName = originalName;
-          }
-        }
-
-        if (propName) {
-          const args = node.arguments;
-
-          const extractStylesFromExpression = (
-            expr: Expression,
-          ): CSSObject[] => {
-            const results: CSSObject[] = [];
-            if (t.isObjectExpression(expr)) {
-              const obj = objectExpressionToObject(
-                expr,
-                mergedStaticTable,
-                mergedKeyframesTable,
-                mergedViewTransitionTable,
-                mergedCreateThemeHashTable,
-                scannedTables.createThemeObjectTable,
-                mergedCreateTable,
-                mergedCreateStaticHashTable,
-                scannedTables.createStaticObjectTable,
-                mergedVariantsTable,
-              );
-              if (obj) results.push(obj);
-            } else if (t.isMemberExpression(expr)) {
-              if (
-                t.isIdentifier(expr.object) &&
-                t.isIdentifier(expr.property)
-              ) {
-                // styles.main (dot access)
-                const varName = expr.object.value;
-                const propName = expr.property.value;
-                const styleSet = localCreateStyles[varName];
-                if (styleSet && styleSet.obj[propName]) {
-                  results.push(styleSet.obj[propName] as CSSObject);
-                } else {
-                  // Check imported
-                  const hash = mergedCreateTable[varName];
-                  if (hash) {
-                    const obj = scannedTables.createObjectTable[hash];
-                    if (obj && obj[propName]) {
-                      results.push(obj[propName] as CSSObject);
-                    }
-                  }
-                }
-              } else if (
-                t.isIdentifier(expr.object) &&
-                expr.property.type === 'Computed'
-              ) {
-                // Ignore bracket notation for complete staticization
-                return [];
-              }
-            } else if (t.isIdentifier(expr)) {
-              const obj = localCreateStyles[expr.value];
-              if (obj) {
-                results.push(obj.obj);
-              } else {
-                const hash = mergedCreateTable[expr.value];
-                if (hash) {
-                  const obj = scannedTables.createObjectTable[hash];
-                  if (obj) results.push(obj as CSSObject);
-                }
-              }
-            } else if (t.isConditionalExpression(expr)) {
-              results.push(...extractStylesFromExpression(expr.consequent));
-              results.push(...extractStylesFromExpression(expr.alternate));
-            } else if (
-              t.isBinaryExpression(expr) &&
-              (expr.operator === '&&' ||
-                expr.operator === '||' ||
-                expr.operator === '??')
-            ) {
-              results.push(...extractStylesFromExpression(expr.left));
-              results.push(...extractStylesFromExpression(expr.right));
-            } else if (expr.type === 'ParenthesisExpression') {
-              results.push(...extractStylesFromExpression(expr.expression));
-            }
-            return results;
-          };
-
-          const processStyle = (style: CSSObject) => {
-            extractOndemandStyles(style, extractedSheets, scannedTables);
-            const records = getStyleRecords(style as CSSProperties);
-            records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
-          };
-
-          if (propName === 'props') {
-            const conditionals: Array<{
-              test: Expression;
-              truthy: Record<string, any>;
-              falsy: Record<string, any>;
-              groupId?: number;
-            }> = [];
-
-            let groupIdCounter = 0;
-            let baseStyle: Record<string, any> = {};
-
-            const resolveStyleObject = (
-              expr: Expression,
-            ): Record<string, any> | null => {
-              const styles = extractStylesFromExpression(expr);
-              if (styles.length === 1) return styles[0] as Record<string, any>;
-              return null;
-            };
-
-            for (const arg of args) {
-              const expr = arg.expression;
-
-              if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
-                const varName = expr.callee.value;
-                let variantObj: Record<string, any> | undefined;
-
-                if (
-                  localCreateStyles[varName] &&
-                  localCreateStyles[varName].type === 'variant'
-                ) {
-                  variantObj = localCreateStyles[varName].obj;
-                } else if (mergedVariantsTable[varName]) {
-                  const hash = mergedVariantsTable[varName];
-                  if (scannedTables.variantsObjectTable[hash]) {
-                    variantObj = scannedTables.variantsObjectTable[
-                      hash
-                    ] as Record<string, any>;
-                  }
-                }
-
-                if (variantObj) {
-                  const callArgs = expr.arguments;
-                  if (callArgs.length === 1 && !callArgs[0].spread) {
-                    const arg = callArgs[0].expression;
-
-                    if (t.isObjectExpression(arg)) {
-                      for (const prop of arg.properties) {
-                        let groupName: string | undefined;
-                        let valExpr: any;
-
-                        if (
-                          prop.type === 'KeyValueProperty' &&
-                          prop.key.type === 'Identifier'
-                        ) {
-                          groupName = prop.key.value;
-                          valExpr = prop.value;
-                        } else if (prop.type === 'Identifier') {
-                          groupName = prop.value;
-                          valExpr = prop;
-                        }
-
-                        if (groupName && valExpr) {
-                          const groupVariants = variantObj[groupName];
-                          if (!groupVariants) continue;
-
-                          const currentGroupId = ++groupIdCounter;
-
-                          // Static optimization
-                          if (valExpr.type === 'StringLiteral') {
-                            if (groupVariants[valExpr.value]) {
-                              baseStyle = deepMerge(
-                                baseStyle,
-                                groupVariants[valExpr.value],
-                              );
-                            }
-                            continue;
-                          }
-
-                          // Dynamic selection - generate all options
-                          Object.entries(
-                            groupVariants as Record<string, any>,
-                          ).forEach(([_optionName, style]) => {
-                            conditionals.push({
-                              test: valExpr, // Placeholder
-                              truthy: style as Record<string, any>,
-                              falsy: {},
-                              groupId: currentGroupId,
-                            });
-                          });
-                        }
-                      }
-                      continue;
-                    }
-
-                    // Simple variant(string) case
-                    if (t.isStringLiteral(arg)) {
-                      if (variantObj[arg.value]) {
-                        baseStyle = deepMerge(baseStyle, variantObj[arg.value]);
-                      }
-                      continue;
-                    }
-
-                    // Dynamic simple variant
-                    const currentGroupId = ++groupIdCounter;
-                    Object.entries(variantObj).forEach(([_key, style]) => {
-                      conditionals.push({
-                        test: arg, // Placeholder
-                        truthy: style as Record<string, any>,
-                        falsy: {},
-                        groupId: currentGroupId,
-                      });
-                    });
-                    continue;
-                  }
-
-                  break;
-                }
-              }
-
-              if (t.isBinaryExpression(expr) && expr.operator === '&&') {
-                const truthyStyle = resolveStyleObject(expr.right);
-                if (truthyStyle !== null) {
-                  conditionals.push({
-                    test: expr.left,
-                    truthy: truthyStyle,
-                    falsy: {},
-                  });
-                  continue;
-                }
-              } else if (expr.type === 'ParenthesisExpression') {
-                const inner = expr.expression;
-                const innerStatic = resolveStyleObject(inner);
-                if (innerStatic) {
-                  baseStyle = deepMerge(baseStyle, innerStatic);
-                  continue;
-                }
-              }
-
-              const staticStyle = resolveStyleObject(expr);
-              if (staticStyle) {
-                baseStyle = deepMerge(baseStyle, staticStyle);
-                continue;
-              } else if (expr.type === 'ConditionalExpression') {
-                const truthyStyle = resolveStyleObject(expr.consequent);
-                const falsyStyle = resolveStyleObject(expr.alternate);
-
-                if (truthyStyle !== null && falsyStyle !== null) {
-                  conditionals.push({
-                    test: expr.test,
-                    truthy: truthyStyle,
-                    falsy: falsyStyle,
-                  });
-                  continue;
-                }
-              }
-
-              const styles = extractStylesFromExpression(expr);
-              if (styles.length > 0) {
-                styles.forEach(processStyle);
-                continue;
-              }
-            }
-
-            if (
-              Object.keys(baseStyle).length > 0 &&
-              conditionals.length === 0
-            ) {
-              processStyle(baseStyle);
-            } else if (conditionals.length > 0) {
-              const combinations = 1 << conditionals.length;
-
-              for (let i = 0; i < combinations; i++) {
-                let currentStyle = { ...baseStyle };
-                const seenGroups = new Set<number>();
-                let impossible = false;
-
-                for (let j = 0; j < conditionals.length; j++) {
-                  if ((i >> j) & 1) {
-                    if (conditionals[j].groupId !== undefined) {
-                      if (seenGroups.has(conditionals[j].groupId!)) {
-                        impossible = true;
-                        break;
-                      }
-                      seenGroups.add(conditionals[j].groupId!);
-                    }
-                    currentStyle = deepMerge(
-                      currentStyle,
-                      conditionals[j].truthy,
-                    );
-                  } else {
-                    currentStyle = deepMerge(
-                      currentStyle,
-                      conditionals[j].falsy,
-                    );
-                  }
-                }
-
-                if (impossible) {
-                  continue;
-                }
-
-                if (Object.keys(currentStyle).length > 0) {
-                  processStyle(currentStyle);
-                }
-              }
-            }
-          } else if (
-            propName === 'keyframes' &&
-            args.length > 0 &&
-            t.isObjectExpression(args[0].expression)
-          ) {
-            const obj = objectExpressionToObject(
-              args[0].expression as ObjectExpression,
-              mergedStaticTable,
-              mergedKeyframesTable,
-              mergedViewTransitionTable,
-              mergedCreateThemeHashTable,
-              scannedTables.createThemeObjectTable,
-              mergedCreateTable,
-              mergedCreateStaticHashTable,
-              scannedTables.createStaticObjectTable,
-              mergedVariantsTable,
-            );
-            const hash = genBase36Hash(obj, 1, 8);
-            extractOndemandStyles(
-              { kf: `kf-${hash}` },
-              extractedSheets,
-              scannedTables,
-            );
-            scannedTables.keyframesObjectTable[hash] = obj;
-          } else if (
-            propName === 'viewTransition' &&
-            args.length > 0 &&
-            t.isObjectExpression(args[0].expression)
-          ) {
-            const obj = objectExpressionToObject(
-              args[0].expression as ObjectExpression,
-              mergedStaticTable,
-              mergedKeyframesTable,
-              mergedViewTransitionTable,
-              mergedCreateThemeHashTable,
-              scannedTables.createThemeObjectTable,
-              mergedCreateTable,
-              mergedCreateStaticHashTable,
-              scannedTables.createStaticObjectTable,
-              mergedVariantsTable,
-            );
-            const hash = genBase36Hash(obj, 1, 8);
-            scannedTables.viewTransitionObjectTable[hash] = obj;
-            extractOndemandStyles(
-              { vt: `vt-${hash}` },
-              extractedSheets,
-              scannedTables,
-            );
-          } else if (
-            propName === 'createTheme' &&
-            args.length > 0 &&
-            t.isObjectExpression(args[0].expression)
-          ) {
-            const obj = objectExpressionToObject(
-              args[0].expression as ObjectExpression,
-              mergedStaticTable,
-              mergedKeyframesTable,
-              mergedViewTransitionTable,
-              mergedCreateThemeHashTable,
-              scannedTables.createThemeObjectTable,
-              mergedCreateTable,
-              mergedCreateStaticHashTable,
-              scannedTables.createStaticObjectTable,
-              mergedVariantsTable,
-            );
-            const themeHash = genBase36Hash(obj, 1, 8);
-            scannedTables.createThemeObjectTable[themeHash] = obj;
-            extractOndemandStyles(obj, extractedSheets, scannedTables);
-          }
-        }
+      FunctionDeclaration({ node }: { node: any }) {
+        if (node.identifier) traverseInternal(node.body);
+      },
+      CallExpression: (path: any) => {
+        if (!path.node._processed) processCall(path.node);
       },
     });
-
     return extractedSheets;
   };
 
