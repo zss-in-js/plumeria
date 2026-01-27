@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 7.1.2
+
+### Patch Changes
+
+- 83ecc33: chore: bump version to 7.1.2
+
 ## 7.1.1
 
 ### Patch Changes
