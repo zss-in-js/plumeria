@@ -53,7 +53,7 @@ const viewTransition = (_rule: ViewTransition): string => runtimeNotSupported();
 
 const variants =
   <T extends Variant>(_rule: T) =>
-  (_props: { [K in keyof T]: keyof T[K] }): CSSProperties =>
+  (_props: { [K in keyof T]?: keyof T[K] }): CSSProperties =>
     runtimeNotSupported();
 
 const marker = (_id: string, _pseudo: string): CSSProperties =>
