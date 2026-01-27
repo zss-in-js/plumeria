@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.1.2
+
+### Patch Changes
+
+- 83ecc33: chore: fix variants optional revival
+
 ## 7.1.1
 
 ### Patch Changes
