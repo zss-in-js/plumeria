@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.2.0
+
+### Minor Changes
+
+- c562899: chore: bump version to 7.2.0
+
 ## 7.1.2
 
 ### Patch Changes
