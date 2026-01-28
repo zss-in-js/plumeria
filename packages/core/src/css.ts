@@ -16,6 +16,10 @@ import type {
   ContainerStyleQuery,
 } from './types';
 
+type runtimeNotSupported = typeof Error;
+const runtimeNotSupported = () =>
+  new Error('Runtime is not supported. Configure the bundler plugin.');
+
 export type create = typeof create;
 export type props = typeof props;
 export type createTheme = typeof createTheme;
@@ -26,53 +30,48 @@ export type variants = typeof variants;
 export type marker = typeof marker;
 export type extended = typeof extended;
 
-type errorForFn = typeof Error;
-
-const errorForFn = () =>
-  new Error('Runtime is not supported. Configure the bundler plugin.');
-
 export function create<const T extends Record<string, CSSProperties>>(
   _rule: CreateStyleType<T>,
 ): ReturnType<T> {
-  throw errorForFn();
+  throw runtimeNotSupported();
 }
 
 export function props(
   ..._rules: (false | CSSProperties | null | undefined)[]
 ): string {
-  throw errorForFn();
+  throw runtimeNotSupported();
 }
 
 export function createTheme<const T extends CreateTheme>(
   _rule: T,
 ): ReturnVariableType<T> {
-  throw errorForFn();
+  throw runtimeNotSupported();
 }
 
 export function createStatic<const T extends CreateStatic>(_rule: T): T {
-  throw errorForFn();
+  throw runtimeNotSupported();
 }
 
 export function keyframes(_rule: Keyframes): string {
-  throw errorForFn();
+  throw runtimeNotSupported();
 }
 
 export function viewTransition(_rule: ViewTransition): string {
-  throw errorForFn();
+  throw runtimeNotSupported();
 }
 
 export function variants<T extends Variant>(_rule: T) {
   return (_props: { [K in keyof T]?: keyof T[K] }): CSSProperties => {
-    throw errorForFn();
+    throw runtimeNotSupported();
   };
 }
 
 export function marker(_id: string, _pseudo: string): CSSProperties {
-  throw errorForFn();
+  throw runtimeNotSupported();
 }
 
 export function extended(_id: string, _pseudo: string): ContainerStyleQuery {
-  throw errorForFn();
+  throw runtimeNotSupported();
 }
 
 export type { CreateStyle, CSSProperties } from './types';
