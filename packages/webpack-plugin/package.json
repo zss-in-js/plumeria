@@ -18,20 +18,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/",
-    "zero-virtual.css"
+    "dist/"
   ],
   "scripts": {
     "build": "rimraf dist && pnpm cjs",
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@plumeria/utils": "workspace:^"
-  },
-  "devDependencies": {
-    "@swc/core": "catalog:",
-    "webpack": "catalog:",
-    "zss-engine": "catalog:"
+    "@plumeria/turbopack-loader": "workspace:^"
   },
   "publishConfig": {
     "access": "public",
