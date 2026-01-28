@@ -61,7 +61,7 @@ export function compileCSS(options: CompilerOptions) {
       target: 'es2022',
     });
 
-    const scannedTables = scanAll();
+    const scannedTables = scanAll(false);
     const localConsts = collectLocalConsts(ast);
     const resourcePath = filePath;
     const importMap: Record<string, any> = {};
