@@ -5,9 +5,7 @@ export function processVariants(
   variants: Record<string, Record<string, any>>,
 ): {
   hashMap: Record<string, any>;
-  sheets: string[];
 } {
-  const sheets: string[] = [];
   const variantKeys = Object.keys(variants);
 
   // 1. Analyze properties for each variant
@@ -86,9 +84,6 @@ export function processVariants(
     const optionMap: Record<string, string> = {};
     Object.entries(variants[key]).forEach(([optKey, style]) => {
       const records = getStyleRecords(style);
-      records.forEach((r) => {
-        if (!sheets.includes(r.sheet)) sheets.push(r.sheet);
-      });
       optionMap[optKey] = records.map((r) => r.hash).join(' ');
     });
     hashMap[key] = optionMap;
@@ -116,9 +111,6 @@ export function processVariants(
           });
 
           const records = getStyleRecords(mergedStyle);
-          records.forEach((r) => {
-            if (!sheets.includes(r.sheet)) sheets.push(r.sheet);
-          });
           const className = records.map((r) => r.hash).join(' ');
 
           if (className) {
@@ -148,6 +140,5 @@ export function processVariants(
 
   return {
     hashMap,
-    sheets,
   };
 }
