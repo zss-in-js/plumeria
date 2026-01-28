@@ -5,7 +5,6 @@
 
 import type {
   CSSProperties,
-  CreateStyle,
   CreateStyleType,
   CreateStatic,
   CreateTheme,
@@ -17,60 +16,63 @@ import type {
   ContainerStyleQuery,
 } from './types';
 
-type runtimeNotSupported = typeof runtimeNotSupported;
-type create = typeof create;
-type props = typeof props;
-type createTheme = typeof createTheme;
-type createStatic = typeof createStatic;
-type keyframes = typeof keyframes;
-type viewTransition = typeof viewTransition;
-type variants = typeof variants;
-type marker = typeof marker;
-type extended = typeof extended;
+export type create = typeof create;
+export type props = typeof props;
+export type createTheme = typeof createTheme;
+export type createStatic = typeof createStatic;
+export type keyframes = typeof keyframes;
+export type viewTransition = typeof viewTransition;
+export type variants = typeof variants;
+export type marker = typeof marker;
+export type extended = typeof extended;
 
-const runtimeNotSupported = (): never => {
-  throw new Error('Runtime is not supported. Configure the bundler plugin.');
-};
+type errorForFn = typeof Error;
 
-const create = <const T extends Record<string, CSSProperties>>(
+const errorForFn = () =>
+  new Error('Runtime is not supported. Configure the bundler plugin.');
+
+export function create<const T extends Record<string, CSSProperties>>(
   _rule: CreateStyleType<T>,
-): ReturnType<T> => runtimeNotSupported();
+): ReturnType<T> {
+  throw errorForFn();
+}
 
-const props = (
+export function props(
   ..._rules: (false | CSSProperties | null | undefined)[]
-): string => runtimeNotSupported();
+): string {
+  throw errorForFn();
+}
 
-const createTheme = <const T extends CreateTheme>(
+export function createTheme<const T extends CreateTheme>(
   _rule: T,
-): ReturnVariableType<T> => runtimeNotSupported();
+): ReturnVariableType<T> {
+  throw errorForFn();
+}
 
-const createStatic = <const T extends CreateStatic>(_rule: T): T =>
-  runtimeNotSupported();
+export function createStatic<const T extends CreateStatic>(_rule: T): T {
+  throw errorForFn();
+}
 
-const keyframes = (_rule: Keyframes): string => runtimeNotSupported();
+export function keyframes(_rule: Keyframes): string {
+  throw errorForFn();
+}
 
-const viewTransition = (_rule: ViewTransition): string => runtimeNotSupported();
+export function viewTransition(_rule: ViewTransition): string {
+  throw errorForFn();
+}
 
-const variants =
-  <T extends Variant>(_rule: T) =>
-  (_props: { [K in keyof T]?: keyof T[K] }): CSSProperties =>
-    runtimeNotSupported();
+export function variants<T extends Variant>(_rule: T) {
+  return (_props: { [K in keyof T]?: keyof T[K] }): CSSProperties => {
+    throw errorForFn();
+  };
+}
 
-const marker = (_id: string, _pseudo: string): CSSProperties =>
-  runtimeNotSupported();
-const extended = (_id: string, _pseudo: string): ContainerStyleQuery =>
-  runtimeNotSupported();
+export function marker(_id: string, _pseudo: string): CSSProperties {
+  throw errorForFn();
+}
 
-export {
-  create,
-  props,
-  createTheme,
-  createStatic,
-  keyframes,
-  viewTransition,
-  variants,
-  marker,
-  extended,
-};
+export function extended(_id: string, _pseudo: string): ContainerStyleQuery {
+  throw errorForFn();
+}
 
-export type { CreateStyle, CSSProperties };
+export type { CreateStyle, CSSProperties } from './types';
