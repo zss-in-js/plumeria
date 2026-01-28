@@ -30,7 +30,7 @@ describe('parser', () => {
     jest.clearAllMocks();
     // Default mock for scanAll to return empty tables
     mockedFs.globSync.mockReturnValue([]);
-    tables = scanAll();
+    tables = scanAll(true);
   });
 
   describe('type guards (t)', () => {
@@ -817,7 +817,7 @@ describe('parser', () => {
         'import * as css from "@plumeria/core"; export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.keyframesHashTable);
       expect(keys.some((key) => key.endsWith('-fade'))).toBe(true);
       expect(result.keyframesObjectTable).toBeDefined();
@@ -861,7 +861,7 @@ describe('parser', () => {
         (path: any) => fileContents[path] || '',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.staticTable);
       const homeKey = keys.find((k) => k.startsWith(appFile));
       expect(result.staticTable[homeKey!]).toEqual({ ref: 'priority' });
@@ -891,7 +891,7 @@ describe('parser', () => {
         (path: any) => fileContents[path] || '',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       // Verify that T was resolved to hash and its property used in S
       const createKey = Object.keys(result.createHashTable).find((k) =>
         k.includes('app/page.ts'),
@@ -928,7 +928,7 @@ describe('parser', () => {
         (path: any) => fileContents[path] || '',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       // Verify that AliasedT was resolved to hash and its property used in S
       const createKey = Object.keys(result.createHashTable).find((k) =>
         k.includes('app/page.ts'),
@@ -973,7 +973,7 @@ describe('parser', () => {
         (path: any) => fileContents[path] || '',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
 
       // Verify keyframes hash is resolved in usage file
       const libKey = Object.keys(result.keyframesHashTable).find((k) =>
@@ -1027,7 +1027,7 @@ describe('parser', () => {
         (path: any) => fileContents[path] || '',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
 
       // Verify viewTransition hash is resolved in usage file
       const libKey = Object.keys(result.viewTransitionHashTable).find((k) =>
@@ -1052,7 +1052,7 @@ describe('parser', () => {
         'import * as css from "@plumeria/core"; export const C = css.createStatic({ color: "red" });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
 
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((key) => key.endsWith('-C'));
@@ -1066,7 +1066,7 @@ describe('parser', () => {
         'import { createTheme } from "@plumeria/core"; export const T = createTheme({ primary: "#fff" });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.createThemeHashTable);
       expect(keys.some((key) => key.endsWith('-T'))).toBe(true);
     });
@@ -1077,7 +1077,7 @@ describe('parser', () => {
         'import * as css from "@plumeria/core"; export const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.viewTransitionHashTable);
       expect(keys.some((key) => key.endsWith('-slide'))).toBe(true);
       expect(result.viewTransitionObjectTable).toBeDefined();
@@ -1089,7 +1089,7 @@ describe('parser', () => {
         'import * as css from "@plumeria/core"; const C = css.createStatic({ size: "large" });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
 
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((key) => key.endsWith('-C'));
@@ -1103,7 +1103,7 @@ describe('parser', () => {
         'import * as css from "@plumeria/core"; const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
 
       const keys = Object.keys(result.keyframesHashTable);
       expect(keys.some((key) => key.endsWith('-fade'))).toBe(true);
@@ -1115,7 +1115,7 @@ describe('parser', () => {
         'import * as css from "@plumeria/core"; const T = css.createTheme({ primary: "#fff" });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
 
       const keys = Object.keys(result.createThemeHashTable);
       expect(keys.some((key) => key.endsWith('-T'))).toBe(true);
@@ -1127,7 +1127,7 @@ describe('parser', () => {
         'import * as css from "@plumeria/core"; const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
 
       const keys = Object.keys(result.viewTransitionHashTable);
       expect(keys.some((key) => key.endsWith('-slide'))).toBe(true);
@@ -1137,16 +1137,16 @@ describe('parser', () => {
       mockedFs.globSync.mockReturnValue(['/test/normal.ts'] as any);
       mockedFs.readFileSync.mockReturnValue('const x = 1;');
 
-      const resultKeyframes = scanAll();
+      const resultKeyframes = scanAll(true);
       expect(Object.keys(resultKeyframes.keyframesHashTable)).toHaveLength(0);
 
-      const resultConsts = scanAll();
+      const resultConsts = scanAll(true);
       expect(Object.keys(resultConsts.staticTable)).toHaveLength(0);
 
-      const resultTokens = scanAll();
+      const resultTokens = scanAll(true);
       expect(Object.keys(resultTokens.createThemeHashTable)).toHaveLength(0);
 
-      const resultViewTransition = scanAll();
+      const resultViewTransition = scanAll(true);
       expect(
         Object.keys(resultViewTransition.viewTransitionHashTable),
       ).toHaveLength(0);
@@ -1156,7 +1156,7 @@ describe('parser', () => {
       mockedFs.globSync.mockReturnValue(['/test/dir'] as any);
       mockedFs.statSync.mockReturnValue({ isDirectory: () => true } as any);
 
-      const result = scanAll();
+      const result = scanAll(true);
 
       expect(Object.keys(result.keyframesHashTable)).toHaveLength(0);
     });
@@ -1167,7 +1167,7 @@ describe('parser', () => {
         'import * as css from "@plumeria/core"; export const style = css.create({ color: "red" });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.createHashTable);
       expect(keys.some((key) => key.endsWith('-style'))).toBe(true);
       expect(result.createObjectTable).toBeDefined();
@@ -1179,7 +1179,7 @@ describe('parser', () => {
         'import * as css from "@plumeria/core"; export const btn = css.variants({ variants: { size: { sm: { padding: 4 } } } });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.variantsHashTable);
       expect(keys.some((key) => key.endsWith('-btn'))).toBe(true);
       expect(result.variantsObjectTable).toBeDefined();
@@ -1200,7 +1200,7 @@ describe('parser', () => {
          `,
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       // "derived" static table entry should have { ref: "red" }
       const keys = Object.keys(result.staticTable);
       const derivedKey = keys.find((k) => k.endsWith('-derived'));
@@ -1219,7 +1219,7 @@ describe('parser', () => {
          });
          `,
       );
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.staticTable);
       const derivedKey = keys.find((k) => k.endsWith('-derived'));
       expect(derivedKey).toBeDefined();
@@ -1238,11 +1238,11 @@ describe('parser', () => {
       );
 
       // First call populates globalAgregatedTables
-      const result1 = scanAll();
+      const result1 = scanAll(true);
       expect(result1.staticTable).toBeDefined();
 
       // Second call should return cached globalAggregatedTables
-      const result2 = scanAll();
+      const result2 = scanAll(true);
       expect(result2).toBe(result1);
 
       (process.env as any).NODE_ENV = originalEnv;
@@ -1253,7 +1253,7 @@ describe('parser', () => {
       mockedFs.readFileSync.mockReturnValue(
         'import { createStatic as cs } from "@plumeria/core"; export const C = cs({ color: "green" });',
       );
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((k) => k.endsWith('-C'));
       expect(result.staticTable[cKey!]).toEqual({ color: 'green' });
@@ -1265,7 +1265,7 @@ describe('parser', () => {
       mockedFs.readFileSync.mockReturnValue(
         'import { css } from "@plumeria/core"; export const C = css.createStatic({ color: "purple" });',
       );
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((k) => k.endsWith('-C'));
       expect(result.staticTable[cKey!]).toEqual({ color: 'purple' });
@@ -1276,7 +1276,7 @@ describe('parser', () => {
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; const base = css.create({ color: "red" }); const ref = css.createStatic({ link: base });',
       );
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.staticTable);
       const refKey = keys.find((k) => k.endsWith('-ref'));
       const val = result.staticTable[refKey!] as any;
@@ -1288,7 +1288,7 @@ describe('parser', () => {
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; const C = css.createStatic({ color: unknownVar });',
       );
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((k) => k.endsWith('-C'));
       expect(result.staticTable[cKey!]).toEqual({
@@ -1315,11 +1315,11 @@ describe('parser', () => {
       );
 
       // First run
-      scanAll();
+      scanAll(true);
 
       // Second run - should use cache
       mockedFs.readFileSync.mockReturnValue('INVALID CONTENT');
-      const result = scanAll();
+      const result = scanAll(true);
 
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((k) => k.endsWith('-C'));
@@ -1348,7 +1348,7 @@ describe('parser', () => {
         'import css from "@plumeria/core"; export const C = css.createStatic({ color: "blue" });',
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((k) => k.endsWith('-C'));
       expect(result.staticTable[cKey!]).toEqual({ color: 'blue' });
@@ -1382,7 +1382,7 @@ describe('parser', () => {
         [libFile, appFile].includes(path.resolve(p)),
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.staticTable);
       const sKey = keys.find((k) => k.endsWith('-S'));
       expect(sKey).toBeDefined();
@@ -1417,7 +1417,7 @@ describe('parser', () => {
         [libFile, appFile].includes(path.resolve(p)),
       );
 
-      const result = scanAll();
+      const result = scanAll(true);
       const keys = Object.keys(result.staticTable);
       const sKey = keys.find((k) => k.endsWith('-S'));
       expect(sKey).toBeDefined();
@@ -1430,7 +1430,7 @@ describe('extractOndemandStyles (integration)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedFs.globSync.mockReturnValue([]);
-    tables = scanAll();
+    tables = scanAll(true);
 
     tables.keyframesObjectTable = {
       abc: { from: { opacity: 0 }, to: { opacity: 1 } },
