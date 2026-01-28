@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.2.0
+
+### Minor Changes
+
+- c562899: feat: support default export and export api type and enable type module
+
 ## 7.1.2
 
 ### Patch Changes

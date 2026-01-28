@@ -1,5 +1,16 @@
 # @plumeria/postcss-plugin
 
+## 7.2.0
+
+### Minor Changes
+
+- c562899: chore: bump version to 7.2.0
+
+### Patch Changes
+
+- Updated dependencies [c562899]
+  - @plumeria/compiler@7.2.0
+
 ## 7.1.2
 
 ### Patch Changes
