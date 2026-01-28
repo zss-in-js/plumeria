@@ -909,9 +909,7 @@ interface CachedData {
 const fileCache: Record<string, CachedData> = {};
 let globalAgregatedTables: Tables | null = null;
 
-export function scanAll(
-  isExtractSheet = process.env.NODE_ENV === 'development',
-): Tables {
+export function scanAll(isExtractSheet: boolean): Tables {
   if (process.env.NODE_ENV === 'production' && globalAgregatedTables) {
     return globalAgregatedTables;
   }
