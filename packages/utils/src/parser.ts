@@ -909,7 +909,9 @@ interface CachedData {
 const fileCache: Record<string, CachedData> = {};
 let globalAgregatedTables: Tables | null = null;
 
-export function scanAll(): Tables {
+export function scanAll(
+  isExtractSheet = process.env.NODE_ENV === 'development',
+): Tables {
   if (process.env.NODE_ENV === 'production' && globalAgregatedTables) {
     return globalAgregatedTables;
   }
@@ -934,10 +936,6 @@ export function scanAll(): Tables {
 
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
   const totalExtractedSheets: string[] = [];
-
-  // Track themes found in current scan only (not from cache)
-  // This prevents stale cached themes from being included in sheet
-  const currentScanThemeObjectTable: Record<string, Record<string, any>> = {};
 
   // Two-pass scanning:
   // Pass 1: Collect all createStatic and createTheme definitions
@@ -980,9 +978,6 @@ export function scanAll(): Tables {
             }
             for (const key of Object.keys(cached.createThemeObjectTable)) {
               localTables.createThemeObjectTable[key] =
-                cached.createThemeObjectTable[key];
-              // Ensure cached themes are included in the current scan for CSS generation
-              currentScanThemeObjectTable[key] =
                 cached.createThemeObjectTable[key];
             }
             for (const key of Object.keys(cached.createStaticHashTable)) {
@@ -1068,7 +1063,6 @@ export function scanAll(): Tables {
         const localCreateStaticObjectTable: CreateStaticObjectTable = {};
         const plumeriaAliases: Record<string, string> = {};
         const fileExtractedSheets: string[] = [];
-        const isProduction = process.env.NODE_ENV === 'production';
 
         for (const node of ast.body) {
           if (node.type === 'ImportDeclaration') {
@@ -1261,13 +1255,12 @@ export function scanAll(): Tables {
                   localTables.keyframesObjectTable[hash] = obj;
                   localKeyframesObjectTable[hash] = obj;
 
-                  if (!isProduction) {
+                  if (isExtractSheet)
                     extractOndemandStyles(
                       { kf: `kf-${hash}` },
                       fileExtractedSheets,
                       localTables,
                     );
-                  }
                 } else if (method === 'viewTransition') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localViewTransitionHashTable[name] = hash;
@@ -1276,13 +1269,12 @@ export function scanAll(): Tables {
                   localTables.viewTransitionObjectTable[hash] = obj;
                   localViewTransitionObjectTable[hash] = obj;
 
-                  if (!isProduction) {
+                  if (isExtractSheet)
                     extractOndemandStyles(
                       { vt: `vt-${hash}` },
                       fileExtractedSheets,
                       localTables,
                     );
-                  }
                 } else if (method === 'createTheme') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localTables.createThemeObjectTable[hash] = obj;
@@ -1290,7 +1282,7 @@ export function scanAll(): Tables {
                   localCreateThemeHashTable[name] = hash;
                   localTables.createThemeHashTable[uniqueKey] = hash;
                   // It embeds hash recovery logic.
-                  currentScanThemeObjectTable[hash] = obj;
+                  localTables.createThemeObjectTable[hash] = obj;
                   const hashMap: Record<string, any> = {};
                   for (const [key] of Object.entries(obj)) {
                     const cssVarName = camelToKebabCase(key);
@@ -1311,7 +1303,7 @@ export function scanAll(): Tables {
                     const atomMap: Record<string, string> = {};
                     records.forEach((r) => (atomMap[r.key] = r.hash));
                     hashMap[key] = atomMap;
-                    if (!isProduction) {
+                    if (isExtractSheet) {
                       extractOndemandStyles(
                         style,
                         fileExtractedSheets,
