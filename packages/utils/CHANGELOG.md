@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 7.2.0
+
+### Minor Changes
+
+- c562899: refactor: update scanAll and variants
+
 ## 7.1.2
 
 ### Patch Changes
