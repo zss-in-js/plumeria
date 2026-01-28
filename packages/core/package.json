@@ -24,14 +24,16 @@
     "react-native-web"
   ],
   "sideEffects": false,
-  "main": "dist/css.mjs",
-  "module": "dist/css.mjs",
-  "types": "dist/css.d.mts",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist/"
   ],
   "scripts": {
-    "build": "tsdown && node strip.ts"
+    "build": "rimraf dist && pnpm esm",
+    "esm": "tsc --project tsconfig.esm.json"
   },
   "dependencies": {
     "csstype": "^3.2.3"
