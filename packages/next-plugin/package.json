@@ -37,7 +37,6 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@plumeria/webpack-plugin": "workspace:^",
     "@plumeria/turbopack-loader": "workspace:^"
   },
   "devDependencies": {
