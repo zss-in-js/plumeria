@@ -19,7 +19,7 @@ export function withPlumeria(nextConfig: NextConfig): NextConfig {
         enforce: 'pre',
         test: /\.(tsx|ts|jsx|js)$/,
         exclude: [/node_modules/, /\.next/, /\.git/],
-        use: require.resolve('@plumeria/webpack-plugin'),
+        use: require.resolve('@plumeria/turbopack-loader'),
       });
 
       return config;
