@@ -26,53 +26,41 @@ export type variants = typeof variants;
 export type marker = typeof marker;
 export type extended = typeof extended;
 
-type errorForFn = typeof Error;
+type runtimeNotSupported = typeof Error;
 
-const errorForFn = () =>
-  new Error('Runtime is not supported. Configure the bundler plugin.');
+const runtimeNotSupported = (): never => {
+  throw new Error('Runtime is not supported. Configure the bundler plugin.');
+};
 
-export function create<const T extends Record<string, CSSProperties>>(
+export const create = <const T extends Record<string, CSSProperties>>(
   _rule: CreateStyleType<T>,
-): ReturnType<T> {
-  throw errorForFn();
-}
+): ReturnType<T> => runtimeNotSupported();
 
-export function props(
+export const props = (
   ..._rules: (false | CSSProperties | null | undefined)[]
-): string {
-  throw errorForFn();
-}
+): string => runtimeNotSupported();
 
-export function createTheme<const T extends CreateTheme>(
+export const createTheme = <const T extends CreateTheme>(
   _rule: T,
-): ReturnVariableType<T> {
-  throw errorForFn();
-}
+): ReturnVariableType<T> => runtimeNotSupported();
 
-export function createStatic<const T extends CreateStatic>(_rule: T): T {
-  throw errorForFn();
-}
+export const createStatic = <const T extends CreateStatic>(_rule: T): T =>
+  runtimeNotSupported();
 
-export function keyframes(_rule: Keyframes): string {
-  throw errorForFn();
-}
+export const keyframes = (_rule: Keyframes): string => runtimeNotSupported();
 
-export function viewTransition(_rule: ViewTransition): string {
-  throw errorForFn();
-}
+export const viewTransition = (_rule: ViewTransition): string =>
+  runtimeNotSupported();
 
-export function variants<T extends Variant>(_rule: T) {
-  return (_props: { [K in keyof T]?: keyof T[K] }): CSSProperties => {
-    throw errorForFn();
-  };
-}
+export const variants =
+  <T extends Variant>(_rule: T) =>
+  (_props: { [K in keyof T]?: keyof T[K] }): CSSProperties =>
+    runtimeNotSupported();
 
-export function marker(_id: string, _pseudo: string): CSSProperties {
-  throw errorForFn();
-}
+export const marker = (_id: string, _pseudo: string): CSSProperties =>
+  runtimeNotSupported();
 
-export function extended(_id: string, _pseudo: string): ContainerStyleQuery {
-  throw errorForFn();
-}
+export const extended = (_id: string, _pseudo: string): ContainerStyleQuery =>
+  runtimeNotSupported();
 
 export type { CreateStyle, CSSProperties } from './types';
