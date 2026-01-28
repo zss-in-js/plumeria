@@ -140,7 +140,24 @@ type Variant = Record<string, Record<string, CSSProperties>>;
 
 type ContainerStyleQuery = `@container style(--${string}: 1)`;
 
+type StaticDefault = {
+  create: <const T extends Record<string, CSSProperties>>(
+    _rule: CreateStyleType<T>,
+  ) => ReturnType<T>;
+  props: (..._rules: (false | CSSProperties | null | undefined)[]) => string;
+  createTheme: <const T extends CreateTheme>(_rule: T) => ReturnVariableType<T>;
+  createStatic: <const T extends CreateStatic>(_rule: T) => T;
+  keyframes: (_rule: Keyframes) => string;
+  viewTransition: (_rule: ViewTransition) => string;
+  variants: <T extends Variant>(
+    _rule: T,
+  ) => (_props: { [K in keyof T]?: keyof T[K] }) => CSSProperties;
+  marker: (_id: string, _pseudo: string) => CSSProperties;
+  extended: (_id: string, _pseudo: string) => ContainerStyleQuery;
+};
+
 export {
+  StaticDefault,
   CSSProperties,
   CreateStyle,
   CreateStyleType,
