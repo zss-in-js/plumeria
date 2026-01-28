@@ -1,5 +1,16 @@
 # @plumeria/next-plugin
 
+## 7.2.0
+
+### Minor Changes
+
+- c562899: refactor: use turbopack-loader in webpack mode
+
+### Patch Changes
+
+- Updated dependencies [c562899]
+  - @plumeria/turbopack-loader@7.2.0
+
 ## 7.1.2
 
 ### Patch Changes
