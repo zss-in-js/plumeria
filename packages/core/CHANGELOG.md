@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.2.1
+
+### Patch Changes
+
+- 3c5776b: chore: function changed to constant
+
 ## 7.2.0
 
 ### Minor Changes
