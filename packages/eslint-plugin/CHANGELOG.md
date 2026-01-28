@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.2.1
+
+### Patch Changes
+
+- 3c5776b: chore: bump version to 7.2.1
+
 ## 7.2.0
 
 ### Minor Changes
