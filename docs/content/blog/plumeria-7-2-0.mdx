@@ -1,0 +1,95 @@
+---
+title: 'Plumeria v7.2.0'
+description: 'type module, refactoring loader, and support for default export. (3 min read)'
+date: '2026-01-28'
+---
+
+Plumeria v7.2.0 is a significant update that significantly improves the development experience and type safety. This release adds full ESM support to the core package, supports typed default exports, and completely refactors the loader architecture.
+
+## Major Changes
+
+### 1. Support for `type: module`
+
+The `@plumeria/core` package is now a fully ESM package. This has resulted in the following improvements:
+
+- **Added `"type": "module"` to `package.json`: Full support for Node.js's latest module system.
+- **Simplifying the build process**: Removed tsdown and changed to using only the TypeScript standard `tsc`.
+- **Optimizing the entry point**: Explicit ESM configuration via `tsconfig.esm.json`.
+
+This improves compatibility with modern JavaScript ecosystems and also helps reduce bundle size.
+
+### 2. Support for Typed `export default`
+
+We now support a flexible import method similar to the Node.js `fs` module:
+
+``` typescript
+// Imports are possible using both methods
+import css from '@plumeria/core';
+import * as css from '@plumeria/core';
+```
+
+This change achieves the following:
+
+- **Added `StaticDefault` type**: Supports type definition for default exports
+- **Support for type export of APIs in `css.ts`**: Enables stricter type inference
+- **Support for default exports in `index.ts`**: Default export as a namespace object
+
+This allows developers to import Plumeria in a more intuitive way, enabling flexible code while maintaining type safety.
+
+### 3. Loader Refactoring (3 types)
+
+The implementation of each loader has been significantly improved, improving maintainability and performance:
+
+#### turbopack-loader
+- AST transformation logic has been internalized to resolve HMR (Hot Module Replacement) issues
+- Performance optimizations for increased speed
+
+#### vite-plugin
+- Adopts an architectural approach similar to turbopack-loader
+- Improved consistency through a unified codebase
+
+#### webpack-plugin
+- Now uses `turbopack-loader` internally, eliminating duplicate code
+- Removed unnecessary files such as `zero-virtual.css`
+
+These refactorings reduce the risk of introducing bugs and make it easier to add features in the future.
+
+### 4. Architecture Changes to webpack-plugin
+
+webpack-plugin has evolved from its own loader implementation to a wrapper around turbopack-loader:
+
+- **Code Duplication Elimination**: webpack-plugin and turbopack-loader share common logic.
+- **Improved Maintainability**: Bug fixes and feature additions can be done in one place.
+- **Compatibility Maintenance**: No impact to existing webpack users.
+
+This change ensures that both Next.js's Turbopack and Webpack provide the same high-quality Plumeria experience.
+
+## Other Improvements
+
+- **Added scanAll test**: More comprehensive test coverage
+- **Updated dependencies**: Updated to the latest dependent packages
+- **Optimized type definitions**: Removed unnecessary export types
+
+## Upgrade Guide
+
+Existing Plumeria users can take advantage of the new features by simply updating their packages as usual:
+
+```bash
+pnpm update @plumeria/core
+```
+
+If you want to take advantage of typed default exports, you can change your import statements to the following:
+
+```typescript
+// Traditional method (any name namespace import)
+import * as css from '@plumeria/core';
+
+// New method (any name default import)
+import css from '@plumeria/core';
+```
+
+## Summary
+
+Plumeria v7.2.0 is a release focused on improving the internal architecture and enhancing the developer experience. These changes have made Plumeria a more robust, maintainable, and user-friendly library.
+
+We'll continue to improve Plumeria, so please send us your feedback!
