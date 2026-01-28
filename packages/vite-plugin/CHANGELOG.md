@@ -1,5 +1,16 @@
 # @plumeria/vite
 
+## 7.2.0
+
+### Minor Changes
+
+- c562899: refactor: unused create sheets is removed
+
+### Patch Changes
+
+- Updated dependencies [c562899]
+  - @plumeria/utils@7.2.0
+
 ## 7.1.2
 
 ### Patch Changes
