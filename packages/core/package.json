@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "7.2.1",
-  "description": "An atomic CSS runtime designed to disappear.",
+  "description": "Atomic CSS framework with type definitions only.",
   "author": "Refirst 11",
   "license": "MIT",
   "funding": "https://github.com/sponsors/refirst11",
@@ -17,24 +17,15 @@
   "keywords": [
     "plumeria",
     "atomic-css",
-    "css-in-js",
-    "css",
+    "atomic-css-types",
     "linaria",
     "stylex",
     "react-native-web"
   ],
-  "sideEffects": false,
-  "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "lib/css.d.ts",
   "files": [
-    "dist/"
+    "lib"
   ],
-  "scripts": {
-    "build": "rimraf dist && pnpm esm",
-    "esm": "tsc --project tsconfig.esm.json"
-  },
   "dependencies": {
     "csstype": "^3.2.3"
   },
