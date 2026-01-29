@@ -199,9 +199,9 @@ export const HomeComponent = () => {
         <section className={css.props(styles.heroSection)}>
           <div className={css.props(styles.heroContent)}>
             <Plumeria />
-            <h2 className={css.props(styles.mainHeadline)}>Atomic CSS-in-JS</h2>
+            <h2 className={css.props(styles.mainHeadline)}>Atomic CSS framework</h2>
             <p className={css.props(styles.subHeadline)}>
-              Zero-Runtime overhead. Full type-safety. <br />
+              Compile-time only. Type-safety. <br />
               Eliminate completely styles at build time.
             </p>
             <div className={css.props(styles.buttonGroup)}>
