@@ -12,22 +12,18 @@
  * ```
  * Type definitions only. Configure the bundler plugin for extraction.
  */
-
 declare module '@plumeria/core' {
-  import type {
-    CSSProperties,
-    CreateStyle,
-    CreateStyleType,
-    CreateStatic,
-    CreateTheme,
-    Keyframes,
-    ViewTransition,
-    ReturnType,
-    ReturnVariableType,
-    Variants,
-    ContainerStyleQuery,
-  } from './definition';
-
+  export type CSSProperties = import('./definition').CSSProperties;
+  export type CreateStyle = import('./definition').CreateStyle;
+  export type CreateStyleType<T> = import('./definition').CreateStyleType<T>;
+  export type CreateStatic = import('./definition').CreateStatic;
+  export type CreateTheme = import('./definition').CreateTheme;
+  export type Keyframes = import('./definition').Keyframes;
+  export type ViewTransition = import('./definition').ViewTransition;
+  export type ReturnType<T> = import('./definition').ReturnType<T>;
+  export type ReturnVariableType<T> = import('./definition').ReturnVariableType<T>;
+  export type Variants = import('./definition').Variants;
+  export type ContainerStyleQuery = import('./definition').ContainerStyleQuery;
   export function create<const T extends Record<string, CSSProperties>>(_rule: CreateStyleType<T>): ReturnType<T>;
   export function props(..._rules: (false | CSSProperties | null | undefined)[]): string;
   export function createTheme<const T extends CreateTheme>(_rule: T): ReturnVariableType<T>;
