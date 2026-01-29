@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 7.2.3
+
+### Patch Changes
+
+- dfd2dac: chore: bump version 7.2.3
+- Updated dependencies [dfd2dac]
+  - @plumeria/utils@7.2.3
+
 ## 7.2.2
 
 ### Patch Changes
