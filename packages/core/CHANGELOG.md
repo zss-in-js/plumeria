@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.2.4
+
+### Patch Changes
+
+- b5faa6e: fix: rephrase readme and package.json
+
 ## 7.2.3
 
 ### Patch Changes
