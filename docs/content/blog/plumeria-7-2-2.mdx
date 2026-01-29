@@ -1,0 +1,73 @@
+---
+title: 'Plumeria v7.2.2: Compile-time Only'
+description: 'Towards a complete Compile-time Library. Plumeria v7.2.2 abolishes runtime code entirely, shifting to an architecture that stands solely on type definitions and static extraction. (4 min read)'
+date: '2026-01-29'
+---
+
+We have released Plumeria v7.2.2.
+This update marks the most critical turning point in Plumeria's architecture.
+
+We have finally moved beyond "Zero-Runtime Overhead" to reach a **"Compile-time Only"** architecture.
+
+## Type Definition Only: The Complete Absence of Runtime Code
+
+Until now, Plumeria has claimed to be "Zero-Runtime", which meant there was no overhead at execution time, but the library entity (JavaScript files) still existed.
+
+Starting from v7.2.2, **the library entity has completely disappeared**.
+Take a look at `package.json`.
+
+```json
+{
+  "types": "lib/css.d.ts"
+}
+```
+
+There is no `main`, no `module`. Only `types`.
+You might wonder, "How does it work with only type definitions?"
+
+### Static Extraction via Types
+
+The essence of Plumeria is not a library, but a **"Compiler"**.
+
+1.  **Development**: The editor references `css.d.ts` to provide powerful type completion and validation.
+2.  **Build Time**: A dedicated plugin statically analyzes and extracts calls like `css.create`.
+3.  **Output**: CSS files are generated, and all traces of Plumeria are completely removed from the JavaScript code.
+
+Since not a single line of runtime code remains, there is no longer any need to include runtime JS files in the bundle.
+This renders the concept of Tree-shaking obsolete. There are no leaves to shake off because there is no tree from the start.
+
+## Ambient Modules and Syntax Highlighting
+
+Accompanying this architectural change, we have adopted the **Ambient Module** format for type definitions, similar to Node.js modules like `fs`.
+
+```ts
+// css.d.ts
+declare module "@plumeria/core" {
+  // ...
+}
+```
+
+This changes how it looks in your editor.
+When you `import css from '@plumeria/core'`, `css` is highlighted not as a simple variable (e.g., Blue), but as a **Namespace/Module (e.g., Green)**.
+
+```tsx
+import css from '@plumeria/core';
+
+// 'css' is recognized as a static module space,
+// visually distinct from runtime variables.
+const styles = css.create({ ... });
+```
+
+This symbolizes that Plumeria is not a loaded "library", but a "static system" that exists only in your development environment.
+
+We also intentionally adopted a `Green.Yellow` color scheme, where `css` (Namespace) is Green and `create` (Function) is Yellow. This visually clarifies the boundary between the system (Namespace) and the action (Function), improving code readability.
+
+## Conclusion
+
+v7.2.2 is an ambitious update that concludes with **"eliminating the library code"** as the result of pursuing CSS-in-JS performance to the extreme.
+
+- **Runtime**: 0 bytes (Not even in bundle)
+- **Type Safety**: 99%
+- **Architecture**: Compile-time Only
+
+Please experience the new "Type Definition + Static Extraction".
