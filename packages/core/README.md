@@ -1,6 +1,6 @@
 # @plumeria/core
 
-An atomic CSS runtime designed to disappear.
+Atomic CSS framework with type definitions only.
 
 ```ts
 import * as css from '@plumeria/core';
