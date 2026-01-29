@@ -1,6 +1,6 @@
 # @plumeria/core
 
-Atomic CSS framework with type definitions only.
+A type-only atomic CSS framework.
 
 ```ts
 import * as css from '@plumeria/core';
