@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.2.3
+
+### Patch Changes
+
+- dfd2dac: fix: exposed api types and fixed type bugs
+
 ## 7.2.2
 
 ### Patch Changes
