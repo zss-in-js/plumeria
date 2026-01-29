@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.2.2
+
+### Patch Changes
+
+- 868d5ab: chore: rollback 7.2.0
+
 ## 7.2.1
 
 ### Patch Changes
