@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 7.2.2
+
+### Patch Changes
+
+- 868d5ab: chore: bump version 7.2.2
+- Updated dependencies [868d5ab]
+  - @plumeria/utils@7.2.2
+
 ## 7.2.1
 
 ### Patch Changes
