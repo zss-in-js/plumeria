@@ -22,9 +22,9 @@
     "stylex",
     "react-native-web"
   ],
-  "types": "lib/css.d.ts",
+  "types": "types/css.d.ts",
   "files": [
-    "lib"
+    "types"
   ],
   "dependencies": {
     "csstype": "^3.2.3"
