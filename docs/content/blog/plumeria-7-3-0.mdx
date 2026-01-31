@@ -1,0 +1,61 @@
+---
+title: 'Plumeria v7.3.0'
+description: 'Refining the Type-Only Architecture. Moving from function exports to const exports to better reflect the compile-time nature of Plumeria. (3 min read)'
+date: '2026-01-31'
+---
+
+We have released Plumeria v7.3.0.
+This is a minor update that refines the type definitions introduced in v7.2.4.
+
+## Refining the API Definition
+
+In v7.2.4, we introduced a "Type Definition Only" architecture using `declare module`.
+At that time, we defined APIs like `create` as functions:
+
+```ts
+// v7.2.4 (Previous)
+export function create<T>(...): ...;
+```
+
+In v7.3.0, we have changed these to `const` exports typed with specific interfaces:
+
+```ts
+// v7.3.0 (Current)
+export type create = <T>(...) => ...;
+export const create: create;
+```
+
+This change brings two significant benefits:
+1.  **Type Reusability**: You can now `import type { create }` and use the type directly in your code.
+2.  **Accuracy**: Since Plumeria is a compile-time macro, `const` more accurately represents "a static symbol that will be replaced" rather than "a function that runs at runtime".
+
+## The "Color" Discussion: Visual Philosophy
+
+In the previous release notes (v7.2.4), we argued that having `css` (Namespace/Green) and `create` (Function/Yellow) as distinct colors was a feature:
+
+> *We also intentionally adopted a `Green.Yellow` color scheme... This visually clarifies the boundary between the system (Namespace) and the action (Function)*
+
+However, after further discussion and dogfooding, we have reconsidered this stance.
+
+When using Plumeria, `css.create` is not just a function call; it is a **language extension**. It is a declarative part of your component definition, much like `const` or `type`.
+
+By changing to `export const`, syntax highlighters will now treat `create` as a variable (often matching the color of `css` or other constants).
+
+-   **Before (v7.2.4)**: High contrast. "Here is the System, and here is the Action."
+-   **After (v7.3.0)**: Low contrast. "This is a static declaration block."
+
+We found that this "calmer" appearance fits the mental model of a Zero-Runtime library much better. An atomic CSS declaration shouldn't scream "Function Execution!" with bright yellow; it should sit quietly as a definition, blending into your code structure.
+
+## Summary
+
+v7.3.0 is a refinement of our "Compile-time Only" philosophy.
+By moving to `const` exports, we provide better TypeScript integration and a more coherent visual experience in your editor.
+
+-   **API**: `function` -> `const`
+-   **Visual**: High Contrast -> Integrated/Calm
+-   **Runtime**: Still Zero (of course)
+
+### Others
+
+- fix: createTheme style gen has been ondemand  
+All APIs are now generated on demand.
