@@ -9,7 +9,7 @@ const stylesCode = css.create({
     display: 'flex',
     width: '100%',
     maxWidth: '590px',
-    padding: '20px 24px',
+    padding: '16px 0px',
     overflow: 'hidden',
     fontFamily: 'var(--font-geist-mono)',
     fontSize: 13,
@@ -18,7 +18,6 @@ const stylesCode = css.create({
     backdropFilter: 'blur(12px)',
     [breakpoints.md]: {
       maxWidth: '340px',
-      padding: '20px 24px',
       overflowX: 'scroll',
       textAlign: 'left',
     },
