@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.3.0
+
+### Minor Changes
+
+- cda0816: feat: There was a change in types: function was refactored to const and type.
+
 ## 7.2.4
 
 ### Patch Changes

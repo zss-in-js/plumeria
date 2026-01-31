@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.3.0
+
+### Minor Changes
+
+- cda0816: chore: bump version to 7.3.0
+
 ## 7.2.4
 
 ### Patch Changes
