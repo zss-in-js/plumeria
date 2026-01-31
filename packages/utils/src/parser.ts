@@ -1379,7 +1379,8 @@ export function extractOndemandStyles(
   const keyframesHashes = new Set<string>();
   const viewTransitionHashes = new Set<string>();
   const createHashes = new Set<string>();
-  let needsTheme = false;
+  // Change: Track used variables instead of a boolean flag
+  const usedVariables = new Set<string>();
 
   function walk(n: any) {
     if (!n || typeof n !== 'object' || visited.has(n)) return;
@@ -1395,7 +1396,23 @@ export function extractOndemandStyles(
         } else if (val.startsWith('cr-')) {
           createHashes.add(val.slice(3));
         } else if (val.includes('var(--')) {
-          needsTheme = true;
+          // Change: Optimized manual parser instead of Regex
+          let startIdx = 0;
+          while ((startIdx = val.indexOf('var(--', startIdx)) !== -1) {
+            startIdx += 4; // Skip "var("
+            const endIdx = val.indexOf(')', startIdx);
+            if (endIdx !== -1) {
+              const content = val.slice(startIdx, endIdx);
+              // Fallback handling removed as per API spec
+              const varName = content.trim();
+              if (varName.startsWith('--')) {
+                usedVariables.add(varName);
+              }
+              startIdx = endIdx + 1;
+            } else {
+              break;
+            }
+          }
         }
       } else {
         walk(val);
@@ -1452,15 +1469,30 @@ export function extractOndemandStyles(
     }
   }
 
-  if (needsTheme) {
+  // Change: Filter theme definitions based on used variables
+  if (usedVariables.size > 0) {
     for (const themeVarName in t.createThemeHashTable) {
       const hash = t.createThemeHashTable[themeVarName];
       const definition = t.createThemeObjectTable[hash];
 
       if (definition && typeof definition === 'object') {
-        const styles = createTheme(definition as Record<string, any>);
-        const { styleSheet } = transpile(styles, undefined, '--global');
-        addSheet(styleSheet);
+        // Filter the definition to only include used variables
+        const filteredDefinition: Record<string, any> = {};
+        let hasUsed = false;
+
+        Object.keys(definition).forEach((key) => {
+          const varName = `--${camelToKebabCase(key)}`;
+          if (usedVariables.has(varName)) {
+            filteredDefinition[key] = definition[key];
+            hasUsed = true;
+          }
+        });
+
+        if (hasUsed) {
+          const styles = createTheme(filteredDefinition);
+          const { styleSheet } = transpile(styles, undefined, '--global');
+          addSheet(styleSheet);
+        }
       }
     }
   }
