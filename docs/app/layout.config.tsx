@@ -9,6 +9,7 @@ const styles = css.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 12,
+    alignItems: 'center',
     fontWeight: 600,
     WebkitTextFillColor: 'transparent',
     letterSpacing: '-0.03em',
@@ -33,7 +34,14 @@ export const baseOptions: BaseLayoutProps = {
   nav: {
     title: (
       <span className={css.props(styles.logo)}>
-        <Image src="/zss.png" alt="Plumeria logo" height={24} width={24} className={css.props(styles.zss)} />
+        <Image
+          src="/zss.png"
+          alt="Plumeria logo"
+          loading="lazy"
+          height={24}
+          width={24}
+          className={css.props(styles.zss)}
+        />
         Plumeria
       </span>
     ),
