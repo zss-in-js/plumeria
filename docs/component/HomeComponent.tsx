@@ -58,7 +58,7 @@ const styles = css.create({
     marginBottom: 12,
     fontSize: 47,
     fontWeight: 600,
-    lineHeight: 1,
+    lineHeight: 1.4,
     color: 'var(--text-main-header-line)',
     textAlign: 'left',
     letterSpacing: '-0.04em',
@@ -198,15 +198,14 @@ export const HomeComponent = () => {
       <main className={css.props(styles.container)}>
         <section className={css.props(styles.heroSection)}>
           <div className={css.props(styles.heroContent)}>
-            <Plumeria />
-            <h2 className={css.props(styles.mainHeadline)}>Atomic CSS-in-JS</h2>
-            <p className={css.props(styles.subHeadline)}>
-              Zero-Runtime overhead. Full type-safety. <br />
-              Eliminate completely styles at build time.
-            </p>
+            <h2 className={css.props(styles.mainHeadline)}>
+              <Plumeria />
+              Type-Only Atomic CSS
+            </h2>
+            <p className={css.props(styles.subHeadline)}>Compile-time Extraction・No Bundle Size </p>
             <div className={css.props(styles.buttonGroup)}>
               <ButtonLink href="/docs" variant="gradient">
-                Get Started
+                Thinking in Plumeria
               </ButtonLink>
               <ButtonLink href="/docs/getting-started/installation" variant="metallic">
                 Installation
