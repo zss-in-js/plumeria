@@ -103,19 +103,9 @@ type CreateStyle = {
   [key: string]: CSSProperties;
 };
 
-type Selector<Properties> = {
-  readonly properties: Properties;
-};
-
 type ReturnType<T> = {
   [K in keyof T]: Readonly<{
-    [P in keyof T[K]]: P extends
-      | `@media ${string}`
-      | `@container ${string}`
-      | `:${string}`
-      | `[${string}`
-      ? Selector<keyof T[K][P]>
-      : T[K][P];
+    [P in keyof T[K]]: T[K][P];
   }>;
 };
 
@@ -138,7 +128,13 @@ type ViewTransition = {
 
 type Variants = Record<string, Record<string, CSSProperties>>;
 
-type ContainerStyleQuery = `@container style(--${string}: 1)`;
+type Marker = Record<string, CSSProperties>;
+
+type StripColon<T extends string> = T extends `:${infer R}`
+  ? StripColon<R>
+  : T;
+
+type Extended<I extends string, P extends string> = `@container style(--${I}-${StripColon<P>}: 1)`;
 
 export type {
   CSSProperties,
@@ -151,5 +147,6 @@ export type {
   ReturnType,
   ReturnVariableType,
   Variants,
-  ContainerStyleQuery,
+  Marker,
+  Extended,
 };
