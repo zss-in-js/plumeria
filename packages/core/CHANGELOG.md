@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.3.1
+
+### Patch Changes
+
+- 8dbc46b: fix: improved marker and extended types
+
 ## 7.3.0
 
 ### Minor Changes
