@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 7.3.1
+
+### Patch Changes
+
+- 8dbc46b: fix: marker selector merge use deepMerge
+
 ## 7.3.0
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 7.3.1
+
+### Patch Changes
+
+- 8dbc46b: chore: bump version to 7.3.1
+- Updated dependencies [8dbc46b]
+  - @plumeria/utils@7.3.1
+
 ## 7.3.0
 
 ### Minor Changes
