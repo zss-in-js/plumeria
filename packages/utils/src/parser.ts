@@ -165,7 +165,7 @@ export function objectExpressionToObject(
         createStaticObjectTable,
       );
       if (typeof spreadVal === 'object' && spreadVal !== null) {
-        Object.assign(obj, spreadVal);
+        Object.assign(obj, deepMerge(obj, spreadVal));
       }
       return;
     }
