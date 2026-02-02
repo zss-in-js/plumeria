@@ -22,6 +22,8 @@
     "stylex",
     "react-native-web"
   ],
+  "main": "types/css.d.ts",
+  "module": "types/css.d.ts",
   "types": "types/css.d.ts",
   "files": [
     "types"
