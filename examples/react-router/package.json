@@ -1,5 +1,5 @@
 {
-  "name": "react-router",
+  "name": "react-router-v7",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,8 +10,9 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@react-router/node": "^7.5.3",
-    "@react-router/serve": "^7.5.3",
+    "@react-router/node": "^7.13.0",
+    "@react-router/serve": "^7.13.0",
+    "react-router": "^7.13.0",
     "isbot": "^5.1.27",
     "react": "catalog:",
     "react-dom": "catalog:"
@@ -19,11 +20,11 @@
   "devDependencies": {
     "@plumeria/core": "workspace:^",
     "@plumeria/vite-plugin": "workspace:^",
-    "@react-router/dev": "^7.5.3",
+    "@react-router/dev": "^7.13.0",
     "@tailwindcss/vite": "^4.1.4",
     "@types/node": "^22.15.3",
-    "@types/react": "^19.1.12",
-    "@types/react-dom": "^19.1.9",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "vite": "^7.1.1",
