@@ -1,0 +1,124 @@
+---
+title: 'marker & extended'
+description: 'API reference for marker and extended - Context-aware styling without DOM structure dependency'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import MarkerExtended from 'component/MarkerExtended';
+
+The `marker` and `extended` APIs enable **context-aware styling** without relying on DOM structure or combinator syntax.  
+These paired APIs maintain **atomicity** while allowing child elements to respond to parent states.
+
+<Callout type="warn" title="Browser Compatibility">
+  **Firefox is not supported** - These APIs use CSS Container Style Queries (`@container style()`), which are not yet implemented in Firefox.  
+  Check [Can I Use](https://caniuse.com/css-container-queries-style) for current browser support.
+</Callout>
+
+## Overview
+
+- **`marker(id, pseudo)`** - Sets a CSS variable marker on a parent element
+- **`extended(id, pseudo)`** - Applies styles to children when the marker is active
+
+This pattern replaces combinator-based selectors (like `&`, `>`, `+`) with a **logical ID system** that works across component boundaries.
+
+## Syntax
+
+```ts
+type marker = (_id: string, _pseudo: string) => Marker;
+type extended = <I extends string, P extends string>(_id: I, _pseudo: P) => Extended<I, P>;
+```
+
+### Parameters
+
+- **`id`** - A unique identifier linking the marker and extended styles
+- **`pseudo`** - The pseudo-class state (e.g., `':hover'`, `':focus'`, `':active'`)
+
+## Example
+
+<MarkerExtended />
+
+<Tabs items={["tsx", "css"]}>
+  <Tab>
+    ```tsx title="TypeScript"
+    import * as css from '@plumeria/core';
+
+    const styles = css.create({
+      table: {
+        ...css.marker('ul', ':hover'), // [!code highlight]
+        width: '100%',
+        height: 200,
+        listStyleType: 'none',
+      },
+      list: {
+        transition: 'all 0.5s',
+        [css.extended('ul', ':hover')]: { // [!code highlight]
+          color: 'orange',
+          scale: 1.2,
+          ':hover': {
+            scale: 1.8,
+          },
+        },
+      },
+    });
+
+    const Component = () => {
+      return (
+        <div>
+          <ul className={css.props(styles.table)}>
+            <li className={css.props(styles.list)}>Happy new year!</li>
+          </ul>
+        </div>
+      );
+    };
+    ```
+  </Tab>
+  <Tab>
+    ```css title="Generated CSS"
+    .xa3bzzr2:hover {
+      --ul-hover: 1;
+    }
+
+    @container style(--ul-hover: 1) {
+      .xhsfb1p9:not(#\#) {
+        color: orange;
+      }
+      .xw7nub6k:not(#\#) {
+        scale: 1.2;
+      }
+      .xwntwjm5:not(#\#):hover {
+        scale: 1.8;
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## How it works
+
+### Internal Implementation
+
+1. **`marker()`** generates a CSS variable when the pseudo-class is active:
+   ```css
+   .parent:hover {
+     --ul-hover: 1;
+   }
+   ```
+
+2. **`extended()`** wraps child styles in a container query:
+   ```css
+   @container style(--ul-hover: 1) {
+     .child { /* styles */ }
+   }
+   ```
+
+3. The CSS variable acts as a **signal** that propagates to descendants without DOM structure dependency.
+
+## Performance
+
+- **Zero runtime** - Fully inlined at build time and no import references
+- **Atomic CSS** - Styles are deduplicated and reused
+
+<Callout title="ESLint Rule">
+  The `no-combinator` rule enforces this pattern by disallowing combinator syntax.
+</Callout>
+
