@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 7.3.3
+
+### Patch Changes
+
+- 73f4cba: fix: cssCodeSplit has been moved to config. support react-router
+- Updated dependencies [73f4cba]
+  - @plumeria/utils@7.3.3
+
 ## 7.3.2
 
 ### Patch Changes
