@@ -71,10 +71,17 @@ export function plumeria(options: PluginOptions = {}): Plugin {
     name: '@plumeria/vite-plugin',
     enforce: 'pre', // Process before transpiling
 
+    config(userConfig, { command }) {
+      if (command === 'build') {
+        const build = userConfig.build || {};
+        build.cssCodeSplit = false;
+        return { build };
+      }
+    },
+
     configResolved(resolvedConfig) {
       isDev = resolvedConfig.command === 'serve';
       config = resolvedConfig;
-      config.build.cssCodeSplit = false;
     },
 
     configureServer(_server) {
