@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.3.2
+
+### Patch Changes
+
+- 23f8a93: fix: removed ContainerStyleQuery type
+
 ## 7.3.1
 
 ### Patch Changes
