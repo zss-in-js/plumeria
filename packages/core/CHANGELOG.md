@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.3.3
+
+### Patch Changes
+
+- 73f4cba: fix: add main module types file. support react-router and vite-vue and vite-svelte etc.
+
 ## 7.3.2
 
 ### Patch Changes
