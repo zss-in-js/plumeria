@@ -1,5 +1,13 @@
 # @plumeria/webpack-plugin
 
+## 7.3.2
+
+### Patch Changes
+
+- 23f8a93: chore: bump version to 7.3.2
+- Updated dependencies [23f8a93]
+  - @plumeria/turbopack-loader@7.3.2
+
 ## 7.3.1
 
 ### Patch Changes

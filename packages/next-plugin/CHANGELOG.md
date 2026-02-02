@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 7.3.2
+
+### Patch Changes
+
+- 23f8a93: fix: next security update
+- Updated dependencies [23f8a93]
+  - @plumeria/turbopack-loader@7.3.2
+
 ## 7.3.1
 
 ### Patch Changes
