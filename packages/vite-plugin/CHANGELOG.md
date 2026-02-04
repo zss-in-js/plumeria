@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 7.3.5
+
+### Patch Changes
+
+- b89a56b: chore: bump version to 7.3.5
+- Updated dependencies [b89a56b]
+  - @plumeria/utils@7.3.5
+
 ## 7.3.4
 
 ### Patch Changes
