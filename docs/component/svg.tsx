@@ -5,7 +5,7 @@ export const svg = {
      * License: CC0
      */
     return (
-      <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 256 293">
+      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 256 293">
         <title>Turbopack-icon SVG Icon</title>
         <defs>
           <linearGradient id="logosTurbopackIcon0" x1="50%" x2="49.855%" y1="7.896%" y2="93.343%">
@@ -31,7 +31,7 @@ export const svg = {
      * License: MIT
      */
     return (
-      <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24">
+      <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24">
         <title>Atom SVG Icon</title>
         <g fill="none">
           <path fill="#2C3154" d="M12 17.426a5.426 5.426 0 1 0 0-10.852a5.426 5.426 0 0 0 0 10.852"></path>
@@ -56,7 +56,7 @@ export const svg = {
      * License: MIT
      */
     return (
-      <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 128 128">
+      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 128 128">
         <title>Eslint SVG Icon</title>
         <path
           fill="#8080F2"
