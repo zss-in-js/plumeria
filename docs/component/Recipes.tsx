@@ -1,5 +1,5 @@
 import * as css from '@plumeria/core';
-import { ps } from 'lib/pseudos';
+import { pseudos } from 'lib/pseudos';
 import { rotateFocus, rotateHover } from 'lib/animation';
 import { breakpoints } from 'lib/mediaQuery';
 
@@ -23,7 +23,7 @@ const styles = css.create({
     transition: 'all 0.3s ease',
   },
   hover: {
-    [ps.hover]: {
+    [pseudos.hover]: {
       boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
       transform: 'translateY(-2px)',
     },
@@ -33,30 +33,30 @@ const styles = css.create({
 const buttons = css.create({
   focusPurple: {
     background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-    [ps.hover]: {
+    [pseudos.hover]: {
       background: 'linear-gradient(135deg, #3932c0, #6366f1)',
     },
-    [ps.focus]: {
+    [pseudos.focus]: {
       outline: '2px solid #a5b4fc',
       outlineOffset: '4px',
     },
   },
   focusSky: {
     background: 'linear-gradient(135deg, #16adf9, #3ce1fb)',
-    [ps.hover]: {
+    [pseudos.hover]: {
       background: 'linear-gradient(135deg, #0c9ce4, #3ce1fb)',
     },
-    [ps.focus]: {
+    [pseudos.focus]: {
       outline: '2px solid #82c3e4',
       outlineOffset: '4px',
     },
   },
   focusGreen: {
     background: 'linear-gradient(135deg, #10b981, #34d399)',
-    [ps.hover]: {
+    [pseudos.hover]: {
       background: 'linear-gradient(135deg, #089e6c, #34d399)',
     },
-    [ps.focus]: {
+    [pseudos.focus]: {
       outline: '2px solid #5bd3ab',
       outlineOffset: '4px',
     },
@@ -88,14 +88,14 @@ const stylesBox = css.create({
 
 const animated = css.create({
   hover: {
-    [ps.hover]: {
+    [pseudos.hover]: {
       outline: '1px solid dodgerblue',
       animationName: rotateHover,
       animationDuration: '0.7s',
     },
   },
   focus: {
-    [ps.hover]: {
+    [pseudos.hover]: {
       outline: '1px solid orange',
       animationName: rotateFocus,
       animationDuration: '0.8s',
