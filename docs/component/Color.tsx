@@ -1,5 +1,5 @@
 import * as css from '@plumeria/core';
-import { ps } from 'lib/pseudos';
+import { pseudos } from 'lib/pseudos';
 
 const styles = css.create({
   colorName: {
@@ -11,7 +11,7 @@ const styles = css.create({
     cursor: 'pointer',
     border: 'solid 0.4px rgba(0,0,0,0.2)',
     transition: '0.2s',
-    [ps.hover]: {
+    [pseudos.hover]: {
       scale: 1.75,
     },
   },
