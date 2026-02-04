@@ -12,7 +12,7 @@ const stylesCode = css.create({
     padding: '16px 0px',
     overflow: 'hidden',
     fontFamily: 'var(--font-geist-mono)',
-    fontSize: 13,
+    fontSize: 11,
     border: '1px solid var(--card-border)',
     borderRadius: '12px',
     backdropFilter: 'blur(12px)',
