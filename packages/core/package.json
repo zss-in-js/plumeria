@@ -26,7 +26,7 @@
   "module": "types/css.d.ts",
   "types": "types/css.d.ts",
   "files": [
-    "types"
+    "types/"
   ],
   "dependencies": {
     "csstype": "^3.2.3"
