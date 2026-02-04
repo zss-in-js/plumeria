@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 7.3.4
+
+### Patch Changes
+
+- 0536734: fix: improved peformance and ensuring safety
+- Updated dependencies [0536734]
+  - @plumeria/utils@7.3.4
+
 ## 7.3.3
 
 ### Patch Changes
