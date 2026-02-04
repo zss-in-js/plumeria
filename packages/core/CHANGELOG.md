@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.3.5
+
+### Patch Changes
+
+- b89a56b: chore: readme and package.json description update
+
 ## 7.3.4
 
 ### Patch Changes
