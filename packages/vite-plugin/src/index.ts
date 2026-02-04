@@ -130,6 +130,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
     async transform(source, id) {
       if (id.includes('node_modules')) return null;
+      if (!source.includes('@plumeria/core')) return null;
       if (id.includes('?')) return null;
 
       const ext = id.split('.').pop() || '';
