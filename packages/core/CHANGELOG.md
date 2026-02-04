@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.3.4
+
+### Patch Changes
+
+- 0536734: chore: package.json files types/
+
 ## 7.3.3
 
 ### Patch Changes

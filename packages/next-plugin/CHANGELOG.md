@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 7.3.4
+
+### Patch Changes
+
+- 0536734: chore: bump version to 7.3.4
+- Updated dependencies [0536734]
+  - @plumeria/turbopack-loader@7.3.4
+
 ## 7.3.3
 
 ### Patch Changes
