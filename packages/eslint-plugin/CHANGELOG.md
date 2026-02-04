@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.3.4
+
+### Patch Changes
+
+- 0536734: chore: bump version to 7.3.4
+
 ## 7.3.3
 
 ### Patch Changes
