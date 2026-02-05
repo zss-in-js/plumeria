@@ -1,4 +1,4 @@
-import { css } from '@plumeria/core';
+import css from '@plumeria/core';
 import { breakpoints } from './breakpoints';
 
 const styles = css.create({
