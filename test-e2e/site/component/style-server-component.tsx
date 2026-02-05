@@ -1,4 +1,4 @@
-import { css } from '@plumeria/core';
+import css from '@plumeria/core';
 
 const styles = css.create({
   test_server: {
