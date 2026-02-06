@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.3.7
+
+### Patch Changes
+
+- 3e2a4ab: fix: empty entry file add empty export
+
 ## 7.3.6
 
 ### Patch Changes
