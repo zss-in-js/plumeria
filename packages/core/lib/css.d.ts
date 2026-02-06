@@ -1,5 +1,5 @@
 /**
- * Type definitions only. Configure the bundler plugin for extraction.
+ * Type types only. Configure the bundler plugin for extraction.
  *```ts
  * type create = <const T extends Record<string, CSSProperties>>(_rule: CreateStyleType<T>)=> ReturnType<T>;
  * type props = (..._rules: (false | CSSProperties | null | undefined)[])=> string;
@@ -13,18 +13,18 @@
  * ```
  */
 declare module '@plumeria/core' {
-  export type CSSProperties = import('./definitions').CSSProperties;
-  export type CreateStyle = import('./definitions').CreateStyle;
-  export type CreateStyleType<T> = import('./definitions').CreateStyleType<T>;
-  export type CreateStatic = import('./definitions').CreateStatic;
-  export type CreateTheme = import('./definitions').CreateTheme;
-  export type Keyframes = import('./definitions').Keyframes;
-  export type ViewTransition = import('./definitions').ViewTransition;
-  export type ReturnType<T> = import('./definitions').ReturnType<T>;
-  export type ReturnVariableType<T> = import('./definitions').ReturnVariableType<T>;
-  export type Variants = import('./definitions').Variants;
-  export type Marker = import('./definitions').Marker;
-  export type Extended<I extends string, P extends string> = import('./definitions').Extended<I, P>;
+  export type CSSProperties = import('./types').CSSProperties;
+  export type CreateStyle = import('./types').CreateStyle;
+  export type CreateStyleType<T> = import('./types').CreateStyleType<T>;
+  export type CreateStatic = import('./types').CreateStatic;
+  export type CreateTheme = import('./types').CreateTheme;
+  export type Keyframes = import('./types').Keyframes;
+  export type ViewTransition = import('./types').ViewTransition;
+  export type ReturnType<T> = import('./types').ReturnType<T>;
+  export type ReturnVariableType<T> = import('./types').ReturnVariableType<T>;
+  export type Variants = import('./types').Variants;
+  export type Marker = import('./types').Marker;
+  export type Extended<I extends string, P extends string> = import('./types').Extended<I, P>;
   export type create = <const T extends Record<string, CSSProperties>>(_rule: CreateStyleType<T>)=> ReturnType<T>;
   export type props = (..._rules: (false | CSSProperties | null | undefined)[])=> string;
   export type createTheme = <const T extends CreateTheme>(_rule: T)=> ReturnVariableType<T>;
