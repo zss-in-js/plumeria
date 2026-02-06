@@ -17,16 +17,21 @@
   "keywords": [
     "plumeria",
     "atomic-css",
-    "atomic-css-types",
+    "type-only",
+    "css-in-js",
     "linaria",
     "stylex",
     "react-native-web"
   ],
-  "main": "types/css.d.ts",
-  "module": "types/css.d.ts",
-  "types": "types/css.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/css.d.ts",
+      "import": "./lib/css.js"
+    }
+  },
   "files": [
-    "types/"
+    "lib/"
   ],
   "dependencies": {
     "csstype": "^3.2.3"
