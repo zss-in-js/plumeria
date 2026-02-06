@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.3.8
+
+### Patch Changes
+
+- e3933e1: chore: add sideEffect false
+
 ## 7.3.7
 
 ### Patch Changes
