@@ -1,6 +1,7 @@
 # @plumeria/core
 
-A type-driven styling framework for maintainable UI.
+**Type-Only CSS Extract**  
+Build-time Compilation・No Bundle Size
 
 ```ts
 import * as css from '@plumeria/core';
