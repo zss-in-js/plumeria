@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.3.9
+
+### Patch Changes
+
+- 8890b37: refactor: Improved TSDocs and error tracing
+
 ## 7.3.8
 
 ### Patch Changes
