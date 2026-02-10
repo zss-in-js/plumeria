@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.3.10
+
+### Patch Changes
+
+- 3efba84: chore: test case bundler tree shaking test
+
 ## 7.3.9
 
 ### Patch Changes
