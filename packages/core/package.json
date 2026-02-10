@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "7.4.0",
-  "description": "A type-driven styling framework for maintainable UI.",
+  "description": "Type-Only CSS Extract",
   "author": "Refirst 11",
   "license": "MIT",
   "funding": "https://github.com/sponsors/refirst11",
