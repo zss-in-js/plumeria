@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.4.0
+
+### Minor Changes
+
+- 923c2aa: chore: Exporting internal types is no longer supported
+
 ## 7.3.8
 
 ### Patch Changes
