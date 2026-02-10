@@ -1,6 +1,6 @@
 import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
-import { ps } from 'lib/pseudos';
+import { pseudos } from 'lib/pseudos';
 import { Plumeria } from './Plumeria';
 import { CodeBlock } from './CodeBlock';
 import { ButtonLink } from './ButtonLink';
@@ -61,7 +61,6 @@ const styles = css.create({
     lineHeight: 1.4,
     color: 'var(--text-main-header-line)',
     textAlign: 'left',
-    letterSpacing: '-0.04em',
     [breakpoints.md]: {
       marginBottom: '16px',
       fontSize: 28,
@@ -134,7 +133,7 @@ const styles = css.create({
     border: '1px solid transparent',
     borderRadius: '12px',
     transition: 'border-color 0.2s, transform 0.2s',
-    [ps.hover]: {
+    [pseudos.hover]: {
       borderColor: 'var(--card-hover-border)',
     },
     [breakpoints.md]: {
@@ -149,7 +148,7 @@ const styles = css.create({
     width: '48px',
     height: '48px',
     marginBottom: '20px',
-    fontSize: 24,
+    fontSize: 18,
     color: 'var(--icon-color)',
     background: 'var(--icon-bg)',
     borderRadius: '8px',
@@ -183,7 +182,7 @@ const demoCode = `const styles = css.create({
     border: '1px solid transparent',
     borderRadius: '12px',
     transition: 'border-color 0.2s, transform 0.2s',
-    [ps.hover]: {
+    [pseudos.hover]: {
       borderColor: 'var(--card-hover-border)',
     },
     [breakpoints.md]: {
@@ -200,9 +199,9 @@ export const HomeComponent = () => {
           <div className={css.props(styles.heroContent)}>
             <h2 className={css.props(styles.mainHeadline)}>
               <Plumeria />
-              Type-Only Atomic CSS
+              Type-Only CSS Extract
             </h2>
-            <p className={css.props(styles.subHeadline)}>Compile-time Extraction・No Bundle Size </p>
+            <p className={css.props(styles.subHeadline)}>Build-time Compilation・No Bundle Size</p>
             <div className={css.props(styles.buttonGroup)}>
               <ButtonLink href="/docs" variant="gradient">
                 Thinking in Plumeria
@@ -251,7 +250,7 @@ export const HomeComponent = () => {
             <h3 className={css.props(styles.featureTitle)}>Build-time Compilation</h3>
             <p className={css.props(styles.featureDescription)}>
               Styles are compiled to static CSS at <span className={css.props(styles.highlight)}>build time</span>.
-              Eliminate runtime overhead and deliver instant page loads.
+              Eliminate styles and compile to class names.
             </p>
           </div>
         </section>
