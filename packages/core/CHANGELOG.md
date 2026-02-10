@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.4.1
+
+### Patch Changes
+
+- 743e7ca: chore: package description and css.d.ts update
+
 ## 7.4.0
 
 ### Minor Changes
