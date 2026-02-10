@@ -3,9 +3,9 @@ import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
 
 export const metadata: Metadata = generateSEOData({
-  title: 'Plumeria - Type-only atomic CSS framework.',
+  title: 'Plumeria - Type-only CSS extract.',
   subtitle:
-    'A type-only atomic CSS framework. Plumeria compiles at build time, generating only the styles you use for optimal performance and size.',
+    'Type-only CSS extract. Plumeria compiles at build time, generating only the styles you use for optimal performance and size.',
 });
 
 export default function Page() {
