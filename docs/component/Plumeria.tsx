@@ -13,7 +13,6 @@ const styles = css.create({
     fontWeight: 600,
     lineHeight: 1.1,
     WebkitTextFillColor: 'transparent',
-    letterSpacing: '-0.03em',
     background: 'linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)',
     backgroundClip: 'text',
     backgroundSize: '400% 400%',
