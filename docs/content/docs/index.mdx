@@ -1,19 +1,61 @@
 ---
 title: 'Thinking in Plumeria'
-description: 'Thinking in Plumeria - A type-only atomic css framework for fast type-safe styling.'
 ---
 
 ---
 
-## Type-Only design
-Typical CSS-in-JS solutions use several kilobytes in initial bundle size. This library completely replaces function calls and is complete with just type definitions and plugins.
+## Type-Only
+Typical CSS-in-JS solutions use several kilobytes in initial bundle size. This library completely replaces type calls and is complete with just type definitions and plugins.
 Developers simply extend the type definition arguments as **schemas**, so no JS parsing is required and there are no memory allocation costs.
 
-## Atomic CSS
-It creates optimized styles using collision-free atomic classes, reducing refactoring needs while scaling components efficiently.
 
-## ESLint (oxlint) linting for CI
-This approach provides a more refined and maintainable means to automate workflows.
+```json title="package.json"
+{
+  "name": "@plumeria/core",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/css.d.ts", // API type definitions only
+      "import": "./lib/css.js" // entry only empty export 0B by bundler
+  },
+  "files": [
+    "lib/"
+  ],
+}
+```
 
-## Optimization
-Normally, build speed increases linearly as the application size increases, but Plumeria's compiler builds all tables in a few milliseconds, and the build then finishes at the same speed as a normal build.
+## How It Works
+The pre-build code is actually written in types and transformed by build plugins.  
+Write styles with TypeScript autocomplete and type safety:
+```tsx title="Before build"
+import * as css from "@plumeria/core";
+
+const styles = css.create({
+  text: {
+    fontSize: 12,
+    color: 'navy',
+  },
+  size: {
+    width: 120,
+  },
+});
+
+<div className={css.props(styles.text, styles.size)} />
+```
+
+The build plugin transforms this into pure atomic CSS:
+```tsx title="After build"
+// All imports and style objects removed
+<div className="xhrr6ses xvbwmxqp xhk51flp" />
+```
+---
+
+## Type-Only Advantage
+
+By treating styles as **type schemas** instead of runtime objects:
+- No JavaScript bundle
+- No JavaScript runtime
+- No JavaScript parsing overhead
+- No memory allocation for style objects
+- Tree-shaking removes all framework code
+- Only atomic class names and optimized CSS remain in production
