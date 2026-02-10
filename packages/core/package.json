@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "7.3.8",
+  "version": "7.3.9",
   "description": "A type-driven styling framework for maintainable UI.",
   "author": "Refirst 11",
   "license": "MIT",
