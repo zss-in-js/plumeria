@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 7.4.0
+
+### Minor Changes
+
+- 923c2aa: chore: bump version to 7.4.0
+
+### Patch Changes
+
+- Updated dependencies [923c2aa]
+  - @plumeria/utils@7.4.0
+
 ## 7.3.8
 
 ### Patch Changes
