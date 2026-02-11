@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.4.2
+
+### Patch Changes
+
+- 749fe8e: chore: bump version to 7.4.2
+
 ## 7.4.1
 
 ### Patch Changes
