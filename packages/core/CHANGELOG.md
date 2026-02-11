@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.4.2
+
+### Patch Changes
+
+- 749fe8e: chore: description readme headling update
+
 ## 7.4.1
 
 ### Patch Changes
