@@ -1,6 +1,6 @@
 # @plumeria/core
 
-A type-driven styling framework for maintainable UI.
+A type-only CSS extract.
 
 ```ts
 import * as css from '@plumeria/core';
