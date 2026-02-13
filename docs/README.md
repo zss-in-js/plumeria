@@ -1,26 +1,14 @@
-# plumeria-website
+# [Plumeria](https://plumeria.dev/)
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+## 🎁 Support This Project
 
-Run development server:
+Like Plumeria? Here's how you can help:
+- ⭐ Star this repo
+- 📝 Write about your experience (we'll feature it!)
+- 🐛 Report bugs
+- 💡 Suggest features
 
-```bash
-npm run dev
-# or
-pnpm dev
-# or
-yarn dev
-```
-
-Open http://localhost:3000 with your browser to see the result.
-
-## Learn More
-
-To learn more about Next.js and Fumadocs, take a look at the following
-resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Fumadocs](https://fumadocs.vercel.app) - learn about Fumadocs
+We're especially looking for:
+- [ ] Blog posts about real-world usage
+- [ ] Performance comparison articles
+- [ ] Migration guides from other solutions
