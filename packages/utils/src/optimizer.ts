@@ -10,7 +10,7 @@ export async function optimizer(cssCode: string): Promise<string> {
   const light = lightningCSSTransform({
     filename: 'global.css',
     code: Buffer.from(merged.css),
-    minify: true,
+    minify: process.env.NODE_ENV === 'production',
     targets: {
       safari: 16,
       edge: 110,
