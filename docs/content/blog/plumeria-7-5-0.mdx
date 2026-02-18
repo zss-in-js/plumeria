@@ -1,0 +1,26 @@
+---
+title: 'Plumeria v7.5.0'
+description: 'Fixed CSS stacking issue during HMR in development. (1 min read)'
+date: '2026-02-18'
+---
+
+## Changes
+
+### Fix: Fixed CSS bloat during HMR
+
+Fixed an issue where appends to `zero-virtual.css` piled up each time HMR occurred in the development environment, causing the file to continue to bloat on disk.
+
+This issue has been resolved by inserting post-processing after `appendFileSync` to replace the file with the confirmed content rather than the difference.
+
+#### Impact
+
+The Next.js development server display `✓ Compiled in xx ms` one more time. This is due to post-processing and is normal behavior.
+
+## Migration guide
+
+Backward compatibility is maintained.  
+You can safely migrate to `v7.5.0` without any special changes.
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
