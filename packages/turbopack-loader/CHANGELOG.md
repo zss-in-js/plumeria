@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 7.5.0
+
+### Minor Changes
+
+- 25003f3: fix: fix accumulation in development mode
+
+### Patch Changes
+
+- Updated dependencies [25003f3]
+  - @plumeria/utils@7.5.0
+
 ## 7.4.2
 
 ### Patch Changes
