@@ -45,6 +45,10 @@ interface LoaderContext {
   clearDependencies: () => void;
 }
 
+declare global {
+  var cleanupTimeout: NodeJS.Timeout | undefined;
+}
+
 const isProduction = process.env.NODE_ENV === 'production';
 
 const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
@@ -1585,6 +1589,12 @@ export default async function loader(this: LoaderContext, source: string) {
 
   if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
     appendFileSync(VIRTUAL_FILE_PATH, optInCSS, 'utf-8');
+
+    // Debounce the cleanup to avoid flickering during rapid changes
+    if (global.cleanupTimeout) clearTimeout(global.cleanupTimeout);
+    global.cleanupTimeout = setTimeout(() => {
+      writeFileSync(VIRTUAL_FILE_PATH, optInCSS, 'utf-8');
+    }, 500);
   }
 
   return callback(null, transformedSource + postfix);
