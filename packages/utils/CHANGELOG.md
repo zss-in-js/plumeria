@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 7.5.0
+
+### Minor Changes
+
+- 25003f3: fix: optimizer minify for production only
+
 ## 7.4.2
 
 ### Patch Changes
