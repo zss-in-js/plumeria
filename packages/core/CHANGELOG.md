@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.5.1
+
+### Patch Changes
+
+- 11faa19: chore: removed core files end line
+
 ## 7.5.0
 
 ### Minor Changes
