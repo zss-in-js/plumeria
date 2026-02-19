@@ -4,6 +4,7 @@ coverage
 dist
 node_modules
 *.d.ts
+css.js
 *.mdx
 *.md
 .*
