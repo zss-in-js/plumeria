@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 7.5.1
+
+### Patch Changes
+
+- 11faa19: chore: bump version to 7.5.1
+
 ## 7.5.0
 
 ### Minor Changes
