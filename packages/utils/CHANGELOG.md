@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 7.5.2
+
+### Patch Changes
+
+- f38f719: refactor: improved memory and disk performance
+
 ## 7.5.1
 
 ### Patch Changes
