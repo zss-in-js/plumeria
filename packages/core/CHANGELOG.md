@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.5.2
+
+### Patch Changes
+
+- f38f719: chore: bump version to 7.5.2
+
 ## 7.5.1
 
 ### Patch Changes
