@@ -7,7 +7,7 @@ import type {
   ObjectExpression,
   Identifier,
 } from '@swc/core';
-import { appendFileSync, writeFileSync } from 'fs';
+import fs from 'fs';
 import path from 'path';
 import { genBase36Hash } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
@@ -46,14 +46,19 @@ interface LoaderContext {
 }
 
 declare global {
-  var cleanupTimeout: NodeJS.Timeout | undefined;
+  var __plumeriaVirtualCssInitialized: boolean | undefined;
 }
 
 const isProduction = process.env.NODE_ENV === 'production';
 
 const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
+
 if (isProduction) {
-  writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
+  fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
+} else if (!global.__plumeriaVirtualCssInitialized) {
+  // Clear the virtual CSS file once at startup in development mode
+  global.__plumeriaVirtualCssInitialized = true;
+  fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
 }
 
 export default async function loader(this: LoaderContext, source: string) {
@@ -84,7 +89,7 @@ export default async function loader(this: LoaderContext, source: string) {
     }
   }
 
-  const scannedTables = scanAll(!isProduction);
+  const scannedTables = scanAll();
 
   const extractedSheets: string[] = [];
   const addSheet = (sheet: string) => {
@@ -92,9 +97,6 @@ export default async function loader(this: LoaderContext, source: string) {
       extractedSheets.push(sheet);
     }
   };
-  if (scannedTables.extractedSheet) {
-    addSheet(scannedTables.extractedSheet);
-  }
 
   const localConsts = collectLocalConsts(ast);
   const importMap: Record<string, any> = {};
@@ -1584,17 +1586,15 @@ export default async function loader(this: LoaderContext, source: string) {
   const virtualCssRequest = stringifyRequest(this, `${VIRTUAL_CSS_PATH}`);
   const postfix = `\nimport ${virtualCssRequest};`;
 
-  if (process.env.NODE_ENV === 'production')
+  if (process.env.NODE_ENV === 'production') {
     return callback(null, transformedSource);
+  }
 
   if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-    appendFileSync(VIRTUAL_FILE_PATH, optInCSS, 'utf-8');
-
-    // Debounce the cleanup to avoid flickering during rapid changes
-    if (global.cleanupTimeout) clearTimeout(global.cleanupTimeout);
-    global.cleanupTimeout = setTimeout(() => {
-      writeFileSync(VIRTUAL_FILE_PATH, optInCSS, 'utf-8');
-    }, 500);
+    // Just append the current file's CSS to ensure zero flickering.
+    // By using scanAll(false) in dev, extractedSheets only contains local styles.
+    // Last-one-wins in CSS makes this stable for HMR.
+    fs.promises.appendFile(VIRTUAL_FILE_PATH, optInCSS + '\n', 'utf-8');
   }
 
   return callback(null, transformedSource + postfix);
