@@ -21,7 +21,7 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedFs.globSync.mockReturnValue([]);
-    tables = scanAll(true);
+    tables = scanAll();
   });
 
   it('should only extract used theme variables', () => {
