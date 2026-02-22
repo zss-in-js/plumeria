@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 7.5.2
+
+### Patch Changes
+
+- f38f719: refactor: improved memory and disk performance
+- Updated dependencies [f38f719]
+  - @plumeria/utils@7.5.2
+
 ## 7.5.1
 
 ### Patch Changes
