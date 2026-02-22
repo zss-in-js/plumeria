@@ -61,7 +61,7 @@ export function compileCSS(options: CompilerOptions) {
       target: 'es2022',
     });
 
-    const scannedTables = scanAll(false);
+    const scannedTables = scanAll();
     const localConsts = collectLocalConsts(ast);
     const resourcePath = filePath;
     const importMap: Record<string, any> = {};
@@ -308,6 +308,11 @@ export function compileCSS(options: CompilerOptions) {
         };
 
         const processStyle = (style: CSSObject) => {
+          /**
+           * When css.props is actually used, the contents of the style (obj) are
+           * scanned recursively, and the necessary keyframes etc. are extracted
+           * from the table and converted into CSS. And the cache prevents duplication.
+           */
           extractOndemandStyles(style, extractedSheets, scannedTables);
           const records = getStyleRecords(style as CSSProperties);
           records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
@@ -513,11 +518,6 @@ export function compileCSS(options: CompilerOptions) {
             mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          extractOndemandStyles(
-            { kf: `kf-${hash}` },
-            extractedSheets,
-            scannedTables,
-          );
           scannedTables.keyframesObjectTable[hash] = obj;
         } else if (
           propName === 'viewTransition' &&
@@ -538,11 +538,6 @@ export function compileCSS(options: CompilerOptions) {
           );
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.viewTransitionObjectTable[hash] = obj;
-          extractOndemandStyles(
-            { vt: `vt-${hash}` },
-            extractedSheets,
-            scannedTables,
-          );
         } else if (
           propName === 'createTheme' &&
           args.length > 0 &&
@@ -562,7 +557,6 @@ export function compileCSS(options: CompilerOptions) {
           );
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.createThemeObjectTable[hash] = obj;
-          extractOndemandStyles(obj, extractedSheets, scannedTables);
         }
       }
     };
@@ -629,7 +623,6 @@ export function compileCSS(options: CompilerOptions) {
               if (obj) {
                 localCreateStyles[node.id.value] = { type: 'create', obj };
                 Object.entries(obj).forEach(([, s]) => {
-                  extractOndemandStyles(s, extractedSheets, scannedTables);
                   getStyleRecords(s as CSSProperties).forEach(
                     (r: StyleRecord) => extractedSheets.push(r.sheet),
                   );
