@@ -49,7 +49,6 @@ export interface Tables {
   createStaticObjectTable: CreateStaticObjectTable;
   variantsHashTable: VariantsHashTable;
   variantsObjectTable: VariantsObjectTable;
-  extractedSheet?: string;
 }
 
 export interface FileStyles {
