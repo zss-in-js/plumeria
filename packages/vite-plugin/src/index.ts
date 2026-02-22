@@ -159,7 +159,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         }
       }
 
-      const scannedTables = scanAll(true);
+      const scannedTables = scanAll();
 
       const localConsts = collectLocalConsts(ast);
       const resourcePath = id;
@@ -332,9 +332,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       const processedDecls = new Set<any>();
       const idSpans = new Set<number>();
       const excludedSpans = new Set<number>();
-      if (scannedTables.extractedSheet) {
-        addSheet(scannedTables.extractedSheet);
-      }
 
       const checkVariantAssignment = (decl: any) => {
         if (
