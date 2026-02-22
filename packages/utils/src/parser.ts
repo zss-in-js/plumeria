@@ -903,13 +903,13 @@ interface CachedData {
   createStaticHashTable: CreateStaticHashTable;
   createStaticObjectTable: CreateStaticObjectTable;
   hasCssUsage: boolean;
-  extractedSheet?: string;
 }
 
 const fileCache: Record<string, CachedData> = {};
+
 let globalAgregatedTables: Tables | null = null;
 
-export function scanAll(isExtractSheet: boolean): Tables {
+export function scanAll(): Tables {
   if (process.env.NODE_ENV === 'production' && globalAgregatedTables) {
     return globalAgregatedTables;
   }
@@ -929,11 +929,9 @@ export function scanAll(isExtractSheet: boolean): Tables {
     createThemeHashTable: {},
     createStaticHashTable: {},
     createStaticObjectTable: {},
-    extractedSheet: '',
   };
 
   const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
-  const totalExtractedSheets: string[] = [];
 
   // Two-pass scanning:
   // Pass 1: Collect all createStatic and createTheme definitions
@@ -1006,10 +1004,6 @@ export function scanAll(isExtractSheet: boolean): Tables {
               localTables.variantsObjectTable[key] =
                 cached.variantsObjectTable[key];
             }
-
-            if (cached.extractedSheet) {
-              totalExtractedSheets.push(cached.extractedSheet);
-            }
           }
           continue;
         }
@@ -1034,7 +1028,6 @@ export function scanAll(isExtractSheet: boolean): Tables {
             createStaticHashTable: {},
             createStaticObjectTable: {},
             hasCssUsage: false,
-            extractedSheet: '',
           };
           continue;
         }
@@ -1060,7 +1053,6 @@ export function scanAll(isExtractSheet: boolean): Tables {
         const localCreateStaticHashTable: CreateStaticHashTable = {};
         const localCreateStaticObjectTable: CreateStaticObjectTable = {};
         const plumeriaAliases: Record<string, string> = {};
-        const fileExtractedSheets: string[] = [];
 
         for (const node of ast.body) {
           if (node.type === 'ImportDeclaration') {
@@ -1252,13 +1244,6 @@ export function scanAll(isExtractSheet: boolean): Tables {
                   localTables.keyframesObjectTable[hash] = obj;
                   localTables.keyframesObjectTable[hash] = obj;
                   localKeyframesObjectTable[hash] = obj;
-
-                  if (isExtractSheet)
-                    extractOndemandStyles(
-                      { kf: `kf-${hash}` },
-                      fileExtractedSheets,
-                      localTables,
-                    );
                 } else if (method === 'viewTransition') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localViewTransitionHashTable[name] = hash;
@@ -1266,13 +1251,6 @@ export function scanAll(isExtractSheet: boolean): Tables {
                   localTables.viewTransitionObjectTable[hash] = obj;
                   localTables.viewTransitionObjectTable[hash] = obj;
                   localViewTransitionObjectTable[hash] = obj;
-
-                  if (isExtractSheet)
-                    extractOndemandStyles(
-                      { vt: `vt-${hash}` },
-                      fileExtractedSheets,
-                      localTables,
-                    );
                 } else if (method === 'createTheme') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localTables.createThemeObjectTable[hash] = obj;
@@ -1301,18 +1279,6 @@ export function scanAll(isExtractSheet: boolean): Tables {
                     const atomMap: Record<string, string> = {};
                     records.forEach((r) => (atomMap[r.key] = r.hash));
                     hashMap[key] = atomMap;
-                    if (isExtractSheet) {
-                      extractOndemandStyles(
-                        style,
-                        fileExtractedSheets,
-                        localTables,
-                      );
-                      records.forEach((r) => {
-                        if (!fileExtractedSheets.includes(r.sheet)) {
-                          fileExtractedSheets.push(r.sheet);
-                        }
-                      });
-                    }
                   });
                   localCreateAtomicMapTable[hash] = hashMap;
                   localTables.createAtomicMapTable[hash] = hashMap;
@@ -1347,19 +1313,13 @@ export function scanAll(isExtractSheet: boolean): Tables {
             createStaticHashTable: localCreateStaticHashTable,
             createStaticObjectTable: localCreateStaticObjectTable,
             hasCssUsage: true,
-            extractedSheet: fileExtractedSheets.join(''),
           };
-          if (fileExtractedSheets.length > 0) {
-            totalExtractedSheets.push(fileExtractedSheets.join(''));
-          }
         }
       } catch (e) {
         // Ignore parsing errors for non-relevant files or syntax errors
       }
     }
   } // End of two-pass scanning
-
-  localTables.extractedSheet = totalExtractedSheets.join('');
 
   if (process.env.NODE_ENV === 'production') {
     globalAgregatedTables = localTables;
