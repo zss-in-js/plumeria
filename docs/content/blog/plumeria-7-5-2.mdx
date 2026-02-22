@@ -1,0 +1,23 @@
+---
+title: 'Plumeria v7.5.2'
+description: 'Internal architecture stabilization and performance optimization. (1 min read)'
+date: '2026-02-23'
+---
+
+## Changes
+
+The post-processing compaction process introduced in `v7.5.0` has been refactored in this patch.
+
+- Improved memory and disk performance
+- Unified style generation responsibility
+- Optimized initial CSS generation during dev server startup
+- HMR CSS updates are now isolated to page-level units
+
+This release focuses on internal stabilization and responsibility separation.
+
+Style generation is now strictly handled by the loader and compiler.  
+`scanAll` is purely responsible for scanning and no longer triggers style extraction.
+
+CSS state is reset on dev server start and page transitions, preventing accumulation and duplicated generation during development.
+
+No API changes. No migration required.
