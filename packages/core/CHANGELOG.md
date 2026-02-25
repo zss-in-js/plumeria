@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.5.4
+
+### Patch Changes
+
+- 9128428: chore: bump version to 7.5.4
+
 ## 7.5.3
 
 ### Patch Changes
