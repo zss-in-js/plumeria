@@ -1,7 +1,8 @@
-import { E2ETest } from 'component/style-create';
-import { Conflict } from 'component/style-not-conflict';
+import { ConditionalTest } from 'component/ConditionalTest';
+import { VariableTest } from 'component/VariableTest';
+import { VariantTest } from 'component/VariantTest';
 import Link from 'next/link';
-import { css } from '@plumeria/core';
+import css from '@plumeria/core';
 
 const styles = css.create({
   page: {
@@ -15,8 +16,9 @@ export default function Home() {
       <h1>@plumeria/core E2E Test</h1>
       <h2 className={css.props(styles.page)}>server component</h2>
       <Link href="/server">Server Page</Link>
-      <Conflict />
-      <E2ETest />
+      <ConditionalTest />
+      <VariableTest />
+      <VariantTest />
     </main>
   );
 }
