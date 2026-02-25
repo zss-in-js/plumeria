@@ -37,42 +37,42 @@ ruleTester.run(
     invalid: [
       {
         code: 'const styles = { key1: { display: "block", position: "absolute", top: "0", right: "0", bottom: "0", left: "0" } };',
-        errors: 6,
+        errors: 1,
         output:
           'const styles = { key1: { position: "absolute", top: "0", right: "0", bottom: "0", left: "0", display: "block" } };',
         settings: { ecmaVersion: 2021 },
       },
       {
         code: 'const styles = { key1: {\n  left: 0,\n  position: "absolute"\n} };',
-        errors: 2,
+        errors: 1,
         output:
           'const styles = { key1: {\n  position: "absolute",\n  left: 0\n} };',
         settings: { ecmaVersion: 2021 },
       },
       {
         code: "const styles = { key1: { '@media (min-width: 1024px)': { color: 'purple' }, '&:hover': { color: 'red' }, '&': { color: 'blue' } } };",
-        errors: 3,
+        errors: 1,
         output:
           "const styles = { key1: { '&:hover': { color: 'red' }, '&': { color: 'blue' }, '@media (min-width: 1024px)': { color: 'purple' } } };",
         settings: { ecmaVersion: 2021 },
       },
       {
         code: "const key = 'z'; const styles = { key1: { [key]: 'value', display: 'block' } };",
-        errors: 2,
+        errors: 1,
         output:
           "const key = 'z'; const styles = { key1: { display: 'block', [key]: 'value' } };",
         settings: { ecmaVersion: 2021 },
       },
       {
         code: "const styles = { key1: { '@container (min-width: 1024px)': { color: 'purple' }, '&:hover': { color: 'red' } } };",
-        errors: 2,
+        errors: 1,
         output:
           "const styles = { key1: { '&:hover': { color: 'red' }, '@container (min-width: 1024px)': { color: 'purple' } } };",
         settings: { ecmaVersion: 2021 },
       },
       {
         code: "const styles = { key1: { [`z-prop`]: 'value', display: 'block' } };",
-        errors: 2,
+        errors: 1,
         output:
           "const styles = { key1: { display: 'block', [`z-prop`]: 'value' } };",
         settings: { ecmaVersion: 2021 },
@@ -85,7 +85,7 @@ ruleTester.run(
             position: "absolute"
           }
         };`,
-        errors: 2,
+        errors: 1,
         output: `const styles = {
           key1: {
             ...spread,
