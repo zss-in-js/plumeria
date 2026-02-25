@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 7.5.3
+
+### Patch Changes
+
+- 788106f: chore: bump version to 7.5.3
+
 ## 7.5.2
 
 ### Patch Changes
