@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.5.4
+
+### Patch Changes
+
+- 9128428: chore: sort-properties changed from warning about the impact range to warning about only that property
+
 ## 7.5.3
 
 ### Patch Changes
