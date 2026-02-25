@@ -59,6 +59,40 @@ function getPropertyIndex(
   return lastGroupIndex * 1000 + maxPropIndex + 1;
 }
 
+function getLIS(arr: number[]): number[] {
+  const n = arr.length;
+  if (n === 0) return [];
+
+  const dp = new Array(n).fill(1);
+  const parent = new Array(n).fill(-1);
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < i; j++) {
+      if (arr[j] < arr[i] && dp[j] + 1 > dp[i]) {
+        dp[i] = dp[j] + 1;
+        parent[i] = j;
+      }
+    }
+  }
+
+  let maxLen = 0;
+  let bestEndIdx = 0;
+  for (let i = 0; i < n; i++) {
+    if (dp[i] > maxLen) {
+      maxLen = dp[i];
+      bestEndIdx = i;
+    }
+  }
+
+  const result = [];
+  let curr = bestEndIdx;
+  while (curr !== -1) {
+    result.push(curr);
+    curr = parent[curr];
+  }
+  return result.reverse();
+}
+
 export const sortProperties: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
@@ -79,7 +113,9 @@ export const sortProperties: Rule.RuleModule = {
       ObjectExpression(node) {
         const sourceCode = getSourceCode(context);
         const isTopLevel = !node.parent || node.parent.type !== 'Property';
-        const properties = node.properties.filter(
+        const properties = (
+          node.properties as (Property | SpreadElement)[]
+        ).filter(
           (prop) =>
             ('key' in prop && !!prop.key) || prop.type === 'SpreadElement',
         );
@@ -111,9 +147,24 @@ export const sortProperties: Rule.RuleModule = {
           })
           .flat();
 
-        const misordered = properties.filter((prop, i) => prop !== sorted[i]);
+        const propertyToIndexInSorted = new Map<
+          Property | SpreadElement,
+          number
+        >();
+        sorted.forEach((prop, index) => {
+          propertyToIndexInSorted.set(prop, index);
+        });
 
-        if (misordered.length === 0) return;
+        const targetPositions = properties.map(
+          (prop) => propertyToIndexInSorted.get(prop)!,
+        );
+        const lisIndices = new Set(getLIS(targetPositions));
+
+        const misorderedIndices = properties
+          .map((_, i) => i)
+          .filter((i) => !lisIndices.has(i));
+
+        if (misorderedIndices.length === 0) return;
 
         const match = sourceCode.getText(node).match(/^{\s*\n(\s*)/);
         const indent = match ? match[1] : '';
@@ -121,7 +172,8 @@ export const sortProperties: Rule.RuleModule = {
         const closingIndentMatch = sourceCode.getText(node).match(/\n(\s*)}$/);
         const closingIndent = closingIndentMatch ? closingIndentMatch[1] : '';
 
-        misordered.forEach((prop) => {
+        misorderedIndices.forEach((i) => {
+          const prop = properties[i];
           context.report({
             node: prop,
             messageId: 'sortProperties',
