@@ -1,0 +1,47 @@
+---
+title: 'Plumeria v7.3.0'
+description: 'Refining the Type-Only Architecture. Moving from function exports to const exports to better reflect the compile-time nature of Plumeria. (3 min read)'
+date: '2026-01-31'
+---
+
+We have released Plumeria v7.3.0.
+This is a minor update that refines the type definitions introduced in v7.2.4.
+
+## Refining the API Definition
+
+In v7.2.4, we introduced a "Type Definition Only" architecture using `declare module`.
+At that time, we defined APIs like `create` as functions:
+
+```ts
+// v7.2.4 (Previous)
+export function create<T>(...): ...;
+```
+
+In v7.3.0, we have changed these to `const` exports typed with specific interfaces:
+
+```ts
+// v7.3.0 (Current)
+export type create = <T>(...) => ...;
+export const create: create;
+```
+
+This change brings two significant benefits:
+1.  **Type Reusability**: You can now `import type { create }` and use the type directly in your code.
+2.  **Accuracy**: Since Plumeria is a compile-time macro, `const` more accurately represents "a static symbol that will be replaced" rather than "a function that runs at runtime".
+
+## Summary
+
+v7.3.0 is a refinement of our "Compile-time Only" philosophy.
+By moving to `const` exports, we provide better TypeScript integration and a more coherent visual experience in your editor.
+
+- **API**: `function` -> `const`
+- **Type**: export API types
+
+### Others
+
+- fix: createTheme style gen has been ondemand  
+All APIs are now generated on demand.
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
