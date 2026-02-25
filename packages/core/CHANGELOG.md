@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.5.3
+
+### Patch Changes
+
+- 788106f: chore: new system color keyword has been excluded
+
 ## 7.5.2
 
 ### Patch Changes
