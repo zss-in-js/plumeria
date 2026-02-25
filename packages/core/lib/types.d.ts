@@ -35,21 +35,27 @@ type SystemColorKeyword =
   | 'ThreeDShadow'
   | 'Window'
   | 'WindowFrame'
-  | 'WindowText';
+  | 'WindowText'
+  | 'AccentColor'
+  | 'AccentColorText'
+  | 'ActiveText'
+  | 'ButtonBorder'
+  | 'Canvas'
+  | 'CanvasText'
+  | 'Field'
+  | 'FieldText'
+  | 'LinkText'
+  | 'Mark'
+  | 'MarkText'
+  | 'SelectedItem'
+  | 'SelectedItemText'
+  | 'VisitedText';
 
 type ExcludeMozInitial<T> = Exclude<T, '-moz-initial'>;
 
 type CSSTypeProperties = Properties<number | (string & {})>;
 
-type CustomProperties = {
-  [K in keyof CSSTypeProperties]: ExcludeMozInitial<CSSTypeProperties[K]>;
-};
-
-type BaseCSSProperties = {
-  [K in keyof CustomProperties]: CustomProperties[K] | CSSVariableValue;
-};
-
-interface CommonProperties extends BaseCSSProperties {
+type ColorProperties = {
   accentColor?: CSSColorProperty;
   color?: CSSColorProperty;
   borderLeftColor?: CSSColorProperty;
@@ -67,7 +73,13 @@ interface CommonProperties extends BaseCSSProperties {
   textDecorationColor?: CSSColorProperty;
   caretColor?: CSSColorProperty;
   columnRuleColor?: CSSColorProperty;
-}
+};
+
+type CommonProperties = {
+  [K in keyof CSSTypeProperties]: K extends keyof ColorProperties
+    ? ColorProperties[K]
+    : ExcludeMozInitial<CSSTypeProperties[K]> | CSSVariableValue;
+};
 
 type ArrayString = `[${string}`;
 type ArraySelector = {
