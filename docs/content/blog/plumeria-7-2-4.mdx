@@ -1,0 +1,45 @@
+---
+title: 'Plumeria v7.2.4'
+description: 'Shifting to an architecture that stands solely on type definitions and static extraction. (3 min read)'
+date: '2026-01-29'
+---
+
+*: v7.2.2 has a bug where types are missing, please use v7.2.3 or later.
+
+We have released Plumeria v7.2.4.
+This update marks the most critical turning point in Plumeria's architecture.
+
+We have finally moved beyond "Zero-Runtime Overhead" to reach a **"Compile-time Only"** architecture.
+
+### Static Extraction via Types
+
+The essence of Plumeria is not a library, but a **"Compiler"**.
+
+1.  **Development**: The editor references `css.d.ts` to provide powerful type completion and validation.
+2.  **Build Time**: A dedicated plugin statically analyzes and extracts calls like `css.create`.
+3.  **Output**: CSS files are generated, and all traces of Plumeria are completely removed from the JavaScript code.
+
+## Ambient Modules and Syntax Highlighting
+
+Accompanying this architectural change, we have adopted the **Ambient Module** format for type definitions, similar to Node.js modules like `fs`.
+
+```ts
+// css.d.ts
+declare module "@plumeria/core" {
+  // ...
+}
+```
+
+This changes how it looks in your editor.
+When you `import css from '@plumeria/core'`, `css` is highlighted not as a simple variable (e.g., lightblue), but as a **Namespace/Module (e.g., green)**.
+
+## Conclusion
+
+v7.2.4 is an ambitious update that concludes with **"eliminating the library function code"** as the result of pursuing CSS-in-JS performance to the extreme.
+
+- **Runtime**: No concept
+- **Bundle**: No concept
+- **Type Safety**: Extremely high
+- **Architecture**: Compile-time Only
+
+Please experience the new "Type Definition + Static Extraction".
