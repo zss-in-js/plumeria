@@ -1591,10 +1591,7 @@ export default async function loader(this: LoaderContext, source: string) {
   }
 
   if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-    // Just append the current file's CSS to ensure zero flickering.
-    // By using scanAll(false) in dev, extractedSheets only contains local styles.
-    // Last-one-wins in CSS makes this stable for HMR.
-    fs.promises.appendFile(VIRTUAL_FILE_PATH, optInCSS + '\n', 'utf-8');
+    fs.appendFileSync(VIRTUAL_FILE_PATH, optInCSS + '\n', 'utf-8');
   }
 
   return callback(null, transformedSource + postfix);
