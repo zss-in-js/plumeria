@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 7.5.5
+
+### Patch Changes
+
+- a3e7271: fix: hmr stabilization
+- Updated dependencies [a3e7271]
+  - @plumeria/utils@7.5.5
+
 ## 7.5.4
 
 ### Patch Changes
