@@ -3,6 +3,7 @@ import { noDestructure } from './rules/no-destructure';
 import { noInnerCall } from './rules/no-inner-call';
 import { noUnusedKeys } from './rules/no-unused-keys';
 import { sortProperties } from './rules/sort-properties';
+import { formatProperties } from './rules/format-properties';
 import { validateValues } from './rules/validate-values';
 import type { ESLint, Linter, Rule } from 'eslint';
 
@@ -22,6 +23,7 @@ const rules: Record<string, Rule.RuleModule> = {
   'no-inner-call': noInnerCall,
   'no-unused-keys': noUnusedKeys,
   'sort-properties': sortProperties,
+  'format-properties': formatProperties,
   'validate-values': validateValues,
 };
 
@@ -34,6 +36,7 @@ const configs: PlumeriaPlugin['configs'] = {
       '@plumeria/no-inner-call': 'error',
       '@plumeria/no-unused-keys': 'warn',
       '@plumeria/sort-properties': 'warn',
+      '@plumeria/format-properties': 'warn',
       '@plumeria/validate-values': 'warn',
     },
   },
@@ -51,6 +54,7 @@ const flatConfigs: PlumeriaPlugin['flatConfigs'] = {
       '@plumeria/no-inner-call': 'error',
       '@plumeria/no-unused-keys': 'warn',
       '@plumeria/sort-properties': 'warn',
+      '@plumeria/format-properties': 'warn',
       '@plumeria/validate-values': 'warn',
     },
   },
