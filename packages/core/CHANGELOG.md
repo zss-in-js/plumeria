@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 7.6.0
+
+### Minor Changes
+
+- 614dd91: chore: description and readme update
+
 ## 7.5.5
 
 ### Patch Changes
