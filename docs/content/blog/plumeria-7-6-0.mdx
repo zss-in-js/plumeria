@@ -1,0 +1,55 @@
+---
+title: 'Plumeria v7.6.0'
+description: 'Add new ESLint rule "format-properties". (2 min read)'
+date: '2026-02-28'
+---
+
+## Added
+@plumeria/eslint-plugin
+- add ESLint rule format-properties
+
+### overview
+
+Property object must be formatted with each property on its own line.
+```ts
+const styles = css.create({
+    headling: { fontSize: 24 }
+})
+```
+
+When saved, it will be formatted as follows:
+```ts
+const styles = css.create({
+    headling: { 
+        fontSize: 24,
+    }
+})
+```
+
+No empty lines allowed between properties.
+```ts
+const styles = css.create({
+    headling: { 
+        fontSize: 24,
+
+        textAligin: 'center',
+    }
+})
+```
+
+When saved, it will be formatted as follows:
+```ts
+const styles = css.create({
+    headling: { 
+        fontSize: 24,
+        textAligin: 'center',
+    }
+})
+```
+
+## Others
+Also, from version 7.5.4, the scope of the sort-properties effect has been limited to the target. This reduces the visual stress by limiting the scope of errors and warnings.
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
