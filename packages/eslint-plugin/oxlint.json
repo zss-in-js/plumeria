@@ -9,6 +9,7 @@
     "@plumeria/no-inner-call": "error",
     "@plumeria/no-unused-keys": "warn",
     "@plumeria/sort-properties": "warn",
+    "@plumeria/format-properties": "warn",
     "@plumeria/validate-values": "warn"
   }
 }
