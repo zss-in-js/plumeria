@@ -12,6 +12,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/no-inner-call`: **error**
 - `@plumeria/no-unused-keys`: **warn**
 - `@plumeria/sort-properties`: **warn**
+- `@plumeria/formatt-properties`: **warn**
 - `@plumeria/validate-values`: **warn**
 
 ```js
@@ -41,6 +42,11 @@ Warns when object keys are defined but not used, mainly in component files.
 ### sort-properties
 
 Automatically sorts CSS properties in the recommended order for consistency and maintainability.
+
+### format-properties
+Automatically format for consistency and maintainability.
+- Formats a line into a multi-line.  
+- Formats by filling in blank lines.
 
 ### validate-values
 
