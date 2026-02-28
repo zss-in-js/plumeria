@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.6.1
+
+### Patch Changes
+
+- 48d0e8d: chore: plumerialint add format-properties rule
+
 ## 7.6.0
 
 ### Minor Changes
