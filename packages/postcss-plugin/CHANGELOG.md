@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 7.6.1
+
+### Patch Changes
+
+- 48d0e8d: chore: bupm version to 7.6.1
+- Updated dependencies [48d0e8d]
+  - @plumeria/compiler@7.6.1
+
 ## 7.6.0
 
 ### Minor Changes
