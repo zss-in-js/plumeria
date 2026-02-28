@@ -12,7 +12,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/no-inner-call`: **error**
 - `@plumeria/no-unused-keys`: **warn**
 - `@plumeria/sort-properties`: **warn**
-- `@plumeria/formatt-properties`: **warn**
+- `@plumeria/format-properties`: **warn**
 - `@plumeria/validate-values`: **warn**
 
 ```js
