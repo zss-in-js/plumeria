@@ -1,6 +1,6 @@
 # @plumeria/core
 
-A type-only CSS extract.
+An atomic CSS types designed to disappear.
 
 ```ts
 import * as css from '@plumeria/core';
