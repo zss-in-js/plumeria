@@ -6,10 +6,11 @@ description: 'Learn more about Selector rule syntax'
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ## Nesting
-Pseudo-elements(class) and media nesting rules. The following example is acceptable:
+Pseudo-elements(class) and media nesting rules.  
+Queries(media・container) can only be pseudo nest once, but pseudo cannot nest queries.
 
 ```ts title="TypeScript" {1}
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 const styles = css.create({
   list: {
@@ -22,14 +23,13 @@ const styles = css.create({
 });
 ```
 
-
-
 <Callout type="error" title="error cases">
-  Unacceptable examples:
+   ---
 </Callout>
+Unacceptable examples:
 
 ```ts title="TypeScript" {1}
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 const styles = css.create({
   list: {
@@ -43,7 +43,7 @@ const styles = css.create({
 ```
 
 ```ts title="TypeScript" {1}
-import { css } from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 const styles = css.create({
   list: {
@@ -57,9 +57,6 @@ const styles = css.create({
 ```
 
 
-<Callout type="info" title="Nesting Restrictions">
-  Media can only be nested once with pseudo and &, but pseudo and & cannot nest media.
-</Callout>
 
 <Cards>
   <Card title="See more about API create" href="/docs/api-reference/create" />
