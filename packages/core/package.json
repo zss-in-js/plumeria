@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "7.5.5",
-  "description": "A type-only CSS extract.",
+  "description": "An atomic CSS types designed to disappear.",
   "author": "Refirst 11",
   "license": "MIT",
   "funding": "https://github.com/sponsors/refirst11",
