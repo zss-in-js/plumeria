@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 7.6.0
+
+### Minor Changes
+
+- 614dd91: feat: add format-properties rule
+
 ## 7.5.5
 
 ### Patch Changes
