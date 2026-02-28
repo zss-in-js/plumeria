@@ -58,7 +58,7 @@ const styles = css.create({
     marginBottom: 12,
     fontSize: 47,
     fontWeight: 600,
-    lineHeight: 1.4,
+    lineHeight: 1,
     color: 'var(--text-main-header-line)',
     textAlign: 'left',
     [breakpoints.md]: {
@@ -199,9 +199,12 @@ export const HomeComponent = () => {
           <div className={css.props(styles.heroContent)}>
             <h2 className={css.props(styles.mainHeadline)}>
               <Plumeria />
-              Type-Only CSS Extract
+              Atomic CSS-in-JS
             </h2>
-            <p className={css.props(styles.subHeadline)}>Build-time Compilation・No Bundle Size</p>
+            <p className={css.props(styles.subHeadline)}>
+              Zero runtime overhead. Full type-safe. <br />
+              Build-time compilation for ultimate performance.
+            </p>
             <div className={css.props(styles.buttonGroup)}>
               <ButtonLink href="/docs" variant="gradient">
                 Thinking in Plumeria
