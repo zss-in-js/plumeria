@@ -65,6 +65,9 @@ importers:
       prettier:
         specifier: ^3.5.3
         version: 3.7.4
+      prettier-plugin-insert-comma:
+        specifier: ^1.1.0
+        version: 1.1.0(prettier@3.7.4)
       rimraf:
         specifier: ^6.0.1
         version: 6.1.2
@@ -4315,7 +4318,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   globals@14.0.0:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
@@ -5721,6 +5724,11 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
+
+  prettier-plugin-insert-comma@1.1.0:
+    resolution: {integrity: sha512-4fWXHLU4RweFubcMoaAPKK4KvM0M5rRMIw4pNM25XJlxX9w7a5qtcmJYjounBOymSsxUk1UCtQRZv815jWJS6g==}
+    peerDependencies:
+      prettier: ^3.0
 
   prettier-plugin-svelte@3.4.0:
     resolution: {integrity: sha512-pn1ra/0mPObzqoIQn/vUTR3ZZI6UuZ0sHqMK5x2jMLGrs53h0sXhkVuDcrlssHwIMk7FYrMjHBPoUSyyEEDlBQ==}
@@ -13385,6 +13393,10 @@ snapshots:
   preact@10.28.0: {}
 
   prelude-ls@1.2.1: {}
+
+  prettier-plugin-insert-comma@1.1.0(prettier@3.7.4):
+    dependencies:
+      prettier: 3.7.4
 
   prettier-plugin-svelte@3.4.0(prettier@3.7.4)(svelte@5.45.5):
     dependencies:
