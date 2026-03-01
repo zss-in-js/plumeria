@@ -167,11 +167,6 @@ const styles = css.create({
     lineHeight: 1.6,
     color: 'var(--text-secondary)',
   },
-
-  highlight: {
-    fontWeight: 600,
-    color: '#22d3ee', // Keep cyan highlight in both themes
-  },
 });
 
 const demoCode = `const styles = css.create({
@@ -203,11 +198,11 @@ export const HomeComponent = () => {
             </h2>
             <p className={css.props(styles.subHeadline)}>
               Zero runtime overhead. Full type-safe. <br />
-              Build-time compilation for ultimate performance.
+              Build-time compile・max performance.
             </p>
             <div className={css.props(styles.buttonGroup)}>
               <ButtonLink href="/docs" variant="gradient">
-                Thinking in Plumeria
+                Core Principle
               </ButtonLink>
               <ButtonLink href="/docs/getting-started/installation" variant="metallic">
                 Installation
@@ -225,26 +220,23 @@ export const HomeComponent = () => {
             <div className={css.props(styles.featureIcon)}>{svg.Atom()}</div>
             <h3 className={css.props(styles.featureTitle)}>Atomic CSS</h3>
             <p className={css.props(styles.featureDescription)}>
-              Generates <span className={css.props(styles.highlight)}>atomic CSS classes</span> at build time. Styles
-              are reused automatically, keeping your CSS bundle minimal.
-            </p>
-          </div>
-
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>{svg.TurbopackIcon()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Turbopack</h3>
-            <p className={css.props(styles.featureDescription)}>
-              Native <span className={css.props(styles.highlight)}>Next.js integration</span>. Instant HMR updates and a
-              development flow that stays in full acceleration.
+              Styles are reused keeping CSS bundle is always minimal.
             </p>
           </div>
 
           <div className={css.props(styles.featureCard)}>
             <div className={css.props(styles.featureIcon)}>{svg.Eslint()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Type-Safe</h3>
+            <h3 className={css.props(styles.featureTitle)}>Linting</h3>
             <p className={css.props(styles.featureDescription)}>
-              Complete TypeScript safety with <span className={css.props(styles.highlight)}>build-integrated </span>
-              ESLint validation. Detect typos before compiling.
+              Build-integrated oxlint validation. Detect typos before compiling.
+            </p>
+          </div>
+
+          <div className={css.props(styles.featureCard)}>
+            <div className={css.props(styles.featureIcon)}>{svg.Feather()}</div>
+            <h3 className={css.props(styles.featureTitle)}>Lghtweight</h3>
+            <p className={css.props(styles.featureDescription)}>
+              min + brotli 1 byte. <br /> Before compression 0 byte.
             </p>
           </div>
 
@@ -252,8 +244,7 @@ export const HomeComponent = () => {
             <div className={css.props(styles.featureIcon)}>⚡</div>
             <h3 className={css.props(styles.featureTitle)}>Build-time Compilation</h3>
             <p className={css.props(styles.featureDescription)}>
-              Styles are compiled to static CSS at <span className={css.props(styles.highlight)}>build time</span>.
-              Eliminate styles and compile to class names.
+              Eliminate styles compile to class names at built time.
             </p>
           </div>
         </section>
