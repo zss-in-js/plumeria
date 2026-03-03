@@ -201,10 +201,10 @@ export const HomeComponent = () => {
               Build-time only・High performance
             </p>
             <div className={css.props(styles.buttonGroup)}>
-              <ButtonLink href="/docs" variant="gradient">
-                Core Principle
+              <ButtonLink href="/docs" variant="getstarted">
+                Get Started
               </ButtonLink>
-              <ButtonLink href="/docs/getting-started/installation" variant="metallic">
+              <ButtonLink href="/docs/getting-started/installation" variant="installation">
                 Installation
               </ButtonLink>
             </div>
