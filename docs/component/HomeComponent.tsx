@@ -74,11 +74,11 @@ const styles = css.create({
     maxWidth: '600px',
     marginBottom: 32,
     fontSize: 24,
-    fontWeight: 400,
+    fontWeight: 420,
     lineHeight: 1.6,
     color: 'var(--text-secondary)',
     textAlign: 'left',
-    letterSpacing: '0.01em',
+    letterSpacing: '0.026em',
     [breakpoints.md]: {
       maxWidth: '90%',
       marginBottom: '32px',
@@ -197,8 +197,8 @@ export const HomeComponent = () => {
               Atomic CSS-in-JS
             </h2>
             <p className={css.props(styles.subHeadline)}>
-              Zero runtime overhead. Full type-safe. <br />
-              Build-time compile・max performance.
+              Zero-runtime overhead・Type-safe <br />
+              Build-time only・High performance
             </p>
             <div className={css.props(styles.buttonGroup)}>
               <ButtonLink href="/docs" variant="gradient">
