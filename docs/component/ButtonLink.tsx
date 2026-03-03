@@ -1,6 +1,5 @@
 import * as css from '@plumeria/core';
 import type { ReactNode } from 'react';
-import { gradientShift } from './animation';
 import { breakpoints } from 'lib/mediaQuery';
 import Link from 'next/link';
 
@@ -19,7 +18,7 @@ const styles = css.create({
     cursor: 'pointer',
     background: 'var(--bg-gradient)',
     border: 'none',
-    borderRadius: 'var(--border-radius)',
+    borderRadius: '25px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.16s ease-in-out',
     '[disabled]': {
@@ -39,11 +38,11 @@ const styles = css.create({
       outline: 'none',
     },
   },
-  gradient: {
+  getstarted: {
     background: 'var(--plume-accent)',
     
   },
-  metallic: {
+  installation: {
     color: '#333536',
     background: '#c3c3c3',
   },
@@ -60,8 +59,8 @@ medium: {
 
 const getButtonStyle = css.variants({
   variant: {
-    gradient: styles.gradient,
-    metallic: styles.metallic,
+    getstarted: styles.getstarted,
+    installation: styles.installation,
   },
   size: {
     medium: styles.medium,
@@ -70,7 +69,7 @@ const getButtonStyle = css.variants({
 
 interface Props {
   children: ReactNode;
-  variant: 'gradient' | 'metallic';
+  variant: 'getstarted' | 'installation';
   href: string;
 }
 
