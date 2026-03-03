@@ -2,30 +2,28 @@ import React from 'react';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import * as css from '@plumeria/core';
 import Image from 'next/image';
-import { gradientShift } from 'component/animation';
+import { breakpoints } from 'lib/mediaQuery';
 
 const styles = css.create({
+  text: {
+    position: 'relative',
+    right: 4,
+  },
   logo: {
+    position: 'relative',
+    right: 12,
     display: 'flex',
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
     fontWeight: 600,
-    WebkitTextFillColor: 'transparent',
-    letterSpacing: '-0.03em',
-    background: 'linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)',
-    backgroundClip: 'text',
-    backgroundSize: '400% 400%',
-    border: '1px solid transparent',
-    filter: 'drop-shadow(0 0 2em rgba(168, 85, 247, 0.2))',
-    animationName: gradientShift,
-    animationDuration: '15s',
-    animationTimingFunction: 'ease',
-    animationIterationCount: 'infinite',
+    color: 'var(--plume-accent)',
   },
-  zss: {
-    borderRadius: '8px',
-    scale: 0.88,
+  plumeria: {
+    touchAction: 'none',
+    [breakpoints.md]: {
+      right: 12,
+    },
   },
 });
 
@@ -35,14 +33,14 @@ export const baseOptions: BaseLayoutProps = {
     title: (
       <span className={css.props(styles.logo)}>
         <Image
-          src="/zss.png"
+          src="/LP_LG.png"
           alt="Plumeria logo"
           loading="lazy"
-          height={24}
-          width={24}
-          className={css.props(styles.zss)}
+          height={48}
+          width={48}
+          className={css.props(styles.plumeria)}
         />
-        Plumeria
+        <span className={css.props(styles.text)}>Plumeria</span>
       </span>
     ),
     transparentMode: 'top',
