@@ -2,25 +2,27 @@
 
 /* CSS Custom Properties for Theme Awareness */
 :root {
+  --plume-accent: #589baf;
   --card-bg: rgb(246, 246, 246);
   --card-border: #eeeeee;
   --card-hover-border: #e5e5e5;
   --icon-color: #71717a;
   --icon-bg: #f0f0f0;
   --text-primary: #0b0b0b;
-  --text-secondary: #67676c;
+  --text-secondary: #6c6b67;
   --text-muted: #71717a;
   --text-main-header-line: #3c3c43;
 }
 
 .dark {
+  --plume-accent: #5dcac8;
   --card-bg: rgb(18, 18, 18);
   --card-border: #1b1b1e;
   --card-hover-border: #242428;
   --icon-color: #e4e4e7;
   --icon-bg: #18181b;
   --text-primary: #f4f4f5;
-  --text-secondary: #98989f;
+  --text-secondary: #9a989f;
   --text-muted: #71717a;
   --text-main-header-line: #dfdfd6;
 }
