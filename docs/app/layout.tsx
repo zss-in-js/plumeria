@@ -22,7 +22,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${GeistSans.className} ${GeistMono.variable}`} suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favi.ico" sizes="any" />
       </head>
       <body className={css.props(styles.body)}>
         <RootProvider>{children}</RootProvider>
