@@ -21,7 +21,7 @@ const styles = css.create({
     border: 'none',
     borderRadius: 'var(--border-radius)',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    transition: 'all 0.2s ease-in-out',
+    transition: 'all 0.16s ease-in-out',
     '[disabled]': {
       pointerEvents: 'none',
       cursor: 'not-allowed',
@@ -30,45 +30,24 @@ const styles = css.create({
     ':hover': {
       boxShadow: '0 7px 10px rgba(0, 0, 0, 0.15)',
       filter: 'brightness(0.95)',
-      transform: 'translateY(-1px)',
     },
     ':active': {
       boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
       filter: 'brightness(0.9)',
-      transform: 'translateY(-1px) scale(0.98)',
     },
     ':focus': {
       outline: 'none',
     },
   },
-  // Variants
   gradient: {
-    background: 'linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)',
-    backgroundSize: '400% 400%',
-    border: '1px solid transparent',
-    animationName: gradientShift,
-    animationDuration: '15s',
-    animationTimingFunction: 'ease',
-    animationIterationCount: 'infinite',
+    background: 'var(--plume-accent)',
+    
   },
   metallic: {
-    color: '#18181b',
-    textShadow: '0 1px 0 rgba(255,255,255,0.5)',
-    background: 'linear-gradient(145deg, #d4d4d8, #a1a1aa, #71717a, #a1a1aa, #d4d4d8)',
-    backgroundSize: '200% 200%',
-    border: '1px solid rgba(0,0,0,0.2)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.2)',
-    ':hover': {
-      filter: 'brightness(1.1)',
-    },
+    color: '#333536',
+    background: '#c3c3c3',
   },
-  // Sizes
-  small: {
-    '--padding': '8px 24px',
-    '--font-size': '10px',
-    '--border-radius': '8px',
-  },
-  medium: {
+medium: {
     '--padding': '12px 32px',
     '--font-size': '12px',
     '--border-radius': '12px',
@@ -76,11 +55,6 @@ const styles = css.create({
       '--padding': '10px 24px',
       '--font-size': '11px',
     },
-  },
-  large: {
-    '--padding': '16px 40px',
-    '--font-size': '14px',
-    '--border-radius': '14px',
   },
 });
 
@@ -90,9 +64,7 @@ const getButtonStyle = css.variants({
     metallic: styles.metallic,
   },
   size: {
-    small: styles.small,
     medium: styles.medium,
-    large: styles.large,
   },
 });
 
