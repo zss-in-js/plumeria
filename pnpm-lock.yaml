@@ -66,8 +66,8 @@ importers:
         specifier: ^3.5.3
         version: 3.7.4
       prettier-plugin-insert-comma:
-        specifier: ^1.1.0
-        version: 1.1.0(prettier@3.7.4)
+        specifier: ^1.1.1
+        version: 1.1.1(prettier@3.7.4)
       rimraf:
         specifier: ^6.0.1
         version: 6.1.2
@@ -5725,8 +5725,8 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
-  prettier-plugin-insert-comma@1.1.0:
-    resolution: {integrity: sha512-4fWXHLU4RweFubcMoaAPKK4KvM0M5rRMIw4pNM25XJlxX9w7a5qtcmJYjounBOymSsxUk1UCtQRZv815jWJS6g==}
+  prettier-plugin-insert-comma@1.1.1:
+    resolution: {integrity: sha512-C1OZIWBtqHNJF79nThyFvXQdCK9Na2wumLg2OqLX6UbInA+AxkEOboLIPNnKP9OQYnTrXMSprUdr/nGqJoO0Dg==}
     peerDependencies:
       prettier: ^3.0
 
@@ -13394,7 +13394,7 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-insert-comma@1.1.0(prettier@3.7.4):
+  prettier-plugin-insert-comma@1.1.1(prettier@3.7.4):
     dependencies:
       prettier: 3.7.4
 
