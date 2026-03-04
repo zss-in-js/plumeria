@@ -51,7 +51,9 @@ type SystemColorKeyword =
   | 'SelectedItemText'
   | 'VisitedText';
 
-type ExcludeMozInitial<T> = Exclude<T, '-moz-initial'>;
+type VendorPrefixedValue = `-${'webkit' | 'moz' | 'ms' | 'o'}-${string}`;
+
+type CleanValue<T> = Exclude<T, VendorPrefixedValue>;
 
 type CSSTypeProperties = Properties<number | (string & {})>;
 
@@ -78,7 +80,7 @@ type ColorProperties = {
 type CommonProperties = {
   [K in keyof CSSTypeProperties]: K extends keyof ColorProperties
     ? ColorProperties[K]
-    : ExcludeMozInitial<CSSTypeProperties[K]> | CSSVariableValue;
+    : CleanValue<CSSTypeProperties[K]> | CSSVariableValue;
 };
 
 type ArrayString = `[${string}`;
