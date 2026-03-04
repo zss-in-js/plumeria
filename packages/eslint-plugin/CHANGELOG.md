@@ -1,3 +1,9 @@
+## 8.0.1
+
+### Patch Changes
+
+- bd72f31: chore: bump version to 8.0.1
+
 ## 0.1.0
 
 ## 8.0.0

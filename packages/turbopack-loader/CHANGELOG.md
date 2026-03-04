@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 8.0.1
+
+### Patch Changes
+
+- bd72f31: fix: fixed css reset overworking in edge cases eg: when opened in a separate tab
+- Updated dependencies [bd72f31]
+  - @plumeria/utils@8.0.1
+
 ## 8.0.0
 
 ### Major Changes
