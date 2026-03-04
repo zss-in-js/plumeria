@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 8.0.1
+
+### Patch Changes
+
+- bd72f31: fix: reset timing is now consolidated to when the server is shut down normally
+- Updated dependencies [bd72f31]
+  - @plumeria/turbopack-loader@8.0.1
+
 ## 8.0.0
 
 ### Major Changes
