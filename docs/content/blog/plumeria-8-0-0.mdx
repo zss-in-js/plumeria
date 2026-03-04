@@ -1,0 +1,29 @@
+---
+title: 'Plumeria v8.0.0'
+description: 'Removed vendor prefix values from types. (2 min read)'
+date: '2026-03-04'
+---
+
+## Breaking Changes
+
+Forbidden value.  
+Values with the following browser prefixes are not allowed at the type level:
+```ts
+    display: "-ms-flex", // It will not appear in autocomplete
+```
+
+Values containing vendor prefixes will no longer be expanded by autocomplete, and will be strictly in sync with the ESLint plugin.
+
+## Others
+ESLint Plugin `validate-values`: 
+- Added `from-font` value to fontSizeAdjust.
+
+prettier-plugin-insert-comma has been developed.
+You can clone this monorepo and try out the configured development practices with `pnpm i`.
+
+## Migration guide:
+Change vendor prefix values to use normal values.
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
