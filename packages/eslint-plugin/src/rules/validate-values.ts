@@ -413,7 +413,6 @@ export const validateValues: Rule.RuleModule = {
       description:
         'Validate camelCase CSS property values in JS objects or JSX',
     },
-
     messages: {
       validateValue:
         "'{{key}}' has an invalid value '{{value}}'. Valid values: {{validValues}}",
@@ -1281,7 +1280,9 @@ export const validateValues: Rule.RuleModule = {
                 }
 
                 if (parts.length === 1) {
-                  return new RegExp(`^(${numberPattern})$`).test(parts[0]);
+                  return new RegExp(`^(${numberPattern}|from-font)$`).test(
+                    parts[0],
+                  );
                 }
 
                 if (parts.length === 2) {
@@ -1292,7 +1293,9 @@ export const validateValues: Rule.RuleModule = {
                     return false;
                   }
 
-                  return new RegExp(`^(${numberPattern})$`).test(parts[1]);
+                  return new RegExp(`^(${numberPattern}|from-font)$`).test(
+                    parts[1],
+                  );
                 }
               }
               const fontSizeAdjustProperties = ['fontSizeAdjust'];
