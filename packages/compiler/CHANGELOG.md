@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 8.0.0
+
+### Major Changes
+
+- 82b9bbc: chore: bump version to 8.0.0
+
+### Patch Changes
+
+- Updated dependencies [82b9bbc]
+  - @plumeria/utils@8.0.0
+
 ## 7.6.1
 
 ### Patch Changes
