@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 8.0.0
+
+### Major Changes
+
+- 82b9bbc: fix: Vendor prefix values ​​have been removed from types
+
 ## 7.6.1
 
 ### Patch Changes
