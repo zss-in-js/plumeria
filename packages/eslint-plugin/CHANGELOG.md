@@ -1,5 +1,11 @@
 ## 0.1.0
 
+## 8.0.0
+
+### Major Changes
+
+- 82b9bbc: fix: fontSizeAdjust support from-font value
+
 ## 7.6.1
 
 ### Patch Changes
