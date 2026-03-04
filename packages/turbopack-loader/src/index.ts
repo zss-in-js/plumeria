@@ -45,24 +45,11 @@ interface LoaderContext {
   clearDependencies: () => void;
 }
 
-declare global {
-  var __plumeriaVirtualCssInitialized: boolean | undefined;
-}
-
-const isProduction = process.env.NODE_ENV === 'production';
-
-const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
-
-if (isProduction) {
-  fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
-} else if (!global.__plumeriaVirtualCssInitialized) {
-  // Clear the virtual CSS file once at startup in development mode
-  global.__plumeriaVirtualCssInitialized = true;
-  fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
-}
-
 export default async function loader(this: LoaderContext, source: string) {
   const callback = this.async();
+
+  const isProduction = process.env.NODE_ENV === 'production';
+  const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
 
   if (
     this.resourcePath.includes('node_modules') ||
