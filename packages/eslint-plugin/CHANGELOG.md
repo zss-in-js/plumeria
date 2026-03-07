@@ -1,3 +1,9 @@
+## 8.0.2
+
+### Patch Changes
+
+- 0379e3d: chore bump version 8.0.2
+
 ## 8.0.1
 
 ### Patch Changes

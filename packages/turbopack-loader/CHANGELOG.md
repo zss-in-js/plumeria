@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 8.0.2
+
+### Patch Changes
+
+- 0379e3d: fix: fix first line comment out error
+- Updated dependencies [0379e3d]
+  - @plumeria/utils@8.0.2
+
 ## 8.0.1
 
 ### Patch Changes

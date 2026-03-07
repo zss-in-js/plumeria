@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 8.0.2
+
+### Patch Changes
+
+- 0379e3d: chore bump version 8.0.2
+- Updated dependencies [0379e3d]
+  - @plumeria/compiler@8.0.2
+
 ## 8.0.1
 
 ### Patch Changes
