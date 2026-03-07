@@ -2,12 +2,16 @@
 
 /* CSS Custom Properties for Theme Awareness */
 :root {
-  --plume-accent: #589baf;
-  --card-bg: rgb(246, 246, 246);
-  --card-border: #eeeeee;
-  --card-hover-border: #e5e5e5;
+  --plume-accent: #63a6bb;
+  --card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 100%);
+  --card-border: rgba(255, 255, 255, 0.5);
+  --card-hover-border: rgba(255, 255, 255, 0.9);
+  --card-cut-glass:
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.8), inset 1.5px 0 1.5px 0 rgba(255, 255, 255, 0.3),
+    inset -1.5px -1.5px 1.5px 0 rgba(255, 255, 255, 0.2);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.07), 0 2px 8px 0 rgba(0, 0, 0, 0.03);
   --icon-color: #71717a;
-  --icon-bg: #f0f0f0;
+  --icon-bg: rgba(255, 255, 255, 0.6);
   --text-primary: #0b0b0b;
   --text-secondary: #6c6b67;
   --text-muted: #71717a;
@@ -16,11 +20,15 @@
 
 .dark {
   --plume-accent: #5dcac8;
-  --card-bg: rgb(18, 18, 18);
-  --card-border: #1b1b1e;
-  --card-hover-border: #242428;
+  --card-bg: linear-gradient(135deg, rgba(24, 24, 27, 0.4) 0%, rgba(24, 24, 27, 0.1) 100%);
+  --card-border: rgba(255, 255, 255, 0.12);
+  --card-hover-border: rgba(255, 255, 255, 0.3);
+  --card-cut-glass:
+    inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.15), inset 1.5px 0 1.5px 0 rgba(255, 255, 255, 0.05),
+    inset -1px -1px 1.5px 0 rgba(0, 0, 0, 0.3);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 2px 8px 0 rgba(0, 0, 0, 0.2);
   --icon-color: #e4e4e7;
-  --icon-bg: #18181b;
+  --icon-bg: rgba(255, 255, 255, 0.05);
   --text-primary: #f4f4f5;
   --text-secondary: #9a989f;
   --text-muted: #71717a;
@@ -60,14 +68,17 @@ body {
 /* Code Block Styling */
 figure {
   background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow), var(--card-cut-glass);
+  transition: all 0.3s ease;
 }
 
 .dark figure {
   background: var(--card-bg);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--card-shadow), var(--card-cut-glass);
 }
 
 figure:hover {
