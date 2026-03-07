@@ -41,6 +41,7 @@ import type {
   CreateThemeHashTable,
   CreateStaticHashTable,
 } from '@plumeria/utils';
+import { getLeadingCommentLength } from '@plumeria/utils';
 
 const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx'];
 const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx)$/;
@@ -149,6 +150,14 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         target: 'es2022',
       });
 
+      const leadingLen = getLeadingCommentLength(source);
+      const sourceBuffer = Buffer.from(source, 'utf-8');
+      const leadingBytes = Buffer.byteLength(
+        source.slice(0, leadingLen),
+        'utf-8',
+      );
+      const baseByteOffset = ast.span.start - leadingBytes;
+
       for (const node of ast.body) {
         if (node.type === 'ImportDeclaration') {
           const sourcePath = node.source.value;
@@ -160,6 +169,13 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       }
 
       const scannedTables = scanAll();
+
+      const extractedSheets: string[] = [];
+      const addSheet = (sheet: string) => {
+        if (!extractedSheets.includes(sheet)) {
+          extractedSheets.push(sheet);
+        }
+      };
 
       const localConsts = collectLocalConsts(ast);
       const resourcePath = id;
@@ -323,12 +339,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         content: string;
       }> = [];
 
-      const extractedSheets: string[] = [];
-      const addSheet = (sheet: string) => {
-        if (!extractedSheets.includes(sheet)) {
-          extractedSheets.push(sheet);
-        }
-      };
       const processedDecls = new Set<any>();
       const idSpans = new Set<number>();
       const excludedSpans = new Set<number>();
@@ -428,12 +438,12 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 hashMap,
                 isExported,
                 initSpan: {
-                  start: node.init.span.start - ast.span.start,
-                  end: node.init.span.end - ast.span.start,
+                  start: node.init.span.start - baseByteOffset,
+                  end: node.init.span.end - baseByteOffset,
                 },
                 declSpan: {
-                  start: declSpan.start - ast.span.start,
-                  end: declSpan.end - ast.span.start,
+                  start: declSpan.start - baseByteOffset,
+                  end: declSpan.end - baseByteOffset,
                 },
               };
             }
@@ -477,12 +487,12 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               hashMap,
               isExported,
               initSpan: {
-                start: node.init.span.start - ast.span.start,
-                end: node.init.span.end - ast.span.start,
+                start: node.init.span.start - baseByteOffset,
+                end: node.init.span.end - baseByteOffset,
               },
               declSpan: {
-                start: declSpan.start - ast.span.start,
-                end: declSpan.end - ast.span.start,
+                start: declSpan.start - baseByteOffset,
+                end: declSpan.end - baseByteOffset,
               },
             };
           } else if (
@@ -519,12 +529,12 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               hashMap: scannedTables.createAtomicMapTable[hash],
               isExported,
               initSpan: {
-                start: node.init.span.start - ast.span.start,
-                end: node.init.span.end - ast.span.start,
+                start: node.init.span.start - baseByteOffset,
+                end: node.init.span.end - baseByteOffset,
               },
               declSpan: {
-                start: declSpan.start - ast.span.start,
-                end: declSpan.end - ast.span.start,
+                start: declSpan.start - baseByteOffset,
+                end: declSpan.end - baseByteOffset,
               },
             };
           }
@@ -608,8 +618,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               const hash = genBase36Hash(obj, 1, 8);
               scannedTables.keyframesObjectTable[hash] = obj;
               replacements.push({
-                start: node.span.start - ast.span.start,
-                end: node.span.end - ast.span.start,
+                start: node.span.start - baseByteOffset,
+                end: node.span.end - baseByteOffset,
                 content: JSON.stringify(`kf-${hash}`),
               });
             } else if (
@@ -632,8 +642,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               const hash = genBase36Hash(obj, 1, 8);
               scannedTables.viewTransitionObjectTable[hash] = obj;
               replacements.push({
-                start: node.span.start - ast.span.start,
-                end: node.span.end - ast.span.start,
+                start: node.span.start - baseByteOffset,
+                end: node.span.end - baseByteOffset,
                 content: JSON.stringify(`vt-${hash}`),
               });
             } else if (
@@ -661,8 +671,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               }
               const prefix = propName === 'createTheme' ? 'tm-' : 'st-';
               replacements.push({
-                start: node.span.start - ast.span.start,
-                end: node.span.end - ast.span.start,
+                start: node.span.start - baseByteOffset,
+                end: node.span.end - baseByteOffset,
                 content: JSON.stringify(`${prefix}${hash}`),
               });
             } else if (
@@ -713,8 +723,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
               if (atomMap) {
                 replacements.push({
-                  start: node.span.start - ast.span.start,
-                  end: node.span.end - ast.span.start,
+                  start: node.span.start - baseByteOffset,
+                  end: node.span.end - baseByteOffset,
                   content: JSON.stringify(atomMap),
                 });
               }
@@ -731,8 +741,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               const atomicMap = scannedTables.createAtomicMapTable[themeHash];
               if (atomicMap && atomicMap && atomicMap[propName]) {
                 replacements.push({
-                  start: node.span.start - ast.span.start,
-                  end: node.span.end - ast.span.start,
+                  start: node.span.start - baseByteOffset,
+                  end: node.span.end - baseByteOffset,
                   content: JSON.stringify(atomicMap[propName]),
                 });
               }
@@ -749,8 +759,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 scannedTables.createStaticObjectTable[staticHash];
               if (staticObj && staticObj[propName] !== undefined) {
                 replacements.push({
-                  start: node.span.start - ast.span.start,
-                  end: node.span.end - ast.span.start,
+                  start: node.span.start - baseByteOffset,
+                  end: node.span.end - baseByteOffset,
                   content: JSON.stringify(staticObj[propName]),
                 });
               }
@@ -764,11 +774,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           const styleInfo = localCreateStyles[node.value];
           if (styleInfo) {
             replacements.push({
-              start: node.span.start - ast.span.start,
-              end: node.span.end - ast.span.start,
+              start: node.span.start - baseByteOffset,
+              end: node.span.end - baseByteOffset,
               content: JSON.stringify(styleInfo.hashMap),
             });
-
             return;
           }
 
@@ -794,8 +803,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               });
 
               replacements.push({
-                start: node.span.start - ast.span.start,
-                end: node.span.end - ast.span.start,
+                start: node.span.start - baseByteOffset,
+                end: node.span.end - baseByteOffset,
                 content: JSON.stringify(hashMap),
               });
             }
@@ -812,8 +821,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             const atomicMap = scannedTables.createAtomicMapTable[themeHash];
             if (atomicMap) {
               replacements.push({
-                start: node.span.start - ast.span.start,
-                end: node.span.end - ast.span.start,
+                start: node.span.start - baseByteOffset,
+                end: node.span.end - baseByteOffset,
                 content: JSON.stringify(atomicMap),
               });
               return;
@@ -830,8 +839,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             const staticObj = scannedTables.createStaticObjectTable[staticHash];
             if (staticObj) {
               replacements.push({
-                start: node.span.start - ast.span.start,
-                end: node.span.end - ast.span.start,
+                start: node.span.start - baseByteOffset,
+                end: node.span.end - baseByteOffset,
                 content: JSON.stringify(staticObj),
               });
             }
@@ -1014,10 +1023,12 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
                           const currentGroupId = ++groupIdCounter;
                           const valStart =
-                            (valExpr as any).span.start - ast.span.start;
+                            (valExpr as any).span.start - baseByteOffset;
                           const valEnd =
-                            (valExpr as any).span.end - ast.span.start;
-                          const valSource = source.substring(valStart, valEnd);
+                            (valExpr as any).span.end - baseByteOffset;
+                          const valSource = sourceBuffer
+                            .subarray(valStart, valEnd)
+                            .toString('utf-8');
 
                           // Static optimization
                           if (valExpr.type === 'StringLiteral') {
@@ -1050,9 +1061,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                       }
                       continue;
                     }
-                    const argStart = (arg as any).span.start - ast.span.start;
-                    const argEnd = (arg as any).span.end - ast.span.start;
-                    const argSource = source.substring(argStart, argEnd);
+                    const argStart = (arg as any).span.start - baseByteOffset;
+                    const argEnd = (arg as any).span.end - baseByteOffset;
+                    const argSource = sourceBuffer
+                      .subarray(argStart, argEnd)
+                      .toString('utf-8');
 
                     if (t.isStringLiteral(arg)) {
                       if (variantObj[arg.value]) {
@@ -1136,9 +1149,9 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
               // Helper to retrieve source code for a node
               const getSource = (node: any) => {
-                const start = node.span.start - ast.span.start;
-                const end = node.span.end - ast.span.start;
-                return source.substring(start, end);
+                const start = node.span.start - baseByteOffset;
+                const end = node.span.end - baseByteOffset;
+                return sourceBuffer.subarray(start, end).toString('utf-8');
               };
 
               // Recursive function to flatten nested conditions
@@ -1230,8 +1243,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   .join(' ');
 
                 replacements.push({
-                  start: node.span.start - ast.span.start,
-                  end: node.span.end - ast.span.start,
+                  start: node.span.start - baseByteOffset,
+                  end: node.span.end - baseByteOffset,
                   content: JSON.stringify(className),
                 });
               } else {
@@ -1389,9 +1402,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
                   let testStr = c.testString;
                   if (!testStr && c.test) {
-                    const start = (c.test as any).span.start - ast.span.start;
-                    const end = (c.test as any).span.end - ast.span.start;
-                    testStr = source.substring(start, end);
+                    const start = (c.test as any).span.start - baseByteOffset;
+                    const end = (c.test as any).span.end - baseByteOffset;
+                    testStr = sourceBuffer
+                      .subarray(start, end)
+                      .toString('utf-8');
                   }
 
                   classParts.push(`(${testStr} ? ${tClass} : ${fClass})`);
@@ -1421,10 +1436,12 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                     } else {
                       const firstTest = options[0].test;
                       const firstStart =
-                        (firstTest as any).span.start - ast.span.start;
+                        (firstTest as any).span.start - baseByteOffset;
                       const firstEnd =
-                        (firstTest as any).span.end - ast.span.start;
-                      commonTestExpr = source.substring(firstStart, firstEnd);
+                        (firstTest as any).span.end - baseByteOffset;
+                      commonTestExpr = sourceBuffer
+                        .subarray(firstStart, firstEnd)
+                        .toString('utf-8');
                     }
 
                     options.forEach((opt) => {
@@ -1486,9 +1503,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   conflictStd.forEach((c) => {
                     let testStr = c.testString;
                     if (!testStr && c.test) {
-                      const start = (c.test as any).span.start - ast.span.start;
-                      const end = (c.test as any).span.end - ast.span.start;
-                      testStr = source.substring(start, end);
+                      const start = (c.test as any).span.start - baseByteOffset;
+                      const end = (c.test as any).span.end - baseByteOffset;
+                      testStr = sourceBuffer
+                        .subarray(start, end)
+                        .toString('utf-8');
                     }
                     dimensions.push({
                       type: 'std',
@@ -1513,13 +1532,12 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                         } else {
                           const firstTest = opts[0].test;
                           const firstStart =
-                            (firstTest as any).span.start - ast.span.start;
+                            (firstTest as any).span.start - baseByteOffset;
                           const firstEnd =
-                            (firstTest as any).span.end - ast.span.start;
-                          commonTestExpr = source.substring(
-                            firstStart,
-                            firstEnd,
-                          );
+                            (firstTest as any).span.end - baseByteOffset;
+                          commonTestExpr = sourceBuffer
+                            .subarray(firstStart, firstEnd)
+                            .toString('utf-8');
                         }
                       }
 
@@ -1602,8 +1620,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   classParts.length > 0 ? classParts.join(' + " " + ') : '""';
 
                 replacements.push({
-                  start: node.span.start - ast.span.start,
-                  end: node.span.end - ast.span.start,
+                  start: node.span.start - baseByteOffset,
+                  end: node.span.end - baseByteOffset,
                   content: replacement,
                 });
               }
@@ -1631,6 +1649,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           });
         }
       });
+
       const optInCSS = await optimizer(extractedSheets.join(''));
 
       // Apply replacements
