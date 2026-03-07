@@ -18,7 +18,7 @@ const styles = css.create({
     cursor: 'pointer',
     background: 'var(--bg-gradient)',
     border: 'none',
-    borderRadius: '25px',
+    borderRadius: 'var(--border-radius)',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.16s ease-in-out',
     '[disabled]': {
@@ -44,7 +44,7 @@ const styles = css.create({
   },
   installation: {
     color: '#333536',
-    background: '#c3c3c3',
+    background: 'rgb(230, 230, 230)',
   },
 medium: {
     '--padding': '12px 32px',
