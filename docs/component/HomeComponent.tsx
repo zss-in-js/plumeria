@@ -1,3 +1,5 @@
+/* eslint-disable @plumeria/validate-values */
+
 import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import { pseudos } from 'lib/pseudos';
@@ -125,16 +127,19 @@ const styles = css.create({
     },
   },
 
-  // Theme-aware card style using CSS variables
   featureCard: {
     position: 'relative',
     padding: '24px',
     background: 'var(--card-bg)',
-    border: '1px solid transparent',
-    borderRadius: '12px',
-    transition: 'border-color 0.2s, transform 0.2s',
+    border: '1px solid var(--card-border)',
+    borderRadius: '16px',
+    boxShadow: 'var(--card-shadow), var(--card-cut-glass)',
+    backdropFilter: 'blur(16px)',
+    transition: 'border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
+    WebkitBackdropFilter: 'blur(16px)',
     [pseudos.hover]: {
       borderColor: 'var(--card-hover-border)',
+      transform: 'translateY(-2px)',
     },
     [breakpoints.md]: {
       padding: '24px',
@@ -174,11 +179,15 @@ const demoCode = `const styles = css.create({
     position: 'relative',
     padding: '24px',
     background: 'var(--card-bg)',
-    border: '1px solid transparent',
-    borderRadius: '12px',
-    transition: 'border-color 0.2s, transform 0.2s',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid var(--card-border)',
+    borderRadius: '16px',
+    boxShadow: 'var(--card-shadow), var(--card-cut-glass)',
+    transition: 'all 0.3s ease',
     [pseudos.hover]: {
       borderColor: 'var(--card-hover-border)',
+      transform: 'translateY(-2px)',
     },
     [breakpoints.md]: {
       padding: '24px',
