@@ -24,3 +24,4 @@ export { createTheme } from './createTheme';
 export { resolveImportPath } from './resolver';
 export { optimizer } from './optimizer';
 export { processVariants } from './variants';
+export { getLeadingCommentLength } from './ast';
