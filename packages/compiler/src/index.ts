@@ -35,6 +35,7 @@ import type {
   KeyframesHashTable,
   StaticTable,
 } from '@plumeria/utils';
+import { getLeadingCommentLength } from '@plumeria/utils';
 
 interface CompilerOptions {
   include: string[];
@@ -60,6 +61,14 @@ export function compileCSS(options: CompilerOptions) {
       tsx: true,
       target: 'es2022',
     });
+
+    const leadingLen = getLeadingCommentLength(source);
+    const sourceBuffer = Buffer.from(source, 'utf-8');
+    const leadingBytes = Buffer.byteLength(
+      source.slice(0, leadingLen),
+      'utf-8',
+    );
+    const baseByteOffset = ast.span.start - leadingBytes;
 
     const scannedTables = scanAll();
     const localConsts = collectLocalConsts(ast);
@@ -428,10 +437,12 @@ export function compileCSS(options: CompilerOptions) {
 
             // Recursive Conditionals
             const getSource = (node: any) =>
-              source.substring(
-                node.span.start - ast.span.start,
-                node.span.end - ast.span.start,
-              );
+              sourceBuffer
+                .subarray(
+                  node.span.start - baseByteOffset,
+                  node.span.end - baseByteOffset,
+                )
+                .toString('utf-8');
             const collectConditions = (
               node: Expression,
               testStrings: string[] = [],
