@@ -64,7 +64,10 @@ export const noDestructure: Rule.RuleModule = {
                   context.report({
                     node: prop,
                     messageId: 'noDestructure',
-                    data: { property: keyName, object: initName },
+                    data: {
+                      property: keyName,
+                      object: initName,
+                    },
                   });
                 }
               }

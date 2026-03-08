@@ -15,7 +15,12 @@ describe('withPlumeria', () => {
   });
 
   it('adds loader and plugin in dev mode', () => {
-    const config = { module: { rules: [] }, plugins: [] };
+    const config = {
+      module: {
+        rules: [],
+      },
+      plugins: [],
+    };
     withPlumeria({}).webpack!(config, { dev: true, isServer: true } as any);
     expect(config.module.rules[0]).toMatchObject({
       test: /\.(tsx|ts|jsx|js)$/,
