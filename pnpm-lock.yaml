@@ -66,8 +66,8 @@ importers:
         specifier: ^3.8.1
         version: 3.8.1
       prettier-plugin-insert-comma:
-        specifier: ^1.1.4
-        version: 1.1.4(prettier@3.8.1)
+        specifier: ^1.1.5
+        version: 1.1.5(prettier@3.8.1)
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
@@ -271,7 +271,7 @@ importers:
         version: 19.2.3(@types/react@19.2.7)
       astro:
         specifier: ^5.16.4
-        version: 5.16.4(@types/node@25.3.3)(db0@0.3.4)(ioredis@5.8.2)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.53.3)(terser@5.44.1)(typescript@5.9.2)
+        version: 5.16.4(@types/node@25.3.3)(db0@0.3.4)(ioredis@5.8.2)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.53.3)(terser@5.44.1)(typescript@5.9.3)
       react:
         specifier: ^19.2.1
         version: 19.2.1
@@ -5987,8 +5987,8 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
-  prettier-plugin-insert-comma@1.1.4:
-    resolution: {integrity: sha512-SRTqm/I8Lr5pnvS/LfHkzCMk3ofiSWmHS1+YKNmweokPb14m9KH+yVraOWJXk1jjErKd3YsBY7RWlfIHsNwz4A==}
+  prettier-plugin-insert-comma@1.1.5:
+    resolution: {integrity: sha512-T/Z3sfGtiuuZUGYPFjsR4QNjBxccMhiBawwae5aPUKXkQGJ84cE4GmNzGYcCFJFTK7cA242D9Vp2TOhhfNARLA==}
     peerDependencies:
       prettier: ^3.7.0
 
@@ -10505,7 +10505,7 @@ snapshots:
 
   astring@1.9.0: {}
 
-  astro@5.16.4(@types/node@25.3.3)(db0@0.3.4)(ioredis@5.8.2)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.53.3)(terser@5.44.1)(typescript@5.9.2):
+  astro@5.16.4(@types/node@25.3.3)(db0@0.3.4)(ioredis@5.8.2)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.53.3)(terser@5.44.1)(typescript@5.9.3):
     dependencies:
       '@astrojs/compiler': 2.13.0
       '@astrojs/internal-helpers': 0.7.5
@@ -10556,7 +10556,7 @@ snapshots:
       svgo: 4.0.0
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
-      tsconfck: 3.1.6(typescript@5.9.2)
+      tsconfck: 3.1.6(typescript@5.9.3)
       ultrahtml: 1.6.0
       unifont: 0.6.0
       unist-util-visit: 5.0.0
@@ -10569,7 +10569,7 @@ snapshots:
       yocto-spinner: 0.2.3
       zod: 3.25.76
       zod-to-json-schema: 3.25.0(zod@3.25.76)
-      zod-to-ts: 1.2.0(typescript@5.9.2)(zod@3.25.76)
+      zod-to-ts: 1.2.0(typescript@5.9.3)(zod@3.25.76)
     optionalDependencies:
       sharp: 0.34.5
     transitivePeerDependencies:
@@ -14007,7 +14007,7 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-insert-comma@1.1.4(prettier@3.8.1):
+  prettier-plugin-insert-comma@1.1.5(prettier@3.8.1):
     dependencies:
       prettier: 3.8.1
 
@@ -14984,10 +14984,6 @@ snapshots:
       babel-jest: 29.7.0(@babel/core@7.29.0)
       jest-util: 29.7.0
 
-  tsconfck@3.1.6(typescript@5.9.2):
-    optionalDependencies:
-      typescript: 5.9.2
-
   tsconfck@3.1.6(typescript@5.9.3):
     optionalDependencies:
       typescript: 5.9.3
@@ -15622,9 +15618,9 @@ snapshots:
     dependencies:
       zod: 3.25.76
 
-  zod-to-ts@1.2.0(typescript@5.9.2)(zod@3.25.76):
+  zod-to-ts@1.2.0(typescript@5.9.3)(zod@3.25.76):
     dependencies:
-      typescript: 5.9.2
+      typescript: 5.9.3
       zod: 3.25.76
 
   zod@3.25.76: {}
