@@ -234,7 +234,11 @@ describe('parser', () => {
         // createThemeHashTable
         { T: 'hashT' },
         // createThemeObjectTable
-        { hashT: { primary: '#fff' } },
+        {
+          hashT: {
+            primary: '#fff',
+          },
+        },
         // createHashTable
         {},
         // createStaticHashTable
@@ -389,7 +393,11 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const staticTable = { theme: { primary: 'blue' } };
+      const staticTable = {
+        theme: {
+          primary: 'blue',
+        },
+      };
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
@@ -585,7 +593,11 @@ describe('parser', () => {
     });
 
     it('should handle member expression computed property', () => {
-      const staticTable = { selectors: { hover: '&:hover' } };
+      const staticTable = {
+        selectors: {
+          hover: '&:hover',
+        },
+      };
       const source = `const obj = { [selectors.hover]: { backgroundColor: 'lightblue' } }`;
       const ast = parseSync(source, {
         syntax: 'typescript',
@@ -699,7 +711,11 @@ describe('parser', () => {
         {},
         {},
         { breakpoints: 'bkHash' },
-        { bkHash: { md: '@media (max-width: 768px)' } },
+        {
+          bkHash: {
+            md: '@media (max-width: 768px)',
+          },
+        },
         {},
       );
 
@@ -764,7 +780,11 @@ describe('parser', () => {
       const varDecl = ast.body[0] as any;
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
 
-      const staticTable = { base: { a: 1 } };
+      const staticTable = {
+        base: {
+          a: 1,
+        },
+      };
 
       const result = objectExpressionToObject(
         objectExpr,
@@ -1433,10 +1453,21 @@ describe('extractOndemandStyles (integration)', () => {
     tables = scanAll();
 
     tables.keyframesObjectTable = {
-      abc: { from: { opacity: 0 }, to: { opacity: 1 } },
+      abc: {
+        from: {
+          opacity: 0,
+        },
+        to: {
+          opacity: 1,
+        },
+      },
     };
     tables.viewTransitionObjectTable = {
-      def: { group: { animationDuration: '0.3s' } },
+      def: {
+        group: {
+          animationDuration: '0.3s',
+        },
+      },
     };
     tables.createThemeObjectTable = {
       xyz: {
@@ -1489,7 +1520,11 @@ describe('extractOndemandStyles (integration)', () => {
   it('should extract theme styles when var(--) is found', () => {
     const extracted: string[] = [];
     // createTheme expects a map of property keys to theme maps: { key: { themeName: value } }
-    const themeObj = { primary: { default: 'blue' } };
+    const themeObj = {
+      primary: {
+        default: 'blue',
+      },
+    };
     const themeHash = 'themeHash';
     tables.createThemeObjectTable[themeHash] = themeObj;
     // Map variable name 'T' to its hash
@@ -1515,12 +1550,41 @@ describe('extractOndemandStyles (integration)', () => {
 
 describe('deepMerge', () => {
   test('deeply merges nested objects', () => {
-    expect(deepMerge({ a: { x: 1 } }, { a: { y: 2 } })).toEqual({
-      a: { x: 1, y: 2 },
+    expect(
+      deepMerge(
+        {
+          a: {
+            x: 1,
+          },
+        },
+        {
+          a: {
+            y: 2,
+          },
+        },
+      ),
+    ).toEqual({
+      a: {
+        x: 1,
+        y: 2,
+      },
     });
   });
 
   test('source object overwrites non-object target', () => {
-    expect(deepMerge({ a: 1 }, { a: { x: 2 } })).toEqual({ a: { x: 2 } });
+    expect(
+      deepMerge(
+        { a: 1 },
+        {
+          a: {
+            x: 2,
+          },
+        },
+      ),
+    ).toEqual({
+      a: {
+        x: 2,
+      },
+    });
   });
 });

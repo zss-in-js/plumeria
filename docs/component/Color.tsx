@@ -12,9 +12,9 @@ const styles = css.create({
     border: 'solid 0.4px rgba(0,0,0,0.2)',
     transition: '0.2s',
     [pseudos.hover]: {
-      scale: 1.75,
-    },
-  },
+      scale: 1.75
+    }
+  }
 });
 
 export const Color = ({ color }: { color: string }) => {

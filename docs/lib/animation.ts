@@ -12,7 +12,9 @@ export const rotateHover = css.keyframes({
 });
 
 export const rotateFocus = css.keyframes({
-  from: { scale: 1 },
+  from: {
+    scale: 1,
+  },
   to: {
     scale: 1.2,
     opacity: 0,

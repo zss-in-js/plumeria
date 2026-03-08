@@ -22,7 +22,9 @@ describe('getStyleRecords', () => {
 
   it('should handle nested pseudo-classes', () => {
     const result = getStyleRecords({
-      ':hover': { color: 'blue' },
+      ':hover': {
+        color: 'blue',
+      },
     } as any);
 
     expect(result).toHaveLength(1);
@@ -65,7 +67,9 @@ describe('getStyleRecords', () => {
   });
   it('should handle non-atomic descendent selectors', () => {
     const result = getStyleRecords({
-      ':hover': { color: 'red' },
+      ':hover': {
+        color: 'red',
+      },
     } as any);
 
     expect(result).toHaveLength(1);
@@ -77,7 +81,9 @@ describe('getStyleRecords', () => {
   it('should handle non-atomic selectors inside queries', () => {
     const result = getStyleRecords({
       '@media (min-width: 100px)': {
-        ':hover': { color: 'blue' },
+        ':hover': {
+          color: 'blue',
+        },
       },
     } as any);
 
@@ -94,8 +100,12 @@ describe('getStyleRecords', () => {
       '@media (min-width: 100px)': {
         color: 'yellow',
         '--color': 'red',
-        '[draggable="true"]': { color: 'blue' },
-        ':hover': { '--primary': 'green' },
+        '[draggable="true"]': {
+          color: 'blue',
+        },
+        ':hover': {
+          '--primary': 'green',
+        },
       },
     });
 

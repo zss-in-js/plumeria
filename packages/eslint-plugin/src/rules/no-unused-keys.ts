@@ -108,7 +108,9 @@ export const noUnusedKeys: Rule.RuleModule = {
               context.report({
                 node: keyNode,
                 messageId: 'unusedKey',
-                data: { key: keyName },
+                data: {
+                  key: keyName,
+                },
               });
             }
           });
