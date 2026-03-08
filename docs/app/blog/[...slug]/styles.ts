@@ -21,7 +21,6 @@ export const styles = css.create({
     flexDirection: 'row',
     gap: '8px',
     fontSize: '14px',
-
     textDecoration: 'none',
     transition: 'color 0.2s',
     ':hover': {

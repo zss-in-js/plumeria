@@ -94,7 +94,11 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
         Object.entries(style).forEach(([prop, value]) => {
           let hashSource = { [prop]: value };
           if (atRule) {
-            hashSource = { [atRule]: { [selector]: hashSource } };
+            hashSource = {
+              [atRule]: {
+                [selector]: hashSource,
+              },
+            };
           } else {
             hashSource = { [selector]: hashSource };
           }

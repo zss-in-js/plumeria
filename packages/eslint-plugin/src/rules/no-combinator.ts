@@ -256,7 +256,9 @@ export const noCombinator: Rule.RuleModule = {
           context.report({
             node: node,
             messageId: 'noCombinator',
-            data: { combinator: found },
+            data: {
+              combinator: found,
+            },
           });
         }
       }

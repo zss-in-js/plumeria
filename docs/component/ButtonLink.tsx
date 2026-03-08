@@ -40,13 +40,12 @@ const styles = css.create({
   },
   getstarted: {
     background: 'var(--plume-accent)',
-    
   },
   installation: {
     color: '#333536',
     background: 'rgb(230, 230, 230)',
   },
-medium: {
+  medium: {
     '--padding': '12px 32px',
     '--font-size': '12px',
     '--border-radius': '12px',

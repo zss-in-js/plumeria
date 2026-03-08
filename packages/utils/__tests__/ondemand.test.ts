@@ -29,8 +29,12 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
 
     // Define a theme with two variables: primary and secondary
     const themeObj = {
-      primary: { default: 'blue' },
-      secondary: { default: 'green' },
+      primary: {
+        default: 'blue',
+      },
+      secondary: {
+        default: 'green',
+      },
     };
     const themeHash = 'themeHash123';
     tables.createThemeObjectTable[themeHash] = themeObj;
@@ -54,9 +58,15 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
     const extracted: string[] = [];
 
     const themeObj = {
-      primary: { default: 'blue' },
-      secondary: { default: 'green' },
-      accent: { default: 'pink' },
+      primary: {
+        default: 'blue',
+      },
+      secondary: {
+        default: 'green',
+      },
+      accent: {
+        default: 'pink',
+      },
     };
     const themeHash = 'themeHash456';
     tables.createThemeObjectTable[themeHash] = themeObj;
@@ -80,7 +90,9 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
     const extracted: string[] = [];
 
     const themeObj = {
-      primary: { default: 'blue' },
+      primary: {
+        default: 'blue',
+      },
     };
     const themeHash = 'themeHash789';
     tables.createThemeObjectTable[themeHash] = themeObj;
