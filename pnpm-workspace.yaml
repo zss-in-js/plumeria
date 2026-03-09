@@ -5,7 +5,8 @@ packages:
   - docs
 
 catalog:
-  '@swc/core': 1.15.8
+  '@swc/core': 1.15.18
+  '@rust-gear/glob': 0.2.8
   next: ^16.1.6
   postcss: 8.5.6
   react: ^19.2.4
