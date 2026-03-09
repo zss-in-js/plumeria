@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 8.0.3
+
+### Patch Changes
+
+- a436d6d: chore: bump version to 8.0.3
+
 ## 8.0.2
 
 ### Patch Changes

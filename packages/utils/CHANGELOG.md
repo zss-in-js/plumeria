@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 8.0.3
+
+### Patch Changes
+
+- a436d6d: perf: migrate file scanning from fs.globSync to @rust-gear/glob and implement short-duration caching for scanAll
+
 ## 8.0.2
 
 ### Patch Changes
