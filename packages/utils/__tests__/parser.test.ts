@@ -11,26 +11,33 @@ import {
 import { parseSync, ObjectExpression } from '@swc/core';
 import { genBase36Hash } from 'zss-engine';
 import * as fs from 'fs';
+import * as rs from '@rust-gear/glob';
 import path from 'path';
 
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
-  globSync: jest.fn(),
   readFileSync: jest.fn(),
   statSync: jest.fn(),
   existsSync: jest.fn(),
 }));
 
+jest.mock('@rust-gear/glob', () => ({
+  globSync: jest.fn(),
+}));
+
 const mockedFs = fs as jest.Mocked<typeof fs>;
+const mockedRs = rs as jest.Mocked<typeof rs>;
 
 let tables: any;
 
 describe('parser', () => {
+  let currentTime = Date.now();
   beforeEach(() => {
+    jest.spyOn(Date, 'now').mockImplementation(() => {
+      currentTime += 1000;
+      return currentTime;
+    });
     jest.clearAllMocks();
-    // Default mock for scanAll to return empty tables
-    mockedFs.globSync.mockReturnValue([]);
-    tables = scanAll();
   });
 
   describe('type guards (t)', () => {
@@ -832,7 +839,7 @@ describe('parser', () => {
     });
 
     it('should scan for keyframes', () => {
-      mockedFs.globSync.mockReturnValue(['/test/anim.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/anim.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
       );
@@ -848,7 +855,7 @@ describe('parser', () => {
       const libFile = path.resolve(process.cwd(), 'lib/utils.ts');
       const appFile = path.resolve(process.cwd(), 'app/home.ts');
 
-      mockedFs.globSync.mockReturnValue([
+      mockedRs.globSync.mockReturnValue([
         appFile,
         libFile,
         path.resolve(process.cwd(), 'utils/core.ts'),
@@ -891,7 +898,7 @@ describe('parser', () => {
       const themeFile = path.resolve(process.cwd(), 'lib/theme.ts');
       const pageFile = path.resolve(process.cwd(), 'app/page.ts');
 
-      mockedFs.globSync.mockReturnValue([themeFile, pageFile]);
+      mockedRs.globSync.mockReturnValue([themeFile, pageFile]);
       mockedFs.statSync.mockReturnValue({
         mtimeMs: 1,
         isDirectory: () => false,
@@ -925,7 +932,7 @@ describe('parser', () => {
       const themeFile = path.resolve(process.cwd(), 'lib/theme.ts');
       const pageFile = path.resolve(process.cwd(), 'app/page.ts');
 
-      mockedFs.globSync.mockReturnValue([themeFile, pageFile]);
+      mockedRs.globSync.mockReturnValue([themeFile, pageFile]);
       mockedFs.statSync.mockImplementation(
         () =>
           ({
@@ -962,7 +969,7 @@ describe('parser', () => {
       const libFile = path.resolve(process.cwd(), 'lib/anim.ts');
       const appFile = path.resolve(process.cwd(), 'app/usage.ts');
 
-      mockedFs.globSync.mockReturnValue([
+      mockedRs.globSync.mockReturnValue([
         appFile,
         libFile,
         path.resolve(process.cwd(), 'utils/core.ts'),
@@ -1016,7 +1023,7 @@ describe('parser', () => {
       const libFile = path.resolve(process.cwd(), 'lib/vt.ts');
       const appFile = path.resolve(process.cwd(), 'app/page-vt.ts');
 
-      mockedFs.globSync.mockReturnValue([
+      mockedRs.globSync.mockReturnValue([
         appFile,
         libFile,
         path.resolve(process.cwd(), 'utils/core.ts'),
@@ -1067,7 +1074,7 @@ describe('parser', () => {
     });
 
     it('should scan for createStatic', () => {
-      mockedFs.globSync.mockReturnValue(['/test/consts.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/consts.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; export const C = css.createStatic({ color: "red" });',
       );
@@ -1081,7 +1088,7 @@ describe('parser', () => {
     });
 
     it('should scan for createTheme', () => {
-      mockedFs.globSync.mockReturnValue(['/test/tokens.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/tokens.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import { createTheme } from "@plumeria/core"; export const T = createTheme({ primary: "#fff" });',
       );
@@ -1092,7 +1099,7 @@ describe('parser', () => {
     });
 
     it('should scan for viewTransition', () => {
-      mockedFs.globSync.mockReturnValue(['/test/vt.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/vt.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; export const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
       );
@@ -1104,7 +1111,7 @@ describe('parser', () => {
     });
 
     it('should handle non-exported createStatic declarations', () => {
-      mockedFs.globSync.mockReturnValue(['/test/local.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/local.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; const C = css.createStatic({ size: "large" });',
       );
@@ -1118,7 +1125,7 @@ describe('parser', () => {
     });
 
     it('should handle non-exported keyframes declarations', () => {
-      mockedFs.globSync.mockReturnValue(['/test/local-kf.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/local-kf.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
       );
@@ -1130,7 +1137,7 @@ describe('parser', () => {
     });
 
     it('should handle non-exported createTheme declarations', () => {
-      mockedFs.globSync.mockReturnValue(['/test/local-tokens.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/local-tokens.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; const T = css.createTheme({ primary: "#fff" });',
       );
@@ -1142,7 +1149,7 @@ describe('parser', () => {
     });
 
     it('should handle non-exported viewTransition declarations', () => {
-      mockedFs.globSync.mockReturnValue(['/test/local-vt.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/local-vt.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
       );
@@ -1154,7 +1161,7 @@ describe('parser', () => {
     });
 
     it('should skip files without target definition', () => {
-      mockedFs.globSync.mockReturnValue(['/test/normal.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/normal.ts'] as any);
       mockedFs.readFileSync.mockReturnValue('const x = 1;');
 
       const resultKeyframes = scanAll();
@@ -1173,7 +1180,7 @@ describe('parser', () => {
     });
 
     it('should skip directories', () => {
-      mockedFs.globSync.mockReturnValue(['/test/dir'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/dir'] as any);
       mockedFs.statSync.mockReturnValue({ isDirectory: () => true } as any);
 
       const result = scanAll();
@@ -1182,7 +1189,7 @@ describe('parser', () => {
     });
 
     it('should scan for create', () => {
-      mockedFs.globSync.mockReturnValue(['/test/create.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/create.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; export const style = css.create({ color: "red" });',
       );
@@ -1194,7 +1201,7 @@ describe('parser', () => {
     });
 
     it('should scan for variants', () => {
-      mockedFs.globSync.mockReturnValue(['/test/variants.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/variants.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; export const btn = css.variants({ variants: { size: { sm: { padding: 4 } } } });',
       );
@@ -1206,7 +1213,7 @@ describe('parser', () => {
     });
 
     it('should resolve variables from create table', () => {
-      mockedFs.globSync.mockReturnValue(['/test/resolve.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/resolve.ts'] as any);
       // We need a case where resolveVariable is called.
       // resolveVariable is passed to objectExpressionToObject.
       // It is called when value is Identifier or MemberExpression.
@@ -1229,7 +1236,7 @@ describe('parser', () => {
     });
 
     it('should resolve variants from variants table', () => {
-      mockedFs.globSync.mockReturnValue(['/test/resolve_var.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/resolve_var.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         `
          import * as css from "@plumeria/core";
@@ -1252,7 +1259,7 @@ describe('parser', () => {
       const originalEnv = process.env.NODE_ENV;
       (process.env as any).NODE_ENV = 'production';
 
-      mockedFs.globSync.mockReturnValue(['/test/prod.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/prod.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; export const S = css.createStatic({ key: "val" });',
       );
@@ -1269,7 +1276,7 @@ describe('parser', () => {
     });
 
     it('should handle aliased named import', () => {
-      mockedFs.globSync.mockReturnValue(['/test/aliased.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/aliased.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import { createStatic as cs } from "@plumeria/core"; export const C = cs({ color: "green" });',
       );
@@ -1281,7 +1288,7 @@ describe('parser', () => {
 
     it('should handle named css import', () => {
       // Covers objectName === 'css' path
-      mockedFs.globSync.mockReturnValue(['/test/named_css.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/named_css.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import { css } from "@plumeria/core"; export const C = css.createStatic({ color: "purple" });',
       );
@@ -1292,7 +1299,7 @@ describe('parser', () => {
     });
 
     it('should support create reference as value', () => {
-      mockedFs.globSync.mockReturnValue(['/test/ref.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/ref.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; const base = css.create({ color: "red" }); const ref = css.createStatic({ link: base });',
       );
@@ -1304,7 +1311,7 @@ describe('parser', () => {
     });
 
     it('should handle unresolved variables in createStatic', () => {
-      mockedFs.globSync.mockReturnValue(['/test/unresolved.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/unresolved.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import * as css from "@plumeria/core"; const C = css.createStatic({ color: unknownVar });',
       );
@@ -1318,7 +1325,7 @@ describe('parser', () => {
 
     it('should use cache on second run', () => {
       const mtimeMs = 12345;
-      mockedFs.globSync.mockReturnValue(['/test/cache.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/cache.ts'] as any);
       mockedFs.statSync.mockReturnValue({
         isDirectory: () => false,
         mtimeMs,
@@ -1363,7 +1370,7 @@ describe('parser', () => {
     });
 
     it('should handle default import', () => {
-      mockedFs.globSync.mockReturnValue(['/test/default.ts'] as any);
+      mockedRs.globSync.mockReturnValue(['/test/default.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
         'import css from "@plumeria/core"; export const C = css.createStatic({ color: "blue" });',
       );
@@ -1379,7 +1386,7 @@ describe('parser', () => {
       const libFile = path.resolve(process.cwd(), 'lib/utils-unique.ts');
       const appFile = path.resolve(process.cwd(), 'app/check-unique.ts');
 
-      mockedFs.globSync.mockReturnValue([libFile, appFile]);
+      mockedRs.globSync.mockReturnValue([libFile, appFile]);
       mockedFs.statSync.mockReturnValue({
         mtimeMs: 2, // Use different mtime just in case
         isDirectory: () => false,
@@ -1416,7 +1423,7 @@ describe('parser', () => {
       const libFile = path.resolve(process.cwd(), 'lib/utils-aliased.ts');
       const appFile = path.resolve(process.cwd(), 'app/check-aliased.ts');
 
-      mockedFs.globSync.mockReturnValue([libFile, appFile]);
+      mockedRs.globSync.mockReturnValue([libFile, appFile]);
       mockedFs.statSync.mockReturnValue({
         mtimeMs: 3,
         isDirectory: () => false,
@@ -1449,7 +1456,7 @@ describe('parser', () => {
 describe('extractOndemandStyles (integration)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedFs.globSync.mockReturnValue([]);
+    mockedRs.globSync.mockReturnValue([]);
     tables = scanAll();
 
     tables.keyframesObjectTable = {
