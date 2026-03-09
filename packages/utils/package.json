@@ -25,11 +25,12 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
+    "@rust-gear/glob": "catalog:",
     "@swc/core": "catalog:",
-    "zss-engine": "catalog:",
+    "lightningcss": "^1.30.2",
     "postcss": "catalog:",
     "postcss-combine-media-query": "^2.1.0",
-    "lightningcss": "^1.30.2"
+    "zss-engine": "catalog:"
   },
   "publishConfig": {
     "access": "public",
