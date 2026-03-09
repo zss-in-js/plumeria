@@ -10,8 +10,8 @@ import {
   ParenthesisExpression,
 } from '@swc/core';
 import { type CSSProperties, genBase36Hash } from 'zss-engine';
-
 import fs from 'fs';
+import * as rs from '@rust-gear/glob';
 
 import {
   traverse,
@@ -47,10 +47,12 @@ export function compileCSS(options: CompilerOptions) {
   const { include, exclude, cwd = process.cwd() } = options;
   const allSheets = new Set<string>();
 
-  const files = fs.globSync(include, {
+  const files = rs.globSync(include, {
     cwd,
     exclude: exclude,
   });
+
+  const scannedTables = scanAll();
 
   const processFile = (filePath: string): string[] => {
     const source = fs.readFileSync(filePath, 'utf-8');
@@ -70,7 +72,6 @@ export function compileCSS(options: CompilerOptions) {
     );
     const baseByteOffset = ast.span.start - leadingBytes;
 
-    const scannedTables = scanAll();
     const localConsts = collectLocalConsts(ast);
     const resourcePath = filePath;
     const importMap: Record<string, any> = {};
