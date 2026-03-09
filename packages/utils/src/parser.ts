@@ -43,6 +43,8 @@ import {
 } from '@swc/core';
 import path from 'path';
 import fs from 'fs';
+import * as rs from '@rust-gear/glob';
+
 import { camelToKebabCase, genBase36Hash, transpile } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 import { createViewTransition } from './viewTransition';
@@ -908,9 +910,16 @@ interface CachedData {
 const fileCache: Record<string, CachedData> = {};
 
 let globalAgregatedTables: Tables | null = null;
+let lastScanTime = 0;
+const CACHE_DURATION = 500; // 500ms cache to cover parallel calls during a single build cycle
 
 export function scanAll(): Tables {
-  if (process.env.NODE_ENV === 'production' && globalAgregatedTables) {
+  const now = Date.now();
+  if (
+    globalAgregatedTables &&
+    (process.env.NODE_ENV === 'production' ||
+      now - lastScanTime < CACHE_DURATION)
+  ) {
     return globalAgregatedTables;
   }
 
@@ -931,7 +940,7 @@ export function scanAll(): Tables {
     createStaticObjectTable: {},
   };
 
-  const files = fs.globSync(PATTERN_PATH, GLOB_OPTIONS);
+  const files = rs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
   // Two-pass scanning:
   // Pass 1: Collect all createStatic and createTheme definitions
@@ -1321,9 +1330,8 @@ export function scanAll(): Tables {
     }
   } // End of two-pass scanning
 
-  if (process.env.NODE_ENV === 'production') {
-    globalAgregatedTables = localTables;
-  }
+  globalAgregatedTables = localTables;
+  lastScanTime = now;
 
   return localTables;
 }
