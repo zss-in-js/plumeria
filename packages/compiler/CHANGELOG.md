@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 8.0.3
+
+### Patch Changes
+
+- a436d6d: perf: @rust-gear/glob for file scanning and optimize scanAll caching and invocation frequency
+- Updated dependencies [a436d6d]
+  - @plumeria/utils@8.0.3
+
 ## 8.0.2
 
 ### Patch Changes
