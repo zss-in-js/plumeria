@@ -28,6 +28,7 @@
     "@plumeria/utils": "workspace:^"
   },
   "devDependencies": {
+    "@rust-gear/glob": "catalog:",
     "@swc/core": "catalog:",
     "zss-engine": "catalog:"
   },
