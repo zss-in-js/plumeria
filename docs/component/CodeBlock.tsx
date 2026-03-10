@@ -34,7 +34,7 @@ export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) 
     defaultColor: false,
   });
   return (
-    <figure className={css.props(stylesCode.code_div)}>
+    <figure className={css.use(stylesCode.code_div)}>
       <pre dangerouslySetInnerHTML={{ __html: tsx }} />
     </figure>
   );

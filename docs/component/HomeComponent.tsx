@@ -198,18 +198,18 @@ const demoCode = `const styles = css.create({
 export const HomeComponent = () => {
   return (
     <div>
-      <main className={css.props(styles.container)}>
-        <section className={css.props(styles.heroSection)}>
-          <div className={css.props(styles.heroContent)}>
-            <h2 className={css.props(styles.mainHeadline)}>
+      <main className={css.use(styles.container)}>
+        <section className={css.use(styles.heroSection)}>
+          <div className={css.use(styles.heroContent, styles.codeSection)}>
+            <h2 className={css.use(styles.mainHeadline)}>
               <Plumeria />
               Atomic CSS-in-JS
             </h2>
-            <p className={css.props(styles.subHeadline)}>
+            <p className={css.use(styles.subHeadline)}>
               Zero-runtime overhead・Type-safe <br />
               Build-time only・High performance
             </p>
-            <div className={css.props(styles.buttonGroup)}>
+            <div className={css.use(styles.buttonGroup)}>
               <ButtonLink href="/docs" variant="getstarted">
                 Get Started
               </ButtonLink>
@@ -219,42 +219,38 @@ export const HomeComponent = () => {
             </div>
           </div>
 
-          <div className={css.props(styles.codeSection)}>
+          <div className={css.use(styles.codeSection)}>
             <CodeBlock code={demoCode} lang="typescript" />
           </div>
         </section>
 
-        <section className={css.props(styles.featuresSection)}>
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>{svg.Atom()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Atomic CSS</h3>
-            <p className={css.props(styles.featureDescription)}>
+        <section className={css.use(styles.featuresSection)}>
+          <div className={css.use(styles.featureCard)}>
+            <div className={css.use(styles.featureIcon)}>{svg.Atom()}</div>
+            <h3 className={css.use(styles.featureTitle)}>Atomic CSS</h3>
+            <p className={css.use(styles.featureDescription)}>
               Styles are reused keeping CSS bundle is always minimal.
             </p>
           </div>
-
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>{svg.Eslint()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Linting</h3>
-            <p className={css.props(styles.featureDescription)}>
+          <div className={css.use(styles.featureCard)}>
+            <div className={css.use(styles.featureIcon)}>{svg.Eslint()}</div>
+            <h3 className={css.use(styles.featureTitle)}>Linting</h3>
+            <p className={css.use(styles.featureDescription)}>
               Build-integrated oxlint validation. Detect typos before compiling.
             </p>
           </div>
 
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>{svg.Feather()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Lghtweight</h3>
-            <p className={css.props(styles.featureDescription)}>
+          <div className={css.use(styles.featureCard)}>
+            <div className={css.use(styles.featureIcon)}>{svg.Feather()}</div>
+            <h3 className={css.use(styles.featureTitle)}>Lghtweight</h3>
+            <p className={css.use(styles.featureDescription)}>
               min + brotli 1 byte. <br /> Before compression 0 byte.
             </p>
           </div>
-
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>⚡</div>
-            <h3 className={css.props(styles.featureTitle)}>Build-time Compilation</h3>
-            <p className={css.props(styles.featureDescription)}>
-              Eliminate styles compile to class names at built time.
-            </p>
+          <div className={css.use(styles.featureCard)}>
+            <div className={css.use(styles.featureIcon)}>⚡</div>
+            <h3 className={css.use(styles.featureTitle)}>Build-time Compilation</h3>
+            <p className={css.use(styles.featureDescription)}>Eliminate styles compile to class names at built time.</p>
           </div>
         </section>
       </main>

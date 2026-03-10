@@ -24,7 +24,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <head>
         <link rel="icon" href="/favi.ico" sizes="any" />
       </head>
-      <body className={css.props(styles.body)}>
+      <body className={css.use(styles.body)}>
         <RootProvider>{children}</RootProvider>
         <Analytics mode="production" />
       </body>
