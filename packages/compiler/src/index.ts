@@ -10,7 +10,7 @@ import {
   ParenthesisExpression,
 } from '@swc/core';
 import { type CSSProperties, genBase36Hash } from 'zss-engine';
-import fs from 'fs';
+import * as fs from 'fs';
 import * as rs from '@rust-gear/glob';
 
 import {
@@ -219,24 +219,10 @@ export function compileCSS(options: CompilerOptions) {
         const objectName = callee.object.value;
         const propertyName = callee.property.value;
         const alias = plumeriaAliases[objectName];
-        if (alias === 'NAMESPACE' || objectName === 'css')
-          propName = propertyName;
+        if (alias === 'NAMESPACE') propName = propertyName;
       } else if (t.isIdentifier(callee)) {
         const originalName = plumeriaAliases[callee.value];
         if (originalName) propName = originalName;
-      }
-
-      // Special handling for local styling calls (styles({...}))
-      let localVariantName: string | undefined;
-      if (!propName && t.isIdentifier(callee)) {
-        const varName = callee.value;
-        if (
-          localCreateStyles[varName] &&
-          localCreateStyles[varName].type === 'variant'
-        ) {
-          localVariantName = varName;
-          propName = 'props'; // Treat as usage
-        }
       }
 
       if (propName) {
@@ -319,27 +305,21 @@ export function compileCSS(options: CompilerOptions) {
 
         const processStyle = (style: CSSObject) => {
           /**
-           * When css.props is actually used, the contents of the style (obj) are
-           * scanned recursively, and the necessary keyframes etc. are extracted
-           * from the table and converted into CSS. And the cache prevents duplication.
+           * When style.use is actually used, the contents of the style (obj) are
+           * extracted as atomic CSS and the call is replaced with class names.
            */
           extractOndemandStyles(style, extractedSheets, scannedTables);
           const records = getStyleRecords(style as CSSProperties);
           records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
         };
 
-        if (propName === 'props') {
+        if (propName === 'use') {
           const conditionals: Array<{
             test: Expression;
             testString?: string;
             truthy: Record<string, any>;
             falsy: Record<string, any>;
-            groupId?: number;
-            groupName?: string;
-            valueName?: string;
-            varName?: string;
           }> = [];
-          let groupIdCounter = 0;
           let baseStyle: Record<string, any> = {};
 
           const resolveStyleObject = (
@@ -353,88 +333,6 @@ export function compileCSS(options: CompilerOptions) {
 
           for (const arg of args) {
             const expr = arg.expression;
-
-            // Variant Usage Logic (styles({ variant: ... }))
-            // Handle if ARGUMENT is ObjectExpression (direct usage) - for localVariantName case
-            let handledAsObjectArg = false;
-            if (localVariantName && t.isObjectExpression(expr)) {
-              // This is styles({ ... }) where styles is local variants wrapper
-              // We can reuse the logic that parses object arguments for variants
-              // But logic below expects "expr" to be CallExpression usually?
-              // Actually logic below handles `t.isCallExpression(expr)` which is `styles( variants(...) )`.
-              // We need to handle `t.isObjectExpression(expr)`.
-
-              const variantObj = localCreateStyles[localVariantName].obj;
-              // Reuse logic?
-              if (variantObj) {
-                const props = expr.properties;
-
-                // Handle "base" styles if they exist
-                if (variantObj.base && typeof variantObj.base === 'object') {
-                  baseStyle = deepMerge(baseStyle, variantObj.base);
-                }
-
-                // Determine where variants are located
-                const variantsMap = (variantObj.variants ||
-                  variantObj) as Record<string, any>;
-
-                for (const prop of props) {
-                  let groupName: string | undefined;
-                  let valueExpression: any;
-                  if (
-                    prop.type === 'KeyValueProperty' &&
-                    prop.key.type === 'Identifier'
-                  ) {
-                    groupName = prop.key.value;
-                    valueExpression = prop.value;
-                  } else if (prop.type === 'Identifier') {
-                    groupName = prop.value;
-                    valueExpression = prop;
-                  }
-
-                  if (groupName && valueExpression && variantsMap[groupName]) {
-                    const groupVariants = variantsMap[groupName];
-                    if (!groupVariants || typeof groupVariants !== 'object')
-                      continue;
-
-                    const currentGroupId = ++groupIdCounter;
-
-                    if (valueExpression.type === 'StringLiteral') {
-                      // @ts-ignore
-                      if (
-                        (groupVariants as Record<string, any>)[
-                          valueExpression.value
-                        ]
-                      ) {
-                        baseStyle = deepMerge(
-                          baseStyle,
-                          (groupVariants as Record<string, any>)[
-                            valueExpression.value
-                          ],
-                        );
-                      }
-                      continue;
-                    }
-
-                    Object.entries(
-                      groupVariants as unknown as Record<string, any>,
-                    ).forEach(([optionName, style]) => {
-                      conditionals.push({
-                        test: valueExpression,
-                        truthy: style as any,
-                        falsy: {},
-                        groupId: currentGroupId,
-                        groupName: groupName,
-                        valueName: optionName,
-                        varName: localVariantName,
-                      });
-                    });
-                  }
-                }
-                handledAsObjectArg = true;
-              }
-            }
-            if (handledAsObjectArg) continue;
 
             // Recursive Conditionals
             const getSource = (node: any) =>
@@ -595,10 +493,7 @@ export function compileCSS(options: CompilerOptions) {
             t.isIdentifier(callee.object) &&
             t.isIdentifier(callee.property)
           ) {
-            if (
-              callee.object.value === 'css' ||
-              plumeriaAliases[callee.object.value] === 'NAMESPACE'
-            )
+            if (plumeriaAliases[callee.object.value] === 'NAMESPACE')
               pName = callee.property.value;
           } else if (t.isIdentifier(callee) && plumeriaAliases[callee.value]) {
             pName = plumeriaAliases[callee.value];
