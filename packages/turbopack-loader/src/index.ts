@@ -7,8 +7,8 @@ import type {
   ObjectExpression,
   Identifier,
 } from '@swc/core';
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { genBase36Hash } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 
@@ -261,7 +261,7 @@ export default async function loader(this: LoaderContext, source: string) {
         mergedVariantsTable[varName]
       ) {
         throw new Error(
-          `Plumeria: Assigning the return value of "css.variants" to a variable is not supported.\nPlease pass the variant function directly to "css.props". Found assignment to: ${
+          `Plumeria: Assigning the return value of "css.variants" to a variable is not supported.\nPlease pass the variant function directly to "css.use". Found assignment to: ${
             t.isIdentifier(decl.id) ? decl.id.value : 'unknown'
           }`,
         );
@@ -289,7 +289,7 @@ export default async function loader(this: LoaderContext, source: string) {
         const propertyName = callee.property.value;
         const alias = plumeriaAliases[objectName];
 
-        if (alias === 'NAMESPACE' || objectName === 'css') {
+        if (alias === 'NAMESPACE') {
           propName = propertyName;
         }
       } else if (t.isIdentifier(callee)) {
@@ -491,7 +491,7 @@ export default async function loader(this: LoaderContext, source: string) {
         const propertyName = callee.property.value;
         const alias = plumeriaAliases[objectName];
 
-        if (alias === 'NAMESPACE' || objectName === 'css') {
+        if (alias === 'NAMESPACE') {
           propName = propertyName;
         }
       } else if (t.isIdentifier(callee)) {
@@ -754,7 +754,7 @@ export default async function loader(this: LoaderContext, source: string) {
     },
     CallExpression({ node }) {
       const callee = node.callee;
-      let isPropsCall = false;
+      let isUseCall = false;
 
       if (
         t.isMemberExpression(callee) &&
@@ -764,21 +764,18 @@ export default async function loader(this: LoaderContext, source: string) {
         const objectName = callee.object.value;
         const propertyName = callee.property.value;
         const alias = plumeriaAliases[objectName];
-        if (
-          (alias === 'NAMESPACE' || objectName === 'css') &&
-          propertyName === 'props'
-        ) {
-          isPropsCall = true;
+        if (alias === 'NAMESPACE' && propertyName === 'use') {
+          isUseCall = true;
         }
       } else if (t.isIdentifier(callee)) {
         const calleeName = callee.value;
         const originalName = plumeriaAliases[calleeName];
-        if (originalName === 'props') {
-          isPropsCall = true;
+        if (originalName === 'use') {
+          isUseCall = true;
         }
       }
 
-      if (isPropsCall) {
+      if (isUseCall) {
         const args = node.arguments;
 
         const resolveStyleObject = (
