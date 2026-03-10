@@ -10,7 +10,7 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 <Steps>
 <Step>
 ## className snippet for css macro
-In VScode create a shortcut for the css.props() object expansion in className.  
+In VScode create a shortcut for the css.use() object expansion in className.  
 `shift + command + p >`  
 `select >` Snippets: Configure Snippets  
 `select >` typescriptreact.json (TypeScript JSX) or javascriptreact.json (JavaScript JSX)  
@@ -19,15 +19,15 @@ In VScode create a shortcut for the css.props() object expansion in className.
 {
   "React className": {
     "prefix": "css",
-    "body": "className={css.props($1)}",
-    "description": "React className with css.props()",
+    "body": "className={css.use($1)}",
+    "description": "React className with css.use()",
   }
 }
 ```
 
 ### Macro Usage
 ```jsx
-<div css /> -> Enter -> <div className={css.props(|)} />
+<div css /> -> Enter -> <div className={css.use(|)} />
 ```
 </Step>
 <Step>
