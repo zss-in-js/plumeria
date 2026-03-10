@@ -5,8 +5,12 @@ description: 'API reference for the keyframes method'
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-Define CSS animations in JavaScript with full type safety.  
-The `keyframes()` method generates a unique animation name (an 8-character hash) that can be used directly in styles.
+```ts
+export type keyframes = (rule: Keyframes) => string;
+export const keyframes: keyframes;
+```
+
+`keyframes()` generates a unique animation variable name (an 8-character hash) that can be used in styles.
 
 ## Example
 
@@ -51,7 +55,7 @@ The `keyframes()` method generates a unique animation name (an 8-character hash)
   </Tab>
 </Tabs>
 
-## Advanced usage
+## Usage
 
 You can also trigger animations on hover or using other pseudo selectors:
 
