@@ -10,7 +10,7 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
       code: `import * as css from '@plumeria/core'; const styles = css.create({})`,
     },
     {
-      code: `import * as css from '@plumeria/core'; css.props()`,
+      code: `import * as css from '@plumeria/core'; css.use()`,
     },
     {
       code: `import * as css from '@plumeria/core'; const animate = css.keyframes({})`,
@@ -45,11 +45,11 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
       ],
     },
     {
-      code: `import * as css from '@plumeria/core'; const { props } = css;`,
+      code: `import * as css from '@plumeria/core'; const { use } = css;`,
       errors: [
         {
           message:
-            'Do not destructure "props" from "css". Use dot notation instead.',
+            'Do not destructure "use" from "css". Use dot notation instead.',
         },
       ],
     },
@@ -108,7 +108,7 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
       ],
     },
     {
-      code: `import * as css from '@plumeria/core'; const { create, createStatic, createTheme, keyframes, props, variants } = css;`,
+      code: `import * as css from '@plumeria/core'; const { create, createStatic, createTheme, keyframes, use, variants } = css;`,
       errors: [
         {
           message:
@@ -128,7 +128,7 @@ ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
         },
         {
           message:
-            'Do not destructure "props" from "css". Use dot notation instead.',
+            'Do not destructure "use" from "css". Use dot notation instead.',
         },
         {
           message:
