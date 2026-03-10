@@ -23,9 +23,9 @@ export const baseOptions: BaseLayoutProps = {
   githubUrl: 'https://github.com/zss-in-js/plumeria',
   nav: {
     title: (
-      <span className={css.props(styles.logo)}>
+      <span className={css.use(styles.logo)}>
         <Image src="/LP_LG.png" alt="Plumeria logo" loading="lazy" height={40} width={40} />
-        <span className={css.props(styles.text)}>Plumeria</span>
+        <span className={css.use(styles.text)}>Plumeria</span>
       </span>
     ),
     transparentMode: 'top',
