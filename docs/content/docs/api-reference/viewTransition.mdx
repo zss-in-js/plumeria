@@ -5,6 +5,11 @@ description: 'API reference for the viewTransition'
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
+```ts
+export type viewTransition = (rule: ViewTransition) => string;
+export const viewTransition: viewTransition;
+```
+
 Use this when you want to customize the default cross-fade of a View Transition. It returns a unique `view-transition-name`.
 
 ```ts
@@ -14,8 +19,6 @@ type ViewTransitionOptions = {
   new?: CSSProperties;
   old?: CSSProperties;
 };
-
-function viewTransition(options: ViewTransitionOptions): string;
 ```
 
 ## Example
