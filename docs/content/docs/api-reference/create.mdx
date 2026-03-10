@@ -5,10 +5,15 @@ description: 'API reference for the create'
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-The `create` for defines static, component-scoped styles using plain JavaScript style objects.  
-It is **type-safe keys**, **compile-time validation**, and **scoped class names** through automatic hashing.
+```ts
+export type create = <const T extends Record<string, CSSProperties>>(rule: CreateStyleType<T>)=> ReturnType<T>;
+export const create: create;
+```
 
-Only the styles you use in `props()` will be compiled.
+The `create` for defines css styles using plain JavaScript style objects.  
+type-safe・autocomplete・lintable
+
+Only the styles you use in `use()` will be ondemand compiled.
 
 ## Example
 
@@ -26,13 +31,11 @@ const styles = css.create({
   },
 })
 
-const className = css.props(styles.container, styles.text)
+const className = css.use(styles.container, styles.text)
 ```
 
+The call is cleaned up by the bundler.
 
-If they are defined in the same file, they will be replaced directly with the hash.  
-The same is true if you are exporting a file boundary, which is safely extracted as a hash, the original create call is replaced with an empty string, and the reference is broken, so it statically resolves to zero in the bundle.
-  
 **Compiled:**
 ```tsx
 className: "xxp6epoh xwbwwha1 xbief8v4 xzllkng3"
@@ -56,7 +59,7 @@ className: "xxp6epoh xwbwwha1 xbief8v4 xzllkng3"
 ```
 
 
-Plumeria compiles each style property into a unique, **atomic**, and **hashed** class name. This prevents style collisions and maximizes reusability.
+Compiles each style property into a unique, **atomic**, and **hashed** class name. This prevents style collisions and maximizes reusability.
 
 <Callout title="Atomic API">
 Unique atom classes are reused without duplication, keeping the amount of class names constant.
