@@ -880,9 +880,9 @@ describe('parser', () => {
 
       const fileContents: Record<string, string> = {
         [libFile]:
-          'import { css } from "@plumeria/core"; export const C = css.createStatic({ val: "priority" });',
+          'import * as css from "@plumeria/core"; export const C = css.createStatic({ val: "priority" });',
         [appFile]:
-          'import { C } from "../lib/utils"; import { css } from "@plumeria/core"; export const style = css.createStatic({ ref: C.val });',
+          'import { C } from "../lib/utils"; import * as css from "@plumeria/core"; export const style = css.createStatic({ ref: C.val });',
       };
       mockedFs.readFileSync.mockImplementation(
         (path: any) => fileContents[path] || '',
@@ -910,9 +910,9 @@ describe('parser', () => {
 
       const fileContents: Record<string, string> = {
         [themeFile]:
-          'import { css } from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
+          'import * as css from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
         [pageFile]:
-          'import { T } from "../lib/theme"; import { css } from "@plumeria/core"; export const S = css.create({ c: T.p });',
+          'import { T } from "../lib/theme"; import * as css from "@plumeria/core"; export const S = css.create({ c: T.p });',
       };
       mockedFs.readFileSync.mockImplementation(
         (path: any) => fileContents[path] || '',
@@ -947,9 +947,9 @@ describe('parser', () => {
 
       const fileContents: Record<string, string> = {
         [themeFile]:
-          'import { css } from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
+          'import * as css from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
         [pageFile]:
-          'import { T as AliasedT } from "../lib/theme"; import { css } from "@plumeria/core"; export const S = css.create({ c: AliasedT.p });',
+          'import { T as AliasedT } from "../lib/theme"; import * as css from "@plumeria/core"; export const S = css.create({ c: AliasedT.p });',
       };
       mockedFs.readFileSync.mockImplementation(
         (path: any) => fileContents[path] || '',
@@ -992,9 +992,9 @@ describe('parser', () => {
 
       const fileContents: Record<string, string> = {
         [libFile]:
-          'import { css } from "@plumeria/core"; export const fadeIn = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
+          'import * as css from "@plumeria/core"; export const fadeIn = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
         [appFile]:
-          'import { fadeIn } from "../lib/anim"; import { css } from "@plumeria/core"; export const style = css.create({ animate: { animationName: fadeIn } });',
+          'import { fadeIn } from "../lib/anim"; import * as css from "@plumeria/core"; export const style = css.create({ animate: { animationName: fadeIn } });',
       };
       mockedFs.readFileSync.mockImplementation(
         (path: any) => fileContents[path] || '',
@@ -1046,9 +1046,9 @@ describe('parser', () => {
 
       const fileContents: Record<string, string> = {
         [libFile]:
-          'import { css } from "@plumeria/core"; export const slide = css.viewTransition({ group: { animationDuration: "300ms" } });',
+          'import * as css from "@plumeria/core"; export const slide = css.viewTransition({ group: { animationDuration: "300ms" } });',
         [appFile]:
-          'import { slide } from "../lib/vt"; import { css } from "@plumeria/core"; export const style = css.create({ transition: { viewTransitionName: slide } });',
+          'import { slide } from "../lib/vt"; import * as css from "@plumeria/core"; export const style = css.create({ transition: { viewTransitionName: slide } });',
       };
       mockedFs.readFileSync.mockImplementation(
         (path: any) => fileContents[path] || '',
@@ -1284,18 +1284,6 @@ describe('parser', () => {
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((k) => k.endsWith('-C'));
       expect(result.staticTable[cKey!]).toEqual({ color: 'green' });
-    });
-
-    it('should handle named css import', () => {
-      // Covers objectName === 'css' path
-      mockedRs.globSync.mockReturnValue(['/test/named_css.ts'] as any);
-      mockedFs.readFileSync.mockReturnValue(
-        'import { css } from "@plumeria/core"; export const C = css.createStatic({ color: "purple" });',
-      );
-      const result = scanAll();
-      const keys = Object.keys(result.staticTable);
-      const cKey = keys.find((k) => k.endsWith('-C'));
-      expect(result.staticTable[cKey!]).toEqual({ color: 'purple' });
     });
 
     it('should support create reference as value', () => {
