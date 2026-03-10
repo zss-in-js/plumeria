@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 9.0.0
+
+### Major Changes
+
+- cc0312e: feat: css.props to css.use (breaking change)
+
+### Patch Changes
+
+- Updated dependencies [cc0312e]
+  - @plumeria/utils@9.0.0
+
 ## 8.0.3
 
 ### Patch Changes
