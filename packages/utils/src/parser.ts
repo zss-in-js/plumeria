@@ -41,8 +41,8 @@ import {
   ConditionalExpression,
   ImportSpecifier,
 } from '@swc/core';
-import path from 'path';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 import * as rs from '@rust-gear/glob';
 
 import { camelToKebabCase, genBase36Hash, transpile } from 'zss-engine';
@@ -1170,7 +1170,7 @@ export function scanAll(): Tables {
                 const objectName = callee.object.value;
                 const propertyName = callee.property.value;
                 const alias = plumeriaAliases[objectName];
-                if (alias === 'NAMESPACE' || objectName === 'css') {
+                if (alias === 'NAMESPACE') {
                   method = propertyName;
                 }
               } else if (t.isIdentifier(callee)) {
