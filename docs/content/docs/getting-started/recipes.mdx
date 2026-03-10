@@ -5,7 +5,7 @@ description: 'Learn more about Plumeria recipe'
 
 import { FancyButtons, Box } from 'component/Recipes'
 
-Get started with **Plumeria** using `css.create()` and `css.props()` to build styles with clarity and structure.
+Get started with **Plumeria** using `css.create()` and `css.use()` to build styles with clarity and structure.
 
 ## FancyButtons
 
@@ -14,10 +14,10 @@ Get started with **Plumeria** using `css.create()` and `css.props()` to build st
 ```tsx title="TSX"
 export function FancyButtons() {
   return (
-    <div className={css.props(styles.stack)}>
-      <button className={css.props(styles.button, styles.hover, buttons.focusPurple)}>Purple</button>
-      <button className={css.props(styles.button, styles.hover, buttons.focusSky)}>Sky</button>
-      <button className={css.props(styles.button, styles.hover, buttons.focusGreen)}>Green</button>
+    <div className={css.use(styles.stack)}>
+      <button className={css.use(styles.button, styles.hover, buttons.focusPurple)}>Purple</button>
+      <button className={css.use(styles.button, styles.hover, buttons.focusSky)}>Sky</button>
+      <button className={css.use(styles.button, styles.hover, buttons.focusGreen)}>Green</button>
     </div>
   );
 }
@@ -93,14 +93,14 @@ const buttons = css.create({
 ```jsx title="TSX"
 export function Box() {
   return (
-    <div className={css.props(stylesBox.container)}>
+    <div className={css.use(stylesBox.container)}>
       <span>
-        <span tabIndex={0} className={css.props(stylesBox.card, animated.hover1)}>
+        <span tabIndex={0} className={css.use(stylesBox.card, animated.hover1)}>
           A
         </span>
       </span>
       <span>
-        <span tabIndex={0} className={css.props(stylesBox.card, animated.hover2)}>
+        <span tabIndex={0} className={css.use(stylesBox.card, animated.hover2)}>
           B
         </span>
       </span>
