@@ -32,7 +32,7 @@ export function ConditionalTest() {
       <h3>Conditional Styles Test</h3>
       <div
         data-testid="conditional-div"
-        className={css.props(
+        className={css.use(
           styles.base,
           isActive ? styles.active : styles.inactive,
           isLarge && styles.large,

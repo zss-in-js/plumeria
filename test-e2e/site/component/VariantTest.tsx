@@ -37,15 +37,13 @@ export function VariantTest() {
       <h3>Variants Staticization Test</h3>
       <div
         data-testid="variant-div-1"
-        className={css.props(variants({ size: 'small', colorPick: 'primary' }))}
+        className={css.use(variants({ size: 'small', colorPick: 'primary' }))}
       >
         Small Primary Variant
       </div>
       <div
         data-testid="variant-div-2"
-        className={css.props(
-          variants({ size: 'large', colorPick: 'secondary' }),
-        )}
+        className={css.use(variants({ size: 'large', colorPick: 'secondary' }))}
       >
         Large Secondary Variant
       </div>
