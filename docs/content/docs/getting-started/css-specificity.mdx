@@ -21,8 +21,8 @@ const styles = css.create({
 });
 
 // Both produce the same result
-css.props(styles.base, styles.custom);
-css.props(styles.custom, styles.base);
+css.use(styles.base, styles.custom);
+css.use(styles.custom, styles.base);
 
 // Result: margin 10px on all sides, except top is 20px
 ```
@@ -78,9 +78,9 @@ These behaviors are complex even in normal CSS, so ESLint is effective for enfor
 </Step>
 
 <Step>
-## `css.props()` merge styles
+## `css.use()` merge styles
 
-Also, when `css.props()` has duplicate properties on its arguments, the style properties on the right always take precedence and duplicate properties on the left are filtered. In that case no filtered hash is generated.
+Also, when `css.use()` has duplicate properties on its arguments, the style properties on the right always take precedence and duplicate properties on the left are filtered. In that case no filtered hash is generated.
 
 ```js
 const styles = css.create({
@@ -89,8 +89,8 @@ const styles = css.create({
 });
 
 // The right always wins
-css.props(styles.base, styles.custom); // 16px
-css.props(styles.custom, styles.base); // 10px
+css.use(styles.base, styles.custom); // 16px
+css.use(styles.custom, styles.base); // 10px
 ```
 Generated as follows:
 ```css
