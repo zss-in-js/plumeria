@@ -3,7 +3,7 @@
  * Configure the bundler plugin to extract and implement these APIs.
  * ```ts
  * type create = <const T extends Record<string, CSSProperties>>(rule: CreateStyleType<T>)=> ReturnType<T>;
- * type props = (...rules: (false | CSSProperties | null | undefined)[])=> string;
+ * type use = (...rules: (false | CSSProperties | null | undefined)[])=> string;
  * type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
  * type createStatic = <const T extends CreateStatic>(rule: T)=> T;
  * type keyframes = (rule: Keyframes) => string;
@@ -31,7 +31,7 @@ declare module '@plumeria/core' {
   export type CreateStyle = import('./types').CreateStyle;
 
   export type create = <const T extends Record<string, CSSProperties>>(rule: CreateStyleType<T>)=> ReturnType<T>;
-  export type props = (...rules: (false | CSSProperties | null | undefined)[])=> string;
+  export type use = (...rules: (false | CSSProperties | null | undefined)[])=> string;
   export type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
   export type createStatic = <const T extends CreateStatic>(rule: T)=> T;
   export type keyframes = (rule: Keyframes) => string;
@@ -41,7 +41,7 @@ declare module '@plumeria/core' {
   export type extended = <I extends string, P extends string>(id: I, pseudo: P) => Extended<I, P>;
 
   export const create: create;
-  export const props: props;
+  export const use: use;
   export const createTheme: createTheme;
   export const createStatic: createStatic;
   export const keyframes: keyframes;
