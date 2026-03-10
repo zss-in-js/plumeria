@@ -6,7 +6,14 @@ description: 'API reference for marker and extended - Context-aware styling with
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import MarkerExtended from 'component/MarkerExtended';
 
-The `marker` and `extended` APIs enable **context-aware styling** without relying on DOM structure or combinator syntax.  
+```ts
+export type marker = (id: string, pseudo: string) => Marker;
+export type extended = <I extends string, P extends string>(id: I, pseudo: P) => Extended<I, P>;
+export const marker: marker;
+export const extended: extended;
+```
+
+The `marker` and `extended` APIs enable **context-aware styling** without relying on DOM structure or combinator syntax.
 These paired APIs maintain **atomicity** while allowing child elements to respond to parent states.
 
 <Callout type="warn" title="Browser Compatibility">
@@ -14,12 +21,8 @@ These paired APIs maintain **atomicity** while allowing child elements to respon
   Check [Can I Use](https://caniuse.com/css-container-queries-style) for current browser support.
 </Callout>
 
-## Overview
-
 - **`marker(id, pseudo)`** - Sets a CSS variable marker on a parent element
 - **`extended(id, pseudo)`** - Applies styles to children when the marker is active
-
-This pattern replaces combinator-based selectors (like `&`, `>`, `+`) with a **logical ID system** that works across component boundaries.
 
 ## Syntax
 
@@ -95,28 +98,23 @@ type extended = <I extends string, P extends string>(_id: I, _pseudo: P) => Exte
 
 ## How it works
 
-### Internal Implementation
+### Internal
 
-1. **`marker()`** generates a CSS variable when the pseudo-class is active:
+**`marker()`** generates a CSS variable when the pseudo-class is active:
    ```css
    .parent:hover {
      --ul-hover: 1;
    }
    ```
 
-2. **`extended()`** wraps child styles in a container query:
+**`extended()`** wraps child styles in a container query:
    ```css
    @container style(--ul-hover: 1) {
      .child { /* styles */ }
    }
    ```
 
-3. The CSS variable acts as a **signal** that propagates to descendants without DOM structure dependency.
-
-## Performance
-
-- **Zero runtime** - Fully inlined at build time and no import references
-- **Atomic CSS** - Styles are deduplicated and reused
+The CSS variable acts as a **signal** that propagates to descendants without DOM structure dependency.
 
 <Callout title="ESLint Rule">
   The `no-combinator` rule enforces this pattern by disallowing combinator syntax.
