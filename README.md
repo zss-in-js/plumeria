@@ -15,7 +15,7 @@ const styles = css.create({
   },
 });
 
-const className = css.props(styles.text, styles.size);
+const className = css.use(styles.text, styles.size);
 ```
 
 **Compiled:**
