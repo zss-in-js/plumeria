@@ -52,7 +52,7 @@ body::before {
 }
 
 .dark body::before {
-  background-image: radial-gradient(#333 1px, transparent 1px);
+  background-image: radial-gradient(#646464 1px, transparent 1px);
   opacity: 0.5;
 }
 
