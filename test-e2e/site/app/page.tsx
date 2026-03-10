@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <main>
       <h1>@plumeria/core E2E Test</h1>
-      <h2 className={css.props(styles.page)}>server component</h2>
+      <h2 className={css.use(styles.page)}>server component</h2>
       <Link href="/server">Server Page</Link>
       <ConditionalTest />
       <VariableTest />

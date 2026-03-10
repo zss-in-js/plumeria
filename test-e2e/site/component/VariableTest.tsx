@@ -23,7 +23,7 @@ export function VariableTest() {
       style={{ marginTop: '20px', border: '1px solid #ccc', padding: '10px' }}
     >
       <h3>Variable Resolution Test</h3>
-      <div data-testid="variable-div" className={css.props(styles.container)}>
+      <div data-testid="variable-div" className={css.use(styles.container)}>
         My styles are resolved from local and imported variables
       </div>
     </div>
