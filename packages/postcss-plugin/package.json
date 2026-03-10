@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/postcss-plugin",
-  "version": "8.0.3",
+  "version": "9.0.0",
   "description": "Plumeria PostCSS plugin with swc based compiler",
   "author": "Refirst 11",
   "license": "MIT",

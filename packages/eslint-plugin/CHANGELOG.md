@@ -1,3 +1,9 @@
+## 9.0.0
+
+### Major Changes
+
+- cc0312e: feat: css.props to css.use (breaking change)
+
 ## 8.0.3
 
 ### Patch Changes
