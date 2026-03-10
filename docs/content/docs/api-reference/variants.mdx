@@ -3,7 +3,11 @@ title: 'variants'
 description: 'API reference for the variants'
 ---
 
-Define a variant that can receive arguments dynamically.
+```ts
+export type variants = <T extends Variants>(rule: T) => (props: { [K in keyof T]?: keyof T[K] }) => CSSProperties;
+export const variants: variants;
+```
+`variants` return functions that can accept arguments dynamically.
 
 ## Example
 
