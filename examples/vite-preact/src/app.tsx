@@ -2,9 +2,9 @@ import { useState } from 'preact/hooks';
 import preactLogo from './assets/preact.svg';
 import viteLogo from '/vite.svg';
 import './app.css';
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   highlighted: {
     fontSize: 32,
     color: '#c35488',
@@ -24,7 +24,7 @@ export function App() {
           <img src={preactLogo} class="logo preact" alt="Preact logo" />
         </a>
       </div>
-      <h1 class={css.props(styles.highlighted)}>Vite + Preact</h1>
+      <h1 class={style.use(styles.highlighted)}>Vite + Preact</h1>
       <div class="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
