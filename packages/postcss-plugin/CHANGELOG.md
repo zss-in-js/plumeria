@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 9.0.1
+
+### Patch Changes
+
+- 91d80e1: chore: bump version to 9.0.1
+- Updated dependencies [91d80e1]
+  - @plumeria/compiler@9.0.1
+
 ## 9.0.0
 
 ### Major Changes
