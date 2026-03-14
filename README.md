@@ -3,9 +3,9 @@
 An atomic CSS types designed to disappear.
 
 ```ts
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   text: {
     fontSize: 12,
     color: 'navy',
@@ -15,7 +15,7 @@ const styles = css.create({
   },
 });
 
-const className = css.use(styles.text, styles.size);
+const className = style.use(styles.text, styles.size);
 ```
 
 **Compiled:**
