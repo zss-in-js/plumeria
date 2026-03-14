@@ -10,9 +10,9 @@ Pseudo-elements(class) and media nesting rules.
 Queries(media・container) can only be pseudo nest once, but pseudo cannot nest queries.
 
 ```ts title="TypeScript" {1}
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   list: {
     '@media (max-width: 768px)': { // [!code ++]
       '& li': {
@@ -29,9 +29,9 @@ const styles = css.create({
 Unacceptable examples:
 
 ```ts title="TypeScript" {1}
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   list: {
     '& li': {
       '@media (max-width: 768px)': { // [!code --]
@@ -43,9 +43,9 @@ const styles = css.create({
 ```
 
 ```ts title="TypeScript" {1}
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   list: {
     ':hover': {
       '@media (max-width: 768px)': { // [!code --]

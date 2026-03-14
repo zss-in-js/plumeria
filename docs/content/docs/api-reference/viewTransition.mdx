@@ -26,19 +26,19 @@ type ViewTransitionOptions = {
 <Tabs items={["ts", "css"]}>
   <Tab>
     ```ts title="TypeScript"
-    import * as css from '@plumeria/core';
+    import * as style from '@plumeria/core';
 
-    const fadeIn = css.keyframes({
+    const fadeIn = style.keyframes({
       from: { opacity: 0 },
       to: { opacity: 1 },
     });
 
-    const fadeOut = css.keyframes({
+    const fadeOut = style.keyframes({
       from: { opacity: 1 },
       to: { opacity: 0 },
     });
 
-    const longCrossFade = css.viewTransition({
+    const longCrossFade = style.viewTransition({
       old: {
         animationName: fadeOut,
         animationDuration: '1.2s',
@@ -49,7 +49,7 @@ type ViewTransitionOptions = {
       },
     });
 
-    export const transition = css.create({
+    export const transition = style.create({
       name: {
         viewTransitionName: longCrossFade,
       },
