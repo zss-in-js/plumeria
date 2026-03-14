@@ -7,7 +7,7 @@ date: '2026-03-10'
 # Release Notes
 
 ## Breaking Change
-css.props() renamed to css.use()
+`css.props()` renamed to `style.use()`
 
 **Before (8.x)**
 ```tsx
@@ -17,15 +17,6 @@ import * as css from '@plumeria/core';
 ```
 **After (9.0.0)**
 ```tsx
-import * as css from '@plumeria/core';
-
-const styles = css.create({...});
-
-<div className={css.use(styles.featureCard)} />
-```
-
-The import alias name is arbitrary, you can use `style` instead of `css` if you prefer:
-```tsx
 import * as style from '@plumeria/core';
 
 const styles = style.create({...});
@@ -33,12 +24,27 @@ const styles = style.create({...});
 <div className={style.use(styles.featureCard)} />
 ```
 
+The import alias name is arbitrary, but `style` is recommended for readability:
+
+
 ## Reason for Change
 - The name "props" did not accurately represent its actual meaning (conversion to a class name).
-- css.use() now more intuitively and concisely conveys the intent of "use this style."
+- style.use() now more intuitively and concisely conveys the intent of "use this style."
 
 ## Migration
-Simply replace `css.props(` with `css.use(`.
+```ts
+import * as css from '@plumeria/core';
+// To
+import * as style from '@plumeria/core';
+
+// Simply replace `css.props(` with `style.use(`.
+```
+
+## Other Changes
+- Documentation updated
+- No other changes
+
+
 
 ## 8.x Release Notes
 
