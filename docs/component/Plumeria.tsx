@@ -1,7 +1,7 @@
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 
-const styles = css.create({
+const styles = style.create({
   headings: {
     position: 'relative',
     bottom: 12,
@@ -19,5 +19,5 @@ const styles = css.create({
 });
 
 export const Plumeria = () => {
-  return <div className={css.use(styles.headings)}>Plumeria</div>;
+  return <div className={style.use(styles.headings)}>Plumeria</div>;
 };

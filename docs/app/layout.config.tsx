@@ -1,8 +1,8 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 import Image from 'next/image';
 
-const styles = css.create({
+const styles = style.create({
   text: {
     position: 'relative',
     right: 4,
@@ -23,9 +23,9 @@ export const baseOptions: BaseLayoutProps = {
   githubUrl: 'https://github.com/zss-in-js/plumeria',
   nav: {
     title: (
-      <span className={css.use(styles.logo)}>
+      <span className={style.use(styles.logo)}>
         <Image src="/LP_LG.png" alt="Plumeria logo" loading="lazy" height={40} width={40} />
-        <span className={css.use(styles.text)}>Plumeria</span>
+        <span className={style.use(styles.text)}>Plumeria</span>
       </span>
     ),
     transparentMode: 'top',

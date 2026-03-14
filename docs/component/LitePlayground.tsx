@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 
 const defaultCode = `import { useState } from 'react'
-import * as css from '@plumeria/core'
+import * as style from '@plumeria/core'
 
-const styles = css.create({
+const styles = style.create({
   container: {
     minHeight: '100vh',
     padding: '2rem',
@@ -83,16 +83,16 @@ export default function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <div className={css.props(styles.container)}>
-      <h1 className={css.props(styles.title)}>Playground</h1>
+    <div className={style.use(styles.container)}>
+      <h1 className={style.use(styles.title)}>Playground</h1>
 
-      <div className={css.props(styles.card)}>
-        <div className={css.props(styles.countDisplay)}>
+      <div className={style.use(styles.card)}>
+        <div className={style.use(styles.countDisplay)}>
           {count}
         </div>
 
         <button
-          className={css.props(styles.button)}
+          className={style.use(styles.button)}
           onClick={() => setCount(c => c + 1)}
         >
           Click to Increment
@@ -160,7 +160,7 @@ export function LitePlayground() {
           }
           return res;
         },
-        props: (...args) => args.filter(Boolean).join(' ')
+        use: (...args) => args.filter(Boolean).join(' ')
       };
     `;
 
@@ -189,7 +189,7 @@ export function LitePlayground() {
               if (typeof code !== 'string') return;
               
               const { useState } = React;
-              const css = window.Plumeria;
+              const style = window.Plumeria;
               
               try {
                 const transformed = Babel.transform(

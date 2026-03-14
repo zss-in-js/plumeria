@@ -1,6 +1,6 @@
 /* eslint-disable @plumeria/validate-values */
 
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import { pseudos } from 'lib/pseudos';
 import { Plumeria } from './Plumeria';
@@ -8,7 +8,7 @@ import { CodeBlock } from './CodeBlock';
 import { ButtonLink } from './ButtonLink';
 import { svg } from './svg';
 
-const styles = css.create({
+const styles = style.create({
   container: {
     position: 'relative',
     zIndex: 1,
@@ -174,7 +174,7 @@ const styles = css.create({
   },
 });
 
-const demoCode = `const styles = css.create({
+const demoCode = `const styles = style.create({
   featureCard: {
     position: 'relative',
     padding: '24px',
@@ -198,18 +198,18 @@ const demoCode = `const styles = css.create({
 export const HomeComponent = () => {
   return (
     <div>
-      <main className={css.use(styles.container)}>
-        <section className={css.use(styles.heroSection)}>
-          <div className={css.use(styles.heroContent, styles.codeSection)}>
-            <h2 className={css.use(styles.mainHeadline)}>
+      <main className={style.use(styles.container)}>
+        <section className={style.use(styles.heroSection)}>
+          <div className={style.use(styles.heroContent, styles.codeSection)}>
+            <h2 className={style.use(styles.mainHeadline)}>
               <Plumeria />
               Atomic CSS-in-JS
             </h2>
-            <p className={css.use(styles.subHeadline)}>
+            <p className={style.use(styles.subHeadline)}>
               Zero-runtime overhead・Type-safe <br />
               Build-time only・High performance
             </p>
-            <div className={css.use(styles.buttonGroup)}>
+            <div className={style.use(styles.buttonGroup)}>
               <ButtonLink href="/docs" variant="getstarted">
                 Get Started
               </ButtonLink>
@@ -219,38 +219,40 @@ export const HomeComponent = () => {
             </div>
           </div>
 
-          <div className={css.use(styles.codeSection)}>
+          <div className={style.use(styles.codeSection)}>
             <CodeBlock code={demoCode} lang="typescript" />
           </div>
         </section>
 
-        <section className={css.use(styles.featuresSection)}>
-          <div className={css.use(styles.featureCard)}>
-            <div className={css.use(styles.featureIcon)}>{svg.Atom()}</div>
-            <h3 className={css.use(styles.featureTitle)}>Atomic CSS</h3>
-            <p className={css.use(styles.featureDescription)}>
+        <section className={style.use(styles.featuresSection)}>
+          <div className={style.use(styles.featureCard)}>
+            <div className={style.use(styles.featureIcon)}>{svg.Atom()}</div>
+            <h3 className={style.use(styles.featureTitle)}>Atomic CSS</h3>
+            <p className={style.use(styles.featureDescription)}>
               Styles are reused keeping CSS bundle is always minimal.
             </p>
           </div>
-          <div className={css.use(styles.featureCard)}>
-            <div className={css.use(styles.featureIcon)}>{svg.Eslint()}</div>
-            <h3 className={css.use(styles.featureTitle)}>Linting</h3>
-            <p className={css.use(styles.featureDescription)}>
+          <div className={style.use(styles.featureCard)}>
+            <div className={style.use(styles.featureIcon)}>{svg.Eslint()}</div>
+            <h3 className={style.use(styles.featureTitle)}>Linting</h3>
+            <p className={style.use(styles.featureDescription)}>
               Build-integrated oxlint validation. Detect typos before compiling.
             </p>
           </div>
 
-          <div className={css.use(styles.featureCard)}>
-            <div className={css.use(styles.featureIcon)}>{svg.Feather()}</div>
-            <h3 className={css.use(styles.featureTitle)}>Lghtweight</h3>
-            <p className={css.use(styles.featureDescription)}>
+          <div className={style.use(styles.featureCard)}>
+            <div className={style.use(styles.featureIcon)}>{svg.Feather()}</div>
+            <h3 className={style.use(styles.featureTitle)}>Lghtweight</h3>
+            <p className={style.use(styles.featureDescription)}>
               min + brotli 1 byte. <br /> Before compression 0 byte.
             </p>
           </div>
-          <div className={css.use(styles.featureCard)}>
-            <div className={css.use(styles.featureIcon)}>⚡</div>
-            <h3 className={css.use(styles.featureTitle)}>Build-time Compilation</h3>
-            <p className={css.use(styles.featureDescription)}>Eliminate styles compile to class names at built time.</p>
+          <div className={style.use(styles.featureCard)}>
+            <div className={style.use(styles.featureIcon)}>⚡</div>
+            <h3 className={style.use(styles.featureTitle)}>Build-time Compilation</h3>
+            <p className={style.use(styles.featureDescription)}>
+              Eliminate styles compile to class names at built time.
+            </p>
           </div>
         </section>
       </main>
