@@ -1,7 +1,7 @@
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 
-export const styles = css.create({
+export const styles = style.create({
   article: {
     width: '800px',
     paddingInline: 24,

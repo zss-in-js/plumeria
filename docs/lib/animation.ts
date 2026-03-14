@@ -1,6 +1,6 @@
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-export const rotateHover = css.keyframes({
+export const rotateHover = style.keyframes({
   from: {
     transform: 'rotate(0deg)',
   },
@@ -11,7 +11,7 @@ export const rotateHover = css.keyframes({
   },
 });
 
-export const rotateFocus = css.keyframes({
+export const rotateFocus = style.keyframes({
   from: {
     scale: 1,
   },

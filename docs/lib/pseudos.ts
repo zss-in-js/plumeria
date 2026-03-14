@@ -1,6 +1,6 @@
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-export const pseudos = css.createStatic({
+export const pseudos = style.createStatic({
   hover: ':hover',
   focus: ':focus',
 });

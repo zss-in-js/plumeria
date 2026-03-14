@@ -5,12 +5,12 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { Analytics } from '@vercel/analytics/next';
 import type { ReactNode } from 'react';
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
 export const dynamicParams = false;
 export const dynamic = 'force-static';
 
-const styles = css.create({
+const styles = style.create({
   body: {
     display: 'flex',
     flexDirection: 'column',
@@ -24,7 +24,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <head>
         <link rel="icon" href="/favi.ico" sizes="any" />
       </head>
-      <body className={css.use(styles.body)}>
+      <body className={style.use(styles.body)}>
         <RootProvider>{children}</RootProvider>
         <Analytics mode="production" />
       </body>

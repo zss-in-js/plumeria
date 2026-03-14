@@ -1,8 +1,8 @@
 import { codeToHtml } from 'shiki';
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 
-const stylesCode = css.create({
+const stylesCode = style.create({
   code_div: {
     position: 'relative',
     zIndex: 0,
@@ -34,7 +34,7 @@ export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) 
     defaultColor: false,
   });
   return (
-    <figure className={css.use(stylesCode.code_div)}>
+    <figure className={style.use(stylesCode.code_div)}>
       <pre dangerouslySetInnerHTML={{ __html: tsx }} />
     </figure>
   );
