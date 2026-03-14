@@ -2,9 +2,9 @@ import { useState } from 'react';
 import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   color: {
     WebkitTextFillColor: 'transparent',
     background: 'linear-gradient(90deg, #58c6ff 0%, #3e5875 50%, #ff3bef 100%)',
@@ -25,7 +25,7 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1 className={css.props(styles.color)}>Vite + React</h1>
+      <h1 className={style.use(styles.color)}>Vite + React</h1>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
