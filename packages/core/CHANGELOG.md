@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 9.0.1
+
+### Patch Changes
+
+- 91d80e1: chore: update README.md
+
 ## 9.0.0
 
 ### Major Changes
