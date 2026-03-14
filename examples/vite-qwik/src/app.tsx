@@ -3,9 +3,9 @@ import { component$, useSignal } from '@builder.io/qwik';
 import qwikLogo from './assets/qwik.svg';
 import viteLogo from '/vite.svg';
 import './app.css';
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   color: {
     WebkitTextFillColor: 'transparent',
     background: 'linear-gradient(90deg, #58c6ff 0%, #416389 50%, #ff3bef 100%)',
@@ -26,7 +26,7 @@ export const App = component$(() => {
           <img src={qwikLogo} class="logo qwik" alt="Qwik logo" />
         </a>
       </div>
-      <h1 class={css.props(styles.color)}>Vite + Qwik</h1>
+      <h1 class={style.use(styles.color)}>Vite + Qwik</h1>
       <div class="card">
         <button onClick$={() => count.value++}>count is {count.value}</button>
       </div>
