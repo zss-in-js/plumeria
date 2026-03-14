@@ -11,15 +11,26 @@ css.props() renamed to css.use()
 
 **Before (8.x)**
 ```tsx
-import css from '@plumeria/core';
+import * as css from '@plumeria/core';
 
 <div className={css.props(styles.featureCard)} />
 ```
 **After (9.0.0)**
 ```tsx
-import css from '@plumeria/core';
+import * as css from '@plumeria/core';
+
+const styles = css.create({...});
 
 <div className={css.use(styles.featureCard)} />
+```
+
+The import alias name is arbitrary, you can use `style` instead of `css` if you prefer:
+```tsx
+import * as style from '@plumeria/core';
+
+const styles = style.create({...});
+
+<div className={style.use(styles.featureCard)} />
 ```
 
 ## Reason for Change
@@ -31,9 +42,15 @@ Simply replace `css.props(` with `css.use(`.
 
 ## 8.x Release Notes
 
-- 8.0.1 fixes some edge-case bugs in development mode, such as styles being lost when opening in a new tab.
-- 8.0.2 fixes first line comment out parsing error.
-- 8.0.3 fixes fs.globSync was slow and has been replaced with @rust-gear/glob, which is tuned for speed.
+### v8.0.3
+- fixes fs.globSync was slow and has been replaced with @rust-gear/glob, which is tuned for speed.
+
+### v8.0.2
+- fixes first line comment out parsing error.
+
+### v8.0.1 
+- fixes some edge-case bugs in development mode, such as styles being lost when opening in a new tab.
+
 
 ---
 
