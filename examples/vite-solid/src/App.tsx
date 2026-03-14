@@ -2,9 +2,9 @@ import { createSignal } from 'solid-js';
 import solidLogo from './assets/solid.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   color: {
     WebkitTextFillColor: 'transparent',
     background: 'linear-gradient(90deg, #58c6ff 0%, #416389 50%, #ff3bef 100%)',
@@ -25,7 +25,7 @@ function App() {
           <img src={solidLogo} class="logo solid" alt="Solid logo" />
         </a>
       </div>
-      <h1 class={css.props(styles.color)}>Vite + Solid</h1>
+      <h1 class={style.use(styles.color)}>Vite + Solid</h1>
       <div class="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count()}
