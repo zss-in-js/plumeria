@@ -1,6 +1,6 @@
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   color: {
     WebkitTextFillColor: 'transparent',
     background: 'linear-gradient(90deg, #58c6ff 0%, #416389 50%, #ff3bef 100%)',
@@ -8,4 +8,4 @@ const styles = css.create({
   },
 });
 
-export const astroClass = css.props(styles.color);
+export const astroClass = style.use(styles.color);
