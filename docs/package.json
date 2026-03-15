@@ -11,6 +11,8 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@babel/standalone": "^7.29.1",
+    "@types/babel__standalone": "^7.1.9",
     "@vercel/analytics": "^1.5.0",
     "fumadocs-core": "^16.4.1",
     "fumadocs-mdx": "^14.2.3",
@@ -20,7 +22,8 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "shiki": "^3.2.1",
-    "zod": "^4.1.5"
+    "zod": "^4.1.5",
+    "zss-engine": "catalog:"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
