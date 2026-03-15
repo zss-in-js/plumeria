@@ -242,7 +242,7 @@ export const HomeComponent = () => {
 
           <div className={style.use(styles.featureCard)}>
             <div className={style.use(styles.featureIcon)}>{svg.Feather()}</div>
-            <h3 className={style.use(styles.featureTitle)}>Lghtweight</h3>
+            <h3 className={style.use(styles.featureTitle)}>Lightweight</h3>
             <p className={style.use(styles.featureDescription)}>
               min + brotli 1 byte. <br /> Before compression 0 byte.
             </p>
