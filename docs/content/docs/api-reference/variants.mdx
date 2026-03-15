@@ -12,9 +12,9 @@ export const variants: variants;
 ## Example
 
 ```tsx
-import * as css from "@plumeria/core";
+import * as style from "@plumeria/core";
 
-const getButtonStyle = css.variants({
+const getButtonStyle = style.variants({
   variant: {
     gradient: styles.gradient,
     metallic: styles.metallic,
@@ -34,7 +34,7 @@ interface Props {
 
 export const ButtonLink = ({ children, variant, href }: Props) => {
   return (
-    <Link href={href} className={css.props(getButtonStyle({ variant, size: 'medium' }))}>
+    <Link href={href} className={style.use(getButtonStyle({ variant, size: 'medium' }))}>
       {children}
     </Link>
   );

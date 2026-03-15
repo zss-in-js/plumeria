@@ -5,7 +5,7 @@ description: 'Learn more about Plumeria recipe'
 
 import { FancyButtons, Box } from 'component/Recipes'
 
-Get started with **Plumeria** using `css.create()` and `css.use()` to build styles with clarity and structure.
+Get started with **Plumeria** using `style.create()` and `style.use()` to build styles with clarity and structure.
 
 ## FancyButtons
 
@@ -14,20 +14,20 @@ Get started with **Plumeria** using `css.create()` and `css.use()` to build styl
 ```tsx title="TSX"
 export function FancyButtons() {
   return (
-    <div className={css.use(styles.stack)}>
-      <button className={css.use(styles.button, styles.hover, buttons.focusPurple)}>Purple</button>
-      <button className={css.use(styles.button, styles.hover, buttons.focusSky)}>Sky</button>
-      <button className={css.use(styles.button, styles.hover, buttons.focusGreen)}>Green</button>
+    <div className={style.use(styles.stack)}>
+      <button className={style.use(styles.button, styles.hover, buttons.focusPurple)}>Purple</button>
+      <button className={style.use(styles.button, styles.hover, buttons.focusSky)}>Sky</button>
+      <button className={style.use(styles.button, styles.hover, buttons.focusGreen)}>Green</button>
     </div>
   );
 }
 ```
 
 ```ts  title="TypeScript"
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 import { ps } from 'lib/pseudos';
 
-const styles = css.create({
+const styles = style.create({
   stack: {
     display: 'flex',
     gap: 16,
@@ -53,7 +53,7 @@ const styles = css.create({
   },
 });
 
-const buttons = css.create({
+const buttons = style.create({
   focusPurple: {
     background: 'linear-gradient(135deg,rgb(68, 60, 222), #6366f1)',
     [ps.hover]: {
@@ -93,14 +93,14 @@ const buttons = css.create({
 ```jsx title="TSX"
 export function Box() {
   return (
-    <div className={css.use(stylesBox.container)}>
+    <div className={style.use(stylesBox.container)}>
       <span>
-        <span tabIndex={0} className={css.use(stylesBox.card, animated.hover1)}>
+        <span tabIndex={0} className={style.use(stylesBox.card, animated.hover1)}>
           A
         </span>
       </span>
       <span>
-        <span tabIndex={0} className={css.use(stylesBox.card, animated.hover2)}>
+        <span tabIndex={0} className={style.use(stylesBox.card, animated.hover2)}>
           B
         </span>
       </span>
@@ -110,7 +110,7 @@ export function Box() {
 ```
 
 ```ts title="TypeScript"
-const stylesBox = css.create({
+const stylesBox = style.create({
   container: {
     display: 'flex',
     flexDirection: 'row',
@@ -133,7 +133,7 @@ const stylesBox = css.create({
   },
 });
 
-const scaleOut = css.keyframes({
+const scaleOut = style.keyframes({
   from: {
     transform: 'rotate(0deg)',
   },
@@ -144,7 +144,7 @@ const scaleOut = css.keyframes({
   },
 });
 
-const rotatationOut = css.keyframes({
+const rotatationOut = style.keyframes({
   from: { scale: 1 },
   to: {
     scale: 1.2,
@@ -152,7 +152,7 @@ const rotatationOut = css.keyframes({
   },
 });
 
-const animated = css.create({
+const animated = style.create({
   hover1: {
     [ps.hover]: {
       outline: '1px solid dodgerblue',

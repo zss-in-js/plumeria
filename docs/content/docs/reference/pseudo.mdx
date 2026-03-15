@@ -5,16 +5,16 @@ description: 'Complete reference for CSS pseudo-classes and pseudo-elements supp
 
 ## Overview
 
-This page provides a comprehensive reference for CSS pseudo-classes and pseudo-elements that you can use in Plumeria with `css.create()`.
+This page provides a comprehensive reference for CSS pseudo-classes and pseudo-elements that you can use in Plumeria with `style.create()`.
 
 All standard CSS pseudo-selectors are supported and can be used as keys in your style objects.
 
 ## Usage
 
 ```ts
-import { css } from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   button: {
     background: 'blue',
     ':hover': {

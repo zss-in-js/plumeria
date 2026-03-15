@@ -43,18 +43,18 @@ type extended = <I extends string, P extends string>(_id: I, _pseudo: P) => Exte
 <Tabs items={["tsx", "css"]}>
   <Tab>
     ```tsx title="TypeScript"
-    import * as css from '@plumeria/core';
+    import * as style from '@plumeria/core';
 
-    const styles = css.create({
+    const styles = style.create({
       table: {
-        ...css.marker('ul', ':hover'), // [!code highlight]
+        ...style.marker('ul', ':hover'), // [!code highlight]
         width: '100%',
         height: 200,
         listStyleType: 'none',
       },
       list: {
         transition: 'all 0.5s',
-        [css.extended('ul', ':hover')]: { // [!code highlight]
+        [style.extended('ul', ':hover')]: { // [!code highlight]
           color: 'orange',
           scale: 1.2,
           ':hover': {
@@ -67,8 +67,8 @@ type extended = <I extends string, P extends string>(_id: I, _pseudo: P) => Exte
     const Component = () => {
       return (
         <div>
-          <ul className={css.props(styles.table)}>
-            <li className={css.props(styles.list)}>Happy new year!</li>
+          <ul className={style.use(styles.table)}>
+            <li className={style.use(styles.list)}>Happy new year!</li>
           </ul>
         </div>
       );
