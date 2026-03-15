@@ -39,6 +39,8 @@ export const formatProperties: Rule.RuleModule = {
         const countNewlines = (text: string) =>
           (text.match(/\n/g) ?? []).length;
 
+        const isWhitespaceOnly = (text: string) => /^\s*$/.test(text);
+
         const fullText = sourceCode.getText();
         const openBrace = sourceCode.getFirstToken(node)!;
         const closeBrace = sourceCode.getLastToken(node)!;
@@ -61,7 +63,7 @@ export const formatProperties: Rule.RuleModule = {
           const between = fullText.slice(sliceStart, next.range![0]);
           const newlines = countNewlines(between);
           if (newlines === 0) hasError = true;
-          if (newlines > 1) hasBlankLines = true;
+          if (newlines > 1 && isWhitespaceOnly(between)) hasBlankLines = true;
         }
 
         const lastProp = properties[properties.length - 1];
@@ -93,12 +95,18 @@ export const formatProperties: Rule.RuleModule = {
             const next = properties[i + 1];
             const comma = sourceCode.getTokenAfter(current)!;
             if (comma.value === ',') {
-              fixes.push(
-                fixer.replaceTextRange(
-                  [comma.range![1], next.range![0]],
-                  `\n${innerIndent}`,
-                ),
+              const betweenText = fullText.slice(
+                comma.range![1],
+                next.range![0],
               );
+              if (isWhitespaceOnly(betweenText)) {
+                fixes.push(
+                  fixer.replaceTextRange(
+                    [comma.range![1], next.range![0]],
+                    `\n${innerIndent}`,
+                  ),
+                );
+              }
             }
           }
 
@@ -139,7 +147,7 @@ export const formatProperties: Rule.RuleModule = {
           const sliceStart = comma.range![1];
           const between = fullText.slice(sliceStart, next.range![0]);
 
-          if (countNewlines(between) > 1) {
+          if (countNewlines(between) > 1 && isWhitespaceOnly(between)) {
             const blankLineNumber = current.loc!.end.line + 1;
             context.report({
               loc: {
