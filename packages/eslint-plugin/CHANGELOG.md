@@ -1,3 +1,9 @@
+## 9.0.2
+
+### Patch Changes
+
+- f0a390e: fix: no delete comments case format-properties.ts
+
 ## 9.0.1
 
 ### Patch Changes
