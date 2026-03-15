@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 9.0.2
+
+### Patch Changes
+
+- f0a390e: chore: bump version to 9.0.2
+
 ## 9.0.1
 
 ### Patch Changes
