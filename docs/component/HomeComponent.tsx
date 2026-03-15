@@ -28,7 +28,7 @@ const styles = style.create({
   heroSection: {
     display: 'flex',
     flexDirection: 'row',
-    gap: 60,
+    gap: 20,
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
@@ -131,12 +131,9 @@ const styles = style.create({
     position: 'relative',
     padding: '24px',
     background: 'var(--card-bg)',
-    border: '1px solid var(--card-border)',
     borderRadius: '16px',
     boxShadow: 'var(--card-shadow), var(--card-cut-glass)',
-    backdropFilter: 'blur(16px)',
     transition: 'border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
-    WebkitBackdropFilter: 'blur(16px)',
     [pseudos.hover]: {
       borderColor: 'var(--card-hover-border)',
       transform: 'translateY(-2px)',
@@ -232,13 +229,6 @@ export const HomeComponent = () => {
               Styles are reused keeping CSS bundle is always minimal.
             </p>
           </div>
-          <div className={style.use(styles.featureCard)}>
-            <div className={style.use(styles.featureIcon)}>{svg.Eslint()}</div>
-            <h3 className={style.use(styles.featureTitle)}>Linting</h3>
-            <p className={style.use(styles.featureDescription)}>
-              Build-integrated oxlint validation. Detect typos before compiling.
-            </p>
-          </div>
 
           <div className={style.use(styles.featureCard)}>
             <div className={style.use(styles.featureIcon)}>{svg.Feather()}</div>
@@ -247,11 +237,20 @@ export const HomeComponent = () => {
               min + brotli 1 byte. <br /> Before compression 0 byte.
             </p>
           </div>
+
           <div className={style.use(styles.featureCard)}>
             <div className={style.use(styles.featureIcon)}>⚡</div>
             <h3 className={style.use(styles.featureTitle)}>Build-time Compilation</h3>
             <p className={style.use(styles.featureDescription)}>
               Eliminate styles compile to class names at built time.
+            </p>
+          </div>
+
+          <div className={style.use(styles.featureCard)}>
+            <div className={style.use(styles.featureIcon)}>{svg.Eslint()}</div>
+            <h3 className={style.use(styles.featureTitle)}>Linting</h3>
+            <p className={style.use(styles.featureDescription)}>
+              Build-integrated oxlint validation. Detect typos before compiling.
             </p>
           </div>
         </section>
