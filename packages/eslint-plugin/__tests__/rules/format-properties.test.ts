@@ -31,6 +31,24 @@ ruleTester.run(
       {
         code: `const styles = { empty: {} };`,
       },
+      {
+        code: `const styles = {
+  testKey: {
+    fontSize: 24,
+    // display: 'flex',
+    textAlign: 'center',
+  }
+};`,
+      },
+      {
+        code: `const styles = {
+  testKey: {
+    fontSize: 24,
+    /* display: 'flex', */
+    textAlign: 'center',
+  }
+};`,
+      },
     ],
     invalid: [
       {
