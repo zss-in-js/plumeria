@@ -12,9 +12,9 @@ The `use()` returns style object as hashed classes together while **filtering ou
 
 ## Example
 ```ts title="TypeScript"
-import * as css from '@plumeria/core';
+import * as style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   one: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -27,7 +27,7 @@ const styles = css.create({
 ```
 
 ```jsx
-<div className={css.use(styles.one, styles.two)}> // [!code ++]
+<div className={style.use(styles.one, styles.two)}> // [!code ++]
   {/* ... */}
 </div>
 ```
@@ -41,7 +41,7 @@ Only truthy values are preserved.
 ```ts
 const isActive = true;
 
-const className = css.use(
+const className = style.use(
   styles.one,
   isActive && styles.two
 );
@@ -50,7 +50,7 @@ const className = css.use(
 ### With ternary
 
 ```ts
-const className = css.use(
+const className = style.use(
   isDark ? styles.dark : styles.light,
   isHovered && styles.hovered
 );
@@ -62,7 +62,7 @@ const className = css.use(
 Returns a single hashes `string` of space-separated styleObject, ignoring falsy inputs:
 
 ```ts
-css.use(styles.one, false, undefined, styles.two);
+style.use(styles.one, false, undefined, styles.two);
 ```
 
 

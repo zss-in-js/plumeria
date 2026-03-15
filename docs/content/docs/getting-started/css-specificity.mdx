@@ -15,14 +15,14 @@ To simplify things, we'll explain `hash(xxxxxxxx)` as `xatom`.
 
 This ensures longhand properties **always addtion to** shorthand properties, regardless of merge order:
 ```js
-const styles = css.create({
+const styles = style.create({
   base: { margin: 10 },
   custom: { marginTop: 20 },
 });
 
 // Both produce the same result
-css.use(styles.base, styles.custom);
-css.use(styles.custom, styles.base);
+style.use(styles.base, styles.custom);
+style.use(styles.custom, styles.base);
 
 // Result: margin 10px on all sides, except top is 20px
 ```
@@ -57,7 +57,7 @@ This slightly increases bundle size, but is necessary to maintain for strict beh
 Also, if a shorthand is written after a longhand in the same key, the previous longhand will be filtered and overridden.
 
 ```js
-const styles = css.create({
+const styles = style.create({
   base: {
     paddingTop: '20px', // filtered out
     padding: '10px' // override all padding-long-hand
@@ -78,19 +78,19 @@ These behaviors are complex even in normal CSS, so ESLint is effective for enfor
 </Step>
 
 <Step>
-## `css.use()` merge styles
+## `style.use()` merge styles
 
-Also, when `css.use()` has duplicate properties on its arguments, the style properties on the right always take precedence and duplicate properties on the left are filtered. In that case no filtered hash is generated.
+Also, when `style.use()` has duplicate properties on its arguments, the style properties on the right always take precedence and duplicate properties on the left are filtered. In that case no filtered hash is generated.
 
 ```js
-const styles = css.create({
+const styles = style.create({
   base: { fontSize: 10 },
   custom: { fontSize: 16 },
 });
 
 // The right always wins
-css.use(styles.base, styles.custom); // 16px
-css.use(styles.custom, styles.base); // 10px
+style.use(styles.base, styles.custom); // 16px
+style.use(styles.custom, styles.base); // 10px
 ```
 Generated as follows:
 ```css
