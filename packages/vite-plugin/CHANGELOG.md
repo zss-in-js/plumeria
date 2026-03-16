@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 9.0.3
+
+### Patch Changes
+
+- 5d754b3: chore: bump version to 9.0.3
+- Updated dependencies [5d754b3]
+  - @plumeria/utils@9.0.3
+
 ## 9.0.2
 
 ### Patch Changes
