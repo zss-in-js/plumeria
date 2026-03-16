@@ -26,8 +26,8 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./lib/css.d.ts",
-      "import": "./lib/css.js"
+      "types": "./lib/style.d.ts",
+      "import": "./lib/style.js"
     }
   },
   "files": [
