@@ -122,7 +122,7 @@ Atomic css is aggregated at build time into marked css files.
 ### Turbopack
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
-import { withPlumeria } from "@plumeria/next-plugin/turbopack"; // [!code ++]
+import { withPlumeria } from "@plumeria/next-plugin/turbopack";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -134,7 +134,7 @@ export default withPlumeria(nextConfig);
 ### Webpack
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
-import { withPlumeria } from "@plumeria/next-plugin"; // [!code ++]
+import { withPlumeria } from "@plumeria/next-plugin";
 
 const nextConfig: NextConfig = {
    /* turbopack: {} may be required */
@@ -175,7 +175,7 @@ That's all the settings.
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import { plumeria } from '@plumeria/vite-plugin'; // [!code ++]
+import { plumeria } from '@plumeria/vite-plugin';
 
 export default defineConfig({
   plugins: [react(), plumeria()],
