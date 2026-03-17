@@ -15,7 +15,7 @@ const styles = style.create({
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 600,
   },
 });
