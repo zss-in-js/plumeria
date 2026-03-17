@@ -17,7 +17,6 @@ const styles = style.create({
     alignItems: 'center',
     fontSize: 16,
     fontWeight: 600,
-    color: 'var(--plume-accent)',
   },
 });
 
