@@ -11,7 +11,9 @@ const styles = style.create({
     fontSize: 52,
     fontWeight: 600,
     lineHeight: 1.1,
-    color: 'var(--plume-accent)',
+    WebkitTextFillColor: 'transparent',
+    background: 'linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)',
+    backgroundClip: 'text',
     [breakpoints.md]: {
       fontSize: 32,
     },
