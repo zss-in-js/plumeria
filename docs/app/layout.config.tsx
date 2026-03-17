@@ -3,9 +3,10 @@ import * as style from '@plumeria/core';
 import Image from 'next/image';
 
 const styles = style.create({
-  text: {
+  flower: {
     position: 'relative',
-    right: 4,
+    bottom: 2,
+    left: 8,
   },
   logo: {
     position: 'relative',
@@ -14,6 +15,7 @@ const styles = style.create({
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
+    fontSize: 16,
     fontWeight: 600,
     color: 'var(--plume-accent)',
   },
@@ -24,11 +26,17 @@ export const baseOptions: BaseLayoutProps = {
   nav: {
     title: (
       <span className={style.use(styles.logo)}>
-        <Image src="/LP_LG.png" alt="Plumeria logo" loading="lazy" height={40} width={40} />
-        <span className={style.use(styles.text)}>Plumeria</span>
+        <Image
+          className={style.use(styles.flower)}
+          src="/LP_LG.png"
+          alt="Plumeria logo"
+          loading="lazy"
+          height={40}
+          width={40}
+        />
+        Plumeria
       </span>
     ),
-    transparentMode: 'top',
   },
 
   links: [
