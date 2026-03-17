@@ -1,5 +1,23 @@
 @plumeria;
 
+@media (min-width: 768px) {
+  #nd-subnav {
+    border-radius: 0 25px 25px 0;
+  }
+
+  #nd-subnav > div[data-header-body] {
+    border-radius: 0 25px 25px 0;
+  }
+}
+
+#nd-nav > div {
+  background: white;
+}
+
+.dark #nd-nav > div {
+  background: black;
+}
+
 /* CSS Custom Properties for Theme Awareness */
 :root {
   --plume-accent: #63a6bb;
@@ -33,27 +51,6 @@
   --text-secondary: #9a989f;
   --text-muted: #71717a;
   --text-main-header-line: #dfdfd6;
-}
-
-/* Global Dot Pattern Background */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background-image: radial-gradient(#d4d4d4 1px, transparent 1px);
-  background-size: 24px 24px;
-  mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-  pointer-events: none;
-}
-
-.dark body::before {
-  background-image: radial-gradient(#545454 1px, transparent 1px);
-  opacity: 0.5;
 }
 
 /* Body Styling */
