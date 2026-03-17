@@ -12,10 +12,22 @@
 
 #nd-nav > div {
   background: white;
+  border-bottom: 1.2px solid transparent;
 }
 
 .dark #nd-nav > div {
   background: black;
+  border-bottom: 1.2px solid transparent;
+}
+
+#nd-nav.is-scrolled > div {
+  transition-duration: 0.075s;
+  border-bottom: 1.2px solid #eaeaea;
+}
+
+.dark #nd-nav.is-scrolled > div {
+  transition-duration: 0.075s;
+  border-bottom: 1.2px solid #161616;
 }
 
 /* CSS Custom Properties for Theme Awareness */
