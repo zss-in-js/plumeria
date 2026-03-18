@@ -1,6 +1,7 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import * as style from '@plumeria/core';
 import Image from 'next/image';
+import { svg } from 'component/svg';
 
 const styles = style.create({
   flower: {
@@ -18,10 +19,13 @@ const styles = style.create({
     fontSize: 15,
     fontWeight: 600,
   },
+  github: {
+    position: 'relative',
+    right: 10,
+  },
 });
 
 export const baseOptions: BaseLayoutProps = {
-  githubUrl: 'https://github.com/zss-in-js/plumeria',
   nav: {
     title: (
       <span className={style.use(styles.logo)}>
@@ -40,6 +44,7 @@ export const baseOptions: BaseLayoutProps = {
 
   links: [
     {
+      icon: <Image src="/LP_LG.png" alt="Plumeria logo" loading="lazy" height={20} width={20} />,
       text: <span>Documentation</span>,
       url: '/docs',
     },
@@ -50,6 +55,14 @@ export const baseOptions: BaseLayoutProps = {
     {
       text: <span>Playground</span>,
       url: '/playground',
+    },
+    {
+      text: <span>{svg.Bluesky({ width: 21, height: 21 })}</span>,
+      url: 'https://bsky.app/profile/zss-in-js.bsky.social',
+    },
+    {
+      text: <span className={style.use(styles.github)}>{svg.Github({ width: 21, height: 21 })}</span>,
+      url: 'https://github.com/zss-in-js/plumeria',
     },
   ],
 };
