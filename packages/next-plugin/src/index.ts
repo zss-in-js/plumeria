@@ -3,23 +3,32 @@ import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
 import * as fs from 'fs';
 
+const PLACEHOLDER = '/** Placeholder file */\n';
+
 export function withPlumeria(nextConfig: NextConfig): NextConfig {
   const VIRTUAL_FILE_PATH =
     require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
 
-  /* istanbul ignore next */
+  const writeIfChanged = (path: string, content: string) => {
+    try {
+      const current = fs.readFileSync(path, 'utf-8');
+      if (current === content) return; // no-op if already correct
+    } catch {
+      // file doesn't exist yet, fall through to write
+    }
+    fs.writeFileSync(path, content, 'utf-8');
+  };
+
   if (process.env.NODE_ENV === 'development') {
-    const cleanup = () => {
-      fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
-    };
-
-    process.on('SIGINT', cleanup);
+    process.on('SIGINT', () => {
+      writeIfChanged(VIRTUAL_FILE_PATH, PLACEHOLDER);
+      process.exit(0); // <-- also add explicit exit, missing in original
+    });
   }
-  /* istanbul ignore next */
+
   if (process.env.NODE_ENV === 'production') {
-    fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
+    writeIfChanged(VIRTUAL_FILE_PATH, PLACEHOLDER);
   }
-
   const originalWebpack = nextConfig.webpack;
 
   return {
