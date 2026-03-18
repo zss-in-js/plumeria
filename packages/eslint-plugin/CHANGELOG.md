@@ -1,3 +1,9 @@
+## 9.0.4
+
+### Patch Changes
+
+- 97f8d00: chore: bump version to 9.0.4
+
 ## 9.0.3
 
 ### Patch Changes
