@@ -35,13 +35,34 @@ The core package is type definitions only. bundle and runtime is not includes.
 
 <Step>
 
-## Setup
+## ESLint Setup
+
+By implementing `ESLint`, you can automatically organize the order of CSS properties and format line breaks, creating a more efficient environment than manual maintenance.
+
 The plumerialint command installs [`@plumeria/eslint-plugin`](/docs/getting-started/editor-integration).   
+
+```ts
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import { defineConfig } from 'eslint/config';
+import { plumeria } from '@plumeria/eslint-plugin';
+
+export default defineConfig(
+  eslint.configs.recommended,
+  tseslint.configs.recommended,
+  plumeria.flatConfigs.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+  }
+);
+```
+
 `oxlint` is required to run the `plumerialint` command.  
 By running it in parallel with the build, errors are detected with zero runtime.
 ```sh
-pnpm i -D oxlint
+pnpm i -D oxlint rimraf
 ```
+
 For `Next`, we recommend running rimraf to clean up the cache to accommodate the differences between versions:
 <Tabs items={["Next.js", "Vite"]}>
 <Tab>
