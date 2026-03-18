@@ -69,4 +69,36 @@ export const svg = {
       </svg>
     );
   },
+
+  /*
+   * Author: Dave Gandy
+   * License: CC BY 4.0
+   */
+  Bluesky(props: React.SVGProps<SVGSVGElement>) {
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" width="576" height="512" viewBox="0 0 576 512" {...props}>
+        <title>Bluesky SVG Icon</title>
+        <path
+          fill="currentColor"
+          d="M407.8 294.7c-3.3-.4-6.7-.8-10-1.3c3.4.4 6.7.9 10 1.3M288 227.1c-26.1-50.7-97.1-145.2-163.1-191.8C61.6-9.4 37.5-1.7 21.6 5.5C3.3 13.8 0 41.9 0 58.4S9.1 194 15 213.9c19.5 65.7 89.1 87.9 153.2 80.7c3.3-.5 6.6-.9 10-1.4c-3.3.5-6.6 1-10 1.4c-93.9 14-177.3 48.2-67.9 169.9C220.6 589.1 265.1 437.8 288 361.1c22.9 76.7 49.2 222.5 185.6 103.4c102.4-103.4 28.1-156-65.8-169.9c-3.3-.4-6.7-.8-10-1.3c3.4.4 6.7.9 10 1.3c64.1 7.1 133.6-15.1 153.2-80.7C566.9 194 576 75 576 58.4s-3.3-44.7-21.6-52.9c-15.8-7.1-40-14.9-103.2 29.8C385.1 81.9 314.1 176.4 288 227.1"
+        ></path>
+      </svg>
+    );
+  },
+
+  /*
+   * Author: Dan Klammer
+   * License: MIT
+   */
+  Github(props: React.SVGProps<SVGSVGElement>) {
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" {...props}>
+        <title>Github SVG Icon</title>
+        <path
+          fill="currentColor"
+          d="M32 0C14 0 0 14 0 32c0 21 19 30 22 30c2 0 2-1 2-2v-5c-7 2-10-2-11-5c0 0 0-1-2-3c-1-1-5-3-1-3c3 0 5 4 5 4c3 4 7 3 9 2c0-2 2-4 2-4c-8-1-14-4-14-15c0-4 1-7 3-9c0 0-2-4 0-9c0 0 5 0 9 4c3-2 13-2 16 0c4-4 9-4 9-4c2 7 0 9 0 9c2 2 3 5 3 9c0 11-7 14-14 15c1 1 2 3 2 6v8c0 1 0 2 2 2c3 0 22-9 22-30C64 14 50 0 32 0"
+        ></path>
+      </svg>
+    );
+  },
 };
