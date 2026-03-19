@@ -20,8 +20,16 @@ const styles = style.create({
     fontWeight: 600,
   },
   github: {
-    position: 'relative',
-    right: 10,
+    '@media (min-width: 768px)': {
+      position: 'relative',
+      right: 10,
+    },
+  },
+  discord: {
+    '@media (min-width: 768px)': {
+      position: 'relative',
+      right: 20,
+    },
   },
 });
 
@@ -63,6 +71,10 @@ export const baseOptions: BaseLayoutProps = {
     {
       text: <span className={style.use(styles.github)}>{svg.Github({ width: 21, height: 21 })}</span>,
       url: 'https://github.com/zss-in-js/plumeria',
+    },
+    {
+      text: <span className={style.use(styles.discord)}>{svg.Discord({ width: 21, height: 21 })}</span>,
+      url: 'https://discord.gg/pKEBp4wYd8',
     },
   ],
 };
