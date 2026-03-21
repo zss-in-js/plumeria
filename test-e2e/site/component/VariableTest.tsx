@@ -1,4 +1,4 @@
-import css from '@plumeria/core';
+import style from '@plumeria/core';
 import { breakpoints } from './breakpoints';
 
 const LOCAL_COLOR = 'purple';
@@ -7,7 +7,7 @@ const SPACING = {
   medium: '8px',
 };
 
-const styles = css.create({
+const styles = style.create({
   container: {
     padding: SPACING.medium,
     color: LOCAL_COLOR,
@@ -23,7 +23,7 @@ export function VariableTest() {
       style={{ marginTop: '20px', border: '1px solid #ccc', padding: '10px' }}
     >
       <h3>Variable Resolution Test</h3>
-      <div data-testid="variable-div" className={css.props(styles.container)}>
+      <div data-testid="variable-div" className={style.use(styles.container)}>
         My styles are resolved from local and imported variables
       </div>
     </div>

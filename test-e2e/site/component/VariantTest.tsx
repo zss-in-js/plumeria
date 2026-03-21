@@ -1,6 +1,6 @@
-import css from '@plumeria/core';
+import style from '@plumeria/core';
 
-const styles = css.create({
+const styles = style.create({
   small: {
     fontSize: '12px',
   },
@@ -17,7 +17,7 @@ const styles = css.create({
     color: 'gray',
   },
 });
-const variants = css.variants({
+const variants = style.variants({
   size: {
     small: styles.small,
     medium: styles.medium,
@@ -37,13 +37,13 @@ export function VariantTest() {
       <h3>Variants Staticization Test</h3>
       <div
         data-testid="variant-div-1"
-        className={css.props(variants({ size: 'small', colorPick: 'primary' }))}
+        className={style.use(variants({ size: 'small', colorPick: 'primary' }))}
       >
         Small Primary Variant
       </div>
       <div
         data-testid="variant-div-2"
-        className={css.props(
+        className={style.use(
           variants({ size: 'large', colorPick: 'secondary' }),
         )}
       >
