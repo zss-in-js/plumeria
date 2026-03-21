@@ -33,7 +33,7 @@
 /* CSS Custom Properties for Theme Awareness */
 :root {
   --plume-accent: #63a6bb;
-  --card-bg: linear-gradient(135deg, rgba(252, 252, 252, 0.9) 0%, rgba(252, 252, 252, 0.03) 100%);
+  --card-bg: linear-gradient(135deg, rgba(245, 245, 245, 1) 0%, rgba(252, 252, 252, 0.03) 100%);
   --card-border: rgba(255, 255, 255, 0.5);
   --card-hover-border: rgba(255, 255, 255, 0.9);
   --card-cut-glass:
