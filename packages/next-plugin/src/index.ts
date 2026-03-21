@@ -10,28 +10,8 @@ export function withPlumeria(nextConfig: NextConfig): NextConfig {
     require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
 
   /* istanbul ignore next */
-  const writeIfChanged = (path: string, content: string) => {
-    try {
-      // no-op if already correct
-      const current = fs.readFileSync(path, 'utf-8');
-      if (current === content) return;
-    } catch {
-      // file doesn't exist yet, fall through to write
-    }
-    fs.writeFileSync(path, content, 'utf-8');
-  };
-
-  /* istanbul ignore next */
-  if (process.env.NODE_ENV === 'development') {
-    process.on('SIGINT', () => {
-      writeIfChanged(VIRTUAL_FILE_PATH, PLACEHOLDER);
-      process.exit(0);
-    });
-  }
-
-  /* istanbul ignore next */
   if (process.env.NODE_ENV === 'production') {
-    writeIfChanged(VIRTUAL_FILE_PATH, PLACEHOLDER);
+    fs.writeFileSync(VIRTUAL_FILE_PATH, PLACEHOLDER, 'utf-8');
   }
   const originalWebpack = nextConfig.webpack;
 
