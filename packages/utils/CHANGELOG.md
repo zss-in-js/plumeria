@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 9.1.0
+
+### Minor Changes
+
+- 8ae0f82: chore: bump version to 9.1.0
+
 ## 9.0.4
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 9.1.0
+
+### Minor Changes
+
+- 8ae0f82: fix: appendFileSync has been migrated to writeFileSync while maintaining HMR smoothly
+
+### Patch Changes
+
+- Updated dependencies [8ae0f82]
+  - @plumeria/utils@9.1.0
+
 ## 9.0.4
 
 ### Patch Changes
