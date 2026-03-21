@@ -1589,7 +1589,21 @@ export default async function loader(this: LoaderContext, source: string) {
   }
 
   if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-    fs.appendFileSync(VIRTUAL_FILE_PATH, optInCSS + '\n', 'utf-8');
+    const newCss = optInCSS + '\n';
+    let currentCss = '';
+    try {
+      currentCss = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
+    } catch (e) {
+      // File doesn't exist yet
+    }
+
+    if (!currentCss.includes(optInCSS)) {
+      if (currentCss) {
+        fs.writeFileSync(VIRTUAL_FILE_PATH, currentCss + newCss, 'utf-8');
+      } else {
+        fs.writeFileSync(VIRTUAL_FILE_PATH, newCss, 'utf-8');
+      }
+    }
   }
 
   return callback(null, transformedSource + postfix);
