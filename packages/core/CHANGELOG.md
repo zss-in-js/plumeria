@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 9.1.0
+
+### Minor Changes
+
+- 8ae0f82: fix: The naming has been corrected to avoid conflicts with TS built-in types, specifically CreateReturnType
+
 ## 9.0.4
 
 ### Patch Changes
