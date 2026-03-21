@@ -19,22 +19,11 @@ const styles = style.create({
     fontSize: 15,
     fontWeight: 600,
   },
-  github: {
-    '@media (min-width: 768px)': {
-      position: 'relative',
-      right: 10,
-    },
-  },
-  discord: {
-    '@media (min-width: 768px)': {
-      position: 'relative',
-      right: 20,
-    },
-  },
 });
 
 export const baseOptions: BaseLayoutProps = {
   nav: {
+    transparentMode: 'top',
     title: (
       <span className={style.use(styles.logo)}>
         <Image
@@ -52,27 +41,37 @@ export const baseOptions: BaseLayoutProps = {
 
   links: [
     {
-      text: <span>Documentation</span>,
+      text: 'Documentation',
       url: '/docs',
+      active: 'nested-url',
     },
     {
-      text: <span>Blog</span>,
+      text: 'Blog',
       url: '/blog',
     },
     {
-      text: <span>Playground</span>,
+      text: 'Playground',
       url: '/playground',
     },
     {
-      text: <span>{svg.Bluesky({ width: 21, height: 21 })}</span>,
+      type: 'icon',
+      label: 'Bluesky',
+      text: 'Bluesky',
+      icon: svg.Bluesky({ width: 21, height: 21 }),
       url: 'https://bsky.app/profile/zss-in-js.bsky.social',
     },
     {
-      text: <span className={style.use(styles.github)}>{svg.Github({ width: 21, height: 21 })}</span>,
+      type: 'icon',
+      label: 'GitHub',
+      text: 'GitHub',
+      icon: svg.Github({ width: 21, height: 21 }),
       url: 'https://github.com/zss-in-js/plumeria',
     },
     {
-      text: <span className={style.use(styles.discord)}>{svg.Discord({ width: 21, height: 21 })}</span>,
+      type: 'icon',
+      label: 'Discord',
+      text: 'Discord',
+      icon: svg.Discord({ width: 21, height: 21 }),
       url: 'https://discord.gg/pKEBp4wYd8',
     },
   ],
