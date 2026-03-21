@@ -1,5 +1,16 @@
 # @plumeria/next-plugin
 
+## 9.1.0
+
+### Minor Changes
+
+- 8ae0f82: fix: Infinite loading, HMR unresponsive
+
+### Patch Changes
+
+- Updated dependencies [8ae0f82]
+  - @plumeria/turbopack-loader@9.1.0
+
 ## 9.0.4
 
 ### Patch Changes
