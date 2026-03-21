@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "9.0.4",
-  "description": "An atomic CSS types designed to disappear.",
+  "description": "A styling system that disappears.",
   "author": "Refirst 11",
   "license": "MIT",
   "funding": "https://github.com/sponsors/refirst11",
@@ -15,12 +15,12 @@
     "url": "https://github.com/zss-in-js/plumeria/issues"
   },
   "keywords": [
-    "plumeria",
     "atomic-css",
-    "type-only",
-    "linaria",
+    "css-in-js",
+    "zero-runtime",
     "stylex",
-    "react-native-web"
+    "pigment-css",
+    "vanilla-extract"
   ],
   "sideEffects": false,
   "type": "module",
