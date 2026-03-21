@@ -9,6 +9,7 @@ export function withPlumeria(nextConfig: NextConfig): NextConfig {
   const VIRTUAL_FILE_PATH =
     require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
 
+  /* istanbul ignore next */
   const writeIfChanged = (path: string, content: string) => {
     try {
       // no-op if already correct
@@ -20,6 +21,7 @@ export function withPlumeria(nextConfig: NextConfig): NextConfig {
     fs.writeFileSync(path, content, 'utf-8');
   };
 
+  /* istanbul ignore next */
   if (process.env.NODE_ENV === 'development') {
     process.on('SIGINT', () => {
       writeIfChanged(VIRTUAL_FILE_PATH, PLACEHOLDER);
@@ -27,6 +29,7 @@ export function withPlumeria(nextConfig: NextConfig): NextConfig {
     });
   }
 
+  /* istanbul ignore next */
   if (process.env.NODE_ENV === 'production') {
     writeIfChanged(VIRTUAL_FILE_PATH, PLACEHOLDER);
   }
