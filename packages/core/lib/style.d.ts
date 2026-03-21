@@ -2,7 +2,7 @@
  * Type definitions only. No runtime implementation provided.  
  * Configure the bundler plugin to extract and implement these APIs.
  * ```ts
- * type create = <const T extends Record<string, CSSProperties>>(rule: CreateStyleType<T>)=> ReturnType<T>;
+ * type create = <const T extends Record<string, CSSProperties>>(rule: CreateStyleType<T>)=> CreateReturnType<T>;
  * type use = (...rules: (false | CSSProperties | null | undefined)[])=> string;
  * type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
  * type createStatic = <const T extends CreateStatic>(rule: T)=> T;
@@ -16,11 +16,11 @@
 declare module '@plumeria/core' {
   import type { 
     CreateStyleType,
+    CreateReturnType,
     CreateStatic,
     CreateTheme,
     Keyframes,
     ViewTransition,
-    ReturnType,
     ReturnVariableType,
     Variants,
     Marker,
@@ -30,7 +30,7 @@ declare module '@plumeria/core' {
   export type CSSProperties = import('./types').CSSProperties;
   export type CreateStyle = import('./types').CreateStyle;
 
-  export type create = <const T extends Record<string, CSSProperties>>(rule: CreateStyleType<T>)=> ReturnType<T>;
+  export type create = <const T extends Record<string, CSSProperties>>(rule: CreateStyleType<T>)=> CreateReturnType<T>;
   export type use = (...rules: (false | CSSProperties | null | undefined)[])=> string;
   export type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
   export type createStatic = <const T extends CreateStatic>(rule: T)=> T;
