@@ -117,7 +117,7 @@ type CreateStyle = {
   [key: string]: CSSProperties;
 };
 
-type ReturnType<T> = {
+type CreateReturnType<T> = {
   [K in keyof T]: Readonly<{
     [P in keyof T[K]]: T[K][P];
   }>;
@@ -154,11 +154,11 @@ export type {
   CSSProperties,
   CreateStyle,
   CreateStyleType,
+  CreateReturnType,
   CreateStatic,
   CreateTheme,
   Keyframes,
   ViewTransition,
-  ReturnType,
   ReturnVariableType,
   Variants,
   Marker,
