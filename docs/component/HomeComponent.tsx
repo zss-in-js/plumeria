@@ -14,6 +14,7 @@ const styles = style.create({
     zIndex: 1,
     display: 'flex',
     flexDirection: 'column',
+    gap: 20,
     alignItems: 'center',
     width: '100%',
     maxWidth: '1280px',
@@ -38,7 +39,6 @@ const styles = style.create({
       gap: 40,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: '80px',
       textAlign: 'center',
     },
   },
@@ -49,7 +49,7 @@ const styles = style.create({
     alignItems: 'flex-start',
     maxWidth: '680px',
     [breakpoints.md]: {
-      alignItems: 'center', // Center on mobile
+      alignItems: 'center',
       width: '100%',
     },
   },
@@ -58,14 +58,14 @@ const styles = style.create({
     position: 'relative',
     zIndex: 1,
     marginBottom: 12,
-    fontSize: 47,
+    fontSize: 51.2,
     fontWeight: 600,
     lineHeight: 1,
     color: 'var(--text-main-header-line)',
     textAlign: 'left',
     [breakpoints.md]: {
-      marginBottom: '16px',
-      fontSize: 28,
+      marginBottom: 8,
+      fontSize: 32,
       textAlign: 'center',
     },
   },
@@ -74,8 +74,7 @@ const styles = style.create({
     position: 'relative',
     zIndex: 1,
     maxWidth: '600px',
-    marginBottom: 32,
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 420,
     lineHeight: 1.6,
     color: 'var(--text-secondary)',
@@ -83,8 +82,7 @@ const styles = style.create({
     letterSpacing: '0.026em',
     [breakpoints.md]: {
       maxWidth: '90%',
-      marginBottom: '32px',
-      fontSize: 14,
+      fontSize: 18,
       textAlign: 'center',
       textWrap: 'balance',
     },
@@ -106,6 +104,8 @@ const styles = style.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 20,
+    paddingTop: 32,
+    paddingBottom: 20,
     [breakpoints.md]: {
       flexDirection: 'row', // Change to row for mobile
       gap: 12, // Slightly smaller gap for mobile
@@ -176,12 +176,9 @@ const demoCode = `const styles = style.create({
     position: 'relative',
     padding: '24px',
     background: 'var(--card-bg)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    border: '1px solid var(--card-border)',
     borderRadius: '16px',
     boxShadow: 'var(--card-shadow), var(--card-cut-glass)',
-    transition: 'all 0.3s ease',
+    transition: 'border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
     [pseudos.hover]: {
       borderColor: 'var(--card-hover-border)',
       transform: 'translateY(-2px)',
@@ -200,12 +197,10 @@ export const HomeComponent = () => {
           <div className={style.use(styles.heroContent, styles.codeSection)}>
             <h2 className={style.use(styles.mainHeadline)}>
               <Plumeria />
-              Atomic CSS-in-JS
+              Styling System
             </h2>
-            <p className={style.use(styles.subHeadline)}>
-              Zero-runtime overhead・Type-safe <br />
-              Build-time only・High performance
-            </p>
+            <h2 className={style.use(styles.mainHeadline)}>That Disappears</h2>
+            <p className={style.use(styles.subHeadline)}>Predictable · Composable · Fast</p>
             <div className={style.use(styles.buttonGroup)}>
               <ButtonLink href="/docs" variant="getstarted">
                 Get Started
@@ -234,16 +229,15 @@ export const HomeComponent = () => {
             <div className={style.use(styles.featureIcon)}>{svg.Feather()}</div>
             <h3 className={style.use(styles.featureTitle)}>Lightweight</h3>
             <p className={style.use(styles.featureDescription)}>
-              min + brotli 1 byte. <br /> Before compression 0 byte.
+              0 bytes before compression.
+              <br />1 byte minified with brotli.
             </p>
           </div>
 
           <div className={style.use(styles.featureCard)}>
             <div className={style.use(styles.featureIcon)}>⚡</div>
             <h3 className={style.use(styles.featureTitle)}>Build-time Compilation</h3>
-            <p className={style.use(styles.featureDescription)}>
-              Eliminate styles compile to class names at built time.
-            </p>
+            <p className={style.use(styles.featureDescription)}>Styles compile to atomic class names at build time.</p>
           </div>
 
           <div className={style.use(styles.featureCard)}>
