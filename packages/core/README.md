@@ -1,6 +1,6 @@
 # @plumeria/core
 
-An atomic CSS types designed to disappear.
+A styling system that disappears.
 
 ```ts
 import * as style from '@plumeria/core';
