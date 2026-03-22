@@ -10,7 +10,7 @@ export type createStatic = <const T extends CreateStatic>(rule: T)=> T;
 export const createStatic: createStatic;
 ```
 
-`createStatic` defines **static values** that can be used inside `create` or `createTheme` for conditions like media queries or other static references.
+`createStatic` defines **static values** and inlines them at build time. These can be used inside `create` or `createTheme` for conditions like media queries or other static references.
 
 ## Example
 
