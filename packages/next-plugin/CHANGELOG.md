@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 9.1.1
+
+### Patch Changes
+
+- 078f8ed: fix: update nextjs dev dependencies
+- Updated dependencies [078f8ed]
+  - @plumeria/turbopack-loader@9.1.1
+
 ## 9.1.0
 
 ### Minor Changes

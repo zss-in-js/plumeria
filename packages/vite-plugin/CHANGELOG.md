@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 9.1.1
+
+### Patch Changes
+
+- 078f8ed: chore: bump version to 9.1.1
+- Updated dependencies [078f8ed]
+  - @plumeria/utils@9.1.1
+
 ## 9.1.0
 
 ### Minor Changes
