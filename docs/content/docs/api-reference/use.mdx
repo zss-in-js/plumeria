@@ -8,7 +8,8 @@ export type use = (...rules: (false | CSSProperties | null | undefined)[])=> str
 export const use: use;
 ```
 
-The `use()` returns style object as hashed classes together while **filtering out falsy values** like **undefined**, **false**, or **null**. It is useful when conditionally combining styles.
+`use()` returns style object as hashed classes together while **filtering out falsy values** like **undefined**, **false**, or **null**. It is useful when conditionally combining styles.
+It follows a last-wins rule — if duplicate properties exist, the rightmost argument takes precedence and duplicate hashes are not generated.
 
 ## Example
 ```ts title="TypeScript"
@@ -59,21 +60,12 @@ const className = style.use(
 ---
 
 ## Return value
-Returns a single hashes `string` of space-separated styleObject, ignoring falsy inputs:
+Returns a hashed `string` of space-separated styleObject, ignoring falsy inputs:
 
 ```ts
 style.use(styles.one, false, undefined, styles.two);
 ```
 
-
-## See Also
-
 <Callout title="Good to know">
   use(), like all APIs, have no runtime. They are controlled at build time by plugins, so functions themselves are replaced by hashes.
 </Callout>
-
-### More
-
-<Cards>
-  <Card title="See more about create" href="/docs/api-reference/create" />
-</Cards>
