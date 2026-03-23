@@ -1,3 +1,9 @@
+## 9.1.2
+
+### Patch Changes
+
+- ca447f0: Update dependencies (zss-engine, @rust-gear/glob)
+
 ## 9.1.1
 
 ### Patch Changes

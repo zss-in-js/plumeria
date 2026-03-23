@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 9.1.2
+
+### Patch Changes
+
+- ca447f0: Update dependencies (zss-engine, @rust-gear/glob)
+- Updated dependencies [ca447f0]
+  - @plumeria/turbopack-loader@9.1.2
+
 ## 9.1.1
 
 ### Patch Changes
