@@ -4,7 +4,7 @@ import { noUnusedKeys } from '../../src/rules/no-unused-keys';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-unused-keys', noUnusedKeys as unknown as JSRuleDefinition, {
+ruleTester.run('no-unused-keys', noUnusedKeys as JSRuleDefinition, {
   valid: [
     {
       code: 'const styles = { key: {} };',
