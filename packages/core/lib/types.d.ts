@@ -113,14 +113,18 @@ type CreateStyleType<T> = {
   readonly [K in keyof T]: T[K] extends CSSProperties ? CSSProperties : T[K];
 };
 
-type CreateStyle = {
-  [key: string]: CSSProperties;
+type CreateReturnType<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => infer R
+    ? (...args: A) => Readonly<{ [P in keyof R]: R[P] }>
+    : Readonly<{ [P in keyof T[K]]: T[K][P] }>;
 };
 
-type CreateReturnType<T> = {
-  [K in keyof T]: Readonly<{
-    [P in keyof T[K]]: T[K][P];
-  }>;
+type CreateStyleValue = CSSProperties | ((...args: never) => CSSProperties)
+
+type StyleName = CSSProperties | (false | CSSProperties | null | undefined)[];
+
+type CreateStyle = {
+  [key: string]: CSSProperties;
 };
 
 type CreateStatic = Record<string, string | number>;
@@ -152,7 +156,9 @@ type Extended<I extends string, P extends string> = `@container style(--${I}-${S
 
 export type {
   CSSProperties,
+  StyleName,
   CreateStyle,
+  CreateStyleValue,
   CreateStyleType,
   CreateReturnType,
   CreateStatic,
