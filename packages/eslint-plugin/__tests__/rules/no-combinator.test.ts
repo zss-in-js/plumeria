@@ -4,7 +4,7 @@ import { noCombinator } from '../../src/rules/no-combinator';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-combinator', noCombinator as unknown as JSRuleDefinition, {
+ruleTester.run('no-combinator', noCombinator as JSRuleDefinition, {
   valid: [
     {
       code: `import * as css from '@plumeria/core'; css.create({ container: { ':has(> div)': { color: 'red' } } })`,
