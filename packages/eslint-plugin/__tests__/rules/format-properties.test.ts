@@ -8,82 +8,79 @@ const ruleTester = new RuleTester({
   },
 });
 
-ruleTester.run(
-  'format-properties',
-  formatProperties as unknown as JSRuleDefinition,
-  {
-    valid: [
-      {
-        code: `const styles = {
+ruleTester.run('format-properties', formatProperties as JSRuleDefinition, {
+  valid: [
+    {
+      code: `const styles = {
   testKey: {
     fontSize: 24
   }
 };`,
-      },
-      {
-        code: `const styles = {
+    },
+    {
+      code: `const styles = {
   testKey: {
     fontSize: 24,
     display: 'flex'
   }
 };`,
-      },
-      {
-        code: `const styles = { empty: {} };`,
-      },
-      {
-        code: `const styles = {
+    },
+    {
+      code: `const styles = { empty: {} };`,
+    },
+    {
+      code: `const styles = {
   testKey: {
     fontSize: 24,
     // display: 'flex',
     textAlign: 'center',
   }
 };`,
-      },
-      {
-        code: `const styles = {
+    },
+    {
+      code: `const styles = {
   testKey: {
     fontSize: 24,
     /* display: 'flex', */
     textAlign: 'center',
   }
 };`,
-      },
-    ],
-    invalid: [
-      {
-        code: `const styles = {
+    },
+  ],
+  invalid: [
+    {
+      code: `const styles = {
   testKey: { fontSize: 24 }
 };`,
-        errors: [
-          {
-            messageId: 'mustBeMultiline',
-          },
-        ],
-        output: `const styles = {
+      errors: [
+        {
+          messageId: 'mustBeMultiline',
+        },
+      ],
+      output: `const styles = {
   testKey: {
     fontSize: 24
   }
 };`,
-      },
-      {
-        code: `const styles = {
+    },
+    {
+      code: `const styles = {
   testKey: { fontSize: 24, display: 'flex' }
 };`,
-        errors: [
-          {
-            messageId: 'mustBeMultiline',
-          },
-        ],
-        output: `const styles = {
+      errors: [
+        {
+          messageId: 'mustBeMultiline',
+        },
+      ],
+      output: `const styles = {
   testKey: {
     fontSize: 24,
     display: 'flex'
   }
 };`,
-      },
-      {
-        code: `const styles = {
+    },
+    {
+      code: `const styles = {
   testKey: {
     fontSize: 24,
 
@@ -92,15 +89,14 @@ ruleTester.run(
     textAlign: 'center',
   }
 };`,
-        errors: [{ messageId: 'noEmptyLines' }, { messageId: 'noEmptyLines' }],
-        output: `const styles = {
+      errors: [{ messageId: 'noEmptyLines' }, { messageId: 'noEmptyLines' }],
+      output: `const styles = {
   testKey: {
     fontSize: 24,
     display: 'flex',
     textAlign: 'center',
   }
 };`,
-      },
-    ],
-  },
-);
+    },
+  ],
+});
