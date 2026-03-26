@@ -1,6 +1,6 @@
-import style from '@plumeria/core';
+import * as css from '@plumeria/core';
 
-const styles = style.create({
+const styles = css.create({
   test_server: {
     color: 'green',
   },
@@ -8,7 +8,7 @@ const styles = style.create({
 
 export const ServerComponent = () => {
   return (
-    <p className={style.use(styles.test_server)} data-testid="e2e-test-p">
+    <p styleName={styles.test_server} data-testid="e2e-test-p">
       ServerComponent
     </p>
   );
