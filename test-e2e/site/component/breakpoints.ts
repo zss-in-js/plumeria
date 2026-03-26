@@ -1,5 +1,5 @@
-import style from '@plumeria/core';
+import * as css from '@plumeria/core';
 
-export const breakpoints = style.createStatic({
+export const breakpoints = css.createStatic({
   lg: '@media (max-width: 1024px)',
 });
