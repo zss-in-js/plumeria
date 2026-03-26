@@ -5,6 +5,7 @@ import { noUnusedKeys } from './rules/no-unused-keys';
 import { sortProperties } from './rules/sort-properties';
 import { formatProperties } from './rules/format-properties';
 import { validateValues } from './rules/validate-values';
+import { styleNameRequiresImport } from './rules/style-name-requires-import';
 import type { ESLint, Linter, Rule } from 'eslint';
 
 type PlumeriaPlugin = ESLint.Plugin & {
@@ -18,6 +19,7 @@ type PlumeriaPlugin = ESLint.Plugin & {
 };
 
 const rules: Record<string, Rule.RuleModule> = {
+  'style-name-requires-import': styleNameRequiresImport,
   'no-combinator': noCombinator,
   'no-destructure': noDestructure,
   'no-inner-call': noInnerCall,
@@ -31,6 +33,7 @@ const configs: PlumeriaPlugin['configs'] = {
   recommended: {
     plugins: ['@plumeria'],
     rules: {
+      '@plumeria/style-name-requires-import': 'error',
       '@plumeria/no-combinator': 'error',
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inner-call': 'error',
@@ -49,6 +52,7 @@ const flatConfigs: PlumeriaPlugin['flatConfigs'] = {
       },
     },
     rules: {
+      '@plumeria/style-name-requires-import': 'error',
       '@plumeria/no-combinator': 'error',
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inner-call': 'error',
