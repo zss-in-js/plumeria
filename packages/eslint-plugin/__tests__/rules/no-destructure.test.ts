@@ -4,7 +4,7 @@ import { noDestructure } from '../../src/rules/no-destructure';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-destructure', noDestructure as unknown as JSRuleDefinition, {
+ruleTester.run('no-destructure', noDestructure as JSRuleDefinition, {
   valid: [
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({})`,
