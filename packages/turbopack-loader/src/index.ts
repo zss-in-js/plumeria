@@ -9,7 +9,7 @@ import type {
 } from '@swc/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { genBase36Hash } from 'zss-engine';
+import { applyCssValue, genBase36Hash } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 
 import {
@@ -269,7 +269,11 @@ export default async function loader(this: LoaderContext, source: string) {
     }
   };
 
-  const registerStyle = (node: any, declSpan: any, isExported: boolean) => {
+  const registerStyle = (
+    node: any,
+    declSpan: { start: number; end: number },
+    isExported: boolean,
+  ) => {
     let propName: string | undefined;
 
     if (
@@ -322,6 +326,7 @@ export default async function loader(this: LoaderContext, source: string) {
         if (obj) {
           const hashMap: Record<string, Record<string, string>> = {};
           Object.entries(obj).forEach(([key, style]) => {
+            if (typeof style !== 'object' || style === null) return;
             const records = getStyleRecords(style as CSSProperties);
             if (!isProduction) {
               extractOndemandStyles(style, extractedSheets, scannedTables);
@@ -331,6 +336,92 @@ export default async function loader(this: LoaderContext, source: string) {
             }
             const atomMap: Record<string, string> = {};
             records.forEach((r) => (atomMap[r.key] = r.hash));
+            hashMap[key] = atomMap;
+          });
+
+          // Detect function properties directly from the AST
+          const objExpr = node.init.arguments[0].expression as ObjectExpression;
+          objExpr.properties.forEach((prop: any) => {
+            if (
+              prop.type !== 'KeyValueProperty' ||
+              prop.key.type !== 'Identifier'
+            )
+              return;
+
+            const isArrow = prop.value.type === 'ArrowFunctionExpression';
+            const isFunc = prop.value.type === 'FunctionExpression';
+            if (!isArrow && !isFunc) return;
+
+            const key = prop.key.value;
+            const params: string[] = prop.value.params.map((p: any) =>
+              p.type === 'Identifier' ? p.value : (p.pat?.value ?? 'arg'),
+            );
+
+            interface CssVarMappings {
+              [paramName: string]: {
+                cssVar: string;
+                propKey: string;
+              };
+            }
+
+            const cssVarInfo: CssVarMappings = {};
+
+            // Parse the function body object (replace arguments with var(--xxx))
+            const tempStaticTable = { ...mergedStaticTable };
+            const substitutedArgs = params.map((paramName) => {
+              const cssVar = `--${key}-${paramName}`;
+              cssVarInfo[paramName] = { cssVar, propKey: '' };
+              return `var(${cssVar})`;
+            });
+            params.forEach((paramName, i) => {
+              tempStaticTable[paramName] = substitutedArgs[i];
+            });
+
+            let actualBody = prop.value.body;
+            if (actualBody?.type === 'ParenthesisExpression')
+              actualBody = actualBody.expression;
+            if (actualBody?.type === 'BlockStatement') {
+              const first = actualBody.stmts?.[0];
+              if (first?.type === 'ReturnStatement')
+                actualBody = first.argument;
+              if (actualBody?.type === 'ParenthesisExpression')
+                actualBody = actualBody.expression;
+            }
+            if (!actualBody || actualBody.type !== 'ObjectExpression') return;
+
+            const substituted = objectExpressionToObject(
+              actualBody,
+              tempStaticTable,
+              mergedKeyframesTable,
+              mergedViewTransitionTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
+              mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
+              mergedVariantsTable,
+            );
+
+            if (!substituted) return;
+
+            for (const [, info] of Object.entries(cssVarInfo)) {
+              const cssVar = info.cssVar;
+              const propKey = Object.keys(substituted).find(
+                (k) =>
+                  typeof substituted[k] === 'string' &&
+                  substituted[k].includes(cssVar),
+              );
+              if (propKey) {
+                info.propKey = propKey;
+              }
+            }
+
+            const records = getStyleRecords(substituted as CSSProperties);
+            records.forEach((r: StyleRecord) => addSheet(r.sheet));
+
+            const atomMap: Record<string, string> = {};
+            records.forEach((r) => (atomMap[r.key] = r.hash));
+            atomMap['__cssVars__'] = JSON.stringify(cssVarInfo);
             hashMap[key] = atomMap;
           });
 
@@ -606,8 +697,13 @@ export default async function loader(this: LoaderContext, source: string) {
     },
   });
 
+  const jsxOpeningElementMap = new Map<number, any[]>();
+
   // Pass 2: Confirm reference replacement
   traverse(ast, {
+    JSXOpeningElement({ node }) {
+      jsxOpeningElementMap.set(node.span.start, node.attributes);
+    },
     MemberExpression({ node }) {
       if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
         const varName = node.object.value;
@@ -632,7 +728,7 @@ export default async function loader(this: LoaderContext, source: string) {
             replacements.push({
               start: node.span.start - baseByteOffset,
               end: node.span.end - baseByteOffset,
-              content: JSON.stringify(atomMap),
+              content: `(${JSON.stringify(atomMap)})`,
             });
           }
         }
@@ -650,7 +746,7 @@ export default async function loader(this: LoaderContext, source: string) {
             replacements.push({
               start: node.span.start - baseByteOffset,
               end: node.span.end - baseByteOffset,
-              content: JSON.stringify(atomicMap[propName]),
+              content: `(${JSON.stringify(atomicMap[propName])})`,
             });
           }
         }
@@ -667,7 +763,7 @@ export default async function loader(this: LoaderContext, source: string) {
             replacements.push({
               start: node.span.start - baseByteOffset,
               end: node.span.end - baseByteOffset,
-              content: JSON.stringify(staticObj[propName]),
+              content: `(${JSON.stringify(staticObj[propName])})`,
             });
           }
         }
@@ -682,7 +778,7 @@ export default async function loader(this: LoaderContext, source: string) {
         replacements.push({
           start: node.span.start - baseByteOffset,
           end: node.span.end - baseByteOffset,
-          content: JSON.stringify(styleInfo.hashMap),
+          content: `(${JSON.stringify(styleInfo.hashMap)})`,
         });
         return;
       }
@@ -711,7 +807,7 @@ export default async function loader(this: LoaderContext, source: string) {
           replacements.push({
             start: node.span.start - baseByteOffset,
             end: node.span.end - baseByteOffset,
-            content: JSON.stringify(hashMap),
+            content: `(${JSON.stringify(hashMap)})`,
           });
         }
       }
@@ -729,7 +825,7 @@ export default async function loader(this: LoaderContext, source: string) {
           replacements.push({
             start: node.span.start - baseByteOffset,
             end: node.span.end - baseByteOffset,
-            content: JSON.stringify(atomicMap),
+            content: `(${JSON.stringify(atomicMap)})`,
           });
           return;
         }
@@ -747,7 +843,7 @@ export default async function loader(this: LoaderContext, source: string) {
           replacements.push({
             start: node.span.start - baseByteOffset,
             end: node.span.end - baseByteOffset,
-            content: JSON.stringify(staticObj),
+            content: `(${JSON.stringify(staticObj)})`,
           });
         }
       }
@@ -756,19 +852,30 @@ export default async function loader(this: LoaderContext, source: string) {
       if (node.name.type !== 'Identifier' || node.name.value !== 'styleName')
         return;
 
-      if (
-        !node.value ||
-        node.value.type !== 'JSXExpressionContainer' ||
-        node.value.expression.type !== 'ArrayExpression'
-      )
-        return;
+      if (!node.value || node.value.type !== 'JSXExpressionContainer') return;
 
-      const args = node.value.expression.elements
-        .filter(Boolean)
-        .map((el: any) => ({ expression: el.expression ?? el }));
+      const expr = node.value.expression;
+      const args =
+        expr.type === 'ArrayExpression'
+          ? expr.elements
+              .filter(Boolean)
+              .map((el: any) => ({ expression: el.expression ?? el }))
+          : [{ expression: expr }];
 
-      const openingElement = (node as any).parent;
-      const classNameAttr = openingElement?.attributes?.find(
+      // Collect dynamic styles (styles.text(state) format)
+      const dynamicClassParts: string[] = [];
+      const dynamicStyleParts: string[] = [];
+
+      let attributes: any[] = [];
+      for (const [, attrs] of jsxOpeningElementMap) {
+        const found = attrs.find((a: any) => a.span?.start === node.span.start);
+        if (found) {
+          attributes = attrs;
+          break;
+        }
+      }
+
+      const classNameAttr = attributes.find(
         (attr: any) => attr.name?.value === 'className',
       );
       let existingClass = '';
@@ -779,6 +886,29 @@ export default async function loader(this: LoaderContext, source: string) {
           end: classNameAttr.span.end - baseByteOffset,
           content: '',
         });
+      }
+
+      const styleAttrExisting = attributes.find(
+        (attr: any) => attr.name?.value === 'style',
+      );
+      if (styleAttrExisting) {
+        replacements.push({
+          start: styleAttrExisting.span.start - baseByteOffset,
+          end: styleAttrExisting.span.end - baseByteOffset,
+          content: '',
+        });
+        // Extract the contents of existing style attributes from the source and place them in dynamicStyleParts
+        const innerExpr = styleAttrExisting.value?.expression;
+        if (innerExpr?.type === 'ObjectExpression') {
+          const start = innerExpr.span.start - baseByteOffset;
+          const end = innerExpr.span.end - baseByteOffset;
+          const innerSource = sourceBuffer
+            .subarray(start, end)
+            .toString('utf-8');
+          // { color: 'red' } → Extract color: 'red'
+          const stripped = innerSource.slice(1, -1).trim();
+          if (stripped) dynamicStyleParts.push(stripped);
+        }
       }
 
       const resolveStyleObject = (
@@ -804,7 +934,6 @@ export default async function loader(this: LoaderContext, source: string) {
             (expr as any).property.type === 'Computed')
         ) {
           if ((expr as any).property.type === 'Computed') {
-            // Ignore bracket notation for complete staticization
             return {};
           }
           const varName = ((expr as any).object as Identifier).value;
@@ -830,7 +959,7 @@ export default async function loader(this: LoaderContext, source: string) {
           }
         } else if (t.isIdentifier(expr)) {
           const varName = (expr as Identifier).value;
-          const uniqueKey = `${this.resourcePath}-${varName}`;
+          const uniqueKey = `${resourcePath}-${varName}`;
 
           let hash = scannedTables.createHashTable[uniqueKey];
           if (!hash) {
@@ -873,17 +1002,136 @@ export default async function loader(this: LoaderContext, source: string) {
       }> = [];
 
       let groupIdCounter = 0;
-
       let baseStyle: Record<string, any> = {};
       let isOptimizable = true;
 
       for (const arg of args) {
         const expr = arg.expression;
 
+        // Detects the dynamic style of styles.text(state)
+        if (
+          t.isCallExpression(expr) &&
+          t.isMemberExpression((expr as any).callee)
+        ) {
+          const callee = (expr as any).callee;
+          if (
+            t.isIdentifier(callee.object) &&
+            t.isIdentifier(callee.property)
+          ) {
+            const varName = callee.object.value;
+            const propKey = callee.property.value;
+            const styleInfo = localCreateStyles[varName];
+            const atomMap = styleInfo?.hashMap?.[propKey];
+
+            if (atomMap?.['__cssVars__']) {
+              const cssVarInfo: Record<
+                string,
+                { cssVar: string; propKey: string }
+              > = JSON.parse(atomMap['__cssVars__']);
+              const hashes = Object.entries(atomMap)
+                .filter(([k]) => k !== '__cssVars__')
+                .map(([, v]) => v)
+                .join(' ');
+
+              if (hashes) dynamicClassParts.push(JSON.stringify(hashes));
+
+              // 引数を処理
+              const args = (expr as any).arguments;
+              Object.entries(cssVarInfo).forEach(
+                ([_, { cssVar, propKey: targetProp }], i) => {
+                  const callArg = args[i];
+                  if (!callArg) return;
+
+                  const argStart =
+                    callArg.expression.span.start - baseByteOffset;
+                  const argEnd = callArg.expression.span.end - baseByteOffset;
+                  const argSource = sourceBuffer
+                    .subarray(argStart, argEnd)
+                    .toString('utf-8');
+
+                  // Evaluate statically if possible
+                  let valueExpr: string;
+                  try {
+                    // Only evaluate literals (for safety reasons).
+                    const maybeNumber = Number(argSource);
+                    if (
+                      !isNaN(maybeNumber) &&
+                      argSource.trim() === String(maybeNumber)
+                    ) {
+                      // Number literal
+                      const processed = applyCssValue(maybeNumber, targetProp);
+                      valueExpr = JSON.stringify(processed);
+                    } else if (
+                      argSource.startsWith('"') &&
+                      argSource.endsWith('"')
+                    ) {
+                      // String literal
+                      const processed = applyCssValue(
+                        argSource.slice(1, -1),
+                        targetProp,
+                      );
+                      valueExpr = JSON.stringify(processed);
+                    } else {
+                      // A lightweight check is added to append "px" if the value is a number
+                      const exception = [
+                        'animationIterationCount',
+                        'aspectRatio',
+                        'columnCount',
+                        'columns',
+                        'fillOpacity',
+                        'flex',
+                        'flexGrow',
+                        'flexShrink',
+                        'floodOpacity',
+                        'fontSizeAdjust',
+                        'fontWeight',
+                        'gridColumn',
+                        'gridColumnEnd',
+                        'gridColumnStart',
+                        'gridRow',
+                        'gridRowEnd',
+                        'gridRowStart',
+                        'hyphenateLimitChars',
+                        'initialLetter',
+                        'lineHeight',
+                        'mathDepth',
+                        'opacity',
+                        'order',
+                        'orphans',
+                        'scale',
+                        'shapeImageThreshold',
+                        'stopOpacity',
+                        'strokeMiterlimit',
+                        'strokeOpacity',
+                        'tabSize',
+                        'widows',
+                        'zIndex',
+                        'zoom',
+                      ];
+
+                      if (!exception.includes(targetProp)) {
+                        valueExpr = `(typeof ${argSource} === 'number' ? ${argSource} + 'px' : ${argSource})`;
+                      } else {
+                        valueExpr = argSource;
+                      }
+                    }
+                  } catch {
+                    valueExpr = argSource;
+                  }
+
+                  dynamicStyleParts.push(`"${cssVar}": ${valueExpr}`);
+                },
+              );
+
+              continue;
+            }
+          }
+        }
+
         if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
           const varName = expr.callee.value;
           let variantObj: Record<string, any> | undefined;
-          const uniqueKey = `${this.resourcePath}-${varName}`;
+          const uniqueKey = `${resourcePath}-${varName}`;
 
           let hash = scannedTables.variantsHashTable[uniqueKey];
           if (!hash) {
@@ -932,7 +1180,6 @@ export default async function loader(this: LoaderContext, source: string) {
                       .subarray(valStart, valEnd)
                       .toString('utf-8');
 
-                    // Static optimization
                     if (valExpr.type === 'StringLiteral') {
                       if (groupVariants[valExpr.value]) {
                         baseStyle = deepMerge(
@@ -943,7 +1190,6 @@ export default async function loader(this: LoaderContext, source: string) {
                       continue;
                     }
 
-                    // Dynamic selection
                     Object.entries(
                       groupVariants as Record<string, any>,
                     ).forEach(([optionName, style]) => {
@@ -985,7 +1231,7 @@ export default async function loader(this: LoaderContext, source: string) {
                   truthy: style,
                   falsy: {},
                   groupId: currentGroupId,
-                  groupName: undefined, // fallback if needed
+                  groupName: undefined,
                   valueName: key,
                   varName,
                 });
@@ -993,14 +1239,13 @@ export default async function loader(this: LoaderContext, source: string) {
               continue;
             }
 
-            // Fallback if arguments are complex (e.g. spread)
             isOptimizable = false;
             break;
           }
         } else if (t.isIdentifier(expr)) {
           const varName = expr.value;
           let variantObj: Record<string, any> | undefined;
-          const uniqueKey = `${this.resourcePath}-${varName}`;
+          const uniqueKey = `${resourcePath}-${varName}`;
 
           let hash = scannedTables.variantsHashTable[uniqueKey];
           if (!hash) {
@@ -1018,15 +1263,12 @@ export default async function loader(this: LoaderContext, source: string) {
           }
 
           if (variantObj) {
-            // Variant Identifier passed directly
             Object.entries(variantObj).forEach(([groupName, groupVariants]) => {
               if (!groupVariants) return;
               const currentGroupId = ++groupIdCounter;
-              // If variantObj has direct keys as groups (standard structure for css.variants)
-              // Iterate options
               Object.entries(groupVariants).forEach(([optionName, style]) => {
                 conditionals.push({
-                  test: expr, // Proxy
+                  test: expr,
                   testLHS: `props["${groupName}"]`,
                   testString: `props["${groupName}"] === '${optionName}'`,
                   truthy: style as Record<string, any>,
@@ -1042,33 +1284,28 @@ export default async function loader(this: LoaderContext, source: string) {
           }
         }
 
-        // Helper to retrieve source code for a node
         const getSource = (node: any) => {
           const start = node.span.start - baseByteOffset;
           const end = node.span.end - baseByteOffset;
           return sourceBuffer.subarray(start, end).toString('utf-8');
         };
 
-        // Recursive function to flatten nested conditions
         const collectConditions = (
           node: Expression,
           currentTestStrings: string[] = [],
         ) => {
           const staticStyle = resolveStyleObject(node);
           if (staticStyle) {
-            // If we reached a static leaf (or resolved object), merge it into baseStyle
-            // only if we are at the top level (no current conditions).
-            // If we are deep in a condition, we must push it as a conditional with the current accumulated test.
             if (currentTestStrings.length === 0) {
               baseStyle = deepMerge(baseStyle, staticStyle);
             } else {
               const combinedTest = currentTestStrings.join(' && ');
               conditionals.push({
-                test: node, // Placeholder
+                test: node,
                 testString: combinedTest,
                 truthy: staticStyle,
                 falsy: {},
-                varName: undefined, // Safe to be undefined for non-variants
+                varName: undefined,
               });
             }
             return true;
@@ -1077,8 +1314,6 @@ export default async function loader(this: LoaderContext, source: string) {
           if (node.type === 'ConditionalExpression') {
             const testSource = getSource(node.test);
 
-            // Optimization: If both sides are static, keep it as a single ternary
-            // This produces cleaner output: `(cond) ? "a" : "b"` instead of `((cond)?"a":"") + ((!cond)?"b":"")`
             if (currentTestStrings.length === 0) {
               const trueStyle = resolveStyleObject(node.consequent);
               const falseStyle = resolveStyleObject(node.alternate);
@@ -1127,34 +1362,43 @@ export default async function loader(this: LoaderContext, source: string) {
         break;
       }
 
+      // String for the style attribute (only if dynamic styles exist)
+      const styleAttr =
+        dynamicStyleParts.length > 0
+          ? ` style={{${dynamicStyleParts.join(', ')}}}`
+          : '';
+
       if (
         isOptimizable &&
         (args.length > 0 || Object.keys(baseStyle).length > 0)
       ) {
         if (conditionals.length === 0) {
           const records = getStyleRecords(baseStyle);
-          const className = records.map((r: StyleRecord) => r.hash).join(' ');
+          const staticClass = records.map((r: StyleRecord) => r.hash).join(' ');
+
+          const allParts = [
+            ...(existingClass ? [JSON.stringify(existingClass)] : []),
+            ...(staticClass ? [JSON.stringify(staticClass)] : []),
+            ...dynamicClassParts,
+          ].join(' + " " + ');
 
           replacements.push({
             start: node.span.start - baseByteOffset,
             end: node.span.end - baseByteOffset,
-            content: `className=${JSON.stringify(existingClass ? existingClass + ' ' + className : className)}`,
+            content: `className={${allParts || '""'}}${styleAttr}`,
           });
         } else {
-          // --- Conflict Detection & Splitting ---
           const propertyCounts: Record<string, number> = {};
 
-          // Helper to add counts
           const addCounts = (style: Record<string, any>) => {
             Object.keys(style).forEach((key) => {
               propertyCounts[key] = (propertyCounts[key] || 0) + 1;
             });
           };
 
-          // 1. Count from base
           addCounts(baseStyle);
 
-          const participation: Record<string, Set<string>> = {}; // Prop -> Set<SourceID>
+          const participation: Record<string, Set<string>> = {};
 
           const registerParticipation = (
             style: Record<string, any>,
@@ -1166,10 +1410,8 @@ export default async function loader(this: LoaderContext, source: string) {
             });
           };
 
-          // Base
           registerParticipation(baseStyle, 'base');
 
-          // Standard Conditionals (each is a separate source)
           conditionals
             .filter((c) => c.groupId === undefined)
             .forEach((c, idx) => {
@@ -1178,7 +1420,6 @@ export default async function loader(this: LoaderContext, source: string) {
               registerParticipation(c.falsy, sourceId);
             });
 
-          // Variant Groups (each group is a separate source)
           const variantGroups: Record<number, typeof conditionals> = {};
           conditionals.forEach((c) => {
             if (c.groupId !== undefined) {
@@ -1202,7 +1443,6 @@ export default async function loader(this: LoaderContext, source: string) {
             }
           });
 
-          // --- Partitioning ---
           const baseIndependent: Record<string, any> = {};
           const baseConflict: Record<string, any> = {};
 
@@ -1267,22 +1507,18 @@ export default async function loader(this: LoaderContext, source: string) {
 
           const classParts: string[] = [];
 
-          // --- 1. Independent Parts (Additive) ---
+          if (existingClass) classParts.push(JSON.stringify(existingClass));
 
-          // Base Independent
           if (Object.keys(baseIndependent).length > 0) {
             const records = getStyleRecords(baseIndependent);
             const className = records.map((r) => r.hash).join(' ');
             if (className) classParts.push(JSON.stringify(className));
           }
 
-          // Independent Conditionals (Standard)
           const indepStd = indepConditionals.filter(
             (c) => c.groupId === undefined,
           );
           indepStd.forEach((c) => {
-            // Generate simple ternary logic
-            // Only supports atomic classes for now (no merging of non-atomic if complexity is high, but assuming atomic)
             const processBranch = (style: Record<string, any>) => {
               if (Object.keys(style).length === 0) return '""';
               const records = getStyleRecords(style);
@@ -1302,7 +1538,6 @@ export default async function loader(this: LoaderContext, source: string) {
             classParts.push(`(${testStr} ? ${tClass} : ${fClass})`);
           });
 
-          // Independent Variants
           const indepVarGroups: Record<number, typeof indepConditionals> = {};
           indepConditionals.forEach((c) => {
             if (c.groupId !== undefined) {
@@ -1319,7 +1554,6 @@ export default async function loader(this: LoaderContext, source: string) {
               if (options[0].testLHS) {
                 commonTestExpr = options[0].testLHS;
               } else if (options[0].testString) {
-                // Fallback
                 commonTestExpr = options[0].testString;
               } else {
                 const firstTest = options[0].test;
@@ -1350,13 +1584,10 @@ export default async function loader(this: LoaderContext, source: string) {
             }
           });
 
-          // --- 2. Conflicting Parts (Product-Sum) ---
-
           if (
             Object.keys(baseConflict).length > 0 ||
             conflictConditionals.length > 0
           ) {
-            // Separate conflict conditionals into standard and variants
             const conflictStd = conflictConditionals.filter(
               (c) => c.groupId === undefined,
             );
@@ -1373,7 +1604,6 @@ export default async function loader(this: LoaderContext, source: string) {
               }
             });
 
-            // Generate combinations
             interface Dimension {
               type: 'std' | 'var';
               options: Array<{
@@ -1386,7 +1616,6 @@ export default async function loader(this: LoaderContext, source: string) {
 
             const dimensions: Dimension[] = [];
 
-            // Add Standard Dimensions
             conflictStd.forEach((c) => {
               let testStr = c.testString;
               if (!testStr && c.test) {
@@ -1404,14 +1633,12 @@ export default async function loader(this: LoaderContext, source: string) {
               });
             });
 
-            // Add Variant Dimensions
             Object.entries(conflictVarGroups).forEach(([_groupId, opts]) => {
               let commonTestExpr: string | null = null;
               if (opts.length > 0) {
                 if (opts[0].testLHS) {
                   commonTestExpr = opts[0].testLHS;
                 } else if (opts[0].testString) {
-                  // Fallback (should not happen if testLHS is set)
                   commonTestExpr = opts[0].testString;
                 } else {
                   const firstTest = opts[0].test;
@@ -1437,7 +1664,6 @@ export default async function loader(this: LoaderContext, source: string) {
               });
             });
 
-            // Generate Cartesian Product
             const results: Record<string, string> = {};
 
             const recurse = (
@@ -1448,7 +1674,6 @@ export default async function loader(this: LoaderContext, source: string) {
               if (dimIndex >= dimensions.length) {
                 const records = getStyleRecords(currentStyle);
                 const className = records.map((r) => r.hash).join(' ');
-
                 const finalKey = keyParts.join('__');
                 if (className) results[finalKey] = className;
                 return;
@@ -1466,22 +1691,18 @@ export default async function loader(this: LoaderContext, source: string) {
 
             recurse(0, baseConflict, []);
 
-            // Fallback for Base Conflict (when lookup fails due to missing variant)
-            // We need to generate the styles for the Pure Base Conflict state.
             let baseConflictClass = '';
             if (Object.keys(baseConflict).length > 0) {
               const records = getStyleRecords(baseConflict);
               baseConflictClass = records.map((r) => r.hash).join(' ');
             }
 
-            // Generate Runtime Code
             const keyExprs: string[] = [];
 
             dimensions.forEach((dim) => {
               if (dim.type === 'std') {
                 keyExprs.push(`(${dim.testExpr} ? "1" : "0")`);
               } else {
-                // Fallback to || baseConflictClass.
                 keyExprs.push(dim.testExpr || '""');
               }
             });
@@ -1489,12 +1710,13 @@ export default async function loader(this: LoaderContext, source: string) {
             const masterKeyExpr =
               keyExprs.length > 0 ? keyExprs.join(' + "__" + ') : '""';
             const tableJson = JSON.stringify(results);
-
             const fallback = baseConflictClass
               ? JSON.stringify(baseConflictClass)
               : '""';
             classParts.push(`(${tableJson}[${masterKeyExpr}] || ${fallback})`);
           }
+
+          classParts.push(...dynamicClassParts);
 
           const replacement =
             classParts.length > 0 ? classParts.join(' + " " + ') : '""';
@@ -1502,14 +1724,14 @@ export default async function loader(this: LoaderContext, source: string) {
           replacements.push({
             start: node.span.start - baseByteOffset,
             end: node.span.end - baseByteOffset,
-            content: `className={${existingClass ? `"${existingClass} " + ` : ''}${replacement}}`,
+            content: `className={${replacement}}${styleAttr}`,
           });
         }
       } else {
         replacements.push({
           start: node.span.start - baseByteOffset,
           end: node.span.end - baseByteOffset,
-          content: '',
+          content: styleAttr || '',
         });
       }
     },
