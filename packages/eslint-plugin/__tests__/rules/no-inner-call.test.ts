@@ -8,7 +8,7 @@ const settings = {
   ecmaVersion: 2021,
 };
 
-ruleTester.run('no-inner-call', noInnerCall as unknown as JSRuleDefinition, {
+ruleTester.run('no-inner-call', noInnerCall as JSRuleDefinition, {
   valid: [
     {
       code: `import * as css from '@plumeria/core'; css.create();`,
