@@ -1,8 +1,8 @@
 import Image from 'next/image';
-import styles from './page.module.css';
+import stylesModule from './page.module.css';
 import * as css from '@plumeria/core';
 
-const style = css.create({
+const styles = css.create({
   color: {
     WebkitTextFillColor: 'transparent',
     background: 'linear-gradient(90deg, #58c6ff 0%, #d907c4 50%, #ff3bef 100%)',
@@ -12,17 +12,17 @@ const style = css.create({
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
+    <div className={stylesModule.page}>
+      <main className={stylesModule.main}>
         <Image
-          className={styles.logo}
+          className={stylesModule.logo}
           src="/next.svg"
           alt="Next.js logo"
           width={180}
           height={38}
           priority
         />
-        <div className={css.props(style.color)}>Next.js + Plumeria</div>
+        <div styleName={styles.color}>Next.js + Plumeria</div>
         <ol>
           <li>
             Get started by editing <code>src/app/page.tsx</code>.
@@ -30,15 +30,15 @@ export default function Home() {
           <li>Save and see your changes instantly.</li>
         </ol>
 
-        <div className={styles.ctas}>
+        <div className={stylesModule.ctas}>
           <a
-            className={styles.primary}
+            className={stylesModule.primary}
             href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
             target="_blank"
             rel="noopener noreferrer"
           >
             <Image
-              className={styles.logo}
+              className={stylesModule.logo}
               src="/vercel.svg"
               alt="Vercel logomark"
               width={20}
@@ -50,13 +50,13 @@ export default function Home() {
             href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
             target="_blank"
             rel="noopener noreferrer"
-            className={styles.secondary}
+            className={stylesModule.secondary}
           >
             Read our docs
           </a>
         </div>
       </main>
-      <footer className={styles.footer}>
+      <footer className={stylesModule.footer}>
         <a
           href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
           target="_blank"
