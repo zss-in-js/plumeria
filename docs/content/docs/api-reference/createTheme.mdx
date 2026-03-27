@@ -7,7 +7,7 @@ description: 'API reference for the createTheme'
 export type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
 export const createTheme: createTheme;
 ```
-`createTheme` for defining global CSS variables for each theme.  
+`createTheme` defines global CSS variables for each theme.  
 This is shared globally, so care must be taken to ensure it does not conflict with global.css variable.
 
 ## Example
