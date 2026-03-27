@@ -1,6 +1,6 @@
-import * as style from '@plumeria/core';
+import * as css from '@plumeria/core';
 
-export const styles = style.create({
+export const styles = css.create({
   container: {
     display: 'flex',
     flexDirection: 'column',
