@@ -9,7 +9,8 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 <Steps>
 <Step>
 ## Installing `core`
-The core package is type definitions only. bundle and runtime is not includes.
+The core package is type definitions only. bundle and runtime are not included.  
+Skip to your bundler: [Next.js](/docs/getting-started/installation#nextjs) / [Vite](/docs/getting-started/installation#vite)
 <Tabs items={['npm', 'yarn', 'pnpm']}>
   {/* prettier-ignore */}
   <Tab>
@@ -35,13 +36,34 @@ The core package is type definitions only. bundle and runtime is not includes.
 
 <Step>
 
-## Setup
+## ESLint Setup
+
+By implementing `ESLint`, you can automatically organize the order of CSS properties and format line breaks, creating a more efficient environment than manual maintenance.
+
 The plumerialint command installs [`@plumeria/eslint-plugin`](/docs/getting-started/editor-integration).   
+
+```ts
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import { defineConfig } from 'eslint/config';
+import { plumeria } from '@plumeria/eslint-plugin';
+
+export default defineConfig(
+  eslint.configs.recommended,
+  tseslint.configs.recommended,
+  plumeria.flatConfigs.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+  }
+);
+```
+
 `oxlint` is required to run the `plumerialint` command.  
 By running it in parallel with the build, errors are detected with zero runtime.
 ```sh
-pnpm i -D oxlint
+pnpm i -D oxlint rimraf
 ```
+
 For `Next`, we recommend running rimraf to clean up the cache to accommodate the differences between versions:
 <Tabs items={["Next.js", "Vite"]}>
 <Tab>
@@ -122,7 +144,7 @@ Atomic css is aggregated at build time into marked css files.
 ### Turbopack
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
-import { withPlumeria } from "@plumeria/next-plugin/turbopack"; // [!code ++]
+import { withPlumeria } from "@plumeria/next-plugin/turbopack";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -134,7 +156,7 @@ export default withPlumeria(nextConfig);
 ### Webpack
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
-import { withPlumeria } from "@plumeria/next-plugin"; // [!code ++]
+import { withPlumeria } from "@plumeria/next-plugin";
 
 const nextConfig: NextConfig = {
    /* turbopack: {} may be required */
@@ -175,7 +197,7 @@ That's all the settings.
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import { plumeria } from '@plumeria/vite-plugin'; // [!code ++]
+import { plumeria } from '@plumeria/vite-plugin';
 
 export default defineConfig({
   plugins: [react(), plumeria()],
