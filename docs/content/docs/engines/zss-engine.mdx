@@ -5,8 +5,8 @@ description: 'For API development zss-engine.'
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-It is the Public API for the Plumeria [Runtime `zss-engine` package](https://www.npmjs.com/package/zss-engine)  
-You can use this StyleSheet Engine to develop Zero-runtime StyleSheet CSS-in-JS libraries.  
+[`zss-engine`](https://www.npmjs.com/package/zss-engine) is the public runtime API for Plumeria.  
+Use this to build zero-runtime CSS-in-JS libraries on top of the same StyleSheet engine.
 
 ## Installation
 <Tabs items={['npm',  'yarn', 'pnpm']}>
@@ -30,17 +30,15 @@ pnpm i zss-engine
 ## Overview
 ```ts title="TypeScript"
 export type { CSSProperties } from './types/common/css-properties';
-export type { CreateStyleType, ReturnType, CreateStyle } from './types/main/create';
-export type { CSSHTML, CreateKeyframes } from './types/main/global';
-export type { CreateTheme, CreateValues, ReturnVariableType, XVariableSet, ReturnX } from './types/main/variableTypes';
-export type { ViewTransitionOptions } from './types/main/viewTransitionOptions';
+export type { CreateStyle } from './types/main/create';
+export type { CreateTheme } from './types/main/variableTypes';
+export type { ViewTransition } from './types/main/viewTransition';
 export { isServer, isDevelopment, isTestingDevelopment } from './utils/helper.js';
 export { genBase36Hash } from './utils/hash.js';
 export { transpile } from './utils/transpile.js';
 export { transpileAtomic } from './utils/transpile-atomic.js';
 export { splitAtomicAndNested, processAtomicProps } from './utils/processor-atomic.js';
 export { overrideLonghand } from './utils/override-longhand.js';
-export { build } from './utils/build.js';
 export { camelToKebabCase, applyCssValue } from './utils/helper.js';
 ```
 
@@ -86,39 +84,11 @@ Returns: `styleSheet: string    `
 const { styleSheet } = transpilerAtomic(object, property, atomichash);
 ```
 
-### `build`
-Argments: `styleSheet: string, filePath: string`  
-Returns: `void`
-```ts title="TypeScript" 
-build(styleSheet, filePath);
-```
-
 ## Types
 For API development.
 ```ts title="TypeScript"
-// create method
-CSSProperties, // supply 
-CreateStyle, // supply
-CreateStyleType<T>, 
-ReturnType<T>,
-
-// global method (internal)
-CSSHTMLType,
-
-// keyframes method
-CreateKeyframes,
-
-// ViewTransition method
-ViewTransitionOptions,
-
-// createStatic method
-CreateValues,
-
-// createTheme method
-CreateTheme,
-ReturnVariableType, 
-
-// x function
-XVariableSet,
-ReturnX,
+CSSProperties
+CreateStyle
+CreateTheme
+ViewTransition
 ```
