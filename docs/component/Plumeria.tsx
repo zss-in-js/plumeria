@@ -1,23 +1,26 @@
-import * as style from '@plumeria/core';
+import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 
-const styles = style.create({
+const styles = css.create({
   headings: {
     position: 'relative',
     bottom: 12,
     left: -4,
     zIndex: 0,
     display: 'block',
-    fontSize: 52,
+    fontSize: 56,
     fontWeight: 600,
     lineHeight: 1.1,
-    color: 'var(--plume-accent)',
+    WebkitTextFillColor: 'transparent',
+    background: 'linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)',
+    backgroundClip: 'text',
     [breakpoints.md]: {
+      bottom: 4,
       fontSize: 32,
     },
   },
 });
 
 export const Plumeria = () => {
-  return <div className={style.use(styles.headings)}>Plumeria</div>;
+  return <div styleName={styles.headings}>Plumeria</div>;
 };
