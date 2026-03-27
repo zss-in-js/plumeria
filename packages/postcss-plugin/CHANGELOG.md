@@ -1,5 +1,16 @@
 # @plumeria/postcss-plugin
 
+## 10.0.0
+
+### Major Changes
+
+- e061d02: feat: bump major v10
+
+### Patch Changes
+
+- Updated dependencies [e061d02]
+  - @plumeria/compiler@10.0.0
+
 ## 9.1.2
 
 ### Patch Changes

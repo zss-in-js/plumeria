@@ -1,3 +1,9 @@
+## 10.0.0
+
+### Major Changes
+
+- e061d02: feat: add rule style-name-requires-import
+
 ## 9.1.2
 
 ### Patch Changes
