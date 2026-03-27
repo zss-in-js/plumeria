@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.0.0
+
+### Major Changes
+
+- e061d02: feat: added new type StyleName
+
 ## 9.1.2
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @plumeria/vite
 
+## 10.0.0
+
+### Major Changes
+
+- e061d02: feat: styleName prop has been implemented
+
+### Patch Changes
+
+- Updated dependencies [e061d02]
+  - @plumeria/utils@10.0.0
+
 ## 9.1.2
 
 ### Patch Changes
