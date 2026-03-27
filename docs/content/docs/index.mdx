@@ -2,10 +2,8 @@
 title: 'Introduction'
 ---
 
----
-
-## Type-only
-Typical CSS-in-JS solutions use several kilobytes in initial bundle size. This library completely replaces type calls and is complete with just type definitions and plugins.
+## A styling system that disappears.
+Typical CSS-in-JS solutions retain runtime code in the bundle. Plumeria is 0Byte. This library completely replaces type calls and is complete with just type definitions and plugins.
 Developers simply extend the type definition arguments as **schemas**, so no JS parsing is required and there are no memory allocation costs.
 
 
@@ -25,33 +23,7 @@ Developers simply extend the type definition arguments as **schemas**, so no JS 
 }
 ```
 
-## How It Works
-The pre-build code is actually written in types and transformed by build plugins.  
-Write styles with TypeScript autocomplete and type safety:
-```tsx title="Before build"
-import * as css from "@plumeria/core";
-
-const styles = css.create({
-  text: {
-    fontSize: 12,
-    color: 'navy',
-  },
-  size: {
-    width: 120,
-  },
-});
-
-<div className={css.use(styles.text, styles.size)} />
-```
-
-The build plugin transforms this into pure atomic CSS:
-```tsx title="After build"
-// All imports and style objects removed
-<div className="xhrr6ses xvbwmxqp xhk51flp" />
-```
----
-
-## Type-only Advantage
+## Why Type-only?
 
 By treating styles as **type schemas** instead of runtime objects:
 - No JavaScript bundle
@@ -62,79 +34,92 @@ By treating styles as **type schemas** instead of runtime objects:
 - Only atomic class names and optimized CSS remain in production
 
 ## Plumeria Documentation
-This page has been designed with the mental models of those working with CSS frameworks in mind. Discarding a library is the process of searching for the next mental model.
-Choosing based on writing experience, choosing based on the end result, or choosing the stability of manual construction
-Many people continue with their current experience and engage in engineering while turning a blind eye to latent concerns.
-If your mental model aligns with the scenarios described in this document, I hope it will help resolve your issues.
+This page is designed with the mental models of people who interact with CSS frameworks in mind. Discarding a library is like searching for a new mental model.
+Choosing based on ease of writing, prioritizing the final product, or choosing the stability of manual construction.
+Many people simply accept their past experiences and ignore underlying concerns while engineering.
+I hope that this book, as a document, can help resolve any mental model cases that match your own.
 
+## Abstracting Psychological Costs
+I believe the problem with CSS frameworks lies in their reliability and transparency.
+When actually building a UI, it's sometimes difficult to know how many kilobytes it will take up.
 
-## Abstracting the Psychological Cost
-I believe the core issues with CSS frameworks are reliability and transparency.
-When actually building a UI, it’s sometimes impossible to know exactly how many kilobytes it’s consuming.
+Software, like a building, must always be designed with its lifespan in mind.
 
-Software is like a building; you must always design with its longevity in mind.
+- Psychological burden of postponing class conflict issues
+- Psychological burden of continuously writing black boxes
+- Psychological burden of constantly considering when to remove them
+- Psychological burden of the potential for significant time consumption in the end
+- Engineering burden of performance considerations
+- Psychological burden of display issues not manifesting as errors
 
-- The psychological burden of postponing class conflict issues
-- The psychological burden of continuing to write black-box code
-- The psychological burden of constantly thinking about when to remove it
-- The psychological burden of the potential for significant time consumption in the long run
-- The engineering burden of performance considerations
-- The psychological burden of layout breaks not manifesting as errors
-
-These issues persist even when building with CSS.
-If you are not accustomed to engineering, the cost of these psychological burdens can be greater than expected.
+These are always present, even when building CSS.
+If you're not accustomed to engineering, these psychological costs can be greater than expected.
 
 However, Zero-Runtime CSS libraries significantly reduce this problem.
-This is because the costs mentioned earlier can be controlled.
-
+This is because the costs mentioned above are controllable.
 
 ## The Concept of Zero-Runtime
-There is no such thing as a library where everything is truly Zero-Runtime.
-Even pure CSS incurs a slight increase in compilation time due to the build pipeline of the bundler.
-Zero-Runtime CSS-in-JS adds additional processing time for parsing and transformation. However, with a clear understanding of these factors, the term “Zero-Runtime” is often used to describe the concept that no runtime code remains in the execution environment.
+A library that is entirely Zero-Runtime doesn't truly exist.
+Even pure CSS will experience a slight increase in compilation time due to the bundler's build pipeline.
 
-- Strict CSS value validation and code formatting via linters
-The target is no longer a black box, and sorting and values are automatically enforced.
-This acts as a safety net, allowing engineers to catch errors before they occur and enabling automatic corrections.
-As a result, a clean state is maintained both psychologically and in the code.
+Zero-Runtime CSS-in-JS adds processing time for parsing and conversion. However, understanding and acknowledging these factors is often the basis for the concept of Zero-Runtime, which signifies that no runtime remains in the execution environment.
 
-This is because, by its nature, CSS-in-JS can directly benefit from the features of TypeScript and JavaScript.
+**Hard validation and code formatting of CSS values by linters:**
 
-- Challenges Solved by Build Tools
-The style definitions you write are compiled into CSS and then eliminated through the build pipeline.
-This provides the reassurance that what you wrote does not remain, and that the output CSS is smaller than the original definitions.
-As a result, your mental state during styling is kept clean by the architecture.
+The target of writing is no longer a black box; sorting and values are automatically enforced.
+As an engineering principle, it acts as a safety net, detecting and automatically correcting errors before they occur.
+As a result, a psychologically and code-wise clean state is maintained.
+This is because CSS-in-JS, by its very nature, directly benefits from TypeScript and JavaScript.
 
-Plumeria is designed to manage these invisible burdens in a controlled manner.
+**Challenges solved by build tools:**
 
+Written style definitions are compiled into CSS and then erased through the build pipeline.
+This provides peace of mind, as nothing is written remains, and the output is even smaller than the definition itself.
+As a result, the psychological state during styling is kept clean by the architecture.
+Plumeria was designed to control these invisible burdens.
 
 ## Usage
-Use `style.create()` to define an object as a style.
-At this point, the atomic hash is determined, and all that remains is to receive it via `style.use()`.
+Use `css.create()` to define an object as a style.
+At this point, the atomic hash is determined, and all that remains is to receive it via **styleName**.
 
 ```tsx
-import * as style from ‘@plumeria/core’;
+import * as css from ‘@plumeria/core’;
 
-export const Footer = () => {
-  return <div className={style.use(styles.text)}>MyText</div>;
-};
-
-const styles = style.create({
+const styles = css.create({
   text: {
     fontSize: 16,
   },
 });
 
+export const Footer = () => {
+  return <div styleName={styles.text}>MyText</div>;
+};
 ```
-As a best practice for coding conventions, it is recommended to place this code below the component.
 
-Conditional Expressions, Ternary Operators, and Specificity Rules
+```tsx
+export const styles = css.create({...});
+```
+Compile to zero across file boundaries:
+"@plumeria/core" import is required for compilation.  
+The parsing cost of glob operations is higher when splitting files compared to when using colocation.
+```tsx
+import "@plumeria/core";
+import { styles } from './styles';
 
-`style.use()` accepts ternary operators and conditional expressions, and the style properties on the right side of the argument always take precedence.
+styleName={styles.common}
+```
+
+Except in special cases such as those involving a vast number of styles, collocation is recommended.
+
+
+
+
+**Conditional Expressions, Ternary Operators, and Specificity Rules:**  
+`styleName` prop accepts ternary operators and conditional expressions, and the style properties on the right side of the array always take precedence.
 For example, if `isActive` is true, the `color` of `active` will override the `color` of `base`.
 ```ts
-style.use(styles.base, isActive && styles.active)
+styleName={styles.base, isActive && styles.active}
 ```
-Note: Class name conflicts are strictly controlled by the compiler through merging performed by the `use` function’s static analysis.
+The cascade specificity problem is completely resolved by the compiler-controlled merging.
 
 For details on integration with other APIs and bundlers, please refer to the [API reference](/docs/api-reference)・[Installation](/docs/getting-started/installation).
