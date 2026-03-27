@@ -1,6 +1,6 @@
-import * as style from '@plumeria/core';
+import * as css from '@plumeria/core';
 
-const styles = style.create({
+const styles = css.create({
   table: {
     display: 'flex',
     alignItems: 'center',
@@ -10,11 +10,11 @@ const styles = style.create({
     listStyleType: 'none',
     border: '1px solid #c4c4c466',
     borderRadius: 12,
-    ...style.marker('ul', ':hover'),
+    ...css.marker('ul', ':hover'),
   },
   list: {
     transition: 'all 0.5s',
-    [style.extended('ul', ':hover')]: {
+    [css.extended('ul', ':hover')]: {
       color: 'orange',
       scale: 1.2,
       ':hover': {
@@ -26,8 +26,8 @@ const styles = style.create({
 const MarkerExtended = () => {
   return (
     <div>
-      <ul className={style.use(styles.table)}>
-        <li className={style.use(styles.list)}>Happy new year!</li>
+      <ul styleName={styles.table}>
+        <li styleName={styles.list}>Happy new year!</li>
       </ul>
     </div>
   );
