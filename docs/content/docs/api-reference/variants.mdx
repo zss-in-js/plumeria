@@ -7,7 +7,7 @@ description: 'API reference for the variants'
 export type variants = <T extends Variants>(rule: T) => (props: { [K in keyof T]?: keyof T[K] }) => CSSProperties;
 export const variants: variants;
 ```
-`variants` return functions that can accept arguments dynamically.
+`variants` returns a function that can accept arguments dynamically.
 
 ## Example
 
@@ -34,7 +34,7 @@ interface Props {
 
 export const ButtonLink = ({ children, variant, href }: Props) => {
   return (
-    <Link href={href} className={css.props(getButtonStyle({ variant, size: 'medium' }))}>
+    <Link href={href} styleName={getButtonStyle({ variant, size: 'medium' })}>
       {children}
     </Link>
   );
@@ -45,5 +45,5 @@ export const ButtonLink = ({ children, variant, href }: Props) => {
 
 <Callout title="Good to know">
     After being expanded to className, it is safely deleted.  
-    If it is statically determined first, only styles for that key are generated.
+    If the variant value is statically determined at build time, only styles for that key are generated.
 </Callout>
