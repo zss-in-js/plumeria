@@ -1,9 +1,9 @@
-import * as style from '@plumeria/core';
+import * as css from '@plumeria/core';
 import type { ReactNode } from 'react';
 import { breakpoints } from 'lib/mediaQuery';
 import Link from 'next/link';
 
-const styles = style.create({
+const styles = css.create({
   button: {
     position: 'relative',
     display: 'inline-flex',
@@ -56,7 +56,7 @@ const styles = style.create({
   },
 });
 
-const getButtonStyle = style.variants({
+const getButtonStyle = css.variants({
   variant: {
     getstarted: styles.getstarted,
     installation: styles.installation,
@@ -74,7 +74,7 @@ interface Props {
 
 export const ButtonLink = ({ children, variant, href }: Props) => {
   return (
-    <Link href={href} className={style.use(styles.button, getButtonStyle({ variant, size: 'medium' }))}>
+    <Link href={href} styleName={[styles.button, getButtonStyle({ variant, size: 'medium' })]}>
       {children}
     </Link>
   );
