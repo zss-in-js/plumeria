@@ -1,9 +1,9 @@
 import { codeToHtml } from 'shiki';
-import * as style from '@plumeria/core';
+import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import { CodeBlock as FumadocsCodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
 
-const styles = style.create({
+const styles = css.create({
   code_div: {
     position: 'relative',
     zIndex: 0,
@@ -20,7 +20,7 @@ const styles = style.create({
   pre: {
     fontFamily: 'var(--font-geist-mono)',
     fontSize: 11,
-  }
+  },
 });
 
 export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) => {
@@ -33,11 +33,8 @@ export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) 
     defaultColor: false,
   });
   return (
-    <FumadocsCodeBlock className={style.use(styles.code_div)}>
-      <Pre
-      className={style.use(styles.pre)}
-        dangerouslySetInnerHTML={{ __html: tsx }}
-      />
+    <FumadocsCodeBlock styleName={styles.code_div}>
+      <Pre styleName={styles.pre} dangerouslySetInnerHTML={{ __html: tsx }} />
     </FumadocsCodeBlock>
   );
 };
