@@ -1,7 +1,7 @@
-import * as style from '@plumeria/core';
+import * as css from '@plumeria/core';
 import { pseudos } from 'lib/pseudos';
 
-const styles = style.create({
+const styles = css.create({
   colorName: {
     position: 'relative',
     top: 4,
@@ -15,8 +15,11 @@ const styles = style.create({
       scale: 1.75,
     },
   },
+  palette: (color: string) => ({
+    backgroung: color,
+  }),
 });
 
 export const Color = ({ color }: { color: string }) => {
-  return <span className={style.use(styles.colorName)} style={{ background: color }} />;
+  return <span styleName={[styles.colorName, styles.palette(color)]} />;
 };
