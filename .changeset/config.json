@@ -12,12 +12,6 @@
     "plumeria-docs",
     "next-app",
     "react-router-v7",
-    "vite-astro-ts",  
-    "vite-preact",
-    "vite-qwik",
-    "vite-react",
-    "vite-solid",
-    "vite-svelte-ts",
-    "vite-vue-ts"
+    "vite-react"
     ]
 }
