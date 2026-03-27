@@ -21,8 +21,8 @@ const styles = css.create({
 });
 
 // Both produce the same result
-css.use(styles.base, styles.custom);
-css.use(styles.custom, styles.base);
+styleName={styles.base, styles.custom}
+styleName={styles.custom, styles.base}
 
 // Result: margin 10px on all sides, except top is 20px
 ```
@@ -78,9 +78,9 @@ These behaviors are complex even in normal CSS, so ESLint is effective for enfor
 </Step>
 
 <Step>
-## `css.use()` merge styles
+## `styleName` prop merge styles
 
-Also, when `css.use()` has duplicate properties on its arguments, the style properties on the right always take precedence and duplicate properties on the left are filtered. In that case no filtered hash is generated.
+Also, when `styleName` prop has duplicate properties on its arguments, the style properties on the right always take precedence and duplicate properties on the left are filtered. In that case no filtered hash is generated.
 
 ```js
 const styles = css.create({
@@ -89,8 +89,8 @@ const styles = css.create({
 });
 
 // The right always wins
-css.use(styles.base, styles.custom); // 16px
-css.use(styles.custom, styles.base); // 10px
+styleName={styles.base, styles.custom} // 16px
+styleName={styles.custom, styles.base} // 10px
 ```
 Generated as follows:
 ```css
@@ -124,8 +124,8 @@ The Plumeria optimizer automatically moves all @rule to the bottom of the CSS bu
 ```
 
 This design provides:
-- ✅ **HMR reliability**: Consistent behavior between development and production.
-- ✅ **Predictable Media Overrides**: Media query styles always take precedence over base styles.
-- ✅ **Optimized Production**: Minimal specificity adjustments in production to keep bundle sizes small.
+- Consistent behavior between development and production.
+- Media query styles always take precedence over base styles.
+- Minimal specificity adjustments in production to keep bundle sizes small.
 </Step>
 </Steps>
