@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.0.0
+
+### Major Changes
+
+- e061d02: feat: bump major v10
+
 ## 9.1.2
 
 ### Patch Changes
