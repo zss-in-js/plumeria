@@ -10,12 +10,11 @@ export type createStatic = <const T extends CreateStatic>(rule: T)=> T;
 export const createStatic: createStatic;
 ```
 
-`createStatic` defines **static values** that can be used inside `create` or `createTheme` for conditions like media queries or other static references.
+`createStatic` defines **static values** and inlines them at build time. These can be used inside `create` or `createTheme` for conditions like media queries or other static references.
 
 ## Example
 
 ```ts title="TypeScript"
-// lib/mediaQuery.ts
 import * as css from '@plumeria/core';
 
 export const breakpoints = css.createStatic({
@@ -29,7 +28,7 @@ export const breakpoints = css.createStatic({
 
 ## Usage
 ```ts
-import { css } from "@plumeria/core";
+import * as css from "@plumeria/core";
 import { breakpoints } from "lib/mediaQuery";
 
 export const styles = css.create({
