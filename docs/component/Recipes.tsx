@@ -1,9 +1,9 @@
-import * as style from '@plumeria/core';
+import * as css from '@plumeria/core';
 import { pseudos } from 'lib/pseudos';
 import { rotateFocus, rotateHover } from 'lib/animation';
 import { breakpoints } from 'lib/mediaQuery';
 
-const styles = style.create({
+const styles = css.create({
   stack: {
     display: 'flex',
     gap: 16,
@@ -30,7 +30,7 @@ const styles = style.create({
   },
 });
 
-const buttons = style.create({
+const buttons = css.create({
   focusPurple: {
     background: 'linear-gradient(135deg, #4f46e5, #6366f1)',
     [pseudos.hover]: {
@@ -63,7 +63,7 @@ const buttons = style.create({
   },
 });
 
-const stylesBox = style.create({
+const stylesBox = css.create({
   container: {
     display: 'flex',
     flexDirection: 'row',
@@ -86,7 +86,7 @@ const stylesBox = style.create({
   },
 });
 
-const animated = style.create({
+const animated = css.create({
   hover: {
     [pseudos.hover]: {
       outline: '1px solid dodgerblue',
@@ -105,14 +105,14 @@ const animated = style.create({
 
 export function Box() {
   return (
-    <div className={style.use(stylesBox.container)}>
+    <div styleName={stylesBox.container}>
       <span>
-        <span tabIndex={0} className={style.use(stylesBox.card, animated.hover)}>
+        <span tabIndex={0} styleName={[stylesBox.card, animated.hover]}>
           A
         </span>
       </span>
       <span>
-        <span tabIndex={0} className={style.use(stylesBox.card, animated.focus)}>
+        <span tabIndex={0} styleName={[stylesBox.card, animated.focus]}>
           B
         </span>
       </span>
@@ -122,10 +122,10 @@ export function Box() {
 
 export function FancyButtons() {
   return (
-    <div className={style.use(styles.stack)}>
-      <button className={style.use(styles.button, styles.hover, buttons.focusPurple)}>Purple</button>
-      <button className={style.use(styles.button, styles.hover, buttons.focusSky)}>Sky</button>
-      <button className={style.use(styles.button, styles.hover, buttons.focusGreen)}>Green</button>
+    <div styleName={styles.stack}>
+      <button styleName={[styles.button, styles.hover, buttons.focusPurple]}>Purple</button>
+      <button styleName={[styles.button, styles.hover, buttons.focusSky]}>Sky</button>
+      <button styleName={[styles.button, styles.hover, buttons.focusGreen]}>Green</button>
     </div>
   );
 }
