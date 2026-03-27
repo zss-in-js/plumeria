@@ -1,11 +1,11 @@
 # @plumeria/core
 
-A styling system that disappears.
+**A styling system that disappears.**
 
-```ts
-import * as style from '@plumeria/core';
+```tsx
+import * as css from '@plumeria/core';
 
-const styles = style.create({
+const styles = css.create({
   text: {
     fontSize: 12,
     color: 'navy',
@@ -15,27 +15,23 @@ const styles = style.create({
   },
 });
 
-const className = style.use(styles.text, styles.size);
+export default function App(props) {
+  return (
+    <div
+      {...props}
+      styleName={[
+        styles.text, 
+        styles.size
+      ]}
+    />
+  );
+}
 ```
 
 **Compiled:**
 
 ```tsx
-className="xhrr6ses xvbwmxqp xhk51flp"
-```
-
-**Generated CSS:**
-
-```css
-.xhrr6ses:not(#\#) {
-  font-size: 12px;
-}
-.xvbwmxqp {
-  color: navy;
-}
-.xhk51flp {
-  width: 120px;
-}
+<div className="xhrr6ses xvbwmxqp xhk51flp" />
 ```
 
 ## Documentation
@@ -58,9 +54,10 @@ Plumeria is made possible thanks to the inspirations from the following projects
 - [Linaria](https://linaria.dev/)
 - [React Native](https://reactnative.dev/docs/stylesheet)
 - [React Native for Web](https://necolas.github.io/react-native-web/)
+- [React Strict DOM](https://facebook.github.io/react-strict-dom/)
 - [StyleX](https://stylexjs.com/)
 - [Tailwind CSS](https://tailwindcss.com/)
-- [Uno CSS](https://unocss.dev/)
+
 
 ## License
 
