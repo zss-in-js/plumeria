@@ -5,7 +5,7 @@ description: 'Learn more about Plumeria recipe'
 
 import { FancyButtons, Box } from 'component/Recipes'
 
-Get started with **Plumeria** using `css.create()` and `css.use()` to build styles with clarity and structure.
+Get started with **Plumeria** using `css.create()` and styleName prop to build styles with clarity and structure.
 
 ## FancyButtons
 
@@ -14,10 +14,10 @@ Get started with **Plumeria** using `css.create()` and `css.use()` to build styl
 ```tsx title="TSX"
 export function FancyButtons() {
   return (
-    <div className={css.use(styles.stack)}>
-      <button className={css.use(styles.button, styles.hover, buttons.focusPurple)}>Purple</button>
-      <button className={css.use(styles.button, styles.hover, buttons.focusSky)}>Sky</button>
-      <button className={css.use(styles.button, styles.hover, buttons.focusGreen)}>Green</button>
+    <div styleName={styles.stack}>
+      <button styleName={[styles.button, styles.hover, buttons.focusPurple]}>Purple</button>
+      <button styleName={[styles.button, styles.hover, buttons.focusSky]}>Sky</button>
+      <button styleName={[styles.button, styles.hover, buttons.focusGreen]}>Green</button>
     </div>
   );
 }
@@ -93,20 +93,20 @@ const buttons = css.create({
 ```jsx title="TSX"
 export function Box() {
   return (
-    <div className={css.use(stylesBox.container)}>
+    <div styleName={stylesBox.container}>
       <span>
-        <span tabIndex={0} className={css.use(stylesBox.card, animated.hover1)}>
+        <span tabIndex={0} styleName={[stylesBox.card, animated.hover]}>
           A
         </span>
       </span>
       <span>
-        <span tabIndex={0} className={css.use(stylesBox.card, animated.hover2)}>
+        <span tabIndex={0} styleName={[stylesBox.card, animated.focus]}>
           B
         </span>
       </span>
     </div>
   );
-};
+}
 ```
 
 ```ts title="TypeScript"
