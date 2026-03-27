@@ -1,11 +1,11 @@
 # Plumeria &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/@plumeria/core.svg?color=brightgreen)](https://www.npmjs.com/package/@plumeria/core) [![tests](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml/badge.svg)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml) [![codecov](https://codecov.io/github/zss-in-js/plumeria/graph/badge.svg?token=BMEGY37BYZ)](https://codecov.io/github/zss-in-js/plumeria)
 
-A styling system that disappears.
+**A styling system that disappears.**
 
-```ts
-import * as style from '@plumeria/core';
+```tsx
+import * as css from '@plumeria/core';
 
-const styles = style.create({
+const styles = css.create({
   text: {
     fontSize: 12,
     color: 'navy',
@@ -15,27 +15,23 @@ const styles = style.create({
   },
 });
 
-const className = style.use(styles.text, styles.size);
+export default function App(props) {
+  return (
+    <div
+      {...props}
+      styleName={[
+        styles.text, 
+        styles.size
+      ]}
+    />
+  );
+}
 ```
 
 **Compiled:**
 
 ```tsx
-className="xhrr6ses xvbwmxqp xhk51flp"
-```
-
-**Generated CSS:**
-
-```css
-.xhrr6ses:not(#\#) {
-  font-size: 12px;
-}
-.xvbwmxqp {
-  color: navy;
-}
-.xhk51flp {
-  width: 120px;
-}
+<div className="xhrr6ses xvbwmxqp xhk51flp" />
 ```
 
 ## Structure
@@ -79,11 +75,11 @@ Read the [documentation](https://plumeria.dev/) for more details.
 ## Acknowledgements
 
 - [Linaria](https://linaria.dev/) - for inspiring the Zero-Runtime architecture
-- [React Native](https://reactnative.dev/docs/stylesheet) - for inspiring the class API and inline styling
-- [React Native for Web](https://necolas.github.io/react-native-web/) - for inspiring the port of React Native to the web
-- [StyleX](https://stylexjs.com/) - for inspiring the optimization of atomic css
-- [Tailwind CSS](https://tailwindcss.com/) - for inspiring the utility approach
-- [Uno CSS](https://unocss.dev/) - for inspiring the engine concepts
+- [React Native](https://reactnative.dev/docs/stylesheet) - for inspiring the StyleSheet.create
+- [React Native for Web](https://necolas.github.io/react-native-web/) - for inspiring that attempt
+- [React Strict DOM](https://facebook.github.io/react-strict-dom/) - for inspiring the goal
+- [StyleX](https://stylexjs.com/) - for inspiring the optimized Atomic CSS  
+- [Tailwind CSS](https://tailwindcss.com/) - for inspiring the brilliance of its approach
 
 ## License
 
