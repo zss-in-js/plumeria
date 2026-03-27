@@ -15,10 +15,10 @@ import * as css from '@plumeria/core';
 const styles = css.create({
   list: {
     '@media (max-width: 768px)': { // [!code ++]
-      '& li': {
-        listStyleType: 'none',
-      },
-    },  // [!code ++]
+      ':hover': { // [!code ++]
+        listStyleType: 'none', // [!code ++]
+      }, // [!code ++]
+    }, // [!code ++]
   },
 });
 ```
@@ -33,29 +33,21 @@ import * as css from '@plumeria/core';
 
 const styles = css.create({
   list: {
-    '& li': {
-      '@media (max-width: 768px)': { // [!code --]
-        listStyleType: 'none',
-      }, // [!code --]
-    },
-  },
-});
-```
-
-```ts title="TypeScript" {1}
-import * as css from '@plumeria/core';
-
-const styles = css.create({
-  list: {
     ':hover': {
       '@media (max-width: 768px)': { // [!code --]
-        background: 'skyblue',
+        background: 'skyblue', // [!code --]
       }, // [!code --]
     },
   },
 });
 ```
 
+## Reason
+This design intentionally avoids reverse nesting.
+
+- Type system limitations (recursive types)
+- Avoiding reverse nesting complexity
+- Ensuring consistent nesting patterns
 
 
 <Cards>
