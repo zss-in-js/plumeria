@@ -9,25 +9,25 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 <Steps>
 <Step>
-## className snippet for css macro
-In VScode create a shortcut for the css.use() object expansion in className.  
+## className snippet for style macro
+In VScode create a shortcut for the style.use() object expansion in className.  
 `shift + command + p >`  
 `select >` Snippets: Configure Snippets  
 `select >` typescriptreact.json (TypeScript JSX) or javascriptreact.json (JavaScript JSX)  
 
 ```json
 {
-  "React className": {
-    "prefix": "css",
-    "body": "className={css.use($1)}",
-    "description": "React className with css.use()",
+  "styleName": {
+    "prefix": "style",
+    "body": "styleName={$1}",
+    "description": "React styleName with curly braces",
   }
 }
 ```
 
 ### Macro Usage
 ```jsx
-<div css /> -> Enter -> <div className={css.use(|)} />
+<div style /> -> Enter -> <div styleName={|} />
 ```
 </Step>
 <Step>
