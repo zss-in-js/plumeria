@@ -5,9 +5,9 @@ description:  'Learn more about @plumeria/next-plugin.'
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import Link from 'next/link';
 
-It is the plumeria [`@plumeria/next-plugin` package](https://www.npmjs.com/package/@plumeria/next-plugin)  
-AST parse compiles plumeria styles into CSS (HMR) use:  
-[@plumeria/turbopack-loader](/docs/integration/turbopack) and [@plumeria/webpack-plugin](/docs/integration/webpack)
+[`@plumeria/next-plugin`](https://www.npmjs.com/package/@plumeria/next-plugin) is the Next plugin for Plumeria.  
+It compiles styles into CSS via AST parsing, with HMR support.  
+Using [@plumeria/turbopack-loader](/docs/integration/turbopack) and [@plumeria/webpack-plugin](/docs/integration/webpack).
 
 ## Installation
 <Tabs items={['npm',  'yarn', 'pnpm']}>
@@ -59,8 +59,8 @@ module.exports = {
 };
 ```
 
-## CSS extraction marke
-Inclulde css file `@plumeria` marke.  
+## CSS extraction marker
+Include css file `@plumeria` marker.  
 Atomic css is aggregated at build time into marked css files.
 ```css title="css"
 /* app/global.css */ 
