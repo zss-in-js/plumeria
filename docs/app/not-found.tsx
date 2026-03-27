@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { JSX } from 'react';
-import * as style from '@plumeria/core';
+import * as css from '@plumeria/core';
 
-const styles = style.create({
+const styles = css.create({
   container: {
     display: 'flex',
     flexDirection: 'column',
@@ -14,7 +14,7 @@ const styles = style.create({
 
 const NotFound = (): JSX.Element => {
   return (
-    <div className={style.use(styles.container)}>
+    <div styleName={styles.container}>
       <h1>ClientSide Error status code 404 Request page is not found:</h1>
       <Link href="/">
         <u>Return to Top page</u>
