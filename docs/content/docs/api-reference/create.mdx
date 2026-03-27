@@ -10,10 +10,10 @@ export type create = <const T extends Record<string, CSSProperties>>(rule: Creat
 export const create: create;
 ```
 
-The `create` for defines css styles using plain JavaScript style objects.  
+`create` defines css styles using plain JavaScript style objects.  
 type-safe・autocomplete・lintable
 
-Only the styles you use in `use()` will be ondemand compiled.
+Only the styles you use in `styleName` will be ondemand compiled.
 
 ## Example
 
@@ -31,14 +31,23 @@ const styles = css.create({
   },
 })
 
-const className = css.use(styles.container, styles.text)
+export default function App() {
+  return (
+    <div
+      styleName={[
+        styles.container,
+        styles.text
+      ]}
+    />
+  );
+}
 ```
 
 The call is cleaned up by the bundler.
 
 **Compiled:**
 ```tsx
-className: "xxp6epoh xwbwwha1 xbief8v4 xzllkng3"
+<div className="xxp6epoh xwbwwha1 xbief8v4 xzllkng3" />
 ```
 
 **Generated CSS:**
@@ -59,7 +68,7 @@ className: "xxp6epoh xwbwwha1 xbief8v4 xzllkng3"
 ```
 
 
-Compiles each style property into a unique, **atomic**, and **hashed** class name. This prevents style collisions and maximizes reusability.
+Compiles each style CSS property into a unique, **atomic**, and **hashed** class name. This prevents style collisions and maximizes reusability.
 
 <Callout title="Atomic API">
 Unique atom classes are reused without duplication, keeping the amount of class names constant.
