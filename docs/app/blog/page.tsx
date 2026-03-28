@@ -22,7 +22,8 @@ function Page(): JSX.Element {
       </div>
 
       {posts
-        .reverse()
+        .slice()
+        .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
         .map((post) => (
           <Link href={`/blog/${post.slugs.join('/')}`} className={css.props(styles.card)} key={post.data.title}>
             <h2 className={css.props(styles.cardTitle)}>{post.data.title}</h2>
@@ -30,8 +31,7 @@ function Page(): JSX.Element {
             <p className={css.props(styles.cardDesc)}>Read more →</p>
             <p className={css.props(styles.cardDate)}>{post.data.date}</p>
           </Link>
-        ))
-        .sort()}
+        ))}
     </main>
   );
 }
