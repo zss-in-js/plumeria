@@ -1,0 +1,38 @@
+---
+title: 'Plumeria 10.0.0'
+description: 'This version is more consistent and optimized for the React ecosystem.'
+date: '2026-03-28'
+---
+
+
+## Major Changes (Redesigned for React)
+This version is more consistent and optimized for the React ecosystem.
+
+We intentionally removed support for Qwik, Solid, and Preact frameworks.
+This is a result of "rethinking React styling solutions" because Vite, Svelte, Astro, etc., each have strong proprietary CSS solutions.
+We unified props to `styleName={}` for a consistent and simple API.
+
+```tsx
+<div styleName={styles.size} />
+<div styleName={[styles.foo, styles.bar]} />
+```
+Can be written as a single element or array (right-hand side takes precedence, and specificity issues are strictly resolved at the compiler side).
+
+### Removal of Non-React Compatibility
+React, Next.js, React Router, and Remix all work smoothly.
+And Waku in the future.
+
+### Migration Guide
+Replace any code that previously used `css.props()`, other prop names, `css.use()`, or `style.use()` with `styleName={}`.
+If you are using a non-React project, we recommend continuing to use v9.x or migrating to your framework's specific CSS features.
+
+## Motivation (Why this change?)
+Previously, we aimed for broad framework support, but we have changed our policy to focus primarily on React for the following reasons:
+
+React offers many options for writing CSS, making it difficult to provide the simplest solution.
+However, in today's world, React-based options (Next.js React-Router) are the best choice when building something new.
+We determined that low learning curve and consistency are paramount for React-centric projects (especially teams considering migrating from CSS Modules).
+
+With this change, we believe Plumeria has become one of the simplest and easiest-to-write styling systems for React.
+
+If you're considering switching from CSS Modules, please give it a try.
