@@ -1,0 +1,33 @@
+---
+title: 'Plumeria 9.1.0'
+description: 'Next.js loader improved. HMR cache bugfix and Idempotency'
+date: '2026-03-22'
+---
+
+## What's New
+Version 9.0.4 next-plugin had a bug where HMR was not applied.  
+This has been fixed in minor version 9.1.0.  
+
+## Issues
+A long-standing problem that has existed since the initial release of turbopack-loader has been resolved.
+
+### Improvement idempotency
+
+- Fixed an issue where CSS in development mode had accumulated.
+- Fixed an infinite loading issue during development.
+
+Fix details:
+Idempotent writing to virtual CSS files.
+
+
+The `appendFileSync` implementation has been replaced with `writeFileSync`, eliminating the need for resets and addressing concerns about server hangs, compilation failures, and persistent stack issues.
+
+It has been fixed to improve the development environment.
+
+
+## Others
+- Official Discord server created
+- Official BlueSky account created
+- Documentation updated
+
+Please feel free to chat via GitHub or our Discord channel for bug reports and idea suggestions.
