@@ -48,19 +48,19 @@ interface LoaderContext {
 
 export default async function loader(this: LoaderContext, source: string) {
   const callback = this.async();
-
+  const resourcePath = this.resourcePath;
   const isProduction = process.env.NODE_ENV === 'production';
   const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
 
   if (
-    this.resourcePath.includes('node_modules') ||
+    resourcePath.includes('node_modules') ||
     !source.includes('@plumeria/core')
   ) {
     return callback(null, source);
   }
 
   this.clearDependencies();
-  this.addDependency(this.resourcePath);
+  this.addDependency(resourcePath);
   const ast = parseSync(source, {
     syntax: 'typescript',
     tsx: true,
@@ -75,7 +75,7 @@ export default async function loader(this: LoaderContext, source: string) {
   for (const node of ast.body) {
     if (node.type === 'ImportDeclaration') {
       const sourcePath = node.source.value;
-      const actualPath = resolveImportPath(sourcePath, this.resourcePath);
+      const actualPath = resolveImportPath(sourcePath, resourcePath);
       if (actualPath) {
         this.addDependency(actualPath);
       }
@@ -96,7 +96,6 @@ export default async function loader(this: LoaderContext, source: string) {
   const createThemeImportMap: Record<string, any> = {};
   const createStaticImportMap: Record<string, any> = {};
   const plumeriaAliases: Record<string, string> = {};
-  const resourcePath = this.resourcePath;
 
   traverse(ast, {
     ImportDeclaration({ node }) {
@@ -699,6 +698,517 @@ export default async function loader(this: LoaderContext, source: string) {
 
   const jsxOpeningElementMap = new Map<number, any[]>();
 
+  interface StyleConditional {
+    test: Expression;
+    testString?: string;
+    testLHS?: string;
+    truthy: Record<string, any>;
+    falsy: Record<string, any>;
+    groupId?: number;
+    groupName?: string;
+    valueName?: string;
+    varName?: string;
+  }
+
+  const getSource = (node: any): string => {
+    const start = node.span.start - baseByteOffset;
+    const end = node.span.end - baseByteOffset;
+    return sourceBuffer.subarray(start, end).toString('utf-8');
+  };
+
+  const resolveStyleObject = (expr: Expression): Record<string, any> | null => {
+    if (t.isObjectExpression(expr)) {
+      return objectExpressionToObject(
+        expr,
+        mergedStaticTable,
+        mergedKeyframesTable,
+        mergedViewTransitionTable,
+        mergedCreateThemeHashTable,
+        scannedTables.createThemeObjectTable,
+        mergedCreateTable,
+        mergedCreateStaticHashTable,
+        scannedTables.createStaticObjectTable,
+        mergedVariantsTable,
+      );
+    } else if (
+      t.isMemberExpression(expr) &&
+      t.isIdentifier((expr as any).object) &&
+      (t.isIdentifier((expr as any).property) ||
+        (expr as any).property.type === 'Computed')
+    ) {
+      if ((expr as any).property.type === 'Computed') return {};
+      const varName = ((expr as any).object as Identifier).value;
+      const propName = ((expr as any).property as Identifier).value;
+      const styleInfo = localCreateStyles[varName];
+      if (styleInfo?.obj[propName]) {
+        const style = styleInfo.obj[propName];
+        if (typeof style === 'object' && style !== null) return style;
+      }
+      const hash = mergedCreateTable[varName];
+      if (hash) {
+        const obj = scannedTables.createObjectTable[hash];
+        if (obj?.[propName] && typeof obj[propName] === 'object')
+          return obj[propName] as Record<string, any>;
+      }
+    } else if (t.isIdentifier(expr)) {
+      const varName = (expr as Identifier).value;
+      const uniqueKey = `${resourcePath}-${varName}`;
+      let hash = scannedTables.createHashTable[uniqueKey];
+      if (!hash) hash = mergedCreateTable[varName];
+      if (hash) {
+        const obj = scannedTables.createObjectTable[hash];
+        if (obj && typeof obj === 'object') return obj;
+      }
+      const styleInfo = localCreateStyles[varName];
+      if (styleInfo?.obj) return styleInfo.obj;
+      const vHash = mergedVariantsTable[varName];
+      if (vHash) return scannedTables.variantsObjectTable[vHash];
+    }
+    return null;
+  };
+
+  const buildClassParts = (
+    args: Array<{ expression: Expression }>,
+    dynamicClassParts: string[] = [],
+    existingClass: string = '',
+  ): {
+    classParts: string[];
+    isOptimizable: boolean;
+    baseStyle: Record<string, any>;
+  } => {
+    const conditionals: StyleConditional[] = [];
+    let groupIdCounter = 0;
+    let baseStyle: Record<string, any> = {};
+    let isOptimizable = true;
+
+    const collectConditions = (
+      node: Expression,
+      currentTestStrings: string[] = [],
+    ): boolean => {
+      const staticStyle = resolveStyleObject(node);
+      if (staticStyle) {
+        if (currentTestStrings.length === 0) {
+          baseStyle = deepMerge(baseStyle, staticStyle);
+        } else {
+          conditionals.push({
+            test: node,
+            testString: currentTestStrings.join(' && '),
+            truthy: staticStyle,
+            falsy: {},
+            varName: undefined,
+          });
+        }
+        return true;
+      }
+      if (node.type === 'ConditionalExpression') {
+        const testSource = getSource(node.test);
+        if (currentTestStrings.length === 0) {
+          const trueStyle = resolveStyleObject(node.consequent);
+          const falseStyle = resolveStyleObject(node.alternate);
+          if (trueStyle && falseStyle) {
+            conditionals.push({
+              test: node,
+              testString: testSource,
+              truthy: trueStyle,
+              falsy: falseStyle,
+              varName: undefined,
+            });
+            return true;
+          }
+        }
+        collectConditions(node.consequent, [
+          ...currentTestStrings,
+          `(${testSource})`,
+        ]);
+        collectConditions(node.alternate, [
+          ...currentTestStrings,
+          `!(${testSource})`,
+        ]);
+        return true;
+      } else if (node.type === 'BinaryExpression' && node.operator === '&&') {
+        collectConditions(node.right, [
+          ...currentTestStrings,
+          `(${getSource(node.left)})`,
+        ]);
+        return true;
+      } else if (node.type === 'ParenthesisExpression') {
+        return collectConditions(node.expression, currentTestStrings);
+      }
+      return false;
+    };
+
+    for (const arg of args) {
+      const expr = arg.expression;
+
+      if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
+        const varName = expr.callee.value;
+        const uniqueKey = `${resourcePath}-${varName}`;
+        let variantObj: Record<string, any> | undefined;
+
+        let hash = scannedTables.variantsHashTable[uniqueKey];
+        if (!hash) hash = mergedVariantsTable[varName];
+        if (hash && scannedTables.variantsObjectTable[hash])
+          variantObj = scannedTables.variantsObjectTable[hash];
+        if (!variantObj && localCreateStyles[varName]?.obj)
+          variantObj = localCreateStyles[varName].obj;
+
+        if (variantObj) {
+          const callArgs = expr.arguments;
+          if (callArgs.length === 1 && !callArgs[0].spread) {
+            const arg = callArgs[0].expression;
+            if (arg.type === 'ObjectExpression') {
+              for (const prop of arg.properties) {
+                let groupName: string | undefined;
+                let valExpr: any;
+                if (
+                  prop.type === 'KeyValueProperty' &&
+                  prop.key.type === 'Identifier'
+                ) {
+                  groupName = prop.key.value;
+                  valExpr = prop.value;
+                } else if (prop.type === 'Identifier') {
+                  groupName = prop.value;
+                  valExpr = prop;
+                }
+                if (groupName && valExpr) {
+                  const groupVariants = variantObj[groupName];
+                  if (!groupVariants) continue;
+                  const currentGroupId = ++groupIdCounter;
+                  const valSource = getSource(valExpr);
+                  if (valExpr.type === 'StringLiteral') {
+                    if (groupVariants[valExpr.value])
+                      baseStyle = deepMerge(
+                        baseStyle,
+                        groupVariants[valExpr.value],
+                      );
+                    continue;
+                  }
+                  Object.entries(groupVariants as Record<string, any>).forEach(
+                    ([optionName, style]) => {
+                      conditionals.push({
+                        test: valExpr,
+                        testLHS: valSource,
+                        testString: `${valSource} === '${optionName}'`,
+                        truthy: style as Record<string, any>,
+                        falsy: {},
+                        groupId: currentGroupId,
+                        groupName,
+                        valueName: optionName,
+                        varName,
+                      });
+                    },
+                  );
+                }
+              }
+              continue;
+            }
+            const argSource = getSource(arg);
+            if (t.isStringLiteral(arg)) {
+              if (variantObj[arg.value])
+                baseStyle = deepMerge(baseStyle, variantObj[arg.value]);
+              continue;
+            }
+            const currentGroupId = ++groupIdCounter;
+            Object.entries(variantObj).forEach(([key, style]) => {
+              conditionals.push({
+                test: arg,
+                testLHS: argSource,
+                testString: `${argSource} === '${key}'`,
+                truthy: style,
+                falsy: {},
+                groupId: currentGroupId,
+                groupName: undefined,
+                valueName: key,
+                varName,
+              });
+            });
+            continue;
+          }
+          isOptimizable = false;
+          break;
+        }
+      } else if (t.isIdentifier(expr)) {
+        const varName = expr.value;
+        const uniqueKey = `${resourcePath}-${varName}`;
+        let variantObj: Record<string, any> | undefined;
+
+        let hash = scannedTables.variantsHashTable[uniqueKey];
+        if (!hash) hash = mergedVariantsTable[varName];
+        if (hash && scannedTables.variantsObjectTable[hash])
+          variantObj = scannedTables.variantsObjectTable[hash];
+        if (!variantObj && localCreateStyles[varName]?.obj)
+          variantObj = localCreateStyles[varName].obj;
+
+        if (variantObj) {
+          Object.entries(variantObj).forEach(([groupName, groupVariants]) => {
+            if (!groupVariants) return;
+            const currentGroupId = ++groupIdCounter;
+            Object.entries(groupVariants).forEach(([optionName, style]) => {
+              conditionals.push({
+                test: expr,
+                testLHS: `props["${groupName}"]`,
+                testString: `props["${groupName}"] === '${optionName}'`,
+                truthy: style as Record<string, any>,
+                falsy: {},
+                groupId: currentGroupId,
+                groupName,
+                valueName: optionName,
+                varName,
+              });
+            });
+          });
+          continue;
+        }
+      }
+
+      const handled = collectConditions(expr);
+      if (handled) continue;
+      isOptimizable = false;
+      break;
+    }
+
+    if (
+      !isOptimizable ||
+      (args.length === 0 && Object.keys(baseStyle).length === 0)
+    ) {
+      return { classParts: [], isOptimizable, baseStyle };
+    }
+
+    const participation: Record<string, Set<string>> = {};
+    const registerParticipation = (
+      style: Record<string, any>,
+      sourceId: string,
+    ) => {
+      Object.keys(style).forEach((key) => {
+        if (!participation[key]) participation[key] = new Set();
+        participation[key].add(sourceId);
+      });
+    };
+
+    registerParticipation(baseStyle, 'base');
+    conditionals
+      .filter((c) => c.groupId === undefined)
+      .forEach((c, idx) => {
+        registerParticipation(c.truthy, `std_${idx}`);
+        registerParticipation(c.falsy, `std_${idx}`);
+      });
+
+    const variantGroups: Record<number, StyleConditional[]> = {};
+    conditionals.forEach((c) => {
+      if (c.groupId !== undefined) {
+        if (!variantGroups[c.groupId]) variantGroups[c.groupId] = [];
+        variantGroups[c.groupId].push(c);
+      }
+    });
+    Object.entries(variantGroups).forEach(([groupId, opts]) => {
+      opts.forEach((opt) =>
+        registerParticipation(opt.truthy, `var_${groupId}`),
+      );
+    });
+
+    const conflictingKeys = new Set<string>();
+    Object.entries(participation).forEach(([key, sources]) => {
+      if (sources.size > 1) conflictingKeys.add(key);
+    });
+
+    const baseIndependent: Record<string, any> = {};
+    const baseConflict: Record<string, any> = {};
+    Object.entries(baseStyle).forEach(([key, val]) => {
+      if (conflictingKeys.has(key)) baseConflict[key] = val;
+      else baseIndependent[key] = val;
+    });
+
+    const indepConditionals: StyleConditional[] = [];
+    const conflictConditionals: StyleConditional[] = [];
+    conditionals.forEach((c) => {
+      const truthyIndep: Record<string, any> = {};
+      const truthyConf: Record<string, any> = {};
+      const falsyIndep: Record<string, any> = {};
+      const falsyConf: Record<string, any> = {};
+      let hasIndep = false;
+      let hasConf = false;
+      Object.entries(c.truthy).forEach(([k, v]) => {
+        if (conflictingKeys.has(k)) {
+          truthyConf[k] = v;
+          hasConf = true;
+        } else {
+          truthyIndep[k] = v;
+          hasIndep = true;
+        }
+      });
+      Object.entries(c.falsy).forEach(([k, v]) => {
+        if (conflictingKeys.has(k)) {
+          falsyConf[k] = v;
+          hasConf = true;
+        } else {
+          falsyIndep[k] = v;
+          hasIndep = true;
+        }
+      });
+      if (hasIndep)
+        indepConditionals.push({
+          ...c,
+          truthy: truthyIndep,
+          falsy: falsyIndep,
+        });
+      if (hasConf)
+        conflictConditionals.push({
+          ...c,
+          truthy: truthyConf,
+          falsy: falsyConf,
+        });
+    });
+
+    const classParts: string[] = [];
+
+    if (existingClass) classParts.push(JSON.stringify(existingClass));
+
+    if (Object.keys(baseIndependent).length > 0) {
+      const className = getStyleRecords(baseIndependent)
+        .map((r) => r.hash)
+        .join(' ');
+      if (className) classParts.push(JSON.stringify(className));
+    }
+
+    indepConditionals
+      .filter((c) => c.groupId === undefined)
+      .forEach((c) => {
+        const processBranch = (style: Record<string, any>) => {
+          if (Object.keys(style).length === 0) return '""';
+          return JSON.stringify(
+            getStyleRecords(style)
+              .map((r) => r.hash)
+              .join(' '),
+          );
+        };
+        const testStr = c.testString ?? getSource(c.test);
+        classParts.push(
+          `(${testStr} ? ${processBranch(c.truthy)} : ${processBranch(c.falsy)})`,
+        );
+      });
+
+    const indepVarGroups: Record<number, StyleConditional[]> = {};
+    indepConditionals.forEach((c) => {
+      if (c.groupId !== undefined) {
+        if (!indepVarGroups[c.groupId]) indepVarGroups[c.groupId] = [];
+        indepVarGroups[c.groupId].push(c);
+      }
+    });
+    Object.values(indepVarGroups).forEach((options) => {
+      const commonTestExpr =
+        options[0].testLHS ??
+        options[0].testString ??
+        getSource(options[0].test);
+      const lookupMap: Record<string, string> = {};
+      options.forEach((opt) => {
+        if (opt.valueName && opt.truthy) {
+          const className = getStyleRecords(opt.truthy)
+            .map((r) => r.hash)
+            .join(' ');
+          if (className) lookupMap[opt.valueName] = className;
+        }
+      });
+      if (Object.keys(lookupMap).length > 0) {
+        const entries = Object.entries(lookupMap)
+          .map(([k, v]) => `"${k}":"${v}"`)
+          .join(',');
+        classParts.push(`({${entries}}[${commonTestExpr}] || "")`);
+      }
+    });
+
+    if (
+      Object.keys(baseConflict).length > 0 ||
+      conflictConditionals.length > 0
+    ) {
+      interface Dimension {
+        type: 'std' | 'var';
+        options: Array<{
+          value: any;
+          style: Record<string, any>;
+          label: string;
+        }>;
+        testExpr?: string;
+      }
+      const dimensions: Dimension[] = [];
+
+      conflictConditionals
+        .filter((c) => c.groupId === undefined)
+        .forEach((c) => {
+          dimensions.push({
+            type: 'std',
+            testExpr: c.testString ?? getSource(c.test),
+            options: [
+              { value: 0, style: c.falsy, label: 'false' },
+              { value: 1, style: c.truthy, label: 'true' },
+            ],
+          });
+        });
+
+      const conflictVarGroups: Record<number, StyleConditional[]> = {};
+      conflictConditionals.forEach((c) => {
+        if (c.groupId !== undefined) {
+          if (!conflictVarGroups[c.groupId]) conflictVarGroups[c.groupId] = [];
+          conflictVarGroups[c.groupId].push(c);
+        }
+      });
+      Object.entries(conflictVarGroups).forEach(([, opts]) => {
+        dimensions.push({
+          type: 'var',
+          testExpr:
+            opts[0].testLHS ?? opts[0].testString ?? getSource(opts[0].test),
+          options: opts.map((opt) => ({
+            value: opt.valueName,
+            style: opt.truthy,
+            label: opt.valueName || 'default',
+          })),
+        });
+      });
+
+      const results: Record<string, string> = {};
+      const recurse = (
+        dimIndex: number,
+        currentStyle: Record<string, any>,
+        keyParts: string[],
+      ) => {
+        if (dimIndex >= dimensions.length) {
+          const className = getStyleRecords(currentStyle)
+            .map((r) => r.hash)
+            .join(' ');
+          if (className) results[keyParts.join('__')] = className;
+          return;
+        }
+        dimensions[dimIndex].options.forEach((opt) =>
+          recurse(dimIndex + 1, deepMerge(currentStyle, opt.style), [
+            ...keyParts,
+            String(opt.value),
+          ]),
+        );
+      };
+      recurse(0, baseConflict, []);
+
+      const baseConflictClass =
+        Object.keys(baseConflict).length > 0
+          ? getStyleRecords(baseConflict)
+              .map((r) => r.hash)
+              .join(' ')
+          : '';
+      const masterKeyExpr = dimensions
+        .map((dim) =>
+          dim.type === 'std'
+            ? `(${dim.testExpr} ? "1" : "0")`
+            : dim.testExpr || '""',
+        )
+        .join(' + "__" + ');
+
+      classParts.push(
+        `(${JSON.stringify(results)}[${masterKeyExpr || '""'}] || ${baseConflictClass ? JSON.stringify(baseConflictClass) : '""'})`,
+      );
+    }
+
+    classParts.push(...dynamicClassParts);
+    return { classParts, isOptimizable, baseStyle };
+  };
+
   // Pass 2: Confirm reference replacement
   traverse(ast, {
     JSXOpeningElement({ node }) {
@@ -855,7 +1365,7 @@ export default async function loader(this: LoaderContext, source: string) {
       if (!node.value || node.value.type !== 'JSXExpressionContainer') return;
 
       const expr = node.value.expression;
-      const args =
+      let args =
         expr.type === 'ArrayExpression'
           ? expr.elements
               .filter(Boolean)
@@ -905,832 +1415,175 @@ export default async function loader(this: LoaderContext, source: string) {
           const innerSource = sourceBuffer
             .subarray(start, end)
             .toString('utf-8');
-          // { color: 'red' } → Extract color: 'red'
           const stripped = innerSource.slice(1, -1).trim();
           if (stripped) dynamicStyleParts.push(stripped);
         }
       }
 
-      const resolveStyleObject = (
-        expr: Expression,
-      ): Record<string, any> | null => {
-        if (t.isObjectExpression(expr)) {
-          return objectExpressionToObject(
-            expr,
-            mergedStaticTable,
-            mergedKeyframesTable,
-            mergedViewTransitionTable,
-            mergedCreateThemeHashTable,
-            scannedTables.createThemeObjectTable,
-            mergedCreateTable,
-            mergedCreateStaticHashTable,
-            scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
-          );
-        } else if (
-          t.isMemberExpression(expr) &&
-          t.isIdentifier((expr as any).object) &&
-          (t.isIdentifier((expr as any).property) ||
-            (expr as any).property.type === 'Computed')
-        ) {
-          if ((expr as any).property.type === 'Computed') {
-            return {};
-          }
-          const varName = ((expr as any).object as Identifier).value;
-          const propName = ((expr as any).property as Identifier).value;
-
-          const styleInfo = localCreateStyles[varName];
-          if (styleInfo && styleInfo.obj[propName]) {
-            const style = styleInfo.obj[propName];
-            if (typeof style === 'object' && style !== null) {
-              return style;
-            }
-          }
-
-          const hash = mergedCreateTable[varName];
-          if (hash) {
-            const obj = scannedTables.createObjectTable[hash];
-            if (obj && obj[propName]) {
-              const style = obj[propName];
-              if (typeof style === 'object' && style !== null) {
-                return style as Record<string, any>;
-              }
-            }
-          }
-        } else if (t.isIdentifier(expr)) {
-          const varName = (expr as Identifier).value;
-          const uniqueKey = `${resourcePath}-${varName}`;
-
-          let hash = scannedTables.createHashTable[uniqueKey];
-          if (!hash) {
-            hash = mergedCreateTable[varName];
-          }
-
-          if (hash) {
-            const obj = scannedTables.createObjectTable[hash];
-            if (obj && typeof obj === 'object') {
-              return obj;
-            }
-          }
-
-          const styleInfo = localCreateStyles[varName];
-          if (styleInfo && styleInfo.obj) {
-            return styleInfo.obj;
-          }
-
-          if (localCreateStyles[varName]) {
-            return localCreateStyles[varName].obj;
-          }
-          const vHash = mergedVariantsTable[varName];
-          if (vHash) {
-            return scannedTables.variantsObjectTable[vHash];
-          }
-        }
-        return null;
-      };
-
-      const conditionals: Array<{
-        test: Expression;
-        testString?: string;
-        testLHS?: string;
-        truthy: Record<string, any>;
-        falsy: Record<string, any>;
-        groupId?: number;
-        groupName?: string;
-        valueName?: string;
-        varName?: string;
-      }> = [];
-
-      let groupIdCounter = 0;
-      let baseStyle: Record<string, any> = {};
-      let isOptimizable = true;
-
-      for (const arg of args) {
+      args = args.filter((arg: any) => {
         const expr = arg.expression;
-
-        // Detects the dynamic style of styles.text(state)
         if (
-          t.isCallExpression(expr) &&
-          t.isMemberExpression((expr as any).callee)
-        ) {
-          const callee = (expr as any).callee;
-          if (
-            t.isIdentifier(callee.object) &&
-            t.isIdentifier(callee.property)
-          ) {
-            const varName = callee.object.value;
-            const propKey = callee.property.value;
-            const styleInfo = localCreateStyles[varName];
-            const atomMap = styleInfo?.hashMap?.[propKey];
+          !t.isCallExpression(expr) ||
+          !t.isMemberExpression((expr as any).callee)
+        )
+          return true;
+        const callee = (expr as any).callee;
+        if (!t.isIdentifier(callee.object) || !t.isIdentifier(callee.property))
+          return true;
 
-            if (atomMap?.['__cssVars__']) {
-              const cssVarInfo: Record<
-                string,
-                { cssVar: string; propKey: string }
-              > = JSON.parse(atomMap['__cssVars__']);
-              const hashes = Object.entries(atomMap)
-                .filter(([k]) => k !== '__cssVars__')
-                .map(([, v]) => v)
-                .join(' ');
+        const varName = callee.object.value;
+        const propKey = callee.property.value;
+        const styleInfo = localCreateStyles[varName];
+        const atomMap = styleInfo?.hashMap?.[propKey];
+        if (!atomMap?.['__cssVars__']) return true;
 
-              if (hashes) dynamicClassParts.push(JSON.stringify(hashes));
+        const cssVarInfo: Record<string, { cssVar: string; propKey: string }> =
+          JSON.parse(atomMap['__cssVars__']);
+        const hashes = Object.entries(atomMap)
+          .filter(([k]) => k !== '__cssVars__')
+          .map(([, v]) => v)
+          .join(' ');
+        if (hashes) dynamicClassParts.push(JSON.stringify(hashes));
 
-              const args = (expr as any).arguments;
-              Object.entries(cssVarInfo).forEach(
-                ([_, { cssVar, propKey: targetProp }], i) => {
-                  const callArg = args[i];
-                  if (!callArg) return;
+        const callArgs = (expr as any).arguments;
+        Object.entries(cssVarInfo).forEach(
+          ([_, { cssVar, propKey: targetProp }], i) => {
+            const callArg = callArgs[i];
+            if (!callArg) return;
+            const argStart = callArg.expression.span.start - baseByteOffset;
+            const argEnd = callArg.expression.span.end - baseByteOffset;
+            const argSource = sourceBuffer
+              .subarray(argStart, argEnd)
+              .toString('utf-8');
 
-                  const argStart =
-                    callArg.expression.span.start - baseByteOffset;
-                  const argEnd = callArg.expression.span.end - baseByteOffset;
-                  const argSource = sourceBuffer
-                    .subarray(argStart, argEnd)
-                    .toString('utf-8');
-
-                  // Evaluate statically if possible
-                  let valueExpr: string;
-                  try {
-                    // Only evaluate literals (for safety reasons).
-                    const maybeNumber = Number(argSource);
-                    if (
-                      !isNaN(maybeNumber) &&
-                      argSource.trim() === String(maybeNumber)
-                    ) {
-                      // Number literal
-                      const processed = applyCssValue(maybeNumber, targetProp);
-                      valueExpr = JSON.stringify(processed);
-                    } else if (
-                      argSource.startsWith('"') &&
-                      argSource.endsWith('"')
-                    ) {
-                      // String literal
-                      const processed = applyCssValue(
-                        argSource.slice(1, -1),
-                        targetProp,
-                      );
-                      valueExpr = JSON.stringify(processed);
-                    } else {
-                      // A lightweight check is added to append "px" if the value is a number
-                      const exception = [
-                        'animationIterationCount',
-                        'aspectRatio',
-                        'columnCount',
-                        'columns',
-                        'fillOpacity',
-                        'flex',
-                        'flexGrow',
-                        'flexShrink',
-                        'floodOpacity',
-                        'fontSizeAdjust',
-                        'fontWeight',
-                        'gridColumn',
-                        'gridColumnEnd',
-                        'gridColumnStart',
-                        'gridRow',
-                        'gridRowEnd',
-                        'gridRowStart',
-                        'hyphenateLimitChars',
-                        'initialLetter',
-                        'lineHeight',
-                        'mathDepth',
-                        'opacity',
-                        'order',
-                        'orphans',
-                        'scale',
-                        'shapeImageThreshold',
-                        'stopOpacity',
-                        'strokeMiterlimit',
-                        'strokeOpacity',
-                        'tabSize',
-                        'widows',
-                        'zIndex',
-                        'zoom',
-                      ];
-
-                      if (!exception.includes(targetProp)) {
-                        valueExpr = `(typeof ${argSource} === 'number' ? ${argSource} + 'px' : ${argSource})`;
-                      } else {
-                        valueExpr = argSource;
-                      }
-                    }
-                  } catch {
-                    valueExpr = argSource;
-                  }
-
-                  dynamicStyleParts.push(`"${cssVar}": ${valueExpr}`);
-                },
+            let valueExpr: string;
+            const maybeNumber = Number(argSource);
+            if (
+              !isNaN(maybeNumber) &&
+              argSource.trim() === String(maybeNumber)
+            ) {
+              valueExpr = JSON.stringify(
+                applyCssValue(maybeNumber, targetProp),
               );
-
-              continue;
-            }
-          }
-        }
-
-        if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
-          const varName = expr.callee.value;
-          let variantObj: Record<string, any> | undefined;
-          const uniqueKey = `${resourcePath}-${varName}`;
-
-          let hash = scannedTables.variantsHashTable[uniqueKey];
-          if (!hash) {
-            hash = mergedVariantsTable[varName];
-          }
-
-          if (hash && scannedTables.variantsObjectTable[hash]) {
-            variantObj = scannedTables.variantsObjectTable[hash];
-          }
-
-          if (!variantObj) {
-            if (localCreateStyles[varName] && localCreateStyles[varName].obj) {
-              variantObj = localCreateStyles[varName].obj;
-            }
-          }
-
-          if (variantObj) {
-            const callArgs = expr.arguments;
-            if (callArgs.length === 1 && !callArgs[0].spread) {
-              const arg = callArgs[0].expression;
-              if (arg.type === 'ObjectExpression') {
-                for (const prop of arg.properties) {
-                  let groupName: string | undefined;
-                  let valExpr: any;
-
-                  if (
-                    prop.type === 'KeyValueProperty' &&
-                    prop.key.type === 'Identifier'
-                  ) {
-                    groupName = prop.key.value;
-                    valExpr = prop.value;
-                  } else if (prop.type === 'Identifier') {
-                    groupName = prop.value;
-                    valExpr = prop;
-                  }
-
-                  if (groupName && valExpr) {
-                    const groupVariants = variantObj[groupName];
-                    if (!groupVariants) continue;
-
-                    const currentGroupId = ++groupIdCounter;
-                    const valStart =
-                      (valExpr as any).span.start - baseByteOffset;
-                    const valEnd = (valExpr as any).span.end - baseByteOffset;
-                    const valSource = sourceBuffer
-                      .subarray(valStart, valEnd)
-                      .toString('utf-8');
-
-                    if (valExpr.type === 'StringLiteral') {
-                      if (groupVariants[valExpr.value]) {
-                        baseStyle = deepMerge(
-                          baseStyle,
-                          groupVariants[valExpr.value],
-                        );
-                      }
-                      continue;
-                    }
-
-                    Object.entries(
-                      groupVariants as Record<string, any>,
-                    ).forEach(([optionName, style]) => {
-                      conditionals.push({
-                        test: valExpr,
-                        testLHS: valSource,
-                        testString: `${valSource} === '${optionName}'`,
-                        truthy: style as Record<string, any>,
-                        falsy: {},
-                        groupId: currentGroupId,
-                        groupName,
-                        valueName: optionName,
-                        varName,
-                      });
-                    });
-                  }
-                }
-                continue;
-              }
-              const argStart = (arg as any).span.start - baseByteOffset;
-              const argEnd = (arg as any).span.end - baseByteOffset;
-              const argSource = sourceBuffer
-                .subarray(argStart, argEnd)
-                .toString('utf-8');
-
-              if (t.isStringLiteral(arg)) {
-                if (variantObj[arg.value]) {
-                  baseStyle = deepMerge(baseStyle, variantObj[arg.value]);
-                }
-                continue;
-              }
-
-              const currentGroupId = ++groupIdCounter;
-              Object.entries(variantObj).forEach(([key, style]) => {
-                conditionals.push({
-                  test: arg,
-                  testLHS: argSource,
-                  testString: `${argSource} === '${key}'`,
-                  truthy: style,
-                  falsy: {},
-                  groupId: currentGroupId,
-                  groupName: undefined,
-                  valueName: key,
-                  varName,
-                });
-              });
-              continue;
-            }
-
-            isOptimizable = false;
-            break;
-          }
-        } else if (t.isIdentifier(expr)) {
-          const varName = expr.value;
-          let variantObj: Record<string, any> | undefined;
-          const uniqueKey = `${resourcePath}-${varName}`;
-
-          let hash = scannedTables.variantsHashTable[uniqueKey];
-          if (!hash) {
-            hash = mergedVariantsTable[varName];
-          }
-
-          if (hash && scannedTables.variantsObjectTable[hash]) {
-            variantObj = scannedTables.variantsObjectTable[hash];
-          }
-
-          if (!variantObj) {
-            if (localCreateStyles[varName] && localCreateStyles[varName].obj) {
-              variantObj = localCreateStyles[varName].obj;
-            }
-          }
-
-          if (variantObj) {
-            Object.entries(variantObj).forEach(([groupName, groupVariants]) => {
-              if (!groupVariants) return;
-              const currentGroupId = ++groupIdCounter;
-              Object.entries(groupVariants).forEach(([optionName, style]) => {
-                conditionals.push({
-                  test: expr,
-                  testLHS: `props["${groupName}"]`,
-                  testString: `props["${groupName}"] === '${optionName}'`,
-                  truthy: style as Record<string, any>,
-                  falsy: {},
-                  groupId: currentGroupId,
-                  groupName: groupName,
-                  valueName: optionName,
-                  varName: varName,
-                });
-              });
-            });
-            continue;
-          }
-        }
-
-        const getSource = (node: any) => {
-          const start = node.span.start - baseByteOffset;
-          const end = node.span.end - baseByteOffset;
-          return sourceBuffer.subarray(start, end).toString('utf-8');
-        };
-
-        const collectConditions = (
-          node: Expression,
-          currentTestStrings: string[] = [],
-        ) => {
-          const staticStyle = resolveStyleObject(node);
-          if (staticStyle) {
-            if (currentTestStrings.length === 0) {
-              baseStyle = deepMerge(baseStyle, staticStyle);
+            } else if (argSource.startsWith('"') && argSource.endsWith('"')) {
+              valueExpr = JSON.stringify(
+                applyCssValue(argSource.slice(1, -1), targetProp),
+              );
             } else {
-              const combinedTest = currentTestStrings.join(' && ');
-              conditionals.push({
-                test: node,
-                testString: combinedTest,
-                truthy: staticStyle,
-                falsy: {},
-                varName: undefined,
-              });
+              const exception = [
+                'animationIterationCount',
+                'aspectRatio',
+                'columnCount',
+                'columns',
+                'fillOpacity',
+                'flex',
+                'flexGrow',
+                'flexShrink',
+                'floodOpacity',
+                'fontSizeAdjust',
+                'fontWeight',
+                'gridColumn',
+                'gridColumnEnd',
+                'gridColumnStart',
+                'gridRow',
+                'gridRowEnd',
+                'gridRowStart',
+                'hyphenateLimitChars',
+                'initialLetter',
+                'lineHeight',
+                'mathDepth',
+                'opacity',
+                'order',
+                'orphans',
+                'scale',
+                'shapeImageThreshold',
+                'stopOpacity',
+                'strokeMiterlimit',
+                'strokeOpacity',
+                'tabSize',
+                'widows',
+                'zIndex',
+                'zoom',
+              ];
+              valueExpr = exception.includes(targetProp)
+                ? argSource
+                : `(typeof ${argSource} === 'number' ? ${argSource} + 'px' : ${argSource})`;
             }
-            return true;
-          }
+            dynamicStyleParts.push(`"${cssVar}": ${valueExpr}`);
+          },
+        );
 
-          if (node.type === 'ConditionalExpression') {
-            const testSource = getSource(node.test);
+        return false;
+      });
 
-            if (currentTestStrings.length === 0) {
-              const trueStyle = resolveStyleObject(node.consequent);
-              const falseStyle = resolveStyleObject(node.alternate);
-              if (trueStyle && falseStyle) {
-                conditionals.push({
-                  test: node,
-                  testString: testSource,
-                  truthy: trueStyle,
-                  falsy: falseStyle,
-                  varName: undefined,
-                });
-                return true;
-              }
-            }
-
-            collectConditions(node.consequent, [
-              ...currentTestStrings,
-              `(${testSource})`,
-            ]);
-            collectConditions(node.alternate, [
-              ...currentTestStrings,
-              `!(${testSource})`,
-            ]);
-            return true;
-          } else if (
-            node.type === 'BinaryExpression' &&
-            node.operator === '&&'
-          ) {
-            const leftSource = getSource(node.left);
-            collectConditions(node.right, [
-              ...currentTestStrings,
-              `(${leftSource})`,
-            ]);
-            return true;
-          } else if (node.type === 'ParenthesisExpression') {
-            return collectConditions(node.expression, currentTestStrings);
-          }
-
-          return false;
-        };
-
-        const handled = collectConditions(expr);
-        if (handled) continue;
-
-        isOptimizable = false;
-        break;
-      }
-
-      // String for the style attribute (only if dynamic styles exist)
       const styleAttr =
         dynamicStyleParts.length > 0
           ? ` style={{${dynamicStyleParts.join(', ')}}}`
           : '';
 
+      const { classParts, isOptimizable, baseStyle } = buildClassParts(
+        args,
+        dynamicClassParts,
+        existingClass,
+      );
+
       if (
         isOptimizable &&
         (args.length > 0 || Object.keys(baseStyle).length > 0)
       ) {
-        if (conditionals.length === 0) {
-          const records = getStyleRecords(baseStyle);
-          const staticClass = records.map((r: StyleRecord) => r.hash).join(' ');
-
-          const allParts = [
-            ...(existingClass ? [JSON.stringify(existingClass)] : []),
-            ...(staticClass ? [JSON.stringify(staticClass)] : []),
-            ...dynamicClassParts,
-          ].join(' + " " + ');
-
-          replacements.push({
-            start: node.span.start - baseByteOffset,
-            end: node.span.end - baseByteOffset,
-            content: `className={${allParts || '""'}}${styleAttr}`,
-          });
-        } else {
-          const propertyCounts: Record<string, number> = {};
-
-          const addCounts = (style: Record<string, any>) => {
-            Object.keys(style).forEach((key) => {
-              propertyCounts[key] = (propertyCounts[key] || 0) + 1;
-            });
-          };
-
-          addCounts(baseStyle);
-
-          const participation: Record<string, Set<string>> = {};
-
-          const registerParticipation = (
-            style: Record<string, any>,
-            sourceId: string,
-          ) => {
-            Object.keys(style).forEach((key) => {
-              if (!participation[key]) participation[key] = new Set();
-              participation[key].add(sourceId);
-            });
-          };
-
-          registerParticipation(baseStyle, 'base');
-
-          conditionals
-            .filter((c) => c.groupId === undefined)
-            .forEach((c, idx) => {
-              const sourceId = `std_${idx}`;
-              registerParticipation(c.truthy, sourceId);
-              registerParticipation(c.falsy, sourceId);
-            });
-
-          const variantGroups: Record<number, typeof conditionals> = {};
-          conditionals.forEach((c) => {
-            if (c.groupId !== undefined) {
-              if (!variantGroups[c.groupId]) variantGroups[c.groupId] = [];
-              variantGroups[c.groupId].push(c);
-            }
-          });
-
-          Object.entries(variantGroups).forEach(([groupId, opts]) => {
-            const sourceId = `var_${groupId}`;
-            opts.forEach((opt) => {
-              registerParticipation(opt.truthy, sourceId);
-              registerParticipation(opt.falsy, sourceId);
-            });
-          });
-
-          const conflictingKeys = new Set<string>();
-          Object.entries(participation).forEach(([key, sources]) => {
-            if (sources.size > 1) {
-              conflictingKeys.add(key);
-            }
-          });
-
-          const baseIndependent: Record<string, any> = {};
-          const baseConflict: Record<string, any> = {};
-
-          Object.entries(baseStyle).forEach(([key, val]) => {
-            if (conflictingKeys.has(key)) {
-              baseConflict[key] = val;
-            } else {
-              baseIndependent[key] = val;
-            }
-          });
-
-          const indepConditionals: typeof conditionals = [];
-          const conflictConditionals: typeof conditionals = [];
-
-          const splitConditional = (c: (typeof conditionals)[0]) => {
-            const truthyIndep: Record<string, any> = {};
-            const truthyConf: Record<string, any> = {};
-            const falsyIndep: Record<string, any> = {};
-            const falsyConf: Record<string, any> = {};
-
-            let hasIndep = false;
-            let hasConf = false;
-
-            Object.entries(c.truthy).forEach(([k, v]) => {
-              if (conflictingKeys.has(k)) {
-                truthyConf[k] = v;
-                hasConf = true;
-              } else {
-                truthyIndep[k] = v;
-                hasIndep = true;
-              }
-            });
-
-            Object.entries(c.falsy).forEach(([k, v]) => {
-              if (conflictingKeys.has(k)) {
-                falsyConf[k] = v;
-                hasConf = true;
-              } else {
-                falsyIndep[k] = v;
-                hasIndep = true;
-              }
-            });
-
-            if (hasIndep) {
-              indepConditionals.push({
-                ...c,
-                truthy: truthyIndep,
-                falsy: falsyIndep,
-              });
-            }
-
-            if (hasConf) {
-              conflictConditionals.push({
-                ...c,
-                truthy: truthyConf,
-                falsy: falsyConf,
-              });
-            }
-          };
-
-          conditionals.forEach(splitConditional);
-
-          const classParts: string[] = [];
-
-          if (existingClass) classParts.push(JSON.stringify(existingClass));
-
-          if (Object.keys(baseIndependent).length > 0) {
-            const records = getStyleRecords(baseIndependent);
-            const className = records.map((r) => r.hash).join(' ');
-            if (className) classParts.push(JSON.stringify(className));
-          }
-
-          const indepStd = indepConditionals.filter(
-            (c) => c.groupId === undefined,
-          );
-          indepStd.forEach((c) => {
-            const processBranch = (style: Record<string, any>) => {
-              if (Object.keys(style).length === 0) return '""';
-              const records = getStyleRecords(style);
-              return JSON.stringify(records.map((r) => r.hash).join(' '));
-            };
-
-            const tClass = processBranch(c.truthy);
-            const fClass = processBranch(c.falsy);
-
-            let testStr = c.testString;
-            if (!testStr && c.test) {
-              const start = (c.test as any).span.start - baseByteOffset;
-              const end = (c.test as any).span.end - baseByteOffset;
-              testStr = sourceBuffer.subarray(start, end).toString('utf-8');
-            }
-
-            classParts.push(`(${testStr} ? ${tClass} : ${fClass})`);
-          });
-
-          const indepVarGroups: Record<number, typeof indepConditionals> = {};
-          indepConditionals.forEach((c) => {
-            if (c.groupId !== undefined) {
-              if (!indepVarGroups[c.groupId]) indepVarGroups[c.groupId] = [];
-              indepVarGroups[c.groupId].push(c);
-            }
-          });
-
-          Object.values(indepVarGroups).forEach((options) => {
-            let commonTestExpr: string | null = null;
-            const lookupMap: Record<string, string> = {};
-
-            if (options.length > 0) {
-              if (options[0].testLHS) {
-                commonTestExpr = options[0].testLHS;
-              } else if (options[0].testString) {
-                commonTestExpr = options[0].testString;
-              } else {
-                const firstTest = options[0].test;
-                const firstStart =
-                  (firstTest as any).span.start - baseByteOffset;
-                const firstEnd = (firstTest as any).span.end - baseByteOffset;
-                commonTestExpr = sourceBuffer
-                  .subarray(firstStart, firstEnd)
-                  .toString('utf-8');
-              }
-
-              options.forEach((opt) => {
-                if (opt.valueName && opt.truthy) {
-                  const records = getStyleRecords(opt.truthy);
-                  const className = records.map((r) => r.hash).join(' ');
-                  if (className) {
-                    lookupMap[opt.valueName] = className;
-                  }
-                }
-              });
-            }
-
-            if (commonTestExpr && Object.keys(lookupMap).length > 0) {
-              const entries = Object.entries(lookupMap)
-                .map(([key, val]) => `"${key}":"${val}"`)
-                .join(',');
-              classParts.push(`({${entries}}[${commonTestExpr}] || "")`);
-            }
-          });
-
-          if (
-            Object.keys(baseConflict).length > 0 ||
-            conflictConditionals.length > 0
-          ) {
-            const conflictStd = conflictConditionals.filter(
-              (c) => c.groupId === undefined,
-            );
-            const conflictVarGroups: Record<
-              number,
-              typeof conflictConditionals
-            > = {};
-
-            conflictConditionals.forEach((c) => {
-              if (c.groupId !== undefined) {
-                if (!conflictVarGroups[c.groupId])
-                  conflictVarGroups[c.groupId] = [];
-                conflictVarGroups[c.groupId].push(c);
-              }
-            });
-
-            interface Dimension {
-              type: 'std' | 'var';
-              options: Array<{
-                value: any;
-                style: Record<string, any>;
-                label: string;
-              }>;
-              testExpr?: string;
-            }
-
-            const dimensions: Dimension[] = [];
-
-            conflictStd.forEach((c) => {
-              let testStr = c.testString;
-              if (!testStr && c.test) {
-                const start = (c.test as any).span.start - baseByteOffset;
-                const end = (c.test as any).span.end - baseByteOffset;
-                testStr = sourceBuffer.subarray(start, end).toString('utf-8');
-              }
-              dimensions.push({
-                type: 'std',
-                testExpr: testStr,
-                options: [
-                  { value: 0, style: c.falsy, label: 'false' },
-                  { value: 1, style: c.truthy, label: 'true' },
-                ],
-              });
-            });
-
-            Object.entries(conflictVarGroups).forEach(([_groupId, opts]) => {
-              let commonTestExpr: string | null = null;
-              if (opts.length > 0) {
-                if (opts[0].testLHS) {
-                  commonTestExpr = opts[0].testLHS;
-                } else if (opts[0].testString) {
-                  commonTestExpr = opts[0].testString;
-                } else {
-                  const firstTest = opts[0].test;
-                  const firstStart =
-                    (firstTest as any).span.start - baseByteOffset;
-                  const firstEnd = (firstTest as any).span.end - baseByteOffset;
-                  commonTestExpr = sourceBuffer
-                    .subarray(firstStart, firstEnd)
-                    .toString('utf-8');
-                }
-              }
-
-              const options = opts.map((opt) => ({
-                value: opt.valueName,
-                style: opt.truthy,
-                label: opt.valueName || 'default',
-              }));
-
-              dimensions.push({
-                type: 'var',
-                testExpr: commonTestExpr || '""',
-                options: options,
-              });
-            });
-
-            const results: Record<string, string> = {};
-
-            const recurse = (
-              dimIndex: number,
-              currentStyle: Record<string, any>,
-              keyParts: string[],
-            ) => {
-              if (dimIndex >= dimensions.length) {
-                const records = getStyleRecords(currentStyle);
-                const className = records.map((r) => r.hash).join(' ');
-                const finalKey = keyParts.join('__');
-                if (className) results[finalKey] = className;
-                return;
-              }
-
-              const dim = dimensions[dimIndex];
-              dim.options.forEach((opt) => {
-                const nextStyle = deepMerge(currentStyle, opt.style);
-                recurse(dimIndex + 1, nextStyle, [
-                  ...keyParts,
-                  String(opt.value),
-                ]);
-              });
-            };
-
-            recurse(0, baseConflict, []);
-
-            let baseConflictClass = '';
-            if (Object.keys(baseConflict).length > 0) {
-              const records = getStyleRecords(baseConflict);
-              baseConflictClass = records.map((r) => r.hash).join(' ');
-            }
-
-            const keyExprs: string[] = [];
-
-            dimensions.forEach((dim) => {
-              if (dim.type === 'std') {
-                keyExprs.push(`(${dim.testExpr} ? "1" : "0")`);
-              } else {
-                keyExprs.push(dim.testExpr || '""');
-              }
-            });
-
-            const masterKeyExpr =
-              keyExprs.length > 0 ? keyExprs.join(' + "__" + ') : '""';
-            const tableJson = JSON.stringify(results);
-            const fallback = baseConflictClass
-              ? JSON.stringify(baseConflictClass)
-              : '""';
-            classParts.push(`(${tableJson}[${masterKeyExpr}] || ${fallback})`);
-          }
-
-          classParts.push(...dynamicClassParts);
-
-          const replacement =
-            classParts.length > 0 ? classParts.join(' + " " + ') : '""';
-
-          replacements.push({
-            start: node.span.start - baseByteOffset,
-            end: node.span.end - baseByteOffset,
-            content: `className={${replacement}}${styleAttr}`,
-          });
-        }
+        const replacement =
+          classParts.length > 0 ? classParts.join(' + " " + ') : '""';
+        replacements.push({
+          start: node.span.start - baseByteOffset,
+          end: node.span.end - baseByteOffset,
+          content: `className={${replacement}}${styleAttr}`,
+        });
       } else {
         replacements.push({
           start: node.span.start - baseByteOffset,
           end: node.span.end - baseByteOffset,
           content: styleAttr || '',
+        });
+      }
+    },
+    CallExpression({ node }) {
+      const callee = node.callee;
+      let isUseCall = false;
+
+      if (
+        t.isMemberExpression(callee) &&
+        t.isIdentifier(callee.object) &&
+        t.isIdentifier(callee.property)
+      ) {
+        const objectName = callee.object.value;
+        const propertyName = callee.property.value;
+        const alias = plumeriaAliases[objectName];
+        if (alias === 'NAMESPACE' && propertyName === 'use') {
+          isUseCall = true;
+        }
+      } else if (t.isIdentifier(callee)) {
+        const calleeName = callee.value;
+        const originalName = plumeriaAliases[calleeName];
+        if (originalName === 'use') {
+          isUseCall = true;
+        }
+      }
+
+      if (!isUseCall) return;
+
+      const args = node.arguments as Array<{ expression: Expression }>;
+      const { classParts, isOptimizable, baseStyle } = buildClassParts(args);
+
+      if (
+        isOptimizable &&
+        (args.length > 0 || Object.keys(baseStyle).length > 0)
+      ) {
+        const replacement =
+          classParts.length > 0 ? classParts.join(' + " " + ') : '""';
+        replacements.push({
+          start: node.span.start - baseByteOffset,
+          end: node.span.end - baseByteOffset,
+          content: replacement,
         });
       }
     },
@@ -1787,7 +1640,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
   const virtualCssImportPath = path.posix.join(
     path.posix.relative(
-      path.dirname(this.resourcePath),
+      path.dirname(resourcePath),
       path.resolve(__dirname, '..', VIRTUAL_CSS_PATH),
     ),
   );
