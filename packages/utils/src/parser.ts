@@ -277,7 +277,9 @@ export function objectExpressionToObject(
       );
     } else if (t.isMemberExpression(val)) {
       const resolved = resolveStaticTableMemberExpression(val, staticTable);
-      obj[key] = resolved !== undefined ? resolved : '[unresolved]';
+      if (resolved !== undefined) {
+        obj[key] = resolved;
+      }
     } else if (t.isIdentifier(val)) {
       if (resolveVariable) {
         const resolved = resolveVariable(val.value);
@@ -288,11 +290,7 @@ export function objectExpressionToObject(
       }
       if (staticTable[val.value] !== undefined) {
         obj[key] = staticTable[val.value];
-      } else {
-        obj[key] = '[unresolved identifier]';
       }
-    } else {
-      obj[key] = '[unsupported value type]';
     }
   });
 
@@ -470,7 +468,6 @@ function getPropertyKey(
       createStaticObjectTable,
     );
   }
-
   return '';
 }
 /* istanbul ignore next */
@@ -544,7 +541,7 @@ function evaluateBinaryExpression(
     return String(left) + String(right);
   }
 
-  throw new Error(`Unsupported binary operator: ${node.operator}`);
+  throw new Error(`[plumeria] Unsupported binary operator: ${node.operator}`);
 }
 
 /* istanbul ignore next */
@@ -673,7 +670,7 @@ function evaluateExpression(
       return viewTransitionHashTable[node.value];
     }
 
-    return `[unresolved: ${node.value}]`;
+    return '';
   }
 
   if (t.isMemberExpression(node)) {
@@ -681,7 +678,6 @@ function evaluateExpression(
     if (resolved !== undefined) {
       return resolved;
     }
-
     const resolvedTheme = resolveCreateThemeTableMemberExpressionByNode(
       node,
       createThemeHashTable,
@@ -700,7 +696,7 @@ function evaluateExpression(
       return resolvedStatic;
     }
 
-    return `[unresolved member expression]`;
+    return '';
   }
 
   if (t.isBinaryExpression(node)) {
@@ -733,7 +729,7 @@ function evaluateExpression(
     return evaluateUnaryExpression(node);
   }
 
-  throw new Error(`Unsupported expression type: ${node.type}`);
+  throw new Error(`[plumeria] Unsupported expression type: ${node.type}`);
 }
 
 /* istanbul ignore next */
@@ -747,9 +743,13 @@ function evaluateUnaryExpression(node: UnaryExpression): number | string {
       if (t.isNumericLiteral(arg)) return +arg.value;
       break;
     default:
-      throw new Error(`Unsupported unary operator: ${node.operator}`);
+      throw new Error(
+        `[plumeria] Unsupported unary operator: ${node.operator}`,
+      );
   }
-  throw new Error(`Unsupported UnaryExpression argument type: ${arg.type}`);
+  throw new Error(
+    `[plumeria] Unsupported UnaryExpression argument type: ${arg.type}`,
+  );
 }
 
 function resolveKeyframesTableMemberExpression(
@@ -1325,7 +1325,9 @@ export function scanAll(): Tables {
           };
         }
       } catch (e) {
-        // Ignore parsing errors for non-relevant files or syntax errors
+        throw new Error(`[plumeria] Failed to process file ${filePath}: ${e}`, {
+          cause: e,
+        });
       }
     }
   } // End of two-pass scanning
