@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 10.0.1
+
+### Patch Changes
+
+- 672f7ec: feat: patch bump
+- Updated dependencies [672f7ec]
+  - @plumeria/utils@10.0.1
+
 ## 10.0.0
 
 ### Major Changes

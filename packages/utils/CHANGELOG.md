@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.0.1
+
+### Patch Changes
+
+- 672f7ec: fix: parser.ts error handling
+
 ## 10.0.0
 
 ### Major Changes

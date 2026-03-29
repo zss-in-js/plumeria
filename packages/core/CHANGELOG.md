@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.0.1
+
+### Patch Changes
+
+- 672f7ec: chore: remove import css properties type
+
 ## 10.0.0
 
 ### Major Changes
