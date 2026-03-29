@@ -1,3 +1,9 @@
+## 10.0.1
+
+### Patch Changes
+
+- 672f7ec: chore: fix To use styleName you need to import core
+
 ## 10.0.0
 
 ### Major Changes
