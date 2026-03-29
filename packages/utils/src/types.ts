@@ -1,16 +1,8 @@
 // Basic primitives (types handled by the implementation)
 type CSSPrimitive = string | number | boolean | null;
 
-// Special strings used when parsing/resolving fails (list of those used in the implementation)
-type ParseErrorString =
-  | `[unresolved]`
-  | `[unresolved identifier]`
-  | `[unsupported value type]`
-  | `[unresolved: ${string}]`
-  | `[unresolved member expression]`;
-
 // Nestable CSS value types for recursive structures
-export type CSSValue = CSSPrimitive | CSSObject | ParseErrorString;
+export type CSSValue = CSSPrimitive | CSSObject;
 export type CSSObject = {
   [key: string]: CSSValue;
 };
