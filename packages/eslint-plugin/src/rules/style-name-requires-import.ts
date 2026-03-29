@@ -10,10 +10,10 @@ export const styleNameRequiresImport: Rule.RuleModule = {
     type: 'problem',
     docs: {
       description:
-        'Disallow styleName prop in files without a @plumeria import',
+        'Disallow styleName prop in files without a @plumeria/core import',
     },
     messages: {
-      styleNameError: 'styleName requires importing from "@plumeria/core".',
+      styleNameError: 'styleName requires importing "@plumeria/core".',
     },
     schema: [],
   },
@@ -25,7 +25,7 @@ export const styleNameRequiresImport: Rule.RuleModule = {
     return {
       ImportDeclaration(node) {
         const source = node.source.value;
-        if (typeof source === 'string' && source.startsWith('@plumeria')) {
+        if (typeof source === 'string' && source.startsWith('@plumeria/core')) {
           hasPlumeriaImport = true;
         }
       },
