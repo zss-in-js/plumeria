@@ -2,26 +2,16 @@
 /* Testing createTheme's on-demand style generation */
 
 import { extractOndemandStyles } from '../src/parser';
-import { scanAll } from '../src/parser';
-import * as fs from 'fs';
-
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  globSync: jest.fn(),
-  readFileSync: jest.fn(),
-  statSync: jest.fn(),
-  existsSync: jest.fn(),
-}));
-
-const mockedFs = fs as jest.Mocked<typeof fs>;
 
 describe('extractOndemandStyles (On-Demand Filtering)', () => {
   let tables: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedFs.globSync.mockReturnValue([]);
-    tables = scanAll();
+    tables = {
+      createThemeObjectTable: {},
+      createThemeHashTable: {},
+    };
   });
 
   it('should only extract used theme variables', () => {
