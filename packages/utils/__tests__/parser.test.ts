@@ -1,4 +1,3 @@
-/* eslint-disable @plumeria/validate-values */
 import {
   objectExpressionToObject,
   t,
@@ -163,7 +162,7 @@ describe('parser', () => {
       const ast = parseSync('const a = { prop: a };', { syntax: 'typescript' });
       const consts = collectLocalConsts(ast);
       expect(consts.a).toBeDefined(); // { prop: '[unresolved identifier]' }
-      expect(consts.a.prop).toBe('[unresolved identifier]');
+      expect(consts.a.prop).toBeUndefined();
     });
 
     it('should handle references to non-local variables', () => {
@@ -172,7 +171,7 @@ describe('parser', () => {
         syntax: 'typescript',
       });
       const consts = collectLocalConsts(ast);
-      expect(consts.a.prop).toBe('[unresolved identifier]');
+      expect(consts.a.prop).toBeUndefined();
     });
   });
 
@@ -369,7 +368,7 @@ describe('parser', () => {
         {},
       );
 
-      expect(result.color).toBe('[unresolved identifier]');
+      expect(result.color).toBeUndefined();
     });
 
     it('should handle unresolved member expressions', () => {
@@ -391,7 +390,7 @@ describe('parser', () => {
         {},
       );
 
-      expect(result.color).toBe('[unresolved]');
+      expect(result.color).toBeUndefined();
     });
 
     it('should resolve member expression values from constTable', () => {
@@ -463,7 +462,7 @@ describe('parser', () => {
         {},
       );
 
-      expect(result.func).toBe('[unsupported value type]');
+      expect(result.func).toBeUndefined();
     });
 
     it('should handle template literal property keys', () => {
@@ -925,7 +924,7 @@ describe('parser', () => {
       );
       const hash = result.createHashTable[createKey!];
       const obj = result.createObjectTable[hash];
-      expect(obj.c).toBe('[unresolved]');
+      expect(obj.c).toBeUndefined();
     });
 
     it('should resolve aliased cross-file imports for createTheme in Pass 2', () => {
@@ -962,7 +961,7 @@ describe('parser', () => {
       );
       const hash = result.createHashTable[createKey!];
       const obj = result.createObjectTable[hash];
-      expect(obj.c).toBe('[unresolved]');
+      expect(obj.c).toBeUndefined();
     });
 
     it('should resolve exported keyframes in other files', () => {
@@ -1306,9 +1305,7 @@ describe('parser', () => {
       const result = scanAll();
       const keys = Object.keys(result.staticTable);
       const cKey = keys.find((k) => k.endsWith('-C'));
-      expect(result.staticTable[cKey!]).toEqual({
-        color: '[unresolved identifier]',
-      });
+      expect(result.staticTable[cKey!]).toEqual({});
     });
 
     it('should use cache on second run', () => {
@@ -1471,6 +1468,51 @@ describe('extractOndemandStyles (integration)', () => {
         },
       },
     };
+  });
+
+  it('should throw a wrapped error when file processing fails', () => {
+    const brokenFile = '/test/broken.ts';
+    mockedRs.globSync.mockReturnValue([brokenFile] as any);
+
+    // statSync succeeds, but readFileSync throws an exception.
+    mockedFs.statSync.mockReturnValue({
+      isDirectory: () => false,
+      mtimeMs: 99999,
+    } as any);
+
+    const originalError = new Error('disk read failed');
+    mockedFs.readFileSync.mockImplementation(() => {
+      throw originalError;
+    });
+
+    expect(() => scanAll()).toThrow('[plumeria] Failed to process file');
+    expect(() => scanAll()).toThrow(brokenFile);
+  });
+
+  it('should preserve the original error as cause', () => {
+    const brokenFile = '/test/broken-cause.ts';
+    mockedRs.globSync.mockReturnValue([brokenFile] as any);
+
+    mockedFs.statSync.mockReturnValue({
+      isDirectory: () => false,
+      mtimeMs: 88888,
+    } as any);
+
+    const originalError = new Error('disk read failed');
+    mockedFs.readFileSync.mockImplementation(() => {
+      throw originalError;
+    });
+
+    let caught: Error | null = null;
+    try {
+      scanAll();
+    } catch (e) {
+      caught = e as Error;
+    }
+
+    expect(caught).not.toBeNull();
+    expect(caught!.message).toContain('[plumeria] Failed to process file');
+    expect(caught!.cause).toBe(originalError);
   });
 
   it('should extract keyframes, viewTransition, create and theme styles', () => {
