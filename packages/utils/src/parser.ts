@@ -1325,9 +1325,7 @@ export function scanAll(): Tables {
           };
         }
       } catch (e) {
-        throw new Error(`[plumeria] Failed to process file ${filePath}: ${e}`, {
-          cause: e,
-        });
+        // Ignore parsing errors for non-relevant files or syntax errors
       }
     }
   } // End of two-pass scanning
