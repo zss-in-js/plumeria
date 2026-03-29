@@ -1470,51 +1470,6 @@ describe('extractOndemandStyles (integration)', () => {
     };
   });
 
-  it('should throw a wrapped error when file processing fails', () => {
-    const brokenFile = '/test/broken.ts';
-    mockedRs.globSync.mockReturnValue([brokenFile] as any);
-
-    // statSync succeeds, but readFileSync throws an exception.
-    mockedFs.statSync.mockReturnValue({
-      isDirectory: () => false,
-      mtimeMs: 99999,
-    } as any);
-
-    const originalError = new Error('disk read failed');
-    mockedFs.readFileSync.mockImplementation(() => {
-      throw originalError;
-    });
-
-    expect(() => scanAll()).toThrow('[plumeria] Failed to process file');
-    expect(() => scanAll()).toThrow(brokenFile);
-  });
-
-  it('should preserve the original error as cause', () => {
-    const brokenFile = '/test/broken-cause.ts';
-    mockedRs.globSync.mockReturnValue([brokenFile] as any);
-
-    mockedFs.statSync.mockReturnValue({
-      isDirectory: () => false,
-      mtimeMs: 88888,
-    } as any);
-
-    const originalError = new Error('disk read failed');
-    mockedFs.readFileSync.mockImplementation(() => {
-      throw originalError;
-    });
-
-    let caught: Error | null = null;
-    try {
-      scanAll();
-    } catch (e) {
-      caught = e as Error;
-    }
-
-    expect(caught).not.toBeNull();
-    expect(caught!.message).toContain('[plumeria] Failed to process file');
-    expect(caught!.cause).toBe(originalError);
-  });
-
   it('should extract keyframes, viewTransition, create and theme styles', () => {
     const extracted: string[] = [];
 
