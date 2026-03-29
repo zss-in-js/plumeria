@@ -7,6 +7,7 @@ Below are the available rules and the recommended configuration.
 
 The `plugin:@plumeria/recommended` config enables the following:
 
+- `@plumeria/style-name-requires-import`: **error**
 - `@plumeria/no-combinator`: **error**
 - `@plumeria/no-destructure`: **error**
 - `@plumeria/no-inner-call`: **error**
@@ -22,6 +23,11 @@ export default [plumeria.flatConfigs.recommended];
 ```
 
 ## Rules
+
+### style-name-requires-import
+
+Disallow styleName prop in files without a @plumeria/core import.
+
 
 ### no-combinator
 
