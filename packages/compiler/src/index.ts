@@ -43,6 +43,105 @@ interface CompilerOptions {
   cwd?: string;
 }
 
+// ===========================================
+// Definition of recontext and extraction logic
+// ============================================
+
+interface TraversalContext {
+  mergedStaticTable: StaticTable;
+  mergedKeyframesTable: KeyframesHashTable;
+  mergedViewTransitionTable: ViewTransitionHashTable;
+  mergedCreateThemeHashTable: CreateThemeHashTable;
+  mergedCreateStaticHashTable: CreateStaticHashTable;
+  mergedCreateTable: CreateHashTable;
+  mergedVariantsTable: VariantsHashTable;
+  scannedTables: ReturnType<typeof scanAll>;
+  localCreateStyles: Record<
+    string,
+    { type: 'create' | 'variant' | 'theme'; obj: CSSObject }
+  >;
+  sourceBuffer: Buffer;
+  baseByteOffset: number;
+}
+
+function extractStylesFromExpression(
+  expression: Expression,
+  ctx: TraversalContext,
+): CSSObject[] {
+  const results: CSSObject[] = [];
+
+  if (t.isObjectExpression(expression)) {
+    const object = objectExpressionToObject(
+      expression as ObjectExpression,
+      ctx.mergedStaticTable,
+      ctx.mergedKeyframesTable,
+      ctx.mergedViewTransitionTable,
+      ctx.mergedCreateThemeHashTable,
+      ctx.scannedTables.createThemeObjectTable,
+      ctx.mergedCreateTable,
+      ctx.mergedCreateStaticHashTable,
+      ctx.scannedTables.createStaticObjectTable,
+      ctx.mergedVariantsTable,
+    );
+    if (object) results.push(object);
+  } else if (t.isMemberExpression(expression)) {
+    const memberExpr = expression as MemberExpression;
+    if (
+      t.isIdentifier(memberExpr.object) &&
+      t.isIdentifier(memberExpr.property)
+    ) {
+      const variableName = (memberExpr.object as Identifier).value;
+      const propertyName = (memberExpr.property as Identifier).value;
+      const styleSet = ctx.localCreateStyles[variableName];
+      if (styleSet && (styleSet.obj as Record<string, any>)[propertyName]) {
+        results.push(
+          (styleSet.obj as Record<string, any>)[propertyName] as CSSObject,
+        );
+      } else {
+        const hash = ctx.mergedCreateTable[variableName];
+        if (hash) {
+          const object = ctx.scannedTables.createObjectTable[hash];
+          if (object && (object as Record<string, any>)[propertyName]) {
+            results.push(
+              (object as Record<string, any>)[propertyName] as CSSObject,
+            );
+          }
+        }
+      }
+    }
+  } else if (t.isIdentifier(expression)) {
+    const identifier = expression as Identifier;
+    const object = ctx.localCreateStyles[identifier.value];
+    if (object) results.push(object.obj);
+    else {
+      const hash = ctx.mergedCreateTable[identifier.value];
+      if (hash) {
+        const objectFromTable = ctx.scannedTables.createObjectTable[hash];
+        if (objectFromTable) results.push(objectFromTable as CSSObject);
+      }
+    }
+  } else if (t.isConditionalExpression(expression)) {
+    const condExpr = expression as ConditionalExpression;
+    results.push(...extractStylesFromExpression(condExpr.consequent, ctx));
+    results.push(...extractStylesFromExpression(condExpr.alternate, ctx));
+  } else if (
+    t.isBinaryExpression(expression) &&
+    ['&&', '||', '??'].includes((expression as BinaryExpression).operator)
+  ) {
+    const binaryExpr = expression as BinaryExpression;
+    results.push(...extractStylesFromExpression(binaryExpr.left, ctx));
+    results.push(...extractStylesFromExpression(binaryExpr.right, ctx));
+  } else if (expression.type === 'ParenthesisExpression') {
+    const parenExpr = expression as unknown as ParenthesisExpression;
+    results.push(...extractStylesFromExpression(parenExpr.expression, ctx));
+  }
+
+  return results;
+}
+
+// ===========================================
+// Main compiler function
+// ===========================================
 export function compileCSS(options: CompilerOptions) {
   const { include, exclude, cwd = process.cwd() } = options;
   const allSheets = new Set<string>();
@@ -82,7 +181,7 @@ export function compileCSS(options: CompilerOptions) {
         const sourcePath = node.source.value;
 
         if (sourcePath === '@plumeria/core') {
-          node.specifiers.forEach((specifier: any) => {
+          node.specifiers.forEach((specifier: ImportSpecifier) => {
             if (specifier.type === 'ImportNamespaceSpecifier') {
               plumeriaAliases[specifier.local.value] = 'NAMESPACE';
             } else if (specifier.type === 'ImportDefaultSpecifier') {
@@ -99,40 +198,33 @@ export function compileCSS(options: CompilerOptions) {
         const actualPath = resolveImportPath(sourcePath, resourcePath);
 
         if (actualPath) {
-          node.specifiers.forEach((specifier: ImportSpecifier) => {
+          node.specifiers.forEach((specifier: any) => {
             if (specifier.type === 'ImportSpecifier') {
               const importedName = specifier.imported
                 ? specifier.imported.value
                 : specifier.local.value;
               const localName = specifier.local.value;
               const uniqueKey = `${actualPath}-${importedName}`;
-              if (scannedTables.staticTable[uniqueKey]) {
+
+              if (scannedTables.staticTable[uniqueKey])
                 importMap[localName] = scannedTables.staticTable[uniqueKey];
-              }
-              if (scannedTables.keyframesHashTable[uniqueKey]) {
+              if (scannedTables.keyframesHashTable[uniqueKey])
                 importMap[localName] =
                   scannedTables.keyframesHashTable[uniqueKey];
-              }
-              if (scannedTables.viewTransitionHashTable[uniqueKey]) {
+              if (scannedTables.viewTransitionHashTable[uniqueKey])
                 importMap[localName] =
                   scannedTables.viewTransitionHashTable[uniqueKey];
-              }
-
-              if (scannedTables.createHashTable[uniqueKey]) {
+              if (scannedTables.createHashTable[uniqueKey])
                 importMap[localName] = scannedTables.createHashTable[uniqueKey];
-              }
-              if (scannedTables.variantsHashTable[uniqueKey]) {
+              if (scannedTables.variantsHashTable[uniqueKey])
                 importMap[localName] =
                   scannedTables.variantsHashTable[uniqueKey];
-              }
-              if (scannedTables.createThemeHashTable[uniqueKey]) {
+              if (scannedTables.createThemeHashTable[uniqueKey])
                 importMap[localName] =
                   scannedTables.createThemeHashTable[uniqueKey];
-              }
-              if (scannedTables.createStaticHashTable[uniqueKey]) {
+              if (scannedTables.createStaticHashTable[uniqueKey])
                 importMap[localName] =
                   scannedTables.createStaticHashTable[uniqueKey];
-              }
             }
           });
         }
@@ -200,133 +292,158 @@ export function compileCSS(options: CompilerOptions) {
       mergedVariantsTable[key] = importMap[key];
     }
 
-    const localCreateStyles: Record<
-      string,
-      { type: 'create' | 'variant' | 'theme'; obj: CSSObject }
-    > = {};
-
-    const extractStylesFromExpression = (
-      expression: Expression,
-    ): CSSObject[] => {
-      const results: CSSObject[] = [];
-      if (t.isObjectExpression(expression)) {
-        const object = objectExpressionToObject(
-          expression,
-          mergedStaticTable,
-          mergedKeyframesTable,
-          mergedViewTransitionTable,
-          mergedCreateThemeHashTable,
-          scannedTables.createThemeObjectTable,
-          mergedCreateTable,
-          mergedCreateStaticHashTable,
-          scannedTables.createStaticObjectTable,
-          mergedVariantsTable,
-        );
-        if (object) results.push(object);
-      } else if (t.isMemberExpression(expression)) {
-        const memberExpr = expression as MemberExpression;
-        // Handle static member access logic
-        if (
-          t.isIdentifier(memberExpr.object) &&
-          t.isIdentifier(memberExpr.property)
-        ) {
-          const variableName = (memberExpr.object as Identifier).value;
-          const propertyName = (memberExpr.property as Identifier).value;
-          const styleSet = localCreateStyles[variableName];
-          if (styleSet && styleSet.obj[propertyName]) {
-            results.push(styleSet.obj[propertyName] as CSSObject);
-          } else {
-            const hash = mergedCreateTable[variableName];
-            if (hash) {
-              const object = scannedTables.createObjectTable[hash];
-              if (object && object[propertyName]) {
-                results.push(object[propertyName] as CSSObject);
-              }
-            }
-          }
-        }
-      } else if (t.isIdentifier(expression)) {
-        const identifier = expression as Identifier;
-        const object = localCreateStyles[identifier.value];
-        if (object) results.push(object.obj);
-        else {
-          const hash = mergedCreateTable[identifier.value];
-          if (hash) {
-            const objectFromTable = scannedTables.createObjectTable[hash];
-            if (objectFromTable) results.push(objectFromTable as CSSObject);
-          }
-        }
-      } else if (t.isConditionalExpression(expression)) {
-        const conditionalExpr = expression as ConditionalExpression;
-        results.push(
-          ...extractStylesFromExpression(conditionalExpr.consequent),
-        );
-        results.push(...extractStylesFromExpression(conditionalExpr.alternate));
-      } else if (
-        t.isBinaryExpression(expression) &&
-        ['&&', '||', '??'].includes((expression as BinaryExpression).operator)
-      ) {
-        const binaryExpr = expression as BinaryExpression;
-        results.push(...extractStylesFromExpression(binaryExpr.left));
-        results.push(...extractStylesFromExpression(binaryExpr.right));
-      } else if (expression.type === 'ParenthesisExpression') {
-        const parenExpr = expression as unknown as ParenthesisExpression;
-        results.push(...extractStylesFromExpression(parenExpr.expression));
-      }
-      return results;
+    const ctx: TraversalContext = {
+      mergedStaticTable,
+      mergedKeyframesTable,
+      mergedViewTransitionTable,
+      mergedCreateThemeHashTable,
+      mergedCreateStaticHashTable,
+      mergedCreateTable,
+      mergedVariantsTable,
+      scannedTables,
+      localCreateStyles: {},
+      sourceBuffer,
+      baseByteOffset,
     };
 
     const processStyle = (style: CSSObject) => {
-      /**
-       * When style.use is actually used, the contents of the style (obj) are
-       * extracted as atomic CSS and the call is replaced with class names.
-       */
       extractOndemandStyles(style, extractedSheets, scannedTables);
       const records = getStyleRecords(style as CSSProperties);
       records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
     };
 
+    // Common processing for use() and styleName={}
+    const extractAndProcessConditionals = (
+      args: Array<{ expression: Expression }>,
+    ) => {
+      const conditionals: Array<{
+        test: Expression;
+        testString?: string;
+        truthy: Record<string, any>;
+        falsy: Record<string, any>;
+      }> = [];
+      let baseStyle: Record<string, any> = {};
+
+      const resolveStyleObject = (
+        expression: Expression,
+      ): Record<string, any> | null => {
+        const styles = extractStylesFromExpression(expression, ctx);
+        return styles.length === 1 ? (styles[0] as Record<string, any>) : null;
+      };
+
+      const getSource = (node: any) =>
+        ctx.sourceBuffer
+          .subarray(
+            node.span.start - ctx.baseByteOffset,
+            node.span.end - ctx.baseByteOffset,
+          )
+          .toString('utf-8');
+
+      const collectConditions = (
+        node: Expression,
+        testStrings: string[] = [],
+      ): boolean => {
+        const staticStyle = resolveStyleObject(node);
+        if (staticStyle) {
+          if (testStrings.length === 0) {
+            baseStyle = deepMerge(baseStyle, staticStyle);
+          } else {
+            conditionals.push({
+              test: node,
+              testString: testStrings.join(' && '),
+              truthy: staticStyle,
+              falsy: {},
+            });
+          }
+          return true;
+        }
+        if (node.type === 'ConditionalExpression') {
+          const testSource = getSource((node as ConditionalExpression).test);
+          collectConditions((node as ConditionalExpression).consequent, [
+            ...testStrings,
+            `(${testSource})`,
+          ]);
+          collectConditions((node as ConditionalExpression).alternate, [
+            ...testStrings,
+            `!(${testSource})`,
+          ]);
+          return true;
+        } else if (
+          node.type === 'BinaryExpression' &&
+          (node as BinaryExpression).operator === '&&'
+        ) {
+          collectConditions((node as BinaryExpression).right, [
+            ...testStrings,
+            `(${getSource((node as BinaryExpression).left)})`,
+          ]);
+          return true;
+        } else if (node.type === 'ParenthesisExpression') {
+          return collectConditions((node as any).expression, testStrings);
+        }
+        return false;
+      };
+
+      for (const arg of args) {
+        if (collectConditions(arg.expression)) continue;
+        const extractedStyles = extractStylesFromExpression(
+          arg.expression,
+          ctx,
+        );
+        extractedStyles.forEach(processStyle);
+      }
+
+      if (Object.keys(baseStyle).length > 0) processStyle(baseStyle);
+      for (const cond of conditionals) {
+        if (cond.truthy && Object.keys(cond.truthy).length > 0)
+          processStyle(cond.truthy);
+        if (cond.falsy && Object.keys(cond.falsy).length > 0)
+          processStyle(cond.falsy);
+      }
+    };
+
     const processCall = (node: any) => {
       node._processed = true;
-
-      // Resolve propName logic (similar to existing)
       const callee = node.callee;
       let propName: string | undefined;
+
       if (
         t.isMemberExpression(callee) &&
         t.isIdentifier(callee.object) &&
         t.isIdentifier(callee.property)
       ) {
-        const objectName = callee.object.value;
-        const propertyName = callee.property.value;
-        const alias = plumeriaAliases[objectName];
-        if (alias === 'NAMESPACE') propName = propertyName;
+        const objectName = (callee.object as Identifier).value;
+        const propertyName = (callee.property as Identifier).value;
+        if (plumeriaAliases[objectName] === 'NAMESPACE')
+          propName = propertyName;
       } else if (t.isIdentifier(callee)) {
-        const originalName = plumeriaAliases[callee.value];
+        const originalName = plumeriaAliases[(callee as Identifier).value];
         if (originalName) propName = originalName;
       }
 
       if (propName) {
         const args = node.arguments;
-        if (
+
+        if (propName === 'use') {
+          extractAndProcessConditionals(args);
+        } else if (
           propName === 'keyframes' &&
           args.length > 0 &&
           t.isObjectExpression(args[0].expression)
         ) {
           const obj = objectExpressionToObject(
             args[0].expression as ObjectExpression,
-            mergedStaticTable,
-            mergedKeyframesTable,
-            mergedViewTransitionTable,
-            mergedCreateThemeHashTable,
-            scannedTables.createThemeObjectTable,
-            mergedCreateTable,
-            mergedCreateStaticHashTable,
-            scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
+            ctx.mergedStaticTable,
+            ctx.mergedKeyframesTable,
+            ctx.mergedViewTransitionTable,
+            ctx.mergedCreateThemeHashTable,
+            ctx.scannedTables.createThemeObjectTable,
+            ctx.mergedCreateTable,
+            ctx.mergedCreateStaticHashTable,
+            ctx.scannedTables.createStaticObjectTable,
+            ctx.mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          scannedTables.keyframesObjectTable[hash] = obj;
+          ctx.scannedTables.keyframesObjectTable[hash] = obj;
         } else if (
           propName === 'viewTransition' &&
           args.length > 0 &&
@@ -334,18 +451,18 @@ export function compileCSS(options: CompilerOptions) {
         ) {
           const obj = objectExpressionToObject(
             args[0].expression as ObjectExpression,
-            mergedStaticTable,
-            mergedKeyframesTable,
-            mergedViewTransitionTable,
-            mergedCreateThemeHashTable,
-            scannedTables.createThemeObjectTable,
-            mergedCreateTable,
-            mergedCreateStaticHashTable,
-            scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
+            ctx.mergedStaticTable,
+            ctx.mergedKeyframesTable,
+            ctx.mergedViewTransitionTable,
+            ctx.mergedCreateThemeHashTable,
+            ctx.scannedTables.createThemeObjectTable,
+            ctx.mergedCreateTable,
+            ctx.mergedCreateStaticHashTable,
+            ctx.scannedTables.createStaticObjectTable,
+            ctx.mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          scannedTables.viewTransitionObjectTable[hash] = obj;
+          ctx.scannedTables.viewTransitionObjectTable[hash] = obj;
         } else if (
           propName === 'createTheme' &&
           args.length > 0 &&
@@ -353,18 +470,18 @@ export function compileCSS(options: CompilerOptions) {
         ) {
           const obj = objectExpressionToObject(
             args[0].expression as ObjectExpression,
-            mergedStaticTable,
-            mergedKeyframesTable,
-            mergedViewTransitionTable,
-            mergedCreateThemeHashTable,
-            scannedTables.createThemeObjectTable,
-            mergedCreateTable,
-            mergedCreateStaticHashTable,
-            scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
+            ctx.mergedStaticTable,
+            ctx.mergedKeyframesTable,
+            ctx.mergedViewTransitionTable,
+            ctx.mergedCreateThemeHashTable,
+            ctx.scannedTables.createThemeObjectTable,
+            ctx.mergedCreateTable,
+            ctx.mergedCreateStaticHashTable,
+            ctx.scannedTables.createStaticObjectTable,
+            ctx.mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          scannedTables.createThemeObjectTable[hash] = obj;
+          ctx.scannedTables.createThemeObjectTable[hash] = obj;
         }
       }
     };
@@ -378,7 +495,6 @@ export function compileCSS(options: CompilerOptions) {
 
     traverse(ast, {
       VariableDeclarator({ node }: { node: any }) {
-        // Definition Logic
         if (
           t.isIdentifier(node.id) &&
           node.init &&
@@ -386,15 +502,22 @@ export function compileCSS(options: CompilerOptions) {
         ) {
           const callee = node.init.callee;
           let pName: string | undefined;
+
           if (
             t.isMemberExpression(callee) &&
             t.isIdentifier(callee.object) &&
             t.isIdentifier(callee.property)
           ) {
-            if (plumeriaAliases[callee.object.value] === 'NAMESPACE')
-              pName = callee.property.value;
-          } else if (t.isIdentifier(callee) && plumeriaAliases[callee.value]) {
-            pName = plumeriaAliases[callee.value];
+            if (
+              plumeriaAliases[(callee.object as Identifier).value] ===
+              'NAMESPACE'
+            )
+              pName = (callee.property as Identifier).value;
+          } else if (
+            t.isIdentifier(callee) &&
+            plumeriaAliases[(callee as Identifier).value]
+          ) {
+            pName = plumeriaAliases[(callee as Identifier).value];
           }
 
           if (
@@ -404,35 +527,38 @@ export function compileCSS(options: CompilerOptions) {
           ) {
             const arg = node.init.arguments[0].expression as ObjectExpression;
             const resolveVariable = (name: string) =>
-              localCreateStyles[name]?.obj ||
-              (mergedCreateThemeHashTable[name]
-                ? scannedTables.createAtomicMapTable[
-                    mergedCreateThemeHashTable[name]
+              ctx.localCreateStyles[name]?.obj ||
+              (ctx.mergedCreateThemeHashTable[name]
+                ? ctx.scannedTables.createAtomicMapTable[
+                    ctx.mergedCreateThemeHashTable[name]
                   ]
                 : undefined);
 
             if (pName === 'create') {
               const obj = objectExpressionToObject(
                 arg,
-                mergedStaticTable,
-                mergedKeyframesTable,
-                mergedViewTransitionTable,
-                mergedCreateThemeHashTable,
-                scannedTables.createThemeObjectTable,
-                mergedCreateTable,
-                mergedCreateStaticHashTable,
-                scannedTables.createStaticObjectTable,
-                mergedVariantsTable,
+                ctx.mergedStaticTable,
+                ctx.mergedKeyframesTable,
+                ctx.mergedViewTransitionTable,
+                ctx.mergedCreateThemeHashTable,
+                ctx.scannedTables.createThemeObjectTable,
+                ctx.mergedCreateTable,
+                ctx.mergedCreateStaticHashTable,
+                ctx.scannedTables.createStaticObjectTable,
+                ctx.mergedVariantsTable,
                 resolveVariable,
               );
+
               if (obj) {
-                localCreateStyles[node.id.value] = { type: 'create', obj };
+                ctx.localCreateStyles[node.id.value] = { type: 'create', obj };
                 Object.entries(obj).forEach(([_, style]) => {
                   if (typeof style !== 'object' || style === null) return;
                   getStyleRecords(style as CSSProperties).forEach(
                     (r: StyleRecord) => extractedSheets.push(r.sheet),
                   );
                 });
+
+                // Analysis and extraction of functional variants
                 arg.properties.forEach((prop: any) => {
                   if (
                     prop.type !== 'KeyValueProperty' ||
@@ -448,7 +574,7 @@ export function compileCSS(options: CompilerOptions) {
                     p.type === 'Identifier' ? p.value : (p.pat?.value ?? 'arg'),
                   );
 
-                  const tempStaticTable = { ...mergedStaticTable };
+                  const tempStaticTable = { ...ctx.mergedStaticTable };
                   params.forEach((paramName) => {
                     tempStaticTable[paramName] = `var(--${key}-${paramName})`;
                   });
@@ -463,23 +589,24 @@ export function compileCSS(options: CompilerOptions) {
                     if (actualBody?.type === 'ParenthesisExpression')
                       actualBody = actualBody.expression;
                   }
+
                   if (!actualBody || actualBody.type !== 'ObjectExpression')
                     return;
 
                   const substituted = objectExpressionToObject(
                     actualBody,
                     tempStaticTable,
-                    mergedKeyframesTable,
-                    mergedViewTransitionTable,
-                    mergedCreateThemeHashTable,
-                    scannedTables.createThemeObjectTable,
-                    mergedCreateTable,
-                    mergedCreateStaticHashTable,
-                    scannedTables.createStaticObjectTable,
-                    mergedVariantsTable,
+                    ctx.mergedKeyframesTable,
+                    ctx.mergedViewTransitionTable,
+                    ctx.mergedCreateThemeHashTable,
+                    ctx.scannedTables.createThemeObjectTable,
+                    ctx.mergedCreateTable,
+                    ctx.mergedCreateStaticHashTable,
+                    ctx.scannedTables.createStaticObjectTable,
+                    ctx.mergedVariantsTable,
                   );
-                  if (!substituted) return;
 
+                  if (!substituted) return;
                   getStyleRecords(substituted as CSSProperties).forEach(
                     (r: StyleRecord) => extractedSheets.push(r.sheet),
                   );
@@ -488,44 +615,43 @@ export function compileCSS(options: CompilerOptions) {
             } else if (pName === 'variants') {
               const obj = objectExpressionToObject(
                 arg,
-                mergedStaticTable,
-                mergedKeyframesTable,
-                mergedViewTransitionTable,
-                mergedCreateThemeHashTable,
-                scannedTables.createThemeObjectTable,
-                mergedCreateTable,
-                mergedCreateStaticHashTable,
-                scannedTables.createStaticObjectTable,
-                mergedVariantsTable,
+                ctx.mergedStaticTable,
+                ctx.mergedKeyframesTable,
+                ctx.mergedViewTransitionTable,
+                ctx.mergedCreateThemeHashTable,
+                ctx.scannedTables.createThemeObjectTable,
+                ctx.mergedCreateTable,
+                ctx.mergedCreateStaticHashTable,
+                ctx.scannedTables.createStaticObjectTable,
+                ctx.mergedVariantsTable,
                 resolveVariable,
               );
               if (obj)
-                localCreateStyles[node.id.value] = { type: 'variant', obj };
+                ctx.localCreateStyles[node.id.value] = { type: 'variant', obj };
             } else if (pName === 'createTheme') {
               const obj = objectExpressionToObject(
                 arg,
-                mergedStaticTable,
-                mergedKeyframesTable,
-                mergedViewTransitionTable,
-                mergedCreateThemeHashTable,
-                scannedTables.createThemeObjectTable,
-                mergedCreateTable,
-                mergedCreateStaticHashTable,
-                scannedTables.createStaticObjectTable,
-                mergedVariantsTable,
+                ctx.mergedStaticTable,
+                ctx.mergedKeyframesTable,
+                ctx.mergedViewTransitionTable,
+                ctx.mergedCreateThemeHashTable,
+                ctx.scannedTables.createThemeObjectTable,
+                ctx.mergedCreateTable,
+                ctx.mergedCreateStaticHashTable,
+                ctx.scannedTables.createStaticObjectTable,
+                ctx.mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
               const uKey = `${resourcePath}-${node.id.value}`;
-              scannedTables.createThemeHashTable[uKey] = hash;
-              scannedTables.createThemeObjectTable[hash] = obj;
-              localCreateStyles[node.id.value] = {
+              ctx.scannedTables.createThemeHashTable[uKey] = hash;
+              ctx.scannedTables.createThemeObjectTable[hash] = obj;
+              ctx.localCreateStyles[node.id.value] = {
                 type: 'create',
-                obj: scannedTables.createAtomicMapTable[hash],
+                obj: ctx.scannedTables.createAtomicMapTable[hash],
               };
             }
           }
         }
-        // Scope Tracking
         if (t.isIdentifier(node.id)) {
           if (node.init) traverseInternal(node.init);
         }
@@ -548,97 +674,7 @@ export function compileCSS(options: CompilerOptions) {
                 .map((el: any) => ({ expression: el.expression ?? el }))
             : [{ expression: expr }];
 
-        const resolveStyleObject = (
-          expression: Expression,
-        ): Record<string, any> | null => {
-          const styles = extractStylesFromExpression(expression);
-          return styles.length === 1
-            ? (styles[0] as Record<string, any>)
-            : null;
-        };
-
-        const conditionals: Array<{
-          test: Expression;
-          testString?: string;
-          truthy: Record<string, any>;
-          falsy: Record<string, any>;
-        }> = [];
-        let baseStyle: Record<string, any> = {};
-
-        for (const arg of args) {
-          const argExpr = arg.expression;
-
-          const getSource = (n: any) =>
-            sourceBuffer
-              .subarray(
-                n.span.start - baseByteOffset,
-                n.span.end - baseByteOffset,
-              )
-              .toString('utf-8');
-
-          const collectConditions = (
-            node: Expression,
-            testStrings: string[] = [],
-          ): boolean => {
-            const staticStyle = resolveStyleObject(node);
-            if (staticStyle) {
-              if (testStrings.length === 0)
-                baseStyle = deepMerge(baseStyle, staticStyle);
-              else
-                conditionals.push({
-                  test: node,
-                  testString: testStrings.join(' && '),
-                  truthy: staticStyle,
-                  falsy: {},
-                });
-              return true;
-            }
-            if (node.type === 'ConditionalExpression') {
-              const testSource = getSource(node.test);
-              collectConditions(node.consequent, [
-                ...testStrings,
-                `(${testSource})`,
-              ]);
-              collectConditions(node.alternate, [
-                ...testStrings,
-                `!(${testSource})`,
-              ]);
-              return true;
-            } else if (
-              node.type === 'BinaryExpression' &&
-              node.operator === '&&'
-            ) {
-              collectConditions(node.right, [
-                ...testStrings,
-                `(${getSource(node.left)})`,
-              ]);
-              return true;
-            } else if (node.type === 'ParenthesisExpression') {
-              return collectConditions(node.expression, testStrings);
-            }
-            return false;
-          };
-
-          if (collectConditions(argExpr)) continue;
-
-          const extractedStyles = extractStylesFromExpression(argExpr);
-          if (extractedStyles.length > 0) {
-            extractedStyles.forEach(processStyle);
-          }
-        }
-
-        if (Object.keys(baseStyle).length > 0) {
-          processStyle(baseStyle);
-        }
-
-        for (const cond of conditionals) {
-          if (cond.truthy && Object.keys(cond.truthy).length > 0) {
-            processStyle(cond.truthy);
-          }
-          if (cond.falsy && Object.keys(cond.falsy).length > 0) {
-            processStyle(cond.falsy);
-          }
-        }
+        extractAndProcessConditionals(args);
       },
     });
     return extractedSheets;
