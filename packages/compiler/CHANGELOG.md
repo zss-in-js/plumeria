@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 10.0.2
+
+### Patch Changes
+
+- 182bf79: fix: css.use() only compiles static styles
+- Updated dependencies [182bf79]
+  - @plumeria/utils@10.0.2
+
 ## 10.0.1
 
 ### Patch Changes
