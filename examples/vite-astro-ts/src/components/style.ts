@@ -8,4 +8,4 @@ const styles = css.create({
   },
 });
 
-export const astroClass = css.props(styles.color);
+export const astroClass = css.use(styles.color);
