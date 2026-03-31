@@ -1,3 +1,9 @@
+## 10.0.3
+
+### Patch Changes
+
+- 4eaf65a: chore: core package.json keywords revival
+
 ## 10.0.2
 
 ### Patch Changes
