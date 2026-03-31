@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.0.2
+
+### Patch Changes
+
+- 850bce5: chore: remove syntax error throw
+
 ## 10.0.1
 
 ### Patch Changes

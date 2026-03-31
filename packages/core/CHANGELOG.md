@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.0.2
+
+### Patch Changes
+
+- 850bce5: chore: bupm version 10.0.2
+
 ## 10.0.1
 
 ### Patch Changes
