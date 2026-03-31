@@ -76,6 +76,22 @@ export const Color = ({ color }) => {
 }
 ```
 
+If you want to request a string, `use()`:
+```ts
+export const className = css.use(styles.text);
+```
+or
+```tsx
+<div className={css.use(styles.text)} />
+```
+or
+```tsx
+<ViewTransition name={css.use(transition.name)}>
+  {/* ... */}
+</ViewTransition>
+```
+
+
 
 <Callout title="Good to know">
   styleName, like all APIs, have no runtime. They are controlled at build time by plugins, so prop themselves are replaced.
