@@ -8,4 +8,4 @@ const styles = css.create({
   },
 });
 
-export const svelteClass = css.props(styles.color);
+export const svelteClass = css.use(styles.color);
