@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 10.0.3
+
+### Patch Changes
+
+- 4eaf65a: chore: core package.json keywords revival
+- Updated dependencies [4eaf65a]
+  - @plumeria/compiler@10.0.3
+
 ## 10.0.2
 
 ### Patch Changes
