@@ -1,0 +1,34 @@
+---
+title: 'Plumeria 10.0.2'
+description: 'This version is more consistent and optimized for the React ecosystem.'
+date: '2026-03-31'
+---
+
+In versions 10.0.0 and 10.0.1, the `use` function is temporarily missing, so if you are using a framework other than React-compatible, please update to 10.0.2.
+
+
+## Major Changes (Redesigned for React)
+This version is more consistent and optimized for the React ecosystem.
+
+The `styleName={}` syntax has been added.
+
+```tsx
+<div styleName={styles.size} />
+<div styleName={[styles.foo, styles.bar]} />
+```
+Can be written as a single element or array (right-hand side takes precedence, and specificity issues are strictly resolved at the compiler side).
+
+### Migration Guide
+Frameworks that include native React can fully migrate to `styleName={}`. Frameworks that do not support `styleName` will continue to support `use()`.
+
+## Motivation (Why this update?)
+Previously, we aimed for broad framework support, but we have changed our policy to focus primarily on React for the following reasons:
+
+React offers many options for writing CSS, making it difficult to provide the simplest solution.
+However, in today's world, React-based options (Next.js React-Router) are the best choice when building something new.
+We determined that low learning curve and consistency are paramount for React-centric projects (especially teams considering migrating from CSS Modules).
+
+With this change, we believe Plumeria has become one of the simplest and easiest-to-write styling systems for React.
+Furthermore, backward compatibility allows use with frameworks such as solid, qwik, and svelte-ts.
+
+If you're considering switching from CSS Modules, please give it a try.
