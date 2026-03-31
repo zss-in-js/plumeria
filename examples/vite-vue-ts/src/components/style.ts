@@ -8,4 +8,4 @@ const styles = css.create({
   },
 });
 
-export const vueClass = css.props(styles.color);
+export const vueClass = css.use(styles.color);
