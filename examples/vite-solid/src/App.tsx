@@ -25,7 +25,7 @@ function App() {
           <img src={solidLogo} class="logo solid" alt="Solid logo" />
         </a>
       </div>
-      <h1 class={css.props(styles.color)}>Vite + Solid</h1>
+      <h1 class={css.use(styles.color)}>Vite + Solid</h1>
       <div class="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count()}
