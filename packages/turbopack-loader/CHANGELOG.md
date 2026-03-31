@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 10.0.2
+
+### Patch Changes
+
+- 182bf79: fix: static use() error handling
+- Updated dependencies [182bf79]
+  - @plumeria/utils@10.0.2
+
 ## 10.0.1
 
 ### Patch Changes
