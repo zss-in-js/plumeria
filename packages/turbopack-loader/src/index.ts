@@ -971,7 +971,7 @@ export default async function loader(this: LoaderContext, source: string) {
       !isOptimizable ||
       (args.length === 0 && Object.keys(baseStyle).length === 0)
     ) {
-      return { classParts: [], isOptimizable, baseStyle };
+      return { classParts: [...dynamicClassParts], isOptimizable, baseStyle };
     }
 
     const participation: Record<string, Set<string>> = {};
@@ -1422,12 +1422,9 @@ export default async function loader(this: LoaderContext, source: string) {
 
       args = args.filter((arg: any) => {
         const expr = arg.expression;
-        if (
-          !t.isCallExpression(expr) ||
-          !t.isMemberExpression((expr as any).callee)
-        )
+        if (!t.isCallExpression(expr) || !t.isMemberExpression(expr.callee))
           return true;
-        const callee = (expr as any).callee;
+        const callee = expr.callee;
         if (!t.isIdentifier(callee.object) || !t.isIdentifier(callee.property))
           return true;
 
@@ -1529,7 +1526,9 @@ export default async function loader(this: LoaderContext, source: string) {
 
       if (
         isOptimizable &&
-        (args.length > 0 || Object.keys(baseStyle).length > 0)
+        (args.length > 0 ||
+          Object.keys(baseStyle).length > 0 ||
+          dynamicClassParts.length > 0)
       ) {
         const replacement =
           classParts.length > 0 ? classParts.join(' + " " + ') : '""';
@@ -1572,6 +1571,25 @@ export default async function loader(this: LoaderContext, source: string) {
       if (!isUseCall) return;
 
       const args = node.arguments as Array<{ expression: Expression }>;
+      for (const arg of args) {
+        const expr = arg.expression;
+        if (!t.isCallExpression(expr) || !t.isMemberExpression(expr.callee))
+          continue;
+        const callee = expr.callee;
+        if (!t.isIdentifier(callee.object) || !t.isIdentifier(callee.property))
+          continue;
+
+        const varName = callee.object.value;
+        const propKey = callee.property.value;
+        const styleInfo = localCreateStyles[varName];
+        const atomMap = styleInfo?.hashMap?.[propKey];
+        if (atomMap?.['__cssVars__']) {
+          throw new Error(
+            `Plumeria: css.use(${getSource(expr)}) does not support dynamic function keys.\n`,
+          );
+        }
+      }
+
       const { classParts, isOptimizable, baseStyle } = buildClassParts(args);
 
       if (
