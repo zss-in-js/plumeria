@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 10.0.2
+
+### Patch Changes
+
+- 182bf79: chore: bupm version 10.0.2
+- Updated dependencies [182bf79]
+  - @plumeria/turbopack-loader@10.0.2
+
 ## 10.0.1
 
 ### Patch Changes
