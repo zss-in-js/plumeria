@@ -315,6 +315,7 @@ export function compileCSS(options: CompilerOptions) {
     // Common processing for use() and styleName={}
     const extractAndProcessConditionals = (
       args: Array<{ expression: Expression }>,
+      isStyleName: boolean = false,
     ) => {
       const conditionals: Array<{
         test: Expression;
@@ -383,7 +384,44 @@ export function compileCSS(options: CompilerOptions) {
         return false;
       };
 
+      const checkFunctionKey = (node: Expression): void => {
+        if (isStyleName) return;
+        if (
+          t.isCallExpression(node) &&
+          t.isMemberExpression((node as any).callee) &&
+          t.isIdentifier((node as any).callee.object) &&
+          t.isIdentifier((node as any).callee.property)
+        ) {
+          const varName = (node as any).callee.object.value;
+          const propKey = (node as any).callee.property.value;
+          const styleInfo = ctx.localCreateStyles[varName];
+          const atomMap = (styleInfo?.obj as any)?.[propKey];
+          if (atomMap?.['__cssVars__']) {
+            throw new Error(
+              `[plumeria] css.use(${getSource(node)}) cannot handle dynamic style functions. Use styleName instead.\n`,
+            );
+          }
+        }
+        if (node.type === 'ConditionalExpression') {
+          checkFunctionKey((node as ConditionalExpression).consequent);
+          checkFunctionKey((node as ConditionalExpression).alternate);
+        } else if (
+          node.type === 'BinaryExpression' &&
+          ['&&', '||', '??'].includes((node as BinaryExpression).operator)
+        ) {
+          checkFunctionKey((node as BinaryExpression).left);
+          checkFunctionKey((node as BinaryExpression).right);
+        } else if (node.type === 'ParenthesisExpression') {
+          checkFunctionKey((node as any).expression);
+        } else if (node.type === 'ArrayExpression') {
+          for (const el of (node as any).elements) {
+            if (el && el.expression) checkFunctionKey(el.expression);
+          }
+        }
+      };
+
       for (const arg of args) {
+        checkFunctionKey(arg.expression);
         if (collectConditions(arg.expression)) continue;
         const extractedStyles = extractStylesFromExpression(
           arg.expression,
@@ -424,7 +462,7 @@ export function compileCSS(options: CompilerOptions) {
         const args = node.arguments;
 
         if (propName === 'use') {
-          extractAndProcessConditionals(args);
+          extractAndProcessConditionals(args, false);
         } else if (
           propName === 'keyframes' &&
           args.length > 0 &&
@@ -674,7 +712,7 @@ export function compileCSS(options: CompilerOptions) {
                 .map((el: any) => ({ expression: el.expression ?? el }))
             : [{ expression: expr }];
 
-        extractAndProcessConditionals(args);
+        extractAndProcessConditionals(args, true);
       },
     });
     return extractedSheets;
