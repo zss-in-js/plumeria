@@ -28,8 +28,8 @@ catalogs:
       specifier: 5.101.0
       version: 5.101.0
     zss-engine:
-      specifier: 2.2.5
-      version: 2.2.5
+      specifier: 2.2.6
+      version: 2.2.6
 
 importers:
 
@@ -127,7 +127,7 @@ importers:
         version: 4.1.13
       zss-engine:
         specifier: 'catalog:'
-        version: 2.2.5
+        version: 2.2.6
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.2.0
@@ -492,7 +492,7 @@ importers:
         version: 1.15.18(@swc/helpers@0.5.17)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.2.5
+        version: 2.2.6
 
   packages/core:
     dependencies:
@@ -549,7 +549,7 @@ importers:
         version: 1.15.18(@swc/helpers@0.5.17)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.2.5
+        version: 2.2.6
 
   packages/utils:
     dependencies:
@@ -570,7 +570,7 @@ importers:
         version: 2.1.0(postcss@8.5.6)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.2.5
+        version: 2.2.6
 
   packages/vite-plugin:
     dependencies:
@@ -586,7 +586,7 @@ importers:
         version: 7.2.6(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.2.5
+        version: 2.2.6
 
   packages/webpack-plugin:
     dependencies:
@@ -7579,8 +7579,8 @@ packages:
   zod@4.3.6:
     resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
-  zss-engine@2.2.5:
-    resolution: {integrity: sha512-YoTJysYTAxlqnWV6MhuVH3ijzlh5GisTEHTnzO2ZbNnf7YeN7XbFiPe/SdAvH3BQ4kY+kJz3O8ywPUzC+blN1w==}
+  zss-engine@2.2.6:
+    resolution: {integrity: sha512-JKa6/39YnHJmSUjPdMb2fiHpl2V+heTkVPMpAGXVIVT/7ZdG1jdu1OY6XOoehjv6tJKK/8u/n+eFXc1FNdzkcA==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -15979,7 +15979,7 @@ snapshots:
 
   zod@4.3.6: {}
 
-  zss-engine@2.2.5:
+  zss-engine@2.2.6:
     dependencies:
       csstype: 3.2.3
 
