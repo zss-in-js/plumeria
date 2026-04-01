@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.0.4
+
+### Patch Changes
+
+- c5c044b: chore: bump version to 10.0.4
+
 ## 10.0.3
 
 ### Patch Changes
