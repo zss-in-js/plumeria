@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 10.0.4
+
+### Patch Changes
+
+- c5c044b: Update dependencies
+- Updated dependencies [c5c044b]
+  - @plumeria/utils@10.0.4
+
 ## 10.0.3
 
 ### Patch Changes
