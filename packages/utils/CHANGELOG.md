@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.0.4
+
+### Patch Changes
+
+- c5c044b: Update dependencies
+
 ## 10.0.3
 
 ### Patch Changes
