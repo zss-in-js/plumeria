@@ -9,7 +9,7 @@ import type {
 } from '@swc/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { applyCssValue, genBase36Hash } from 'zss-engine';
+import { applyCssValue, genBase36Hash, exceptionCamelCase } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 
 import {
@@ -1462,47 +1462,15 @@ export default async function loader(this: LoaderContext, source: string) {
               valueExpr = JSON.stringify(
                 applyCssValue(maybeNumber, targetProp),
               );
-            } else if (argSource.startsWith('"') && argSource.endsWith('"')) {
+            } else if (
+              (argSource.startsWith('"') && argSource.endsWith('"')) ||
+              (argSource.startsWith("'") && argSource.endsWith("'"))
+            ) {
               valueExpr = JSON.stringify(
                 applyCssValue(argSource.slice(1, -1), targetProp),
               );
             } else {
-              const exception = [
-                'animationIterationCount',
-                'aspectRatio',
-                'columnCount',
-                'columns',
-                'fillOpacity',
-                'flex',
-                'flexGrow',
-                'flexShrink',
-                'floodOpacity',
-                'fontSizeAdjust',
-                'fontWeight',
-                'gridColumn',
-                'gridColumnEnd',
-                'gridColumnStart',
-                'gridRow',
-                'gridRowEnd',
-                'gridRowStart',
-                'hyphenateLimitChars',
-                'initialLetter',
-                'lineHeight',
-                'mathDepth',
-                'opacity',
-                'order',
-                'orphans',
-                'scale',
-                'shapeImageThreshold',
-                'stopOpacity',
-                'strokeMiterlimit',
-                'strokeOpacity',
-                'tabSize',
-                'widows',
-                'zIndex',
-                'zoom',
-              ];
-              valueExpr = exception.includes(targetProp)
+              valueExpr = exceptionCamelCase.includes(targetProp)
                 ? argSource
                 : `(typeof ${argSource} === 'number' ? ${argSource} + 'px' : ${argSource})`;
             }
