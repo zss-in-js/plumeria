@@ -15,12 +15,11 @@
     "url": "https://github.com/zss-in-js/plumeria/issues"
   },
   "keywords": [
-    "react",
     "css",
     "css-in-js",
-    "zero-runtime",
-    "atomic-css",
-    "stylex"
+    "plumeria",
+    "react",
+    "atomic-css"
   ],
   "sideEffects": false,
   "type": "module",
@@ -29,6 +28,9 @@
       "types": "./lib/css.d.ts",
       "import": "./lib/css.js"
     }
+  },
+  "imports": {
+    "#types": "./lib/types.d.ts"
   },
   "files": [
     "lib/"
