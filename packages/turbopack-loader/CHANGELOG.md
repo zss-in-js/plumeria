@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 10.0.5
+
+### Patch Changes
+
+- daa3cb7: feat: bump version 10.0.5
+- Updated dependencies [daa3cb7]
+  - @plumeria/utils@10.0.5
+
 ## 10.0.4
 
 ### Patch Changes

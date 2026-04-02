@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.0.5
+
+### Patch Changes
+
+- daa3cb7: fix: fixed relative import for ambient types and update README.md
+
 ## 10.0.4
 
 ### Patch Changes
