@@ -14,7 +14,9 @@
  * ```
  */
 declare module '@plumeria/core' {
-  import type { 
+  import type {
+    StyleName,
+    CSSProperties, 
     CreateStyleValue,
     CreateStyleType,
     CreateReturnType,
@@ -26,10 +28,15 @@ declare module '@plumeria/core' {
     Variants,
     Marker,
     Extended,
-  } from './types';
+  } from '#types';
 
-  export type CSSProperties = import('./types').CSSProperties;
-  export type CreateStyle = import('./types').CreateStyle;
+  global {
+    namespace React {
+      interface HTMLAttributes<T> {
+        styleName?: StyleName;
+      }
+    }
+  }
 
   export type create = <const T extends Record<string, CreateStyleValue>>(rule: CreateStyleType<T>)=> CreateReturnType<T>; 
   export type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
@@ -50,13 +57,4 @@ declare module '@plumeria/core' {
   export const marker: marker;
   export const extended: extended;
   export const use: use;
-
-  declare global {
-      namespace React {
-      import type { StyleName } from './types';
-      interface HTMLAttributes<T> {
-        styleName?: StyleName;
-      }
-    }
-  }
 }
