@@ -26,8 +26,8 @@ const styles = css.create({
 const MarkerExtended = () => {
   return (
     <div>
-      <ul className={css.props(styles.table)}>
-        <li className={css.props(styles.list)}>Happy new year!</li>
+      <ul styleName={styles.table}>
+        <li styleName={styles.list}>Happy new year!</li>
       </ul>
     </div>
   );
