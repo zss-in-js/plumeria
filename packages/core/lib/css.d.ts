@@ -14,7 +14,9 @@
  * ```
  */
 declare module '@plumeria/core' {
-  import type { 
+  import type {
+    StyleName,
+    CSSProperties, 
     CreateStyleValue,
     CreateStyleType,
     CreateReturnType,
@@ -26,12 +28,17 @@ declare module '@plumeria/core' {
     Variants,
     Marker,
     Extended,
-  } from './types';
+  } from '#types';
 
-  export type CSSProperties = import('./types').CSSProperties;
-  export type CreateStyle = import('./types').CreateStyle;
+  global {
+    namespace React {
+      interface HTMLAttributes<T> {
+        styleName?: StyleName;
+      }
+    }
+  }
 
-  export type create = <const T extends Record<string, CreateStyleValue>>(rule: CreateStyleType<T>)=> CreateReturnType<T>; 
+  export type create = <const T extends Record<string, CreateStyleValue>>(rule: CreateStyleType<T>)=> CreateReturnType<T>;
   export type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
   export type createStatic = <const T extends CreateStatic>(rule: T)=> T;
   export type keyframes = (rule: Keyframes) => string;
@@ -41,7 +48,7 @@ declare module '@plumeria/core' {
   export type extended = <I extends string, P extends string>(id: I, pseudo: P) => Extended<I, P>;
   export type use = (...rules: (false | CSSProperties | null | undefined)[])=> string;
 
-  export const create: create; 
+  export const create: create;
   export const createTheme: createTheme;
   export const createStatic: createStatic;
   export const keyframes: keyframes;
@@ -50,13 +57,4 @@ declare module '@plumeria/core' {
   export const marker: marker;
   export const extended: extended;
   export const use: use;
-
-  declare global {
-      namespace React {
-      import type { StyleName } from './types';
-      interface HTMLAttributes<T> {
-        styleName?: StyleName;
-      }
-    }
-  }
 }
