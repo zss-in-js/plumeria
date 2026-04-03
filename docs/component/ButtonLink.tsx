@@ -74,7 +74,7 @@ interface Props {
 
 export const ButtonLink = ({ children, variant, href }: Props) => {
   return (
-    <Link href={href} className={css.props(styles.button, getButtonStyle({ variant, size: 'medium' }))}>
+    <Link href={href} styleName={[styles.button, getButtonStyle({ variant, size: 'medium' })]}>
       {children}
     </Link>
   );
