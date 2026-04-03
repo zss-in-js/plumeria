@@ -3,9 +3,8 @@ import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
 
 export const metadata: Metadata = generateSEOData({
-  title: 'Plumeria - An atomic CSS types designed to disappear.',
-  subtitle:
-    'An atomic CSS types designed to disappear. Plumeria compiles at build time, generating only the styles you use for optimal performance and size.',
+  title: 'Plumeria - A styling system that disappears',
+  subtitle: 'Compiles at build time to generate only the styles you use.',
 });
 
 export default function Page() {
