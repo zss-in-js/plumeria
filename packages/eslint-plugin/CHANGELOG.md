@@ -1,3 +1,9 @@
+## 10.0.6
+
+### Patch Changes
+
+- 4184dc6: Bump version to 10.0.6
+
 ## 10.0.5
 
 ### Patch Changes
