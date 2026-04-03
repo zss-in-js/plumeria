@@ -4,8 +4,8 @@ import { blog } from 'lib/source';
 import { JSX } from 'react';
 import { DocsBody } from 'fumadocs-ui/page';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
+import '@plumeria/core';
 import { styles } from './styles';
-import * as css from '@plumeria/core';
 import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
 
@@ -32,15 +32,15 @@ export default async function Page(props: { params: Promise<{ slug?: Array<strin
   const MDX = page.data.body;
 
   return (
-    <article className={css.props(styles.article)}>
-      <div className={css.props(styles.backLinkWrapper)}>
-        <Link href="/blog" className={css.props(styles.backLink)}>
+    <article styleName={styles.article}>
+      <div styleName={styles.backLinkWrapper}>
+        <Link href="/blog" styleName={styles.backLink}>
           ← Back to blog
         </Link>
       </div>
 
-      {page.data.title && <h1 className={css.props(styles.title)}>{page.data.title}</h1>}
-      <p className={css.props(styles.date)}>{page.data.date}</p>
+      {page.data.title && <h1 styleName={styles.title}>{page.data.title}</h1>}
+      <p styleName={styles.date}>{page.data.date}</p>
       <DocsBody>
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>
