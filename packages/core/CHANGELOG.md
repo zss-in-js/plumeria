@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - daa3cb7: fix: fixed relative import for ambient types and update README.md
+  Remove export CSSProperties and export CreateStyle
 
 ## 10.0.4
 
