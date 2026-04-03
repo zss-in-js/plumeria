@@ -123,10 +123,6 @@ type CreateStyleValue = CSSProperties | ((...args: never) => CSSProperties)
 
 type StyleName = CSSProperties | (false | CSSProperties | null | undefined)[];
 
-type CreateStyle = {
-  [key: string]: CSSProperties;
-};
-
 type CreateStatic = Record<string, string | number>;
 
 type CreateTheme = Record<string, Record<string, string | number>>;
@@ -157,7 +153,6 @@ type Extended<I extends string, P extends string> = `@container style(--${I}-${S
 export type {
   CSSProperties,
   StyleName,
-  CreateStyle,
   CreateStyleValue,
   CreateStyleType,
   CreateReturnType,
