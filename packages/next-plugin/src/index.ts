@@ -1,18 +1,8 @@
 import type { NextConfig } from 'next';
 import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
-import * as fs from 'fs';
-
-const PLACEHOLDER = '/** Placeholder file */\n';
 
 export function withPlumeria(nextConfig: NextConfig): NextConfig {
-  const VIRTUAL_FILE_PATH =
-    require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
-
-  /* istanbul ignore next */
-  if (process.env.NODE_ENV === 'production') {
-    fs.writeFileSync(VIRTUAL_FILE_PATH, PLACEHOLDER, 'utf-8');
-  }
   const originalWebpack = nextConfig.webpack;
 
   return {
