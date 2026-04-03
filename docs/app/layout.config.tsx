@@ -1,11 +1,13 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import * as css from '@plumeria/core';
 import Image from 'next/image';
+import { svg } from 'component/svg';
 
 const styles = css.create({
-  text: {
+  flower: {
     position: 'relative',
-    right: 4,
+    bottom: 2,
+    left: 8,
   },
   logo: {
     position: 'relative',
@@ -14,35 +16,56 @@ const styles = css.create({
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
+    fontSize: 15,
     fontWeight: 600,
-    color: 'var(--plume-accent)',
   },
 });
 
 export const baseOptions: BaseLayoutProps = {
-  githubUrl: 'https://github.com/zss-in-js/plumeria',
   nav: {
+    transparentMode: 'top',
     title: (
-      <span className={css.props(styles.logo)}>
-        <Image src="/LP_LG.png" alt="Plumeria logo" loading="lazy" height={40} width={40} />
-        <span className={css.props(styles.text)}>Plumeria</span>
+      <span styleName={styles.logo}>
+        <Image styleName={styles.flower} src="/LP_LG.png" alt="Plumeria logo" loading="lazy" height={40} width={40} />
+        Plumeria
       </span>
     ),
-    transparentMode: 'top',
   },
 
   links: [
     {
-      text: <span>Documentation</span>,
+      text: 'Documentation',
       url: '/docs',
+      active: 'nested-url',
     },
     {
-      text: <span>Blog</span>,
+      text: 'Blog',
       url: '/blog',
     },
     {
-      text: <span>Playground</span>,
+      text: 'Playground',
       url: '/playground',
+    },
+    {
+      type: 'icon',
+      label: 'Bluesky',
+      text: 'Bluesky',
+      icon: svg.Bluesky({ width: 21, height: 21 }),
+      url: 'https://bsky.app/profile/zss-in-js.bsky.social',
+    },
+    {
+      type: 'icon',
+      label: 'GitHub',
+      text: 'GitHub',
+      icon: svg.Github({ width: 21, height: 21 }),
+      url: 'https://github.com/zss-in-js/plumeria',
+    },
+    {
+      type: 'icon',
+      label: 'Discord',
+      text: 'Discord',
+      icon: svg.Discord({ width: 21, height: 21 }),
+      url: 'https://discord.gg/pKEBp4wYd8',
     },
   ],
 };
