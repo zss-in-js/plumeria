@@ -105,14 +105,14 @@ const animated = css.create({
 
 export function Box() {
   return (
-    <div className={css.props(stylesBox.container)}>
+    <div styleName={stylesBox.container}>
       <span>
-        <span tabIndex={0} className={css.props(stylesBox.card, animated.hover)}>
+        <span tabIndex={0} styleName={[stylesBox.card, animated.hover]}>
           A
         </span>
       </span>
       <span>
-        <span tabIndex={0} className={css.props(stylesBox.card, animated.focus)}>
+        <span tabIndex={0} styleName={[stylesBox.card, animated.focus]}>
           B
         </span>
       </span>
@@ -122,10 +122,10 @@ export function Box() {
 
 export function FancyButtons() {
   return (
-    <div className={css.props(styles.stack)}>
-      <button className={css.props(styles.button, styles.hover, buttons.focusPurple)}>Purple</button>
-      <button className={css.props(styles.button, styles.hover, buttons.focusSky)}>Sky</button>
-      <button className={css.props(styles.button, styles.hover, buttons.focusGreen)}>Green</button>
+    <div styleName={styles.stack}>
+      <button styleName={[styles.button, styles.hover, buttons.focusPurple]}>Purple</button>
+      <button styleName={[styles.button, styles.hover, buttons.focusSky]}>Sky</button>
+      <button styleName={[styles.button, styles.hover, buttons.focusGreen]}>Green</button>
     </div>
   );
 }
