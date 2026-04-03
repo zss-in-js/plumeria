@@ -14,6 +14,7 @@ const styles = css.create({
     zIndex: 1,
     display: 'flex',
     flexDirection: 'column',
+    gap: 20,
     alignItems: 'center',
     width: '100%',
     maxWidth: '1280px',
@@ -28,7 +29,7 @@ const styles = css.create({
   heroSection: {
     display: 'flex',
     flexDirection: 'row',
-    gap: 60,
+    gap: 20,
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
@@ -38,7 +39,6 @@ const styles = css.create({
       gap: 40,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: '80px',
       textAlign: 'center',
     },
   },
@@ -49,7 +49,7 @@ const styles = css.create({
     alignItems: 'flex-start',
     maxWidth: '680px',
     [breakpoints.md]: {
-      alignItems: 'center', // Center on mobile
+      alignItems: 'center',
       width: '100%',
     },
   },
@@ -58,14 +58,14 @@ const styles = css.create({
     position: 'relative',
     zIndex: 1,
     marginBottom: 12,
-    fontSize: 47,
+    fontSize: 51.2,
     fontWeight: 600,
     lineHeight: 1,
     color: 'var(--text-main-header-line)',
     textAlign: 'left',
     [breakpoints.md]: {
-      marginBottom: '16px',
-      fontSize: 28,
+      marginBottom: 8,
+      fontSize: 32,
       textAlign: 'center',
     },
   },
@@ -74,8 +74,7 @@ const styles = css.create({
     position: 'relative',
     zIndex: 1,
     maxWidth: '600px',
-    marginBottom: 32,
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 420,
     lineHeight: 1.6,
     color: 'var(--text-secondary)',
@@ -83,8 +82,7 @@ const styles = css.create({
     letterSpacing: '0.026em',
     [breakpoints.md]: {
       maxWidth: '90%',
-      marginBottom: '32px',
-      fontSize: 14,
+      fontSize: 18,
       textAlign: 'center',
       textWrap: 'balance',
     },
@@ -106,6 +104,8 @@ const styles = css.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 20,
+    paddingTop: 32,
+    paddingBottom: 20,
     [breakpoints.md]: {
       flexDirection: 'row', // Change to row for mobile
       gap: 12, // Slightly smaller gap for mobile
@@ -131,12 +131,9 @@ const styles = css.create({
     position: 'relative',
     padding: '24px',
     background: 'var(--card-bg)',
-    border: '1px solid var(--card-border)',
     borderRadius: '16px',
     boxShadow: 'var(--card-shadow), var(--card-cut-glass)',
-    backdropFilter: 'blur(16px)',
     transition: 'border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
-    WebkitBackdropFilter: 'blur(16px)',
     [pseudos.hover]: {
       borderColor: 'var(--card-hover-border)',
       transform: 'translateY(-2px)',
@@ -174,17 +171,16 @@ const styles = css.create({
   },
 });
 
-const demoCode = `const styles = css.create({
+const demoCode = `import * as css from '@plumeria/core';
+
+const styles = css.create({
   featureCard: {
     position: 'relative',
     padding: '24px',
     background: 'var(--card-bg)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    border: '1px solid var(--card-border)',
     borderRadius: '16px',
     boxShadow: 'var(--card-shadow), var(--card-cut-glass)',
-    transition: 'all 0.3s ease',
+    transition: 'border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
     [pseudos.hover]: {
       borderColor: 'var(--card-hover-border)',
       transform: 'translateY(-2px)',
@@ -198,18 +194,16 @@ const demoCode = `const styles = css.create({
 export const HomeComponent = () => {
   return (
     <div>
-      <main className={css.props(styles.container)}>
-        <section className={css.props(styles.heroSection)}>
-          <div className={css.props(styles.heroContent)}>
-            <h2 className={css.props(styles.mainHeadline)}>
+      <main styleName={styles.container}>
+        <section styleName={styles.heroSection}>
+          <div styleName={styles.heroContent}>
+            <h2 styleName={styles.mainHeadline}>
               <Plumeria />
-              Atomic CSS-in-JS
+              Styling System
             </h2>
-            <p className={css.props(styles.subHeadline)}>
-              Zero-runtime overhead・Type-safe <br />
-              Build-time only・High performance
-            </p>
-            <div className={css.props(styles.buttonGroup)}>
+            <h2 styleName={styles.mainHeadline}>That Disappears</h2>
+            <p styleName={styles.subHeadline}>Predictable · Composable · Fast</p>
+            <div styleName={styles.buttonGroup}>
               <ButtonLink href="/docs" variant="getstarted">
                 Get Started
               </ButtonLink>
@@ -219,41 +213,38 @@ export const HomeComponent = () => {
             </div>
           </div>
 
-          <div className={css.props(styles.codeSection)}>
+          <div styleName={styles.codeSection}>
             <CodeBlock code={demoCode} lang="typescript" />
           </div>
         </section>
 
-        <section className={css.props(styles.featuresSection)}>
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>{svg.Atom()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Atomic CSS</h3>
-            <p className={css.props(styles.featureDescription)}>
-              Styles are reused keeping CSS bundle is always minimal.
+        <section styleName={styles.featuresSection}>
+          <div styleName={styles.featureCard}>
+            <div styleName={styles.featureIcon}>{svg.Atom()}</div>
+            <h3 styleName={styles.featureTitle}>Atomic CSS</h3>
+            <p styleName={styles.featureDescription}>Styles are reused keeping CSS bundle is always minimal.</p>
+          </div>
+
+          <div styleName={styles.featureCard}>
+            <div styleName={styles.featureIcon}>{svg.Feather()}</div>
+            <h3 styleName={styles.featureTitle}>Lightweight</h3>
+            <p styleName={styles.featureDescription}>
+              0 bytes before compression.
+              <br />1 byte minified with brotli.
             </p>
           </div>
 
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>{svg.Eslint()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Linting</h3>
-            <p className={css.props(styles.featureDescription)}>
+          <div styleName={styles.featureCard}>
+            <div styleName={styles.featureIcon}>⚡</div>
+            <h3 styleName={styles.featureTitle}>Build-time Compilation</h3>
+            <p styleName={styles.featureDescription}>Styles compile to atomic class names at build time.</p>
+          </div>
+
+          <div styleName={styles.featureCard}>
+            <div styleName={styles.featureIcon}>{svg.Eslint()}</div>
+            <h3 styleName={styles.featureTitle}>Linting</h3>
+            <p styleName={styles.featureDescription}>
               Build-integrated oxlint validation. Detect typos before compiling.
-            </p>
-          </div>
-
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>{svg.Feather()}</div>
-            <h3 className={css.props(styles.featureTitle)}>Lghtweight</h3>
-            <p className={css.props(styles.featureDescription)}>
-              min + brotli 1 byte. <br /> Before compression 0 byte.
-            </p>
-          </div>
-
-          <div className={css.props(styles.featureCard)}>
-            <div className={css.props(styles.featureIcon)}>⚡</div>
-            <h3 className={css.props(styles.featureTitle)}>Build-time Compilation</h3>
-            <p className={css.props(styles.featureDescription)}>
-              Eliminate styles compile to class names at built time.
             </p>
           </div>
         </section>
