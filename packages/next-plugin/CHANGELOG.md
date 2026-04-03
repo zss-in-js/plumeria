@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 10.0.6
+
+### Patch Changes
+
+- 4184dc6: Remove unnecessary init process
+- Updated dependencies [4184dc6]
+  - @plumeria/turbopack-loader@10.0.6
+
 ## 10.0.5
 
 ### Patch Changes

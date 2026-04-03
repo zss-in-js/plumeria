@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 10.0.6
+
+### Patch Changes
+
+- 4184dc6: Update dependencies
+- Updated dependencies [4184dc6]
+  - @plumeria/utils@10.0.6
+
 ## 10.0.5
 
 ### Patch Changes

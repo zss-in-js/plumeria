@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.0.6
+
+### Patch Changes
+
+- 4184dc6: Refactoring and remove CreateStyle
+
 ## 10.0.5
 
 ### Patch Changes
