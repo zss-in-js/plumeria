@@ -12,11 +12,14 @@ const styles = css.create({
     border: 'solid 0.4px rgba(0,0,0,0.2)',
     transition: '0.2s',
     [pseudos.hover]: {
-      scale: 1.75
-    }
-  }
+      scale: 1.75,
+    },
+  },
+  palette: (color: string) => ({
+    background: color,
+  }),
 });
 
 export const Color = ({ color }: { color: string }) => {
-  return <span className={css.props(styles.colorName)} style={{ background: color }} />;
+  return <span styleName={[styles.colorName, styles.palette(color)]} />;
 };
