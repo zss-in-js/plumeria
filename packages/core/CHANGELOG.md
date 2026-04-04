@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.0.7
+
+### Patch Changes
+
+- 704bb2f: Bump version to 10.0.7
+
 ## 10.0.6
 
 ### Patch Changes

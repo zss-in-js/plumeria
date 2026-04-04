@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 10.0.7
+
+### Patch Changes
+
+- 704bb2f: Refactor types definition
+- Updated dependencies [704bb2f]
+  - @plumeria/utils@10.0.7
+
 ## 10.0.6
 
 ### Patch Changes
