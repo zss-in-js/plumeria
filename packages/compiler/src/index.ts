@@ -3,11 +3,14 @@ import {
   ObjectExpression,
   Expression,
   ImportSpecifier,
+  CallExpression,
   MemberExpression,
   Identifier,
-  ConditionalExpression,
-  BinaryExpression,
-  ParenthesisExpression,
+  ExprOrSpread,
+  Statement,
+  VariableDeclarator,
+  FunctionDeclaration,
+  HasSpan,
 } from '@swc/core';
 import { type CSSProperties, genBase36Hash } from 'zss-engine';
 import * as fs from 'fs';
@@ -93,18 +96,14 @@ function extractStylesFromExpression(
       const variableName = (memberExpr.object as Identifier).value;
       const propertyName = (memberExpr.property as Identifier).value;
       const styleSet = ctx.localCreateStyles[variableName];
-      if (styleSet && (styleSet.obj as Record<string, any>)[propertyName]) {
-        results.push(
-          (styleSet.obj as Record<string, any>)[propertyName] as CSSObject,
-        );
+      if (styleSet && styleSet.obj[propertyName]) {
+        results.push(styleSet.obj[propertyName] as CSSObject);
       } else {
         const hash = ctx.mergedCreateTable[variableName];
         if (hash) {
           const object = ctx.scannedTables.createObjectTable[hash];
-          if (object && (object as Record<string, any>)[propertyName]) {
-            results.push(
-              (object as Record<string, any>)[propertyName] as CSSObject,
-            );
+          if (object && object[propertyName]) {
+            results.push(object[propertyName] as CSSObject);
           }
         }
       }
@@ -121,18 +120,18 @@ function extractStylesFromExpression(
       }
     }
   } else if (t.isConditionalExpression(expression)) {
-    const condExpr = expression as ConditionalExpression;
+    const condExpr = expression;
     results.push(...extractStylesFromExpression(condExpr.consequent, ctx));
     results.push(...extractStylesFromExpression(condExpr.alternate, ctx));
   } else if (
     t.isBinaryExpression(expression) &&
-    ['&&', '||', '??'].includes((expression as BinaryExpression).operator)
+    ['&&', '||', '??'].includes(expression.operator)
   ) {
-    const binaryExpr = expression as BinaryExpression;
+    const binaryExpr = expression;
     results.push(...extractStylesFromExpression(binaryExpr.left, ctx));
     results.push(...extractStylesFromExpression(binaryExpr.right, ctx));
   } else if (expression.type === 'ParenthesisExpression') {
-    const parenExpr = expression as unknown as ParenthesisExpression;
+    const parenExpr = expression;
     results.push(...extractStylesFromExpression(parenExpr.expression, ctx));
   }
 
@@ -173,7 +172,7 @@ export function compileCSS(options: CompilerOptions) {
 
     const localConsts = collectLocalConsts(ast);
     const resourcePath = filePath;
-    const importMap: Record<string, any> = {};
+    const importMap: StaticTable = {};
     const plumeriaAliases: Record<string, string> = {};
 
     traverse(ast, {
@@ -198,7 +197,7 @@ export function compileCSS(options: CompilerOptions) {
         const actualPath = resolveImportPath(sourcePath, resourcePath);
 
         if (actualPath) {
-          node.specifiers.forEach((specifier: any) => {
+          node.specifiers.forEach((specifier: ImportSpecifier) => {
             if (specifier.type === 'ImportSpecifier') {
               const importedName = specifier.imported
                 ? specifier.imported.value
@@ -247,7 +246,10 @@ export function compileCSS(options: CompilerOptions) {
       mergedKeyframesTable[key] = scannedTables.keyframesHashTable[key];
     }
     for (const key of Object.keys(importMap)) {
-      mergedKeyframesTable[key] = importMap[key];
+      const val = importMap[key];
+      if (typeof val === 'string') {
+        mergedKeyframesTable[key] = val;
+      }
     }
 
     const mergedViewTransitionTable: ViewTransitionHashTable = {};
@@ -256,7 +258,10 @@ export function compileCSS(options: CompilerOptions) {
         scannedTables.viewTransitionHashTable[key];
     }
     for (const key of Object.keys(importMap)) {
-      mergedViewTransitionTable[key] = importMap[key];
+      const val = importMap[key];
+      if (typeof val === 'string') {
+        mergedViewTransitionTable[key] = val;
+      }
     }
 
     const mergedCreateThemeHashTable: CreateThemeHashTable = {};
@@ -264,7 +269,10 @@ export function compileCSS(options: CompilerOptions) {
       mergedCreateThemeHashTable[key] = scannedTables.createThemeHashTable[key];
     }
     for (const key of Object.keys(importMap)) {
-      mergedCreateThemeHashTable[key] = importMap[key];
+      const val = importMap[key];
+      if (typeof val === 'string') {
+        mergedCreateThemeHashTable[key] = val;
+      }
     }
 
     const mergedCreateStaticHashTable: CreateStaticHashTable = {};
@@ -273,7 +281,10 @@ export function compileCSS(options: CompilerOptions) {
         scannedTables.createStaticHashTable[key];
     }
     for (const key of Object.keys(importMap)) {
-      mergedCreateStaticHashTable[key] = importMap[key];
+      const val = importMap[key];
+      if (typeof val === 'string') {
+        mergedCreateStaticHashTable[key] = val;
+      }
     }
 
     const mergedCreateTable: CreateHashTable = {};
@@ -281,7 +292,10 @@ export function compileCSS(options: CompilerOptions) {
       mergedCreateTable[key] = scannedTables.createHashTable[key];
     }
     for (const key of Object.keys(importMap)) {
-      mergedCreateTable[key] = importMap[key];
+      const val = importMap[key];
+      if (typeof val === 'string') {
+        mergedCreateTable[key] = val;
+      }
     }
 
     const mergedVariantsTable: VariantsHashTable = {};
@@ -289,7 +303,10 @@ export function compileCSS(options: CompilerOptions) {
       mergedVariantsTable[key] = scannedTables.variantsHashTable[key];
     }
     for (const key of Object.keys(importMap)) {
-      mergedVariantsTable[key] = importMap[key];
+      const val = importMap[key];
+      if (typeof val === 'string') {
+        mergedVariantsTable[key] = val;
+      }
     }
 
     const ctx: TraversalContext = {
@@ -320,23 +337,21 @@ export function compileCSS(options: CompilerOptions) {
       const conditionals: Array<{
         test: Expression;
         testString?: string;
-        truthy: Record<string, any>;
-        falsy: Record<string, any>;
+        truthy: CSSObject;
+        falsy: CSSObject;
       }> = [];
-      let baseStyle: Record<string, any> = {};
+      let baseStyle: CSSObject = {};
 
-      const resolveStyleObject = (
-        expression: Expression,
-      ): Record<string, any> | null => {
+      const resolveStyleObject = (expression: Expression): CSSObject | null => {
         const styles = extractStylesFromExpression(expression, ctx);
-        return styles.length === 1 ? (styles[0] as Record<string, any>) : null;
+        return styles.length === 1 ? styles[0] : null;
       };
 
-      const getSource = (node: any) =>
+      const getSource = (node: Expression) =>
         ctx.sourceBuffer
           .subarray(
-            node.span.start - ctx.baseByteOffset,
-            node.span.end - ctx.baseByteOffset,
+            (node as HasSpan).span.start - ctx.baseByteOffset,
+            (node as HasSpan).span.end - ctx.baseByteOffset,
           )
           .toString('utf-8');
 
@@ -359,27 +374,24 @@ export function compileCSS(options: CompilerOptions) {
           return true;
         }
         if (node.type === 'ConditionalExpression') {
-          const testSource = getSource((node as ConditionalExpression).test);
-          collectConditions((node as ConditionalExpression).consequent, [
+          const testSource = getSource(node.test);
+          collectConditions(node.consequent, [
             ...testStrings,
             `(${testSource})`,
           ]);
-          collectConditions((node as ConditionalExpression).alternate, [
+          collectConditions(node.alternate, [
             ...testStrings,
             `!(${testSource})`,
           ]);
           return true;
-        } else if (
-          node.type === 'BinaryExpression' &&
-          (node as BinaryExpression).operator === '&&'
-        ) {
-          collectConditions((node as BinaryExpression).right, [
+        } else if (node.type === 'BinaryExpression' && node.operator === '&&') {
+          collectConditions(node.right, [
             ...testStrings,
-            `(${getSource((node as BinaryExpression).left)})`,
+            `(${getSource(node.left)})`,
           ]);
           return true;
         } else if (node.type === 'ParenthesisExpression') {
-          return collectConditions((node as any).expression, testStrings);
+          return collectConditions(node.expression, testStrings);
         }
         return false;
       };
@@ -388,33 +400,37 @@ export function compileCSS(options: CompilerOptions) {
         if (isStyleName) return;
         if (
           t.isCallExpression(node) &&
-          t.isMemberExpression((node as any).callee) &&
-          t.isIdentifier((node as any).callee.object) &&
-          t.isIdentifier((node as any).callee.property)
+          t.isMemberExpression(node.callee) &&
+          t.isIdentifier(node.callee.object) &&
+          t.isIdentifier(node.callee.property)
         ) {
-          const varName = (node as any).callee.object.value;
-          const propKey = (node as any).callee.property.value;
+          const varName = node.callee.object.value;
+          const propKey = node.callee.property.value;
           const styleInfo = ctx.localCreateStyles[varName];
-          const atomMap = (styleInfo?.obj as any)?.[propKey];
-          if (atomMap?.['__cssVars__']) {
+          const atomMap = styleInfo?.obj[propKey];
+          if (
+            typeof atomMap === 'object' &&
+            atomMap !== null &&
+            '__cssVars__' in atomMap
+          ) {
             throw new Error(
               `[plumeria] css.use(${getSource(node)}) cannot handle dynamic style functions. Use styleName instead.\n`,
             );
           }
         }
         if (node.type === 'ConditionalExpression') {
-          checkFunctionKey((node as ConditionalExpression).consequent);
-          checkFunctionKey((node as ConditionalExpression).alternate);
+          checkFunctionKey(node.consequent);
+          checkFunctionKey(node.alternate);
         } else if (
           node.type === 'BinaryExpression' &&
-          ['&&', '||', '??'].includes((node as BinaryExpression).operator)
+          ['&&', '||', '??'].includes(node.operator)
         ) {
-          checkFunctionKey((node as BinaryExpression).left);
-          checkFunctionKey((node as BinaryExpression).right);
+          checkFunctionKey(node.left);
+          checkFunctionKey(node.right);
         } else if (node.type === 'ParenthesisExpression') {
-          checkFunctionKey((node as any).expression);
+          checkFunctionKey(node.expression);
         } else if (node.type === 'ArrayExpression') {
-          for (const el of (node as any).elements) {
+          for (const el of node.elements) {
             if (el && el.expression) checkFunctionKey(el.expression);
           }
         }
@@ -439,8 +455,10 @@ export function compileCSS(options: CompilerOptions) {
       }
     };
 
-    const processCall = (node: any) => {
-      node._processed = true;
+    const processedNodes = new WeakSet<CallExpression>();
+    const processCall = (node: CallExpression) => {
+      if (processedNodes.has(node)) return;
+      processedNodes.add(node);
       const callee = node.callee;
       let propName: string | undefined;
 
@@ -449,12 +467,12 @@ export function compileCSS(options: CompilerOptions) {
         t.isIdentifier(callee.object) &&
         t.isIdentifier(callee.property)
       ) {
-        const objectName = (callee.object as Identifier).value;
-        const propertyName = (callee.property as Identifier).value;
+        const objectName = callee.object.value;
+        const propertyName = callee.property.value;
         if (plumeriaAliases[objectName] === 'NAMESPACE')
           propName = propertyName;
       } else if (t.isIdentifier(callee)) {
-        const originalName = plumeriaAliases[(callee as Identifier).value];
+        const originalName = plumeriaAliases[callee.value];
         if (originalName) propName = originalName;
       }
 
@@ -532,7 +550,7 @@ export function compileCSS(options: CompilerOptions) {
     };
 
     traverse(ast, {
-      VariableDeclarator({ node }: { node: any }) {
+      VariableDeclarator({ node }: { node: VariableDeclarator }) {
         if (
           t.isIdentifier(node.id) &&
           node.init &&
@@ -546,16 +564,10 @@ export function compileCSS(options: CompilerOptions) {
             t.isIdentifier(callee.object) &&
             t.isIdentifier(callee.property)
           ) {
-            if (
-              plumeriaAliases[(callee.object as Identifier).value] ===
-              'NAMESPACE'
-            )
-              pName = (callee.property as Identifier).value;
-          } else if (
-            t.isIdentifier(callee) &&
-            plumeriaAliases[(callee as Identifier).value]
-          ) {
-            pName = plumeriaAliases[(callee as Identifier).value];
+            if (plumeriaAliases[callee.object.value] === 'NAMESPACE')
+              pName = callee.property.value;
+          } else if (t.isIdentifier(callee) && plumeriaAliases[callee.value]) {
+            pName = plumeriaAliases[callee.value];
           }
 
           if (
@@ -597,7 +609,7 @@ export function compileCSS(options: CompilerOptions) {
                 });
 
                 // Analysis and extraction of functional variants
-                arg.properties.forEach((prop: any) => {
+                arg.properties.forEach((prop) => {
                   if (
                     prop.type !== 'KeyValueProperty' ||
                     prop.key.type !== 'Identifier'
@@ -608,16 +620,32 @@ export function compileCSS(options: CompilerOptions) {
                   if (!isArrow && !isFunc) return;
 
                   const key = prop.key.value;
-                  const params: string[] = prop.value.params.map((p: any) =>
-                    p.type === 'Identifier' ? p.value : (p.pat?.value ?? 'arg'),
-                  );
+                  const func = prop.value;
+                  if (
+                    func.type !== 'ArrowFunctionExpression' &&
+                    func.type !== 'FunctionExpression'
+                  )
+                    return;
+
+                  const params: string[] = func.params.map((p) => {
+                    if (t.isIdentifier(p)) return p.value;
+                    if (
+                      typeof p === 'object' &&
+                      p !== null &&
+                      'pat' in p &&
+                      t.isIdentifier(p.pat)
+                    )
+                      return p.pat.value;
+                    return 'arg';
+                  });
 
                   const tempStaticTable = { ...ctx.mergedStaticTable };
                   params.forEach((paramName) => {
                     tempStaticTable[paramName] = `var(--${key}-${paramName})`;
                   });
 
-                  let actualBody = prop.value.body;
+                  let actualBody: Expression | Statement | undefined =
+                    func.body;
                   if (actualBody?.type === 'ParenthesisExpression')
                     actualBody = actualBody.expression;
                   if (actualBody?.type === 'BlockStatement') {
@@ -694,22 +722,23 @@ export function compileCSS(options: CompilerOptions) {
           if (node.init) traverseInternal(node.init);
         }
       },
-      FunctionDeclaration({ node }: { node: any }) {
+      FunctionDeclaration({ node }: { node: FunctionDeclaration }) {
         if (node.identifier) traverseInternal(node.body);
       },
-      CallExpression: (path: any) => {
-        if (!path.node._processed) processCall(path.node);
+      CallExpression: (path) => {
+        if (!processedNodes.has(path.node)) processCall(path.node);
       },
       JSXAttribute({ node }) {
-        if (node.name?.value !== 'styleName') return;
+        if (node.name.value !== 'styleName') return;
         if (!node.value || node.value.type !== 'JSXExpressionContainer') return;
+        if (node.value.expression.type === 'JSXEmptyExpression') return;
 
         const expr = node.value.expression;
         const args =
           expr.type === 'ArrayExpression'
             ? expr.elements
-                .filter(Boolean)
-                .map((el: any) => ({ expression: el.expression ?? el }))
+                .filter((el: ExprOrSpread) => el !== undefined)
+                .map((el: ExprOrSpread) => ({ expression: el.expression }))
             : [{ expression: expr }];
 
         extractAndProcessConditionals(args, true);
