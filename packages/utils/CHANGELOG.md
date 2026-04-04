@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.0.7
+
+### Patch Changes
+
+- 704bb2f: Refactor types definition
+
 ## 10.0.6
 
 ### Patch Changes
