@@ -1,0 +1,8 @@
+---
+'@plumeria/compiler': patch
+'@plumeria/turbopack-loader': patch
+'@plumeria/utils': patch
+'@plumeria/vite-plugin': patch
+---
+
+Refactor types definition
