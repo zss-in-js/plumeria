@@ -8,11 +8,19 @@ import type {
 import { createFilter } from 'vite';
 import { parseSync } from '@swc/core';
 import type {
-  Declaration,
   Expression,
+  HasSpan,
   ImportSpecifier,
   ObjectExpression,
   Identifier,
+  CallExpression,
+  VariableDeclaration,
+  VariableDeclarator,
+  JSXAttributeOrSpread,
+  JSXAttribute,
+  Statement,
+  ExprOrSpread,
+  SpreadElement,
 } from '@swc/core';
 import * as path from 'path';
 
@@ -41,8 +49,20 @@ import type {
   VariantsHashTable,
   CreateThemeHashTable,
   CreateStaticHashTable,
+  CSSObject,
 } from '@plumeria/utils';
 import { getLeadingCommentLength } from '@plumeria/utils';
+
+type AtomicMap = Record<string, string>;
+type CreateStyleValue = {
+  name: string;
+  type: 'create' | 'constant' | 'variant';
+  obj: CSSObject;
+  hashMap: Record<string, AtomicMap>;
+  isExported: boolean;
+  initSpan: { start: number; end: number };
+  declSpan: { start: number; end: number };
+};
 
 const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx'];
 const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx)$/;
@@ -191,7 +211,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           const sourcePath = node.source.value;
 
           if (sourcePath === '@plumeria/core') {
-            node.specifiers.forEach((specifier: any) => {
+            node.specifiers.forEach((specifier: ImportSpecifier) => {
               if (specifier.type === 'ImportNamespaceSpecifier') {
                 plumeriaAliases[specifier.local.value] = 'NAMESPACE';
               } else if (specifier.type === 'ImportDefaultSpecifier') {
@@ -265,7 +285,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         mergedKeyframesTable[key] = scannedTables.keyframesHashTable[key];
       }
       for (const key of Object.keys(importMap)) {
-        mergedKeyframesTable[key] = importMap[key];
+        const val = importMap[key];
+        if (typeof val === 'string') {
+          mergedKeyframesTable[key] = val;
+        }
       }
 
       const mergedViewTransitionTable: ViewTransitionHashTable = {};
@@ -274,7 +297,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           scannedTables.viewTransitionHashTable[key];
       }
       for (const key of Object.keys(importMap)) {
-        mergedViewTransitionTable[key] = importMap[key];
+        const val = importMap[key];
+        if (typeof val === 'string') {
+          mergedViewTransitionTable[key] = val;
+        }
       }
 
       const mergedCreateTable: CreateHashTable = {};
@@ -282,7 +308,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         mergedCreateTable[key] = scannedTables.createHashTable[key];
       }
       for (const key of Object.keys(importMap)) {
-        mergedCreateTable[key] = importMap[key];
+        const val = importMap[key];
+        if (typeof val === 'string') {
+          mergedCreateTable[key] = val;
+        }
       }
 
       const mergedVariantsTable: VariantsHashTable = {};
@@ -290,7 +319,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         mergedVariantsTable[key] = scannedTables.variantsHashTable[key];
       }
       for (const key of Object.keys(importMap)) {
-        mergedVariantsTable[key] = importMap[key];
+        const val = importMap[key];
+        if (typeof val === 'string') {
+          mergedVariantsTable[key] = val;
+        }
       }
 
       const mergedCreateThemeHashTable: CreateThemeHashTable = {};
@@ -321,18 +353,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         mergedCreateStaticHashTable[key] = createStaticImportMap[key];
       }
 
-      const localCreateStyles: Record<
-        string,
-        {
-          name: string;
-          type: 'create' | 'constant' | 'variant';
-          obj: Record<string, any>;
-          hashMap: Record<string, any>;
-          isExported: boolean;
-          initSpan: { start: number; end: number };
-          declSpan: { start: number; end: number };
-        }
-      > = {};
+      const localCreateStyles: Record<string, CreateStyleValue> = {};
 
       const replacements: Array<{
         start: number;
@@ -340,17 +361,14 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         content: string;
       }> = [];
 
-      const processedDecls = new Set<any>();
+      const processedDecls = new Set<VariableDeclaration>();
       const idSpans = new Set<number>();
       const excludedSpans = new Set<number>();
 
-      const checkVariantAssignment = (decl: any) => {
-        if (
-          decl.init &&
-          t.isCallExpression(decl.init) &&
-          t.isIdentifier(decl.init.callee)
-        ) {
-          const varName = decl.init.callee.value;
+      const checkVariantAssignment = (decl: VariableDeclarator) => {
+        const init = decl.init;
+        if (init && t.isCallExpression(init) && t.isIdentifier(init.callee)) {
+          const varName = init.callee.value;
           if (
             (localCreateStyles[varName] &&
               localCreateStyles[varName].type === 'variant') ||
@@ -366,19 +384,19 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       };
 
       const registerStyle = (
-        node: any,
+        node: VariableDeclarator,
         declSpan: { start: number; end: number },
         isExported: boolean,
       ) => {
         let propName: string | undefined;
-
+        const init = node.init;
         if (
           t.isIdentifier(node.id) &&
-          node.init &&
-          t.isCallExpression(node.init) &&
-          node.init.arguments.length >= 1
+          init &&
+          t.isCallExpression(init) &&
+          init.arguments.length >= 1
         ) {
-          const callee = node.init.callee;
+          const callee = init.callee;
 
           if (
             t.isMemberExpression(callee) &&
@@ -401,13 +419,13 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           }
         }
 
-        if (propName) {
+        if (propName && init && t.isCallExpression(init)) {
           if (
             propName === 'create' &&
-            t.isObjectExpression(node.init.arguments[0].expression)
+            t.isObjectExpression(init.arguments[0].expression)
           ) {
             const obj = objectExpressionToObject(
-              node.init.arguments[0].expression as ObjectExpression,
+              init.arguments[0].expression as ObjectExpression,
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
@@ -434,9 +452,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               });
 
               // Detect function properties directly from the AST
-              const objExpr = node.init.arguments[0]
-                .expression as ObjectExpression;
-              objExpr.properties.forEach((prop: any) => {
+              const objExpr = init.arguments[0].expression as ObjectExpression;
+              objExpr.properties.forEach((prop) => {
                 if (
                   prop.type !== 'KeyValueProperty' ||
                   prop.key.type !== 'Identifier'
@@ -448,9 +465,24 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 if (!isArrow && !isFunc) return;
 
                 const key = prop.key.value;
-                const params: string[] = prop.value.params.map((p: any) =>
-                  p.type === 'Identifier' ? p.value : (p.pat?.value ?? 'arg'),
-                );
+                const func = prop.value;
+                if (
+                  func.type !== 'ArrowFunctionExpression' &&
+                  func.type !== 'FunctionExpression'
+                )
+                  return;
+
+                const params: string[] = func.params.map((p) => {
+                  if (t.isIdentifier(p)) return p.value;
+                  if (
+                    typeof p === 'object' &&
+                    p !== null &&
+                    'pat' in p &&
+                    t.isIdentifier(p.pat)
+                  )
+                    return p.pat.value;
+                  return 'arg';
+                });
 
                 interface CssVarMappings {
                   [paramName: string]: {
@@ -472,7 +504,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   tempStaticTable[paramName] = substitutedArgs[i];
                 });
 
-                let actualBody = prop.value.body;
+                let actualBody: Expression | Statement | undefined = func.body;
                 if (actualBody?.type === 'ParenthesisExpression')
                   actualBody = actualBody.expression;
                 if (actualBody?.type === 'BlockStatement') {
@@ -525,31 +557,33 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 idSpans.add(node.id.span.start);
               }
 
-              localCreateStyles[node.id.value] = {
-                name: node.id.value,
-                type: 'create',
-                obj,
-                hashMap,
-                isExported,
-                initSpan: {
-                  start: node.init.span.start - baseByteOffset,
-                  end: node.init.span.end - baseByteOffset,
-                },
-                declSpan: {
-                  start: declSpan.start - baseByteOffset,
-                  end: declSpan.end - baseByteOffset,
-                },
-              };
+              if (t.isIdentifier(node.id)) {
+                localCreateStyles[node.id.value] = {
+                  name: node.id.value,
+                  type: 'create',
+                  obj,
+                  hashMap,
+                  isExported,
+                  initSpan: {
+                    start: init.span.start - baseByteOffset,
+                    end: init.span.end - baseByteOffset,
+                  },
+                  declSpan: {
+                    start: declSpan.start - baseByteOffset,
+                    end: declSpan.end - baseByteOffset,
+                  },
+                };
+              }
             }
           } else if (
             propName === 'variants' &&
-            t.isObjectExpression(node.init.arguments[0].expression)
+            t.isObjectExpression(init.arguments[0].expression)
           ) {
             if (t.isIdentifier(node.id)) {
               idSpans.add(node.id.span.start);
             }
             const obj = objectExpressionToObject(
-              node.init.arguments[0].expression as ObjectExpression,
+              init.arguments[0].expression as ObjectExpression,
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
@@ -572,33 +606,37 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 return undefined;
               },
             );
-            const { hashMap } = processVariants(obj as any);
+            const { hashMap } = processVariants(
+              obj as Record<string, Record<string, CSSObject>>,
+            );
 
-            localCreateStyles[node.id.value] = {
-              name: node.id.value,
-              type: 'variant',
-              obj,
-              hashMap,
-              isExported,
-              initSpan: {
-                start: node.init.span.start - baseByteOffset,
-                end: node.init.span.end - baseByteOffset,
-              },
-              declSpan: {
-                start: declSpan.start - baseByteOffset,
-                end: declSpan.end - baseByteOffset,
-              },
-            };
+            if (t.isIdentifier(node.id)) {
+              localCreateStyles[node.id.value] = {
+                name: node.id.value,
+                type: 'variant',
+                obj,
+                hashMap,
+                isExported,
+                initSpan: {
+                  start: init.span.start - baseByteOffset,
+                  end: init.span.end - baseByteOffset,
+                },
+                declSpan: {
+                  start: declSpan.start - baseByteOffset,
+                  end: declSpan.end - baseByteOffset,
+                },
+              };
+            }
           } else if (
             propName === 'createTheme' &&
-            t.isObjectExpression(node.init.arguments[0].expression)
+            t.isObjectExpression(init.arguments[0].expression)
           ) {
             if (t.isIdentifier(node.id)) {
               idSpans.add(node.id.span.start);
             }
 
             const obj = objectExpressionToObject(
-              node.init.arguments[0].expression as ObjectExpression,
+              init.arguments[0].expression as ObjectExpression,
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
@@ -611,26 +649,28 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             );
 
             const hash = genBase36Hash(obj, 1, 8);
-            const uniqueKey = `${resourcePath}-${node.id.value}`;
+            if (t.isIdentifier(node.id)) {
+              const uniqueKey = `${resourcePath}-${node.id.value}`;
 
-            scannedTables.createThemeHashTable[uniqueKey] = hash;
-            scannedTables.createThemeObjectTable[hash] = obj;
+              scannedTables.createThemeHashTable[uniqueKey] = hash;
+              scannedTables.createThemeObjectTable[hash] = obj;
 
-            localCreateStyles[node.id.value] = {
-              name: node.id.value,
-              type: 'constant',
-              obj,
-              hashMap: scannedTables.createAtomicMapTable[hash],
-              isExported,
-              initSpan: {
-                start: node.init.span.start - baseByteOffset,
-                end: node.init.span.end - baseByteOffset,
-              },
-              declSpan: {
-                start: declSpan.start - baseByteOffset,
-                end: declSpan.end - baseByteOffset,
-              },
-            };
+              localCreateStyles[node.id.value] = {
+                name: node.id.value,
+                type: 'constant',
+                obj,
+                hashMap: scannedTables.createAtomicMapTable[hash],
+                isExported,
+                initSpan: {
+                  start: init.span.start - baseByteOffset,
+                  end: init.span.end - baseByteOffset,
+                },
+                declSpan: {
+                  start: declSpan.start - baseByteOffset,
+                  end: declSpan.end - baseByteOffset,
+                },
+              };
+            }
           }
         }
       };
@@ -638,11 +678,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       traverse(ast, {
         ImportDeclaration({ node }) {
           if (node.specifiers) {
-            node.specifiers.forEach((specifier: any) => {
+            node.specifiers.forEach((specifier: ImportSpecifier) => {
               if (specifier.local) {
                 excludedSpans.add(specifier.local.span.start);
               }
-              if (specifier.imported) {
+              if (specifier.type === 'ImportSpecifier' && specifier.imported) {
                 excludedSpans.add(specifier.imported.span.start);
               }
             });
@@ -651,15 +691,17 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         ExportDeclaration({ node }) {
           if (t.isVariableDeclaration(node.declaration)) {
             processedDecls.add(node.declaration);
-            node.declaration.declarations.forEach((decl: Declaration) => {
-              checkVariantAssignment(decl);
-              registerStyle(decl, node.span, true);
-            });
+            node.declaration.declarations.forEach(
+              (decl: VariableDeclarator) => {
+                checkVariantAssignment(decl);
+                registerStyle(decl, node.span, true);
+              },
+            );
           }
         },
         VariableDeclaration({ node }) {
           if (processedDecls.has(node)) return;
-          node.declarations.forEach((decl: Declaration) => {
+          node.declarations.forEach((decl: VariableDeclarator) => {
             checkVariantAssignment(decl);
             registerStyle(decl, node.span, false);
           });
@@ -692,30 +734,29 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           if (propName) {
             const args = node.arguments;
 
-            if (
-              propName === 'keyframes' &&
-              args.length > 0 &&
-              t.isObjectExpression(args[0].expression)
-            ) {
-              const obj = objectExpressionToObject(
-                args[0].expression as ObjectExpression,
-                mergedStaticTable,
-                mergedKeyframesTable,
-                mergedViewTransitionTable,
-                mergedCreateThemeHashTable,
-                scannedTables.createThemeObjectTable,
-                mergedCreateTable,
-                mergedCreateStaticHashTable,
-                scannedTables.createStaticObjectTable,
-                mergedVariantsTable,
-              );
-              const hash = genBase36Hash(obj, 1, 8);
-              scannedTables.keyframesObjectTable[hash] = obj;
-              replacements.push({
-                start: node.span.start - baseByteOffset,
-                end: node.span.end - baseByteOffset,
-                content: JSON.stringify(`kf-${hash}`),
-              });
+            if (propName === 'keyframes') {
+              const expr = args[0].expression;
+              if (t.isObjectExpression(expr)) {
+                const obj = objectExpressionToObject(
+                  expr,
+                  mergedStaticTable,
+                  mergedKeyframesTable,
+                  mergedViewTransitionTable,
+                  mergedCreateThemeHashTable,
+                  scannedTables.createThemeObjectTable,
+                  mergedCreateTable,
+                  mergedCreateStaticHashTable,
+                  scannedTables.createStaticObjectTable,
+                  mergedVariantsTable,
+                );
+                const hash = genBase36Hash(obj, 1, 8);
+                scannedTables.keyframesObjectTable[hash] = obj;
+                replacements.push({
+                  start: node.span.start - baseByteOffset,
+                  end: node.span.end - baseByteOffset,
+                  content: JSON.stringify(`kf-${hash}`),
+                });
+              }
             } else if (
               propName === 'viewTransition' &&
               args.length > 0 &&
@@ -793,29 +834,27 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         },
       });
 
-      const jsxOpeningElementMap = new Map<number, any[]>();
+      const jsxOpeningElementMap = new Map<number, JSXAttributeOrSpread[]>();
 
       interface StyleConditional {
         test: Expression;
         testString?: string;
         testLHS?: string;
-        truthy: Record<string, any>;
-        falsy: Record<string, any>;
+        truthy: CSSObject;
+        falsy: CSSObject;
         groupId?: number;
         groupName?: string;
         valueName?: string;
         varName?: string;
       }
 
-      const getSource = (node: any): string => {
-        const start = node.span.start - baseByteOffset;
-        const end = node.span.end - baseByteOffset;
+      const getSource = (node: Expression): string => {
+        const start = (node as HasSpan).span.start - baseByteOffset;
+        const end = (node as HasSpan).span.end - baseByteOffset;
         return sourceBuffer.subarray(start, end).toString('utf-8');
       };
 
-      const resolveStyleObject = (
-        expr: Expression,
-      ): Record<string, any> | null => {
+      const resolveStyleObject = (expr: Expression): CSSObject | null => {
         if (t.isObjectExpression(expr)) {
           return objectExpressionToObject(
             expr,
@@ -831,23 +870,23 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           );
         } else if (
           t.isMemberExpression(expr) &&
-          t.isIdentifier((expr as any).object) &&
-          (t.isIdentifier((expr as any).property) ||
-            (expr as any).property.type === 'Computed')
+          t.isIdentifier(expr.object) &&
+          (t.isIdentifier(expr.property) || expr.property.type === 'Computed')
         ) {
-          if ((expr as any).property.type === 'Computed') return {};
-          const varName = ((expr as any).object as Identifier).value;
-          const propName = ((expr as any).property as Identifier).value;
+          if (expr.property.type === 'Computed') return {};
+          const varName = (expr.object as Identifier).value;
+          const propName = (expr.property as Identifier).value;
           const styleInfo = localCreateStyles[varName];
           if (styleInfo?.obj[propName]) {
             const style = styleInfo.obj[propName];
-            if (typeof style === 'object' && style !== null) return style;
+            if (typeof style === 'object' && style !== null)
+              return style as CSSObject;
           }
           const hash = mergedCreateTable[varName];
           if (hash) {
             const obj = scannedTables.createObjectTable[hash];
             if (obj?.[propName] && typeof obj[propName] === 'object')
-              return obj[propName] as Record<string, any>;
+              return obj[propName] as CSSObject;
           }
         } else if (t.isIdentifier(expr)) {
           const varName = (expr as Identifier).value;
@@ -873,11 +912,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       ): {
         classParts: string[];
         isOptimizable: boolean;
-        baseStyle: Record<string, any>;
+        baseStyle: CSSObject;
       } => {
         const conditionals: StyleConditional[] = [];
         let groupIdCounter = 0;
-        let baseStyle: Record<string, any> = {};
+        let baseStyle: CSSObject = {};
         let isOptimizable = true;
 
         const collectConditions = (
@@ -945,7 +984,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
             const varName = expr.callee.value;
             const uniqueKey = `${resourcePath}-${varName}`;
-            let variantObj: Record<string, any> | undefined;
+            let variantObj: CSSObject | undefined;
 
             let hash = scannedTables.variantsHashTable[uniqueKey];
             if (!hash) hash = mergedVariantsTable[varName];
@@ -961,7 +1000,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 if (arg.type === 'ObjectExpression') {
                   for (const prop of arg.properties) {
                     let groupName: string | undefined;
-                    let valExpr: any;
+                    let valExpr: Expression | undefined;
                     if (
                       prop.type === 'KeyValueProperty' &&
                       prop.key.type === 'Identifier'
@@ -978,36 +1017,42 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                       const currentGroupId = ++groupIdCounter;
                       const valSource = getSource(valExpr);
                       if (valExpr.type === 'StringLiteral') {
-                        if (groupVariants[valExpr.value])
+                        const groupVariantsAsObj = groupVariants as CSSObject;
+                        if (groupVariantsAsObj[valExpr.value as string])
                           baseStyle = deepMerge(
                             baseStyle,
-                            groupVariants[valExpr.value],
+                            groupVariantsAsObj[
+                              valExpr.value as string
+                            ] as CSSObject,
                           );
                         continue;
                       }
-                      Object.entries(
-                        groupVariants as Record<string, any>,
-                      ).forEach(([optionName, style]) => {
-                        conditionals.push({
-                          test: valExpr,
-                          testLHS: valSource,
-                          testString: `${valSource} === '${optionName}'`,
-                          truthy: style as Record<string, any>,
-                          falsy: {},
-                          groupId: currentGroupId,
-                          groupName,
-                          valueName: optionName,
-                          varName,
-                        });
-                      });
+                      Object.entries(groupVariants as CSSObject).forEach(
+                        ([optionName, style]) => {
+                          conditionals.push({
+                            test: valExpr,
+                            testLHS: valSource,
+                            testString: `${valSource} === '${optionName}'`,
+                            truthy: style as CSSObject,
+                            falsy: {},
+                            groupId: currentGroupId,
+                            groupName,
+                            valueName: optionName,
+                            varName,
+                          });
+                        },
+                      );
                     }
                   }
                   continue;
                 }
                 const argSource = getSource(arg);
                 if (t.isStringLiteral(arg)) {
-                  if (variantObj[arg.value])
-                    baseStyle = deepMerge(baseStyle, variantObj[arg.value]);
+                  if (variantObj[arg.value as string])
+                    baseStyle = deepMerge(
+                      baseStyle,
+                      variantObj[arg.value as string] as CSSObject,
+                    );
                   continue;
                 }
                 const currentGroupId = ++groupIdCounter;
@@ -1016,7 +1061,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                     test: arg,
                     testLHS: argSource,
                     testString: `${argSource} === '${key}'`,
-                    truthy: style,
+                    truthy: style as CSSObject,
                     falsy: {},
                     groupId: currentGroupId,
                     groupName: undefined,
@@ -1032,7 +1077,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           } else if (t.isIdentifier(expr)) {
             const varName = expr.value;
             const uniqueKey = `${resourcePath}-${varName}`;
-            let variantObj: Record<string, any> | undefined;
+            let variantObj: CSSObject | undefined;
 
             let hash = scannedTables.variantsHashTable[uniqueKey];
             if (!hash) hash = mergedVariantsTable[varName];
@@ -1052,7 +1097,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                         test: expr,
                         testLHS: `props["${groupName}"]`,
                         testString: `props["${groupName}"] === '${optionName}'`,
-                        truthy: style as Record<string, any>,
+                        truthy: style as CSSObject,
                         falsy: {},
                         groupId: currentGroupId,
                         groupName,
@@ -1085,10 +1130,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         }
 
         const participation: Record<string, Set<string>> = {};
-        const registerParticipation = (
-          style: Record<string, any>,
-          sourceId: string,
-        ) => {
+        const registerParticipation = (style: CSSObject, sourceId: string) => {
           Object.keys(style).forEach((key) => {
             if (!participation[key]) participation[key] = new Set();
             participation[key].add(sourceId);
@@ -1121,8 +1163,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           if (sources.size > 1) conflictingKeys.add(key);
         });
 
-        const baseIndependent: Record<string, any> = {};
-        const baseConflict: Record<string, any> = {};
+        const baseIndependent: CSSObject = {};
+        const baseConflict: CSSObject = {};
         Object.entries(baseStyle).forEach(([key, val]) => {
           if (conflictingKeys.has(key)) baseConflict[key] = val;
           else baseIndependent[key] = val;
@@ -1131,10 +1173,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         const indepConditionals: StyleConditional[] = [];
         const conflictConditionals: StyleConditional[] = [];
         conditionals.forEach((c) => {
-          const truthyIndep: Record<string, any> = {};
-          const truthyConf: Record<string, any> = {};
-          const falsyIndep: Record<string, any> = {};
-          const falsyConf: Record<string, any> = {};
+          const truthyIndep: CSSObject = {};
+          const truthyConf: CSSObject = {};
+          const falsyIndep: CSSObject = {};
+          const falsyConf: CSSObject = {};
           let hasIndep = false;
           let hasConf = false;
           Object.entries(c.truthy).forEach(([k, v]) => {
@@ -1183,7 +1225,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         indepConditionals
           .filter((c) => c.groupId === undefined)
           .forEach((c) => {
-            const processBranch = (style: Record<string, any>) => {
+            const processBranch = (style: CSSObject) => {
               if (Object.keys(style).length === 0) return '""';
               return JSON.stringify(
                 getStyleRecords(style)
@@ -1233,8 +1275,8 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           interface Dimension {
             type: 'std' | 'var';
             options: Array<{
-              value: any;
-              style: Record<string, any>;
+              value: number | string | undefined;
+              style: CSSObject;
               label: string;
             }>;
             testExpr?: string;
@@ -1280,7 +1322,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           const results: Record<string, string> = {};
           const recurse = (
             dimIndex: number,
-            currentStyle: Record<string, any>,
+            currentStyle: CSSObject,
             keyParts: string[],
           ) => {
             if (dimIndex >= dimensions.length) {
@@ -1340,7 +1382,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             }
 
             if (hash) {
-              let atomMap: Record<string, any> | undefined;
+              let atomMap: Record<string, string> | undefined;
 
               // Check atomic map first
               if (scannedTables.createAtomicMapTable[hash]) {
@@ -1483,22 +1525,21 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             return;
 
           const expr = node.value.expression;
-          let args =
+          let args: Array<{ expression: Expression }> =
             expr.type === 'ArrayExpression'
               ? expr.elements
-                  .filter(Boolean)
-                  .map((el: any) => ({ expression: el.expression ?? el }))
+                  .filter((el: ExprOrSpread) => el !== undefined)
+                  .map((el: ExprOrSpread) => ({ expression: el.expression }))
               : [{ expression: expr }];
 
-          // Collect dynamic styles (styles.text(state) format)
           const dynamicClassParts: string[] = [];
           const dynamicStyleParts: string[] = [];
 
-          let attributes: any[] = [];
+          let attributes: Array<JSXAttribute | SpreadElement> = [];
           for (const [, attrs] of jsxOpeningElementMap) {
-            const found = attrs.find(
-              (a: any) => a.span?.start === node.span.start,
-            );
+            const found = attrs
+              .filter((a): a is JSXAttribute => a.type === 'JSXAttribute')
+              .find((a) => a.span.start === node.span.start);
             if (found) {
               attributes = attrs;
               break;
@@ -1506,7 +1547,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           }
 
           const classNameAttr = attributes.find(
-            (attr: any) => attr.name?.value === 'className',
+            (attr): attr is JSXAttribute =>
+              attr.type === 'JSXAttribute' &&
+              attr.name.type === 'Identifier' &&
+              attr.name.value === 'className',
           );
           let existingClass = '';
           if (classNameAttr?.value?.type === 'StringLiteral') {
@@ -1519,7 +1563,10 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           }
 
           const styleAttrExisting = attributes.find(
-            (attr: any) => attr.name?.value === 'style',
+            (attr): attr is JSXAttribute =>
+              attr.type === 'JSXAttribute' &&
+              attr.name.type === 'Identifier' &&
+              attr.name.value === 'style',
           );
           if (styleAttrExisting) {
             replacements.push({
@@ -1528,19 +1575,21 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               content: '',
             });
             // Extract the contents of existing style attributes from the source and place them in dynamicStyleParts
-            const innerExpr = styleAttrExisting.value?.expression;
-            if (innerExpr?.type === 'ObjectExpression') {
-              const start = innerExpr.span.start - baseByteOffset;
-              const end = innerExpr.span.end - baseByteOffset;
-              const innerSource = sourceBuffer
-                .subarray(start, end)
-                .toString('utf-8');
-              const stripped = innerSource.slice(1, -1).trim();
-              if (stripped) dynamicStyleParts.push(stripped);
+            if (styleAttrExisting.value?.type === 'JSXExpressionContainer') {
+              const innerExpr = styleAttrExisting.value?.expression;
+              if (innerExpr?.type === 'ObjectExpression') {
+                const start = innerExpr.span.start - baseByteOffset;
+                const end = innerExpr.span.end - baseByteOffset;
+                const innerSource = sourceBuffer
+                  .subarray(start, end)
+                  .toString('utf-8');
+                const stripped = innerSource.slice(1, -1).trim();
+                if (stripped) dynamicStyleParts.push(stripped);
+              }
             }
           }
 
-          args = args.filter((arg: any) => {
+          args = args.filter((arg) => {
             const expr = arg.expression;
             if (!t.isCallExpression(expr) || !t.isMemberExpression(expr.callee))
               return true;
@@ -1567,13 +1616,15 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               .join(' ');
             if (hashes) dynamicClassParts.push(JSON.stringify(hashes));
 
-            const callArgs = (expr as any).arguments;
+            const callArgs = (expr as CallExpression).arguments;
             Object.entries(cssVarInfo).forEach(
               ([_, { cssVar, propKey: targetProp }], i) => {
                 const callArg = callArgs[i];
                 if (!callArg) return;
-                const argStart = callArg.expression.span.start - baseByteOffset;
-                const argEnd = callArg.expression.span.end - baseByteOffset;
+
+                const argExpr = callArg.expression as HasSpan;
+                const argStart = argExpr.span.start - baseByteOffset;
+                const argEnd = argExpr.span.end - baseByteOffset;
                 const argSource = sourceBuffer
                   .subarray(argStart, argEnd)
                   .toString('utf-8');
@@ -1663,7 +1714,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
           if (!isUseCall) return;
 
-          const args = node.arguments as Array<{ expression: Expression }>;
+          const args: Array<{ expression: Expression }> = node.arguments;
           for (const arg of args) {
             const expr = arg.expression;
             if (!t.isCallExpression(expr) || !t.isMemberExpression(expr.callee))
