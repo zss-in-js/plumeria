@@ -1,10 +1,22 @@
 import { deepMerge } from './parser';
 import { getStyleRecords } from './create';
+import type { CSSObject } from './types';
+
+type CompoundEntry = {
+  keys: string[];
+  map: Record<string, string>;
+};
+
+type IndependentHashMap = Record<string, Record<string, string>>;
+
+type VariantsHashMap = IndependentHashMap & {
+  _compound?: CompoundEntry[];
+};
 
 export function processVariants(
-  variants: Record<string, Record<string, any>>,
+  variants: Record<string, Record<string, CSSObject>>,
 ): {
-  hashMap: Record<string, any>;
+  hashMap: VariantsHashMap;
 } {
   const variantKeys = Object.keys(variants);
 
