@@ -62,6 +62,7 @@ type CreateStyleValue = {
   isExported: boolean;
   initSpan: { start: number; end: number };
   declSpan: { start: number; end: number };
+  functions?: Record<string, { params: string[]; body: ObjectExpression }>;
 };
 
 const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx'];
@@ -196,6 +197,15 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         if (!extractedSheets.includes(sheet)) {
           extractedSheets.push(sheet);
         }
+      };
+
+      const processStyleRecords = (style: CSSObject) => {
+        const records = getStyleRecords(style as CSSProperties);
+        extractOndemandStyles(style, extractedSheets, scannedTables);
+        records.forEach((r: StyleRecord) => {
+          addSheet(r.sheet);
+        });
+        return records;
       };
 
       const localConsts = collectLocalConsts(ast);
@@ -446,7 +456,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 hashMap[key] = atomMap;
               });
 
-              // Detect function properties directly from the AST
+              const styleFunctions: Record<
+                string,
+                { params: string[]; body: ObjectExpression }
+              > = {};
+
               const objExpr = init.arguments[0].expression as ObjectExpression;
               objExpr.properties.forEach((prop) => {
                 if (
@@ -455,11 +469,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 )
                   return;
 
-                const isArrow = prop.value.type === 'ArrowFunctionExpression';
-                const isFunc = prop.value.type === 'FunctionExpression';
-                if (!isArrow && !isFunc) return;
-
-                const key = prop.key.value;
                 const func = prop.value;
                 if (
                   func.type !== 'ArrowFunctionExpression' &&
@@ -467,7 +476,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                 )
                   return;
 
-                const params: string[] = func.params.map((p) => {
+                const params: string[] = func.params.map((p: any) => {
                   if (t.isIdentifier(p)) return p.value;
                   if (
                     typeof p === 'object' &&
@@ -477,26 +486,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   )
                     return p.pat.value;
                   return 'arg';
-                });
-
-                interface CssVarMappings {
-                  [paramName: string]: {
-                    cssVar: string;
-                    propKey: string;
-                  };
-                }
-
-                const cssVarInfo: CssVarMappings = {};
-
-                // Parse the function body object (replace arguments with var(--xxx))
-                const tempStaticTable = { ...mergedStaticTable };
-                const substitutedArgs = params.map((paramName) => {
-                  const cssVar = `--${key}-${paramName}`;
-                  cssVarInfo[paramName] = { cssVar, propKey: '' };
-                  return `var(${cssVar})`;
-                });
-                params.forEach((paramName, i) => {
-                  tempStaticTable[paramName] = substitutedArgs[i];
                 });
 
                 let actualBody: Expression | Statement | undefined = func.body;
@@ -509,43 +498,13 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                   if (actualBody?.type === 'ParenthesisExpression')
                     actualBody = actualBody.expression;
                 }
-                if (!actualBody || actualBody.type !== 'ObjectExpression')
-                  return;
 
-                const substituted = objectExpressionToObject(
-                  actualBody,
-                  tempStaticTable,
-                  mergedKeyframesTable,
-                  mergedViewTransitionTable,
-                  mergedCreateThemeHashTable,
-                  scannedTables.createThemeObjectTable,
-                  mergedCreateTable,
-                  mergedCreateStaticHashTable,
-                  scannedTables.createStaticObjectTable,
-                  mergedVariantsTable,
-                );
-
-                if (!substituted) return;
-
-                for (const [, info] of Object.entries(cssVarInfo)) {
-                  const cssVar = info.cssVar;
-                  const propKey = Object.keys(substituted).find(
-                    (k) =>
-                      typeof substituted[k] === 'string' &&
-                      substituted[k].includes(cssVar),
-                  );
-                  if (propKey) {
-                    info.propKey = propKey;
-                  }
+                if (actualBody && actualBody.type === 'ObjectExpression') {
+                  styleFunctions[prop.key.value] = {
+                    params,
+                    body: actualBody as ObjectExpression,
+                  };
                 }
-
-                const records = getStyleRecords(substituted as CSSProperties);
-                records.forEach((r: StyleRecord) => addSheet(r.sheet));
-
-                const atomMap: Record<string, string> = {};
-                records.forEach((r) => (atomMap[r.key] = r.hash));
-                atomMap['__cssVars__'] = JSON.stringify(cssVarInfo);
-                hashMap[key] = atomMap;
               });
 
               if (t.isIdentifier(node.id)) {
@@ -567,6 +526,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
                     start: declSpan.start - baseByteOffset,
                     end: declSpan.end - baseByteOffset,
                   },
+                  functions: styleFunctions,
                 };
               }
             }
@@ -909,15 +869,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         isOptimizable: boolean;
         baseStyle: CSSObject;
       } => {
-        const processStyleRecords = (style: CSSObject) => {
-          const records = getStyleRecords(style as CSSProperties);
-          extractOndemandStyles(style, extractedSheets, scannedTables);
-          records.forEach((r: StyleRecord) => {
-            addSheet(r.sheet);
-          });
-          return records;
-        };
-
         const conditionals: StyleConditional[] = [];
         let groupIdCounter = 0;
         let baseStyle: CSSObject = {};
@@ -1607,58 +1558,110 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             const varName = callee.object.value;
             const propKey = callee.property.value;
             const styleInfo = localCreateStyles[varName];
-            const atomMap = styleInfo?.hashMap?.[propKey];
-            if (!atomMap?.['__cssVars__']) return true;
 
-            const cssVarInfo: Record<
-              string,
-              { cssVar: string; propKey: string }
-            > = JSON.parse(atomMap['__cssVars__']);
-            const hashes = Object.entries(atomMap)
-              .filter(([k]) => k !== '__cssVars__')
-              .map(([, v]) => v)
-              .join(' ');
-            if (hashes) dynamicClassParts.push(JSON.stringify(hashes));
+            if (styleInfo?.functions?.[propKey]) {
+              const func = styleInfo.functions[propKey];
+              const callArgs = (expr as CallExpression).arguments;
+              const tempStaticTable = { ...mergedStaticTable };
 
-            const callArgs = (expr as CallExpression).arguments;
-            Object.entries(cssVarInfo).forEach(
-              ([_, { cssVar, propKey: targetProp }], i) => {
-                const callArg = callArgs[i];
-                if (!callArg) return;
+              if (callArgs.length === 1 && !callArgs[0].spread) {
+                const argExpr = callArgs[0].expression;
+                const cssVarInfo: Record<
+                  string,
+                  { cssVar: string; propKey: string }
+                > = {};
 
-                const argExpr = callArg.expression as HasSpan;
-                const argStart = argExpr.span.start - baseByteOffset;
-                const argEnd = argExpr.span.end - baseByteOffset;
-                const argSource = sourceBuffer
-                  .subarray(argStart, argEnd)
-                  .toString('utf-8');
-
-                let valueExpr: string;
-                const maybeNumber = Number(argSource);
-                if (
-                  !isNaN(maybeNumber) &&
-                  argSource.trim() === String(maybeNumber)
-                ) {
-                  valueExpr = JSON.stringify(
-                    applyCssValue(maybeNumber, targetProp),
+                if (argExpr.type === 'ObjectExpression') {
+                  const argObj = objectExpressionToObject(
+                    argExpr,
+                    mergedStaticTable,
+                    mergedKeyframesTable,
+                    mergedViewTransitionTable,
+                    mergedCreateThemeHashTable,
+                    scannedTables.createThemeObjectTable,
+                    mergedCreateTable,
+                    mergedCreateStaticHashTable,
+                    scannedTables.createStaticObjectTable,
+                    mergedVariantsTable,
                   );
-                } else if (
-                  (argSource.startsWith('"') && argSource.endsWith('"')) ||
-                  (argSource.startsWith("'") && argSource.endsWith("'"))
-                ) {
-                  valueExpr = JSON.stringify(
-                    applyCssValue(argSource.slice(1, -1), targetProp),
-                  );
+                  func.params.forEach((p) => {
+                    if (argObj[p] !== undefined) tempStaticTable[p] = argObj[p];
+                  });
                 } else {
-                  valueExpr = exceptionCamelCase.includes(targetProp)
-                    ? argSource
-                    : `(typeof ${argSource} === 'number' ? ${argSource} + 'px' : ${argSource})`;
+                  func.params.forEach((p) => {
+                    const cssVar = `--${propKey}-${p}`;
+                    tempStaticTable[p] = `var(${cssVar})`;
+                    cssVarInfo[p] = { cssVar, propKey: '' };
+                  });
                 }
-                dynamicStyleParts.push(`"${cssVar}": ${valueExpr}`);
-              },
-            );
 
-            return false;
+                const substituted = objectExpressionToObject(
+                  func.body,
+                  tempStaticTable,
+                  mergedKeyframesTable,
+                  mergedViewTransitionTable,
+                  mergedCreateThemeHashTable,
+                  scannedTables.createThemeObjectTable,
+                  mergedCreateTable,
+                  mergedCreateStaticHashTable,
+                  scannedTables.createStaticObjectTable,
+                  mergedVariantsTable,
+                );
+
+                if (substituted) {
+                  const records = processStyleRecords(substituted);
+                  const hashes = records.map((r) => r.hash).join(' ');
+                  if (hashes) dynamicClassParts.push(JSON.stringify(hashes));
+
+                  if (Object.keys(cssVarInfo).length > 0) {
+                    Object.entries(cssVarInfo).forEach(([_, info]) => {
+                      const targetProp = Object.keys(substituted).find(
+                        (k) =>
+                          typeof substituted[k] === 'string' &&
+                          substituted[k].includes(info.cssVar),
+                      );
+                      if (targetProp) {
+                        const argStart =
+                          (argExpr as HasSpan).span.start - baseByteOffset;
+                        const argEnd =
+                          (argExpr as HasSpan).span.end - baseByteOffset;
+                        const argSource = sourceBuffer
+                          .subarray(argStart, argEnd)
+                          .toString('utf-8');
+
+                        let valueExpr: string;
+                        const maybeNumber = Number(argSource);
+                        if (
+                          !isNaN(maybeNumber) &&
+                          argSource.trim() === String(maybeNumber)
+                        ) {
+                          valueExpr = JSON.stringify(
+                            applyCssValue(maybeNumber, targetProp),
+                          );
+                        } else if (
+                          (argSource.startsWith('"') &&
+                            argSource.endsWith('"')) ||
+                          (argSource.startsWith("'") && argSource.endsWith("'"))
+                        ) {
+                          valueExpr = JSON.stringify(
+                            applyCssValue(argSource.slice(1, -1), targetProp),
+                          );
+                        } else {
+                          valueExpr = exceptionCamelCase.includes(targetProp)
+                            ? argSource
+                            : `(typeof ${argSource} === 'number' ? ${argSource} + 'px' : ${argSource})`;
+                        }
+                        dynamicStyleParts.push(
+                          `"${info.cssVar}": ${valueExpr}`,
+                        );
+                      }
+                    });
+                  }
+                  return false;
+                }
+              }
+            }
+            return true;
           });
 
           const styleAttr =
@@ -1733,10 +1736,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             const varName = callee.object.value;
             const propKey = callee.property.value;
             const styleInfo = localCreateStyles[varName];
-            const atomMap = styleInfo?.hashMap?.[propKey];
-            if (atomMap?.['__cssVars__']) {
+            if (styleInfo?.functions?.[propKey]) {
               throw new Error(
-                `Plumeria: css.use(${getSource(expr)}) does not support dynamic function keys.\n`,
+                `Plumeria: css.use(${getSource(
+                  expr,
+                )}) does not support dynamic function keys.\n`,
               );
             }
           }
