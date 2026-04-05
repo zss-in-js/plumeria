@@ -26,6 +26,7 @@ import {
   deepMerge,
   scanAll,
   resolveImportPath,
+  processVariants,
 } from '@plumeria/utils';
 import type {
   StyleRecord,
@@ -61,7 +62,12 @@ interface TraversalContext {
   scannedTables: ReturnType<typeof scanAll>;
   localCreateStyles: Record<
     string,
-    { type: 'create' | 'variant' | 'theme'; obj: CSSObject }
+    {
+      type: 'create' | 'variant' | 'theme';
+      obj: CSSObject;
+      hashMap?: any;
+      functions?: Record<string, { params: string[]; body: ObjectExpression }>;
+    }
   >;
   sourceBuffer: Buffer;
   baseByteOffset: number;
@@ -337,14 +343,67 @@ export function compileCSS(options: CompilerOptions) {
       const conditionals: Array<{
         test: Expression;
         testString?: string;
+        testLHS?: string;
         truthy: CSSObject;
         falsy: CSSObject;
+        varName: string | undefined;
+        groupId?: number;
+        groupName?: string;
+        valueName?: string;
       }> = [];
+      let groupIdCounter = 0;
       let baseStyle: CSSObject = {};
 
-      const resolveStyleObject = (expression: Expression): CSSObject | null => {
-        const styles = extractStylesFromExpression(expression, ctx);
-        return styles.length === 1 ? styles[0] : null;
+      const resolveStyleObject = (expr: Expression): CSSObject | null => {
+        if (t.isObjectExpression(expr)) {
+          return objectExpressionToObject(
+            expr,
+            ctx.mergedStaticTable,
+            ctx.mergedKeyframesTable,
+            ctx.mergedViewTransitionTable,
+            ctx.mergedCreateThemeHashTable,
+            ctx.scannedTables.createThemeObjectTable,
+            ctx.mergedCreateTable,
+            ctx.mergedCreateStaticHashTable,
+            ctx.scannedTables.createStaticObjectTable,
+            ctx.mergedVariantsTable,
+          );
+        } else if (
+          t.isMemberExpression(expr) &&
+          t.isIdentifier(expr.object) &&
+          t.isIdentifier(expr.property)
+        ) {
+          const varName = expr.object.value;
+          const propName = expr.property.value;
+          const styleInfo = ctx.localCreateStyles[varName];
+          if (styleInfo && styleInfo.type === 'create') {
+            const style = styleInfo.obj[propName];
+            if (typeof style === 'object' && style !== null) {
+              return style as CSSObject;
+            }
+          }
+          const hash = ctx.mergedCreateTable[varName];
+          if (hash) {
+            const obj = ctx.scannedTables.createObjectTable[hash];
+            if (obj && obj[propName] && typeof obj[propName] === 'object') {
+              return obj[propName] as CSSObject;
+            }
+          }
+        } else if (t.isIdentifier(expr)) {
+          const varName = expr.value;
+          const styleInfo = ctx.localCreateStyles[varName];
+          if (styleInfo && styleInfo.type === 'create') {
+            return styleInfo.obj;
+          }
+          const hash = ctx.mergedCreateTable[varName];
+          if (hash) {
+            const obj = ctx.scannedTables.createObjectTable[hash];
+            if (obj && typeof obj === 'object') {
+              return obj;
+            }
+          }
+        }
+        return null;
       };
 
       const getSource = (node: Expression) =>
@@ -357,41 +416,57 @@ export function compileCSS(options: CompilerOptions) {
 
       const collectConditions = (
         node: Expression,
-        testStrings: string[] = [],
+        currentTestStrings: string[] = [],
       ): boolean => {
-        const staticStyle = resolveStyleObject(node);
-        if (staticStyle) {
-          if (testStrings.length === 0) {
-            baseStyle = deepMerge(baseStyle, staticStyle);
-          } else {
-            conditionals.push({
-              test: node,
-              testString: testStrings.join(' && '),
-              truthy: staticStyle,
-              falsy: {},
-            });
-          }
-          return true;
-        }
         if (node.type === 'ConditionalExpression') {
           const testSource = getSource(node.test);
+          if (currentTestStrings.length === 0) {
+            const trueStyle = resolveStyleObject(node.consequent);
+            const falseStyle = resolveStyleObject(node.alternate);
+            if (trueStyle && falseStyle) {
+              conditionals.push({
+                test: node,
+                testString: testSource,
+                truthy: trueStyle,
+                falsy: falseStyle,
+                varName: undefined,
+              });
+              return true;
+            }
+          }
           collectConditions(node.consequent, [
-            ...testStrings,
+            ...currentTestStrings,
             `(${testSource})`,
           ]);
           collectConditions(node.alternate, [
-            ...testStrings,
+            ...currentTestStrings,
             `!(${testSource})`,
           ]);
           return true;
         } else if (node.type === 'BinaryExpression' && node.operator === '&&') {
           collectConditions(node.right, [
-            ...testStrings,
+            ...currentTestStrings,
             `(${getSource(node.left)})`,
           ]);
           return true;
         } else if (node.type === 'ParenthesisExpression') {
-          return collectConditions(node.expression, testStrings);
+          return collectConditions(node.expression, currentTestStrings);
+        }
+
+        const staticStyle = resolveStyleObject(node);
+        if (staticStyle) {
+          if (currentTestStrings.length === 0) {
+            baseStyle = deepMerge(baseStyle, staticStyle);
+          } else {
+            conditionals.push({
+              test: node,
+              testString: currentTestStrings.join(' && '),
+              truthy: staticStyle,
+              falsy: {},
+              varName: undefined,
+            });
+          }
+          return true;
         }
         return false;
       };
@@ -438,6 +513,155 @@ export function compileCSS(options: CompilerOptions) {
 
       for (const arg of args) {
         checkFunctionKey(arg.expression);
+        const expr = arg.expression;
+
+        if (t.isCallExpression(expr)) {
+          if (t.isIdentifier(expr.callee)) {
+            const varName = expr.callee.value;
+            const styleInfo = ctx.localCreateStyles[varName];
+
+            if (styleInfo && styleInfo.type === 'variant') {
+              const variantObj = styleInfo.obj as Record<
+                string,
+                Record<string, CSSObject>
+              >;
+              const callArgs = expr.arguments;
+              if (callArgs.length === 1 && !callArgs[0].spread) {
+                const argExpr = callArgs[0].expression;
+                if (argExpr.type === 'ObjectExpression') {
+                  for (const prop of argExpr.properties) {
+                    let groupName: string | undefined;
+                    let valExpr: Expression | undefined;
+                    if (
+                      prop.type === 'KeyValueProperty' &&
+                      prop.key.type === 'Identifier'
+                    ) {
+                      groupName = prop.key.value;
+                      valExpr = prop.value;
+                    } else if (prop.type === 'Identifier') {
+                      groupName = prop.value;
+                      valExpr = prop;
+                    }
+                    if (groupName && valExpr) {
+                      const groupVariants = variantObj[groupName];
+                      if (!groupVariants) continue;
+                      const currentGroupId = ++groupIdCounter;
+                      const valSource = getSource(valExpr);
+                      if (valExpr.type === 'StringLiteral') {
+                        const groupVariantsAsObj = groupVariants as CSSObject;
+                        if (groupVariantsAsObj[valExpr.value as string])
+                          baseStyle = deepMerge(
+                            baseStyle,
+                            groupVariantsAsObj[
+                              valExpr.value as string
+                            ] as CSSObject,
+                          );
+                        continue;
+                      }
+                      Object.entries(groupVariants).forEach(
+                        ([optionName, style]) => {
+                          conditionals.push({
+                            test: valExpr!,
+                            testLHS: valSource,
+                            testString: `${valSource} === '${optionName}'`,
+                            truthy: style as CSSObject,
+                            falsy: {},
+                            groupId: currentGroupId,
+                            groupName,
+                            valueName: optionName,
+                            varName,
+                          });
+                        },
+                      );
+                    }
+                  }
+                  continue;
+                }
+                const argSource = getSource(argExpr);
+                if (t.isStringLiteral(argExpr)) {
+                  if ((variantObj as any)[argExpr.value as string])
+                    baseStyle = deepMerge(
+                      baseStyle,
+                      (variantObj as any)[argExpr.value as string] as CSSObject,
+                    );
+                  continue;
+                }
+                const currentGroupId = ++groupIdCounter;
+                Object.entries(variantObj).forEach(([key, style]) => {
+                  conditionals.push({
+                    test: argExpr,
+                    testLHS: argSource,
+                    testString: `${argSource} === '${key}'`,
+                    truthy: style as CSSObject,
+                    falsy: {},
+                    groupId: currentGroupId,
+                    groupName: undefined,
+                    valueName: key,
+                    varName,
+                  });
+                });
+                continue;
+              }
+            }
+          } else if (t.isMemberExpression(expr.callee)) {
+            const callee = expr.callee;
+            if (
+              t.isIdentifier(callee.object) &&
+              t.isIdentifier(callee.property)
+            ) {
+              const varName = callee.object.value;
+              const propName = callee.property.value;
+              const styleInfo = ctx.localCreateStyles[varName];
+              if (styleInfo && styleInfo.functions?.[propName]) {
+                const func = styleInfo.functions[propName];
+                const callArgs = expr.arguments;
+                if (callArgs.length === 1 && !callArgs[0].spread) {
+                  const argExpr = callArgs[0].expression;
+                  const tempStaticTable = { ...ctx.mergedStaticTable };
+
+                  if (argExpr.type === 'ObjectExpression') {
+                    const argObj = objectExpressionToObject(
+                      argExpr,
+                      ctx.mergedStaticTable,
+                      ctx.mergedKeyframesTable,
+                      ctx.mergedViewTransitionTable,
+                      ctx.mergedCreateThemeHashTable,
+                      ctx.scannedTables.createThemeObjectTable,
+                      ctx.mergedCreateTable,
+                      ctx.mergedCreateStaticHashTable,
+                      ctx.scannedTables.createStaticObjectTable,
+                      ctx.mergedVariantsTable,
+                    );
+                    func.params.forEach((p) => {
+                      if (argObj[p] !== undefined)
+                        tempStaticTable[p] = argObj[p];
+                    });
+                  } else {
+                    func.params.forEach((p) => {
+                      tempStaticTable[p] = `var(--${propName}-${p})`;
+                    });
+                  }
+
+                  const resolved = objectExpressionToObject(
+                    func.body,
+                    tempStaticTable,
+                    ctx.mergedKeyframesTable,
+                    ctx.mergedViewTransitionTable,
+                    ctx.mergedCreateThemeHashTable,
+                    ctx.scannedTables.createThemeObjectTable,
+                    ctx.mergedCreateTable,
+                    ctx.mergedCreateStaticHashTable,
+                    ctx.scannedTables.createStaticObjectTable,
+                    ctx.mergedVariantsTable,
+                  );
+                  if (resolved) baseStyle = deepMerge(baseStyle, resolved);
+                  continue;
+                }
+              }
+            }
+          }
+        }
+
         if (collectConditions(arg.expression)) continue;
         const extractedStyles = extractStylesFromExpression(
           arg.expression,
@@ -549,6 +773,7 @@ export function compileCSS(options: CompilerOptions) {
         if (k !== 'span' && k !== 'loc') traverseInternal(node[k]);
     };
 
+    // Pass 1: Register all style definitions (create/variants/createTheme/keyframes/viewTransition)
     traverse(ast, {
       VariableDeclarator({ node }: { node: VariableDeclarator }) {
         if (
@@ -600,26 +825,17 @@ export function compileCSS(options: CompilerOptions) {
               );
 
               if (obj) {
-                ctx.localCreateStyles[node.id.value] = { type: 'create', obj };
-                Object.entries(obj).forEach(([_, style]) => {
-                  if (typeof style !== 'object' || style === null) return;
-                  getStyleRecords(style as CSSProperties).forEach(
-                    (r: StyleRecord) => extractedSheets.push(r.sheet),
-                  );
-                });
+                const styleFunctions: Record<
+                  string,
+                  { params: string[]; body: ObjectExpression }
+                > = {};
 
-                // Analysis and extraction of functional variants
                 arg.properties.forEach((prop) => {
                   if (
                     prop.type !== 'KeyValueProperty' ||
                     prop.key.type !== 'Identifier'
                   )
                     return;
-                  const isArrow = prop.value.type === 'ArrowFunctionExpression';
-                  const isFunc = prop.value.type === 'FunctionExpression';
-                  if (!isArrow && !isFunc) return;
-
-                  const key = prop.key.value;
                   const func = prop.value;
                   if (
                     func.type !== 'ArrowFunctionExpression' &&
@@ -639,11 +855,6 @@ export function compileCSS(options: CompilerOptions) {
                     return 'arg';
                   });
 
-                  const tempStaticTable = { ...ctx.mergedStaticTable };
-                  params.forEach((paramName) => {
-                    tempStaticTable[paramName] = `var(--${key}-${paramName})`;
-                  });
-
                   let actualBody: Expression | Statement | undefined =
                     func.body;
                   if (actualBody?.type === 'ParenthesisExpression')
@@ -656,27 +867,19 @@ export function compileCSS(options: CompilerOptions) {
                       actualBody = actualBody.expression;
                   }
 
-                  if (!actualBody || actualBody.type !== 'ObjectExpression')
-                    return;
-
-                  const substituted = objectExpressionToObject(
-                    actualBody,
-                    tempStaticTable,
-                    ctx.mergedKeyframesTable,
-                    ctx.mergedViewTransitionTable,
-                    ctx.mergedCreateThemeHashTable,
-                    ctx.scannedTables.createThemeObjectTable,
-                    ctx.mergedCreateTable,
-                    ctx.mergedCreateStaticHashTable,
-                    ctx.scannedTables.createStaticObjectTable,
-                    ctx.mergedVariantsTable,
-                  );
-
-                  if (!substituted) return;
-                  getStyleRecords(substituted as CSSProperties).forEach(
-                    (r: StyleRecord) => extractedSheets.push(r.sheet),
-                  );
+                  if (actualBody && actualBody.type === 'ObjectExpression') {
+                    styleFunctions[prop.key.value] = {
+                      params,
+                      body: actualBody as ObjectExpression,
+                    };
+                  }
                 });
+
+                ctx.localCreateStyles[node.id.value] = {
+                  type: 'create',
+                  obj,
+                  functions: styleFunctions,
+                };
               }
             } else if (pName === 'variants') {
               const obj = objectExpressionToObject(
@@ -692,8 +895,14 @@ export function compileCSS(options: CompilerOptions) {
                 ctx.mergedVariantsTable,
                 resolveVariable,
               );
-              if (obj)
-                ctx.localCreateStyles[node.id.value] = { type: 'variant', obj };
+              if (obj) {
+                const { hashMap } = processVariants(obj as any);
+                ctx.localCreateStyles[node.id.value] = {
+                  type: 'variant',
+                  obj,
+                  hashMap,
+                };
+              }
             } else if (pName === 'createTheme') {
               const obj = objectExpressionToObject(
                 arg,
@@ -718,8 +927,14 @@ export function compileCSS(options: CompilerOptions) {
             }
           }
         }
-        if (t.isIdentifier(node.id)) {
-          if (node.init) traverseInternal(node.init);
+      },
+    });
+
+    // Pass 2: Process usage sites (use()/styleName) - all definitions are now registered
+    traverse(ast, {
+      VariableDeclarator({ node }: { node: VariableDeclarator }) {
+        if (t.isIdentifier(node.id) && node.init) {
+          traverseInternal(node.init);
         }
       },
       FunctionDeclaration({ node }: { node: FunctionDeclaration }) {
