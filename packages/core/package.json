@@ -35,9 +35,6 @@
   "files": [
     "lib/"
   ],
-  "dependencies": {
-    "csstype": "^3.2.3"
-  },
   "publishConfig": {
     "access": "public",
     "provenance": true
