@@ -1358,11 +1358,23 @@ export function extractOndemandStyles(
     Object.values(n).forEach((val) => {
       if (typeof val === 'string') {
         if (val.startsWith('kf-')) {
-          keyframesHashes.add(val.slice(3));
+          const hash = val.slice(3);
+          if (!keyframesHashes.has(hash)) {
+            keyframesHashes.add(hash);
+            walk(t.keyframesObjectTable[hash]);
+          }
         } else if (val.startsWith('vt-')) {
-          viewTransitionHashes.add(val.slice(3));
+          const hash = val.slice(3);
+          if (!viewTransitionHashes.has(hash)) {
+            viewTransitionHashes.add(hash);
+            walk(t.viewTransitionObjectTable[hash]);
+          }
         } else if (val.startsWith('cr-')) {
-          createHashes.add(val.slice(3));
+          const hash = val.slice(3);
+          if (!createHashes.has(hash)) {
+            createHashes.add(hash);
+            walk(t.createObjectTable[hash]);
+          }
         } else if (val.includes('var(--')) {
           // Change: Optimized manual parser instead of Regex
           let startIdx = 0;
