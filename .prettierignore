@@ -1,6 +1,10 @@
 .next
+next-env.d.ts
 build
 coverage
 dist
 node_modules
 *.mdx
+*.md
+.*/
+
