@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.1.0
+
+### Minor Changes
+
+- 779a5e5: Fixed the speed of type definition completion
+
 ## 10.0.8
 
 ### Patch Changes
