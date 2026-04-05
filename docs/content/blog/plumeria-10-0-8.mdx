@@ -1,0 +1,23 @@
+---
+title: 'Plumeria 10.0.8'
+description: 'Style extraction optimization, support for View Transition API, and further internal optimizations have been made.'
+date: '2026-04-05'
+---
+## Optimization of Style Extraction (On-Demand)
+
+In some edge cases, styles defined with `css.create()` were sometimes written out as CSS even when not actually used.
+
+This update further enhances "on-demand extraction," which accurately detects and extracts where styles are actually used with `styleName={}` or `css.use()`. This prevents styles that are defined but not used from being included in the bundle, allowing for more rigorous optimization of CSS size.
+
+## Support for View Transition API
+
+`css.viewTransition()`, which had been unusable since `7.5.2`, has been fixed and is now usable again. This allows for easy definition of smooth animations between identical elements and during page transitions.
+
+## Fully Synchronized Compiler and Loader Behavior
+
+The logic for the compiler used for production builds and the loader (Turbopack/Vite) used for the development environment have been completely redesigned to ensure their behavior is perfectly aligned.
+
+---
+
+Plumeria strives for lean performance and an intuitive development experience.  
+Please update to the latest version and experience the difference.
