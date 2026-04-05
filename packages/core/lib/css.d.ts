@@ -1,8 +1,8 @@
 /**
- * Type definitions only. No runtime implementation provided.  
+ * Type definitions only. No runtime implementation provided.
  * Configure the bundler plugin to extract and implement these APIs.
  * ```ts
- * type create = <const T extends Record<string, CreateStyleValue>>(rule: CreateStyleType<T>)=> CreateReturnType<T>;
+ * type create = <const T extends Record<string, CreateStyleValue>>(rule: T)=> CreateReturnType<T>;
  * type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
  * type createStatic = <const T extends CreateStatic>(rule: T)=> T;
  * type keyframes = (rule: Keyframes) => string;
@@ -16,9 +16,8 @@
 declare module '@plumeria/core' {
   import type {
     StyleName,
-    CSSProperties, 
+    CSSProperties,
     CreateStyleValue,
-    CreateStyleType,
     CreateReturnType,
     CreateStatic,
     CreateTheme,
@@ -38,23 +37,41 @@ declare module '@plumeria/core' {
     }
   }
 
-  export type create = <const T extends Record<string, CreateStyleValue>>(rule: CreateStyleType<T>)=> CreateReturnType<T>;
-  export type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
-  export type createStatic = <const T extends CreateStatic>(rule: T)=> T;
-  export type keyframes = (rule: Keyframes) => string;
-  export type viewTransition = (rule: ViewTransition) => string;
-  export type variants = <T extends Variants>(rule: T) => (props: { [K in keyof T]?: keyof T[K] }) => CSSProperties;
-  export type marker = (id: string, pseudo: string) => Marker;
-  export type extended = <I extends string, P extends string>(id: I, pseudo: P) => Extended<I, P>;
-  export type use = (...rules: (false | CSSProperties | null | undefined)[])=> string;
-
   export const create: create;
+  export type create = <const T extends Record<string, CreateStyleValue>>(
+    rule: T,
+  ) => CreateReturnType<T>;
+
   export const createTheme: createTheme;
+  export type createTheme = <const T extends CreateTheme>(
+    rule: T,
+  ) => ReturnVariableType<T>;
+
   export const createStatic: createStatic;
+  export type createStatic = <const T extends CreateStatic>(rule: T) => T;
+
   export const keyframes: keyframes;
+  export type keyframes = (rule: Keyframes) => string;
+
   export const viewTransition: viewTransition;
+  export type viewTransition = (rule: ViewTransition) => string;
+
   export const variants: variants;
+  export type variants = <T extends Variants>(
+    rule: T,
+  ) => (props: { [K in keyof T]?: keyof T[K] }) => CSSProperties;
+
   export const marker: marker;
+  export type marker = (id: string, pseudo: string) => Marker;
+
   export const extended: extended;
+  export type extended = <I extends string, P extends string>(
+    id: I,
+    pseudo: P,
+  ) => Extended<I, P>;
+
   export const use: use;
+  export type use = (
+    ...rules: (false | CSSProperties | null | undefined)[]
+  ) => string;
 }
