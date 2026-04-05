@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 10.0.8
+
+### Patch Changes
+
+- 935daf3: Implementation on-demand structure
+- Updated dependencies [935daf3]
+  - @plumeria/utils@10.0.8
+
 ## 10.0.7
 
 ### Patch Changes

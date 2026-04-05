@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.0.8
+
+### Patch Changes
+
+- 935daf3: Implementation on-demand structure
+
 ## 10.0.7
 
 ### Patch Changes
