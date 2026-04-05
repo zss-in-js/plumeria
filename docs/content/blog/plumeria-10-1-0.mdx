@@ -1,0 +1,26 @@
+---
+title: 'Plumeria 10.1.0'
+description: 'Significantly restructured core type definitions and eliminated dependency on csstype.'
+date: '2026-04-06'
+---
+## Revamped type system
+
+The highlight of this update is the restructuring of the core type system. We've replaced the parts that previously relied on the external library `csstype` with our own custom types `csstype.d.ts` based on StyleX type definitions.
+
+This not only makes the package installation size slightly smaller, but also improves the performance of TypeScript type completion. We've streamlined the system by removing unnecessary properties, allowing Plumeria to focus on the properties it truly needs to support.
+
+## Increased argument type tolerance
+
+Previously, the type `rule: CreateStyleType<T>` was used for arguments; now, the type `rule: T` is used for arguments.
+
+Previously, properties not included in the csstype library were not allowed, but in CSS, new properties can appear in the very next moment.
+This change allows for the acceptance of unknown CSS properties and vendor prefixes.
+
+## Background of the detailed improvements
+
+The previous implementation only used type definitions with csstype, but this fix was made because the use of those type definitions was resource-intensive.
+
+---
+
+Overall, this update significantly streamlines the internals.
+Please update to the latest version and check out the improved development experience.
