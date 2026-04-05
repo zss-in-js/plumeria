@@ -203,7 +203,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
       const importMap: Record<string, any> = {};
       const createThemeImportMap: Record<string, any> = {};
       const createStaticImportMap: Record<string, any> = {};
-
       const plumeriaAliases: Record<string, string> = {};
 
       traverse(ast, {
@@ -442,10 +441,6 @@ export function plumeria(options: PluginOptions = {}): Plugin {
               Object.entries(obj).forEach(([key, style]) => {
                 if (typeof style !== 'object' || style === null) return;
                 const records = getStyleRecords(style as CSSProperties);
-                extractOndemandStyles(style, extractedSheets, scannedTables);
-                records.forEach((r: StyleRecord) => {
-                  addSheet(r.sheet);
-                });
                 const atomMap: Record<string, string> = {};
                 records.forEach((r) => (atomMap[r.key] = r.hash));
                 hashMap[key] = atomMap;
@@ -914,6 +909,15 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         isOptimizable: boolean;
         baseStyle: CSSObject;
       } => {
+        const processStyleRecords = (style: CSSObject) => {
+          const records = getStyleRecords(style as CSSProperties);
+          extractOndemandStyles(style, extractedSheets, scannedTables);
+          records.forEach((r: StyleRecord) => {
+            addSheet(r.sheet);
+          });
+          return records;
+        };
+
         const conditionals: StyleConditional[] = [];
         let groupIdCounter = 0;
         let baseStyle: CSSObject = {};
@@ -1216,7 +1220,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
         if (existingClass) classParts.push(JSON.stringify(existingClass));
 
         if (Object.keys(baseIndependent).length > 0) {
-          const className = getStyleRecords(baseIndependent)
+          const className = processStyleRecords(baseIndependent)
             .map((r) => r.hash)
             .join(' ');
           if (className) classParts.push(JSON.stringify(className));
@@ -1228,7 +1232,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             const processBranch = (style: CSSObject) => {
               if (Object.keys(style).length === 0) return '""';
               return JSON.stringify(
-                getStyleRecords(style)
+                processStyleRecords(style)
                   .map((r) => r.hash)
                   .join(' '),
               );
@@ -1254,7 +1258,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           const lookupMap: Record<string, string> = {};
           options.forEach((opt) => {
             if (opt.valueName && opt.truthy) {
-              const className = getStyleRecords(opt.truthy)
+              const className = processStyleRecords(opt.truthy)
                 .map((r) => r.hash)
                 .join(' ');
               if (className) lookupMap[opt.valueName] = className;
@@ -1326,7 +1330,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
             keyParts: string[],
           ) => {
             if (dimIndex >= dimensions.length) {
-              const className = getStyleRecords(currentStyle)
+              const className = processStyleRecords(currentStyle)
                 .map((r) => r.hash)
                 .join(' ');
               if (className) results[keyParts.join('__')] = className;
@@ -1343,7 +1347,7 @@ export function plumeria(options: PluginOptions = {}): Plugin {
 
           const baseConflictClass =
             Object.keys(baseConflict).length > 0
-              ? getStyleRecords(baseConflict)
+              ? processStyleRecords(baseConflict)
                   .map((r) => r.hash)
                   .join(' ')
               : '';
