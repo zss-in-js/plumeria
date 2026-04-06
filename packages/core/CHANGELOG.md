@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.1.1
+
+### Patch Changes
+
+- bbea0c5: Add copyright attribution for Meta's StyleX to csstype.d.ts
+
 ## 10.1.0
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 10.1.1
+
+### Patch Changes
+
+- bbea0c5: Bump version to 10.1.1
+- Updated dependencies [bbea0c5]
+  - @plumeria/turbopack-loader@10.1.1
+
 ## 10.1.0
 
 ### Minor Changes
