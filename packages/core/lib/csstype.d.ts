@@ -1,7 +1,9 @@
 /**
- * Based on Meta's StyleX CSS type definitions (MIT License)
- * https://github.com/facebook/stylex
- * Extended from src/types/StyleXCSSTypes.js
+ * Based on Meta's StyleX CSS type definitions.
+ * Extended from src/types/StyleXCSSTypes.js (https://github.com/facebook/stylex)
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 type CSSCursor =
