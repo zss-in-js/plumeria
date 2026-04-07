@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.1.2
+
+### Patch Changes
+
+- 714e373: Improve background type in csstype.d.ts
+
 ## 10.1.1
 
 ### Patch Changes
