@@ -739,14 +739,17 @@ export const validateValues: Rule.RuleModule = {
               );
 
               function createBorderImageRegex() {
-                const varString = `var\\(${dashedIdentString}(,\\s*[^\\)]+)?\\)?`;
-                const valueOrVar = `(${varString}|${lengthValuePattern})`;
+                const imageSource = `(?:${imageRegex.source.slice(1, -1)}|${varString}|none)`;
 
-                const imageSource = `${imageRegex.source.slice(1, -1)}|${varString}`; // Image source or var()
-                const slicePart = `(?:\\s+fill|${valueOrVar}(?:\\s+fill|${valueOrVar}){0,3})?`; // Optional slice part
-                const widthPart = `(?:\\s*\\/\\s*auto|${valueOrVar}(?:\\s+auto|${valueOrVar}){0,3})?`; // Optional width part
-                const outsetPart = `(?:\\s*\\/\\s*${valueOrVar}(?:\\s+${valueOrVar}){0,3})?`; // Optional outset part
-                const repeatPart = `(?:\\s+(${varString}|stretch|repeat|round|space)){0,2}?`; // Optional repeat part
+                const sliceStr = sliceValuePattern.slice(1, -1);
+
+                const widthStr = `(?:${varString}|${lengthPattern}|${percentagePattern}|${numberPattern}|auto)`;
+                const outsetStr = `(?:${varString}|${lengthPattern}|${numberPattern})`;
+
+                const slicePart = `(?:\\s+(?:${varString}|${sliceStr}))?`;
+                const widthPart = `(?:\\s*\\/\\s*${widthStr}(?:\\s+${widthStr}){0,3})?`;
+                const outsetPart = `(?:\\s*\\/\\s*${outsetStr}(?:\\s+${outsetStr}){0,3})?`;
+                const repeatPart = `(?:\\s+(?:${varString}|stretch|repeat|round|space)){0,2}?`;
 
                 return new RegExp(
                   `^${imageSource}` +
