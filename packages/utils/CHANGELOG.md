@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.1.2
+
+### Patch Changes
+
+- 714e373: Bump version to 10.1.2
+
 ## 10.1.1
 
 ### Patch Changes
