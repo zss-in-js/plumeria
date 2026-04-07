@@ -1,3 +1,9 @@
+## 10.1.2
+
+### Patch Changes
+
+- 714e373: Fix borderImage in validate-values.ts
+
 ## 10.1.1
 
 ### Patch Changes
