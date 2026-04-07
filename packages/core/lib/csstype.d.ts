@@ -1,48 +1,12 @@
 /**
  * Based on Meta's StyleX CSS type definitions.
  * Extended from src/types/StyleXCSSTypes.js (https://github.com/facebook/stylex)
+ *
  * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-
-type CSSCursor =
-  | 'auto'
-  | 'default'
-  | 'none'
-  | 'context-menu'
-  | 'help'
-  | 'pointer'
-  | 'progress'
-  | 'wait'
-  | 'cell'
-  | 'crosshair'
-  | 'text'
-  | 'vertical-text'
-  | 'alias'
-  | 'copy'
-  | 'move'
-  | 'no-drop'
-  | 'not-allowed'
-  | 'e-resize'
-  | 'n-resize'
-  | 'ne-resize'
-  | 'nw-resize'
-  | 's-resize'
-  | 'se-resize'
-  | 'sw-resize'
-  | 'w-resize'
-  | 'ew-resize'
-  | 'ns-resize'
-  | 'nesw-resize'
-  | 'nwse-resize'
-  | 'col-resize'
-  | 'row-resize'
-  | 'all-scroll'
-  | 'zoom-in'
-  | 'zoom-out'
-  | 'grab'
-  | 'grabbing';
 
 type alignContent =
   | 'center'
@@ -103,6 +67,7 @@ type animationTimingFunction = singleTimingFunction;
 type appearance = 'auto' | 'none' | 'textfield' | string;
 type backdropFilter = 'none' | string;
 type backfaceVisibility = 'visible' | 'hidden';
+type background = finalBgLayer;
 type backgroundAttachment = attachment;
 type backgroundBlendMode = blendMode;
 type backgroundClip = box | 'text';
@@ -241,7 +206,43 @@ type contain = 'none' | 'strict' | 'content' | string;
 type content = string;
 type counterIncrement = string | 'none';
 type counterReset = string | 'none';
-type cursor = CSSCursor;
+type cursor =
+  | 'auto'
+  | 'default'
+  | 'none'
+  | 'context-menu'
+  | 'help'
+  | 'pointer'
+  | 'progress'
+  | 'wait'
+  | 'cell'
+  | 'crosshair'
+  | 'text'
+  | 'vertical-text'
+  | 'alias'
+  | 'copy'
+  | 'move'
+  | 'no-drop'
+  | 'not-allowed'
+  | 'e-resize'
+  | 'n-resize'
+  | 'ne-resize'
+  | 'nw-resize'
+  | 's-resize'
+  | 'se-resize'
+  | 'sw-resize'
+  | 'w-resize'
+  | 'ew-resize'
+  | 'ns-resize'
+  | 'nesw-resize'
+  | 'nwse-resize'
+  | 'col-resize'
+  | 'row-resize'
+  | 'all-scroll'
+  | 'zoom-in'
+  | 'zoom-out'
+  | 'grab'
+  | 'grabbing';
 type direction = 'ltr' | 'rtl';
 type display =
   | 'none'
@@ -991,6 +992,7 @@ type NamedColor =
   | 'yellowgreen';
 type color = NamedColor | (string & {});
 type compositeOperator = 'add' | 'subtract' | 'intersect' | 'exclude';
+type finalBgLayer = attachment | box | backgroundColor;
 type geometryBox = shapeBox | 'fill-box' | 'stroke-box' | 'view-box';
 type gridLine = 'auto' | string;
 type lengthPercentage = number | string;
@@ -1127,7 +1129,7 @@ export type CSSType = Readonly<{
 
   backdropFilter?: all | backdropFilter;
   backfaceVisibility?: all | backfaceVisibility;
-  background?: all | string;
+  background?: all | background;
   backgroundAttachment?: all | OptionalArray<backgroundAttachment>;
   backgroundBlendMode?: all | OptionalArray<backgroundBlendMode>;
   backgroundClip?: all | OptionalArray<backgroundClip>;
