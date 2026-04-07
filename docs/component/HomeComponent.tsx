@@ -1,5 +1,3 @@
-/* eslint-disable @plumeria/validate-values */
-
 import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import { pseudos } from 'lib/pseudos';
@@ -132,8 +130,8 @@ const styles = css.create({
     padding: '24px',
     background: 'var(--card-bg)',
     borderRadius: '16px',
-    boxShadow: 'var(--card-shadow), var(--card-cut-glass)',
-    transition: 'border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
+    boxShadow: 'var(--card-box-shadow)',
+    transition: 'all 0.3s ease',
     [pseudos.hover]: {
       borderColor: 'var(--card-hover-border)',
       transform: 'translateY(-2px)',
@@ -179,8 +177,8 @@ const styles = css.create({
     padding: '24px',
     background: 'var(--card-bg)',
     borderRadius: '16px',
-    boxShadow: 'var(--card-shadow), var(--card-cut-glass)',
-    transition: 'border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
+    boxShadow: 'var(--card-box-shadow)',
+    transition: 'all 0.3s ease',
     [pseudos.hover]: {
       borderColor: 'var(--card-hover-border)',
       transform: 'translateY(-2px)',
