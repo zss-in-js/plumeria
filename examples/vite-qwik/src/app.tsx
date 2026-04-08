@@ -6,15 +6,16 @@ import './app.css';
 import * as css from '@plumeria/core';
 
 const styles = css.create({
-  color: {
+  highlighted: (value: number) => ({
+    fontSize: value,
     WebkitTextFillColor: 'transparent',
     background: 'linear-gradient(90deg, #58c6ff 0%, #416389 50%, #ff3bef 100%)',
     backgroundClip: 'text',
-  },
+  }),
 });
 
 export const App = component$(() => {
-  const count = useSignal(0);
+  const count = useSignal(51.2);
 
   return (
     <>
@@ -26,7 +27,7 @@ export const App = component$(() => {
           <img src={qwikLogo} class="logo qwik" alt="Qwik logo" />
         </a>
       </div>
-      <h1 class={css.use(styles.color)}>Vite + Qwik</h1>
+      <h1 styleName={styles.highlighted(count.value)}>Vite + Qwik</h1>
       <div class="card">
         <button onClick$={() => count.value++}>count is {count.value}</button>
       </div>
