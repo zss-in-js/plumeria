@@ -5,14 +5,14 @@ import './app.css';
 import * as css from '@plumeria/core';
 
 const styles = css.create({
-  highlighted: {
-    fontSize: 32,
-    color: '#c35488',
-  },
+  highlighted: (value: number) => ({
+    fontSize: value,
+    color: 'hsl(332, 48%, 55%)',
+  }),
 });
 
 export function App() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(32);
 
   return (
     <>
@@ -24,7 +24,7 @@ export function App() {
           <img src={preactLogo} class="logo preact" alt="Preact logo" />
         </a>
       </div>
-      <h1 class={css.use(styles.highlighted)}>Vite + Preact</h1>
+      <h1 styleName={styles.highlighted(count)}>Vite + Preact</h1>
       <div class="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
