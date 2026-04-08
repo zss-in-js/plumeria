@@ -37,6 +37,8 @@ declare module '@plumeria/core' {
     }
   }
 
+  export type { StyleName };
+
   export const create: create;
   export type create = <const T extends Record<string, CreateStyleValue>>(
     rule: T,
