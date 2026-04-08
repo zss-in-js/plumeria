@@ -1,64 +1,50 @@
 # @plumeria/core
+![license](https://img.shields.io/badge/license-MIT-blue)
+![npm](https://img.shields.io/npm/v/@plumeria/core)
 
-**A styling system that disappears.**
+![web (prod/dev)](https://img.shields.io/badge/web%20(prod/dev)-0B-brightgreen)
+![runtime](https://img.shields.io/badge/runtime-0B-brightgreen)
+![type safe](https://img.shields.io/badge/types-100%25-brightgreen)
+
+**Plumeria** is a library for developing styled React components for the web. It is a compiler with typed syntax and linting support. The goal of Plumeria is to reduce the load on developers.
+
+## Documentation
+
+Read the [documentation](https://plumeria.dev/) for more details.
+
+## Example
+Styles can be passed to the `styleName` prop. That prop accepts static and dynamic styles as an array.
 
 ```tsx
 import * as css from '@plumeria/core';
 
 const styles = css.create({
   text: {
-    fontSize: 12,
-    color: 'navy',
+    fontSize: 12
   },
-  size: {
-    width: 120,
+  cond: {
+    background: 'navy'
   },
+  scale: (value) => ({
+    scale: value
+  })
 });
 
 export default function App(props) {
+  const scale = useScale();
   return (
     <div
       {...props}
       styleName={[
         styles.text, 
-        styles.size
+        cond && styles.cond,
+        styles.scale(scale)
       ]}
     />
   );
 }
 ```
 
-**Compiled:**
-
-```tsx
-<div className="xhrr6ses xvbwmxqp xhk51flp" />
-```
-
-## Documentation
-
-Read the [documentation](https://plumeria.dev/) for more details.
-
-## Installation
-
-- [Vite](https://plumeria.dev/docs/integration/vite)
-- [Next](https://plumeria.dev/docs/integration/next)
-- [Turbopack](https://plumeria.dev/docs/integration/turbopack)
-- [Webpack](https://plumeria.dev/docs/integration/webpack)
-- [PostCSS](https://plumeria.dev/docs/integration/postcss)
-- [ESLint](https://plumeria.dev/docs/integration/eslint)
-
-## Acknowledgements
-
-Plumeria is made possible thanks to the inspirations from the following projects:
-
-- [Linaria](https://linaria.dev/)
-- [React Native](https://reactnative.dev/docs/stylesheet)
-- [React Native for Web](https://necolas.github.io/react-native-web/)
-- [React Strict DOM](https://facebook.github.io/react-strict-dom/)
-- [StyleX](https://stylexjs.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-
-
 ## License
 
-[MIT](https://github.com/zss-in-js/plumeria/blob/main/LICENSE) License &copy; 2023-PRESENT [Refirst 11](https://github.com/refirst11)
+Plumeria is MIT licensed.
