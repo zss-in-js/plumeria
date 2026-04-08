@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.1.3
+
+### Patch Changes
+
+- 8575eb7: Export type StyleName in css.d.ts
+
 ## 10.1.2
 
 ### Patch Changes
