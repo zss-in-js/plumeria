@@ -14,16 +14,15 @@ Our project uses `pnpm`. Here's how you can set it up:
 
 ## Package Structure
 
-Our project is organized into several packages within the `packages` directory:
-
-- **@plumeria/compiler**: This package contains the library rust-based to compile Plumeria.
-- **@plumeria/core**: This package is the core package that use `zss-engine`.
+- **@plumeria/compiler**: This package uses `@plumeria/utils` to compile Plumeria.
+- **@plumeria/core**: This package is the core package that defines types only.
 - **@plumeria/eslint-plugin**: This package contains the eslint rules to keep Plumeria code clean.
-- **@plumeria/next-plugin**: This package contains the Next.js plugin for integration Plumeria.
-- **@plumeria/turbopack-loader**: This package contains the turbopack loader for integration Plumeria.
+- **@plumeria/next-plugin**: This package contains the Next.js plugin for integrating Plumeria.
+- **@plumeria/postcss-plugin**: This package contains `@plumeria/compiler` for integrating Next.js with Plumeria.
+- **@plumeria/turbopack-loader**: This package contains the Turbopack loader for integrating Plumeria.
 - **@plumeria/utils**: This package contains the style parse and transform utils functions.
-- **@plumeria/vite-plugin**: This package contains the Vite plugin for integration Plumeria.
-- **@plumeria/webpack-plugin**: This package contains the Webpack plugin for integration Plumeria.
+- **@plumeria/vite-plugin**: This package contains the Vite plugin for integrating Plumeria.
+- **@plumeria/webpack-plugin**: This package contains the Webpack plugin for integrating Plumeria.
 
 ## Adding a changeset
 
