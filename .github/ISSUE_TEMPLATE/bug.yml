@@ -1,0 +1,33 @@
+name: Bug Report
+description: Report a bug
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS
+  - type: input
+    id: node
+    attributes:
+      label: Node.js
+  - type: input
+    id: version
+    attributes:
+      label: Version
