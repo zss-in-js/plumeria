@@ -1,0 +1,23 @@
+---
+title: 'Plumeria 10.2.0'
+description: 'Backward-compatible minor update: Added ESLint rules.'
+date: '2026-04-10'
+
+---
+
+## Update features
+
+- Add new ESLint rule: `no-unknown-css-properties`
+
+In 10.1.0, CSS properties type checking was relaxed for better responsiveness. In 10.2.0, this has been migrated to the ESLint `no-unknown-css-properties` rule (errors by default), achieving both type safety and flexibility.
+
+
+**Other fixes:**  
+The warning for the `sort-properties` rule, which previously extended to the value, is now limited to the property part only.
+
+**Migration guide:**  
+Since it is backward compatible, you can use it simply by updating to `v10.2.0`.
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
