@@ -1,3 +1,9 @@
+## 10.2.0
+
+### Minor Changes
+
+- 15a14a3: Add rule no-unknown-css-properties
+
 ## 10.1.3
 
 ### Patch Changes
