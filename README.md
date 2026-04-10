@@ -3,6 +3,8 @@
 
 **Plumeria** is a library for developing styled React components for the web. It is a compiler with typed syntax and linting support. The goal of Plumeria is to reduce the load on developers.
 
+![demo](./docs/demo.gif)
+
 ## Structure
 
 * `.github`
