@@ -39,11 +39,14 @@
   },
   "devDependencies": {
     "@types/eslint": "^9.6.1",
-    "eslint": "^9.39.0",
-    "@types/estree": "^1.0.8"
+    "@types/estree": "^1.0.8",
+    "eslint": "^9.39.0"
   },
   "publishConfig": {
     "access": "public",
     "provenance": true
+  },
+  "dependencies": {
+    "known-css-properties": "^0.37.0"
   }
 }
