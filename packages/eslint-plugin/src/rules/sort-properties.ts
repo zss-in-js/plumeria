@@ -175,7 +175,7 @@ export const sortProperties: Rule.RuleModule = {
         misorderedIndices.forEach((i) => {
           const prop = properties[i];
           context.report({
-            node: prop,
+            node: 'key' in prop ? prop.key : prop,
             messageId: 'sortProperties',
             data: {
               position: String(sorted.indexOf(prop) + 1),
