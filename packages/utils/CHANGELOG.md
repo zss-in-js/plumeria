@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.2.0
+
+### Minor Changes
+
+- 15a14a3: Bump version to 10.2.0
+
 ## 10.1.3
 
 ### Patch Changes
