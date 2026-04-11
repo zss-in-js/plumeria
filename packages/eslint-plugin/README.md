@@ -11,6 +11,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/no-combinator`: **error**
 - `@plumeria/no-destructure`: **error**
 - `@plumeria/no-inner-call`: **error**
+- `@plumeria/no-unknown-css-properties`: **error**
 - `@plumeria/no-unused-keys`: **warn**
 - `@plumeria/sort-properties`: **warn**
 - `@plumeria/format-properties`: **warn**
@@ -35,11 +36,15 @@ Disallow combinators `>`, `+`, `~` and descendant combinator (space) unless insi
 
 ### no-destructure
 
-Disallow destructuring `css.create` and `css.props`, etc.
+Disallow destructuring APIs.
 
 ### no-inner-call
 
-Disallow calling `css.create`, etc. inside functions.
+Disallow calling APIs inside functions.
+
+### no-unknown-css-properties
+
+Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, and `css.viewTransition`.
 
 ### no-unused-keys
 
