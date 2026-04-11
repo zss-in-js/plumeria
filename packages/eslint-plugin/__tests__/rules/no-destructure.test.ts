@@ -1,10 +1,9 @@
-import type { JSRuleDefinition } from 'eslint';
 import { RuleTester } from 'eslint';
 import { noDestructure } from '../../src/rules/no-destructure';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-destructure', noDestructure as JSRuleDefinition, {
+ruleTester.run('no-destructure', noDestructure, {
   valid: [
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({})`,
