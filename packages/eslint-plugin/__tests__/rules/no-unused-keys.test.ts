@@ -1,10 +1,9 @@
-import type { JSRuleDefinition } from 'eslint';
 import { RuleTester } from 'eslint';
 import { noUnusedKeys } from '../../src/rules/no-unused-keys';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-unused-keys', noUnusedKeys as JSRuleDefinition, {
+ruleTester.run('no-unused-keys', noUnusedKeys, {
   valid: [
     {
       code: 'const styles = { key: {} };',
