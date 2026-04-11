@@ -1,3 +1,9 @@
+## 10.2.1
+
+### Patch Changes
+
+- 298f7c3: Add keyframes and viewTransition in no-unknown-css-properties rule
+
 ## 10.2.0
 
 ### Minor Changes
