@@ -1,10 +1,9 @@
-import type { JSRuleDefinition } from 'eslint';
 import { RuleTester } from 'eslint';
 import { sortProperties } from '../../src/rules/sort-properties';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('sort-properties', sortProperties as JSRuleDefinition, {
+ruleTester.run('sort-properties', sortProperties, {
   valid: [
     {
       code: 'const styles = { key1: { position: "absolute", top: "0", right: "0", bottom: "0", left: "0", display: "block" } };',
