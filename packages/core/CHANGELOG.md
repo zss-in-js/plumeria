@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.2.1
+
+### Patch Changes
+
+- 298f7c3: Improve CSS property type definitions
+
 ## 10.2.0
 
 ### Minor Changes
