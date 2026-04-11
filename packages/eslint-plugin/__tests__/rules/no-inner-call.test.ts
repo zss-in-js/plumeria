@@ -1,4 +1,3 @@
-import type { JSRuleDefinition } from 'eslint';
 import { RuleTester } from 'eslint';
 import { noInnerCall } from '../../src/rules/no-inner-call';
 
@@ -8,7 +7,7 @@ const settings = {
   ecmaVersion: 2021,
 };
 
-ruleTester.run('no-inner-call', noInnerCall as JSRuleDefinition, {
+ruleTester.run('no-inner-call', noInnerCall, {
   valid: [
     {
       code: `import * as css from '@plumeria/core'; css.create();`,
