@@ -1,10 +1,9 @@
-import type { JSRuleDefinition } from 'eslint';
 import { RuleTester } from 'eslint';
 import { validateValues } from '../../src/rules/validate-values';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('validate-values', validateValues as JSRuleDefinition, {
+ruleTester.run('validate-values', validateValues, {
   valid: [
     // Basic keywords
     { code: "const styles = { position: 'absolute' };" },
