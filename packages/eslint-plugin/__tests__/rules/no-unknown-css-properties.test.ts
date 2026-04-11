@@ -6,9 +6,9 @@ const ruleTester = new RuleTester({
     ecmaVersion: 2020,
     sourceType: 'module',
   },
-} as any);
+});
 
-ruleTester.run('no-unknown-css-properties', noUnknownCssProperties as any, {
+ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
   valid: [
     {
       code: `
@@ -68,6 +68,40 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties as any, {
           main: {
             color: 'red'
           }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const animation = css.keyframes({
+          from: { opacity: 0 },
+          to: { opacity: 1 }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const transition = css.viewTransition({
+          group: { opacity: 0 },
+          new: { opacity: 1 }
+        });
+      `,
+    },
+    {
+      code: `
+        import { keyframes } from '@plumeria/core';
+        const animation = keyframes({
+          from: { opacity: 0 }
+        });
+      `,
+    },
+    {
+      code: `
+        import { viewTransition as vt } from '@plumeria/core';
+        const transition = vt({
+          new: { opacity: 1 }
         });
       `,
     },
@@ -165,6 +199,38 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties as any, {
           messageId: 'unknownProperty',
           data: {
             name: '& .child',
+          },
+        },
+      ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const animation = css.keyframes({
+          from: { unkownProp: '0' }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'unknownProperty',
+          data: {
+            name: 'unkownProp',
+          },
+        },
+      ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const transition = css.viewTransition({
+          new: { unkownProp: '0' }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'unknownProperty',
+          data: {
+            name: 'unkownProp',
           },
         },
       ],
