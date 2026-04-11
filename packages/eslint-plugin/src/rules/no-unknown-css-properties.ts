@@ -13,7 +13,7 @@ export const noUnknownCssProperties: Rule.RuleModule = {
     type: 'problem',
     docs: {
       description:
-        'Disallow unknown CSS properties in camelCase within css.create',
+        'Disallow unknown CSS properties in camelCase within css.create, css.keyframes, and css.viewTransition',
     },
     messages: {
       unknownProperty: "Unknown CSS property '{{ name }}'.",
@@ -43,7 +43,7 @@ export const noUnknownCssProperties: Rule.RuleModule = {
         }
       },
       CallExpression(node) {
-        let isCssCreate = false;
+        let isCssProperties = false;
         if (node.callee.type === 'MemberExpression') {
           if (
             node.callee.object.type === 'Identifier' &&
@@ -53,18 +53,26 @@ export const noUnknownCssProperties: Rule.RuleModule = {
               node.callee.property.type === 'Identifier'
                 ? node.callee.property.name
                 : null;
-            if (propertyName === 'create') {
-              isCssCreate = true;
+            if (
+              propertyName === 'create' ||
+              propertyName === 'keyframes' ||
+              propertyName === 'viewTransition'
+            ) {
+              isCssProperties = true;
             }
           }
         } else if (node.callee.type === 'Identifier') {
           const alias = plumeriaAliases[node.callee.name];
-          if (alias === 'create') {
-            isCssCreate = true;
+          if (
+            alias === 'create' ||
+            alias === 'keyframes' ||
+            alias === 'viewTransition'
+          ) {
+            isCssProperties = true;
           }
         }
 
-        if (isCssCreate) {
+        if (isCssProperties) {
           node.arguments.forEach((arg) => {
             if (arg.type === 'ObjectExpression') {
               arg.properties.forEach((prop) => {
