@@ -1,4 +1,3 @@
-import type { JSRuleDefinition } from 'eslint';
 import { RuleTester } from 'eslint';
 import { formatProperties } from '../../src/rules/format-properties';
 
@@ -8,7 +7,7 @@ const ruleTester = new RuleTester({
   },
 });
 
-ruleTester.run('format-properties', formatProperties as JSRuleDefinition, {
+ruleTester.run('format-properties', formatProperties, {
   valid: [
     {
       code: `const styles = {
