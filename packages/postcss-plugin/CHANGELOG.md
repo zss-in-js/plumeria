@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 10.2.1
+
+### Patch Changes
+
+- 298f7c3: Bump version to 10.2.1
+- Updated dependencies [298f7c3]
+  - @plumeria/compiler@10.2.1
+
 ## 10.2.0
 
 ### Minor Changes
