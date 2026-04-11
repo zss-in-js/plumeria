@@ -1,10 +1,9 @@
-import type { JSRuleDefinition } from 'eslint';
 import { RuleTester } from 'eslint';
 import { noCombinator } from '../../src/rules/no-combinator';
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-combinator', noCombinator as JSRuleDefinition, {
+ruleTester.run('no-combinator', noCombinator, {
   valid: [
     {
       code: `import * as css from '@plumeria/core'; css.create({ container: { ':has(> div)': { color: 'red' } } })`,
