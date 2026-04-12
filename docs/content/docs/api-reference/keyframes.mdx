@@ -6,7 +6,7 @@ description: 'API reference for the keyframes method'
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ```ts
-export type keyframes = (rule: Keyframes) => string;
+export type keyframes = <const T extends Keyframes>(rule: T) => string;
 export const keyframes: keyframes;
 ```
 
