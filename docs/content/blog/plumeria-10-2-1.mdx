@@ -1,0 +1,34 @@
+---
+title: 'Plumeria 10.2.1'
+description: 'Backward-compatible patch update: Improvements to type definitions.'
+date: '2026-04-12'
+---
+
+## Patch update features
+
+Improved core type definition completion and faster completion speed.
+
+Generics `T` type does not perform type checking of values, so `primitive` types have been replaced with `never`, meaning no completion is available.
+
+Scope of Impact: Type definition completion only  
+Fixed an issue where completion was not displayed for some properties such as fontSize.
+
+Removal of global value autocomplete
+
+**Global values:**
+- initial
+- inherit
+- unset
+- revert
+
+
+can become noise if completed in string expansion for all properties (completion is always alphabetical).
+
+From a UX perspective, these completions have been removed, requiring manual input or AI suggestions.
+
+However, since the `validate-values` ESLint rule works for most properties, typos will not occur.
+
+Overall, this patch is an update that cleans up type definitions.
+
+**Migrate guide**:  
+Backward compatibility is maintained, so simply update.
