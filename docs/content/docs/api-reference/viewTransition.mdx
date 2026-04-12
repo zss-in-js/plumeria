@@ -6,7 +6,7 @@ description: 'API reference for the viewTransition'
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ```ts
-export type viewTransition = (rule: ViewTransition) => string;
+export type viewTransition = <const T extends ViewTransition>(rule: T) => string;
 export const viewTransition: viewTransition;
 ```
 
