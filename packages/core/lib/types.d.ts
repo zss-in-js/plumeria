@@ -1,86 +1,11 @@
-import type { Properties, Property } from 'csstype';
+import type { CSSTypes } from './csstypes';
 
 type CSSVariableKey = `--${string}`;
 type CSSVariableValue = `var(${CSSVariableKey})`;
 type CSSVariableProperty = { [key: CSSVariableKey]: string | number };
 
-type ColorValue = Exclude<Property.Color, '-moz-initial'> | (string & {});
-type CSSColorProperty = Exclude<ColorValue, SystemColorKeyword>;
-
-type SystemColorKeyword =
-  | 'ActiveBorder'
-  | 'ActiveCaption'
-  | 'AppWorkspace'
-  | 'Background'
-  | 'ButtonFace'
-  | 'ButtonHighlight'
-  | 'ButtonShadow'
-  | 'ButtonText'
-  | 'CaptionText'
-  | 'GrayText'
-  | 'Highlight'
-  | 'HighlightText'
-  | 'InactiveBorder'
-  | 'InactiveCaption'
-  | 'InactiveCaptionText'
-  | 'InfoBackground'
-  | 'InfoText'
-  | 'Menu'
-  | 'MenuText'
-  | 'Scrollbar'
-  | 'ThreeDDarkShadow'
-  | 'ThreeDFace'
-  | 'ThreeDHighlight'
-  | 'ThreeDLightShadow'
-  | 'ThreeDShadow'
-  | 'Window'
-  | 'WindowFrame'
-  | 'WindowText'
-  | 'AccentColor'
-  | 'AccentColorText'
-  | 'ActiveText'
-  | 'ButtonBorder'
-  | 'Canvas'
-  | 'CanvasText'
-  | 'Field'
-  | 'FieldText'
-  | 'LinkText'
-  | 'Mark'
-  | 'MarkText'
-  | 'SelectedItem'
-  | 'SelectedItemText'
-  | 'VisitedText';
-
-type VendorPrefixedValue = `-${'webkit' | 'moz' | 'ms' | 'o'}-${string}`;
-
-type CleanValue<T> = Exclude<T, VendorPrefixedValue>;
-
-type CSSTypeProperties = Properties<number | (string & {})>;
-
-type ColorProperties = {
-  accentColor?: CSSColorProperty;
-  color?: CSSColorProperty;
-  borderLeftColor?: CSSColorProperty;
-  borderRightColor?: CSSColorProperty;
-  borderTopColor?: CSSColorProperty;
-  borderBottomColor?: CSSColorProperty;
-  borderBlockColor?: CSSColorProperty;
-  borderBlockStartColor?: CSSColorProperty;
-  borderBlockEndColor?: CSSColorProperty;
-  borderInlineColor?: CSSColorProperty;
-  borderInlineStartColor?: CSSColorProperty;
-  borderInlineEndColor?: CSSColorProperty;
-  backgroundColor?: CSSColorProperty;
-  outlineColor?: CSSColorProperty;
-  textDecorationColor?: CSSColorProperty;
-  caretColor?: CSSColorProperty;
-  columnRuleColor?: CSSColorProperty;
-};
-
 type CommonProperties = {
-  [K in keyof CSSTypeProperties]: K extends keyof ColorProperties
-    ? ColorProperties[K]
-    : CleanValue<CSSTypeProperties[K]> | CSSVariableValue;
+  [K in keyof CSSTypes]: CSSTypes[K] | CSSVariableValue;
 };
 
 type ArrayString = `[${string}`;
@@ -109,17 +34,13 @@ type CSSProperties =
   | QuerySelector
   | CSSVariableProperty;
 
-type CreateStyleType<T> = {
-  readonly [K in keyof T]: T[K] extends CSSProperties ? CSSProperties : T[K];
-};
+type CreateStyleValue = CSSProperties | ((...args: never) => CSSProperties);
 
 type CreateReturnType<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => infer R
-    ? (...args: A) => Readonly<{ [P in keyof R]: R[P] }>
-    : Readonly<{ [P in keyof T[K]]: T[K][P] }>;
+    ? (...args: A) => Readonly<R>
+    : Readonly<T[K]>;
 };
-
-type CreateStyleValue = CSSProperties | ((...args: never) => CSSProperties)
 
 type StyleName = CSSProperties | (false | CSSProperties | null | undefined)[];
 
@@ -144,17 +65,17 @@ type Variants = Record<string, Record<string, CSSProperties>>;
 
 type Marker = Record<string, CSSProperties>;
 
-type StripColon<T extends string> = T extends `:${infer R}`
-  ? StripColon<R>
-  : T;
+type StripColon<T extends string> = T extends `:${infer R}` ? StripColon<R> : T;
 
-type Extended<I extends string, P extends string> = `@container style(--${I}-${StripColon<P>}: 1)`;
+type Extended<
+  I extends string,
+  P extends string,
+> = `@container style(--${I}-${StripColon<P>}: 1)`;
 
 export type {
   CSSProperties,
   StyleName,
   CreateStyleValue,
-  CreateStyleType,
   CreateReturnType,
   CreateStatic,
   CreateTheme,
