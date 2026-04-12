@@ -6,7 +6,7 @@ description: 'API reference for the create'
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ```ts
-export type create = <const T extends Record<string, CSSProperties>>(rule: CreateStyleType<T>)=> ReturnType<T>;
+export type create = <const T extends Record<string, CSSProperties>>(rule: T)=> ReturnType<T>;
 export const create: create;
 ```
 
