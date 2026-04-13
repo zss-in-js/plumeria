@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.2.2
+
+### Patch Changes
+
+- c70029e: Update dependencies
+
 ## 10.2.1
 
 ### Patch Changes
