@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 10.2.2
+
+### Patch Changes
+
+- c70029e: Update dependencies
+- Updated dependencies [c70029e]
+  - @plumeria/compiler@10.2.2
+
 ## 10.2.1
 
 ### Patch Changes

@@ -1,3 +1,9 @@
+## 10.2.2
+
+### Patch Changes
+
+- c70029e: Bump version to 10.2.2
+
 ## 10.2.1
 
 ### Patch Changes
