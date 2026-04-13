@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.2.2
+
+### Patch Changes
+
+- c70029e: Refactor in types.d.ts and csstypes.d.ts
+
 ## 10.2.1
 
 ### Patch Changes
