@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "Node16",
     "paths": {},
     "rootDir": "src/",
     "outDir": "./dist",
