@@ -1,6 +1,5 @@
 import {
   CSSProperties,
-  CreateStyle,
   splitAtomicAndNested,
   processAtomicProps,
   genBase36Hash,
@@ -15,8 +14,8 @@ export interface StyleRecord {
 }
 
 export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
-  const flat: CreateStyle = {};
-  const nonFlat: CreateStyle = {};
+  const flat: CSSProperties = {};
+  const nonFlat: CSSProperties = {};
   const notNormalize = ':not(#\\#)';
 
   splitAtomicAndNested(styleRule, flat, nonFlat);
@@ -72,8 +71,8 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
   });
 
   if (Object.keys(nonFlat).length > 0) {
-    const nonFlatBase: CreateStyle = {};
-    const nonFlatQuery: CreateStyle = {};
+    const nonFlatBase: Record<string, CSSProperties> = {};
+    const nonFlatQuery: Record<string, CSSProperties> = {};
 
     Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
       if (atRule.startsWith('@media') || atRule.startsWith('@container')) {
@@ -131,7 +130,7 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
     };
 
     Object.entries(nonFlatBase).forEach(([selector, style]) => {
-      processSelectorStyle(selector, style as CSSProperties, undefined);
+      processSelectorStyle(selector, style, undefined);
     });
 
     Object.entries(nonFlatQuery).forEach(([atRule, nestedStyles]) => {
