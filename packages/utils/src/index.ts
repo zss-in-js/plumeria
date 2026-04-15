@@ -1,6 +1,5 @@
 export type {
   CSSObject,
-  FileStyles,
   StaticTable,
   KeyframesHashTable,
   ViewTransitionHashTable,
