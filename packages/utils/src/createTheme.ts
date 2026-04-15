@@ -1,4 +1,5 @@
-import { camelToKebabCase, CreateTheme } from 'zss-engine';
+import { camelToKebabCase } from 'zss-engine';
+import type { CreateTheme } from './types';
 
 const createTheme = <const T extends CreateTheme>(rule: T) => {
   const styles: Record<
