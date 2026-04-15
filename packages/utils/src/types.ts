@@ -1,5 +1,7 @@
+import { CSSProperties } from 'zss-engine';
+
 // Basic primitives (types handled by the implementation)
-type CSSPrimitive = string | number | boolean | null;
+type CSSPrimitive = string | number | boolean;
 
 // Nestable CSS value types for recursive structures
 export type CSSValue = CSSPrimitive | CSSObject;
@@ -43,9 +45,11 @@ export interface Tables {
   variantsObjectTable: VariantsObjectTable;
 }
 
-export interface FileStyles {
-  baseStyles?: string;
-  keyframeStyles?: string;
-  viewTransitionStyles?: string;
-  themeStyles?: string;
-}
+export type CreateTheme = Record<string, Record<string, string | number>>;
+
+export type ViewTransition = {
+  group?: CSSProperties;
+  imagePair?: CSSProperties;
+  new?: CSSProperties;
+  old?: CSSProperties;
+};
