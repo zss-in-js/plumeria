@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.2.3
+
+### Patch Changes
+
+- 897f3db: Update dependencies
+
 ## 10.2.2
 
 ### Patch Changes

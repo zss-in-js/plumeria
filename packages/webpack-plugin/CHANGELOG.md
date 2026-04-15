@@ -1,5 +1,13 @@
 # @plumeria/webpack-plugin
 
+## 10.2.3
+
+### Patch Changes
+
+- 897f3db: Update dependencies
+- Updated dependencies [897f3db]
+  - @plumeria/turbopack-loader@10.2.3
+
 ## 10.2.2
 
 ### Patch Changes
