@@ -1,3 +1,9 @@
+## 10.2.3
+
+### Patch Changes
+
+- 897f3db: Bump version to 10.2.3
+
 ## 10.2.2
 
 ### Patch Changes
