@@ -12,6 +12,7 @@
     "plumeria-docs",
     "next-app",
     "react-router-v7",
+    "tanstack-start",
     "vite-astro-ts",  
     "vite-preact",
     "vite-qwik",
