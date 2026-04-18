@@ -200,7 +200,7 @@ export const HomeComponent = () => {
               Styling System
             </h2>
             <h2 styleName={styles.mainHeadline}>That Disappears</h2>
-            <p styleName={styles.subHeadline}>Predictable · Composable · Fast</p>
+            <p styleName={styles.subHeadline}>Fast · Composable · Predictable</p>
             <div styleName={styles.buttonGroup}>
               <ButtonLink href="/docs" variant="getstarted">
                 Get Started
@@ -226,10 +226,7 @@ export const HomeComponent = () => {
           <div styleName={styles.featureCard}>
             <div styleName={styles.featureIcon}>{svg.Feather()}</div>
             <h3 styleName={styles.featureTitle}>Lightweight</h3>
-            <p styleName={styles.featureDescription}>
-              0 bytes before compression.
-              <br />1 byte minified with brotli.
-            </p>
+            <p styleName={styles.featureDescription}>No runtime included.</p>
           </div>
 
           <div styleName={styles.featureCard}>
