@@ -29,34 +29,16 @@ pnpm i zss-engine
 
 ## Overview
 ```ts title="TypeScript"
-export type { CSSProperties } from './types/common/css-properties';
-export type { CreateStyle } from './types/main/create';
-export type { CreateTheme } from './types/main/variableTypes';
-export type { ViewTransition } from './types/main/viewTransition';
-export { isServer, isDevelopment, isTestingDevelopment } from './utils/helper.js';
+export type { CSSProperties } from './types/css-properties.js';
 export { genBase36Hash } from './utils/hash.js';
 export { transpile } from './utils/transpile.js';
 export { transpileAtomic } from './utils/transpile-atomic.js';
 export { splitAtomicAndNested, processAtomicProps } from './utils/processor-atomic.js';
 export { overrideLonghand } from './utils/override-longhand.js';
-export { camelToKebabCase, applyCssValue } from './utils/helper.js';
+export { camelToKebabCase, applyCssValue, exceptionCamelCase } from './utils/helper.js';
 ```
 
-## API
-
-### Helpers
-For branching the environment.
-```ts title="TypeScript"
-const isWindowDefined = typeof window !== 'undefined';
-const isDocumentDefined = typeof document !== 'undefined';
-export const isServer = !isWindowDefined || !isDocumentDefined;
-export const isDevelopment = process.env.NODE_ENV === 'development';
-export const isDevAndTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
-```
-
-
-
-### Functions
+## Functions
 
 ### `genBase36Hash`
 Arguments: `object, number of hash lengths`  
@@ -85,10 +67,6 @@ const { styleSheet } = transpilerAtomic(object, property, atomichash);
 ```
 
 ## Types
-For API development.
 ```ts title="TypeScript"
-CSSProperties
-CreateStyle
-CreateTheme
-ViewTransition
+const styles: Record<string, CSSProperties>
 ```
