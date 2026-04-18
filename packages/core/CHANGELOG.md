@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.3.0
+
+### Minor Changes
+
+- d32898a: Improve CSS type system with strictString and global values
+
 ## 10.2.3
 
 ### Patch Changes
