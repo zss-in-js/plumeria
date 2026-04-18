@@ -8,6 +8,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+type all = 'initial' | 'inherit' | 'unset';
+type strictString = string & {};
+
 type absoluteSize =
   | 'xx-small'
   | 'x-small'
@@ -77,11 +80,11 @@ type alignSelf =
   | 'stretch'
   | 'safe center'
   | 'unsafe center';
-type alignTracks = never;
-type anchorName = never;
-type animatableFeature = 'scroll-position' | 'contents';
-type animation = never;
-type animationComposition = never;
+type alignTracks = string | number;
+type anchorName = string | number;
+type animatableFeature = 'scroll-position' | 'contents' | strictString;
+type animation = string | number;
+type animationComposition = string | number;
 type animationDelay = time;
 type animationDirection = singleAnimationDirection;
 type animationDuration = time;
@@ -89,16 +92,16 @@ type animationFillMode = singleAnimationFillMode;
 type animationIterationCount = singleAnimationIterationCount;
 type animationName = singleAnimationName;
 type animationPlayState = singleAnimationPlayState;
-type animationRange = never;
-type animationRangeEnd = never;
-type animationRangeStart = never;
-type animationTimeline = never;
+type animationRange = string | number;
+type animationRangeEnd = string | number;
+type animationRangeStart = string | number;
+type animationTimeline = string | number;
 type animationTimingFunction = singleTimingFunction;
 type appearance = 'auto' | 'none' | 'textfield';
-type aspectRatio = never;
+type aspectRatio = string | number;
 type attachment = 'scroll' | 'fixed' | 'local';
-type azimuth = never;
-type backdropFilter = 'none';
+type azimuth = string | number;
+type backdropFilter = 'none' | strictString;
 type backfaceVisibility = 'visible' | 'hidden';
 type background = finalBgLayer;
 type backgroundAttachment = attachment;
@@ -107,15 +110,15 @@ type backgroundClip = box | 'text';
 type backgroundColor = color;
 type backgroundImage = bgImage;
 type backgroundOrigin = box;
-type backgroundPosition = never;
-type backgroundPositionX = never;
-type backgroundPositionY = never;
+type backgroundPosition = string;
+type backgroundPositionX = string;
+type backgroundPositionY = string;
 type backgroundRepeat = repeatStyle;
 type backgroundSize = bgSize;
 type baselineShift = 'baseline' | 'sub' | 'super' | svgLength;
-type behavior = never;
-type bgImage = 'none';
-type bgSize = 'cover' | 'contain';
+type behavior = string;
+type bgImage = 'none' | strictString;
+type bgSize = 'auto' | 'cover' | 'contain' | strictString;
 type blendMode =
   | 'normal'
   | 'multiply'
@@ -158,11 +161,11 @@ type borderColor = color;
 type borderEndEndRadius = borderBottomRightRadius;
 type borderEndStartRadius = borderBottomLeftRadius;
 type borderImage = borderImageSource | borderImageSlice | borderImageRepeat;
-type borderImageOutset = never;
-type borderImageRepeat = never;
-type borderImageSlice = 'fill';
-type borderImageSource = 'none';
-type borderImageWidth = never;
+type borderImageOutset = string;
+type borderImageRepeat = string;
+type borderImageSlice = 'fill' | number | strictString;
+type borderImageSource = 'none' | strictString;
+type borderImageWidth = string;
 type borderInline = borderInlineEnd;
 type borderInlineColor = borderInlineEndColor;
 type borderInlineEnd = borderWidth | borderStyle | color;
@@ -184,7 +187,7 @@ type borderRight = border;
 type borderRightColor = color;
 type borderRightStyle = brStyle;
 type borderRightWidth = borderWidth;
-type borderSpacing = never;
+type borderSpacing = number | string;
 type borderStartEndRadius = borderTopRightRadius;
 type borderStartStartRadius = borderTopLeftRadius;
 type borderStyle = brStyle;
@@ -194,18 +197,18 @@ type borderTopLeftRadius = lengthPercentage;
 type borderTopRightRadius = lengthPercentage;
 type borderTopStyle = brStyle;
 type borderTopWidth = borderWidth;
-type borderWidth = 'thin' | 'medium' | 'thick';
-type bottom = never;
+type borderWidth = 'thin' | 'medium' | 'thick' | number | strictString;
+type bottom = string | number;
 type box = 'border-box' | 'padding-box' | 'content-box';
 type boxAlign = 'start' | 'center' | 'end' | 'baseline' | 'stretch';
 type boxDecorationBreak = 'slice' | 'clone';
 type boxDirection = 'normal' | 'reverse';
-type boxFlex = never;
-type boxFlexGroup = never;
+type boxFlex = number | string;
+type boxFlexGroup = number | string;
 type boxLines = 'single' | 'multiple';
-type boxOrdinalGroup = never;
+type boxOrdinalGroup = number | string;
 type boxOrient = 'horizontal' | 'vertical' | 'inline-axis' | 'block-axis';
-type boxShadow = 'none';
+type boxShadow = 'none' | strictString;
 type boxSizing = 'content-box' | 'border-box';
 type boxSuppress = 'show' | 'discard' | 'hide';
 type breakAfter =
@@ -258,14 +261,14 @@ type captionSide =
   | 'block-end'
   | 'inline-start'
   | 'inline-end';
-type caret = never;
+type caret = string | number;
 type caretColor = color;
-type caretShape = never;
+type caretShape = string | number;
 type clear = 'none' | 'left' | 'right' | 'both' | 'inline-start' | 'inline-end';
-type clip = 'auto';
-type clipPath = 'none';
+type clip = 'auto' | strictString;
+type clipPath = 'none' | strictString;
 type clipRule = 'nonzero' | 'evenodd';
-type color = NamedColor;
+type color = NamedColor | strictString;
 type colorScheme =
   | 'normal'
   | 'light'
@@ -273,27 +276,27 @@ type colorScheme =
   | 'light dark'
   | 'only light'
   | 'only dark';
-type columnCount = 'auto';
+type columnCount = 'auto' | number | strictString;
 type columnFill = 'auto' | 'balance';
-type columnGap = 'normal';
+type columnGap = 'normal' | number | strictString;
 type columnRule = columnRuleWidth | columnRuleStyle | columnRuleColor;
 type columnRuleColor = color;
 type columnRuleStyle = brStyle;
 type columnRuleWidth = borderWidth;
 type columns = columnWidth | columnCount;
 type columnSpan = 'none' | 'all';
-type columnWidth = 'auto';
+type columnWidth = 'auto' | number | strictString;
 type compositeOperator = 'add' | 'subtract' | 'intersect' | 'exclude';
-type contain = 'none' | 'strict' | 'content';
-type container = never;
-type containerName = never;
+type contain = 'none' | 'strict' | 'content' | strictString;
+type container = string | number;
+type containerName = string | number;
 type containerType = 'size' | 'inline-size' | 'normal';
-type containIntrinsicBlockSize = never;
-type containIntrinsicHeight = never;
-type containIntrinsicInlineSize = never;
-type containIntrinsicSize = never;
-type containIntrinsicWidth = never;
-type content = never;
+type containIntrinsicBlockSize = string | number;
+type containIntrinsicHeight = string | number;
+type containIntrinsicInlineSize = string | number;
+type containIntrinsicSize = string | number;
+type containIntrinsicWidth = string | number;
+type content = string;
 type contentVisibility = 'visible' | 'hidden' | 'auto';
 type cornerBottomLeftShape = cornerShape;
 type cornerBottomRightShape = cornerShape;
@@ -305,17 +308,18 @@ type cornerShape =
   | 'bevel'
   | 'notch'
   | 'square'
-  | 'squircle';
+  | 'squircle'
+  | strictString;
 type cornerStartEndShape = cornerTopRightShape;
 type cornerStartStartShape = cornerTopLeftShape;
 type cornerTopLeftShape = cornerShape;
 type cornerTopRightShape = cornerShape;
-type counterIncrement = 'none';
-type counterReset = 'none';
-type counterSet = never;
+type counterIncrement = 'none' | strictString;
+type counterReset = 'none' | strictString;
+type counterSet = string | number;
 type cue = cueBefore | cueAfter;
-type cueAfter = 'none';
-type cueBefore = 'none';
+type cueAfter = 'none' | number | strictString;
+type cueBefore = 'none' | number | strictString;
 type cursor =
   | 'auto'
   | 'default'
@@ -416,18 +420,18 @@ type dominantBaseline =
   | 'text-after-edge'
   | 'text-before-edge';
 type emptyCells = 'show' | 'hide';
-type end = never;
+type end = string | number;
 type fill = paint;
-type fillOpacity = never;
+type fillOpacity = number | string;
 type fillRule = 'nonzero' | 'evenodd';
-type filter = 'none';
+type filter = 'none' | strictString;
 type finalBgLayer = attachment | box | backgroundColor;
-type flex = 'none';
-type flexBasis = 'content';
+type flex = 'none' | number | strictString;
+type flexBasis = 'content' | number | strictString;
 type flexDirection = 'row' | 'row-reverse' | 'column' | 'column-reverse';
 type flexFlow = flexDirection | flexWrap;
-type flexGrow = never;
-type flexShrink = never;
+type flexGrow = all | number | string;
+type flexShrink = all | number | string;
 type flexWrap = 'nowrap' | 'wrap' | 'wrap-reverse';
 type float =
   | 'left'
@@ -437,13 +441,13 @@ type float =
   | 'end'
   | 'inline-start'
   | 'inline-end';
-type font = never;
-type fontFamily = never;
-type fontFeatureSettings = 'normal';
+type font = string | number;
+type fontFamily = string;
+type fontFeatureSettings = 'normal' | strictString;
 type fontKerning = 'auto' | 'normal' | 'none';
-type fontLanguageOverride = 'normal';
+type fontLanguageOverride = 'normal' | strictString;
 type fontOpticalSizing = 'auto' | 'none';
-type fontPalette = 'light' | 'dark';
+type fontPalette = 'normal' | 'light' | 'dark' | strictString;
 type fontSize = absoluteSize | relativeSize | lengthPercentage;
 type fontSizeAdjust = 'none';
 type fontStretch =
@@ -455,15 +459,16 @@ type fontStretch =
   | 'semi-expanded'
   | 'expanded'
   | 'extra-expanded'
-  | 'ultra-expanded';
+  | 'ultra-expanded'
+  | strictString;
 type fontStyle = 'normal' | 'italic' | 'oblique';
-type fontSynthesis = 'none';
+type fontSynthesis = 'none' | strictString;
 type fontSynthesisPosition = 'auto' | 'none';
 type fontSynthesisSmallCaps = 'auto' | 'none';
 type fontSynthesisStyle = 'auto' | 'none';
 type fontSynthesisWeight = 'auto' | 'none';
-type fontVariant = 'normal' | 'none';
-type fontVariantAlternates = 'normal';
+type fontVariant = 'normal' | 'none' | strictString;
+type fontVariantAlternates = 'normal' | strictString;
 type fontVariantCaps =
   | 'normal'
   | 'small-caps'
@@ -472,73 +477,83 @@ type fontVariantCaps =
   | 'all-petite-caps'
   | 'unicase'
   | 'titling-caps';
-type fontVariantEastAsian = 'normal';
-type fontVariantLigatures = 'normal' | 'none';
-type fontVariantNumeric = 'normal';
+type fontVariantEastAsian = 'normal' | strictString;
+type fontVariantLigatures = 'normal' | 'none' | strictString;
+type fontVariantNumeric = 'normal' | strictString;
 type fontVariantPosition = 'normal' | 'sub' | 'super';
-type fontVariationSettings = never;
+type fontVariationSettings = string | number;
 type fontWeight =
+  | 'inherit'
   | 'normal'
   | 'bold'
   | 'bolder'
   | 'lighter'
-  | '100'
-  | '200'
-  | '300'
-  | '400'
-  | '500'
-  | '600'
-  | '700'
-  | '800'
-  | '900';
+  | 100
+  | 200
+  | 300
+  | 400
+  | 500
+  | 600
+  | 700
+  | 800
+  | 900
+  | number
+  | strictString;
 type forcedColorAdjust = 'auto' | 'none';
-type gap = never;
+type gap = number | string;
 type geometryBox = shapeBox | 'fill-box' | 'stroke-box' | 'view-box';
-type glyphOrientationHorizontal = never;
-type glyphOrientationVertical = never;
+type glyphOrientationHorizontal = number | string;
+type glyphOrientationVertical = number | string;
 type grid = gridTemplate;
 type gridArea = gridLine;
 type gridAutoColumns = trackSize;
-type gridAutoFlow = 'dense';
+type gridAutoFlow =
+  | 'row'
+  | 'column'
+  | 'dense'
+  | 'row dense'
+  | 'column dense'
+  | strictString;
 type gridAutoRows = trackSize;
 type gridColumn = gridLine;
 type gridColumnEnd = gridLine;
 type gridColumnGap = lengthPercentage;
 type gridColumnStart = gridLine;
 type gridGap = gridRowGap | gridColumnGap;
-type gridLine = 'auto';
+type gridLine = 'auto' | strictString;
 type gridRow = gridLine;
 type gridRowEnd = gridLine;
 type gridRowGap = lengthPercentage;
 type gridRowStart = gridLine;
-type gridTemplate = 'none' | 'subgrid';
-type gridTemplateAreas = 'none';
-type gridTemplateColumns = 'none' | 'subgrid';
-type gridTemplateRows = 'none' | 'subgrid';
-type hangingPunctuation = never;
-type height = never;
-type hyphenateCharacter = never;
-type hyphenateLimitChars = never;
+type gridTemplate = 'none' | 'subgrid' | strictString;
+type gridTemplateAreas = 'none' | strictString;
+type gridTemplateColumns = 'none' | 'subgrid' | strictString;
+type gridTemplateRows = 'none' | 'subgrid' | strictString;
+type hangingPunctuation = string | number;
+type height = string | number;
+type hyphenateCharacter = string | number;
+type hyphenateLimitChars = string | number;
 type hyphens = 'none' | 'manual' | 'auto';
-type imageOrientation = 'from-image';
+type imageOrientation = 'from-image' | number | strictString;
 type imageRendering =
   | 'auto'
   | 'crisp-edges'
   | 'pixelated'
   | 'optimizeSpeed'
-  | 'optimizeQuality';
-type imageResolution = 'snap';
+  | 'optimizeQuality'
+  | strictString;
+type imageResolution = 'snap' | strictString;
 type imeMode = 'auto' | 'normal' | 'active' | 'inactive' | 'disabled';
-type initialLetter = 'normal';
-type initialLetterAlign = never;
+type initialLetter = 'normal' | strictString;
+type initialLetterAlign = string;
 type inlineSize = width;
-type inset = never;
-type insetBlock = never;
-type insetBlockEnd = never;
-type insetBlockStart = never;
-type insetInline = never;
-type insetInlineEnd = never;
-type insetInlineStart = never;
+type inset = string | number;
+type insetBlock = string | number;
+type insetBlockEnd = string | number;
+type insetBlockStart = string | number;
+type insetInline = string | number;
+type insetInlineEnd = string | number;
+type insetInlineStart = string | number;
 type interpolateSize = 'allow-keywords' | 'numeric-only';
 type isolation = 'auto' | 'isolate';
 type justifyContent =
@@ -594,43 +609,43 @@ type justifySelf =
   | 'last baseline'
   | 'safe center'
   | 'unsafe center';
-type justifyTracks = never;
+type justifyTracks = string | number;
 type kerning = 'auto' | svgLength;
-type left = never;
-type lengthPercentage = never;
+type left = string | number;
+type lengthPercentage = number | strictString;
 type letterSpacing = 'normal' | lengthPercentage;
 type lineBreak = 'auto' | 'loose' | 'normal' | 'strict';
-type lineHeight = never;
-type lineHeightStep = never;
+type lineHeight = 'normal' | number | strictString;
+type lineHeightStep = string | number;
 type listStyle = listStyleType | listStylePosition | listStyleImage;
-type listStyleImage = 'none';
+type listStyleImage = 'none' | strictString;
 type listStylePosition = 'inside' | 'outside';
-type listStyleType = 'none';
-type margin = never;
+type listStyleType = 'none' | strictString;
+type margin = number | string;
 type marginBlock = marginBlockEnd;
 type marginBlockEnd = marginLeft;
 type marginBlockStart = marginLeft;
-type marginBottom = 'auto';
+type marginBottom = 'auto' | number | strictString;
 type marginInline = marginInlineEnd;
 type marginInlineEnd = marginLeft;
 type marginInlineStart = marginLeft;
-type marginLeft = 'auto';
-type marginRight = 'auto';
-type marginTop = 'auto';
-type marker = 'none';
-type markerEnd = 'none';
-type markerMid = 'none';
-type markerOffset = 'auto';
-type markerStart = 'none';
+type marginLeft = 'auto' | number | strictString;
+type marginRight = 'auto' | number | strictString;
+type marginTop = 'auto' | number | strictString;
+type marker = 'none' | strictString;
+type markerEnd = 'none' | strictString;
+type markerMid = 'none' | strictString;
+type markerOffset = 'auto' | number | strictString;
+type markerStart = 'none' | strictString;
 type mask = maskLayer;
-type maskBorder = never;
+type maskBorder = string | number;
 type maskBorderMode = 'alpha' | 'luminance';
-type maskBorderOutset = never;
+type maskBorderOutset = string | number;
 type maskBorderRepeat = 'stretch' | 'repeat' | 'round' | 'space';
-type maskBorderSlice = never;
-type maskBorderSource = never;
-type maskBorderWidth = never;
-type maskClip = never;
+type maskBorderSlice = string | number;
+type maskBorderSource = string | number;
+type maskBorderWidth = string | number;
+type maskClip = string;
 type maskComposite = compositeOperator;
 type maskImage = maskReference;
 type maskingMode = 'alpha' | 'luminance' | 'match-source';
@@ -642,13 +657,13 @@ type maskLayer =
   | compositeOperator;
 type maskMode = maskingMode;
 type maskOrigin = geometryBox;
-type maskPosition = never;
-type maskReference = 'none';
+type maskPosition = string;
+type maskReference = 'none' | strictString;
 type maskRepeat = repeatStyle;
 type maskSize = bgSize;
 type maskType = 'luminance' | 'alpha';
-type masonryAutoFlow = never;
-type mathDepth = never;
+type masonryAutoFlow = string | number;
+type mathDepth = string | number;
 type mathShift = 'normal' | 'compact';
 type mathStyle = 'normal' | 'compact';
 type maxBlockSize = maxWidth;
@@ -657,33 +672,41 @@ type maxHeight =
   | 'max-content'
   | 'min-content'
   | 'fit-content'
-  | 'fill-available';
+  | 'fill-available'
+  | number
+  | strictString;
 type maxInlineSize = maxWidth;
 type maxWidth =
   | 'none'
   | 'max-content'
   | 'min-content'
   | 'fit-content'
-  | 'fill-available';
+  | 'fill-available'
+  | number
+  | strictString;
 type minBlockSize = minWidth;
 type minHeight =
   | 'auto'
   | 'max-content'
   | 'min-content'
   | 'fit-content'
-  | 'fill-available';
+  | 'fill-available'
+  | number
+  | strictString;
 type minInlineSize = minWidth;
 type minWidth =
   | 'auto'
   | 'max-content'
   | 'min-content'
   | 'fit-content'
-  | 'fill-available';
+  | 'fill-available'
+  | number
+  | strictString;
 type mixBlendMode = blendMode;
 type motion = motionPath | motionOffset | motionRotation;
 type motionOffset = lengthPercentage;
-type motionPath = geometryBox | 'none';
-type motionRotation = never;
+type motionPath = 'none' | geometryBox | strictString;
+type motionRotation = string | number;
 type MsOverflowStyle = 'auto' | 'none' | 'scrollbar';
 type NamedColor =
   | 'aliceblue'
@@ -837,26 +860,26 @@ type NamedColor =
   | 'yellowgreen';
 type nonStandardWordBreak = 'break-word';
 type objectFit = 'fill' | 'contain' | 'cover' | 'none' | 'scale-down';
-type objectPosition = never;
-type offset = never;
-type offsetAnchor = never;
-type offsetDistance = never;
-type offsetPath = never;
-type offsetPosition = never;
-type offsetRotate = never;
-type opacity = never;
-type order = never;
-type orphans = never;
-type outline = never;
+type objectPosition = string;
+type offset = string | number;
+type offsetAnchor = string | number;
+type offsetDistance = string | number;
+type offsetPath = string | number;
+type offsetPosition = string | number;
+type offsetRotate = string | number;
+type opacity = number | string;
+type order = number | string;
+type orphans = number | string;
+type outline = string;
 type outlineColor = color | 'invert';
-type outlineOffset = never;
+type outlineOffset = number | string;
 type outlineStyle = 'auto' | brStyle;
 type outlineWidth = borderWidth;
 type overflow = 'visible' | 'hidden' | 'clip' | 'scroll' | 'auto';
 type overflowAnchor = 'auto' | 'none';
 type overflowBlock = overflowY;
 type overflowBlockX = overflowX;
-type overflowClipMargin = never;
+type overflowClipMargin = string | number;
 type overflowWrap = 'normal' | 'break-word' | 'anywhere';
 type overflowX = overflow;
 type overflowY = overflow;
@@ -865,23 +888,23 @@ type overscrollBehaviorBlock = overscrollBehaviorY;
 type overscrollBehaviorInline = overscrollBehaviorX;
 type overscrollBehaviorX = 'none' | 'contain' | 'auto';
 type overscrollBehaviorY = 'none' | 'contain' | 'auto';
-type padding = never;
+type padding = number | string;
 type paddingBlock = paddingBlockEnd;
 type paddingBlockEnd = paddingLeft;
 type paddingBlockStart = paddingLeft;
-type paddingBottom = never;
+type paddingBottom = number | string;
 type paddingInline = paddingBlockEnd;
 type paddingInlineEnd = paddingBlockEnd;
 type paddingInlineStart = paddingBlockStart;
-type paddingLeft = never;
-type paddingRight = never;
-type paddingTop = never;
-type page = never;
+type paddingLeft = number | string;
+type paddingRight = number | string;
+type paddingTop = number | string;
+type page = string | number;
 type pageBreakAfter = 'auto' | 'always' | 'avoid' | 'left' | 'right';
 type pageBreakBefore = 'auto' | 'always' | 'avoid' | 'left' | 'right';
 type pageBreakInside = 'auto' | 'avoid';
 type paintOrder = 'normal' | 'stroke' | 'fill' | 'markers';
-type paint = 'none' | 'currentColor' | color;
+type paint = 'none' | 'currentColor' | color | strictString;
 type pause = pauseBefore | pauseAfter;
 type pauseAfter = 'none' | 'x-weak' | 'weak' | 'medium' | 'strong' | 'x-strong';
 type pauseBefore =
@@ -892,10 +915,10 @@ type pauseBefore =
   | 'strong'
   | 'x-strong';
 type perspective = 'none';
-type perspectiveOrigin = never;
-type placeContent = never;
-type placeItems = never;
-type placeSelf = never;
+type perspectiveOrigin = string;
+type placeContent = string | number;
+type placeItems = string | number;
+type placeSelf = string | number;
 type pointerEvents =
   | 'auto'
   | 'none'
@@ -908,7 +931,7 @@ type pointerEvents =
   | 'stroke'
   | 'all';
 type position = 'static' | 'relative' | 'absolute' | 'sticky' | 'fixed';
-type positionAnchor = never;
+type positionAnchor = string | number;
 type positionArea =
   | 'top'
   | 'left'
@@ -923,51 +946,58 @@ type positionArea =
   | 'span-inline-end'
   | 'span-block-start'
   | 'span-block-end';
-type positionTry = never;
-type positionTryFallbacks = never;
-type positionTryOptions = never;
+type positionTry = string | number;
+type positionTryFallbacks = string | number;
+type positionTryOptions = string | number;
 type positionVisibility = 'always' | 'anchors-visible' | 'no-overflow';
 type printColorAdjust = 'economy' | 'exact';
-type quotes = 'none';
+type quotes = 'none' | strictString;
 type relativeSize = 'larger' | 'smaller';
-type repeatStyle = 'repeat-x' | 'repeat-y';
+type repeatStyle =
+  | 'repeat'
+  | 'repeat-x'
+  | 'repeat-y'
+  | 'space'
+  | 'round'
+  | 'no-repeat'
+  | strictString;
 type resize = 'none' | 'both' | 'horizontal' | 'vertical';
 type rest = restBefore | restAfter;
 type restAfter = 'none' | 'x-weak' | 'weak' | 'medium' | 'strong' | 'x-strong';
 type restBefore = 'none' | 'x-weak' | 'weak' | 'medium' | 'strong' | 'x-strong';
-type right = never;
-type rotate = never;
-type rowGap = never;
+type right = string | number;
+type rotate = string | number;
+type rowGap = number | string;
 type rubyAlign = 'start' | 'center' | 'space-between' | 'space-around';
 type rubyMerge = 'separate' | 'collapse' | 'auto';
 type rubyPosition = 'over' | 'under' | 'inter-character';
-type scale = never;
+type scale = 'none' | number | strictString;
 type scrollbarColor = color;
 type scrollbarGutter = 'auto' | 'stable' | 'stable both-edges';
 type scrollbarWidth = 'auto' | 'thin' | 'none';
 type scrollBehavior = 'auto' | 'smooth';
-type scrollMargin = never;
-type scrollMarginBlock = never;
-type scrollMarginBlockEnd = never;
-type scrollMarginBlockStart = never;
-type scrollMarginBottom = never;
-type scrollMarginInline = never;
-type scrollMarginInlineEnd = never;
-type scrollMarginInlineStart = never;
-type scrollMarginLeft = never;
-type scrollMarginRight = never;
-type scrollMarginTop = never;
-type scrollPadding = never;
-type scrollPaddingBlock = never;
-type scrollPaddingBlockEnd = never;
-type scrollPaddingBlockStart = never;
-type scrollPaddingBottom = never;
-type scrollPaddingInline = never;
-type scrollPaddingInlineEnd = never;
-type scrollPaddingInlineStart = never;
-type scrollPaddingLeft = never;
-type scrollPaddingRight = never;
-type scrollPaddingTop = never;
+type scrollMargin = string | number;
+type scrollMarginBlock = string | number;
+type scrollMarginBlockEnd = string | number;
+type scrollMarginBlockStart = string | number;
+type scrollMarginBottom = string | number;
+type scrollMarginInline = string | number;
+type scrollMarginInlineEnd = string | number;
+type scrollMarginInlineStart = string | number;
+type scrollMarginLeft = string | number;
+type scrollMarginRight = string | number;
+type scrollMarginTop = string | number;
+type scrollPadding = string | number;
+type scrollPaddingBlock = string | number;
+type scrollPaddingBlockEnd = string | number;
+type scrollPaddingBlockStart = string | number;
+type scrollPaddingBottom = string | number;
+type scrollPaddingInline = string | number;
+type scrollPaddingInlineEnd = string | number;
+type scrollPaddingInlineStart = string | number;
+type scrollPaddingLeft = string | number;
+type scrollPaddingRight = string | number;
+type scrollPaddingTop = string | number;
 type scrollSnapAlign = 'none' | 'start' | 'end' | 'center';
 type scrollSnapStop = 'normal' | 'always';
 type scrollSnapType =
@@ -987,19 +1017,19 @@ type scrollSnapType =
   | 'y'
   | 'y mandatory'
   | 'y proximity';
-type scrollTimeline = never;
+type scrollTimeline = string | number;
 type scrollTimelineAxis = 'block' | 'inline' | 'x' | 'y';
-type scrollTimelineName = never;
+type scrollTimelineName = string | number;
 type shapeBox = box | 'margin-box';
-type shapeImageThreshold = never;
+type shapeImageThreshold = number | string;
 type shapeMargin = lengthPercentage;
-type shapeOutside = 'none' | shapeBox;
+type shapeOutside = 'none' | shapeBox | strictString;
 type shapeRendering =
   | 'auto'
   | 'optimizeSpeed'
   | 'crispEdges'
   | 'geometricPrecision';
-type speakAs = never;
+type speakAs = 'normal' | 'spell-out' | 'digits' | strictString;
 type singleAnimationDirection =
   | 'normal'
   | 'reverse'
@@ -1007,11 +1037,11 @@ type singleAnimationDirection =
   | 'alternate-reverse';
 type singleAnimationFillMode = 'none' | 'forwards' | 'backwards' | 'both';
 type singleAnimationIterationCount = 'infinite';
-type singleAnimationName = 'none';
+type singleAnimationName = 'none' | strictString;
 type singleAnimationPlayState = 'running' | 'paused';
 type singleTimingFunction = singleTransitionTimingFunction;
 type singleTransition = singleTransitionTimingFunction;
-type singleTransitionProperty = 'all';
+type singleTransitionProperty = 'all' | strictString;
 type singleTransitionTimingFunction =
   | 'ease'
   | 'linear'
@@ -1019,21 +1049,22 @@ type singleTransitionTimingFunction =
   | 'ease-out'
   | 'ease-in-out'
   | 'step-start'
-  | 'step-end';
-type src = never;
-type start = never;
+  | 'step-end'
+  | strictString;
+type src = string;
+type start = string | number;
 type stroke = paint;
-type strokeDasharray = 'none';
+type strokeDasharray = 'none' | strictString;
 type strokeDashoffset = svgLength;
 type strokeLinecap = 'butt' | 'round' | 'square';
 type strokeLinejoin = 'miter' | 'round' | 'bevel';
-type strokeMiterlimit = never;
-type strokeOpacity = never;
+type strokeMiterlimit = number | string;
+type strokeOpacity = number | string;
 type strokeWidth = svgLength;
-type svgLength = never;
+type svgLength = number | strictString;
 type svgWritingMode = 'lr-tb' | 'rl-tb' | 'tb-rl' | 'lr' | 'rl' | 'tb';
 type tableLayout = 'auto' | 'fixed';
-type tabSize = never;
+type tabSize = number | string;
 type textAlign =
   | 'start'
   | 'end'
@@ -1051,56 +1082,56 @@ type textAlignLast =
   | 'center'
   | 'justify';
 type textAnchor = 'start' | 'middle' | 'end';
-type textCombineUpright = 'none' | 'all';
+type textCombineUpright = 'none' | 'all' | strictString;
 type textDecoration =
   | textDecorationLine
   | textDecorationStyle
   | textDecorationColor;
 type textDecorationColor = color;
-type textDecorationLine = 'none';
-type textDecorationSkip = 'none';
+type textDecorationLine = 'none' | strictString;
+type textDecorationSkip = 'none' | strictString;
 type textDecorationSkipInk = 'auto' | 'none' | 'all';
 type textDecorationStyle = 'solid' | 'double' | 'dotted' | 'dashed' | 'wavy';
-type textDecorationThickness = never;
+type textDecorationThickness = string | number;
 type textEmphasis = textEmphasisStyle | textEmphasisColor;
 type textEmphasisColor = color;
-type textEmphasisPosition = never;
-type textEmphasisStyle = 'none';
+type textEmphasisPosition = string;
+type textEmphasisStyle = 'none' | strictString;
 type textIndent = lengthPercentage | 'hanging' | 'each-line';
 type textOrientation = 'mixed' | 'upright' | 'sideways';
-type textOverflow = never;
+type textOverflow = string;
 type textRendering =
   | 'auto'
   | 'optimizeSpeed'
   | 'optimizeLegibility'
   | 'geometricPrecision';
-type textShadow = 'none';
-type textSizeAdjust = 'none' | 'auto';
+type textShadow = 'none' | strictString;
+type textSizeAdjust = 'none' | 'auto' | strictString;
 type textTransform =
   | 'none'
   | 'capitalize'
   | 'uppercase'
   | 'lowercase'
   | 'full-width';
-type textUnderlineOffset = never;
-type textUnderlinePosition = 'auto';
+type textUnderlineOffset = string | number;
+type textUnderlinePosition = 'auto' | strictString;
 type textWrap = 'wrap' | 'nowrap' | 'balance';
-type time = never;
-type timelineScope = never;
-type top = never;
-type touchAction = 'auto' | 'none' | 'manipulation';
-type trackBreadth = lengthPercentage | 'min-content' | 'max-content' | 'auto';
+type time = string;
+type timelineScope = string | number;
+type top = number | string;
+type touchAction = 'auto' | 'none' | 'manipulation' | strictString;
+type trackBreadth = 'min-content' | 'max-content' | 'auto' | lengthPercentage;
 type trackSize = trackBreadth;
-type transform = 'none';
+type transform = 'none' | strictString;
 type transformBox = 'border-box' | 'fill-box' | 'view-box';
-type transformOrigin = never;
+type transformOrigin = string | number;
 type transformStyle = 'flat' | 'preserve-3d';
 type transition = singleTransition;
 type transitionDelay = time;
 type transitionDuration = time;
 type transitionProperty = 'none' | singleTransitionProperty;
 type transitionTimingFunction = singleTransitionTimingFunction;
-type translate = never;
+type translate = string | number;
 type unicodeBidi =
   | 'normal'
   | 'embed'
@@ -1108,7 +1139,7 @@ type unicodeBidi =
   | 'bidi-override'
   | 'isolate-override'
   | 'plaintext';
-type unicodeRange = never;
+type unicodeRange = string;
 type userSelect = 'auto' | 'text' | 'none' | 'contain' | 'all';
 type verticalAlign =
   | 'baseline'
@@ -1118,21 +1149,23 @@ type verticalAlign =
   | 'text-bottom'
   | 'middle'
   | 'top'
-  | 'bottom';
-type viewTimeline = never;
+  | 'bottom'
+  | number
+  | strictString;
+type viewTimeline = string | number;
 type viewTimelineAxis = 'block' | 'inline' | 'x' | 'y';
-type viewTimelineInset = never;
-type viewTimelineName = never;
-type viewTransitionName = never;
+type viewTimelineInset = string | number;
+type viewTimelineName = string | number;
+type viewTransitionName = string | number;
 type visibility = 'visible' | 'hidden' | 'collapse';
 type voiceBalance = 'left' | 'center' | 'right' | 'leftwards' | 'rightwards';
-type voiceDuration = 'auto' | time;
-type voiceFamily = 'preserve';
-type voicePitch = 'absolute';
-type voiceRange = 'absolute';
-type voiceRate = never;
+type voiceDuration = 'auto' | strictString;
+type voiceFamily = 'preserve' | strictString;
+type voicePitch = 'absolute' | number | strictString;
+type voiceRange = 'absolute' | number | strictString;
+type voiceRate = string;
 type voiceStress = 'normal' | 'strong' | 'moderate' | 'none' | 'reduced';
-type voiceVolume = 'silent';
+type voiceVolume = 'silent' | strictString;
 type WebkitBackgroundClip =
   | 'border-box'
   | 'padding-box'
@@ -1140,12 +1173,12 @@ type WebkitBackgroundClip =
   | 'text';
 type WebkitBoxOrient = 'vertical' | 'horizontal' | 'inline-axis' | 'block-axis';
 type WebkitFontSmoothing = 'antialiased';
-type WebkitLineClamp = never;
+type WebkitLineClamp = string | number;
 type WebkitMaskImage = maskImage;
 type WebkitTapHighlightColor = color;
 type WebkitTextFillColor = color;
 type WebkitTextStrokeColor = color;
-type WebkitTextStrokeWidth = never;
+type WebkitTextStrokeWidth = string | number;
 type whiteSpace = 'normal' | 'pre' | 'nowrap' | 'pre-wrap' | 'pre-line';
 type whiteSpaceCollapse =
   | 'collapse'
@@ -1154,13 +1187,15 @@ type whiteSpaceCollapse =
   | 'preserve-breaks'
   | 'preserve-spaces'
   | 'break-spaces';
-type widows = never;
+type widows = number | string;
 type width =
   | 'available'
   | 'min-content'
   | 'max-content'
   | 'fit-content'
-  | 'auto';
+  | 'auto'
+  | number
+  | strictString;
 type willChange = 'auto' | animatableFeature;
 type wordBreak = 'normal' | 'break-all' | 'keep-all' | nonStandardWordBreak;
 type wordSpacing = 'normal' | lengthPercentage;
@@ -1176,333 +1211,334 @@ type zIndex = 'auto';
 type zoom = 'normal';
 
 export type CSSTypes = Readonly<{
-  WebkitFontSmoothing?: WebkitFontSmoothing;
-  WebkitTapHighlightColor?: WebkitTapHighlightColor;
+  WebkitFontSmoothing?: all | WebkitFontSmoothing;
+  WebkitTapHighlightColor?: all | WebkitTapHighlightColor;
 
-  WebkitMaskImage?: WebkitMaskImage;
+  WebkitMaskImage?: all | WebkitMaskImage;
 
-  WebkitTextFillColor?: WebkitTextFillColor;
-  WebkitTextStrokeWidth?: WebkitTextStrokeWidth;
-  WebkitTextStrokeColor?: WebkitTextStrokeColor;
-  WebkitBackgroundClip?: WebkitBackgroundClip;
+  WebkitTextFillColor?: all | WebkitTextFillColor;
+  WebkitTextStrokeWidth?: all | WebkitTextStrokeWidth;
+  WebkitTextStrokeColor?: all | WebkitTextStrokeColor;
+  WebkitBackgroundClip?: all | WebkitBackgroundClip;
 
-  WebkitBoxOrient?: WebkitBoxOrient;
-  WebkitLineClamp?: WebkitLineClamp;
+  WebkitBoxOrient?: all | WebkitBoxOrient;
+  WebkitLineClamp?: all | WebkitLineClamp;
 
-  accentColor?: accentColor;
+  accentColor?: all | accentColor;
 
-  aspectRatio?: aspectRatio;
+  aspectRatio?: all | aspectRatio;
 
-  placeContent?: placeContent;
-  alignContent?: alignContent;
-  justifyContent?: justifyContent;
-  placeItems?: placeItems;
-  placeSelf?: placeSelf;
-  alignItems?: alignItems;
-  justifyItems?: justifyItems;
-  alignSelf?: alignSelf;
-  justifySelf?: justifySelf;
+  placeContent?: all | placeContent;
+  alignContent?: all | alignContent;
+  justifyContent?: all | justifyContent;
+  placeItems?: all | placeItems;
+  placeSelf?: all | placeSelf;
+  alignItems?: all | alignItems;
+  justifyItems?: all | justifyItems;
+  alignSelf?: all | alignSelf;
+  justifySelf?: all | justifySelf;
 
-  alignmentBaseline?: alignmentBaseline;
-  alignTracks?: alignTracks;
-  justifyTracks?: justifyTracks;
-  masonryAutoFlow?: masonryAutoFlow;
+  alignmentBaseline?: all | alignmentBaseline;
+  alignTracks?: all | alignTracks;
+  justifyTracks?: all | justifyTracks;
+  masonryAutoFlow?: all | masonryAutoFlow;
 
-  anchorName?: anchorName;
+  anchorName?: all | anchorName;
 
-  animation?: animation;
-  animationComposition?: animationComposition;
-  animationDelay?: animationDelay;
-  animationDirection?: animationDirection;
-  animationDuration?: animationDuration;
-  animationFillMode?: animationFillMode;
-  animationIterationCount?: animationIterationCount;
-  animationName?: animationName;
-  animationPlayState?: animationPlayState;
-  animationTimingFunction?: animationTimingFunction;
-  animationTimeline?: animationTimeline;
-  animationRange?: animationRange;
-  animationRangeStart?: animationRangeStart;
-  animationRangeEnd?: animationRangeEnd;
-  appearance?: appearance;
-  azimuth?: azimuth;
+  animation?: all | animation;
+  animationComposition?: all | animationComposition;
+  animationDelay?: all | animationDelay;
+  animationDirection?: all | animationDirection;
+  animationDuration?: all | animationDuration;
+  animationFillMode?: all | animationFillMode;
+  animationIterationCount?: all | animationIterationCount;
+  animationName?: all | animationName;
+  animationPlayState?: all | animationPlayState;
+  animationTimingFunction?: all | animationTimingFunction;
+  animationTimeline?: all | animationTimeline;
+  animationRange?: all | animationRange;
+  animationRangeStart?: all | animationRangeStart;
+  animationRangeEnd?: all | animationRangeEnd;
+  appearance?: all | appearance;
+  azimuth?: all | azimuth;
 
-  backdropFilter?: backdropFilter;
-  backfaceVisibility?: backfaceVisibility;
-  background?: background;
-  backgroundAttachment?: backgroundAttachment;
-  backgroundBlendMode?: backgroundBlendMode;
-  backgroundClip?: backgroundClip;
-  backgroundColor?: backgroundColor;
-  backgroundImage?: backgroundImage;
-  backgroundOrigin?: backgroundOrigin;
-  backgroundPosition?: backgroundPosition;
-  backgroundPositionX?: backgroundPositionX;
-  backgroundPositionY?: backgroundPositionY;
-  backgroundRepeat?: backgroundRepeat;
-  backgroundSize?: backgroundSize;
-  baselineShift?: baselineShift;
-  behavior?: behavior;
-  blockSize?: blockSize;
-  border?: border;
-  borderBlock?: borderBlock;
-  borderBlockColor?: borderBlockColor;
-  borderBlockStyle?: borderBlockStyle;
-  borderBlockWidth?: borderBlockWidth;
-  borderBlockEnd?: borderBlockEnd;
-  borderBlockEndColor?: borderBlockEndColor;
-  borderBlockEndStyle?: borderBlockEndStyle;
-  borderBlockEndWidth?: borderBlockEndWidth;
-  borderBlockStart?: borderBlockStart;
-  borderBlockStartColor?: borderBlockStartColor;
-  borderBlockStartStyle?: borderBlockStartStyle;
-  borderBlockStartWidth?: borderBlockStartWidth;
-  borderBottom?: borderBottom;
-  borderBottomColor?: borderBottomColor;
-  borderBottomStyle?: borderBottomStyle;
-  borderBottomWidth?: borderBottomWidth;
-  borderCollapse?: borderCollapse;
-  borderColor?: borderColor;
-  borderImage?: borderImage;
-  borderImageOutset?: borderImageOutset;
-  borderImageRepeat?: borderImageRepeat;
-  borderImageSlice?: borderImageSlice;
-  borderImageSource?: borderImageSource;
-  borderImageWidth?: borderImageWidth;
-  borderInline?: borderInline;
-  borderInlineColor?: borderInlineColor;
-  borderInlineStyle?: borderInlineStyle;
-  borderInlineWidth?: borderInlineWidth;
-  borderInlineEnd?: borderInlineEnd;
-  borderInlineEndColor?: borderInlineEndColor;
-  borderInlineEndStyle?: borderInlineEndStyle;
-  borderInlineEndWidth?: borderInlineEndWidth;
-  borderInlineStart?: borderInlineStart;
-  borderInlineStartColor?: borderInlineStartColor;
-  borderInlineStartStyle?: borderInlineStartStyle;
-  borderInlineStartWidth?: borderInlineStartWidth;
-  borderLeft?: borderLeft;
-  borderLeftColor?: borderLeftColor;
-  borderLeftStyle?: borderLeftStyle;
-  borderLeftWidth?: borderLeftWidth;
-  borderRight?: borderRight;
-  borderRightColor?: borderRightColor;
-  borderRightStyle?: borderRightStyle;
-  borderRightWidth?: borderRightWidth;
-  borderSpacing?: borderSpacing;
-  borderStyle?: borderStyle;
-  borderTop?: borderTop;
-  borderTopColor?: borderTopColor;
+  backdropFilter?: all | backdropFilter;
+  backfaceVisibility?: all | backfaceVisibility;
+  background?: all | background;
+  backgroundAttachment?: all | backgroundAttachment;
+  backgroundBlendMode?: all | backgroundBlendMode;
+  backgroundClip?: all | backgroundClip;
+  backgroundColor?: all | backgroundColor;
+  backgroundImage?: all | backgroundImage;
+  backgroundOrigin?: all | backgroundOrigin;
+  backgroundPosition?: all | backgroundPosition;
+  backgroundPositionX?: all | backgroundPositionX;
+  backgroundPositionY?: all | backgroundPositionY;
+  backgroundRepeat?: all | backgroundRepeat;
+  backgroundSize?: all | backgroundSize;
+  baselineShift?: all | baselineShift;
+  behavior?: all | behavior;
+  blockSize?: all | blockSize;
+  border?: all | border;
+  borderBlock?: all | borderBlock;
+  borderBlockColor?: all | borderBlockColor;
+  borderBlockStyle?: all | borderBlockStyle;
+  borderBlockWidth?: all | borderBlockWidth;
+  borderBlockEnd?: all | borderBlockEnd;
+  borderBlockEndColor?: all | borderBlockEndColor;
+  borderBlockEndStyle?: all | borderBlockEndStyle;
+  borderBlockEndWidth?: all | borderBlockEndWidth;
+  borderBlockStart?: all | borderBlockStart;
+  borderBlockStartColor?: all | borderBlockStartColor;
+  borderBlockStartStyle?: all | borderBlockStartStyle;
+  borderBlockStartWidth?: all | borderBlockStartWidth;
+  borderBottom?: all | borderBottom;
+  borderBottomColor?: all | borderBottomColor;
+  borderBottomStyle?: all | borderBottomStyle;
+  borderBottomWidth?: all | borderBottomWidth;
+  borderCollapse?: all | borderCollapse;
+  borderColor?: all | borderColor;
+  borderImage?: all | borderImage;
+  borderImageOutset?: all | borderImageOutset;
+  borderImageRepeat?: all | borderImageRepeat;
+  borderImageSlice?: all | borderImageSlice;
+  borderImageSource?: all | borderImageSource;
+  borderImageWidth?: all | borderImageWidth;
+  borderInline?: all | borderInline;
+  borderInlineColor?: all | borderInlineColor;
+  borderInlineStyle?: all | borderInlineStyle;
+  borderInlineWidth?: all | borderInlineWidth;
+  borderInlineEnd?: all | borderInlineEnd;
+  borderInlineEndColor?: all | borderInlineEndColor;
+  borderInlineEndStyle?: all | borderInlineEndStyle;
+  borderInlineEndWidth?: all | borderInlineEndWidth;
+  borderInlineStart?: all | borderInlineStart;
+  borderInlineStartColor?: all | borderInlineStartColor;
+  borderInlineStartStyle?: all | borderInlineStartStyle;
+  borderInlineStartWidth?: all | borderInlineStartWidth;
+  borderLeft?: all | borderLeft;
+  borderLeftColor?: all | borderLeftColor;
+  borderLeftStyle?: all | borderLeftStyle;
+  borderLeftWidth?: all | borderLeftWidth;
+  borderRight?: all | borderRight;
+  borderRightColor?: all | borderRightColor;
+  borderRightStyle?: all | borderRightStyle;
+  borderRightWidth?: all | borderRightWidth;
+  borderSpacing?: all | borderSpacing;
+  borderStyle?: all | borderStyle;
+  borderTop?: all | borderTop;
+  borderTopColor?: all | borderTopColor;
 
-  borderRadius?: borderRadius;
-  borderEndStartRadius?: borderEndStartRadius;
-  borderStartStartRadius?: borderStartStartRadius;
-  borderStartEndRadius?: borderStartEndRadius;
-  borderEndEndRadius?: borderEndEndRadius;
-  borderTopLeftRadius?: borderTopLeftRadius;
-  borderTopRightRadius?: borderTopRightRadius;
-  borderBottomLeftRadius?: borderBottomLeftRadius;
-  borderBottomRightRadius?: borderBottomRightRadius;
+  borderRadius?: all | borderRadius;
+  borderEndStartRadius?: all | borderEndStartRadius;
+  borderStartStartRadius?: all | borderStartStartRadius;
+  borderStartEndRadius?: all | borderStartEndRadius;
+  borderEndEndRadius?: all | borderEndEndRadius;
+  borderTopLeftRadius?: all | borderTopLeftRadius;
+  borderTopRightRadius?: all | borderTopRightRadius;
+  borderBottomLeftRadius?: all | borderBottomLeftRadius;
+  borderBottomRightRadius?: all | borderBottomRightRadius;
 
-  cornerShape?: cornerShape;
-  cornerStartStartShape?: cornerStartStartShape;
-  cornerStartEndShape?: cornerStartEndShape;
-  cornerEndStartShape?: cornerEndStartShape;
-  cornerEndEndShape?: cornerEndEndShape;
-  cornerTopLeftShape?: cornerTopLeftShape;
-  cornerTopRightShape?: cornerTopRightShape;
-  cornerBottomLeftShape?: cornerBottomLeftShape;
-  cornerBottomRightShape?: cornerBottomRightShape;
+  cornerShape?: all | cornerShape;
+  cornerStartStartShape?: all | cornerStartStartShape;
+  cornerStartEndShape?: all | cornerStartEndShape;
+  cornerEndStartShape?: all | cornerEndStartShape;
+  cornerEndEndShape?: all | cornerEndEndShape;
+  cornerTopLeftShape?: all | cornerTopLeftShape;
+  cornerTopRightShape?: all | cornerTopRightShape;
+  cornerBottomLeftShape?: all | cornerBottomLeftShape;
+  cornerBottomRightShape?: all | cornerBottomRightShape;
 
-  borderTopStyle?: borderTopStyle;
-  borderTopWidth?: borderTopWidth;
-  borderWidth?: borderWidth;
-  bottom?: bottom;
-  boxAlign?: boxAlign;
-  boxDecorationBreak?: boxDecorationBreak;
-  boxDirection?: boxDirection;
-  boxFlex?: boxFlex;
-  boxFlexGroup?: boxFlexGroup;
-  boxLines?: boxLines;
-  boxOrdinalGroup?: boxOrdinalGroup;
-  boxOrient?: boxOrient;
-  boxShadow?: boxShadow;
-  boxSizing?: boxSizing;
-  boxSuppress?: boxSuppress;
-  breakAfter?: breakAfter;
-  breakBefore?: breakBefore;
-  breakInside?: breakInside;
+  borderTopStyle?: all | borderTopStyle;
+  borderTopWidth?: all | borderTopWidth;
+  borderWidth?: all | borderWidth;
+  bottom?: all | bottom;
+  boxAlign?: all | boxAlign;
+  boxDecorationBreak?: all | boxDecorationBreak;
+  boxDirection?: all | boxDirection;
+  boxFlex?: all | boxFlex;
+  boxFlexGroup?: all | boxFlexGroup;
+  boxLines?: all | boxLines;
+  boxOrdinalGroup?: all | boxOrdinalGroup;
+  boxOrient?: all | boxOrient;
+  boxShadow?: all | boxShadow;
+  boxSizing?: all | boxSizing;
+  boxSuppress?: all | boxSuppress;
+  breakAfter?: all | breakAfter;
+  breakBefore?: all | breakBefore;
+  breakInside?: all | breakInside;
 
-  captionSide?: captionSide;
-  caret?: caret;
-  caretColor?: caretColor;
-  caretShape?: caretShape;
-  clear?: clear;
-  clip?: clip;
-  clipPath?: clipPath;
-  clipRule?: clipRule;
-  color?: color;
+  captionSide?: all | captionSide;
+  caret?: all | caret;
+  caretColor?: all | caretColor;
+  caretShape?: all | caretShape;
+  clear?: all | clear;
+  clip?: all | clip;
+  clipPath?: all | clipPath;
+  clipRule?: all | clipRule;
+  color?: all | color;
 
-  colorScheme?: colorScheme;
-  forcedColorAdjust?: forcedColorAdjust;
-  printColorAdjust?: printColorAdjust;
+  colorScheme?: all | colorScheme;
+  forcedColorAdjust?: all | forcedColorAdjust;
+  printColorAdjust?: all | printColorAdjust;
 
-  columns?: columns;
-  columnCount?: columnCount;
-  columnWidth?: columnWidth;
+  columns?: all | columns;
+  columnCount?: all | columnCount;
+  columnWidth?: all | columnWidth;
 
-  columnRule?: columnRule;
-  columnRuleColor?: columnRuleColor;
-  columnRuleStyle?: columnRuleStyle;
-  columnRuleWidth?: columnRuleWidth;
+  columnRule?: all | columnRule;
+  columnRuleColor?: all | columnRuleColor;
+  columnRuleStyle?: all | columnRuleStyle;
+  columnRuleWidth?: all | columnRuleWidth;
 
-  columnFill?: columnFill;
-  columnGap?: columnGap;
-  columnSpan?: columnSpan;
+  columnFill?: all | columnFill;
+  columnGap?: all | columnGap;
+  columnSpan?: all | columnSpan;
 
-  contain?: contain;
-  containIntrinsicSize?: containIntrinsicSize;
-  containIntrinsicBlockSize?: containIntrinsicBlockSize;
-  containIntrinsicInlineSize?: containIntrinsicInlineSize;
-  containIntrinsicHeight?: containIntrinsicHeight;
-  containIntrinsicWidth?: containIntrinsicWidth;
+  contain?: all | contain;
+  containIntrinsicSize?: all | containIntrinsicSize;
+  containIntrinsicBlockSize?: all | containIntrinsicBlockSize;
+  containIntrinsicInlineSize?: all | containIntrinsicInlineSize;
+  containIntrinsicHeight?: all | containIntrinsicHeight;
+  containIntrinsicWidth?: all | containIntrinsicWidth;
 
-  container?: container;
-  containerName?: containerName;
-  containerType?: containerType;
+  container?: all | container;
+  containerName?: all | containerName;
+  containerType?: all | containerType;
 
-  contentVisibility?: contentVisibility;
+  contentVisibility?: all | contentVisibility;
 
-  content?: content;
+  content?: all | content;
 
-  counterIncrement?: counterIncrement;
-  counterReset?: counterReset;
-  counterSet?: counterSet;
+  counterIncrement?: all | counterIncrement;
+  counterReset?: all | counterReset;
+  counterSet?: all | counterSet;
 
-  cue?: cue;
-  cueAfter?: cueAfter;
-  cueBefore?: cueBefore;
-  cursor?: cursor;
-  direction?: direction;
-  display?: display;
-  displayInside?: displayInside;
-  displayList?: displayList;
-  displayOutside?: displayOutside;
-  dominantBaseline?: dominantBaseline;
-  emptyCells?: emptyCells;
-  end?: end;
-  fill?: fill;
-  fillOpacity?: fillOpacity;
-  fillRule?: fillRule;
-  filter?: filter;
-  flex?: flex;
-  flexBasis?: flexBasis;
-  flexDirection?: flexDirection;
-  flexFlow?: flexFlow;
-  flexGrow?: flexGrow;
-  flexShrink?: flexShrink;
-  flexWrap?: flexWrap;
-  float?: float;
+  cue?: all | cue;
+  cueAfter?: all | cueAfter;
+  cueBefore?: all | cueBefore;
+  cursor?: all | cursor;
+  direction?: all | direction;
+  display?: all | display;
+  displayInside?: all | displayInside;
+  displayList?: all | displayList;
+  displayOutside?: all | displayOutside;
+  dominantBaseline?: all | dominantBaseline;
+  emptyCells?: all | emptyCells;
+  end?: all | end;
+  fill?: all | fill;
+  fillOpacity?: all | fillOpacity;
+  fillRule?: all | fillRule;
+  filter?: all | filter;
+  flex?: all | flex;
+  flexBasis?: all | flexBasis;
+  flexDirection?: all | flexDirection;
+  flexFlow?: all | flexFlow;
+  flexGrow?: all | flexGrow;
+  flexShrink?: all | flexShrink;
+  flexWrap?: all | flexWrap;
+  float?: all | float;
 
-  font?: font;
-  fontFamily?: fontFamily;
-  fontFeatureSettings?: fontFeatureSettings;
-  fontKerning?: fontKerning;
-  fontLanguageOverride?: fontLanguageOverride;
-  fontSize?: fontSize;
-  fontSizeAdjust?: fontSizeAdjust;
-  fontStretch?: fontStretch;
-  fontStyle?: fontStyle;
-  fontSynthesis?: fontSynthesis;
-  fontSynthesisWeight?: fontSynthesisWeight;
-  fontSynthesisStyle?: fontSynthesisStyle;
-  fontSynthesisSmallCaps?: fontSynthesisSmallCaps;
-  fontSynthesisPosition?: fontSynthesisPosition;
+  font?: all | font;
+  fontFamily?: all | fontFamily;
+  fontFeatureSettings?: all | fontFeatureSettings;
+  fontKerning?: all | fontKerning;
+  fontLanguageOverride?: all | fontLanguageOverride;
+  fontSize?: all | fontSize;
+  fontSizeAdjust?: all | fontSizeAdjust;
+  fontStretch?: all | fontStretch;
+  fontStyle?: all | fontStyle;
+  fontSynthesis?: all | fontSynthesis;
+  fontSynthesisWeight?: all | fontSynthesisWeight;
+  fontSynthesisStyle?: all | fontSynthesisStyle;
+  fontSynthesisSmallCaps?: all | fontSynthesisSmallCaps;
+  fontSynthesisPosition?: all | fontSynthesisPosition;
 
-  fontVariant?: fontVariant;
-  fontVariantAlternates?: fontVariantAlternates;
-  fontVariantCaps?: fontVariantCaps;
-  fontVariantEastAsian?: fontVariantEastAsian;
-  fontVariantLigatures?: fontVariantLigatures;
-  fontVariantNumeric?: fontVariantNumeric;
-  fontVariantPosition?: fontVariantPosition;
-  fontWeight?: fontWeight;
+  fontVariant?: all | fontVariant;
+  fontVariantAlternates?: all | fontVariantAlternates;
+  fontVariantCaps?: all | fontVariantCaps;
+  fontVariantEastAsian?: all | fontVariantEastAsian;
+  fontVariantLigatures?: all | fontVariantLigatures;
+  fontVariantNumeric?: all | fontVariantNumeric;
+  fontVariantPosition?: all | fontVariantPosition;
+  fontWeight?: all | fontWeight;
 
-  fontOpticalSizing?: fontOpticalSizing;
-  fontPalette?: fontPalette;
-  fontVariationSettings?: fontVariationSettings;
+  fontOpticalSizing?: all | fontOpticalSizing;
+  fontPalette?: all | fontPalette;
+  fontVariationSettings?: all | fontVariationSettings;
 
-  gap?: gap;
-  glyphOrientationHorizontal?: glyphOrientationHorizontal;
-  glyphOrientationVertical?: glyphOrientationVertical;
-  grid?: grid;
-  gridArea?: gridArea;
-  gridAutoColumns?: gridAutoColumns;
-  gridAutoFlow?: gridAutoFlow;
-  gridAutoRows?: gridAutoRows;
-  gridColumn?: gridColumn;
-  gridColumnEnd?: gridColumnEnd;
-  gridColumnGap?: gridColumnGap;
-  gridColumnStart?: gridColumnStart;
-  gridGap?: gridGap;
-  gridRow?: gridRow;
-  gridRowEnd?: gridRowEnd;
-  gridRowGap?: gridRowGap;
-  gridRowStart?: gridRowStart;
-  gridTemplate?: gridTemplate;
-  gridTemplateAreas?: gridTemplateAreas;
-  gridTemplateColumns?: gridTemplateColumns;
-  gridTemplateRows?: gridTemplateRows;
+  gap?: all | gap;
+  glyphOrientationHorizontal?: all | glyphOrientationHorizontal;
+  glyphOrientationVertical?: all | glyphOrientationVertical;
+  grid?: all | grid;
+  gridArea?: all | gridArea;
+  gridAutoColumns?: all | gridAutoColumns;
+  gridAutoFlow?: all | gridAutoFlow;
+  gridAutoRows?: all | gridAutoRows;
+  gridColumn?: all | gridColumn;
+  gridColumnEnd?: all | gridColumnEnd;
+  gridColumnGap?: all | gridColumnGap;
+  gridColumnStart?: all | gridColumnStart;
+  gridGap?: all | gridGap;
+  gridRow?: all | gridRow;
+  gridRowEnd?: all | gridRowEnd;
+  gridRowGap?: all | gridRowGap;
+  gridRowStart?: all | gridRowStart;
+  gridTemplate?: all | gridTemplate;
+  gridTemplateAreas?: all | gridTemplateAreas;
+  gridTemplateColumns?: all | gridTemplateColumns;
+  gridTemplateRows?: all | gridTemplateRows;
 
-  hangingPunctuation?: hangingPunctuation;
-  hyphenateCharacter?: hyphenateCharacter;
-  hyphenateLimitChars?: hyphenateLimitChars;
-  hyphens?: hyphens;
+  hangingPunctuation?: all | hangingPunctuation;
+  hyphenateCharacter?: all | hyphenateCharacter;
+  hyphenateLimitChars?: all | hyphenateLimitChars;
+  hyphens?: all | hyphens;
 
-  height?: height;
+  height?: all | height;
 
-  imageOrientation?: imageOrientation;
-  imageRendering?: imageRendering;
-  imageResolution?: imageResolution;
-  imeMode?: imeMode;
+  imageOrientation?: all | imageOrientation;
+  imageRendering?: all | imageRendering;
+  imageResolution?: all | imageResolution;
+  imeMode?: all | imeMode;
 
-  initialLetter?: initialLetter;
-  initialLetterAlign?: initialLetterAlign;
-  inlineSize?: inlineSize;
+  initialLetter?: all | initialLetter;
+  initialLetterAlign?: all | initialLetterAlign;
+  inlineSize?: all | inlineSize;
 
-  interpolateSize?: interpolateSize;
+  interpolateSize?: all | interpolateSize;
 
-  inset?: inset;
-  insetBlock?: insetBlock;
-  insetBlockEnd?: insetBlockEnd;
-  insetBlockStart?: insetBlockStart;
-  insetInline?: insetInline;
-  insetInlineEnd?: insetInlineEnd;
-  insetInlineStart?: insetInlineStart;
+  inset?: all | inset;
+  insetBlock?: all | insetBlock;
+  insetBlockEnd?: all | insetBlockEnd;
+  insetBlockStart?: all | insetBlockStart;
+  insetInline?: all | insetInline;
+  insetInlineEnd?: all | insetInlineEnd;
+  insetInlineStart?: all | insetInlineStart;
 
-  isolation?: isolation;
-  kerning?: kerning;
-  left?: left;
-  letterSpacing?: letterSpacing;
-  lineBreak?: lineBreak;
-  lineHeight?: lineHeight;
-  lineHeightStep?: lineHeightStep;
-  listStyle?: listStyle;
-  listStyleImage?: listStyleImage;
-  listStylePosition?: listStylePosition;
-  listStyleType?: listStyleType;
-  margin?: margin;
-  marginBlock?: marginBlock;
-  marginBlockEnd?: marginBlockEnd;
-  marginBlockStart?: marginBlockStart;
-  marginBottom?: marginBottom;
-  marginInline?: marginInline;
-  marginInlineEnd?: marginInlineEnd;
-  marginInlineStart?: marginInlineStart;
-  marginLeft?: marginLeft;
-  marginRight?: marginRight;
-  marginTop?: marginTop;
+  isolation?: all | isolation;
+  kerning?: all | kerning;
+  left?: all | left;
+  letterSpacing?: all | letterSpacing;
+  lineBreak?: all | lineBreak;
+  lineHeight?: all | lineHeight;
+  lineHeightStep?: all | lineHeightStep;
+  listStyle?: all | listStyle;
+  listStyleImage?: all | listStyleImage;
+  listStylePosition?: all | listStylePosition;
+  listStyleType?: all | listStyleType;
+  margin?: all | margin;
+  marginBlock?: all | marginBlock;
+  marginBlockEnd?: all | marginBlockEnd;
+  marginBlockStart?: all | marginBlockStart;
+  marginBottom?: all | marginBottom;
+  marginInline?: all | marginInline;
+  marginInlineEnd?: all | marginInlineEnd;
+  marginInlineStart?: all | marginInlineStart;
+  marginLeft?: all | marginLeft;
+  marginRight?: all | marginRight;
+  marginTop?: all | marginTop;
   marginTrim?:
+    | all
     | 'none'
     | 'block'
     | 'block-start'
@@ -1511,266 +1547,267 @@ export type CSSTypes = Readonly<{
     | 'inline-start'
     | 'inline-end';
 
-  marker?: marker;
-  markerEnd?: markerEnd;
-  markerMid?: markerMid;
-  markerOffset?: markerOffset;
-  markerStart?: markerStart;
-  mask?: mask;
-  maskClip?: maskClip;
-  maskComposite?: maskComposite;
-  maskImage?: maskImage;
-  maskMode?: maskMode;
-  maskOrigin?: maskOrigin;
-  maskPosition?: maskPosition;
-  maskRepeat?: maskRepeat;
-  maskSize?: maskSize;
-  maskType?: maskType;
+  marker?: all | marker;
+  markerEnd?: all | markerEnd;
+  markerMid?: all | markerMid;
+  markerOffset?: all | markerOffset;
+  markerStart?: all | markerStart;
+  mask?: all | mask;
+  maskClip?: all | maskClip;
+  maskComposite?: all | maskComposite;
+  maskImage?: all | maskImage;
+  maskMode?: all | maskMode;
+  maskOrigin?: all | maskOrigin;
+  maskPosition?: all | maskPosition;
+  maskRepeat?: all | maskRepeat;
+  maskSize?: all | maskSize;
+  maskType?: all | maskType;
 
-  maskBorder?: maskBorder;
-  maskBorderMode?: maskBorderMode;
-  maskBorderOutset?: maskBorderOutset;
-  maskBorderRepeat?: maskBorderRepeat;
-  maskBorderSlice?: maskBorderSlice;
-  maskBorderSource?: maskBorderSource;
-  maskBorderWidth?: maskBorderWidth;
+  maskBorder?: all | maskBorder;
+  maskBorderMode?: all | maskBorderMode;
+  maskBorderOutset?: all | maskBorderOutset;
+  maskBorderRepeat?: all | maskBorderRepeat;
+  maskBorderSlice?: all | maskBorderSlice;
+  maskBorderSource?: all | maskBorderSource;
+  maskBorderWidth?: all | maskBorderWidth;
 
-  maxBlockSize?: maxBlockSize;
-  maxHeight?: maxHeight;
-  maxInlineSize?: maxInlineSize;
-  maxWidth?: maxWidth;
-  minBlockSize?: minBlockSize;
-  minHeight?: minHeight;
-  minInlineSize?: minInlineSize;
-  minWidth?: minWidth;
-  mixBlendMode?: mixBlendMode;
-  motion?: motion;
-  motionOffset?: motionOffset;
-  motionPath?: motionPath;
-  motionRotation?: motionRotation;
-  MsOverflowStyle?: MsOverflowStyle;
-  objectFit?: objectFit;
-  objectPosition?: objectPosition;
+  maxBlockSize?: all | maxBlockSize;
+  maxHeight?: all | maxHeight;
+  maxInlineSize?: all | maxInlineSize;
+  maxWidth?: all | maxWidth;
+  minBlockSize?: all | minBlockSize;
+  minHeight?: all | minHeight;
+  minInlineSize?: all | minInlineSize;
+  minWidth?: all | minWidth;
+  mixBlendMode?: all | mixBlendMode;
+  motion?: all | motion;
+  motionOffset?: all | motionOffset;
+  motionPath?: all | motionPath;
+  motionRotation?: all | motionRotation;
+  MsOverflowStyle?: all | MsOverflowStyle;
+  objectFit?: all | objectFit;
+  objectPosition?: all | objectPosition;
 
-  offset?: offset;
-  offsetAnchor?: offsetAnchor;
-  offsetDistance?: offsetDistance;
-  offsetPath?: offsetPath;
-  offsetPosition?: offsetPosition;
-  offsetRotate?: offsetRotate;
+  offset?: all | offset;
+  offsetAnchor?: all | offsetAnchor;
+  offsetDistance?: all | offsetDistance;
+  offsetPath?: all | offsetPath;
+  offsetPosition?: all | offsetPosition;
+  offsetRotate?: all | offsetRotate;
 
-  opacity?: opacity;
-  order?: order;
-  orphans?: orphans;
-  outline?: outline;
-  outlineColor?: outlineColor;
-  outlineOffset?: outlineOffset;
-  outlineStyle?: outlineStyle;
-  outlineWidth?: outlineWidth;
+  opacity?: all | opacity;
+  order?: all | order;
+  orphans?: all | orphans;
+  outline?: all | outline;
+  outlineColor?: all | outlineColor;
+  outlineOffset?: all | outlineOffset;
+  outlineStyle?: all | outlineStyle;
+  outlineWidth?: all | outlineWidth;
 
-  overflow?: overflow;
-  overflowBlock?: overflowBlock;
-  overflowBlockX?: overflowBlockX;
-  overflowX?: overflowX;
-  overflowY?: overflowY;
+  overflow?: all | overflow;
+  overflowBlock?: all | overflowBlock;
+  overflowBlockX?: all | overflowBlockX;
+  overflowX?: all | overflowX;
+  overflowY?: all | overflowY;
 
-  overflowAnchor?: overflowAnchor;
-  overflowClipMargin?: overflowClipMargin;
-  overflowWrap?: overflowWrap;
+  overflowAnchor?: all | overflowAnchor;
+  overflowClipMargin?: all | overflowClipMargin;
+  overflowWrap?: all | overflowWrap;
 
-  overscrollBehavior?: overscrollBehavior;
-  overscrollBehaviorBlock?: overscrollBehaviorBlock;
-  overscrollBehaviorY?: overscrollBehaviorY;
-  overscrollBehaviorInline?: overscrollBehaviorInline;
-  overscrollBehaviorX?: overscrollBehaviorX;
+  overscrollBehavior?: all | overscrollBehavior;
+  overscrollBehaviorBlock?: all | overscrollBehaviorBlock;
+  overscrollBehaviorY?: all | overscrollBehaviorY;
+  overscrollBehaviorInline?: all | overscrollBehaviorInline;
+  overscrollBehaviorX?: all | overscrollBehaviorX;
 
-  padding?: padding;
-  paddingBlock?: paddingBlock;
-  paddingBlockEnd?: paddingBlockEnd;
-  paddingBlockStart?: paddingBlockStart;
-  paddingInline?: paddingInline;
-  paddingInlineEnd?: paddingInlineEnd;
-  paddingInlineStart?: paddingInlineStart;
-  paddingBottom?: paddingBottom;
-  paddingLeft?: paddingLeft;
-  paddingRight?: paddingRight;
-  paddingTop?: paddingTop;
+  padding?: all | padding;
+  paddingBlock?: all | paddingBlock;
+  paddingBlockEnd?: all | paddingBlockEnd;
+  paddingBlockStart?: all | paddingBlockStart;
+  paddingInline?: all | paddingInline;
+  paddingInlineEnd?: all | paddingInlineEnd;
+  paddingInlineStart?: all | paddingInlineStart;
+  paddingBottom?: all | paddingBottom;
+  paddingLeft?: all | paddingLeft;
+  paddingRight?: all | paddingRight;
+  paddingTop?: all | paddingTop;
 
-  page?: page;
-  pageBreakAfter?: pageBreakAfter;
-  pageBreakBefore?: pageBreakBefore;
-  pageBreakInside?: pageBreakInside;
-  paintOrder?: paintOrder;
+  page?: all | page;
+  pageBreakAfter?: all | pageBreakAfter;
+  pageBreakBefore?: all | pageBreakBefore;
+  pageBreakInside?: all | pageBreakInside;
+  paintOrder?: all | paintOrder;
 
-  pause?: pause;
-  pauseAfter?: pauseAfter;
-  pauseBefore?: pauseBefore;
-  perspective?: perspective;
-  perspectiveOrigin?: perspectiveOrigin;
-  pointerEvents?: pointerEvents;
+  pause?: all | pause;
+  pauseAfter?: all | pauseAfter;
+  pauseBefore?: all | pauseBefore;
+  perspective?: all | perspective;
+  perspectiveOrigin?: all | perspectiveOrigin;
+  pointerEvents?: all | pointerEvents;
 
-  position?: position;
-  positionAnchor?: positionAnchor;
-  positionArea?: positionArea;
-  positionTry?: positionTry;
-  positionTryFallbacks?: positionTryFallbacks;
-  positionTryOptions?: positionTryOptions;
-  positionVisibility?: positionVisibility;
+  position?: all | position;
+  positionAnchor?: all | positionAnchor;
+  positionArea?: all | positionArea;
+  positionTry?: all | positionTry;
+  positionTryFallbacks?: all | positionTryFallbacks;
+  positionTryOptions?: all | positionTryOptions;
+  positionVisibility?: all | positionVisibility;
 
-  quotes?: quotes;
-  resize?: resize;
-  rest?: rest;
-  restAfter?: restAfter;
-  restBefore?: restBefore;
-  right?: right;
-  rowGap?: rowGap;
+  quotes?: all | quotes;
+  resize?: all | resize;
+  rest?: all | rest;
+  restAfter?: all | restAfter;
+  restBefore?: all | restBefore;
+  right?: all | right;
+  rowGap?: all | rowGap;
 
-  rubyAlign?: rubyAlign;
-  rubyMerge?: rubyMerge;
-  rubyPosition?: rubyPosition;
+  rubyAlign?: all | rubyAlign;
+  rubyMerge?: all | rubyMerge;
+  rubyPosition?: all | rubyPosition;
 
-  mathDepth?: mathDepth;
-  mathShift?: mathShift;
-  mathStyle?: mathStyle;
+  mathDepth?: all | mathDepth;
+  mathShift?: all | mathShift;
+  mathStyle?: all | mathStyle;
 
-  scrollBehavior?: scrollBehavior;
+  scrollBehavior?: all | scrollBehavior;
 
-  scrollMargin?: scrollMargin;
-  scrollMarginTop?: scrollMarginTop;
-  scrollMarginRight?: scrollMarginRight;
-  scrollMarginBottom?: scrollMarginBottom;
-  scrollMarginLeft?: scrollMarginLeft;
-  scrollMarginBlock?: scrollMarginBlock;
-  scrollMarginBlockEnd?: scrollMarginBlockEnd;
-  scrollMarginBlockStart?: scrollMarginBlockStart;
-  scrollMarginInline?: scrollMarginInline;
-  scrollMarginInlineEnd?: scrollMarginInlineEnd;
-  scrollMarginInlineStart?: scrollMarginInlineStart;
+  scrollMargin?: all | scrollMargin;
+  scrollMarginTop?: all | scrollMarginTop;
+  scrollMarginRight?: all | scrollMarginRight;
+  scrollMarginBottom?: all | scrollMarginBottom;
+  scrollMarginLeft?: all | scrollMarginLeft;
+  scrollMarginBlock?: all | scrollMarginBlock;
+  scrollMarginBlockEnd?: all | scrollMarginBlockEnd;
+  scrollMarginBlockStart?: all | scrollMarginBlockStart;
+  scrollMarginInline?: all | scrollMarginInline;
+  scrollMarginInlineEnd?: all | scrollMarginInlineEnd;
+  scrollMarginInlineStart?: all | scrollMarginInlineStart;
 
-  scrollPadding?: scrollPadding;
-  scrollPaddingTop?: scrollPaddingTop;
-  scrollPaddingRight?: scrollPaddingRight;
-  scrollPaddingBottom?: scrollPaddingBottom;
-  scrollPaddingLeft?: scrollPaddingLeft;
-  scrollPaddingBlock?: scrollPaddingBlock;
-  scrollPaddingBlockEnd?: scrollPaddingBlockEnd;
-  scrollPaddingBlockStart?: scrollPaddingBlockStart;
-  scrollPaddingInline?: scrollPaddingInline;
-  scrollPaddingInlineEnd?: scrollPaddingInlineEnd;
-  scrollPaddingInlineStart?: scrollPaddingInlineStart;
+  scrollPadding?: all | scrollPadding;
+  scrollPaddingTop?: all | scrollPaddingTop;
+  scrollPaddingRight?: all | scrollPaddingRight;
+  scrollPaddingBottom?: all | scrollPaddingBottom;
+  scrollPaddingLeft?: all | scrollPaddingLeft;
+  scrollPaddingBlock?: all | scrollPaddingBlock;
+  scrollPaddingBlockEnd?: all | scrollPaddingBlockEnd;
+  scrollPaddingBlockStart?: all | scrollPaddingBlockStart;
+  scrollPaddingInline?: all | scrollPaddingInline;
+  scrollPaddingInlineEnd?: all | scrollPaddingInlineEnd;
+  scrollPaddingInlineStart?: all | scrollPaddingInlineStart;
 
-  scrollSnapAlign?: scrollSnapAlign;
-  scrollSnapStop?: scrollSnapStop;
-  scrollSnapType?: scrollSnapType;
+  scrollSnapAlign?: all | scrollSnapAlign;
+  scrollSnapStop?: all | scrollSnapStop;
+  scrollSnapType?: all | scrollSnapType;
 
-  scrollTimeline?: scrollTimeline;
-  scrollTimelineAxis?: scrollTimelineAxis;
-  scrollTimelineName?: scrollTimelineName;
+  scrollTimeline?: all | scrollTimeline;
+  scrollTimelineAxis?: all | scrollTimelineAxis;
+  scrollTimelineName?: all | scrollTimelineName;
 
-  scrollbarColor?: scrollbarColor;
-  scrollbarGutter?: scrollbarGutter;
-  scrollbarWidth?: scrollbarWidth;
+  scrollbarColor?: all | scrollbarColor;
+  scrollbarGutter?: all | scrollbarGutter;
+  scrollbarWidth?: all | scrollbarWidth;
 
-  shapeImageThreshold?: shapeImageThreshold;
-  shapeMargin?: shapeMargin;
-  shapeOutside?: shapeOutside;
-  shapeRendering?: shapeRendering;
-  speakAs?: speakAs;
-  src?: src;
-  start?: start;
-  stroke?: stroke;
-  strokeDasharray?: strokeDasharray;
-  strokeDashoffset?: strokeDashoffset;
-  strokeLinecap?: strokeLinecap;
-  strokeLinejoin?: strokeLinejoin;
-  strokeMiterlimit?: strokeMiterlimit;
-  strokeOpacity?: strokeOpacity;
-  strokeWidth?: strokeWidth;
-  tabSize?: tabSize;
-  tableLayout?: tableLayout;
-  textAlign?: textAlign;
-  textAlignLast?: textAlignLast;
-  textAnchor?: textAnchor;
-  textCombineUpright?: textCombineUpright;
+  shapeImageThreshold?: all | shapeImageThreshold;
+  shapeMargin?: all | shapeMargin;
+  shapeOutside?: all | shapeOutside;
+  shapeRendering?: all | shapeRendering;
+  speakAs?: all | speakAs;
+  src?: all | src;
+  start?: all | start;
+  stroke?: all | stroke;
+  strokeDasharray?: all | strokeDasharray;
+  strokeDashoffset?: all | strokeDashoffset;
+  strokeLinecap?: all | strokeLinecap;
+  strokeLinejoin?: all | strokeLinejoin;
+  strokeMiterlimit?: all | strokeMiterlimit;
+  strokeOpacity?: all | strokeOpacity;
+  strokeWidth?: all | strokeWidth;
+  tabSize?: all | tabSize;
+  tableLayout?: all | tableLayout;
+  textAlign?: all | textAlign;
+  textAlignLast?: all | textAlignLast;
+  textAnchor?: all | textAnchor;
+  textCombineUpright?: all | textCombineUpright;
 
-  textDecoration?: textDecoration;
-  textDecorationColor?: textDecorationColor;
-  textDecorationLine?: textDecorationLine;
-  textDecorationSkip?: textDecorationSkip;
-  textDecorationSkipInk?: textDecorationSkipInk;
-  textDecorationStyle?: textDecorationStyle;
-  textDecorationThickness?: textDecorationThickness;
+  textDecoration?: all | textDecoration;
+  textDecorationColor?: all | textDecorationColor;
+  textDecorationLine?: all | textDecorationLine;
+  textDecorationSkip?: all | textDecorationSkip;
+  textDecorationSkipInk?: all | textDecorationSkipInk;
+  textDecorationStyle?: all | textDecorationStyle;
+  textDecorationThickness?: all | textDecorationThickness;
 
-  textEmphasis?: textEmphasis;
-  textEmphasisColor?: textEmphasisColor;
-  textEmphasisPosition?: textEmphasisPosition;
-  textEmphasisStyle?: textEmphasisStyle;
-  textIndent?: textIndent;
+  textEmphasis?: all | textEmphasis;
+  textEmphasisColor?: all | textEmphasisColor;
+  textEmphasisPosition?: all | textEmphasisPosition;
+  textEmphasisStyle?: all | textEmphasisStyle;
+  textIndent?: all | textIndent;
   textJustify?:
+    | all
     | 'none'
     | 'auto'
     | 'inter-word'
     | 'inter-character'
     | 'distribute';
-  textOrientation?: textOrientation;
-  textOverflow?: textOverflow;
-  textRendering?: textRendering;
-  textShadow?: textShadow;
-  textSizeAdjust?: textSizeAdjust;
-  textTransform?: textTransform;
-  textUnderlineOffset?: textUnderlineOffset;
-  textUnderlinePosition?: textUnderlinePosition;
-  textWrap?: textWrap;
+  textOrientation?: all | textOrientation;
+  textOverflow?: all | textOverflow;
+  textRendering?: all | textRendering;
+  textShadow?: all | textShadow;
+  textSizeAdjust?: all | textSizeAdjust;
+  textTransform?: all | textTransform;
+  textUnderlineOffset?: all | textUnderlineOffset;
+  textUnderlinePosition?: all | textUnderlinePosition;
+  textWrap?: all | textWrap;
 
-  timelineScope?: timelineScope;
-  top?: top;
-  touchAction?: touchAction;
+  timelineScope?: all | timelineScope;
+  top?: all | top;
+  touchAction?: all | touchAction;
 
-  transform?: transform;
-  transformBox?: transformBox;
-  transformOrigin?: transformOrigin;
-  transformStyle?: transformStyle;
-  rotate?: rotate;
-  scale?: scale;
-  translate?: translate;
+  transform?: all | transform;
+  transformBox?: all | transformBox;
+  transformOrigin?: all | transformOrigin;
+  transformStyle?: all | transformStyle;
+  rotate?: all | rotate;
+  scale?: all | scale;
+  translate?: all | translate;
 
-  transition?: transition;
-  transitionDelay?: transitionDelay;
-  transitionDuration?: transitionDuration;
-  transitionProperty?: transitionProperty;
-  transitionTimingFunction?: transitionTimingFunction;
-  unicodeBidi?: unicodeBidi;
-  unicodeRange?: unicodeRange;
-  userSelect?: userSelect;
-  verticalAlign?: verticalAlign;
+  transition?: all | transition;
+  transitionDelay?: all | transitionDelay;
+  transitionDuration?: all | transitionDuration;
+  transitionProperty?: all | transitionProperty;
+  transitionTimingFunction?: all | transitionTimingFunction;
+  unicodeBidi?: all | unicodeBidi;
+  unicodeRange?: all | unicodeRange;
+  userSelect?: all | userSelect;
+  verticalAlign?: all | verticalAlign;
 
-  viewTimeline?: viewTimeline;
-  viewTimelineAxis?: viewTimelineAxis;
-  viewTimelineName?: viewTimelineName;
-  viewTimelineInset?: viewTimelineInset;
+  viewTimeline?: all | viewTimeline;
+  viewTimelineAxis?: all | viewTimelineAxis;
+  viewTimelineName?: all | viewTimelineName;
+  viewTimelineInset?: all | viewTimelineInset;
 
-  viewTransitionName?: viewTransitionName;
+  viewTransitionName?: all | viewTransitionName;
 
-  visibility?: visibility;
-  voiceBalance?: voiceBalance;
-  voiceDuration?: voiceDuration;
-  voiceFamily?: voiceFamily;
-  voicePitch?: voicePitch;
-  voiceRange?: voiceRange;
-  voiceRate?: voiceRate;
-  voiceStress?: voiceStress;
-  voiceVolume?: voiceVolume;
-  whiteSpace?: whiteSpace;
-  whiteSpaceCollapse?: whiteSpaceCollapse;
+  visibility?: all | visibility;
+  voiceBalance?: all | voiceBalance;
+  voiceDuration?: all | voiceDuration;
+  voiceFamily?: all | voiceFamily;
+  voicePitch?: all | voicePitch;
+  voiceRange?: all | voiceRange;
+  voiceRate?: all | voiceRate;
+  voiceStress?: all | voiceStress;
+  voiceVolume?: all | voiceVolume;
+  whiteSpace?: all | whiteSpace;
+  whiteSpaceCollapse?: all | whiteSpaceCollapse;
 
-  widows?: widows;
-  width?: width;
-  willChange?: willChange;
-  wordBreak?: wordBreak;
-  wordSpacing?: wordSpacing;
-  wordWrap?: wordWrap;
-  writingMode?: writingMode;
-  zIndex?: zIndex;
+  widows?: all | widows;
+  width?: all | width;
+  willChange?: all | willChange;
+  wordBreak?: all | wordBreak;
+  wordSpacing?: all | wordSpacing;
+  wordWrap?: all | wordWrap;
+  writingMode?: all | writingMode;
+  zIndex?: all | zIndex;
 
-  zoom?: zoom;
+  zoom?: all | zoom;
 }>;
