@@ -1,13 +1,13 @@
 # @plumeria/core
 
-![License](https://img.shields.io/badge/License-MIT-10B981?logo=opensourceinitiative&logoColor=black)
-![npm](https://img.shields.io/npm/v/@plumeria/core?logo=npm&logoColor=white&color=6366F1)
+![License](https://img.shields.io/badge/License-MIT-10B981)
+![npm](https://img.shields.io/npm/v/@plumeria/core?&color=6366F1)
 
-![Web](https://img.shields.io/badge/Web-0B-10B981?logo=googlechrome&logoColor=white)
-![Runtime](https://img.shields.io/badge/Runtime-none-10B981?logo=rocket&logoColor=white)
-![Types](https://img.shields.io/badge/Types-100%25-6366F1?logo=typescript&logoColor=white)
+![Web](https://img.shields.io/badge/Web-0B-10B981?logo=npm&logoColor=white)
+![Runtime](https://img.shields.io/badge/Runtime-none-10B981?logo=npm&logoColor=white)
+![Types](https://img.shields.io/badge/Types-only-6366F1?logo=npm&&logoColor=white)
 
-**Plumeria** is a library for developing styled React components for the web. It is a compiler with typed syntax and linting support. The goal of Plumeria is to reduce the load on developers.
+**Plumeria** is a Zero-Runtime CSS-in-JS library for building styled React components for the web. It is a compiler with typed syntax and strict linting. The goal of Plumeria is to reduce the cognitive overhead for engineers.
 
 ## Documentation
 
