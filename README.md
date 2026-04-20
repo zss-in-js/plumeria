@@ -3,7 +3,7 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/zss-in-js/plumeria/tests.yml?logo=github&logoColor=white&label=tests&color=10B981)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml)
 ![Codecov](https://img.shields.io/codecov/c/github/zss-in-js/plumeria?logo=codecov&logoColor=white&color=6366F1)
 
-**Plumeria** is a library for developing styled React components for the web. It is a compiler with typed syntax and linting support. The goal of Plumeria is to reduce the load on developers.
+**Plumeria** is a Zero-Runtime CSS-in-JS library for building styled React components for the web. It is a compiler with typed syntax and strict linting. The goal of Plumeria is to reduce the cognitive overhead for engineers.
 
 ![demo](./docs/demo.gif)
 
