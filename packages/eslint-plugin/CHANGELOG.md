@@ -1,3 +1,9 @@
+## 10.3.2
+
+### Patch Changes
+
+- fc6207f: Bump version to 10.3.2
+
 ## 10.3.1
 
 ### Patch Changes
