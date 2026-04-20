@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 10.3.2
+
+### Patch Changes
+
+- f0dec6a: Bump version to 10.3.2
+- Updated dependencies [f0dec6a]
+  - @plumeria/utils@10.3.2
+
 ## 10.3.1
 
 ### Patch Changes

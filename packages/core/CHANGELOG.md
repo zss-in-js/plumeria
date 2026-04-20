@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.3.2
+
+### Patch Changes
+
+- f0dec6a: Update readme badge
+
 ## 10.3.1
 
 ### Patch Changes
