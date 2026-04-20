@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.3.3
+
+### Patch Changes
+
+- afaabb2: Update readme badege and pacakge.json keyword
+
 ## 10.3.2
 
 ### Patch Changes
