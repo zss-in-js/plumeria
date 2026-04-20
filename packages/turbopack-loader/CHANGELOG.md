@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 10.3.1
+
+### Patch Changes
+
+- b29e9ce: Bump version to 10.3.1
+- Updated dependencies [b29e9ce]
+  - @plumeria/utils@10.3.1
+
 ## 10.3.0
 
 ### Minor Changes
