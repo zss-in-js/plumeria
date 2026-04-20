@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.3.1
+
+### Patch Changes
+
+- b29e9ce: Add keywords stylex
+
 ## 10.3.0
 
 ### Minor Changes
