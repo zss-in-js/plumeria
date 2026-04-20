@@ -1,6 +1,6 @@
 # @plumeria/core
 
-![License](https://img.shields.io/badge/License-MIT-10B981?logo=opensourceinitiative&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-10B981?logo=opensourceinitiative&logoColor=black)
 ![npm](https://img.shields.io/npm/v/@plumeria/core?logo=npm&logoColor=white&color=6366F1)
 
 ![Web](https://img.shields.io/badge/Web-0B-10B981?logo=googlechrome&logoColor=white)
