@@ -19,7 +19,8 @@
     "css-in-js",
     "plumeria",
     "react",
-    "atomic-css"
+    "atomic-css",
+    "stylex"
   ],
   "sideEffects": false,
   "type": "module",
