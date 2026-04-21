@@ -1,0 +1,28 @@
+---
+title: 'Plumeria 10.3.0'
+description: 'A complete overhaul of our CSS type definitions, restoring accurate primitive types and global value autocomplete.'
+date: '2026-04-18'
+---
+
+We have completely overhauled our CSS property type definitions on two fronts: restoring accurate primitive types that reflect the true shape of `CSSProperties`, and improving autocomplete through `strictString` and global values.
+
+```ts
+type strictString = string & {};
+```
+
+## Migration
+No migration required. All changes are backwards-compatible.
+
+## Summary of Changes
+- [x] Eliminated all `never` types from `csstypes.d.ts` (restored accurate primitive types).
+- [x] Added global values (excluding `revert` and `revert-layer`) to all properties.
+- [x] Implemented `strictString` for an ideal balance between flexibility and developer experience.
+
+Plumeria's type definitions, built on StyleX, now serve as both accurate documentation and a practical, flexible API.
+
+## Others
+- Updated the document's introduction
+
+---
+
+Feedback [Discussion](https://github.com/zss-in-js/plumeria/discussions) and bug [Issues](https://github.com/zss-in-js/plumeria/issues) reports are welcome on [GitHub](https://github.com/zss-in-js/plumeria)
