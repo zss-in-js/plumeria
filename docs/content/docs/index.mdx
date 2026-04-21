@@ -33,57 +33,18 @@ By treating styles as **type schemas** instead of runtime objects:
 - Tree-shaking removes all framework code
 - Only atomic class names and optimized CSS remain in production
 
-## Plumeria Mindset
-This page is designed with the mental models of people who interact with CSS frameworks in mind. Discarding a library is like searching for a new mental model.
-Choosing based on ease of writing, prioritizing the final product, or choosing the stability of manual construction.
-Many people simply accept their past experiences and ignore underlying concerns while engineering.
-I hope that this book, as a document, can help resolve any mental model cases that match your own.
-
-## Abstracting Psychological Costs
-I believe the problem with CSS frameworks lies in their reliability and transparency.
-When actually building a UI, it's sometimes difficult to know how many kilobytes it will take up.
-
-Software, like a building, must always be designed with its lifespan in mind.
-
-- Psychological burden of postponing class conflict issues
-- Psychological burden of continuously writing black boxes
-- Psychological burden of constantly considering when to remove them
-- Psychological burden of the potential for significant time consumption in the end
-- Engineering burden of performance considerations
-- Psychological burden of display issues not manifesting as errors
-
-These are always present, even when building CSS.
-If you're not accustomed to engineering, these psychological costs can be greater than expected.
-
-However, Zero-Runtime CSS libraries significantly reduce this problem.
-This is because the costs mentioned above are controllable.
-
 ## The Concept of Zero-Runtime
 A library that is entirely Zero-Runtime doesn't truly exist.
 Even pure CSS will experience a slight increase in compilation time due to the bundler's build pipeline.
 
 Zero-Runtime CSS-in-JS adds processing time for parsing and conversion. However, understanding and acknowledging these factors is often the basis for the concept of Zero-Runtime, which signifies that no runtime remains in the execution environment.
 
-**Hard validation and code formatting of CSS values by linters:**
-
-The target of writing is no longer a black box; sorting and values are automatically enforced.
-As an engineering principle, it acts as a safety net, detecting and automatically correcting errors before they occur.
-As a result, a psychologically and code-wise clean state is maintained.
-This is because CSS-in-JS, by its very nature, directly benefits from TypeScript and JavaScript.
-
-**Challenges solved by build tools:**
-
-Written style definitions are compiled into CSS and then erased through the build pipeline.
-This provides peace of mind, as nothing is written remains, and the output is even smaller than the definition itself.
-As a result, the psychological state during styling is kept clean by the architecture.
-Plumeria was designed to control these invisible burdens.
-
 ## Usage
 Use `css.create()` to define an object as a style.
 At this point, the atomic hash is determined, and all that remains is to receive it via **styleName**.
 
 ```tsx
-import * as css from ‘@plumeria/core’;
+import * as css from "@plumeria/core";
 
 const styles = css.create({
   text: {
@@ -111,9 +72,6 @@ styleName={styles.common}
 
 Except in special cases such as those involving a vast number of styles, collocation is recommended.
 
-
-
-
 **Conditional Expressions, Ternary Operators, and Specificity Rules:**  
 `styleName` prop accepts ternary operators and conditional expressions, and the style properties on the right side of the array always take precedence.
 For example, if `isActive` is true, the `color` of `active` will override the `color` of `base`.
@@ -121,5 +79,46 @@ For example, if `isActive` is true, the `color` of `active` will override the `c
 styleName={[styles.base, isActive && styles.active]}
 ```
 The cascade specificity problem is completely resolved by the compiler-controlled merging.
+
+## Plumeria Mindset
+This page is designed with the mental models of people who interact with CSS frameworks in mind. Discarding a library is like searching for a new mental model.
+Choosing based on ease of writing, prioritizing the final product, or choosing the stability of manual construction.
+Many people simply accept their past experiences and ignore underlying concerns while engineering.
+I hope that this book, as a document, can help resolve any mental model cases that match your own.
+
+## Abstracting Psychological Costs
+I believe the problem with CSS frameworks lies in their reliability and transparency.
+When actually building a UI, it's sometimes difficult to know how many kilobytes it will take up.
+
+Software, like a building, must always be designed with its lifespan in mind.
+
+- Psychological burden of postponing class conflict issues
+- Psychological burden of continuously writing black boxes
+- Psychological burden of constantly considering when to remove them
+- Psychological burden of the potential for significant time consumption in the end
+- Engineering burden of performance considerations
+- Psychological burden of display issues not manifesting as errors
+
+These are always present, even when building CSS.
+If you're not accustomed to engineering, these psychological costs can be greater than expected.
+
+However, Zero-Runtime CSS libraries significantly reduce this problem.
+This is because the costs mentioned above are controllable.
+
+
+**Hard validation and code formatting of CSS values by linters:**
+
+The target of writing is no longer a black box; sorting and values are automatically enforced.
+As an engineering principle, it acts as a safety net, detecting and automatically correcting errors before they occur.
+As a result, a psychologically and code-wise clean state is maintained.
+This is because CSS-in-JS, by its very nature, directly benefits from TypeScript and JavaScript.
+
+**Challenges solved by build tools:**
+
+Written style definitions are compiled into CSS and then erased through the build pipeline.
+This provides peace of mind, as nothing is written remains, and the output is even smaller than the definition itself.
+As a result, the psychological state during styling is kept clean by the architecture.
+Plumeria was designed to control these invisible burdens.
+
 
 For details on integration with other APIs and bundlers, please refer to the [API reference](/docs/api-reference)・[Installation](/docs/getting-started/installation).
