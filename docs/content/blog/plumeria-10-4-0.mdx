@@ -1,0 +1,50 @@
+---
+title: 'Plumeria 10.4.0'
+description: 'ESLint Plugin Enhancements: Validation of Invalid Primitive Values and Support for 15 New Properties.'
+date: '2026-04-23'
+---
+This update significantly enhances the validation capabilities of the ESLint plugin. It includes improved detection of inappropriate primitive values, stricter numerical validation, and expanded support for CSS properties.
+
+## Key Changes
+
+### ESLint Plugin Validation Enhancements
+
+Improvements have been made to prevent unintended types from being passed to CSS properties.
+
+- **Blocking Inappropriate Primitive Values**: Boolean values such as `true`, `false`, and `null`, as well as null values, can now be detected as warnings when passed as CSS values.
+
+- **Improved Numerical Validation**: Validation has been tightened for CSS properties that do not allow numbers (e.g., `display` and `position`).
+
+### Expanded Supported Properties
+
+15 new CSS properties have been added to the validation list. This allows for real-time feedback during development across a wider range of properties.
+
+1. `colorInterpolation`: Interpolation space for gradients and filters
+2. `colorInterpolationFilters`: Interpolation space for filter effects
+3. `dominantBaseline`: Baseline control for SVG text
+4. `fill`: SVG fill (keyword and color validation)
+5. `fillOpacity`: SVG fill opacity (numerical check supported)
+6. `fillRule`: SVG fill rules
+7. `forcedColorAdjust`: Control of high contrast mode, etc.
+8. `contentVisibility`: Optimization of rendering cycle (auto/hidden/visible)
+9. `containerType`: Definition of container query type
+10. `shapeMargin`: Margin around shape (length check supported)
+11. `textSizeAdjust`: Control of automatic text size adjustment
+12. `vectorEffect`: SVG Scaling effects (non-scaling-stroke, etc.)
+13. `baselineShift`: Baseline shift for superscript, subscript, etc.
+14. `mathDepth`: Depth control for formula mode (with numerical check support)
+15. `mathStyle`: Style control for formula mode
+
+## Migration Guide
+
+There is no impact on existing code (no breaking changes).  
+The new validation rules will be applied immediately by updating the ESLint plugin to the latest version.
+
+## Other
+
+- Refactoring of type definitions in `csstypes.d.ts` further improves type safety.
+- Streamlining of internal validation logic and expansion of automated tests.
+
+---
+
+Please submit feedback to [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) and bug reports to [Issues](https://github.com/zss-in-js/plumeria/issues).
