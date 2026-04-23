@@ -1,3 +1,9 @@
+## 10.4.0
+
+### Minor Changes
+
+- a8b1341: Add 15 css properties in validate-values.ts
+
 ## 10.3.3
 
 ### Patch Changes
