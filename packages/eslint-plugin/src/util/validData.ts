@@ -102,6 +102,20 @@ const validData: { [key: string]: readonly string[] } = {
     'stretch',
     // ...overflowAlignment,
   ], // 3
+  alignmentBaseline: [
+    'auto',
+    'baseline',
+    'before-edge',
+    'text-before-edge',
+    'middle',
+    'central',
+    'after-edge',
+    'text-after-edge',
+    'ideographic',
+    'alphabetic',
+    'hanging',
+    'mathematical',
+  ], // 4
 
   alignItems: [
     'normal',
@@ -126,7 +140,7 @@ const validData: { [key: string]: readonly string[] } = {
     // 'unsafe self-start',
     // 'unsafe self-end',
     // 'unsafe anchor-center',
-  ], // 4
+  ], // 5
   alignSelf: [
     'auto',
     'normal',
@@ -151,28 +165,29 @@ const validData: { [key: string]: readonly string[] } = {
     // 'unsafe self-start',
     // 'unsafe self-end',
     // 'unsafe anchor-center',
-  ], // 5
-  animationDelay: [], // <times># // 6
-  animationDirection: [], // Single animation# // 7
-  animationDuration: ['auto'], // auto, <times># // 8
-  animationFillMode: [], // Single animation# // 9
-  animationIterationCount: [], // <number|infinite># // 10
-  animationName: ['none', 'slide', 'bounce'], // <custom-indent> | <string># // 11
-  animationPlayState: [], // paused running # // 12
-  animationTimingFunction: [], // <easing keyword | cubic-bezier() | linear() | steps()># // 13
-  aspectRatio: ['auto'], // 14
+  ], // 6
+  animationDelay: [], // <times>#, // 7
+  animationDirection: [], // Single animation#, // 8
+  animationDuration: ['auto'], // auto, <times>#, // 9
+  animationFillMode: [], // Single animation#, // 10
+  animationIterationCount: [], // <number|infinite>#, // 11
+  animationName: ['none', 'slide', 'bounce'], // <custom-indent> | <string>#, // 12
+  animationPlayState: [], // paused running #, // 13
+  animationTimingFunction: [], // <easing keyword | cubic-bezier() | linear() | steps()>#, // 14
+  aspectRatio: ['auto'], // 15
 
-  backdropFilter: ['none'], // 15
-  backfaceVisibility: ['visible', 'hidden'], // 16
-  background: ['none'], // 17
-  backgroundAttachment: [], // 18
-  backgroundBlendMode: [], // <brend-mode># // 19
-  backgroundClip: ['text', 'border-area'], // 20
-  backgroundImage: ['none'], // 21
-  backgroundOrigin: [], // 22
-  backgroundPosition: [], // 23
-  backgroundPositionX: [], // 24
-  backgroundPositionY: [], // 25
+  backdropFilter: ['none'], // 16
+  baselineShift: ['baseline', 'sub', 'super'], // 17
+  backfaceVisibility: ['visible', 'hidden'], // 18
+  background: ['none'], // 19
+  backgroundAttachment: [], // 20
+  backgroundBlendMode: [], // <brend-mode>#, // 21
+  backgroundClip: ['text', 'border-area'], // 22
+  backgroundImage: ['none'], // 23
+  backgroundOrigin: [], // 24
+  backgroundPosition: [], // 25
+  backgroundPositionX: [], // 26
+  backgroundPositionY: [], // 27
   backgroundRepeat: [
     'repeat',
     'repeat-x',
@@ -196,134 +211,134 @@ const validData: { [key: string]: readonly string[] } = {
     // 'round no-repeat',
     // 'round space',
     // 'round round',
-  ], // 26
-  backgroundSize: ['auto', 'cover', 'contain'], // 27
-  blockSize: ['auto', ...lengthSubValues], // 28
-  boxDecorationBreak: ['slice', 'clone'], // 29
-  boxShadow: [], // 30
-  boxSizing: ['content-box', 'border-box'], // 31
-  breakAfter: [...breakBeforeAfterValues], // 32
-  breakBefore: [...breakBeforeAfterValues], // 33
-  breakInside: ['auto', 'avoid', 'avoid-page', 'avoid-column', 'avoid-region'], // 34
+  ], // 28
+  backgroundSize: ['auto', 'cover', 'contain'], // 29
+  blockSize: ['auto', ...lengthSubValues], // 30
+  boxDecorationBreak: ['slice', 'clone'], // 31
+  boxShadow: [], // 32
+  boxSizing: ['content-box', 'border-box'], // 33
+  breakAfter: [...breakBeforeAfterValues], // 34
+  breakBefore: [...breakBeforeAfterValues], // 35
+  breakInside: ['auto', 'avoid', 'avoid-page', 'avoid-column', 'avoid-region'], // 36
   // single value
-  top: ['auto'], // 35
-  right: ['auto'], // 36
-  bottom: ['auto'], // 37
-  left: ['auto'], // 38
-  marginTop: ['auto'], // 39
-  marginRight: ['auto'], // 40
-  marginBottom: ['auto'], // 41
-  marginLeft: ['auto'], // 42
-  paddingTop: [], // 43
-  paddingRight: [], // 44
-  paddingBottom: [], // 45
-  paddingLeft: [], // 46
-  borderTopWidth: [...widthKeywords], // 47
-  borderBottomWidth: [...widthKeywords], //48
-  borderLeftWidth: [...widthKeywords], // 49
-  borderRightWidth: [...widthKeywords], // 50
-  borderTopStyle: ['none', ...lineStyle], // 51
-  borderBottomStyle: ['none', ...lineStyle], // 52
-  borderLeftStyle: ['none', ...lineStyle], // 53
-  borderRightStyle: ['none', ...lineStyle], // 54
-  borderBlockStyle: [...lineStyle], // 55
-  borderBlockStartStyle: [...lineStyle], // 56
-  borderBlockEndStyle: [...lineStyle], // 57
-  borderBlockStartWidth: [...widthKeywords], // 58
-  borderBlockEndWidth: [...widthKeywords], // 59
-  borderInlineStyle: [...lineStyle], // 60
-  borderInlineStartStyle: [...lineStyle], // 61
-  borderInlineEndStyle: [...lineStyle], // 62
-  borderInlineStartWidth: [...widthKeywords], // 63
-  borderInlineEndWidth: [...widthKeywords], // 64
-  borderCollapse: ['collapse', 'separate'], // 65
-  borderImageSource: ['none'], // 66
-  lineHeight: ['normal'], // 67
-  letterSpacing: ['normal'], // 68
-  wordSpacing: ['normal'], //69
-  opacity: [], // 70
-  zIndex: ['auto'], // 71
-  fontSize: [...fontSizeSubValues], // 72
-  fontWeight: ['normal', 'bold', 'lighter', 'bolder'], // 73
+  top: ['auto'], // 37
+  right: ['auto'], // 38
+  bottom: ['auto'], // 39
+  left: ['auto'], // 40
+  marginTop: ['auto'], // 41
+  marginRight: ['auto'], // 42
+  marginBottom: ['auto'], // 43
+  marginLeft: ['auto'], // 44
+  paddingTop: [], // 45
+  paddingRight: [], // 46
+  paddingBottom: [], // 47
+  paddingLeft: [], // 48
+  borderTopWidth: [...widthKeywords], // 49
+  borderBottomWidth: [...widthKeywords], //48, // 50
+  borderLeftWidth: [...widthKeywords], // 51
+  borderRightWidth: [...widthKeywords], // 52
+  borderTopStyle: ['none', ...lineStyle], // 53
+  borderBottomStyle: ['none', ...lineStyle], // 54
+  borderLeftStyle: ['none', ...lineStyle], // 55
+  borderRightStyle: ['none', ...lineStyle], // 56
+  borderBlockStyle: [...lineStyle], // 57
+  borderBlockStartStyle: [...lineStyle], // 58
+  borderBlockEndStyle: [...lineStyle], // 59
+  borderBlockStartWidth: [...widthKeywords], // 60
+  borderBlockEndWidth: [...widthKeywords], // 61
+  borderInlineStyle: [...lineStyle], // 62
+  borderInlineStartStyle: [...lineStyle], // 63
+  borderInlineEndStyle: [...lineStyle], // 64
+  borderInlineStartWidth: [...widthKeywords], // 65
+  borderInlineEndWidth: [...widthKeywords], // 66
+  borderCollapse: ['collapse', 'separate'], // 67
+  borderImageSource: ['none'], // 68
+  lineHeight: ['normal'], // 69
+  letterSpacing: ['normal'], // 70
+  wordSpacing: ['normal'], //69, // 71
+  opacity: [], // 72
+  zIndex: ['auto'], // 73
+  fontSize: [...fontSizeSubValues], // 74
+  fontWeight: ['normal', 'bold', 'lighter', 'bolder'], // 75
 
   // length value
-  maxWidth: ['none', 'stretch', ...lengthSubValues], // 74
-  maxHeight: ['none', 'stretch', ...lengthSubValues], // 75
-  minWidth: ['none', 'stretch', ...lengthSubValues], // 76
-  minHeight: ['none', 'stretch', ...lengthSubValues], // 77
-  width: ['auto', 'stretch', ...lengthSubValues], // 78
-  height: ['auto', 'stretch', ...lengthSubValues], // 79
-  flexBasis: ['auto', 'content', ...lengthSubValues], // 80
+  maxWidth: ['none', 'stretch', ...lengthSubValues], // 76
+  maxHeight: ['none', 'stretch', ...lengthSubValues], // 77
+  minWidth: ['none', 'stretch', ...lengthSubValues], // 78
+  minHeight: ['none', 'stretch', ...lengthSubValues], // 79
+  width: ['auto', 'stretch', ...lengthSubValues], // 80
+  height: ['auto', 'stretch', ...lengthSubValues], // 81
+  flexBasis: ['auto', 'content', ...lengthSubValues], // 82
 
   // multiple value
-  gap: [], // 81
-  inset: ['auto'], // 82
-  margin: ['auto'], // 83
-  padding: [], // 84
-  border: [...widthKeywords, ...lineStyle], // 85
-  borderTop: [...widthKeywords, ...lineStyle], // 86
-  borderBottom: [...widthKeywords, ...lineStyle], // 87
-  borderLeft: [...widthKeywords, ...lineStyle], // 88
-  borderRight: [...widthKeywords, ...lineStyle], // 89
-  borderBlock: [...widthKeywords, ...lineStyle], // 90
-  borderBlockStart: [...widthKeywords, ...lineStyle], // 91
-  borderBlockEnd: [...widthKeywords, ...lineStyle], // 92
-  borderInline: [...widthKeywords, ...lineStyle], // 93
-  borderInlineStart: [...widthKeywords, ...lineStyle], // 94
-  borderInlineEnd: [...widthKeywords, ...lineStyle], // 95
-  borderWidth: [...widthKeywords], // 96
-  borderBlockWidth: [...widthKeywords], // 97
-  borderInlineWidth: [...widthKeywords], // 98
-  borderStyle: [...lineStyle], // 99
-  borderSpacing: [], // 100
-  borderEndEndRadius: [], // 101
-  borderEndStartRadius: [], // 102
-  borderStartEndRadius: [], // 103
-  borderStartStartRadius: [], // 104
-  borderTopLeftRadius: [], // 105
-  borderTopRightRadius: [], // 106
-  borderBottomLeftRadius: [], // 107
-  borderBottomRightRadius: [], // 108
-  borderImageWidth: ['auto'], // 109
+  gap: [], // 83
+  inset: ['auto'], // 84
+  margin: ['auto'], // 85
+  padding: [], // 86
+  border: [...widthKeywords, ...lineStyle], // 87
+  borderTop: [...widthKeywords, ...lineStyle], // 88
+  borderBottom: [...widthKeywords, ...lineStyle], // 89
+  borderLeft: [...widthKeywords, ...lineStyle], // 90
+  borderRight: [...widthKeywords, ...lineStyle], // 91
+  borderBlock: [...widthKeywords, ...lineStyle], // 92
+  borderBlockStart: [...widthKeywords, ...lineStyle], // 93
+  borderBlockEnd: [...widthKeywords, ...lineStyle], // 94
+  borderInline: [...widthKeywords, ...lineStyle], // 95
+  borderInlineStart: [...widthKeywords, ...lineStyle], // 96
+  borderInlineEnd: [...widthKeywords, ...lineStyle], // 97
+  borderWidth: [...widthKeywords], // 98
+  borderBlockWidth: [...widthKeywords], // 99
+  borderInlineWidth: [...widthKeywords], // 100
+  borderStyle: [...lineStyle], // 101
+  borderSpacing: [], // 102
+  borderEndEndRadius: [], // 103
+  borderEndStartRadius: [], // 104
+  borderStartEndRadius: [], // 105
+  borderStartStartRadius: [], // 106
+  borderTopLeftRadius: [], // 107
+  borderTopRightRadius: [], // 108
+  borderBottomLeftRadius: [], // 109
+  borderBottomRightRadius: [], // 110
+  borderImageWidth: ['auto'], // 111
   // borderRadius
-  borderRadius: [], // 110
+  borderRadius: [], // 112
 
   // borderImage
-  borderImage: ['none'], // 111
+  borderImage: ['none'], // 113
 
   // borderImageSlice
-  borderImageSlice: ['fill'], // 112
+  borderImageSlice: ['fill'], // 114
 
   // borderImageSlice
-  borderImageRepeat: [], // 113
+  borderImageRepeat: [], // 115
 
   // borderImageOutset
-  borderImageOutset: [], // 114
+  borderImageOutset: [], // 116
 
   // singleColor
-  accentColor: ['auto'], // 115
-  color: [], // 116
-  borderLeftColor: [], // 117
-  borderRightColor: [], // 118
-  borderTopColor: [], // 119
-  borderBottomColor: [], // 120
-  borderBlockColor: [], // 121
-  borderBlockStartColor: [], // 122
-  borderBlockEndColor: [], // 123
-  borderInlineColor: [], // 124
-  borderInlineStartColor: [], // 125
-  borderInlineEndColor: [], // 126
-  backgroundColor: [], // 127
-  outlineColor: [], // 128
-  textDecorationColor: [], // 129
-  caretColor: ['auto'], // 130
-  columnRuleColor: [], // 131
+  accentColor: ['auto'], // 117
+  color: [], // 118
+  borderLeftColor: [], // 119
+  borderRightColor: [], // 120
+  borderTopColor: [], // 121
+  borderBottomColor: [], // 122
+  borderBlockColor: [], // 123
+  borderBlockStartColor: [], // 124
+  borderBlockEndColor: [], // 125
+  borderInlineColor: [], // 126
+  borderInlineStartColor: [], // 127
+  borderInlineEndColor: [], // 128
+  backgroundColor: [], // 129
+  outlineColor: [], // 130
+  textDecorationColor: [], // 131
+  caretColor: ['auto'], // 132
+  columnRuleColor: [], // 133
 
   // borderColor
-  borderColor: [], // 4 value // 132
+  borderColor: [], // 4 value, // 134
 
   // AB is done. next Alphabet C continue
-  captionSide: ['top', 'bottom'], // 133
+  captionSide: ['top', 'bottom'], // 135
   // caretColor: ['auto'] // in the single color group
   clear: [
     'inline-start',
@@ -338,19 +353,23 @@ const validData: { [key: string]: readonly string[] } = {
     'both-block',
     'both',
     'none',
-  ], // 134
-  clipPath: [], // 135
-  clipRule: ['nonzero', 'evenodd'], // 136
-  colorScheme: ['normal', 'dark', 'light'], // 137
-  columnCount: ['auto'], // 138
-  columnFill: ['auto', 'balance'], // 139
-  columnGap: [], // 140
-  columnRule: [], // 141 // use border function
-  columnRuleStyle: [...lineStyle], // 142
-  columnRuleWidth: [], // 143
-  columnSpan: ['none', 'all'], // 144
-  columnWidth: ['auto', 'max-content', 'min-content'], // 145
-  columns: [], // 146
+  ], // 136
+  clipPath: [], // 137
+  clipRule: ['nonzero', 'evenodd'], // 138
+  colorInterpolation: ['auto', 'sRGB', 'linearRGB'], // 139
+  colorInterpolationFilters: ['auto', 'sRGB', 'linearRGB'], // 140
+  colorScheme: ['normal', 'dark', 'light'], // 141
+  columnCount: ['auto'], // 142
+  columnFill: ['auto', 'balance'], // 143
+  columnGap: [], // 144
+  columnRule: [], // 141 // use border function, // 145
+  columnRuleStyle: [...lineStyle], // 146
+  columnRuleWidth: [], // 147
+  columnSpan: ['none', 'all'], // 148
+  columnWidth: ['auto', 'max-content', 'min-content'], // 149
+  columns: [], // 150
+  contain: ['none', 'strict', 'content'], // 151
+  containerType: ['size', 'inline-size', 'normal'], // 152
   content: [
     'open-quote',
     'close-quote',
@@ -358,13 +377,15 @@ const validData: { [key: string]: readonly string[] } = {
     'no-close-quote',
     'normal',
     'none',
-  ], // 147
-  counterIncrement: ['none'], // 148
-  counterReset: ['none'], // 149
-  counterSet: ['none'], // 150
-  cursor: ['auto'], // 151
+  ], // 153
+  contentVisibility: ['visible', 'hidden', 'auto'], // 154
+  counterIncrement: ['none'], // 155
+  counterReset: ['none'], // 156
+  counterSet: ['none'], // 157
+  cursor: ['auto'], // 158
 
-  position: ['static', 'relative', 'absolute', 'fixed', 'sticky'], // 152
+  direction: ['ltr', 'rtl'], // 159
+  position: ['static', 'relative', 'absolute', 'fixed', 'sticky'], // 160
   display: [
     // <display-outside> =
     'block',
@@ -437,11 +458,28 @@ const validData: { [key: string]: readonly string[] } = {
     'inline-flex',
     'inline-grid',
     'inline-list-item',
-  ], // 153
-  emptyCells: ['show', 'hide'], // 154
-  filter: ['none'], // 155
-  flex: ['none'], // 156
-  flexDirection: ['row', 'row-reverse', 'column', 'column-reverse'], // 157
+  ], // 161
+  dominantBaseline: [
+    'auto',
+    'use-script',
+    'no-change',
+    'reset-size',
+    'ideographic',
+    'alphabetic',
+    'hanging',
+    'mathematical',
+    'central',
+    'middle',
+    'text-after-edge',
+    'text-before-edge',
+  ], // 162
+  emptyCells: ['show', 'hide'], // 163
+  fill: ['none', 'currentColor'], // 164
+  fillOpacity: [], // 165
+  fillRule: ['nonzero', 'evenodd'], // 166
+  filter: ['none'], // 167
+  flex: ['none'], // 168
+  flexDirection: ['row', 'row-reverse', 'column', 'column-reverse'], // 169
   flexFlow: [
     // <'flex-direction'>
     'row',
@@ -467,19 +505,20 @@ const validData: { [key: string]: readonly string[] } = {
     // 'column-reverse nowrap',
     // 'column-reverse wrap',
     // 'column-reverse wrap-reverse',
-  ], // 158
-  flexGrow: [], // 159
-  flexShrink: [], // 160
-  flexWrap: ['nowrap', 'wrap', 'wrap-reverse'], // 161
-  float: ['inline-start', 'inline-end', 'left', 'none', 'right'], // 162
-  font: ['none'], // 163
-  fontFamily: [], // 164
-  fontFeatureSettings: [], // 165
-  fontKerning: ['auto', 'normal', 'none'], // 166
-  fontLanguageOverride: ['normal'], // 167
-  fontOpticalSizing: ['auto', 'none'], // 168
-  fontPalette: ['normal', 'light', 'dark'], // 169
-  fontSizeAdjust: ['none'], // 170
+  ], // 170
+  flexGrow: [], // 171
+  flexShrink: [], // 172
+  flexWrap: ['nowrap', 'wrap', 'wrap-reverse'], // 173
+  float: ['inline-start', 'inline-end', 'left', 'none', 'right'], // 174
+  font: ['none'], // 175
+  forcedColorAdjust: ['auto', 'none'], // 176
+  fontFamily: [], // 177
+  fontFeatureSettings: [], // 178
+  fontKerning: ['auto', 'normal', 'none'], // 179
+  fontLanguageOverride: ['normal'], // 180
+  fontOpticalSizing: ['auto', 'none'], // 181
+  fontPalette: ['normal', 'light', 'dark'], // 182
+  fontSizeAdjust: ['none'], // 183
   fontStretch: [
     'normal',
     'ultra-condensed',
@@ -490,14 +529,14 @@ const validData: { [key: string]: readonly string[] } = {
     'expanded',
     'extra-expanded',
     'ultra-expanded',
-  ], // 171
-  fontStyle: ['normal', 'italic', 'oblique'], // 172
-  fontSynthesis: ['none', 'weight', 'style', 'small-caps', 'position'], // 173
-  fontSynthesisSmallCaps: ['auto', 'none'], // 174
-  fontSynthesisStyle: ['auto', 'none'], // 175
-  fontSynthesisWeight: ['auto', 'none'], // 176
-  fontVariant: ['normal', 'none'], // 177
-  fontVariantAlternates: ['normal', 'historical-forms'], // 178
+  ], // 184
+  fontStyle: ['normal', 'italic', 'oblique'], // 185
+  fontSynthesis: ['none', 'weight', 'style', 'small-caps', 'position'], // 186
+  fontSynthesisSmallCaps: ['auto', 'none'], // 187
+  fontSynthesisStyle: ['auto', 'none'], // 188
+  fontSynthesisWeight: ['auto', 'none'], // 189
+  fontVariant: ['normal', 'none'], // 190
+  fontVariantAlternates: ['normal', 'historical-forms'], // 191
   fontVariantCaps: [
     'normal',
     'small-caps',
@@ -506,7 +545,7 @@ const validData: { [key: string]: readonly string[] } = {
     'all-petite-caps',
     'unicase',
     'titling-caps',
-  ], // 179
+  ], // 192
   fontVariantEastAsian: [
     'normal',
     'ruby',
@@ -518,11 +557,11 @@ const validData: { [key: string]: readonly string[] } = {
     'traditional',
     'full-width',
     'proportional-width',
-  ], // 180
-  fontVariantEmoji: ['normal', 'text', 'emoji', 'unicode'], // 181
-  fontVariantLigatures: ['none', 'normal'], // 182
-  fontVariantNumeric: ['normal'], // 183
-  fontVariantPosition: ['normal', 'sub', 'super'], // 184
+  ], // 193
+  fontVariantEmoji: ['normal', 'text', 'emoji', 'unicode'], // 194
+  fontVariantLigatures: ['none', 'normal'], // 195
+  fontVariantNumeric: ['normal'], // 196
+  fontVariantPosition: ['normal', 'sub', 'super'], // 197
   fontVariationSettings: [
     'normal',
     '"wght"',
@@ -530,22 +569,22 @@ const validData: { [key: string]: readonly string[] } = {
     '"slnt"',
     '"ital"',
     '"opsz"',
-  ], // 185
-  grid: ['none'], // 186
-  gridArea: ['auto'], //187
-  gridAutoColumns: ['auto'], // 188
-  gridAutoFlow: ['row', 'column', 'dense', 'row dense', 'column dense'], // 189
-  gridAutoRows: ['auto'], // 190
-  gridColumn: ['auto'], // 191
-  gridColumnEnd: ['auto'], // 192
-  gridColumnStart: ['auto'], // 193
-  gridRow: ['auto'], // 194
-  gridRowEnd: ['auto'], // 195
-  gridRowStart: ['auto'], // 196
-  gridTemplate: ['none'], // 197
-  gridTemplateAreas: ['none'], // 198
-  gridTemplateColumns: ['none'], // 199
-  gridTemplateRows: ['none'], // 200
+  ], // 198
+  grid: ['none'], // 199
+  gridArea: ['auto'], //187, // 200
+  gridAutoColumns: ['auto'], // 201
+  gridAutoFlow: ['row', 'column', 'dense', 'row dense', 'column dense'], // 202
+  gridAutoRows: ['auto'], // 203
+  gridColumn: ['auto'], // 204
+  gridColumnEnd: ['auto'], // 205
+  gridColumnStart: ['auto'], // 206
+  gridRow: ['auto'], // 207
+  gridRowEnd: ['auto'], // 208
+  gridRowStart: ['auto'], // 209
+  gridTemplate: ['none'], // 210
+  gridTemplateAreas: ['none'], // 211
+  gridTemplateColumns: ['none'], // 212
+  gridTemplateRows: ['none'], // 213
 
   hangingPunctuation: [
     'none',
@@ -560,27 +599,27 @@ const validData: { [key: string]: readonly string[] } = {
     // 'last force-end',
     // 'first allow-end last',
     // 'first force-end last',
-  ], // 201
-  hyphenateCharacter: ['auto'], // 202
-  hyphenateLimitChars: ['auto'], // 203
-  hyphens: ['none', 'manual', 'auto'], // 204
-  imageOrientation: ['none', 'from-image'], // 205
+  ], // 214
+  hyphenateCharacter: ['auto'], // 215
+  hyphenateLimitChars: ['auto'], // 216
+  hyphens: ['none', 'manual', 'auto'], // 217
+  imageOrientation: ['none', 'from-image'], // 218
   imageRendering: [
     'auto',
     'smooth',
     'high-quality',
     'crisp-edges',
     'pixelated',
-  ], // 206
-  initialLetter: ['normal'], // 207
-  inlineSize: ['auto', ...lengthSubValues], // 208
-  insetBlock: ['auto'], // 209
-  insetBlockEnd: ['auto'], // 210
-  insetBlockStart: ['auto'], // 211
-  insetInline: ['auto'], // 212
-  insetInlineEnd: ['auto'], // 213
-  insetInlineStart: ['auto'], // 214
-  isolation: ['auto', 'isolate'], // 215
+  ], // 219
+  initialLetter: ['normal'], // 220
+  inlineSize: ['auto', ...lengthSubValues], // 221
+  insetBlock: ['auto'], // 222
+  insetBlockEnd: ['auto'], // 223
+  insetBlockStart: ['auto'], // 224
+  insetInline: ['auto'], // 225
+  insetInlineEnd: ['auto'], // 226
+  insetInlineStart: ['auto'], // 227
+  isolation: ['auto', 'isolate'], // 228
   justifyContent: [
     'normal',
     'stretch',
@@ -599,7 +638,7 @@ const validData: { [key: string]: readonly string[] } = {
     'safe right',
     'unsafe left',
     'unsafe right',
-  ], // 216
+  ], // 229
   justifyItems: [
     'normal',
     'stretch',
@@ -618,7 +657,7 @@ const validData: { [key: string]: readonly string[] } = {
     // 'legacy left',
     // 'legacy right',
     // 'legacy center',
-  ], // 217
+  ], // 230
   justifySelf: [
     'auto',
     'normal',
@@ -645,25 +684,25 @@ const validData: { [key: string]: readonly string[] } = {
     // 'unsafe self-start',
     // 'unsafe self-end',
     // 'unsafe anchor-center',
-  ], // 218
-  lineBreak: ['auto', 'loose', 'normal', 'strict', 'anywhere'], // 219
-  listStyleImage: ['none'], // 220
-  listStylePosition: ['inside', 'outside'], // 221
-  listStyleType: ['none'], // 222
-  marginBlock: ['auto'], // 223
-  marginBlockEnd: ['auto'], // 224
-  marginBlockStart: ['auto'], // 225
-  marginInline: ['auto'], // 226
-  marginInlineEnd: ['auto'], // 227
-  marginInlineStart: ['auto'], // 228
-  marker: ['none'], // 229
-  markerEnd: ['none'], // 230
-  markerMid: ['none'], // 231
-  markerStart: ['none'], // 232
-  mask: ['none'], // 233
-  maskBorder: ['none'], // 234
-  maskBorderMode: ['luminance', 'alpha'], // 235
-  maskBorderOutset: [], // 236
+  ], // 231
+  lineBreak: ['auto', 'loose', 'normal', 'strict', 'anywhere'], // 232
+  listStyleImage: ['none'], // 233
+  listStylePosition: ['inside', 'outside'], // 234
+  listStyleType: ['none'], // 235
+  marginBlock: ['auto'], // 236
+  marginBlockEnd: ['auto'], // 237
+  marginBlockStart: ['auto'], // 238
+  marginInline: ['auto'], // 239
+  marginInlineEnd: ['auto'], // 240
+  marginInlineStart: ['auto'], // 241
+  marker: ['none'], // 242
+  markerEnd: ['none'], // 243
+  markerMid: ['none'], // 244
+  markerStart: ['none'], // 245
+  mask: ['none'], // 246
+  maskBorder: ['none'], // 247
+  maskBorderMode: ['luminance', 'alpha'], // 248
+  maskBorderOutset: [], // 249
   maskBorderRepeat: [
     'stretch',
     'repeat',
@@ -685,25 +724,25 @@ const validData: { [key: string]: readonly string[] } = {
     // 'space repeat',
     // 'space round',
     // 'space space',
-  ], // 237
-  maskBorderSlice: ['fill'], // 238
-  maskBorderSource: ['none'], // 239
-  maskBorderWidth: ['auto'], // 240
-  maskClip: ['no-clip'], // 241
-  maskComposite: ['add', 'subtract', 'intersect', 'exclude'], // 242
-  maskImage: ['none'], // 243
-  maskMode: ['alpha', 'luminance', 'match-source'], // 244
-  maskOrigin: [], // 245
-  maskPosition: ['top', 'bottom', 'left', 'right', 'center'], // 246
-  maskRepeat: ['repeat-x', 'repeat-y', 'repeat', 'space', 'round', 'no-repeat'], // 247
-  maskSize: ['cover', 'contain'], // 248
-  maskType: ['luminance', 'alpha'], // 249
-  mathDepth: ['auto-add'], // 250
-  mathStyle: ['normal', 'compact'], // 251
-  maxBlockSize: ['none', ...lengthSubValues], // 252
-  minBlockSize: ['none', ...lengthSubValues], // 253
-  maxInlineSize: ['none', ...lengthSubValues], // 254
-  minInlineSize: ['none', ...lengthSubValues], // 255
+  ], // 250
+  maskBorderSlice: ['fill'], // 251
+  maskBorderSource: ['none'], // 252
+  maskBorderWidth: ['auto'], // 253
+  maskClip: ['no-clip'], // 254
+  maskComposite: ['add', 'subtract', 'intersect', 'exclude'], // 255
+  maskImage: ['none'], // 256
+  maskMode: ['alpha', 'luminance', 'match-source'], // 257
+  maskOrigin: [], // 258
+  maskPosition: ['top', 'bottom', 'left', 'right', 'center'], // 259
+  maskRepeat: ['repeat-x', 'repeat-y', 'repeat', 'space', 'round', 'no-repeat'], // 260
+  maskSize: ['cover', 'contain'], // 261
+  maskType: ['luminance', 'alpha'], // 262
+  mathDepth: ['auto-add'], // 263
+  mathStyle: ['normal', 'compact'], // 264
+  maxBlockSize: ['none', ...lengthSubValues], // 265
+  minBlockSize: ['none', ...lengthSubValues], // 266
+  maxInlineSize: ['none', ...lengthSubValues], // 267
+  minInlineSize: ['none', ...lengthSubValues], // 268
   mixBlendMode: [
     'normal',
     'multiply',
@@ -723,46 +762,46 @@ const validData: { [key: string]: readonly string[] } = {
     'luminosity',
     'plus-darker',
     'plus-lighter',
-  ], // 256
+  ], // 269
 
-  objectFit: ['none', 'contain', 'cover', 'fill', 'scale-down'], // 257
-  objectPosition: ['top', 'bottom', 'left', 'right', 'center'], // 258
-  offset: [], // 259
-  offsetAnchor: ['auto'], // 260
-  offsetDistance: [], // 261
-  offsetPath: [], // 262
-  offsetPosition: [], // 263
-  offsetRotate: ['auto', 'reverse'], // 264
-  order: [], // 265
-  outline: [], // 266
+  objectFit: ['none', 'contain', 'cover', 'fill', 'scale-down'], // 270
+  objectPosition: ['top', 'bottom', 'left', 'right', 'center'], // 271
+  offset: [], // 272
+  offsetAnchor: ['auto'], // 273
+  offsetDistance: [], // 274
+  offsetPath: [], // 275
+  offsetPosition: [], // 276
+  offsetRotate: ['auto', 'reverse'], // 277
+  order: [], // 278
+  outline: [], // 279
   // outlineColor: [], // single coloer group
-  outlineOffset: [], // 267
-  outlineStyle: [...lineStyle.filter((style) => style !== 'hidden')], // 268
-  outlineWidth: [...widthKeywords], // 269
-  overflow: [...overflowKeyword], // 270
-  overflowAnchor: ['none', 'auto'], // 271
-  overflowBlock: [...overflowKeyword], // 272
-  overflowClipMargin: ['content-box', 'padding-box', 'border-box'], // 273
-  overflowInline: [...overflowKeyword], // 274
-  overflowWrap: ['normal', 'anywhere', 'break-word'], // 275
-  overflowX: [...overflowKeyword], // 276
-  overflowY: [...overflowKeyword], // 277
-  overscrollBehavior: ['none', 'auto', 'contain'], // 278
-  overscrollBehaviorBlock: ['none', 'auto', 'contain'], // 279
-  overscrollBehaviorInline: ['none', 'auto', 'contain'], // 280
-  overscrollBehaviorX: ['none', 'auto', 'contain'], // 281
-  overscrollBehaviorY: ['none', 'auto', 'contain'], // 282
-  paddingBlock: [], // 283
-  paddingBlockEnd: [], // 284
-  paddingBlockStart: [], // 285
-  paddingInline: [], // 286
-  paddingInlineEnd: [], // 287
-  paddingInlineStart: [], // 288
-  paintOrder: ['normal'], // 289
-  perspective: ['none'], // 290
-  placeContent: [], // 291
-  placeItems: [], // 292,
-  placeSelf: [], // 293
+  outlineOffset: [], // 280
+  outlineStyle: [...lineStyle.filter((style) => style !== 'hidden')], // 281
+  outlineWidth: [...widthKeywords], // 282
+  overflow: [...overflowKeyword], // 283
+  overflowAnchor: ['none', 'auto'], // 284
+  overflowBlock: [...overflowKeyword], // 285
+  overflowClipMargin: ['content-box', 'padding-box', 'border-box'], // 286
+  overflowInline: [...overflowKeyword], // 287
+  overflowWrap: ['normal', 'anywhere', 'break-word'], // 288
+  overflowX: [...overflowKeyword], // 289
+  overflowY: [...overflowKeyword], // 290
+  overscrollBehavior: ['none', 'auto', 'contain'], // 291
+  overscrollBehaviorBlock: ['none', 'auto', 'contain'], // 292
+  overscrollBehaviorInline: ['none', 'auto', 'contain'], // 293
+  overscrollBehaviorX: ['none', 'auto', 'contain'], // 294
+  overscrollBehaviorY: ['none', 'auto', 'contain'], // 295
+  paddingBlock: [], // 296
+  paddingBlockEnd: [], // 297
+  paddingBlockStart: [], // 298
+  paddingInline: [], // 299
+  paddingInlineEnd: [], // 300
+  paddingInlineStart: [], // 301
+  paintOrder: ['normal'], // 302
+  perspective: ['none'], // 303
+  placeContent: [], // 304
+  placeItems: [], // 292, // 305
+  placeSelf: [], // 306
   pointerEvents: [
     'none',
     'auto',
@@ -775,14 +814,14 @@ const validData: { [key: string]: readonly string[] } = {
     'painted',
     'fill',
     'stroke',
-  ], // 294
-  printColorAdjust: ['economy', 'exact'], // 295
-  quotes: ['none', 'auto', 'match-parent'], // 296
-  r: [], // 297
-  resize: ['none', 'both', 'horizontal', 'vertical', 'block', 'inline'], // 298
-  rotate: ['none'], // 299
-  rowGap: [], // 300
-  rubyAlign: ['start', 'center', 'space-between', 'space-around'], // 301
+  ], // 307
+  printColorAdjust: ['economy', 'exact'], // 308
+  quotes: ['none', 'auto', 'match-parent'], // 309
+  r: [], // 310
+  resize: ['none', 'both', 'horizontal', 'vertical', 'block', 'inline'], // 311
+  rotate: ['none'], // 312
+  rowGap: [], // 313
+  rubyAlign: ['start', 'center', 'space-between', 'space-around'], // 314
   rubyPosition: [
     'over',
     'under',
@@ -790,33 +829,33 @@ const validData: { [key: string]: readonly string[] } = {
     'alternate over',
     'alternate under',
     'inter-character',
-  ], // 302
-  rx: ['auto'], // 303
-  ry: ['auto'], // 304
-  scale: ['none'], // 305
-  scrollBehavior: ['auto', 'smooth'], // 306
-  scrollMargin: [], // 307
-  scrollMarginBlock: [], // 308
-  scrollMarginBlockEnd: [], // 309
-  scrollMarginBlockStart: [], // 310
-  scrollMarginInline: [], // 311
-  scrollMarginInlineEnd: [], // 312
-  scrollMarginInlineStart: [], // 313
-  scrollMarginTop: [], // 314
-  scrollMarginRight: [], // 315
-  scrollMarginBottom: [], // 316
-  scrollMarginLeft: [], // 317
-  scrollPadding: [], // 318
-  scrollPaddingBlock: [], // 319
-  scrollPaddingBlockEnd: [], // 320
-  scrollPaddingBlockStart: [], // 321
-  scrollPaddingInline: [], // 322
-  scrollPaddingInlineEnd: [], // 323
-  scrollPaddingInlineStart: [], // 324
-  scrollPaddingLeft: [], // 325
-  scrollPaddingRight: [], // 326
-  scrollPaddingTop: [], // 327
-  scrollPaddingBottom: [], // 328
+  ], // 315
+  rx: ['auto'], // 316
+  ry: ['auto'], // 317
+  scale: ['none'], // 318
+  scrollBehavior: ['auto', 'smooth'], // 319
+  scrollMargin: [], // 320
+  scrollMarginBlock: [], // 321
+  scrollMarginBlockEnd: [], // 322
+  scrollMarginBlockStart: [], // 323
+  scrollMarginInline: [], // 324
+  scrollMarginInlineEnd: [], // 325
+  scrollMarginInlineStart: [], // 326
+  scrollMarginTop: [], // 327
+  scrollMarginRight: [], // 328
+  scrollMarginBottom: [], // 329
+  scrollMarginLeft: [], // 330
+  scrollPadding: [], // 331
+  scrollPaddingBlock: [], // 332
+  scrollPaddingBlockEnd: [], // 333
+  scrollPaddingBlockStart: [], // 334
+  scrollPaddingInline: [], // 335
+  scrollPaddingInlineEnd: [], // 336
+  scrollPaddingInlineStart: [], // 337
+  scrollPaddingLeft: [], // 338
+  scrollPaddingRight: [], // 339
+  scrollPaddingTop: [], // 340
+  scrollPaddingBottom: [], // 341
   scrollSnapAlign: [
     'none',
     'start',
@@ -831,8 +870,8 @@ const validData: { [key: string]: readonly string[] } = {
     // 'end start',
     // 'end center',
     // 'end end',
-  ], // 329
-  scrollSnapStop: ['normal', 'always'], // 330
+  ], // 342
+  scrollSnapStop: ['normal', 'always'], // 343
   scrollSnapType: [
     'none',
     'x',
@@ -850,39 +889,40 @@ const validData: { [key: string]: readonly string[] } = {
     // 'inline proximity',
     // 'both mandatory',
     // 'both proximity',
-  ], // 331
-  scrollbarColor: ['auto'], // 332
-  scrollbarGutter: ['auto', 'stable', 'stable both-edges'], // 333
-  scrollbarWidth: ['none', 'auto', 'thin'], // 334
-  shapeImageThreshold: [], // 335
-  shapeOutside: ['none'], // 336
-  shapeRendering: ['auto', 'optimizeSpeed', 'crispEdges', 'geometricPrecision'], // 337
-  stopColor: [], // 338
-  stopOpacity: [], // 339
-  stroke: ['context-stroke'], // 340
-  strokeDasharray: ['none'], // 341
-  strokeDashoffset: ['none'], // 342
-  strokeLinecap: ['butt', 'round', 'square'], // 343
-  strokeLinejoin: ['miter', 'round', 'bevel'], // 344
-  strokeMiterlimit: [], // 345
-  strokeOpacity: [], // 346
-  strokeWidth: [], // 347
-  tabSize: [], // 348
-  tableLayout: ['auto', 'fixed'], // 349
-  textAlign: [...alignKeywords], // 350
-  textAlignLast: ['auto', ...alignKeywords], // 351
-  textAnchor: ['start', 'middle', 'end'], // 352
-  textCombineUpright: ['none', 'all'], // 353
+  ], // 344
+  scrollbarColor: ['auto'], // 345
+  scrollbarGutter: ['auto', 'stable', 'stable both-edges'], // 346
+  scrollbarWidth: ['none', 'auto', 'thin'], // 347
+  shapeImageThreshold: [], // 348
+  shapeMargin: [], // 349
+  shapeOutside: ['none'], // 350
+  shapeRendering: ['auto', 'optimizeSpeed', 'crispEdges', 'geometricPrecision'], // 351
+  stopColor: [], // 352
+  stopOpacity: [], // 353
+  stroke: ['context-stroke'], // 354
+  strokeDasharray: ['none'], // 355
+  strokeDashoffset: ['none'], // 356
+  strokeLinecap: ['butt', 'round', 'square'], // 357
+  strokeLinejoin: ['miter', 'round', 'bevel'], // 358
+  strokeMiterlimit: [], // 359
+  strokeOpacity: [], // 360
+  strokeWidth: [], // 361
+  tabSize: [], // 362
+  tableLayout: ['auto', 'fixed'], // 363
+  textAlign: [...alignKeywords], // 364
+  textAlignLast: ['auto', ...alignKeywords], // 365
+  textAnchor: ['start', 'middle', 'end'], // 366
+  textCombineUpright: ['none', 'all'], // 367
   textDecorationLine: [
     'none',
     'underline',
     'overline',
     'line-through',
     'blink',
-  ], // 354
-  textDecorationSkipInk: ['none', 'auto', 'all'], // 355
-  textDecorationStyle: ['solid', 'double', 'dotted', 'dashed', 'wavy'], // 356
-  textDecorationThickness: ['auto', 'from-font'], // 357
+  ], // 368
+  textDecorationSkipInk: ['none', 'auto', 'all'], // 369
+  textDecorationStyle: ['solid', 'double', 'dotted', 'dashed', 'wavy'], // 370
+  textDecorationThickness: ['auto', 'from-font'], // 371
   textEmphasis: [
     'none',
     'filled',
@@ -892,8 +932,8 @@ const validData: { [key: string]: readonly string[] } = {
     'double-circle',
     'triangle',
     'sesame',
-  ], // 358
-  textEmphasisColor: [], // 359
+  ], // 372
+  textEmphasisColor: [], // 373
   textEmphasisPosition: [
     'auto',
     'over',
@@ -906,7 +946,7 @@ const validData: { [key: string]: readonly string[] } = {
     // 'right over',
     // 'right under',
     // 'left under',
-  ], // 360
+  ], // 374
   textEmphasisStyle: [
     'none',
     'filled',
@@ -926,24 +966,25 @@ const validData: { [key: string]: readonly string[] } = {
     // 'open double-circle',
     // 'open triangle',
     // 'open sesame',
-  ], // 361
-  textIndent: [], // 362
-  textJustify: ['none', 'auto', 'inter-word', 'inter-character', 'distribute'], // 363
+  ], // 375
+  textIndent: [], // 376
+  textJustify: ['none', 'auto', 'inter-word', 'inter-character', 'distribute'], // 377
   textOrientation: [
     'mixed',
     'upright',
     'sideways',
     'sideways-right',
     'use-glyph-orientation',
-  ], // 364
-  textOverflow: ['clip', 'ellipsis'], // 365
+  ], // 378
+  textOverflow: ['clip', 'ellipsis'], // 379
   textRendering: [
     'auto',
     'optimizeSpeed',
     'optimizeLegibility',
     'geometricPrecision',
-  ], // 366
-  textShadow: [], // 367
+  ], // 380
+  textShadow: [], // 381
+  textSizeAdjust: ['none', 'auto'], // 382
   textTransform: [
     'none',
     'captalize',
@@ -952,8 +993,8 @@ const validData: { [key: string]: readonly string[] } = {
     'full-width',
     'full-size-kana',
     'math-auto',
-  ], // 368
-  textUnderlineOffset: ['auto'], // 369
+  ], // 383
+  textUnderlineOffset: ['auto'], // 384
   textUnderlinePosition: [
     'auto',
     'under',
@@ -963,7 +1004,7 @@ const validData: { [key: string]: readonly string[] } = {
     'left under',
     'under right',
     'right under',
-  ], // 370
+  ], // 385
   textWrap: [
     'auto',
     'wrap',
@@ -972,43 +1013,43 @@ const validData: { [key: string]: readonly string[] } = {
     'pretty',
     'stable',
     'avoid-orphans',
-  ], // 371
-  textWrapMode: ['wrap', 'nowrap'], // 372
-  textWrapStyle: ['auto', 'balance', 'stable', 'pretty', 'avoid-orphans'], // 373
-  touchAction: ['auto', 'none'], // 374
-  transform: ['none'], // 375
+  ], // 386
+  textWrapMode: ['wrap', 'nowrap'], // 387
+  textWrapStyle: ['auto', 'balance', 'stable', 'pretty', 'avoid-orphans'], // 388
+  touchAction: ['auto', 'none'], // 389
+  transform: ['none'], // 390
   transformBox: [
     'content-box',
     'border-box',
     'fill-box',
     'stroke-box',
     'view-box',
-  ], // 376
-  transformOrigin: [], // 377
-  transformStyle: ['flat', 'preserve-3d'], // 378
-  transition: [], // 379
-  transitionBehavior: ['normal', 'allow-discrete'], // 380
-  transitionDelay: [], // 381
-  transitionDuration: [], // 382
-  transitionProperty: ['none', 'all'], // 383
-  transitionTimingFunction: [], // 384
-  translate: ['none'], // 385
-  unicodeBibi: [
+  ], // 391
+  transformOrigin: [], // 392
+  transformStyle: ['flat', 'preserve-3d'], // 393
+  transition: [], // 394
+  transitionBehavior: ['normal', 'allow-discrete'], // 395
+  transitionDelay: [], // 396
+  transitionDuration: [], // 397
+  transitionProperty: ['none', 'all'], // 398
+  transitionTimingFunction: [], // 399
+  translate: ['none'], // 400
+  unicodeBidi: [
     'normal',
     'embed',
     'isolate',
-    'bibi-override',
+    'bidi-override',
     'isolate-override',
     'plaintext',
-  ], // 386
-  userSelect: ['none', 'auto', 'text', 'all'], // 387
+  ], // 401
+  userSelect: ['none', 'auto', 'text', 'all'], // 402
   vectorEffect: [
     'none',
     'non-scaling-stroke',
     'non-scaling-size',
     'non-rotation',
     'fixed-position',
-  ], // 388
+  ], // 403
   verticalAlign: [
     'baseline',
     'sub',
@@ -1018,8 +1059,8 @@ const validData: { [key: string]: readonly string[] } = {
     'middle',
     'top',
     'bottom',
-  ], // 389
-  visibility: ['visible', 'hideen', 'collapse'], // 390
+  ], // 404
+  visibility: ['visible', 'hideen', 'collapse'], // 405
   whiteSpace: [
     'normal',
     'pre',
@@ -1027,7 +1068,7 @@ const validData: { [key: string]: readonly string[] } = {
     'pre-wrap',
     'break-spaces',
     'pre-line',
-  ], // 391
+  ], // 406
   whiteSpaceCollapse: [
     'collapse',
     'discard',
@@ -1035,18 +1076,18 @@ const validData: { [key: string]: readonly string[] } = {
     'preserve-breaks',
     'preserve-spaces',
     'break-spaces',
-  ], // 392
-  widows: [], // 393
-  willChange: [], // 394
-  wordBreak: ['normal', 'keep-all', 'break-all', 'break-word', 'auto-phrase'], // 395
+  ], // 407
+  widows: [], // 408
+  willChange: [], // 409
+  wordBreak: ['normal', 'keep-all', 'break-all', 'break-word', 'auto-phrase'], // 410
   writingMode: [
     'horizontal-tb',
     'vertical-rl',
     'vertical-lr',
     'sideways-rl',
     'sideways-lr',
-  ], // 396
-  zoom: ['normal', 'reset'], // 397
+  ], // 411
+  zoom: ['normal', 'reset'], // 412
 };
 
 export { validData };
