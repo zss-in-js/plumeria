@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.4.0
+
+### Minor Changes
+
+- a8b1341: Improve autocomplete in csstypes.d.ts
+
 ## 10.3.3
 
 ### Patch Changes
