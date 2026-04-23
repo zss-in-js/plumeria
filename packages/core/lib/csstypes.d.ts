@@ -9,7 +9,7 @@
  */
 
 type all = 'initial' | 'inherit' | 'unset';
-type strictString = string & {};
+type StableString = Pick<string, keyof string>;
 
 type absoluteSize =
   | 'xx-small'
@@ -80,11 +80,11 @@ type alignSelf =
   | 'stretch'
   | 'safe center'
   | 'unsafe center';
-type alignTracks = string | number;
-type anchorName = string | number;
-type animatableFeature = 'scroll-position' | 'contents' | strictString;
-type animation = string | number;
-type animationComposition = string | number;
+type alignTracks = number | StableString;
+type anchorName = number | StableString;
+type animatableFeature = 'scroll-position' | 'contents' | StableString;
+type animation = number | StableString;
+type animationComposition = number | StableString;
 type animationDelay = time;
 type animationDirection = singleAnimationDirection;
 type animationDuration = time;
@@ -92,16 +92,16 @@ type animationFillMode = singleAnimationFillMode;
 type animationIterationCount = singleAnimationIterationCount;
 type animationName = singleAnimationName;
 type animationPlayState = singleAnimationPlayState;
-type animationRange = string | number;
-type animationRangeEnd = string | number;
-type animationRangeStart = string | number;
-type animationTimeline = string | number;
+type animationRange = number | StableString;
+type animationRangeEnd = number | StableString;
+type animationRangeStart = number | StableString;
+type animationTimeline = number | StableString;
 type animationTimingFunction = singleTimingFunction;
 type appearance = 'auto' | 'none' | 'textfield';
-type aspectRatio = string | number;
+type aspectRatio = number | StableString;
 type attachment = 'scroll' | 'fixed' | 'local';
-type azimuth = string | number;
-type backdropFilter = 'none' | strictString;
+type azimuth = number | StableString;
+type backdropFilter = 'none' | StableString;
 type backfaceVisibility = 'visible' | 'hidden';
 type background = finalBgLayer;
 type backgroundAttachment = attachment;
@@ -110,15 +110,15 @@ type backgroundClip = box | 'text';
 type backgroundColor = color;
 type backgroundImage = bgImage;
 type backgroundOrigin = box;
-type backgroundPosition = string;
-type backgroundPositionX = string;
-type backgroundPositionY = string;
+type backgroundPosition = StableString;
+type backgroundPositionX = StableString;
+type backgroundPositionY = StableString;
 type backgroundRepeat = repeatStyle;
 type backgroundSize = bgSize;
 type baselineShift = 'baseline' | 'sub' | 'super' | svgLength;
-type behavior = string;
-type bgImage = 'none' | strictString;
-type bgSize = 'auto' | 'cover' | 'contain' | strictString;
+type behavior = StableString;
+type bgImage = 'none' | StableString;
+type bgSize = 'auto' | 'cover' | 'contain' | StableString;
 type blendMode =
   | 'normal'
   | 'multiply'
@@ -161,11 +161,11 @@ type borderColor = color;
 type borderEndEndRadius = borderBottomRightRadius;
 type borderEndStartRadius = borderBottomLeftRadius;
 type borderImage = borderImageSource | borderImageSlice | borderImageRepeat;
-type borderImageOutset = string;
-type borderImageRepeat = string;
-type borderImageSlice = 'fill' | number | strictString;
-type borderImageSource = 'none' | strictString;
-type borderImageWidth = string;
+type borderImageOutset = StableString;
+type borderImageRepeat = StableString;
+type borderImageSlice = 'fill' | number | StableString;
+type borderImageSource = 'none' | StableString;
+type borderImageWidth = StableString;
 type borderInline = borderInlineEnd;
 type borderInlineColor = borderInlineEndColor;
 type borderInlineEnd = borderWidth | borderStyle | color;
@@ -187,7 +187,7 @@ type borderRight = border;
 type borderRightColor = color;
 type borderRightStyle = brStyle;
 type borderRightWidth = borderWidth;
-type borderSpacing = number | string;
+type borderSpacing = number | StableString;
 type borderStartEndRadius = borderTopRightRadius;
 type borderStartStartRadius = borderTopLeftRadius;
 type borderStyle = brStyle;
@@ -197,18 +197,18 @@ type borderTopLeftRadius = lengthPercentage;
 type borderTopRightRadius = lengthPercentage;
 type borderTopStyle = brStyle;
 type borderTopWidth = borderWidth;
-type borderWidth = 'thin' | 'medium' | 'thick' | number | strictString;
-type bottom = string | number;
+type borderWidth = 'thin' | 'medium' | 'thick' | number | StableString;
+type bottom = number | StableString;
 type box = 'border-box' | 'padding-box' | 'content-box';
 type boxAlign = 'start' | 'center' | 'end' | 'baseline' | 'stretch';
 type boxDecorationBreak = 'slice' | 'clone';
 type boxDirection = 'normal' | 'reverse';
-type boxFlex = number | string;
-type boxFlexGroup = number | string;
+type boxFlex = number | StableString;
+type boxFlexGroup = number | StableString;
 type boxLines = 'single' | 'multiple';
-type boxOrdinalGroup = number | string;
+type boxOrdinalGroup = number | StableString;
 type boxOrient = 'horizontal' | 'vertical' | 'inline-axis' | 'block-axis';
-type boxShadow = 'none' | strictString;
+type boxShadow = 'none' | StableString;
 type boxSizing = 'content-box' | 'border-box';
 type boxSuppress = 'show' | 'discard' | 'hide';
 type breakAfter =
@@ -261,14 +261,16 @@ type captionSide =
   | 'block-end'
   | 'inline-start'
   | 'inline-end';
-type caret = string | number;
+type caret = number | StableString;
 type caretColor = color;
-type caretShape = string | number;
+type caretShape = number | StableString;
 type clear = 'none' | 'left' | 'right' | 'both' | 'inline-start' | 'inline-end';
-type clip = 'auto' | strictString;
-type clipPath = 'none' | strictString;
+type clip = 'auto' | StableString;
+type clipPath = 'none' | StableString;
 type clipRule = 'nonzero' | 'evenodd';
-type color = NamedColor | strictString;
+type color = NamedColor | StableString;
+type colorInterpolation = 'auto' | 'sRGB' | 'linearRGB';
+type colorInterpolationFilters = 'auto' | 'sRGB' | 'linearRGB';
 type colorScheme =
   | 'normal'
   | 'light'
@@ -276,27 +278,27 @@ type colorScheme =
   | 'light dark'
   | 'only light'
   | 'only dark';
-type columnCount = 'auto' | number | strictString;
+type columnCount = 'auto' | number | StableString;
 type columnFill = 'auto' | 'balance';
-type columnGap = 'normal' | number | strictString;
+type columnGap = 'normal' | number | StableString;
 type columnRule = columnRuleWidth | columnRuleStyle | columnRuleColor;
 type columnRuleColor = color;
 type columnRuleStyle = brStyle;
 type columnRuleWidth = borderWidth;
 type columns = columnWidth | columnCount;
 type columnSpan = 'none' | 'all';
-type columnWidth = 'auto' | number | strictString;
+type columnWidth = 'auto' | number | StableString;
 type compositeOperator = 'add' | 'subtract' | 'intersect' | 'exclude';
-type contain = 'none' | 'strict' | 'content' | strictString;
-type container = string | number;
-type containerName = string | number;
+type contain = 'none' | 'strict' | 'content' | StableString;
+type container = number | StableString;
+type containerName = number | StableString;
 type containerType = 'size' | 'inline-size' | 'normal';
-type containIntrinsicBlockSize = string | number;
-type containIntrinsicHeight = string | number;
-type containIntrinsicInlineSize = string | number;
-type containIntrinsicSize = string | number;
-type containIntrinsicWidth = string | number;
-type content = string;
+type containIntrinsicBlockSize = number | StableString;
+type containIntrinsicHeight = number | StableString;
+type containIntrinsicInlineSize = number | StableString;
+type containIntrinsicSize = number | StableString;
+type containIntrinsicWidth = number | StableString;
+type content = StableString;
 type contentVisibility = 'visible' | 'hidden' | 'auto';
 type cornerBottomLeftShape = cornerShape;
 type cornerBottomRightShape = cornerShape;
@@ -309,17 +311,17 @@ type cornerShape =
   | 'notch'
   | 'square'
   | 'squircle'
-  | strictString;
+  | StableString;
 type cornerStartEndShape = cornerTopRightShape;
 type cornerStartStartShape = cornerTopLeftShape;
 type cornerTopLeftShape = cornerShape;
 type cornerTopRightShape = cornerShape;
-type counterIncrement = 'none' | strictString;
-type counterReset = 'none' | strictString;
-type counterSet = string | number;
+type counterIncrement = 'none' | StableString;
+type counterReset = 'none' | StableString;
+type counterSet = number | StableString;
 type cue = cueBefore | cueAfter;
-type cueAfter = 'none' | number | strictString;
-type cueBefore = 'none' | number | strictString;
+type cueAfter = 'none' | number | StableString;
+type cueBefore = 'none' | number | StableString;
 type cursor =
   | 'auto'
   | 'default'
@@ -356,7 +358,8 @@ type cursor =
   | 'zoom-in'
   | 'zoom-out'
   | 'grab'
-  | 'grabbing';
+  | 'grabbing'
+  | StableString;
 type direction = 'ltr' | 'rtl';
 type display =
   | 'none'
@@ -420,18 +423,18 @@ type dominantBaseline =
   | 'text-after-edge'
   | 'text-before-edge';
 type emptyCells = 'show' | 'hide';
-type end = string | number;
+type end = number | StableString;
 type fill = paint;
-type fillOpacity = number | string;
+type fillOpacity = number | StableString;
 type fillRule = 'nonzero' | 'evenodd';
-type filter = 'none' | strictString;
+type filter = 'none' | StableString;
 type finalBgLayer = attachment | box | backgroundColor;
-type flex = 'none' | number | strictString;
-type flexBasis = 'content' | number | strictString;
+type flex = 'none' | number | StableString;
+type flexBasis = 'content' | number | StableString;
 type flexDirection = 'row' | 'row-reverse' | 'column' | 'column-reverse';
 type flexFlow = flexDirection | flexWrap;
-type flexGrow = all | number | string;
-type flexShrink = all | number | string;
+type flexGrow = number | StableString;
+type flexShrink = number | StableString;
 type flexWrap = 'nowrap' | 'wrap' | 'wrap-reverse';
 type float =
   | 'left'
@@ -441,13 +444,13 @@ type float =
   | 'end'
   | 'inline-start'
   | 'inline-end';
-type font = string | number;
-type fontFamily = string;
-type fontFeatureSettings = 'normal' | strictString;
+type font = number | StableString;
+type fontFamily = StableString;
+type fontFeatureSettings = 'normal' | StableString;
 type fontKerning = 'auto' | 'normal' | 'none';
-type fontLanguageOverride = 'normal' | strictString;
+type fontLanguageOverride = 'normal' | StableString;
 type fontOpticalSizing = 'auto' | 'none';
-type fontPalette = 'normal' | 'light' | 'dark' | strictString;
+type fontPalette = 'normal' | 'light' | 'dark' | StableString;
 type fontSize = absoluteSize | relativeSize | lengthPercentage;
 type fontSizeAdjust = 'none';
 type fontStretch =
@@ -460,15 +463,15 @@ type fontStretch =
   | 'expanded'
   | 'extra-expanded'
   | 'ultra-expanded'
-  | strictString;
+  | StableString;
 type fontStyle = 'normal' | 'italic' | 'oblique';
-type fontSynthesis = 'none' | strictString;
+type fontSynthesis = 'none' | StableString;
 type fontSynthesisPosition = 'auto' | 'none';
 type fontSynthesisSmallCaps = 'auto' | 'none';
 type fontSynthesisStyle = 'auto' | 'none';
 type fontSynthesisWeight = 'auto' | 'none';
-type fontVariant = 'normal' | 'none' | strictString;
-type fontVariantAlternates = 'normal' | strictString;
+type fontVariant = 'normal' | 'none' | StableString;
+type fontVariantAlternates = 'normal' | StableString;
 type fontVariantCaps =
   | 'normal'
   | 'small-caps'
@@ -477,11 +480,11 @@ type fontVariantCaps =
   | 'all-petite-caps'
   | 'unicase'
   | 'titling-caps';
-type fontVariantEastAsian = 'normal' | strictString;
-type fontVariantLigatures = 'normal' | 'none' | strictString;
-type fontVariantNumeric = 'normal' | strictString;
+type fontVariantEastAsian = 'normal' | StableString;
+type fontVariantLigatures = 'normal' | 'none' | StableString;
+type fontVariantNumeric = 'normal' | StableString;
 type fontVariantPosition = 'normal' | 'sub' | 'super';
-type fontVariationSettings = string | number;
+type fontVariationSettings = number | StableString;
 type fontWeight =
   | 'inherit'
   | 'normal'
@@ -498,12 +501,12 @@ type fontWeight =
   | 800
   | 900
   | number
-  | strictString;
+  | StableString;
 type forcedColorAdjust = 'auto' | 'none';
-type gap = number | string;
+type gap = number | StableString;
 type geometryBox = shapeBox | 'fill-box' | 'stroke-box' | 'view-box';
-type glyphOrientationHorizontal = number | string;
-type glyphOrientationVertical = number | string;
+type glyphOrientationHorizontal = number | StableString;
+type glyphOrientationVertical = number | StableString;
 type grid = gridTemplate;
 type gridArea = gridLine;
 type gridAutoColumns = trackSize;
@@ -513,47 +516,47 @@ type gridAutoFlow =
   | 'dense'
   | 'row dense'
   | 'column dense'
-  | strictString;
+  | StableString;
 type gridAutoRows = trackSize;
 type gridColumn = gridLine;
 type gridColumnEnd = gridLine;
 type gridColumnGap = lengthPercentage;
 type gridColumnStart = gridLine;
 type gridGap = gridRowGap | gridColumnGap;
-type gridLine = 'auto' | strictString;
+type gridLine = 'auto' | number | StableString;
 type gridRow = gridLine;
 type gridRowEnd = gridLine;
 type gridRowGap = lengthPercentage;
 type gridRowStart = gridLine;
-type gridTemplate = 'none' | 'subgrid' | strictString;
-type gridTemplateAreas = 'none' | strictString;
-type gridTemplateColumns = 'none' | 'subgrid' | strictString;
-type gridTemplateRows = 'none' | 'subgrid' | strictString;
-type hangingPunctuation = string | number;
-type height = string | number;
-type hyphenateCharacter = string | number;
-type hyphenateLimitChars = string | number;
+type gridTemplate = 'none' | 'subgrid' | StableString;
+type gridTemplateAreas = 'none' | StableString;
+type gridTemplateColumns = 'none' | 'subgrid' | StableString;
+type gridTemplateRows = 'none' | 'subgrid' | StableString;
+type hangingPunctuation = number | StableString;
+type height = number | StableString;
+type hyphenateCharacter = number | StableString;
+type hyphenateLimitChars = number | StableString;
 type hyphens = 'none' | 'manual' | 'auto';
-type imageOrientation = 'from-image' | number | strictString;
+type imageOrientation = 'from-image' | number | StableString;
 type imageRendering =
   | 'auto'
   | 'crisp-edges'
   | 'pixelated'
   | 'optimizeSpeed'
   | 'optimizeQuality'
-  | strictString;
-type imageResolution = 'snap' | strictString;
+  | StableString;
+type imageResolution = 'snap' | StableString;
 type imeMode = 'auto' | 'normal' | 'active' | 'inactive' | 'disabled';
-type initialLetter = 'normal' | strictString;
-type initialLetterAlign = string;
+type initialLetter = 'normal' | number | StableString;
+type initialLetterAlign = StableString;
 type inlineSize = width;
-type inset = string | number;
-type insetBlock = string | number;
-type insetBlockEnd = string | number;
-type insetBlockStart = string | number;
-type insetInline = string | number;
-type insetInlineEnd = string | number;
-type insetInlineStart = string | number;
+type inset = number | StableString;
+type insetBlock = number | StableString;
+type insetBlockEnd = number | StableString;
+type insetBlockStart = number | StableString;
+type insetInline = number | StableString;
+type insetInlineEnd = number | StableString;
+type insetInlineStart = number | StableString;
 type interpolateSize = 'allow-keywords' | 'numeric-only';
 type isolation = 'auto' | 'isolate';
 type justifyContent =
@@ -609,43 +612,43 @@ type justifySelf =
   | 'last baseline'
   | 'safe center'
   | 'unsafe center';
-type justifyTracks = string | number;
+type justifyTracks = number | StableString;
 type kerning = 'auto' | svgLength;
-type left = string | number;
-type lengthPercentage = number | strictString;
+type left = number | StableString;
+type lengthPercentage = number | StableString;
 type letterSpacing = 'normal' | lengthPercentage;
 type lineBreak = 'auto' | 'loose' | 'normal' | 'strict';
-type lineHeight = 'normal' | number | strictString;
-type lineHeightStep = string | number;
+type lineHeight = 'normal' | number | StableString;
+type lineHeightStep = number | StableString;
 type listStyle = listStyleType | listStylePosition | listStyleImage;
-type listStyleImage = 'none' | strictString;
+type listStyleImage = 'none' | StableString;
 type listStylePosition = 'inside' | 'outside';
-type listStyleType = 'none' | strictString;
-type margin = number | string;
+type listStyleType = 'none' | StableString;
+type margin = number | StableString;
 type marginBlock = marginBlockEnd;
 type marginBlockEnd = marginLeft;
 type marginBlockStart = marginLeft;
-type marginBottom = 'auto' | number | strictString;
+type marginBottom = 'auto' | number | StableString;
 type marginInline = marginInlineEnd;
 type marginInlineEnd = marginLeft;
 type marginInlineStart = marginLeft;
-type marginLeft = 'auto' | number | strictString;
-type marginRight = 'auto' | number | strictString;
-type marginTop = 'auto' | number | strictString;
-type marker = 'none' | strictString;
-type markerEnd = 'none' | strictString;
-type markerMid = 'none' | strictString;
-type markerOffset = 'auto' | number | strictString;
-type markerStart = 'none' | strictString;
+type marginLeft = 'auto' | number | StableString;
+type marginRight = 'auto' | number | StableString;
+type marginTop = 'auto' | number | StableString;
+type marker = 'none' | StableString;
+type markerEnd = 'none' | StableString;
+type markerMid = 'none' | StableString;
+type markerOffset = 'auto' | number | StableString;
+type markerStart = 'none' | StableString;
 type mask = maskLayer;
-type maskBorder = string | number;
+type maskBorder = number | StableString;
 type maskBorderMode = 'alpha' | 'luminance';
-type maskBorderOutset = string | number;
+type maskBorderOutset = number | StableString;
 type maskBorderRepeat = 'stretch' | 'repeat' | 'round' | 'space';
-type maskBorderSlice = string | number;
-type maskBorderSource = string | number;
-type maskBorderWidth = string | number;
-type maskClip = string;
+type maskBorderSlice = number | StableString;
+type maskBorderSource = number | StableString;
+type maskBorderWidth = number | StableString;
+type maskClip = StableString;
 type maskComposite = compositeOperator;
 type maskImage = maskReference;
 type maskingMode = 'alpha' | 'luminance' | 'match-source';
@@ -657,13 +660,13 @@ type maskLayer =
   | compositeOperator;
 type maskMode = maskingMode;
 type maskOrigin = geometryBox;
-type maskPosition = string;
-type maskReference = 'none' | strictString;
+type maskPosition = StableString;
+type maskReference = 'none' | StableString;
 type maskRepeat = repeatStyle;
 type maskSize = bgSize;
 type maskType = 'luminance' | 'alpha';
-type masonryAutoFlow = string | number;
-type mathDepth = string | number;
+type masonryAutoFlow = number | StableString;
+type mathDepth = number | StableString;
 type mathShift = 'normal' | 'compact';
 type mathStyle = 'normal' | 'compact';
 type maxBlockSize = maxWidth;
@@ -674,7 +677,7 @@ type maxHeight =
   | 'fit-content'
   | 'fill-available'
   | number
-  | strictString;
+  | StableString;
 type maxInlineSize = maxWidth;
 type maxWidth =
   | 'none'
@@ -683,7 +686,7 @@ type maxWidth =
   | 'fit-content'
   | 'fill-available'
   | number
-  | strictString;
+  | StableString;
 type minBlockSize = minWidth;
 type minHeight =
   | 'auto'
@@ -692,7 +695,7 @@ type minHeight =
   | 'fit-content'
   | 'fill-available'
   | number
-  | strictString;
+  | StableString;
 type minInlineSize = minWidth;
 type minWidth =
   | 'auto'
@@ -701,12 +704,12 @@ type minWidth =
   | 'fit-content'
   | 'fill-available'
   | number
-  | strictString;
+  | StableString;
 type mixBlendMode = blendMode;
 type motion = motionPath | motionOffset | motionRotation;
 type motionOffset = lengthPercentage;
-type motionPath = 'none' | geometryBox | strictString;
-type motionRotation = string | number;
+type motionPath = 'none' | geometryBox | StableString;
+type motionRotation = number | StableString;
 type MsOverflowStyle = 'auto' | 'none' | 'scrollbar';
 type NamedColor =
   | 'aliceblue'
@@ -860,26 +863,26 @@ type NamedColor =
   | 'yellowgreen';
 type nonStandardWordBreak = 'break-word';
 type objectFit = 'fill' | 'contain' | 'cover' | 'none' | 'scale-down';
-type objectPosition = string;
-type offset = string | number;
-type offsetAnchor = string | number;
-type offsetDistance = string | number;
-type offsetPath = string | number;
-type offsetPosition = string | number;
-type offsetRotate = string | number;
-type opacity = number | string;
-type order = number | string;
-type orphans = number | string;
-type outline = string;
+type objectPosition = StableString;
+type offset = number | StableString;
+type offsetAnchor = number | StableString;
+type offsetDistance = number | StableString;
+type offsetPath = number | StableString;
+type offsetPosition = number | StableString;
+type offsetRotate = number | StableString;
+type opacity = number | StableString;
+type order = number | StableString;
+type orphans = number | StableString;
+type outline = StableString;
 type outlineColor = color | 'invert';
-type outlineOffset = number | string;
+type outlineOffset = number | StableString;
 type outlineStyle = 'auto' | brStyle;
 type outlineWidth = borderWidth;
 type overflow = 'visible' | 'hidden' | 'clip' | 'scroll' | 'auto';
 type overflowAnchor = 'auto' | 'none';
 type overflowBlock = overflowY;
 type overflowBlockX = overflowX;
-type overflowClipMargin = string | number;
+type overflowClipMargin = number | StableString;
 type overflowWrap = 'normal' | 'break-word' | 'anywhere';
 type overflowX = overflow;
 type overflowY = overflow;
@@ -888,23 +891,23 @@ type overscrollBehaviorBlock = overscrollBehaviorY;
 type overscrollBehaviorInline = overscrollBehaviorX;
 type overscrollBehaviorX = 'none' | 'contain' | 'auto';
 type overscrollBehaviorY = 'none' | 'contain' | 'auto';
-type padding = number | string;
+type padding = number | StableString;
 type paddingBlock = paddingBlockEnd;
 type paddingBlockEnd = paddingLeft;
 type paddingBlockStart = paddingLeft;
-type paddingBottom = number | string;
+type paddingBottom = number | StableString;
 type paddingInline = paddingBlockEnd;
 type paddingInlineEnd = paddingBlockEnd;
 type paddingInlineStart = paddingBlockStart;
-type paddingLeft = number | string;
-type paddingRight = number | string;
-type paddingTop = number | string;
-type page = string | number;
+type paddingLeft = number | StableString;
+type paddingRight = number | StableString;
+type paddingTop = number | StableString;
+type page = number | StableString;
 type pageBreakAfter = 'auto' | 'always' | 'avoid' | 'left' | 'right';
 type pageBreakBefore = 'auto' | 'always' | 'avoid' | 'left' | 'right';
 type pageBreakInside = 'auto' | 'avoid';
 type paintOrder = 'normal' | 'stroke' | 'fill' | 'markers';
-type paint = 'none' | 'currentColor' | color | strictString;
+type paint = 'none' | 'currentColor' | color | StableString;
 type pause = pauseBefore | pauseAfter;
 type pauseAfter = 'none' | 'x-weak' | 'weak' | 'medium' | 'strong' | 'x-strong';
 type pauseBefore =
@@ -915,10 +918,10 @@ type pauseBefore =
   | 'strong'
   | 'x-strong';
 type perspective = 'none';
-type perspectiveOrigin = string;
-type placeContent = string | number;
-type placeItems = string | number;
-type placeSelf = string | number;
+type perspectiveOrigin = StableString;
+type placeContent = number | StableString;
+type placeItems = number | StableString;
+type placeSelf = number | StableString;
 type pointerEvents =
   | 'auto'
   | 'none'
@@ -931,7 +934,7 @@ type pointerEvents =
   | 'stroke'
   | 'all';
 type position = 'static' | 'relative' | 'absolute' | 'sticky' | 'fixed';
-type positionAnchor = string | number;
+type positionAnchor = number | StableString;
 type positionArea =
   | 'top'
   | 'left'
@@ -946,12 +949,12 @@ type positionArea =
   | 'span-inline-end'
   | 'span-block-start'
   | 'span-block-end';
-type positionTry = string | number;
-type positionTryFallbacks = string | number;
-type positionTryOptions = string | number;
+type positionTry = number | StableString;
+type positionTryFallbacks = number | StableString;
+type positionTryOptions = number | StableString;
 type positionVisibility = 'always' | 'anchors-visible' | 'no-overflow';
 type printColorAdjust = 'economy' | 'exact';
-type quotes = 'none' | strictString;
+type quotes = 'none' | StableString;
 type relativeSize = 'larger' | 'smaller';
 type repeatStyle =
   | 'repeat'
@@ -960,44 +963,44 @@ type repeatStyle =
   | 'space'
   | 'round'
   | 'no-repeat'
-  | strictString;
+  | StableString;
 type resize = 'none' | 'both' | 'horizontal' | 'vertical';
 type rest = restBefore | restAfter;
 type restAfter = 'none' | 'x-weak' | 'weak' | 'medium' | 'strong' | 'x-strong';
 type restBefore = 'none' | 'x-weak' | 'weak' | 'medium' | 'strong' | 'x-strong';
-type right = string | number;
-type rotate = string | number;
-type rowGap = number | string;
+type right = number | StableString;
+type rotate = number | StableString;
+type rowGap = number | StableString;
 type rubyAlign = 'start' | 'center' | 'space-between' | 'space-around';
 type rubyMerge = 'separate' | 'collapse' | 'auto';
 type rubyPosition = 'over' | 'under' | 'inter-character';
-type scale = 'none' | number | strictString;
+type scale = 'none' | number | StableString;
 type scrollbarColor = color;
 type scrollbarGutter = 'auto' | 'stable' | 'stable both-edges';
 type scrollbarWidth = 'auto' | 'thin' | 'none';
 type scrollBehavior = 'auto' | 'smooth';
-type scrollMargin = string | number;
-type scrollMarginBlock = string | number;
-type scrollMarginBlockEnd = string | number;
-type scrollMarginBlockStart = string | number;
-type scrollMarginBottom = string | number;
-type scrollMarginInline = string | number;
-type scrollMarginInlineEnd = string | number;
-type scrollMarginInlineStart = string | number;
-type scrollMarginLeft = string | number;
-type scrollMarginRight = string | number;
-type scrollMarginTop = string | number;
-type scrollPadding = string | number;
-type scrollPaddingBlock = string | number;
-type scrollPaddingBlockEnd = string | number;
-type scrollPaddingBlockStart = string | number;
-type scrollPaddingBottom = string | number;
-type scrollPaddingInline = string | number;
-type scrollPaddingInlineEnd = string | number;
-type scrollPaddingInlineStart = string | number;
-type scrollPaddingLeft = string | number;
-type scrollPaddingRight = string | number;
-type scrollPaddingTop = string | number;
+type scrollMargin = number | StableString;
+type scrollMarginBlock = number | StableString;
+type scrollMarginBlockEnd = number | StableString;
+type scrollMarginBlockStart = number | StableString;
+type scrollMarginBottom = number | StableString;
+type scrollMarginInline = number | StableString;
+type scrollMarginInlineEnd = number | StableString;
+type scrollMarginInlineStart = number | StableString;
+type scrollMarginLeft = number | StableString;
+type scrollMarginRight = number | StableString;
+type scrollMarginTop = number | StableString;
+type scrollPadding = number | StableString;
+type scrollPaddingBlock = number | StableString;
+type scrollPaddingBlockEnd = number | StableString;
+type scrollPaddingBlockStart = number | StableString;
+type scrollPaddingBottom = number | StableString;
+type scrollPaddingInline = number | StableString;
+type scrollPaddingInlineEnd = number | StableString;
+type scrollPaddingInlineStart = number | StableString;
+type scrollPaddingLeft = number | StableString;
+type scrollPaddingRight = number | StableString;
+type scrollPaddingTop = number | StableString;
 type scrollSnapAlign = 'none' | 'start' | 'end' | 'center';
 type scrollSnapStop = 'normal' | 'always';
 type scrollSnapType =
@@ -1017,31 +1020,31 @@ type scrollSnapType =
   | 'y'
   | 'y mandatory'
   | 'y proximity';
-type scrollTimeline = string | number;
+type scrollTimeline = number | StableString;
 type scrollTimelineAxis = 'block' | 'inline' | 'x' | 'y';
-type scrollTimelineName = string | number;
+type scrollTimelineName = number | StableString;
 type shapeBox = box | 'margin-box';
-type shapeImageThreshold = number | string;
+type shapeImageThreshold = number | StableString;
 type shapeMargin = lengthPercentage;
-type shapeOutside = 'none' | shapeBox | strictString;
+type shapeOutside = 'none' | shapeBox | StableString;
 type shapeRendering =
   | 'auto'
   | 'optimizeSpeed'
   | 'crispEdges'
   | 'geometricPrecision';
-type speakAs = 'normal' | 'spell-out' | 'digits' | strictString;
+type speakAs = 'normal' | 'spell-out' | 'digits' | StableString;
 type singleAnimationDirection =
   | 'normal'
   | 'reverse'
   | 'alternate'
   | 'alternate-reverse';
 type singleAnimationFillMode = 'none' | 'forwards' | 'backwards' | 'both';
-type singleAnimationIterationCount = 'infinite';
-type singleAnimationName = 'none' | strictString;
+type singleAnimationIterationCount = number | 'infinite';
+type singleAnimationName = 'none' | StableString;
 type singleAnimationPlayState = 'running' | 'paused';
 type singleTimingFunction = singleTransitionTimingFunction;
 type singleTransition = singleTransitionTimingFunction;
-type singleTransitionProperty = 'all' | strictString;
+type singleTransitionProperty = 'all' | StableString;
 type singleTransitionTimingFunction =
   | 'ease'
   | 'linear'
@@ -1050,21 +1053,21 @@ type singleTransitionTimingFunction =
   | 'ease-in-out'
   | 'step-start'
   | 'step-end'
-  | strictString;
-type src = string;
-type start = string | number;
+  | StableString;
+type src = StableString;
+type start = number | StableString;
 type stroke = paint;
-type strokeDasharray = 'none' | strictString;
+type strokeDasharray = 'none' | svgLength;
 type strokeDashoffset = svgLength;
 type strokeLinecap = 'butt' | 'round' | 'square';
 type strokeLinejoin = 'miter' | 'round' | 'bevel';
-type strokeMiterlimit = number | string;
-type strokeOpacity = number | string;
+type strokeMiterlimit = number | StableString;
+type strokeOpacity = number | StableString;
 type strokeWidth = svgLength;
-type svgLength = number | strictString;
+type svgLength = number | StableString;
 type svgWritingMode = 'lr-tb' | 'rl-tb' | 'tb-rl' | 'lr' | 'rl' | 'tb';
 type tableLayout = 'auto' | 'fixed';
-type tabSize = number | string;
+type tabSize = number | StableString;
 type textAlign =
   | 'start'
   | 'end'
@@ -1082,56 +1085,56 @@ type textAlignLast =
   | 'center'
   | 'justify';
 type textAnchor = 'start' | 'middle' | 'end';
-type textCombineUpright = 'none' | 'all' | strictString;
+type textCombineUpright = 'none' | 'all' | StableString;
 type textDecoration =
   | textDecorationLine
   | textDecorationStyle
   | textDecorationColor;
 type textDecorationColor = color;
-type textDecorationLine = 'none' | strictString;
-type textDecorationSkip = 'none' | strictString;
+type textDecorationLine = 'none' | StableString;
+type textDecorationSkip = 'none' | StableString;
 type textDecorationSkipInk = 'auto' | 'none' | 'all';
 type textDecorationStyle = 'solid' | 'double' | 'dotted' | 'dashed' | 'wavy';
-type textDecorationThickness = string | number;
+type textDecorationThickness = number | StableString;
 type textEmphasis = textEmphasisStyle | textEmphasisColor;
 type textEmphasisColor = color;
-type textEmphasisPosition = string;
-type textEmphasisStyle = 'none' | strictString;
+type textEmphasisPosition = StableString;
+type textEmphasisStyle = 'none' | StableString;
 type textIndent = lengthPercentage | 'hanging' | 'each-line';
 type textOrientation = 'mixed' | 'upright' | 'sideways';
-type textOverflow = string;
+type textOverflow = StableString;
 type textRendering =
   | 'auto'
   | 'optimizeSpeed'
   | 'optimizeLegibility'
   | 'geometricPrecision';
-type textShadow = 'none' | strictString;
-type textSizeAdjust = 'none' | 'auto' | strictString;
+type textShadow = 'none' | StableString;
+type textSizeAdjust = 'none' | 'auto' | StableString;
 type textTransform =
   | 'none'
   | 'capitalize'
   | 'uppercase'
   | 'lowercase'
   | 'full-width';
-type textUnderlineOffset = string | number;
-type textUnderlinePosition = 'auto' | strictString;
+type textUnderlineOffset = number | StableString;
+type textUnderlinePosition = 'auto' | StableString;
 type textWrap = 'wrap' | 'nowrap' | 'balance';
-type time = string;
-type timelineScope = string | number;
-type top = number | string;
-type touchAction = 'auto' | 'none' | 'manipulation' | strictString;
+type time = StableString;
+type timelineScope = number | StableString;
+type top = number | StableString;
+type touchAction = 'auto' | 'none' | 'manipulation' | StableString;
 type trackBreadth = 'min-content' | 'max-content' | 'auto' | lengthPercentage;
 type trackSize = trackBreadth;
-type transform = 'none' | strictString;
+type transform = 'none' | StableString;
 type transformBox = 'border-box' | 'fill-box' | 'view-box';
-type transformOrigin = string | number;
+type transformOrigin = number | StableString;
 type transformStyle = 'flat' | 'preserve-3d';
 type transition = singleTransition;
 type transitionDelay = time;
 type transitionDuration = time;
 type transitionProperty = 'none' | singleTransitionProperty;
 type transitionTimingFunction = singleTransitionTimingFunction;
-type translate = string | number;
+type translate = number | StableString;
 type unicodeBidi =
   | 'normal'
   | 'embed'
@@ -1139,7 +1142,7 @@ type unicodeBidi =
   | 'bidi-override'
   | 'isolate-override'
   | 'plaintext';
-type unicodeRange = string;
+type unicodeRange = StableString;
 type userSelect = 'auto' | 'text' | 'none' | 'contain' | 'all';
 type verticalAlign =
   | 'baseline'
@@ -1151,21 +1154,21 @@ type verticalAlign =
   | 'top'
   | 'bottom'
   | number
-  | strictString;
-type viewTimeline = string | number;
+  | StableString;
+type viewTimeline = number | StableString;
 type viewTimelineAxis = 'block' | 'inline' | 'x' | 'y';
-type viewTimelineInset = string | number;
-type viewTimelineName = string | number;
-type viewTransitionName = string | number;
+type viewTimelineInset = number | StableString;
+type viewTimelineName = number | StableString;
+type viewTransitionName = number | StableString;
 type visibility = 'visible' | 'hidden' | 'collapse';
 type voiceBalance = 'left' | 'center' | 'right' | 'leftwards' | 'rightwards';
-type voiceDuration = 'auto' | strictString;
-type voiceFamily = 'preserve' | strictString;
-type voicePitch = 'absolute' | number | strictString;
-type voiceRange = 'absolute' | number | strictString;
-type voiceRate = string;
+type voiceDuration = 'auto' | StableString;
+type voiceFamily = 'preserve' | StableString;
+type voicePitch = 'absolute' | number | StableString;
+type voiceRange = 'absolute' | number | StableString;
+type voiceRate = StableString;
 type voiceStress = 'normal' | 'strong' | 'moderate' | 'none' | 'reduced';
-type voiceVolume = 'silent' | strictString;
+type voiceVolume = 'silent' | StableString;
 type WebkitBackgroundClip =
   | 'border-box'
   | 'padding-box'
@@ -1173,12 +1176,12 @@ type WebkitBackgroundClip =
   | 'text';
 type WebkitBoxOrient = 'vertical' | 'horizontal' | 'inline-axis' | 'block-axis';
 type WebkitFontSmoothing = 'antialiased';
-type WebkitLineClamp = string | number;
+type WebkitLineClamp = number | StableString;
 type WebkitMaskImage = maskImage;
 type WebkitTapHighlightColor = color;
 type WebkitTextFillColor = color;
 type WebkitTextStrokeColor = color;
-type WebkitTextStrokeWidth = string | number;
+type WebkitTextStrokeWidth = number | StableString;
 type whiteSpace = 'normal' | 'pre' | 'nowrap' | 'pre-wrap' | 'pre-line';
 type whiteSpaceCollapse =
   | 'collapse'
@@ -1187,7 +1190,7 @@ type whiteSpaceCollapse =
   | 'preserve-breaks'
   | 'preserve-spaces'
   | 'break-spaces';
-type widows = number | string;
+type widows = number | StableString;
 type width =
   | 'available'
   | 'min-content'
@@ -1195,7 +1198,7 @@ type width =
   | 'fit-content'
   | 'auto'
   | number
-  | strictString;
+  | StableString;
 type willChange = 'auto' | animatableFeature;
 type wordBreak = 'normal' | 'break-all' | 'keep-all' | nonStandardWordBreak;
 type wordSpacing = 'normal' | lengthPercentage;
@@ -1207,7 +1210,7 @@ type writingMode =
   | 'sideways-rl'
   | 'sideways-lr'
   | svgWritingMode;
-type zIndex = 'auto';
+type zIndex = 'auto' | number | StableString;
 type zoom = 'normal';
 
 export type CSSTypes = Readonly<{
@@ -1377,6 +1380,8 @@ export type CSSTypes = Readonly<{
   clipPath?: all | clipPath;
   clipRule?: all | clipRule;
   color?: all | color;
+  colorInterpolation?: all | colorInterpolation;
+  colorInterpolationFilters?: all | colorInterpolationFilters;
 
   colorScheme?: all | colorScheme;
   forcedColorAdjust?: all | forcedColorAdjust;
