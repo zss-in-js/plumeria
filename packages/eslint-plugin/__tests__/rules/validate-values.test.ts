@@ -453,6 +453,82 @@ ruleTester.run('validate-values', validateValues, {
 
     // MultipleValue properties valid cases
     { code: "const styles = { padding: '10px 20px 30px 40px' };" },
+
+    // ============================================
+    // New Property Valid Tests
+    // ============================================
+
+    // Fill valid cases
+    { code: "const styles = { fill: 'none' };" },
+    { code: "const styles = { fill: 'currentColor' };" },
+    { code: "const styles = { fill: 'red' };" },
+
+    // FillOpacity valid cases
+    { code: "const styles = { fillOpacity: '0.5' };" },
+
+    // FillRule valid cases
+    { code: "const styles = { fillRule: 'nonzero' };" },
+    { code: "const styles = { fillRule: 'evenodd' };" },
+
+    // AlignmentBaseline valid cases
+    { code: "const styles = { alignmentBaseline: 'auto' };" },
+    { code: "const styles = { alignmentBaseline: 'middle' };" },
+    { code: "const styles = { alignmentBaseline: 'mathematical' };" },
+
+    // DominantBaseline valid cases
+    { code: "const styles = { dominantBaseline: 'auto' };" },
+    { code: "const styles = { dominantBaseline: 'central' };" },
+
+    // BaselineShift valid cases
+    { code: "const styles = { baselineShift: 'baseline' };" },
+    { code: "const styles = { baselineShift: 'sub' };" },
+    { code: "const styles = { baselineShift: '10px' };" },
+
+    // ShapeMargin valid cases
+    { code: "const styles = { shapeMargin: '10px' };" },
+    { code: "const styles = { shapeMargin: '50%' };" },
+
+    // ContainerType valid cases
+    { code: "const styles = { containerType: 'size' };" },
+    { code: "const styles = { containerType: 'inline-size' };" },
+    { code: "const styles = { containerType: 'normal' };" },
+
+    // ContentVisibility valid cases
+    { code: "const styles = { contentVisibility: 'visible' };" },
+    { code: "const styles = { contentVisibility: 'hidden' };" },
+    { code: "const styles = { contentVisibility: 'auto' };" },
+
+    // Direction valid cases
+    { code: "const styles = { direction: 'ltr' };" },
+    { code: "const styles = { direction: 'rtl' };" },
+
+    // ForcedColorAdjust valid cases
+    { code: "const styles = { forcedColorAdjust: 'auto' };" },
+    { code: "const styles = { forcedColorAdjust: 'none' };" },
+
+    // Contain valid cases
+    { code: "const styles = { contain: 'none' };" },
+    { code: "const styles = { contain: 'strict' };" },
+    { code: "const styles = { contain: 'content' };" },
+
+    // TextSizeAdjust valid cases
+    { code: "const styles = { textSizeAdjust: 'none' };" },
+    { code: "const styles = { textSizeAdjust: 'auto' };" },
+
+    // ColorInterpolation valid cases
+    { code: "const styles = { colorInterpolation: 'auto' };" },
+    { code: "const styles = { colorInterpolation: 'sRGB' };" },
+    { code: "const styles = { colorInterpolation: 'linearRGB' };" },
+
+    // ColorInterpolationFilters valid cases
+    { code: "const styles = { colorInterpolationFilters: 'auto' };" },
+    { code: "const styles = { colorInterpolationFilters: 'sRGB' };" },
+    { code: "const styles = { colorInterpolationFilters: 'linearRGB' };" },
+
+    // Number value accepted for length property (not rejected)
+    { code: 'const styles = { width: 100 };' },
+    { code: 'const styles = { opacity: 0.5 };' },
+    { code: 'const styles = { zIndex: 10 };' },
   ],
 
   invalid: [
@@ -2006,6 +2082,201 @@ ruleTester.run('validate-values', validateValues, {
         {
           message:
             "'fontLanguageOverride' has an invalid value 'invalid'. Valid values: normal",
+        },
+      ],
+    },
+
+    // ============================================
+    // New Property Tests
+    // ============================================
+
+    // AlignmentBaseline invalid
+    {
+      code: "const styles = { alignmentBaseline: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'alignmentBaseline' has an invalid value 'invalid'. Valid values: auto, baseline, before-edge, text-before-edge, middle, central, after-edge, text-after-edge, ideographic, alphabetic, hanging, mathematical",
+        },
+      ],
+    },
+
+    // DominantBaseline invalid
+    {
+      code: "const styles = { dominantBaseline: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'dominantBaseline' has an invalid value 'invalid'. Valid values: auto, use-script, no-change, reset-size, ideographic, alphabetic, hanging, mathematical, central, middle, text-after-edge, text-before-edge",
+        },
+      ],
+    },
+
+    // FillRule invalid
+    {
+      code: "const styles = { fillRule: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'fillRule' has an invalid value 'invalid'. Valid values: nonzero, evenodd",
+        },
+      ],
+    },
+
+    // ContainerType invalid
+    {
+      code: "const styles = { containerType: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'containerType' has an invalid value 'invalid'. Valid values: size, inline-size, normal",
+        },
+      ],
+    },
+
+    // ContentVisibility invalid
+    {
+      code: "const styles = { contentVisibility: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'contentVisibility' has an invalid value 'invalid'. Valid values: visible, hidden, auto",
+        },
+      ],
+    },
+
+    // Direction invalid
+    {
+      code: "const styles = { direction: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'direction' has an invalid value 'invalid'. Valid values: ltr, rtl",
+        },
+      ],
+    },
+
+    // ForcedColorAdjust invalid
+    {
+      code: "const styles = { forcedColorAdjust: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'forcedColorAdjust' has an invalid value 'invalid'. Valid values: auto, none",
+        },
+      ],
+    },
+
+    // Contain invalid
+    {
+      code: "const styles = { contain: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'contain' has an invalid value 'invalid'. Valid values: none, strict, content",
+        },
+      ],
+    },
+
+    // TextSizeAdjust invalid
+    {
+      code: "const styles = { textSizeAdjust: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'textSizeAdjust' has an invalid value 'invalid'. Valid values: none, auto",
+        },
+      ],
+    },
+
+    // ColorInterpolation invalid
+    {
+      code: "const styles = { colorInterpolation: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'colorInterpolation' has an invalid value 'invalid'. Valid values: auto, sRGB, linearRGB",
+        },
+      ],
+    },
+
+    // ColorInterpolationFilters invalid
+    {
+      code: "const styles = { colorInterpolationFilters: 'invalid' };",
+      errors: [
+        {
+          message:
+            "'colorInterpolationFilters' has an invalid value 'invalid'. Valid values: auto, sRGB, linearRGB",
+        },
+      ],
+    },
+
+    // ============================================
+    // Primitive Value Tests
+    // ============================================
+
+    // Boolean true rejected
+    {
+      code: 'const styles = { display: true };',
+      errors: [
+        {
+          message:
+            "'display' cannot be assigned a boolean value (true). CSS properties require string or number values.",
+        },
+      ],
+    },
+
+    // Boolean false rejected
+    {
+      code: 'const styles = { color: false };',
+      errors: [
+        {
+          message:
+            "'color' cannot be assigned a boolean value (false). CSS properties require string or number values.",
+        },
+      ],
+    },
+
+    // Null rejected
+    {
+      code: 'const styles = { margin: null };',
+      errors: [
+        {
+          message:
+            "'margin' cannot be assigned a null value (null). CSS properties require string or number values.",
+        },
+      ],
+    },
+
+    // Number rejected for string-only property
+    {
+      code: 'const styles = { display: 123 };',
+      errors: [
+        {
+          message:
+            "'display' does not accept numeric values. Expected a string value.",
+        },
+      ],
+    },
+
+    // Number rejected for fillRule (keyword-only)
+    {
+      code: 'const styles = { fillRule: 1 };',
+      errors: [
+        {
+          message:
+            "'fillRule' does not accept numeric values. Expected a string value.",
+        },
+      ],
+    },
+
+    // Number rejected for direction (keyword-only)
+    {
+      code: 'const styles = { direction: 0 };',
+      errors: [
+        {
+          message:
+            "'direction' does not accept numeric values. Expected a string value.",
         },
       ],
     },
