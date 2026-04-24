@@ -197,9 +197,8 @@ export const HomeComponent = () => {
           <div styleName={styles.heroContent}>
             <h2 styleName={styles.mainHeadline}>
               <Plumeria />
-              Styling System
+              Zero-Cost Abstraction
             </h2>
-            <h2 styleName={styles.mainHeadline}>That Disappears</h2>
             <p styleName={styles.subHeadline}>Fast · Composable · Predictable</p>
             <div styleName={styles.buttonGroup}>
               <ButtonLink href="/docs" variant="getstarted">
