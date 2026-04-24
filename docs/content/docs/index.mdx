@@ -2,7 +2,7 @@
 title: 'Introduction'
 ---
 
-## A styling system that disappears.
+## A zero-cost abstraction for CSS.
 Typical CSS-in-JS solutions retain runtime code in the bundle. Plumeria is 0Byte. This library completely replaces type calls and is complete with just type definitions and plugins.
 Developers simply extend the type definition arguments as **schemas**, so no JS parsing is required and there are no memory allocation costs.
 
@@ -23,12 +23,12 @@ Developers simply extend the type definition arguments as **schemas**, so no JS 
 }
 ```
 
-## Why Type-only?
+## Why no JavaScript?
 
 By treating styles as **type schemas** instead of runtime objects:
-- No JavaScript bundle
-- No JavaScript runtime
-- No JavaScript parsing overhead
+- No bundle
+- No runtime
+- No parsing overhead
 - No memory allocation for style objects
 - Tree-shaking removes all framework code
 - Only atomic class names and optimized CSS remain in production
@@ -41,7 +41,7 @@ Zero-Runtime CSS-in-JS adds processing time for parsing and conversion. However,
 
 ## Usage
 Use `css.create()` to define an object as a style.
-At this point, the atomic hash is determined, and all that remains is to receive it via **styleName**.
+At this point, the atomic hash is determined, and all that remains is to receive it via `styleName`.
 
 ```tsx
 import * as css from "@plumeria/core";
