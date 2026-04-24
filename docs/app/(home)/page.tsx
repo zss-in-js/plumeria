@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
 
 export const metadata: Metadata = generateSEOData({
-  title: 'Plumeria - A styling system that disappears',
+  title: 'Plumeria - A zero-cost abstraction for CSS.',
   subtitle: 'Compiles at build time to generate only the styles you use.',
 });
 
