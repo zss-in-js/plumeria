@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.4.1
+
+### Patch Changes
+
+- 4a005a8: Update package.json and README.md
+
 ## 10.4.0
 
 ### Minor Changes
