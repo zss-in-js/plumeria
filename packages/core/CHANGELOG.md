@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.4.2
+
+### Patch Changes
+
+- 8504232: Perf StableString in csstypes.d.ts
+
 ## 10.4.1
 
 ### Patch Changes
