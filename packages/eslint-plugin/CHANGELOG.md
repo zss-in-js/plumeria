@@ -1,3 +1,9 @@
+## 10.4.2
+
+### Patch Changes
+
+- 8504232: Bump version to 10.4.2
+
 ## 10.4.1
 
 ### Patch Changes
