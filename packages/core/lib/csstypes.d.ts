@@ -9,7 +9,7 @@
  */
 
 type all = 'initial' | 'inherit' | 'unset';
-type StableString = Pick<string, keyof string>;
+type StableString = { valueOf(): string };
 
 type absoluteSize =
   | 'xx-small'
