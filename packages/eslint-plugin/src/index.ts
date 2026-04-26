@@ -1,11 +1,13 @@
+import { styleNameRequiresImport } from './rules/style-name-requires-import';
 import { noCombinator } from './rules/no-combinator';
 import { noDestructure } from './rules/no-destructure';
+import { noInlineObject } from './rules/no-inline-object';
 import { noInnerCall } from './rules/no-inner-call';
 import { noUnusedKeys } from './rules/no-unused-keys';
 import { sortProperties } from './rules/sort-properties';
 import { formatProperties } from './rules/format-properties';
 import { validateValues } from './rules/validate-values';
-import { styleNameRequiresImport } from './rules/style-name-requires-import';
+
 import { noUnknownCssProperties } from './rules/no-unknown-css-properties';
 import type { ESLint, Linter, Rule } from 'eslint';
 
@@ -23,6 +25,7 @@ const rules: Record<string, Rule.RuleModule> = {
   'style-name-requires-import': styleNameRequiresImport,
   'no-combinator': noCombinator,
   'no-destructure': noDestructure,
+  'no-inline-object': noInlineObject,
   'no-inner-call': noInnerCall,
   'no-unknown-css-properties': noUnknownCssProperties,
   'no-unused-keys': noUnusedKeys,
@@ -38,6 +41,7 @@ const configs: PlumeriaPlugin['configs'] = {
       '@plumeria/style-name-requires-import': 'error',
       '@plumeria/no-combinator': 'error',
       '@plumeria/no-destructure': 'error',
+      '@plumeria/no-inline-object': 'error',
       '@plumeria/no-inner-call': 'error',
       '@plumeria/no-unknown-css-properties': 'error',
       '@plumeria/no-unused-keys': 'warn',
@@ -58,6 +62,7 @@ const flatConfigs: PlumeriaPlugin['flatConfigs'] = {
       '@plumeria/style-name-requires-import': 'error',
       '@plumeria/no-combinator': 'error',
       '@plumeria/no-destructure': 'error',
+      '@plumeria/no-inline-object': 'error',
       '@plumeria/no-inner-call': 'error',
       '@plumeria/no-unknown-css-properties': 'error',
       '@plumeria/no-unused-keys': 'warn',
