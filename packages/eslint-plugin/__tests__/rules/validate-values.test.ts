@@ -532,6 +532,17 @@ ruleTester.run('validate-values', validateValues, {
   ],
 
   invalid: [
+    // Inline object
+    {
+      code: "const styles = { color: { valueOf() { return 'hello'; } } };",
+      errors: [
+        {
+          message:
+            "'color' cannot be assigned a object value (object). CSS properties require string or number values.",
+        },
+      ],
+    },
+
     // Position
     {
       code: "const styles = { position: 'center' };",
