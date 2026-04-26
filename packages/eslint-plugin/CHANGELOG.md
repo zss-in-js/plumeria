@@ -1,3 +1,9 @@
+## 10.4.3
+
+### Patch Changes
+
+- 81ce26f: Improve to exclude objects from the value in validate-values.ts
+
 ## 10.4.2
 
 ### Patch Changes
