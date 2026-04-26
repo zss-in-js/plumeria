@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.4.3
+
+### Patch Changes
+
+- 81ce26f: Improve type-safety in csstypes.d.ts
+
 ## 10.4.2
 
 ### Patch Changes
