@@ -10,6 +10,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/style-name-requires-import`: **error**
 - `@plumeria/no-combinator`: **error**
 - `@plumeria/no-destructure`: **error**
+- `@plumeria/no-inline-object`: **error**
 - `@plumeria/no-inner-call`: **error**
 - `@plumeria/no-unknown-css-properties`: **error**
 - `@plumeria/no-unused-keys`: **warn**
@@ -29,7 +30,6 @@ export default [plumeria.flatConfigs.recommended];
 
 Disallow styleName prop in files without a @plumeria/core import.
 
-
 ### no-combinator
 
 Disallow combinators `>`, `+`, `~` and descendant combinator (space) unless inside functional pseudo-classes.
@@ -37,6 +37,10 @@ Disallow combinators `>`, `+`, `~` and descendant combinator (space) unless insi
 ### no-destructure
 
 Disallow destructuring APIs.
+
+### no-inline-object
+
+Disallow passing inline object to `styleName` and `css.use()`. Only compiled styles from `css.create()` are allowed.
 
 ### no-inner-call
 
