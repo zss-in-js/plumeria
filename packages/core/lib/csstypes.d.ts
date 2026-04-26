@@ -9,7 +9,7 @@
  */
 
 type all = 'initial' | 'inherit' | 'unset';
-type StableString = { valueOf(): string };
+type StableString = string & {};
 
 type absoluteSize =
   | 'xx-small'
