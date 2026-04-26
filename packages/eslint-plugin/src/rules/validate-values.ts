@@ -547,19 +547,37 @@ export const validateValues: Rule.RuleModule = {
             !property.key ||
             !property.value ||
             property.key.type !== 'Identifier' ||
-            typeof property.key.name !== 'string' ||
-            property.value.type !== 'Literal'
+            typeof property.key.name !== 'string'
           ) {
             return;
           }
 
           const key = property.key.name;
-          const rawValue = property.value.value;
 
           // Skip if not a known CSS property
           if (!validData[key]) {
             return;
           }
+
+          // Reject inline ObjectExpression values
+          if (property.value.type === 'ObjectExpression') {
+            context.report({
+              node: property.value,
+              messageId: 'invalidPrimitive',
+              data: {
+                key,
+                type: 'object',
+                value: 'object',
+              },
+            });
+            return;
+          }
+
+          if (property.value.type !== 'Literal') {
+            return;
+          }
+
+          const rawValue = property.value.value;
 
           // 1. Reject boolean and null primitives
           if (typeof rawValue === 'boolean' || rawValue === null) {
