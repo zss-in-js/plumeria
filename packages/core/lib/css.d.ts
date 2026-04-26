@@ -1,5 +1,5 @@
 /**
- * Type definitions only. No runtime implementation provided.
+ * Type definitions only. No runtime implementation provided.\
  * Configure the bundler plugin to extract and implement these APIs.
  * ```ts
  * type create = <const T extends Record<string, CreateStyleValue>>(rule: T)=> CreateReturnType<T>;
