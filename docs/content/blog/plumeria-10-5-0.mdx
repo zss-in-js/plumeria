@@ -1,0 +1,52 @@
+---
+title: 'Plumeria 10.5.0'
+description: 'Added no-inline-object rule to ESLint plugin'
+date: '2026-04-26'
+---
+## Main Changes
+### Added `no-inline-object` rule
+Added `@plumeria/no-inline-object` to the ESLint plugin (specified as `error` in the recommended configuration).
+* Prohibits specifying inline objects (e.g., `styleName={{ color: 'red' }}`) in `styleName` and `css.use()`.
+* This prevents bypassing the Zero-Runtime compiler
+* Note: React's standard `style={{}}` can still be freely used
+
+### Migration Guide
+
+Incorrect syntaxes that were previously ignored will now result in an error. If you are passing inline objects to `styleName` or `css.use()`, please update your code to use the correct patterns.
+
+**❌ Error**
+```tsx
+<div styleName={{ color: 'red' }} />
+<div styleName={{ [styles.active]: isActive }} />
+```
+
+**✅ Correct**
+```tsx
+<div style={{ color: 'red' }} />
+<div className={css.use(styles.red)} />
+<div styleName={[isActive && styles.active]} />
+```
+
+## Others
+
+### turboacpk-loader
+The writing logic is fixed.
+The exported createTheme HMR now works.
+
+### utils
+Refactor create.ts at getStyleRecords.
+Improve test cases.
+
+### eslint-plugin
+Improved test cases (currently 100% pass rate)
+The scope of the following rules is now restricted to import @plumeria/core, preventing them from polluting other objects.
+
+- format-properties
+- sort-properties
+- validate-values
+
+With this minor update, all rules are now exclusive to Plumeria.
+
+---
+
+Please submit your feedback to [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) and bug reports to [Issues](https://github.com/zss-in-js/plumeria/issues).
