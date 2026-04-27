@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 10.5.0
+
+### Minor Changes
+
+- 0b0c8a2: Fix corrected the writing logic to enable HMR for exported createTheme
+
+### Patch Changes
+
+- Updated dependencies [0b0c8a2]
+  - @plumeria/utils@10.5.0
+
 ## 10.4.3
 
 ### Patch Changes
