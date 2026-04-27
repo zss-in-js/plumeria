@@ -5,20 +5,20 @@ export const counterStyles = css.create({
   counterBox: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
     gap: '0.75rem',
-    borderRadius: '0.5rem',
-    backgroundColor: '#f7fafc',
+    alignItems: 'center',
     padding: '1rem',
-    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)',
     marginTop: '1.5rem',
+    backgroundColor: '#f7fafc',
+    borderRadius: '0.5rem',
+    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)'
   },
   counterLabel: {
     fontSize: '0.875rem',
     fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
     color: '#718096',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em'
   },
   counterValue: {
     fontSize: '2.25rem',
@@ -26,15 +26,15 @@ export const counterStyles = css.create({
     color: '#2d3748',
   },
   button: {
-    borderRadius: '9999px',
-    background: 'linear-gradient(90deg, #56c6be, #7ed3bf)',
-    color: 'white',
     padding: '0.5rem 1.5rem',
     fontSize: '0.875rem',
     fontWeight: '700',
-    border: 'none',
+    color: 'white',
     cursor: 'pointer',
-    boxShadow: '0 4px 6px rgba(86,198,190,0.25)',
+    background: 'linear-gradient(90deg, #56c6be, #7ed3bf)',
+    border: 'none',
+    borderRadius: '9999px',
+    boxShadow: '0 4px 6px rgba(86,198,190,0.25)'
   },
 })
 
