@@ -147,6 +147,53 @@ ruleTester.run('no-combinator', noCombinator, {
       // Supports queries should be allowed
       code: `import * as css from '@plumeria/core'; css.create({ container: { '@supports (display: grid)': { display: 'grid' } } })`,
     },
+    // Missing branch coverages
+    {
+      code: `import * as css from 'other'; css.create({ '> div': {} })`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; foo.bar.create({ '> div': {} })`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; css.other({ '> div': {} })`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; css.create(myVar)`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; css.createStatic(myVar)`,
+    },
+    {
+      code: `import { use } from '@plumeria/core'; use({ '> div': {} })`,
+    },
+    {
+      code: `import { create } from '@plumeria/core'; create(myVar)`,
+    },
+    {
+      code: `import { createStatic } from '@plumeria/core'; createStatic(myVar)`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; css.create({ [myVar]: {} })`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; css.create({ ['a' + 'b']: {} })`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; css.create({ ...props, idKey: {}, 'literalKey': {} })`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; css.createStatic({ ...props, hover: ':hover' })`,
+    },
+    {
+      // Callee is not Identifier or MemberExpression
+      code: `import * as css from '@plumeria/core'; (function(){})()`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; css.create({ key: 'val' })`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; css.createStatic({ key: myVar })`,
+    },
   ],
   invalid: [
     {
