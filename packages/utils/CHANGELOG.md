@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 10.5.0
+
+### Minor Changes
+
+- 0b0c8a2: Refactor and update test covered
+
 ## 10.4.3
 
 ### Patch Changes
