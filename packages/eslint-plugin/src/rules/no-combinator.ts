@@ -3,6 +3,7 @@
  */
 
 import type { Rule } from 'eslint';
+import type { ObjectExpression, Node, ImportSpecifier } from 'estree';
 
 export const noCombinator: Rule.RuleModule = {
   meta: {
@@ -59,16 +60,14 @@ export const noCombinator: Rule.RuleModule = {
             next++;
           }
 
-          if (next < len) {
-            const nextChar = s[next];
-            const prevChar = s[i - 1];
+          const nextChar = s[next];
+          const prevChar = s[i - 1];
 
-            if (
-              !isCombinatorOrSeparator(prevChar) &&
-              !isCombinatorOrSeparator(nextChar)
-            ) {
-              return false;
-            }
+          if (
+            !isCombinatorOrSeparator(prevChar) &&
+            !isCombinatorOrSeparator(nextChar)
+          ) {
+            return false;
           }
           i = next;
           continue;
@@ -147,11 +146,12 @@ export const noCombinator: Rule.RuleModule = {
               specifier.type === 'ImportDefaultSpecifier'
             ) {
               plumeriaAliases[specifier.local.name] = 'NAMESPACE';
-            } else if (specifier.type === 'ImportSpecifier') {
+            } else {
+              const spec = specifier as ImportSpecifier;
               const importedName =
-                specifier.imported.type === 'Identifier'
-                  ? specifier.imported.name
-                  : String(specifier.imported.value);
+                spec.imported.type === 'Identifier'
+                  ? spec.imported.name
+                  : String(spec.imported.value);
               plumeriaAliases[specifier.local.name] = importedName;
             }
           });
@@ -200,7 +200,7 @@ export const noCombinator: Rule.RuleModule = {
       },
     };
 
-    function checkForCombinatorsRecursively(node: any) {
+    function checkForCombinatorsRecursively(node: ObjectExpression) {
       for (const prop of node.properties) {
         if (prop.type === 'Property') {
           let keyName = '';
@@ -221,7 +221,7 @@ export const noCombinator: Rule.RuleModule = {
       }
     }
 
-    function checkCreateStaticValues(node: any) {
+    function checkCreateStaticValues(node: ObjectExpression) {
       for (const prop of node.properties) {
         if (prop.type === 'Property') {
           if (prop.value.type === 'Literal') {
@@ -232,7 +232,7 @@ export const noCombinator: Rule.RuleModule = {
       }
     }
 
-    function checkAndReport(text: string, node: any) {
+    function checkAndReport(text: string, node: Node) {
       if (
         text.includes('>') ||
         text.includes('+') ||
@@ -246,12 +246,7 @@ export const noCombinator: Rule.RuleModule = {
           if (text.includes('>')) found = '>';
           else if (text.includes('+')) found = '+';
           else if (text.includes('~')) found = '~';
-          else if (
-            text.includes(' ') ||
-            text.includes('\t') ||
-            text.includes('\n')
-          )
-            found = '(space)';
+          else found = '(space)';
 
           context.report({
             node: node,
