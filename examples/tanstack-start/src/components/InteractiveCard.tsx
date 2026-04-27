@@ -3,9 +3,9 @@ import * as css from '@plumeria/core'
 
 export const cardStyles = css.create({
   cardDashed: {
-    borderRadius: '0.75rem',
-    border: '2px dashed #cbd5e0',
     padding: '1.5rem',
+    border: '2px dashed #cbd5e0',
+    borderRadius: '0.75rem'
   },
   h3: {
     margin: '0 0 0.5rem',
