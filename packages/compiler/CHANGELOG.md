@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 10.5.0
+
+### Minor Changes
+
+- 075c982: Bump version to 10.5.0
+
+### Patch Changes
+
+- Updated dependencies [075c982]
+  - @plumeria/utils@10.5.0
+
 ## 10.4.3
 
 ### Patch Changes

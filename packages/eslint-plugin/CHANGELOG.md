@@ -1,3 +1,9 @@
+## 10.5.0
+
+### Minor Changes
+
+- 075c982: Add no-inline-object-rule
+
 ## 10.4.3
 
 ### Patch Changes
