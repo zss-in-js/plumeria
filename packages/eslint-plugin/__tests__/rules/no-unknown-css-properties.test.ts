@@ -3,7 +3,7 @@ import { noUnknownCssProperties } from '../../src/rules/no-unknown-css-propertie
 
 const ruleTester = new RuleTester({
   languageOptions: {
-    ecmaVersion: 2020,
+    ecmaVersion: 'latest',
     sourceType: 'module',
   },
 });
@@ -104,6 +104,45 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
           new: { opacity: 1 }
         });
       `,
+    },
+    {
+      code: `
+        import { create } from '@plumeria/core';
+        const styles = create({
+          main: {
+            ...{},
+            color: 'red'
+          }
+        });
+      `,
+    },
+    {
+      // Non-Plumeria import
+      code: `import * as other from 'other'; other.create({ main: { color: 'red' } });`,
+    },
+    {
+      // String literal import name
+      code: `import { "create" as c } from '@plumeria/core'; c({ main: { color: 'red' } });`,
+    },
+    {
+      // Non-Identifier object in MemberExpression
+      code: `import * as css from '@plumeria/core'; (function(){ return css; })().create({ main: { color: 'red' } });`,
+    },
+    {
+      // Non-Identifier callee
+      code: `import * as css from '@plumeria/core'; (function(){})()`,
+    },
+    {
+      // Non-ObjectExpression argument and Spread element
+      code: `import { create } from '@plumeria/core'; create(arg, { ...props, main: { color: 'red' } });`,
+    },
+    {
+      // Literal key and non-property element in checkStyleObject
+      code: `import { create } from '@plumeria/core'; create({ main: { 'background-color': 'red', [key]: 'blue', ['a' + 'b']: 'green' } });`,
+    },
+    {
+      // Other import from @plumeria/core to cover alias lookup failure
+      code: `import { use } from '@plumeria/core'; use({ s: { color: 'red' } });`,
     },
   ],
   invalid: [
