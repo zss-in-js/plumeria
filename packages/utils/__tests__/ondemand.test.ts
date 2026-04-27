@@ -1,4 +1,3 @@
-/* eslint-disable @plumeria/validate-values */
 /* Testing createTheme's on-demand style generation */
 
 import { extractOndemandStyles } from '../src/parser';
