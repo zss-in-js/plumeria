@@ -37,6 +37,22 @@ ruleTester.run('no-inner-call', noInnerCall, {
       code: `import css from '@plumeria/core'; css.create();`,
       settings,
     },
+    {
+      code: `import * as React from 'react'; function f() { React.useState(); }`,
+      settings,
+    },
+    {
+      code: `import { useState } from 'react'; function f() { useState(); }`,
+      settings,
+    },
+    {
+      code: `function f() { console.log(); }`,
+      settings,
+    },
+    {
+      code: `function f() { foo.bar.baz(); }`,
+      settings,
+    },
   ],
   invalid: [
     {
