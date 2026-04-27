@@ -2,11 +2,11 @@ import * as css from '@plumeria/core'
 
 const styles = css.create({
   card: {
-    borderRadius: '0.75rem',
-    border: '1px solid #e2e8f0',
-    backgroundColor: '#ffffff',
     padding: '1.5rem',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    backgroundColor: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '0.75rem',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
   },
   h3: {
     margin: '0 0 0.5rem',
