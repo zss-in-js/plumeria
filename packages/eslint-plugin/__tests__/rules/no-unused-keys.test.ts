@@ -68,6 +68,54 @@ ruleTester.run('no-unused-keys', noUnusedKeys, {
         ecmaVersion: 2021,
       },
     },
+    {
+      // Computed Literal key (Supported)
+      code: `
+        const styles = css.create({ used: {} });
+        styles['used'];
+      `,
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      // css.create with no arguments
+      code: 'css.create()',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      // css.create with non-object argument
+      code: 'css.create(arg)',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      // css.create not in variable declarator
+      code: 'css.create({ a: {} })',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      // Destructuring (should skip or handle gracefully)
+      code: 'const [s] = css.create({ a: {} });',
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      // Spread element in create (skipped)
+      code: `
+        const styles = css.create({ ...props, used: {} });
+        styles.used;
+      `,
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
   ],
   invalid: [
     {
@@ -137,6 +185,57 @@ ruleTester.run('no-unused-keys', noUnusedKeys, {
       errors: [
         {
           message: "The key 'unused' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      // Member access on non-identifier object (Correctly reported as unused)
+      code: 'const styles = css.create({ used: {} }); (function(){})().used;',
+      errors: [
+        {
+          message: "The key 'used' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      // Computed member access on non-identifier object
+      code: 'const styles = css.create({ used: {} }); (function(){})()["used"];',
+      errors: [
+        {
+          message: "The key 'used' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      // Dynamic bracket access on non-identifier object
+      code: 'const styles = css.create({ used: {} }); (function(){})()[key];',
+      errors: [
+        {
+          message: "The key 'used' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      // Complex computed key (Ignored by the rule, so 'used' remains unused)
+      code: `
+        const styles = css.create({ used: {} });
+        styles[1 + 1];
+      `,
+      errors: [
+        {
+          message: "The key 'used' is defined but never referenced anywhere.",
         },
       ],
       settings: {
