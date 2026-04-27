@@ -39,15 +39,14 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
           queryHashes.push(hash);
         }
         const queryKey = prop + ':' + innerProp;
-        if (querySheets.length > 0) {
-          records.push({
-            key: queryKey,
-            hash: queryHashes.join(' '),
-            sheet: querySheets.join(''),
-          });
-        }
+
+        records.push({
+          key: queryKey,
+          hash: queryHashes.join(' '),
+          sheet: querySheets.join(''),
+        });
       });
-    } else {
+    } else if (typeof value === 'string' || typeof value === 'number') {
       const atomicMap = new Map<string, string>();
 
       processAtomicProps({ [prop]: value }, atomicMap);
@@ -60,13 +59,11 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
         hashes.push(hash);
       }
 
-      if (sheets.length > 0) {
-        records.push({
-          key: prop,
-          hash: hashes.join(' '),
-          sheet: sheets.join(''),
-        });
-      }
+      records.push({
+        key: prop,
+        hash: hashes.join(' '),
+        sheet: sheets.join(''),
+      });
     }
   });
 
@@ -87,46 +84,40 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
       style: CSSProperties,
       atRule?: string,
     ) => {
-      const isAtomic = selector.startsWith(':') || selector.startsWith('[');
+      Object.entries(style).forEach(([prop, value]) => {
+        let hashSource = { [prop]: value };
+        if (atRule) {
+          hashSource = {
+            [atRule]: {
+              [selector]: hashSource,
+            },
+          };
+        } else {
+          hashSource = { [selector]: hashSource };
+        }
 
-      if (isAtomic) {
-        Object.entries(style).forEach(([prop, value]) => {
-          let hashSource = { [prop]: value };
-          if (atRule) {
-            hashSource = {
-              [atRule]: {
-                [selector]: hashSource,
-              },
-            };
-          } else {
-            hashSource = { [selector]: hashSource };
-          }
+        const hash = genBase36Hash(hashSource, 1, 8);
+        const notSuffix = prop.startsWith('--') ? '' : notNormalize;
 
-          const hash = genBase36Hash(hashSource, 1, 8);
-          const notSuffix = prop.startsWith('--') ? '' : notNormalize;
+        let sheet = transpileAtomic(
+          prop,
+          value as string | number,
+          hash,
+          selector,
+        );
 
-          let sheet = transpileAtomic(
-            prop,
-            value as string | number,
-            hash,
-            selector,
-          );
+        sheet = sheet.replace(`.${hash}`, `.${hash}${notSuffix}`);
 
-          sheet = sheet.replace(`.${hash}`, `.${hash}${notSuffix}`);
+        if (atRule) {
+          sheet = `${atRule} { ${sheet} }`;
+        }
 
-          if (atRule) {
-            sheet = `${atRule} { ${sheet} }`;
-          }
-
-          records.push({
-            key: atRule
-              ? `${atRule}:${selector}:${prop}`
-              : `${selector}:${prop}`,
-            hash,
-            sheet: sheet + '\n',
-          });
+        records.push({
+          key: atRule ? `${atRule}:${selector}:${prop}` : `${selector}:${prop}`,
+          hash,
+          sheet: sheet + '\n',
         });
-      }
+      });
     };
 
     Object.entries(nonFlatBase).forEach(([selector, style]) => {
