@@ -4,6 +4,7 @@
  */
 
 import type { Rule } from 'eslint';
+import type { ImportSpecifier } from 'estree';
 
 export const noDestructure: Rule.RuleModule = {
   meta: {
@@ -29,11 +30,12 @@ export const noDestructure: Rule.RuleModule = {
               plumeriaAliases[specifier.local.name] = 'NAMESPACE';
             } else if (specifier.type === 'ImportDefaultSpecifier') {
               plumeriaAliases[specifier.local.name] = 'NAMESPACE';
-            } else if (specifier.type === 'ImportSpecifier') {
+            } else {
+              const spec = specifier as ImportSpecifier;
               const importedName =
-                specifier.imported.type === 'Identifier'
-                  ? specifier.imported.name
-                  : String(specifier.imported.value);
+                spec.imported.type === 'Identifier'
+                  ? spec.imported.name
+                  : String(spec.imported.value);
               plumeriaAliases[specifier.local.name] = importedName;
             }
           });
