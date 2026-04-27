@@ -20,6 +20,8 @@ ruleTester.run('no-inline-object', noInlineObject, {
     { code: 'css.use(styles.base, isActive && styles.active)' },
     { code: '<div className={css.use(styles.active)} />' },
     { code: 'css.create({ text: { color: "red" } })' },
+    { code: '<div styleName={[variants({ size: "small" })]} />' },
+    { code: 'css.use(variants({ size: "small" }))' },
   ],
   invalid: [
     {
