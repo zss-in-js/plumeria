@@ -168,6 +168,30 @@ describe('resolver', () => {
       // Second call (cached) - this hits lines 18-20 with a null config
       expect(resolveImportPath('@/utils', importer)).toBeNull();
     });
+
+    it('should skip non-matching aliases and handle failing targets', () => {
+      const target = path.resolve(root, 'lib/found.ts');
+      setupMockFs([target, tsConfigPath]);
+
+      jest.doMock(
+        tsConfigPath,
+        () => ({
+          compilerOptions: {
+            paths: {
+              '@non-match/*': ['ignore/*'],
+              '@match/*': ['missing/*', 'lib/*'],
+            },
+          },
+        }),
+        { virtual: true },
+      );
+
+      // This will:
+      // 1. Skip @non-match (covers false branch of 92)
+      // 2. Try @match/missing (result is null, covers false branch of 100)
+      // 3. Find @match/lib/found.ts
+      expect(resolveImportPath('@match/found', importer)).toBe(target);
+    });
   });
 
   describe('package resolution (fallback)', () => {
@@ -241,6 +265,30 @@ describe('resolver', () => {
         'tsconfig.json',
       );
       expect(mockedFs.existsSync).not.toHaveBeenCalledWith(tsConfigPathHelper);
+    });
+
+    it('should hit tsConfigCache when same config is used by different startDir', () => {
+      const tsConfigPath = path.resolve(root, 'tsconfig.json');
+      const target = path.resolve(root, 'lib/utils.ts');
+      setupMockFs([target, tsConfigPath]);
+
+      jest.doMock(
+        tsConfigPath,
+        () => ({
+          compilerOptions: {
+            paths: { '@/*': ['lib/*'] },
+          },
+        }),
+        { virtual: true },
+      );
+
+      // Call from one importer
+      expect(resolveImportPath('@/utils', importer)).toBe(target);
+
+      // Call from another importer in a different directory
+      const otherImporter = path.resolve(root, 'other/index.ts');
+      // Both will check path.join(process.cwd(), 'tsconfig.json')
+      expect(resolveImportPath('@/utils', otherImporter)).toBe(target);
     });
   });
 });
