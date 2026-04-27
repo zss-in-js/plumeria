@@ -113,4 +113,26 @@ describe('getStyleRecords', () => {
     expect(result[0].sheet).toContain('@media (min-width: 100px)');
     expect(result[0].sheet).toContain(':not(#\\#)');
   });
+
+  it('should handle @container queries', () => {
+    const result = getStyleRecords({
+      '@container (min-width: 500px)': {
+        color: 'green',
+      },
+    } as any);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].key).toBe('@container (min-width: 500px):color');
+    expect(result[0].sheet).toContain('@container (min-width: 500px)');
+  });
+
+  it('should ignore non-atomic selectors', () => {
+    const result = getStyleRecords({
+      div: {
+        color: 'red',
+      },
+    } as any);
+
+    expect(result).toHaveLength(0);
+  });
 });
