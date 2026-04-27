@@ -32,6 +32,23 @@ ruleTester.run('no-destructure', noDestructure, {
     {
       code: `import { create } from '@plumeria/core';`,
     },
+    // Branch coverages
+    {
+      code: `import * as css from 'other'; const { create } = css;`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const { create } = other;`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const { ...rest } = css;`,
+      settings: { ecmaVersion: 2021 },
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const { ['create']: create } = css;`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const { someOtherThing } = css;`,
+    },
   ],
   invalid: [
     {
