@@ -4,19 +4,21 @@
  */
 
 import type { Rule } from 'eslint';
+import type { Node, Identifier } from 'estree';
 
 /* istanbul ignore next */
 function getFilename(context: Rule.RuleContext): string {
   return context.getFilename ? context.getFilename() : context.filename;
 }
 
-function getRootObject(node: any): any {
+function getRootObject(node: Node): Identifier | undefined {
   if (node.type === 'Identifier') {
     return node;
   }
   if (node.type === 'MemberExpression') {
     return getRootObject(node.object);
   }
+  return undefined;
 }
 
 export const noUnusedKeys: Rule.RuleModule = {
@@ -56,16 +58,14 @@ export const noUnusedKeys: Rule.RuleModule = {
             arg &&
             arg.type === 'ObjectExpression' &&
             node.parent.type === 'VariableDeclarator' &&
-            'name' in node.parent.id
+            node.parent.id.type === 'Identifier'
           ) {
             const variableName = node.parent.id.name;
-
             const keyMap = new Map();
 
             arg.properties.forEach((prop) => {
               if (
                 prop.type === 'Property' &&
-                prop.key &&
                 prop.key.type === 'Identifier' &&
                 prop.value.type === 'ObjectExpression'
               ) {
@@ -79,30 +79,28 @@ export const noUnusedKeys: Rule.RuleModule = {
       },
 
       MemberExpression(node) {
-        if (node.computed && node.property.type === 'Identifier') {
-          // Detect dynamic access - handle nested MemberExpressions
-          const rootObject = getRootObject(node.object);
-          if (rootObject && rootObject.type === 'Identifier') {
-            const variableName = rootObject.name;
-            dynamicallyAccessedVars.add(variableName);
-            definedKeys.delete(variableName);
+        const rootObject = getRootObject(node.object);
+        if (!rootObject) return;
+
+        if (node.computed) {
+          if (node.property.type === 'Identifier') {
+            dynamicallyAccessedVars.add(rootObject.name);
+            definedKeys.delete(rootObject.name);
+          } else if (node.property.type === 'Literal') {
+            referencedKeys.add(`${rootObject.name}.${node.property.value}`);
           }
+          // Other computed keys (e.g. BinaryExpression) are ignored
           return;
         }
 
-        if (node.property.type === 'Identifier') {
-          // Handle nested MemberExpressions
-          const rootObject = getRootObject(node.object);
-          if (rootObject && rootObject.type === 'Identifier') {
-            const normalKey = `${rootObject.name}.${node.property.name}`;
-            referencedKeys.add(normalKey);
-          }
-        }
+        referencedKeys.add(
+          `${rootObject.name}.${(node.property as Identifier).name}`,
+        );
       },
 
       'Program:exit'() {
         definedKeys.forEach((keyMap, variableName) => {
-          keyMap.forEach((keyNode: any, keyName: string) => {
+          keyMap.forEach((keyNode: Node, keyName: string) => {
             const normalKey = `${variableName}.${keyName}`;
             if (!referencedKeys.has(normalKey)) {
               context.report({
