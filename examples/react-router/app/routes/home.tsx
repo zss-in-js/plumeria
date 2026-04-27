@@ -1,5 +1,5 @@
 /* eslint-disable no-empty-pattern */
-/* eslint-disable @plumeria/validate-values */
+ 
 import type { Route } from './+types/home';
 import { Welcome } from '../welcome/welcome';
 
