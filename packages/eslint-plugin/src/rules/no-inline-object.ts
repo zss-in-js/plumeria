@@ -21,8 +21,30 @@ export const noInlineObject: Rule.RuleModule = {
   },
 
   create(context) {
+    function isInsideOtherCall(node: Rule.Node) {
+      let current = node.parent;
+      while (current && (current.type as string) !== 'JSXAttribute') {
+        if (current.type === 'CallExpression') {
+          const callee = current.callee;
+          if (
+            callee.type === 'MemberExpression' &&
+            callee.object.type === 'Identifier' &&
+            callee.object.name === 'css' &&
+            callee.property.type === 'Identifier' &&
+            callee.property.name === 'use'
+          ) {
+            return false;
+          }
+          return true;
+        }
+        current = current.parent;
+      }
+      return false;
+    }
+
     return {
       'JSXAttribute[name.name="styleName"] ObjectExpression'(node: Rule.Node) {
+        if (isInsideOtherCall(node)) return;
         context.report({
           node,
           messageId: 'noInlineObjectInStyleName',
@@ -32,6 +54,7 @@ export const noInlineObject: Rule.RuleModule = {
       'CallExpression[callee.object.name="css"][callee.property.name="use"] ObjectExpression'(
         node: Rule.Node,
       ) {
+        if (isInsideOtherCall(node)) return;
         context.report({
           node,
           messageId: 'noInlineObjectInCssUse',
