@@ -1,3 +1,9 @@
+## 10.5.0
+
+### Minor Changes
+
+- 0b0c8a2: Add no-inline-object-rule and format-properties sort-properties validate-values ​​to limit the scope to plumeria
+
 ## 10.4.3
 
 ### Patch Changes
