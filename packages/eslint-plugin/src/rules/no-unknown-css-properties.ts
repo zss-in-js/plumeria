@@ -1,6 +1,6 @@
 import { all } from 'known-css-properties';
+import type { ObjectExpression, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
-import type { ObjectExpression } from 'estree';
 
 const knownProperties = new Set(all);
 
@@ -33,11 +33,13 @@ export const noUnknownCssProperties: Rule.RuleModule = {
               specifier.type === 'ImportDefaultSpecifier'
             ) {
               plumeriaAliases[specifier.local.name] = 'NAMESPACE';
-            } else if (
-              specifier.type === 'ImportSpecifier' &&
-              specifier.imported.type === 'Identifier'
-            ) {
-              plumeriaAliases[specifier.local.name] = specifier.imported.name;
+            } else {
+              const spec = specifier as ImportSpecifier;
+              const importedName =
+                spec.imported.type === 'Identifier'
+                  ? spec.imported.name
+                  : String(spec.imported.value);
+              plumeriaAliases[specifier.local.name] = importedName;
             }
           });
         }
@@ -92,36 +94,33 @@ export const noUnknownCssProperties: Rule.RuleModule = {
     function checkStyleObject(node: ObjectExpression) {
       node.properties.forEach((prop) => {
         if (prop.type === 'Property') {
-          let keyName = '';
-          if (prop.key.type === 'Identifier') {
-            keyName = prop.key.name;
-          } else if (prop.key.type === 'Literal') {
-            keyName = String(prop.key.value);
+          if (prop.value.type === 'ObjectExpression') {
+            checkStyleObject(prop.value);
           }
 
-          if (keyName) {
+          if (!prop.computed) {
+            const keyName =
+              prop.key.type === 'Identifier'
+                ? prop.key.name
+                : String((prop.key as any).value);
+
             if (
               !keyName.startsWith(':') &&
               !keyName.startsWith('[') &&
-              !keyName.startsWith('@')
+              !keyName.startsWith('@') &&
+              !keyName.startsWith('--')
             ) {
-              if (!keyName.startsWith('--')) {
-                const kebabName = toKebabCase(keyName);
-                if (!knownProperties.has(kebabName)) {
-                  context.report({
-                    node: prop.key,
-                    messageId: 'unknownProperty',
-                    data: {
-                      name: keyName,
-                    },
-                  });
-                }
+              const kebabName = toKebabCase(keyName);
+              if (!knownProperties.has(kebabName)) {
+                context.report({
+                  node: prop.key,
+                  messageId: 'unknownProperty',
+                  data: {
+                    name: keyName,
+                  },
+                });
               }
             }
-          }
-
-          if (prop.value.type === 'ObjectExpression') {
-            checkStyleObject(prop.value);
           }
         }
       });
