@@ -1,5 +1,13 @@
 # @plumeria/vite
 
+## 10.5.1
+
+### Patch Changes
+
+- 55676de: Bump version to 10.5.1
+- Updated dependencies [55676de]
+  - @plumeria/utils@10.5.1
+
 ## 10.5.0
 
 ### Minor Changes

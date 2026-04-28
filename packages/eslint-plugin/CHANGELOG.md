@@ -1,3 +1,9 @@
+## 10.5.1
+
+### Patch Changes
+
+- 55676de: Perf unknown-css-properties and validate-values
+
 ## 10.5.0
 
 ### Minor Changes
