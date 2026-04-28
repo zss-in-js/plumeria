@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 10.5.1
+
+### Patch Changes
+
+- 55676de: Bump version to 10.5.1
+
 ## 10.5.0
 
 ### Minor Changes
