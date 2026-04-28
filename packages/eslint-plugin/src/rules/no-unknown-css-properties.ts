@@ -4,8 +4,15 @@ import type { Rule } from 'eslint';
 
 const knownProperties = new Set(all);
 
+const kebabCache = new Map<string, string>();
+
 function toKebabCase(str: string): string {
-  return str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+  if (kebabCache.has(str)) {
+    return kebabCache.get(str)!;
+  }
+  const result = str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+  kebabCache.set(str, result);
+  return result;
 }
 
 export const noUnknownCssProperties: Rule.RuleModule = {
