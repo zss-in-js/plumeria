@@ -1118,6 +1118,18 @@ ruleTester.run('validate-values', validateValues, {
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { ['color']: {} } });`,
     },
+    {
+      code: `
+    import * as css from '@plumeria/core';
+    css.create({
+      testClass: {
+        border: 'var(--my-border-width) var(--my-border-style)',
+        outline: 'var(--outline-w) var(--outline-s) var(--outline-c)',
+        borderTop: 'var(--bw, 1px) var(--bs, solid)',
+      }
+    });
+  `,
+    },
   ],
 
   invalid: [
