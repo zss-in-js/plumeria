@@ -1,6 +1,5 @@
 import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
-import { pseudos } from 'lib/pseudos';
 import { Plumeria } from './Plumeria';
 import { CodeBlock, InstallCode } from './CodeBlock';
 import { ButtonLink } from './ButtonLink';
@@ -131,10 +130,6 @@ const styles = css.create({
     borderRadius: '16px',
     boxShadow: 'var(--card-box-shadow)',
     transition: 'all 0.3s ease',
-    [pseudos.hover]: {
-      borderColor: 'var(--card-hover-border)',
-      transform: 'translateY(-2px)',
-    },
     [breakpoints.md]: {
       padding: '24px',
     },
@@ -168,25 +163,21 @@ const styles = css.create({
   },
 });
 
-const demoCode = `import * as css from '@plumeria/core';
+const demoCode = `import * as css from "@plumeria/core";
 
 const styles = css.create({
-  featureCard: {
-    position: 'relative',
-    padding: '24px',
-    background: 'var(--card-bg)',
-    borderRadius: '16px',
-    boxShadow: 'var(--card-box-shadow)',
-    transition: 'all 0.3s ease',
-    [pseudos.hover]: {
-      borderColor: 'var(--card-hover-border)',
-      transform: 'translateY(-2px)',
-    },
-    [breakpoints.md]: {
-      padding: '24px',
-    },
+  box: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
-});`;
+});
+
+export const Box = () => {
+  return (
+    <div styleName={styles.box}>Hello, Plumeria Box!</div>
+  );
+};`;
 
 const installCode = `$ pnpm install -D @plumeria/core`;
 
@@ -221,7 +212,9 @@ export const HomeComponent = () => {
           <div styleName={styles.featureCard}>
             <div styleName={styles.featureIcon}>{svg.Atom()}</div>
             <h3 styleName={styles.featureTitle}>Atomic CSS</h3>
-            <p styleName={styles.featureDescription}>Styles are reused keeping CSS bundle is always minimal.</p>
+            <p styleName={styles.featureDescription}>
+              The abstracted layers you control will be automatically atomized.
+            </p>
           </div>
 
           <div styleName={styles.featureCard}>
@@ -232,16 +225,16 @@ export const HomeComponent = () => {
 
           <div styleName={styles.featureCard}>
             <div styleName={styles.featureIcon}>⚡</div>
-            <h3 styleName={styles.featureTitle}>Build-time Compilation</h3>
-            <p styleName={styles.featureDescription}>Styles compile to atomic class names at build time.</p>
+            <h3 styleName={styles.featureTitle}>Build time</h3>
+            <p styleName={styles.featureDescription}>
+              All style processing completes at build time leaving no runtime cost.
+            </p>
           </div>
 
           <div styleName={styles.featureCard}>
             <div styleName={styles.featureIcon}>{svg.Eslint()}</div>
             <h3 styleName={styles.featureTitle}>Linting</h3>
-            <p styleName={styles.featureDescription}>
-              Build-integrated oxlint validation. Detect typos before compiling.
-            </p>
+            <p styleName={styles.featureDescription}>This improves efficiency during editing.</p>
           </div>
         </section>
       </main>
