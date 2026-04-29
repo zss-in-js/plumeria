@@ -2,7 +2,7 @@ import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import { pseudos } from 'lib/pseudos';
 import { Plumeria } from './Plumeria';
-import { CodeBlock } from './CodeBlock';
+import { CodeBlock, InstallCode } from './CodeBlock';
 import { ButtonLink } from './ButtonLink';
 import { svg } from './svg';
 
@@ -28,14 +28,14 @@ const styles = css.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 20,
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
     width: '100%',
     marginBottom: '0px',
     [breakpoints.md]: {
       flexDirection: 'column',
       gap: 40,
-      alignItems: 'center',
+      alignItems: 'flex-end',
       justifyContent: 'center',
       textAlign: 'center',
     },
@@ -63,8 +63,9 @@ const styles = css.create({
     textAlign: 'left',
     [breakpoints.md]: {
       marginBottom: 8,
-      fontSize: 32,
+      fontSize: 26.2,
       textAlign: 'center',
+      whiteSpace: 'nowrap',
     },
   },
 
@@ -72,7 +73,7 @@ const styles = css.create({
     position: 'relative',
     zIndex: 1,
     maxWidth: '600px',
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 420,
     lineHeight: 1.6,
     color: 'var(--text-secondary)',
@@ -102,12 +103,10 @@ const styles = css.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 20,
-    paddingTop: 32,
+    paddingTop: 20,
     paddingBottom: 20,
     [breakpoints.md]: {
-      flexDirection: 'row', // Change to row for mobile
-      gap: 12, // Slightly smaller gap for mobile
-      width: 'auto', // Allow buttons to size naturally
+      paddingTop: 25,
     },
   },
 
@@ -189,6 +188,8 @@ const styles = css.create({
   },
 });`;
 
+const installCode = `$ pnpm install -D @plumeria/core`;
+
 export const HomeComponent = () => {
   return (
     <div>
@@ -200,6 +201,7 @@ export const HomeComponent = () => {
               Zero-Cost Abstraction
             </h2>
             <p styleName={styles.subHeadline}>Fast · Composable · Predictable</p>
+            <InstallCode code={installCode} lang="text" />
             <div styleName={styles.buttonGroup}>
               <ButtonLink href="/docs" variant="getstarted">
                 Get Started
@@ -225,7 +227,7 @@ export const HomeComponent = () => {
           <div styleName={styles.featureCard}>
             <div styleName={styles.featureIcon}>{svg.Feather()}</div>
             <h3 styleName={styles.featureTitle}>Lightweight</h3>
-            <p styleName={styles.featureDescription}>No runtime included.</p>
+            <p styleName={styles.featureDescription}>The runtime is not included from the start.</p>
           </div>
 
           <div styleName={styles.featureCard}>
