@@ -1,3 +1,9 @@
+## 10.5.2
+
+### Patch Changes
+
+- 4e3de0d: Implementation cache in sort-properties.ts
+
 ## 10.5.1
 
 ### Patch Changes
