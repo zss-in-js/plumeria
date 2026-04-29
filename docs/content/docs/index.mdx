@@ -3,7 +3,7 @@ title: 'Introduction'
 ---
 
 ## A zero-cost abstraction for CSS.
-Typical CSS-in-JS solutions retain runtime code in the bundle. Plumeria is 0Byte. This library completely replaces type calls and is complete with just type definitions and plugins.
+Most styling solutions still ship JavaScript. Typical CSS-in-JS solutions retain runtime code in the bundle. Plumeria is 0Byte. This library completely replaces type calls and is complete with just type definitions and plugins.
 Developers simply extend the type definition arguments as **schemas**, so no JS parsing is required and there are no memory allocation costs.
 
 
@@ -25,13 +25,12 @@ Developers simply extend the type definition arguments as **schemas**, so no JS 
 
 ## Why no JavaScript?
 
+Styling shouldn't require any runtime.
 By treating styles as **type schemas** instead of runtime objects:
 - No bundle
 - No runtime
 - No parsing overhead
-- No memory allocation for style objects
-- Tree-shaking removes all framework code
-- Only atomic class names and optimized CSS remain in production
+- No memory allocation
 
 ## The Concept of Zero-Runtime
 A library that is entirely Zero-Runtime doesn't truly exist.
@@ -39,7 +38,41 @@ Even pure CSS will experience a slight increase in compilation time due to the b
 
 Zero-Runtime CSS-in-JS adds processing time for parsing and conversion. However, understanding and acknowledging these factors is often the basis for the concept of Zero-Runtime, which signifies that no runtime remains in the execution environment.
 
+## Abstracting Psychological Costs
+Zero-Runtime is not just a performance decision.  
+I believe the problem with CSS frameworks lies in their reliability and transparency.
+When actually building a UI, it's sometimes difficult to know how many kilobytes it will take up.
+
+- Psychological burden of postponing cascading class specificity conflict issues
+- Psychological burden of continuously writing black boxes
+- Psychological burden of constantly considering when to remove them
+- Psychological burden of the potential for significant time consumption in the end
+
+These are always present, even when building CSS.
+If you're not accustomed to engineering, these psychological costs can be greater than expected.
+
+However, Zero-Runtime CSS libraries significantly reduce this problem.
+Because styles exist only as type schemas at the TypeScript/JavaScript layer, these burdens are structurally eliminated — not mitigated.
+
+**Hard validation and code formatting of CSS values by linters:**
+
+The target of writing is no longer a black box; sorting and values are automatically enforced through static analysis.
+As an engineering principle, it acts as a safety net, detecting and automatically correcting errors before they occur.
+As a result, a psychologically and code-wise clean state is maintained.
+This is because CSS-in-JS, by its very nature, directly benefits from TypeScript and JavaScript.
+
+**Challenges solved by build tools:**
+
+Styles written in Plumeria remain as a higher-level abstraction layer and are safely removed from the output by the build plugin (output layer).
+This is achieved through a design that completely separates the abstraction layer and the output layer.
+As a result, style definitions do not remain as JavaScript at runtime; only CSS smaller than the definition is output.
+As a side effect, psychological safety during styling is also maintained at all times through the two-tier architecture consisting of the abstraction layer and the output layer.
+
 ## Usage
+In practice, this means styling becomes straightforward.  
+You define styles once, and everything else is handled by the compiler.
+
+
 Use `css.create()` to define an object as a style.
 At this point, the atomic hash is determined, and all that remains is to receive it via `styleName`.
 
@@ -80,45 +113,7 @@ styleName={[styles.base, isActive && styles.active]}
 ```
 The cascade specificity problem is completely resolved by the compiler-controlled merging.
 
-## Plumeria Mindset
-This page is designed with the mental models of people who interact with CSS frameworks in mind. Discarding a library is like searching for a new mental model.
-Choosing based on ease of writing, prioritizing the final product, or choosing the stability of manual construction.
-Many people simply accept their past experiences and ignore underlying concerns while engineering.
-I hope that this book, as a document, can help resolve any mental model cases that match your own.
 
-## Abstracting Psychological Costs
-I believe the problem with CSS frameworks lies in their reliability and transparency.
-When actually building a UI, it's sometimes difficult to know how many kilobytes it will take up.
-
-Software, like a building, must always be designed with its lifespan in mind.
-
-- Psychological burden of postponing class conflict issues
-- Psychological burden of continuously writing black boxes
-- Psychological burden of constantly considering when to remove them
-- Psychological burden of the potential for significant time consumption in the end
-- Engineering burden of performance considerations
-- Psychological burden of display issues not manifesting as errors
-
-These are always present, even when building CSS.
-If you're not accustomed to engineering, these psychological costs can be greater than expected.
-
-However, Zero-Runtime CSS libraries significantly reduce this problem.
-This is because the costs mentioned above are controllable.
-
-
-**Hard validation and code formatting of CSS values by linters:**
-
-The target of writing is no longer a black box; sorting and values are automatically enforced.
-As an engineering principle, it acts as a safety net, detecting and automatically correcting errors before they occur.
-As a result, a psychologically and code-wise clean state is maintained.
-This is because CSS-in-JS, by its very nature, directly benefits from TypeScript and JavaScript.
-
-**Challenges solved by build tools:**
-
-Written style definitions are compiled into CSS and then erased through the build pipeline.
-This provides peace of mind, as nothing is written remains, and the output is even smaller than the definition itself.
-As a result, the psychological state during styling is kept clean by the architecture.
-Plumeria was designed to control these invisible burdens.
 
 
 For details on integration with other APIs and bundlers, please refer to the [API reference](/docs/api-reference)・[Installation](/docs/getting-started/installation).
