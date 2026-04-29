@@ -21,6 +21,18 @@ const styles = css.create({
     fontFamily: 'var(--font-geist-mono)',
     fontSize: 11,
   },
+  install_code: {
+    width: 375,
+    marginTop: 20,
+    marginBottom: 20,
+    [breakpoints.md]: {
+      width: 290,
+      marginTop: 10,
+      marginBottom: 10,
+      overflowX: 'scroll',
+      textAlign: 'left',
+    },
+  },
 });
 
 export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) => {
@@ -34,6 +46,22 @@ export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) 
   });
   return (
     <FumadocsCodeBlock styleName={styles.code_div}>
+      <Pre styleName={styles.pre} dangerouslySetInnerHTML={{ __html: tsx }} />
+    </FumadocsCodeBlock>
+  );
+};
+
+export const InstallCode = async ({ code, lang }: { code: string; lang: string }) => {
+  const tsx = await codeToHtml(code, {
+    lang: lang,
+    themes: {
+      light: 'snazzy-light',
+      dark: 'laserwave',
+    },
+    defaultColor: false,
+  });
+  return (
+    <FumadocsCodeBlock styleName={styles.install_code}>
       <Pre styleName={styles.pre} dangerouslySetInnerHTML={{ __html: tsx }} />
     </FumadocsCodeBlock>
   );
