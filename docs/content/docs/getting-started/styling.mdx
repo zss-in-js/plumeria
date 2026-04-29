@@ -7,7 +7,7 @@ description: 'Learn more Define styles'
 export type StyleName = CSSProperties | (false | CSSProperties | null | undefined)[];
 ```
 
-The `styleName` prop removes falsy values ​​and supports conditional branching: `styleName={cond && styles.cond}`  
+The `styleName` prop removes falsy values and supports conditional branching: `styleName={[cond && styles.cond]}`  
 When used in an array, the last style property **always wins**.
 
 ## Example
