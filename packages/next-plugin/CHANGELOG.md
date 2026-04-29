@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 10.5.2
+
+### Patch Changes
+
+- 4e3de0d: Bump version to 10.5.2
+- Updated dependencies [4e3de0d]
+  - @plumeria/turbopack-loader@10.5.2
+
 ## 10.5.1
 
 ### Patch Changes
