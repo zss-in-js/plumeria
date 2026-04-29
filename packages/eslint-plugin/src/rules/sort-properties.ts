@@ -28,30 +28,41 @@ function getPropertyName(property: Property): string {
   return '';
 }
 
-function getPropertyIndex(property: Property): number | null {
+const propertyIndexMap = new Map<string, number>();
+let globalLastGroupIndex = 0;
+let globalMaxPropIndex = 0;
+
+for (let i = 0; i < propertyGroups.length; i++) {
+  const group = propertyGroups[i];
+  globalLastGroupIndex = i;
+  globalMaxPropIndex = Math.max(globalMaxPropIndex, group.properties.length);
+
+  for (let j = 0; j < group.properties.length; j++) {
+    propertyIndexMap.set(group.properties[j], i * 1000 + j);
+  }
+}
+
+const pseudoGroupOffset1 = (propertyGroups.length + 1) * 1000;
+const pseudoGroupOffset2 = (propertyGroups.length + 2) * 1000;
+const pseudoGroupOffset3 = (propertyGroups.length + 3) * 1000;
+const defaultOffset = globalLastGroupIndex * 1000 + globalMaxPropIndex + 1;
+
+function getPropertyIndex(property: Property): number {
   const name = getPropertyName(property);
 
-  let lastGroupIndex = 0;
-  let maxPropIndex = 0;
-
-  for (let i = 0; i < propertyGroups.length; i++) {
-    const group = propertyGroups[i];
-    const propIndex = group.properties.indexOf(name);
-
-    if (propIndex !== -1) {
-      return i * 1000 + propIndex;
-    }
-
-    lastGroupIndex = i;
-    maxPropIndex = Math.max(maxPropIndex, group.properties.length);
+  // キャッシュがあれば爆速で返す
+  const cachedIndex = propertyIndexMap.get(name);
+  if (cachedIndex !== undefined) {
+    return cachedIndex;
   }
 
-  if (name.startsWith(':')) return (propertyGroups.length + 1) * 1000;
-  if (name.startsWith('&')) return (propertyGroups.length + 2) * 1000;
-  if (name.startsWith('@media')) return (propertyGroups.length + 3) * 1000;
-  if (name.startsWith('@container')) return (propertyGroups.length + 3) * 1000;
+  // 特殊なプレフィックスの判定
+  if (name.startsWith(':')) return pseudoGroupOffset1;
+  if (name.startsWith('&')) return pseudoGroupOffset2;
+  if (name.startsWith('@media') || name.startsWith('@container'))
+    return pseudoGroupOffset3;
 
-  return lastGroupIndex * 1000 + maxPropIndex + 1;
+  return defaultOffset;
 }
 
 function getLIS(arr: number[]): number[] {
