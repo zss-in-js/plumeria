@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 10.5.3
+
+### Patch Changes
+
+- 3284759: Fix windows path
+- Updated dependencies [3284759]
+  - @plumeria/utils@10.5.3
+
 ## 10.5.2
 
 ### Patch Changes

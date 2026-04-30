@@ -1,5 +1,13 @@
 # @plumeria/webpack-plugin
 
+## 10.5.3
+
+### Patch Changes
+
+- 3284759: Bump version to 10.5.3
+- Updated dependencies [3284759]
+  - @plumeria/turbopack-loader@10.5.3
+
 ## 10.5.2
 
 ### Patch Changes
