@@ -1657,8 +1657,6 @@ export default async function loader(this: LoaderContext, source: string) {
     }
   });
 
-  const optInCSS = await optimizer(extractedSheets.join(''));
-
   // Apply replacements
   const buffer = Buffer.from(source);
   let offset = 0;
@@ -1675,37 +1673,25 @@ export default async function loader(this: LoaderContext, source: string) {
   parts.push(buffer.subarray(offset));
   const transformedSource = Buffer.concat(parts).toString();
 
-  const VIRTUAL_CSS_PATH = require.resolve(VIRTUAL_FILE_PATH);
-
-  function stringifyRequest(loaderContext: LoaderContext, request: string) {
-    const context = loaderContext.context || loaderContext.rootContext;
-    const relativePath = path.relative(context, request);
-    const requestPath = relativePath.startsWith('.')
-      ? relativePath
-      : './' + relativePath;
-    return JSON.stringify(requestPath);
-  }
-
-  const virtualCssImportPath = path.posix.join(
-    path.posix.relative(
-      path.dirname(resourcePath),
-      path.resolve(__dirname, '..', VIRTUAL_CSS_PATH),
-    ),
+  let relativeImportPath = path.relative(
+    path.dirname(resourcePath),
+    VIRTUAL_FILE_PATH,
   );
 
-  let importPath = virtualCssImportPath;
-  if (!importPath.startsWith('.')) {
-    importPath = './' + importPath;
+  relativeImportPath = relativeImportPath.replace(/\\/g, '/');
+
+  if (!relativeImportPath.startsWith('.')) {
+    relativeImportPath = './' + relativeImportPath;
   }
 
-  const virtualCssRequest = stringifyRequest(this, `${VIRTUAL_CSS_PATH}`);
-  const postfix = `\nimport ${virtualCssRequest};`;
+  const postfix = `\nimport "${relativeImportPath}";`;
 
   if (process.env.NODE_ENV === 'production') {
     return callback(null, transformedSource);
   }
 
   if (process.env.NODE_ENV === 'development') {
+    const optInCSS = await optimizer(extractedSheets.join(''));
     // Create a marker that identifies the CSS block originating from this file, using the resourcePath as the key.
     // Absorbs path delimiters in Windows environments
     const projectName = path.basename(this.rootContext);
