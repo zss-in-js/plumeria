@@ -86,6 +86,11 @@ export function plumeria(options: PluginOptions = {}): Plugin {
   // For dependency tracking: { id: source file, dependencies: [dependency file path] }
   const targets: { id: string; dependencies: string[] }[] = [];
 
+  // Dev-mode CSS accumulator: keeps old CSS rules across HMR cycles
+  // so that when a CSS update arrives before the JS update,
+  // elements with old class names still have valid styles.
+  const devCssSheets = new Map<string, Set<string>>();
+
   let config: ResolvedConfig;
   let devServer: ViteDevServer;
   let isDev = false;
@@ -1809,7 +1814,21 @@ export function plumeria(options: PluginOptions = {}): Plugin {
           .replace(/\\/g, '/');
         const cssId = `/${cssRelativePath}`;
 
-        cssLookup.set(cssFilename, optInCSS);
+        if (isDev) {
+          // Accumulate CSS sheets in dev mode to prevent flickering.
+          // Old rules are preserved so that when the CSS update reaches
+          // the browser before React re-renders, old class names still
+          // have valid styles in the stylesheet.
+          if (!devCssSheets.has(cssFilename)) {
+            devCssSheets.set(cssFilename, new Set());
+          }
+          const acc = devCssSheets.get(cssFilename)!;
+          extractedSheets.forEach((sheet) => acc.add(sheet));
+          const accCSS = await optimizer(Array.from(acc).join(''));
+          cssLookup.set(cssFilename, accCSS);
+        } else {
+          cssLookup.set(cssFilename, optInCSS);
+        }
         cssFileLookup.set(cssId, cssFilename);
 
         const targetIndex = targets.findIndex((t) => t.id === id);
