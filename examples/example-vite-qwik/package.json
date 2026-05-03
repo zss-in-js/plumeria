@@ -1,5 +1,5 @@
 {
-  "name": "vite-qwik",
+  "name": "example-vite-qwik",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@plumeria/core": "workspace:^",
-    "@plumeria/vite-plugin": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
     "@types/node": "^24.10.1",
     "serve": "^14.2.5",
     "typescript": "~5.9.3",
