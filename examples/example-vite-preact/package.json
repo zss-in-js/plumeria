@@ -1,5 +1,5 @@
 {
-  "name": "vite-preact",
+  "name": "example-vite-preact",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,11 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plumeria/core": "workspace:^",
     "preact": "^10.26.9"
   },
   "devDependencies": {
-    "@plumeria/vite-plugin": "workspace:^",
+    "@plumeria/core": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
     "@preact/preset-vite": "^2.10.2",
     "typescript": "~5.8.3",
     "vite": "^7.1.1"
