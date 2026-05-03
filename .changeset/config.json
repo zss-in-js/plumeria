@@ -10,15 +10,22 @@
   "ignore": [
     "site",
     "plumeria-docs",
-    "next-app",
-    "react-router-v7",
-    "tanstack-start",
-    "vite-astro-ts",  
-    "vite-preact",
-    "vite-qwik",
-    "vite-react",
-    "vite-solid",
-    "vite-svelte-ts",
-    "vite-vue-ts"
+    "example-bun",
+    "example-esbuild",
+    "example-farm",
+    "example-nextjs",
+    "example-react-router",
+    "example-rolldown",
+    "example-rollup",
+    "example-rspack",
+    "example-tanstack-start",
+    "example-vite-astro-ts",
+    "example-vite-preact",
+    "example-vite-qwik",
+    "example-vite-react",
+    "example-vite-solid",
+    "example-vite-svelte-ts",
+    "example-vite-vue-ts",
+    "example-webpack"
     ]
 }
