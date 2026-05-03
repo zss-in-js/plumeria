@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@plumeria/core": "workspace:^",
-    "@plumeria/vite-plugin": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
     "@types/node": "^24.10.1",
     "serve": "^14.2.5",
     "typescript": "~5.9.3",
