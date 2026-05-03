@@ -1,0 +1,29 @@
+{
+  "name": "example-webpack",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "webpack serve --mode development",
+    "build": "webpack --mode production"
+  },
+  "dependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@plumeria/core": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
+    "@swc/core": "catalog:",
+    "swc-loader": "^0.2.7",
+    "webpack": "catalog:",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.0",
+    "html-webpack-plugin": "^5.6.3",
+    "css-loader": "^7.1.2",
+    "style-loader": "^4.0.0",
+    "typescript": "^6.0.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.6.2"
+  }
+}
