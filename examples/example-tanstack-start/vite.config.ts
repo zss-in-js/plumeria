@@ -4,7 +4,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import rsc from '@vitejs/plugin-rsc';
-import { plumeria } from '@plumeria/vite-plugin';
+import plumeria from '@plumeria/unplugin';
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
@@ -18,7 +18,7 @@ const config = defineConfig({
     }),
     viteReact(),
     rsc(),
-    plumeria(),
+    plumeria.vite(),
   ],
 });
 

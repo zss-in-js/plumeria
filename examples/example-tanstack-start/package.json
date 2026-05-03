@@ -1,5 +1,5 @@
 {
-  "name": "tanstack-start",
+  "name": "example-tanstack-start",
   "private": true,
   "type": "module",
   "imports": {
@@ -20,8 +20,8 @@
     "@tanstack/react-start": "latest",
     "@tanstack/router-plugin": "^1.132.0",
     "lucide-react": "^0.545.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
@@ -30,7 +30,7 @@
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.0",
     "@plumeria/core": "workspace:^",
-    "@plumeria/vite-plugin": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
     "@types/node": "^22.10.2",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
