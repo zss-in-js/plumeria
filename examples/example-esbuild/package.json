@@ -1,0 +1,20 @@
+{
+  "name": "example-esbuild",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@plumeria/core": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "esbuild": "^0.25.0",
+    "typescript": "^6.0.3"
+  }
+}
