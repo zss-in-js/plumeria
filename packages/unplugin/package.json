@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/unplugin",
-  "version": "10.5.3",
+  "version": "11.0.0",
   "description": "Universal Plumeria plugin for various build tools",
   "author": "Refirst 11",
   "license": "MIT",
