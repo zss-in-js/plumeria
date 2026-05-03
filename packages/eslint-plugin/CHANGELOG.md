@@ -1,3 +1,9 @@
+## 11.0.0
+
+### Major Changes
+
+- 132dca2: Add unplugin
+
 ## 10.5.3
 
 ### Patch Changes
