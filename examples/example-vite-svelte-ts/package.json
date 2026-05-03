@@ -1,5 +1,5 @@
 {
-  "name": "vite-svelte-ts",
+  "name": "example-vite-svelte-ts",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },
   "devDependencies": {
-    "@plumeria/vite-plugin": "workspace:^",
+    "@plumeria/core": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "@tsconfig/svelte": "^5.0.4",
     "prettier-plugin-svelte": "^3.4.0",
@@ -18,8 +19,5 @@
     "svelte-check": "^4.1.6",
     "typescript": "~5.8.3",
     "vite": "^7.1.1"
-  },
-  "dependencies": {
-    "@plumeria/core": "workspace:^"
   }
 }
