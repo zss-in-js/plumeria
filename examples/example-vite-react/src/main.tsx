@@ -4,11 +4,11 @@ import './index.css';
 import App from './App.tsx';
 
 const appElement = document.getElementById('root');
-
-if (appElement) {
-  createRoot(appElement).render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  );
+if (!appElement) {
+  throw new Error('App element not found');
 }
+createRoot(appElement).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
