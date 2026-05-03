@@ -14,11 +14,11 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "astro": "^5.16.4",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@plumeria/core": "workspace:^",
-    "@plumeria/vite-plugin": "workspace:^"
+    "@plumeria/unplugin": "workspace:^"
   }
 }

@@ -2,12 +2,12 @@
 // @ts-nocheck
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import { plumeria } from '@plumeria/vite-plugin';
+import plumeria from '@plumeria/unplugin';
 
 // https://astro.build/config
 export default defineConfig({
   vite: {
-    plugins: [plumeria()],
+    plugins: [plumeria.vite({ devEmitToDisk: true })],
   },
   integrations: [react()],
 });
