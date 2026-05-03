@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
-import { plumeria } from '@plumeria/vite-plugin';
+import plumeria from '@plumeria/unplugin';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [preact(), plumeria()],
+  plugins: [preact(), plumeria.vite()],
 });
