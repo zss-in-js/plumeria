@@ -262,6 +262,104 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  examples/example-nextjs:
+    dependencies:
+      next:
+        specifier: 'catalog:'
+        version: 16.2.3(@babel/core@7.29.0)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.5
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.5(react@19.2.5)
+    devDependencies:
+      '@eslint/eslintrc':
+        specifier: ^3
+        version: 3.3.4
+      '@plumeria/core':
+        specifier: workspace:^
+        version: link:../../packages/core
+      '@plumeria/next-plugin':
+        specifier: workspace:^
+        version: link:../../packages/next-plugin
+      '@plumeria/postcss-plugin':
+        specifier: workspace:^
+        version: link:../../packages/postcss-plugin
+      '@types/node':
+        specifier: ^22.10.7
+        version: 22.19.13
+      '@types/react':
+        specifier: ^19.1.12
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.1.9
+        version: 19.2.3(@types/react@19.2.14)
+      eslint:
+        specifier: ^9
+        version: 9.39.3(jiti@2.6.1)
+      eslint-config-next:
+        specifier: 15.1.5
+        version: 15.1.5(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  examples/example-react-router:
+    dependencies:
+      '@react-router/node':
+        specifier: ^7.13.0
+        version: 7.13.0(react-router@7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3)
+      '@react-router/serve':
+        specifier: ^7.13.0
+        version: 7.13.0(react-router@7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3)
+      isbot:
+        specifier: ^5.1.27
+        version: 5.1.32
+      react:
+        specifier: 'catalog:'
+        version: 19.2.5
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.5(react@19.2.5)
+      react-router:
+        specifier: ^7.13.0
+        version: 7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+    devDependencies:
+      '@plumeria/core':
+        specifier: workspace:^
+        version: link:../../packages/core
+      '@plumeria/unplugin':
+        specifier: workspace:^
+        version: link:../../packages/unplugin
+      '@react-router/dev':
+        specifier: ^7.13.0
+        version: 7.13.0(@react-router/serve@7.13.0(react-router@7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3))(@types/node@22.19.13)(@vitejs/plugin-rsc@0.5.24(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(webpack@5.101.0))(react@19.2.5)(vite@7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0)))(jiti@2.6.1)(lightningcss@1.32.0)(react-router@7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(webpack@5.101.0))(terser@5.44.1)(tsx@4.21.0)(typescript@5.9.3)(vite@7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0))
+      '@tailwindcss/vite':
+        specifier: ^4.1.4
+        version: 4.2.2(vite@7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0))
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.19.13
+      '@types/react':
+        specifier: ^19.2.10
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      tailwindcss:
+        specifier: ^4.1.4
+        version: 4.2.4
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.1.1
+        version: 7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0)
+      vite-tsconfig-paths:
+        specifier: ^5.1.4
+        version: 5.1.4(typescript@5.9.3)(vite@7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0))
+
   examples/example-rolldown:
     dependencies:
       react:
@@ -381,6 +479,116 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+
+  examples/example-tanstack-start:
+    dependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.1.18
+        version: 4.2.2(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))
+      '@tanstack/react-devtools':
+        specifier: latest
+        version: 0.10.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(csstype@3.2.3)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
+      '@tanstack/react-router':
+        specifier: latest
+        version: 1.169.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@tanstack/react-router-devtools':
+        specifier: latest
+        version: 1.166.13(@tanstack/react-router@1.169.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@tanstack/router-core@1.169.1)(csstype@3.2.3)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@tanstack/react-router-ssr-query':
+        specifier: latest
+        version: 1.166.12(@tanstack/query-core@5.99.0)(@tanstack/react-query@5.99.0(react@19.2.5))(@tanstack/react-router@1.169.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@tanstack/router-core@1.169.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@tanstack/react-start':
+        specifier: latest
+        version: 1.167.61(@rspack/core@2.0.1(@swc/helpers@0.5.17))(@vitejs/plugin-rsc@0.5.24(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(webpack@5.101.0(esbuild@0.27.4)))(react@19.2.5)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite-plugin-solid@2.11.11(solid-js@1.9.12)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)))(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))(webpack@5.101.0(esbuild@0.27.4))
+      '@tanstack/router-plugin':
+        specifier: ^1.132.0
+        version: 1.167.32(@tanstack/react-router@1.169.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(vite-plugin-solid@2.11.11(solid-js@1.9.12)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)))(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))(webpack@5.101.0(esbuild@0.27.4))
+      lucide-react:
+        specifier: ^0.545.0
+        version: 0.545.0(react@19.2.5)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.5
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.5(react@19.2.5)
+      tailwindcss:
+        specifier: ^4.1.18
+        version: 4.2.4
+    devDependencies:
+      '@plumeria/core':
+        specifier: workspace:^
+        version: link:../../packages/core
+      '@plumeria/unplugin':
+        specifier: workspace:^
+        version: link:../../packages/unplugin
+      '@tailwindcss/typography':
+        specifier: ^0.5.16
+        version: 0.5.19(tailwindcss@4.2.4)
+      '@tanstack/devtools-vite':
+        specifier: latest
+        version: 0.6.0(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))
+      '@testing-library/dom':
+        specifier: ^10.4.1
+        version: 10.4.1
+      '@testing-library/react':
+        specifier: ^16.3.0
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.13
+      '@types/react':
+        specifier: ^19.2.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.0
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^6.0.1
+        version: 6.0.1(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.0)(@babel/runtime@7.28.6)(rolldown@1.0.0-rc.15)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))
+      '@vitejs/plugin-rsc':
+        specifier: ^0.5.24
+        version: 0.5.24(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(webpack@5.101.0(esbuild@0.27.4)))(react@19.2.5)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))
+      jsdom:
+        specifier: ^28.1.0
+        version: 28.1.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vite:
+        specifier: ^8.0.0
+        version: 8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)
+      vitest:
+        specifier: ^3.0.5
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jiti@2.6.1)(jsdom@28.1.0)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0)
+
+  examples/example-vite-astro-ts:
+    dependencies:
+      '@astrojs/react':
+        specifier: ^4.4.2
+        version: 4.4.2(@types/node@25.6.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(jiti@2.6.1)(lightningcss@1.32.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(terser@5.44.1)(tsx@4.21.0)
+      '@types/react':
+        specifier: ^19.2.7
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      astro:
+        specifier: ^5.16.4
+        version: 5.18.1(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.44.1)(tsx@4.21.0)(typescript@6.0.3)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.5
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.5(react@19.2.5)
+    devDependencies:
+      '@plumeria/core':
+        specifier: workspace:^
+        version: link:../../packages/core
+      '@plumeria/unplugin':
+        specifier: workspace:^
+        version: link:../../packages/unplugin
 
   examples/example-vite-preact:
     dependencies:
@@ -613,214 +821,6 @@ importers:
         specifier: ^5.2.0
         version: 5.2.3(tslib@2.8.1)(webpack-cli@6.0.1)(webpack@5.101.0)
 
-  examples/next-app:
-    dependencies:
-      next:
-        specifier: 'catalog:'
-        version: 16.2.3(@babel/core@7.29.0)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      react:
-        specifier: 'catalog:'
-        version: 19.2.5
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.2.5(react@19.2.5)
-    devDependencies:
-      '@eslint/eslintrc':
-        specifier: ^3
-        version: 3.3.4
-      '@plumeria/core':
-        specifier: workspace:^
-        version: link:../../packages/core
-      '@plumeria/next-plugin':
-        specifier: workspace:^
-        version: link:../../packages/next-plugin
-      '@plumeria/postcss-plugin':
-        specifier: workspace:^
-        version: link:../../packages/postcss-plugin
-      '@types/node':
-        specifier: ^22.10.7
-        version: 22.19.13
-      '@types/react':
-        specifier: ^19.1.12
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.1.9
-        version: 19.2.3(@types/react@19.2.14)
-      eslint:
-        specifier: ^9
-        version: 9.39.3(jiti@2.6.1)
-      eslint-config-next:
-        specifier: 15.1.5
-        version: 15.1.5(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3)
-      typescript:
-        specifier: ^5
-        version: 5.9.3
-
-  examples/react-router:
-    dependencies:
-      '@react-router/node':
-        specifier: ^7.13.0
-        version: 7.13.0(react-router@7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3)
-      '@react-router/serve':
-        specifier: ^7.13.0
-        version: 7.13.0(react-router@7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3)
-      isbot:
-        specifier: ^5.1.27
-        version: 5.1.32
-      react:
-        specifier: 'catalog:'
-        version: 19.2.5
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.2.5(react@19.2.5)
-      react-router:
-        specifier: ^7.13.0
-        version: 7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-    devDependencies:
-      '@plumeria/core':
-        specifier: workspace:^
-        version: link:../../packages/core
-      '@plumeria/vite-plugin':
-        specifier: workspace:^
-        version: link:../../packages/vite-plugin
-      '@react-router/dev':
-        specifier: ^7.13.0
-        version: 7.13.0(@react-router/serve@7.13.0(react-router@7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(typescript@5.9.3))(@types/node@22.19.13)(@vitejs/plugin-rsc@0.5.24(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(webpack@5.101.0))(react@19.2.5)(vite@7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0)))(jiti@2.6.1)(lightningcss@1.32.0)(react-router@7.13.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(webpack@5.101.0))(terser@5.44.1)(tsx@4.21.0)(typescript@5.9.3)(vite@7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0))
-      '@tailwindcss/vite':
-        specifier: ^4.1.4
-        version: 4.2.2(vite@7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0))
-      '@types/node':
-        specifier: ^22.15.3
-        version: 22.19.13
-      '@types/react':
-        specifier: ^19.2.10
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.2.3
-        version: 19.2.3(@types/react@19.2.14)
-      tailwindcss:
-        specifier: ^4.1.4
-        version: 4.2.2
-      typescript:
-        specifier: ^5.8.3
-        version: 5.9.3
-      vite:
-        specifier: ^7.1.1
-        version: 7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0)
-      vite-tsconfig-paths:
-        specifier: ^5.1.4
-        version: 5.1.4(typescript@5.9.3)(vite@7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0))
-
-  examples/tanstack-start:
-    dependencies:
-      '@tailwindcss/vite':
-        specifier: ^4.1.18
-        version: 4.2.2(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))
-      '@tanstack/react-devtools':
-        specifier: latest
-        version: 0.10.2(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(csstype@3.2.3)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(solid-js@1.9.12)
-      '@tanstack/react-router':
-        specifier: latest
-        version: 1.169.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@tanstack/react-router-devtools':
-        specifier: latest
-        version: 1.166.13(@tanstack/react-router@1.169.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@tanstack/router-core@1.169.1)(csstype@3.2.3)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@tanstack/react-router-ssr-query':
-        specifier: latest
-        version: 1.166.12(@tanstack/query-core@5.99.0)(@tanstack/react-query@5.99.0(react@19.2.5))(@tanstack/react-router@1.169.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@tanstack/router-core@1.169.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@tanstack/react-start':
-        specifier: latest
-        version: 1.167.61(@rspack/core@2.0.1(@swc/helpers@0.5.17))(@vitejs/plugin-rsc@0.5.24(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(webpack@5.101.0(esbuild@0.27.4)))(react@19.2.5)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(vite-plugin-solid@2.11.11(solid-js@1.9.12)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)))(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))(webpack@5.101.0(esbuild@0.27.4))
-      '@tanstack/router-plugin':
-        specifier: ^1.132.0
-        version: 1.167.32(@tanstack/react-router@1.169.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(vite-plugin-solid@2.11.11(solid-js@1.9.12)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)))(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))(webpack@5.101.0(esbuild@0.27.4))
-      lucide-react:
-        specifier: ^0.545.0
-        version: 0.545.0(react@19.2.5)
-      react:
-        specifier: ^19.2.0
-        version: 19.2.5
-      react-dom:
-        specifier: ^19.2.0
-        version: 19.2.5(react@19.2.5)
-      tailwindcss:
-        specifier: ^4.1.18
-        version: 4.2.2
-    devDependencies:
-      '@plumeria/core':
-        specifier: workspace:^
-        version: link:../../packages/core
-      '@plumeria/vite-plugin':
-        specifier: workspace:^
-        version: link:../../packages/vite-plugin
-      '@tailwindcss/typography':
-        specifier: ^0.5.16
-        version: 0.5.19(tailwindcss@4.2.2)
-      '@tanstack/devtools-vite':
-        specifier: latest
-        version: 0.6.0(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))
-      '@testing-library/dom':
-        specifier: ^10.4.1
-        version: 10.4.1
-      '@testing-library/react':
-        specifier: ^16.3.0
-        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.19.13
-      '@types/react':
-        specifier: ^19.2.0
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.2.0
-        version: 19.2.3(@types/react@19.2.14)
-      '@vitejs/plugin-react':
-        specifier: ^6.0.1
-        version: 6.0.1(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.0)(@babel/runtime@7.28.6)(rolldown@1.0.0-rc.15)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))
-      '@vitejs/plugin-rsc':
-        specifier: ^0.5.24
-        version: 0.5.24(react-dom@19.2.5(react@19.2.5))(react-server-dom-webpack@19.2.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(webpack@5.101.0(esbuild@0.27.4)))(react@19.2.5)(vite@8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0))
-      jsdom:
-        specifier: ^28.1.0
-        version: 28.1.0
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-      vite:
-        specifier: ^8.0.0
-        version: 8.0.8(@types/node@22.19.13)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.44.1)(tsx@4.21.0)
-      vitest:
-        specifier: ^3.0.5
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jiti@2.6.1)(jsdom@28.1.0)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0)
-
-  examples/vite-astro-ts:
-    dependencies:
-      '@astrojs/react':
-        specifier: ^4.4.2
-        version: 4.4.2(@types/node@25.6.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(jiti@2.6.1)(lightningcss@1.32.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(terser@5.44.1)(tsx@4.21.0)
-      '@types/react':
-        specifier: ^19.2.7
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ^19.2.3
-        version: 19.2.3(@types/react@19.2.14)
-      astro:
-        specifier: ^5.16.4
-        version: 5.18.1(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@4.60.1)(terser@5.44.1)(tsx@4.21.0)(typescript@6.0.3)
-      react:
-        specifier: 'catalog:'
-        version: 19.2.5
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.2.5(react@19.2.5)
-    devDependencies:
-      '@plumeria/core':
-        specifier: workspace:^
-        version: link:../../packages/core
-      '@plumeria/unplugin':
-        specifier: workspace:^
-        version: link:../../packages/unplugin
-
   packages/compiler:
     dependencies:
       '@plumeria/utils':
@@ -936,28 +936,6 @@ importers:
       zss-engine:
         specifier: 'catalog:'
         version: 2.2.8
-
-  packages/vite-plugin:
-    dependencies:
-      '@plumeria/utils':
-        specifier: workspace:^
-        version: link:../utils
-    devDependencies:
-      '@swc/core':
-        specifier: 'catalog:'
-        version: 1.15.21(@swc/helpers@0.5.17)
-      vite:
-        specifier: ^7.1.1
-        version: 7.2.6(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0)
-      zss-engine:
-        specifier: 'catalog:'
-        version: 2.2.8
-
-  packages/webpack-plugin:
-    dependencies:
-      '@plumeria/turbopack-loader':
-        specifier: workspace:^
-        version: link:../turbopack-loader
 
   test-e2e/site:
     dependencies:
@@ -13387,10 +13365,10 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.2.2
       '@tailwindcss/oxide-win32-x64-msvc': 4.2.2
 
-  '@tailwindcss/typography@0.5.19(tailwindcss@4.2.2)':
+  '@tailwindcss/typography@0.5.19(tailwindcss@4.2.4)':
     dependencies:
       postcss-selector-parser: 6.0.10
-      tailwindcss: 4.2.2
+      tailwindcss: 4.2.4
 
   '@tailwindcss/vite@4.2.2(vite@7.2.6(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.44.1)(tsx@4.21.0))':
     dependencies:
@@ -20502,8 +20480,7 @@ snapshots:
 
   tailwindcss@4.2.2: {}
 
-  tailwindcss@4.2.4:
-    optional: true
+  tailwindcss@4.2.4: {}
 
   tapable@2.3.0: {}
 
