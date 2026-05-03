@@ -19,10 +19,9 @@
   * [eslint-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/eslint-plugin)
   * [next-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/next-plugin)
   * [postcss-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/postcss-plugin)
-  * [utils](https://github.com/zss-in-js/plumeria/tree/main/packages/utils)
   * [turbopack-loader](https://github.com/zss-in-js/plumeria/tree/main/packages/turbopack-loader)
-  * [vite-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/vite-plugin)
-  * [webpack-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/webpack-plugin)
+  * [unplugin](https://github.com/zss-in-js/plumeria/tree/main/packages/unplugin)
+  * [utils](https://github.com/zss-in-js/plumeria/tree/main/packages/utils)
 * `test-e2e`
   * Contains e2e tests built with Playwright and Next.js for final quality assurance.
   
