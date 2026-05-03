@@ -1,0 +1,106 @@
+{
+  "name": "@plumeria/unplugin",
+  "version": "10.5.3",
+  "description": "Universal Plumeria plugin for various build tools",
+  "author": "Refirst 11",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/unplugin"
+  },
+  "bugs": {
+    "url": "https://github.com/zss-in-js/plumeria/issues"
+  },
+  "keywords": [
+    "plumeria",
+    "css",
+    "unplugin",
+    "vite",
+    "webpack",
+    "rspack",
+    "esbuild",
+    "farm",
+    "rollup",
+    "rolldown",
+    "bun"
+  ],
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "import": "./dist/vite.mjs",
+      "require": "./dist/vite.js"
+    },
+    "./webpack": {
+      "types": "./dist/webpack.d.ts",
+      "import": "./dist/webpack.mjs",
+      "require": "./dist/webpack.js"
+    },
+    "./rspack": {
+      "types": "./dist/rspack.d.ts",
+      "import": "./dist/rspack.mjs",
+      "require": "./dist/rspack.js"
+    },
+    "./esbuild": {
+      "types": "./dist/esbuild.d.ts",
+      "import": "./dist/esbuild.mjs",
+      "require": "./dist/esbuild.js"
+    },
+    "./farm": {
+      "types": "./dist/farm.d.ts",
+      "import": "./dist/farm.mjs",
+      "require": "./dist/farm.js"
+    },
+    "./rollup": {
+      "types": "./dist/rollup.d.ts",
+      "import": "./dist/rollup.mjs",
+      "require": "./dist/rollup.js"
+    },
+    "./rolldown": {
+      "types": "./dist/rolldown.d.ts",
+      "import": "./dist/rolldown.mjs",
+      "require": "./dist/rolldown.js"
+    },
+    "./unloader": {
+      "types": "./dist/unloader.d.ts",
+      "import": "./dist/unloader.mjs",
+      "require": "./dist/unloader.js"
+    },
+    "./bun": {
+      "types": "./dist/bun.d.ts",
+      "import": "./dist/bun.mjs",
+      "require": "./dist/bun.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "zero-virtual.css"
+  ],
+  "scripts": {
+    "build": "rimraf dist && pnpm esm && pnpm cjs",
+    "cjs": "tsc --project tsconfig.cjs.json",
+    "esm": "tsc --project tsconfig.esm.json && node mjs-extension.ts"
+  },
+  "dependencies": {
+    "@plumeria/utils": "workspace:^",
+    "unplugin": "^3.0.0"
+  },
+  "devDependencies": {
+    "@swc/core": "catalog:",
+    "zss-engine": "catalog:",
+    "@rollup/pluginutils": "^5.1.0",
+    "vite": "^7.1.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
