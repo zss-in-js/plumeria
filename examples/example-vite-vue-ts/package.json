@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@plumeria/core": "workspace:^",
-    "@plumeria/vite-plugin": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
     "@vitejs/plugin-vue": "^6.0.3",
     "@vue/tsconfig": "^0.7.0",
     "typescript": "~5.8.3",
