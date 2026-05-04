@@ -1,39 +1,56 @@
 ---
 title: 'Webpack'
-description:  'Learn more about @plumeria/webpack-plugin.'
+description:  'Learn more about @plumeria/unplugin.'
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Step, Steps } from "fumadocs-ui/components/steps";
 
-[`@plumeria/webpack-plugin`](https://www.npmjs.com/package/@plumeria/webpack-plugin) is the Webpack plugin for Plumeria.  
+
+[`examples/webpack`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-webpack) shows how to use [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) in Webpack.  
 It compiles styles into CSS via AST parsing, with HMR support.
 
+<Steps>
+<Step>
 ## Installation
 <Tabs items={['npm',  'yarn', 'pnpm']}>
 <Tab>
 ```sh title="Terminal"
-npm i --save-dev @plumeria/webpack-plugin
+npm i -D @plumeria/unplugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-yarn add -D @plumeria/webpack-plugin
+yarn add -D @plumeria/unplugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-pnpm i --save-dev @plumeria/webpack-plugin
+pnpm i -D @plumeria/unplugin
 ```
 </Tab>
 </Tabs>
+</Step>
 
-## API
-Example for: [`Github next-plugin ↗`](https://github.com/zss-in-js/plumeria/blob/main/packages/next-plugin/src/index.ts)
+<Step>
+## Usage
 
-```ts title="next.config.ts"
-config.module?.rules?.unshift({
-  enforce: 'pre',
-  test: /\.(tsx|ts)$/,
-  exclude: [/node_modules/, /\.next/, /\.git/],
-  use: require.resolve('@plumeria/webpack-plugin'),
-});
+```js title="webpack.config.js"
+import plumeria from '@plumeria/unplugin';
+
+export default { 
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+    ],
+  },
+  plugins: [ 
+    plumeria.webpack(), 
+  ],
+};
 ```
+</Step>
+</Steps>
+
