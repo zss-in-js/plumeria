@@ -1,4 +1,4 @@
 {
   "defaultOpen": true,
-  "pages": ["vite", "next", "turbopack", "webpack", "postcss", "eslint"]
+  "pages": ["bun", "esbuild", "farm", "next", "rolldown", "rspack", "vite", "webpack"]
 }
