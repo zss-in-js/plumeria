@@ -1,0 +1,42 @@
+---
+title: 'Bun'
+description:  'Learn more about @plumeria/unplugin.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`examples/bun`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-bun) shows how to use [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) in bun.  
+The unplugin compiles Plumeria styles into the CSS asset produced by bun.
+
+## Installation
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i -D @plumeria/unplugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/unplugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i -D @plumeria/unplugin
+```
+</Tab>
+</Tabs>
+
+## Usage
+```ts title="scripts/build.js"
+import plumeria from '@plumeria/unplugin';
+
+await Bun.build({
+  entrypoints: ['./src/index.tsx'],
+  outdir: './dist',
+  plugins: [plumeria.bun()],
+});
+```
+
+<Cards>
+  <Card title="See more about Installation unplugin" href="/docs/getting-started/installation" />
+</Cards>
