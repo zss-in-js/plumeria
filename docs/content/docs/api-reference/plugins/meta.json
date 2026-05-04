@@ -1,0 +1,5 @@
+{
+  "defaultOpen": true,
+  "title": "Plugins",
+  "pages": ["eslint-plugin", "next-plugin", "postcss-plugin", "unplugin"]
+}
