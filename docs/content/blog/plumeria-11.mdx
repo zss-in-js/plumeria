@@ -1,0 +1,46 @@
+---
+title: 'Plumeria 11'
+description: 'Added unplugin package and update next-plugin'
+date: '2026-05-04'
+---
+Plumeria 11 features a major overhaul of the package structure to enhance build tool support and improve maintainability.
+
+### Introduction of @plumeria/unplugin
+
+We have introduced `@plumeria/unplugin`. This allows support for the following build tools in a single package:
+
+- Vite
+- Webpack
+- Rspack
+- Esbuild
+- Farm
+- Rollup
+- Rolldown
+- Bun
+
+### Package Structure Reorganization and Integration
+
+With this overhaul, the following changes have been made:
+
+- **Deprecation of `@plumeria/vite-plugin`**: The Vite plugin package in the monorepo has been deprecated in conjunction with the migration to `unplugin`. Going forward, we will use `@plumeria/unplugin/vite`.
+
+- **Deprecation of `@plumeria/webpack-plugin`**: Since tubopack-loader is available, the Webpack plugin package in the monorepo has been removed and deprecated. In Next.js, `@plumeria/turbopack-loader` (described below) is now available for both Webpack and Turbopack, eliminating the need for a dedicated plugin.
+
+### Improvements to @plumeria/next-plugin
+
+The Next.js plugin `@plumeria/next-plugin` has been significantly improved.
+
+The previously separate import paths for Webpack and Turbopack have been eliminated and unified into `@plumeria/next-plugin`. Because it now internally uses `@plumeria/turbopack-loader`, developers can simply install it as follows, without needing to be aware of the builder they are using (Webpack or Turbopack). It works with both webpack and turbopack:
+```javascript title="next.config.ts"
+import { withPlumeria } from '@plumeria/next-plugin';
+
+export default withPlumeria({
+  // ...nextConfig
+});
+```
+If you previously used `'@plumeria/next-plugin/turbopack';`, you will need to modify it to use only `'@plumeria/next-plugin'`.
+
+This change makes the introduction of Plumeria into Next.js projects and the future migration to Turbopack smoother.
+
+As always, thanks to everyone who is trying out Plumeria.  
+Feedback is welcome in [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) and bug reports in [Issues](https://github.com/zss-in-js/plumeria/issues).
