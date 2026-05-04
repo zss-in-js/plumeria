@@ -32,6 +32,8 @@ const securityHeaders = [
 ];
 
 const config: NextConfig = withPlumeria({
+  cacheComponents: true,
+  reactCompiler: true,
   reactStrictMode: true,
 
   async headers() {
