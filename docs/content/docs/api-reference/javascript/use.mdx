@@ -1,0 +1,74 @@
+---
+title: 'css.use / styleName'
+description: 'API and props for applying styles'
+---
+To apply styles defined in Plumeria to a component, use the `styleName` prop or the `css.use()` function.
+
+## styleName
+```ts
+type StyleName = CSSProperties | (false | CSSProperties | null | undefined)[];
+
+  global {
+    namespace React {
+      interface HTMLAttributes<T> {
+        styleName?: StyleName;
+      }
+    }
+  }
+
+export type { StyleName };
+```
+
+`styleName` is a special prop for applying styles to components such as React. It is converted to `className` by the plugin at build time.
+
+### Features
+- Automatically excludes false values ​​(`false`, `null`, `undefined`).
+
+- Supports array format, making conditional branching easy.
+- Subsequent styles take precedence within the array.
+
+### Example
+
+```tsx
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  base: { color: 'red' },
+  active: { fontWeight: 'bold' }
+});
+
+function Component({ active }) {
+  return (
+    <div styleName={[styles.base, active && styles.active]}>
+      Hello
+    </div>
+  );
+}
+```
+
+## css.use()
+```ts
+export type use = (...rules: (false | CSSProperties | null | undefined)[]) => string;
+export const use: use;
+```
+`css.use()` is a function that converts a style object into a string of class names (`string`). Where the `styleName` prop cannot be used (for example, when passing class names to external libraries).
+
+### Example
+
+```ts
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  text: { fontSize: '16px' }
+});
+
+// Get the class name as a string
+const className = css.use(styles.text);
+
+// Apply to an external component
+<ExternalComponent className={css.use(styles.text)} />
+```
+
+<Callout title="Build time compiles">
+`styleName` and `css.use()` are both processed by the plugin at build time. There is zero runtime overhead, and the final bundle will only contain the class name as a string.
+</Callout>
