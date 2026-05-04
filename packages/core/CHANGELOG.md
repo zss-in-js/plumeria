@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 11.0.2
+
+### Patch Changes
+
+- 6f8c7da: Feat function keys can now take multiple arguments
+
 ## 11.0.1
 
 ### Patch Changes
