@@ -1,0 +1,55 @@
+---
+title: '@plumeria/unplugin'
+description: 'Learn more about @plumeria/unplugin'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) is a general-purpose bundler plugin for Plumeria.
+
+## Installation
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i -D @plumeria/unplugin
+````
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/unplugin
+````
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i -D @plumeria/unplugin
+````
+</Tab>
+</Tabs>
+
+## Configuration
+```ts
+import plumeria from '@plumeria/unplugin';
+export default {
+  plugins: [
+    plumeria.vite({
+      include: ['**/*.{ts,tsx}'],
+      exclude: ['**/node_modules/**'],
+      devEmitToDisk: false,
+    }),
+  ],
+};
+```
+
+### Options
+
+- `include`: The path to the file to be converted.
+- `exclude`: The path to the file to be excluded from conversion.
+- `devEmitToDisk`: Whether to write styles as actual files (`zero-virtual.css`) instead of virtual modules in development mode. The default is `false`.
+
+```ts
+interface PluginOptions {
+  include?: string | RegExp | Array<string | RegExp>;
+  exclude?: string | RegExp | Array<string | RegExp>;
+  devEmitToDisk?: boolean;
+}
+```
