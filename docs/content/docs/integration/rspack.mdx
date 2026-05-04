@@ -1,0 +1,82 @@
+---
+title: 'Rspack'
+description:  'Learn more about @plumeria/unplugin.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`examples/rspack`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-rspack) shows how to use [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) in Rspack.  
+It compiles styles into CSS via AST parsing, with HMR support.
+
+## Installation
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i -D @plumeria/unplugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/unplugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i -D @plumeria/unplugin
+```
+</Tab>
+</Tabs>
+
+## Usage
+```ts title="rspack.config.js"
+import { rspack } from '@rspack/core';
+import { ReactRefreshRspackPlugin } from '@rspack/plugin-react-refresh';
+import plumeria from '@plumeria/unplugin';
+
+const isDev = process.env.NODE_ENV === 'development';
+
+export default {
+  entry: './src/index.tsx',
+  output: {
+    filename: 'bundle.js',
+    clean: true,
+  },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js'],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: {
+          loader: 'builtin:swc-loader',
+          options: {
+            jsc: {
+              parser: { syntax: 'typescript', tsx: true },
+              transform: {
+                react: {
+                  runtime: 'automatic',
+                  development: isDev,
+                  refresh: isDev,
+                },
+              },
+            },
+          },
+        },
+      },
+    ],
+  },
+  plugins: [
+    plumeria.rspack(),
+    new rspack.HtmlRspackPlugin({ template: './src/index.html' }),
+    isDev && new ReactRefreshRspackPlugin(),
+  ].filter(Boolean),
+  devServer: {
+    hot: true,
+    port: 3000,
+  },
+};
+```
+
+<Cards>
+  <Card title="See more about Installation unplugin" href="/docs/getting-started/installation" />
+</Cards>
