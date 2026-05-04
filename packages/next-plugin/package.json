@@ -20,14 +20,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    },
-    "./turbopack": {
-      "types": "./dist/turbopack.d.ts",
-      "import": "./dist/turbopack.js",
-      "default": "./dist/turbopack.js"
     }
   },
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist/"
