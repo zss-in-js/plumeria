@@ -1,5 +1,5 @@
 ---
-title: 'create'
+title: 'css.create'
 description: 'API reference for the create'
 ---
 
@@ -67,8 +67,26 @@ The call is cleaned up by the bundler.
 }
 ```
 
-
 Compiles each style CSS property into a unique, **atomic**, and **hashed** class name. This prevents style collisions and maximizes reusability.
+
+
+## Dynamic values
+
+You can use functions to define dynamic styles. These are processed as dynamic values at build time.
+
+```tsx
+const styles = css.create({
+  palette: (color: string) => ({
+    backgroundColor: color,
+  }),
+});
+
+export const Color = ({ color }) => {
+  return (
+    <span styleName={styles.palette(color)}>Dynamic Color</span>
+  )
+}
+```
 
 <Callout title="Atomic API">
 Unique atom classes are reused without duplication, keeping the amount of class names constant.
