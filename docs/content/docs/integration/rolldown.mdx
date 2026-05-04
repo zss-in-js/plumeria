@@ -1,0 +1,49 @@
+---
+title: 'Rolldown'
+description: 'Learn more about @plumeria/unplugin.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`examples/rolldown`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-rolldown) shows how to use [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) in rolldown.  
+The unplugin compiles Plumeria styles into the CSS asset produced by rolldown.
+
+## Installation
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i -D @plumeria/unplugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/unplugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i -D @plumeria/unplugin
+```
+</Tab>
+</Tabs>
+
+## Usage
+```js title="rolldown.config.js"
+import { defineConfig } from 'rolldown';
+import plumeria from '@plumeria/unplugin';
+import postcss from 'rollup-plugin-postcss';
+
+export default defineConfig({
+  input: 'src/index.tsx',
+  output: {
+    dir: 'dist',
+  },
+  moduleTypes: {
+    css: 'empty',
+  },
+  plugins: [plumeria.rolldown(), postcss({ extract: true })],
+});
+```
+
+<Cards>
+  <Card title="See more about Installation unplugin" href="/docs/getting-started/installation" />
+</Cards>
