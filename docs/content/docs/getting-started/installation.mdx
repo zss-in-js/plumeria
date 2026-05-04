@@ -177,17 +177,17 @@ export default withPlumeria(nextConfig);
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    npm i -D @plumeria/vite-plugin
+    npm i -D @plumeria/unplugin
     ```
   </Tab>
   <Tab>
     ```sh title="Terminal"
-    yarn add -D @plumeria/vite-plugin
+    yarn add -D @plumeria/unplugin
     ```
   </Tab>
   <Tab>
     ```sh title="Terminal"
-    pnpm add -D @plumeria/vite-plugin
+    pnpm add -D @plumeria/unplugin
     ```
   </Tab>
 </Tabs>
@@ -198,15 +198,15 @@ That's all the settings.
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import { plumeria } from '@plumeria/vite-plugin';
+import plumeria from '@plumeria/unplugin';
 
 export default defineConfig({
-  plugins: [react(), plumeria()],
+  plugins: [react(), plumeria.vite()],
 });
 
 ```
 <Cards>
-  <Card title="See more about @plumeria/vite-plugin package" href="/docs/integration/vite" />
+  <Card title="See more about @plumeria/unplugin package" href="/docs/integration/vite" />
   <Card title="See more about @plumeria/next-plugin package" href="/docs/integration/next" />
 </Cards>
 </Steps>
