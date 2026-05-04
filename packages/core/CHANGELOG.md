@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 11.0.1
+
+### Patch Changes
+
+- 8426076: Update package.json field
+
 ## 11.0.0
 
 ### Major Changes
