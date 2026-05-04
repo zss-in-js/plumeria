@@ -142,10 +142,13 @@ Atomic css is aggregated at build time into marked css files.
 ...
 ```
 
-### Turbopack
+
+### next.config.ts
+It works with both Turbopack and Webpack.
+
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
-import { withPlumeria } from "@plumeria/next-plugin/turbopack";
+import { withPlumeria } from "@plumeria/next-plugin";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -154,27 +157,11 @@ const nextConfig: NextConfig = {
 export default withPlumeria(nextConfig);
 ```
 
-### Webpack
-```ts title="next.config.ts"
-import type { NextConfig } from "next";
-import { withPlumeria } from "@plumeria/next-plugin";
 
-const nextConfig: NextConfig = {
-   /* turbopack: {} may be required */
-};
-
-export default withPlumeria(nextConfig); 
-```
-
-```json
-"dev": "next dev --webpack",
-"build": "next build --webpack",
-```
 ---
 
 ## Vite
 <Tabs items={["npm", "yarn", "pnpm"]}>
-  {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
     npm i -D @plumeria/unplugin
@@ -191,8 +178,6 @@ export default withPlumeria(nextConfig);
     ```
   </Tab>
 </Tabs>
-Place it before any other plugins.  
-That's all the settings.
 
 ### vite.config
 ```ts title="vite.config.ts"
