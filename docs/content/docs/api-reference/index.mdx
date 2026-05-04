@@ -1,51 +1,80 @@
 ---
-title: API reference
-description: API reference with Plumeria.
+title: API Reference
+description: Detailed documentation for Plumeria APIs and plugins.
 ---
 
-Plumeria uses a combination of the following eight APIs:
+Plumeria provides a set of powerful APIs and plugins to help you build type-safe, performant styles.
 
-## APIs
+## JavaScript API
+
+The core JavaScript APIs for defining styles, themes, and animations.
 
 <Cards>
   <Card
-    href="/docs/api-reference/create"
-    title="Guide create"
-    description="Learn how to use create"
+    href="/docs/api-reference/javascript/create"
+    title="create"
+    description="Create type-safe CSS-in-JS styles with full TypeScript support."
   />
   <Card
-    href="/docs/getting-started/styling"
-    title="Guide styling"
-    description="Learn how to styleName and use()"
-  />
-   <Card
-    href="/docs/api-reference/keyframes"
-    title="Guide keyframes"
-    description="Learn how to use keyframes"
+    href="/docs/api-reference/javascript/createStatic"
+    title="createStatic"
+    description="Define static styles that are extracted at build time."
   />
   <Card
-    href="/docs/api-reference/viewTransition"
-    title="Guide viewTransition"
-    description="Learn How to use viewTransition"
+    href="/docs/api-reference/javascript/createTheme"
+    title="createTheme"
+    description="Create and manage design tokens and themes using CSS variables."
   />
   <Card
-    href="/docs/api-reference/variants"
-    title="Guide variants"
-    description="Learn How to use variants"
-  />
-    <Card
-    href="/docs/api-reference/createStatic"
-    title="Guide createStatic"
-    description="Learn how to use createStatic"
+    href="/docs/api-reference/javascript/keyframes"
+    title="keyframes"
+    description="Define CSS keyframes for animations."
   />
   <Card
-    href="/docs/api-reference/createTheme"
-    title="Guide createTheme"
-    description="Learn how to use createTheme"
+    href="/docs/api-reference/javascript/variants"
+    title="variants"
+    description="Create complex component variations with a simple API."
   />
   <Card
-    href="/docs/api-reference/marker"
-    title="Guide marker & extended"
-    description="Learn how to use marker and extended for context-aware styling"
+    href="/docs/api-reference/javascript/viewTransition"
+    title="viewTransition"
+    description="First-class support for the View Transitions API."
+  />
+  <Card
+    href="/docs/api-reference/javascript/marker"
+    title="marker & extended"
+    description="Apply styles based on parent markers or extended selectors."
+  />
+  <Card
+    href="/docs/api-reference/javascript/use"
+    title="styleName & use()"
+    description="Apply styles to elements using the styleName and use functions."
+  />
+</Cards>
+
+## Plugins
+
+Integrate Plumeria with your favorite tools and frameworks.
+
+<Cards>
+  <Card
+    href="/docs/api-reference/plugins/next-plugin"
+    title="@plumeria/next-plugin"
+    description="Official plugin for Next.js supporting both Webpack and Turbopack."
+  />
+  <Card
+    href="/docs/api-reference/plugins/unplugin"
+    title="@plumeria/unplugin"
+    description="Universal bundler plugin supporting Vite, Webpack, Rspack, and more."
+  />
+  <Card
+    href="/docs/api-reference/plugins/eslint"
+    title="@plumeria/eslint-plugin"
+    description="ESLint rules to ensure best practices and prevent common errors."
+  />
+  <Card
+    href="/docs/api-reference/plugins/postcss"
+    title="@plumeria/postcss-plugin"
+    description="PostCSS integration for advanced CSS processing."
   />
 </Cards>
