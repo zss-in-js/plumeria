@@ -29,6 +29,7 @@
       "import": "./lib/css.js"
     }
   },
+  "types": "./lib/css.d.ts",
   "imports": {
     "#types": "./lib/types.d.ts"
   },
