@@ -1,46 +1,40 @@
 ---
 title: 'Vite'
-description:  'Learn more about @plumeria/vite-plugin.'
+description:  'Learn more about @plumeria/unplugin.'
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-[`@plumeria/vite`](https://www.npmjs.com/package/@plumeria/vite)  is the Vite plugin for Plumeria.  
+[`examples/vite-react`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-react) shows how to use [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) in Vite.  
 It compiles styles into CSS via AST parsing, with HMR support.
 
 ## Installation
 <Tabs items={['npm',  'yarn', 'pnpm']}>
 <Tab>
 ```sh title="Terminal"
-npm i -D @plumeria/vite-plugin
+npm i -D @plumeria/unplugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-yarn add -D @plumeria/vite-plugin
+yarn add -D @plumeria/unplugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-pnpm i -D @plumeria/vite-plugin
+pnpm i -D @plumeria/unplugin
 ```
 </Tab>
 </Tabs>
 
-## Overview
-```ts title="TypeScript"
-import type { Plugin } from 'vite';
-export function plumeria(): Plugin;
-```
-
-## API
+## Usage
 ```ts title="vite.config.ts"
-import { plumeria } from '@plumeria/vite';
+import plumeria from '@plumeria/unplugin';
 
 export default defineConfig({
-  plugins: [plumeria()],
+  plugins: [plumeria.vite()],
 });
 ```
 
 <Cards>
-  <Card title="See more about Installation vite-plugin" href="/docs/getting-started/installation#vite-nodejs-build-externalization" />
+  <Card title="See more about Installation unplugin" href="/docs/getting-started/installation" />
 </Cards>
