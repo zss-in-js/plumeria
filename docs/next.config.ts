@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
 import { createMDX } from 'fumadocs-mdx/next';
-import { withPlumeria } from '@plumeria/next-plugin/turbopack';
+import { withPlumeria } from '@plumeria/next-plugin';
 
 const withMDX = createMDX();
 
