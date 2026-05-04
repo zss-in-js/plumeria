@@ -8,7 +8,7 @@ const generateSEOData = ({ title, subtitle, date = '' }: SeoData) => {
   return {
     title: title,
     description: subtitle,
-    metadataBase: new URL(process.env.PROD_URL || 'https://.io'),
+    metadataBase: process.env.PROD_URL,
     alternates: {
       canonical: '/',
     },
