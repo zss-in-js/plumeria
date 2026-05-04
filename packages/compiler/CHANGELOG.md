@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 11.0.2
+
+### Patch Changes
+
+- 6f8c7da: Feat implementation dynamic key multi arguments
+- Updated dependencies [6f8c7da]
+  - @plumeria/utils@11.0.2
+
 ## 11.0.1
 
 ### Patch Changes
