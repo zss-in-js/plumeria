@@ -1,5 +1,5 @@
 ---
-title: 'ESLint'
+title: '@plumeria/eslint-plugin'
 description: 'Learn more about @plumeria/eslint-plugin.'
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
@@ -26,26 +26,19 @@ pnpm i --save-dev @plumeria/eslint-plugin
 </Tab>
 </Tabs>
 
-## Overview
-```ts title="TypeScript"
-import type { ESLint, Linter, Rule } from 'eslint';
-type PlumeriaPlugin = ESLint.Plugin & {
-    rules: Record<string, Rule.RuleModule>;
-    configs: {
-        recommended: Linter.LegacyConfig;
-    };
-    flatConfigs: {
-        recommended: Linter.Config;
-    };
-};
-export declare const plumeria: PlumeriaPlugin;
+## Usage
+```js
+import { plumeria } from '@plumeria/eslint-plugin';
+
+export default [plumeria.flatConfigs.recommended];
 ```
 
-## API
+## Rules
 `Rules: recommended`
 - `'@plumeria/style-name-requires-import': 'error'`
 - `'@plumeria/no-combinator': 'error'`
 - `'@plumeria/no-destructure': 'error'`
+- `'@plumeria/no-inline-object': 'error'`
 - `'@plumeria/no-inner-call': 'error'`
 - `'@plumeria/no-unknown-css-properties': 'error'`
 - `'@plumeria/no-unused-keys': 'warn'`
