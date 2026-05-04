@@ -1,3 +1,5 @@
+'use cache';
+
 import Link from 'next/link';
 import type { Metadata } from 'next/types';
 import { blog } from 'lib/source';
@@ -11,7 +13,7 @@ export const metadata: Metadata = generateSEOData({
   subtitle: 'Latest updates and news from our team.',
 });
 
-function Page(): JSX.Element {
+export default async function Page(): Promise<JSX.Element> {
   const posts = blog.getPages();
 
   return (
@@ -35,5 +37,3 @@ function Page(): JSX.Element {
     </main>
   );
 }
-
-export default Page;
