@@ -615,13 +615,16 @@ export function compileCSS(options: CompilerOptions) {
               if (styleInfo && styleInfo.functions?.[propName]) {
                 const func = styleInfo.functions[propName];
                 const callArgs = expr.arguments;
-                if (callArgs.length === 1 && !callArgs[0].spread) {
-                  const argExpr = callArgs[0].expression;
+                const hasSpread = callArgs.some((a) => a.spread);
+                if (!hasSpread && callArgs.length >= 1) {
                   const tempStaticTable = { ...ctx.mergedStaticTable };
 
-                  if (argExpr.type === 'ObjectExpression') {
+                  if (
+                    callArgs.length === 1 &&
+                    callArgs[0].expression.type === 'ObjectExpression'
+                  ) {
                     const argObj = objectExpressionToObject(
-                      argExpr,
+                      callArgs[0].expression,
                       ctx.mergedStaticTable,
                       ctx.mergedKeyframesTable,
                       ctx.mergedViewTransitionTable,
@@ -637,7 +640,10 @@ export function compileCSS(options: CompilerOptions) {
                         tempStaticTable[p] = argObj[p];
                     });
                   } else {
-                    func.params.forEach((p) => {
+                    // Positional arguments: map each callArg to func.params[i]
+                    callArgs.forEach((_callArg: any, i: number) => {
+                      const p = func.params[i];
+                      if (!p) return;
                       tempStaticTable[p] = `var(--${propName}-${p})`;
                     });
                   }
