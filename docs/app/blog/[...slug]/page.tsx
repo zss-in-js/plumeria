@@ -1,3 +1,5 @@
+'use cache';
+
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { blog } from 'lib/source';
@@ -9,7 +11,7 @@ import { styles } from './styles';
 import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
 
-export function generateStaticParams(): Array<{ slug: Array<string> }> {
+export async function generateStaticParams(): Promise<Array<{ slug: Array<string> }>> {
   return blog.getPages().map((page) => ({
     slug: page.slugs,
   }));
