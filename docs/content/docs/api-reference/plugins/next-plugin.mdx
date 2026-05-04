@@ -1,0 +1,54 @@
+---
+title: '@plumeria/next-plugin'
+description: 'How to use @plumeria/next-plugin'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`@plumeria/next-plugin`](https://www.npmjs.com/package/@plumeria/next-plugin) is a plugin for using Plumeria with Next.js.
+It supports both Turbopack and Webpack for Next.js and provides style compilation and HMR (Hot Module Replacement) at build time.
+
+## Installation
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i -D @plumeria/next-plugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/next-plugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i -D @plumeria/next-plugin
+```
+</Tab>
+</Tabs>
+
+## Usage
+
+Wrap your configuration using `withPlumeria` in `next.config.ts` or `next.config.js`.
+
+```ts title="next.config.ts"
+import type { NextConfig } from "next";
+import { withPlumeria } from "@plumeria/next-plugin";
+
+const nextConfig: NextConfig = {
+  // Existing configuration
+};
+
+export default withPlumeria(nextConfig);
+```
+
+## API
+### `withPlumeria(nextConfig)`
+
+Takes a Next.js configuration object and returns a new configuration object with the necessary Turbopack or Webpack configurations added for Plumeria.
+
+- `nextConfig`: Next.js configuration object.
+
+```ts
+function withPlumeria(nextConfig: NextConfig): NextConfig;
+```
