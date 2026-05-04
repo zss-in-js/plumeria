@@ -34,7 +34,7 @@ type CSSProperties =
   | QuerySelector
   | CSSVariableProperty;
 
-type CreateStyleValue = CSSProperties | ((...args: never) => CSSProperties);
+type CreateStyleValue = CSSProperties | ((...args: any[]) => CSSProperties);
 
 type CreateReturnType<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => infer R
