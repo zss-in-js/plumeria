@@ -1,0 +1,45 @@
+---
+title: 'Farm'
+description: 'Learn more about @plumeria/unplugin.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`examples/farm`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-farm) shows how to use [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) in Farm.  
+It compiles styles into CSS via AST parsing, with HMR support.
+
+## Installation
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i -D @plumeria/unplugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/unplugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i -D @plumeria/unplugin
+```
+</Tab>
+</Tabs>
+
+## Usage
+```ts title="farm.config.ts"
+import { defineConfig } from '@farmfe/core';
+import plumeria from '@plumeria/unplugin';
+
+export default defineConfig({
+  plugins: [
+    plumeria.farm({
+      devEmitToDisk: true,
+    }),
+  ],
+});
+```
+
+<Cards>
+  <Card title="See more about Installation unplugin" href="/docs/getting-started/installation" />
+</Cards>
