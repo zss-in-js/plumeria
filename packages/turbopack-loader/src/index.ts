@@ -1443,18 +1443,21 @@ export default async function loader(this: LoaderContext, source: string) {
         if (styleInfo?.functions?.[propKey]) {
           const func = styleInfo.functions[propKey];
           const callArgs = (expr as CallExpression).arguments;
-          const tempStaticTable = { ...mergedStaticTable };
+          const hasSpread = callArgs.some((a) => a.spread);
 
-          if (callArgs.length === 1 && !callArgs[0].spread) {
-            const argExpr = callArgs[0].expression;
+          if (!hasSpread && callArgs.length >= 1) {
+            const tempStaticTable = { ...mergedStaticTable };
             const cssVarInfo: Record<
               string,
               { cssVar: string; propKey: string }
             > = {};
 
-            if (argExpr.type === 'ObjectExpression') {
+            if (
+              callArgs.length === 1 &&
+              callArgs[0].expression.type === 'ObjectExpression'
+            ) {
               const argObj = objectExpressionToObject(
-                argExpr,
+                callArgs[0].expression as ObjectExpression,
                 mergedStaticTable,
                 mergedKeyframesTable,
                 mergedViewTransitionTable,
@@ -1469,7 +1472,9 @@ export default async function loader(this: LoaderContext, source: string) {
                 if (argObj[p] !== undefined) tempStaticTable[p] = argObj[p];
               });
             } else {
-              func.params.forEach((p) => {
+              callArgs.forEach((_callArg, i) => {
+                const p = func.params[i];
+                if (!p) return;
                 const cssVar = `--${propKey}-${p}`;
                 tempStaticTable[p] = `var(${cssVar})`;
                 cssVarInfo[p] = { cssVar, propKey: '' };
@@ -1495,17 +1500,22 @@ export default async function loader(this: LoaderContext, source: string) {
               if (hashes) dynamicClassParts.push(JSON.stringify(hashes));
 
               if (Object.keys(cssVarInfo).length > 0) {
-                Object.entries(cssVarInfo).forEach(([_, info]) => {
+                Object.entries(cssVarInfo).forEach(([paramName, info]) => {
                   const targetProp = Object.keys(substituted).find(
                     (k) =>
                       typeof substituted[k] === 'string' &&
                       substituted[k].includes(info.cssVar),
                   );
                   if (targetProp) {
+                    const paramIndex = func.params.indexOf(paramName);
+                    const srcArg =
+                      paramIndex >= 0 && callArgs[paramIndex]
+                        ? callArgs[paramIndex].expression
+                        : callArgs[0].expression;
                     const argStart =
-                      (argExpr as HasSpan).span.start - baseByteOffset;
+                      (srcArg as HasSpan).span.start - baseByteOffset;
                     const argEnd =
-                      (argExpr as HasSpan).span.end - baseByteOffset;
+                      (srcArg as HasSpan).span.end - baseByteOffset;
                     const argSource = sourceBuffer
                       .subarray(argStart, argEnd)
                       .toString('utf-8');
