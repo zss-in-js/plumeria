@@ -1,3 +1,5 @@
+'use cache';
+
 import { source } from 'lib/source';
 import { DocsPage, DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
