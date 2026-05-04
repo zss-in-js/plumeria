@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 11.0.1
+
+### Patch Changes
+
+- 8426076: Update import path ocne pack
+- Updated dependencies [8426076]
+  - @plumeria/turbopack-loader@11.0.1
+
 ## 11.0.0
 
 ### Major Changes
