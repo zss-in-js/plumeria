@@ -1,4 +1,5 @@
 import { ConditionalTest } from 'component/ConditionalTest';
+import { MultiArgTest } from 'component/MultiArgTest';
 import { VariableTest } from 'component/VariableTest';
 import { VariantTest } from 'component/VariantTest';
 import Link from 'next/link';
@@ -17,6 +18,7 @@ export default function Home() {
       <h2 styleName={styles.page}>server component</h2>
       <Link href="/server">Server Page</Link>
       <ConditionalTest />
+      <MultiArgTest />
       <VariableTest />
       <VariantTest />
     </main>
