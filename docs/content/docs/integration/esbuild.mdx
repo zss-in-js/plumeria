@@ -1,0 +1,56 @@
+---
+title: 'esbuild'
+description:  'Learn more about @plumeria/unplugin.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`examples/esbuild`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-esbuild) shows how to use [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) in esbuild.  
+The unplugin compiles Plumeria styles into the CSS asset produced by esbuild.
+
+## Installation
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i -D @plumeria/unplugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/unplugin
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i -D @plumeria/unplugin
+```
+</Tab>
+</Tabs>
+
+## Usage
+```ts title="scripts/build.js"
+import esbuild from 'esbuild';
+import plumeria from '@plumeria/unplugin';
+
+esbuild
+  .build({
+    entryPoints: ['src/index.tsx'],
+    bundle: true,
+    outfile: 'dist/bundle.js',
+    plugins: [
+      plumeria.esbuild({
+        include: /\.[jt]sx?$/,
+      }),
+    ],
+    loader: {
+      '.tsx': 'tsx',
+      '.ts': 'ts',
+    },
+    format: 'esm',
+    minify: false,
+  })
+  .catch(() => process.exit(1));
+```
+
+<Cards>
+  <Card title="See more about Installation unplugin" href="/docs/getting-started/installation" />
+</Cards>
