@@ -40,6 +40,7 @@
   "devDependencies": {
     "@types/eslint": "^9.6.1",
     "@types/estree": "^1.0.8",
+    "@typescript-eslint/parser": "^8.59.2",
     "eslint": "^9.39.0"
   },
   "publishConfig": {
@@ -47,6 +48,7 @@
     "provenance": true
   },
   "dependencies": {
+    "@typescript-eslint/utils": "^8.59.2",
     "known-css-properties": "^0.37.0"
   }
 }
