@@ -1,0 +1,32 @@
+---
+title: 'Plumeria 11.1'
+description: 'Addition of ESLint Rules and Update of Analysis Settings'
+date: '2026-05-06'
+---
+Plumeria 11.1 adds new rules to the ESLint plugin and changes settings to improve analysis accuracy.
+
+### New ESLint Plugin Rules
+
+The following two rules have been added. These rules help describe more consistent styling.
+
+- **`no-invalid-selector-nesting`**: Restricts the nesting of invalid selectors.
+
+- **`no-mixed-styling-props`**: Prohibits the mixing of `styleName` and `className` or `style` properties.
+
+### ESLint Configuration Updates
+
+To correctly read definition files such as `[breakpoints.md]`, the following settings are required in `eslint.config.ts` (or `.eslintrc`). 
+
+```typescript title="eslint.config.ts"
+{
+  files: ['**/*.{ts,tsx}'],
+  languageOptions: {
+    parserOptions: { projectService: true },
+  },
+}
+```
+Enabling `languageOptions.parserOptions.projectService: true` allows for proper resolution of string literal keys containing type definition information, such as breakpoints.
+
+---
+As always, thanks to everyone who is trying out Plumeria.  
+Feedback is welcome in [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) and bug reports in [Issues](https://github.com/zss-in-js/plumeria/issues).
