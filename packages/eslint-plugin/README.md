@@ -12,6 +12,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/no-destructure`: **error**
 - `@plumeria/no-inline-object`: **error**
 - `@plumeria/no-inner-call`: **error**
+- `@plumeria/no-invalid-selector-nesting`: **error**
 - `@plumeria/no-unknown-css-properties`: **error**
 - `@plumeria/no-unused-keys`: **warn**
 - `@plumeria/sort-properties`: **warn**
@@ -45,6 +46,10 @@ Disallow passing inline object to `styleName` and `css.use()`. Only compiled sty
 ### no-inner-call
 
 Disallow calling APIs inside functions.
+
+### no-invalid-selector-nesting
+
+Disallow invalid selector nesting inside `css.create()`. (e.g. Pseudo -> Query, Query -> Query)
 
 ### no-unknown-css-properties
 
