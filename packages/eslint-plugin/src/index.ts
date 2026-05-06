@@ -3,12 +3,12 @@ import { noCombinator } from './rules/no-combinator';
 import { noDestructure } from './rules/no-destructure';
 import { noInlineObject } from './rules/no-inline-object';
 import { noInnerCall } from './rules/no-inner-call';
+import { noInvalidSelectorNesting } from './rules/no-invalid-selector-nesting';
+import { noUnknownCssProperties } from './rules/no-unknown-css-properties';
 import { noUnusedKeys } from './rules/no-unused-keys';
 import { sortProperties } from './rules/sort-properties';
 import { formatProperties } from './rules/format-properties';
 import { validateValues } from './rules/validate-values';
-
-import { noUnknownCssProperties } from './rules/no-unknown-css-properties';
 import type { ESLint, Linter, Rule } from 'eslint';
 
 type PlumeriaPlugin = ESLint.Plugin & {
@@ -27,6 +27,7 @@ const rules: Record<string, Rule.RuleModule> = {
   'no-destructure': noDestructure,
   'no-inline-object': noInlineObject,
   'no-inner-call': noInnerCall,
+  'no-invalid-selector-nesting': noInvalidSelectorNesting,
   'no-unknown-css-properties': noUnknownCssProperties,
   'no-unused-keys': noUnusedKeys,
   'sort-properties': sortProperties,
@@ -43,6 +44,7 @@ const configs: PlumeriaPlugin['configs'] = {
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inline-object': 'error',
       '@plumeria/no-inner-call': 'error',
+      '@plumeria/no-invalid-selector-nesting': 'error',
       '@plumeria/no-unknown-css-properties': 'error',
       '@plumeria/no-unused-keys': 'warn',
       '@plumeria/sort-properties': 'warn',
@@ -64,6 +66,7 @@ const flatConfigs: PlumeriaPlugin['flatConfigs'] = {
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inline-object': 'error',
       '@plumeria/no-inner-call': 'error',
+      '@plumeria/no-invalid-selector-nesting': 'error',
       '@plumeria/no-unknown-css-properties': 'error',
       '@plumeria/no-unused-keys': 'warn',
       '@plumeria/sort-properties': 'warn',
