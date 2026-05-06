@@ -1,3 +1,9 @@
+## 11.1.0
+
+### Minor Changes
+
+- f58f70a: Add no-invalid-selector-nesting and no-mixed-styling-props
+
 ## 11.0.2
 
 ### Patch Changes
