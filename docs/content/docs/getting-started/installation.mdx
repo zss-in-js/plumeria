@@ -41,6 +41,7 @@ Skip to your bundler: [Next.js](/docs/getting-started/installation#nextjs) / [Vi
 By implementing `ESLint`, you can automatically organize the order of CSS properties and format line breaks, creating a more efficient environment than manual maintenance.
 
 The plumerialint command installs [`@plumeria/eslint-plugin`](/docs/getting-started/editor-integration).   
+Setting `languageOptions.parserOptions.projectService` to `true` enables `"@plumeria/no-invalid-selector-nesting"` by utilizing TypeScript type information.
 
 ```ts
 import eslint from '@eslint/js';
@@ -54,6 +55,9 @@ export default defineConfig(
   plumeria.flatConfigs.recommended,
   {
     files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: { projectService: true },
+    },
   }
 );
 ```
