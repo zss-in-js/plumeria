@@ -13,6 +13,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/no-inline-object`: **error**
 - `@plumeria/no-inner-call`: **error**
 - `@plumeria/no-invalid-selector-nesting`: **error**
+- `@plumeria/no-mixed-styling-props`: **error**
 - `@plumeria/no-unknown-css-properties`: **error**
 - `@plumeria/no-unused-keys`: **warn**
 - `@plumeria/sort-properties`: **warn**
