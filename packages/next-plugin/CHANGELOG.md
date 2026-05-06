@@ -1,5 +1,16 @@
 # @plumeria/next-plugin
 
+## 11.1.0
+
+### Minor Changes
+
+- f58f70a: Refactor and pass tests
+
+### Patch Changes
+
+- Updated dependencies [f58f70a]
+  - @plumeria/turbopack-loader@11.1.0
+
 ## 11.0.2
 
 ### Patch Changes

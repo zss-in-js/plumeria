@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 11.1.0
+
+### Minor Changes
+
+- f58f70a: Bump version to 11.1.0
+
+### Patch Changes
+
+- Updated dependencies [f58f70a]
+  - @plumeria/utils@11.1.0
+
 ## 11.0.2
 
 ### Patch Changes
