@@ -51,6 +51,10 @@ Disallow calling APIs inside functions.
 
 Disallow invalid selector nesting inside `css.create()`. (e.g. Pseudo -> Query, Query -> Query)
 
+### no-mixed-styling-props
+
+Disallow mixing `styleName` with `className` or `style`. `styleName` can handle both `className` and `style`.
+
 ### no-unknown-css-properties
 
 Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, and `css.viewTransition`.
