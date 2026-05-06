@@ -12,6 +12,9 @@ export default defineConfig(
   },
   {
     files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: { projectService: true },
+    },
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-extraneous-class': 'off',
