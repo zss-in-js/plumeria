@@ -9,8 +9,13 @@ type TurbopackRuleValue = TurbopackRules[string];
 
 const isRuleConfigItem = (
   rule: TurbopackRuleValue,
-): rule is Extract<TurbopackRuleValue, { loaders?: unknown }> =>
+): rule is Extract<TurbopackRuleValue, { loaders?: TurbopackLoaderItem[] }> =>
   !Array.isArray(rule) && typeof rule === 'object' && rule !== null;
+
+type PlumeriaTurbopackRules = Record<
+  string,
+  { loaders: TurbopackLoaderItem[] }
+>;
 
 export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
   const originalWebpack = nextConfig.webpack;
@@ -19,7 +24,7 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
     { loader: '@plumeria/turbopack-loader', options: {} },
   ];
 
-  const plumeriaRules: TurbopackRules = {
+  const plumeriaRules: PlumeriaTurbopackRules = {
     '*.ts': { loaders: turbopackLoaders },
     '*.tsx': { loaders: turbopackLoaders },
     '*.js': { loaders: turbopackLoaders },
@@ -28,15 +33,15 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
 
   const mergeTurbopackRules = (
     existingRules: TurbopackRules = {},
-    newRules: TurbopackRules,
+    newRules: PlumeriaTurbopackRules,
   ): TurbopackRules => {
     const mergedRules = { ...existingRules };
 
     for (const [key, newRule] of Object.entries(newRules)) {
       const existing = mergedRules[key];
 
-      if (existing && isRuleConfigItem(existing) && isRuleConfigItem(newRule)) {
-        const newLoaders = newRule.loaders || [];
+      if (existing && isRuleConfigItem(existing)) {
+        const newLoaders = newRule.loaders;
 
         const existingLoaders = Array.isArray(existing.loaders)
           ? existing.loaders
