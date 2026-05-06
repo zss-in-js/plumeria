@@ -1,3 +1,9 @@
+## 11.1.1
+
+### Patch Changes
+
+- 9999562: Update README.md
+
 ## 11.1.0
 
 ### Minor Changes

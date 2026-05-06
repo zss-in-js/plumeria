@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 11.1.1
+
+### Patch Changes
+
+- 9999562: Bump version to 11.1.1
+- Updated dependencies [9999562]
+  - @plumeria/turbopack-loader@11.1.1
+
 ## 11.1.0
 
 ### Minor Changes
