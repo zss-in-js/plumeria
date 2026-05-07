@@ -1130,6 +1130,28 @@ ruleTester.run('validate-values', validateValues, {
     });
   `,
     },
+    // Additional tests for remaining coverage
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { fontVariantEastAsian: 'jis78 full-width ruby' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { columnRuleWidth: 'thin' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { backgroundPositionX: 'left' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { gridTemplateColumns: 'fit-content(100px)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { gridTemplateRows: '1fr' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { borderSpacing: '10px 20px' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { borderTopLeftRadius: '10px 20px' } });`,
+    },
   ],
 
   invalid: [
