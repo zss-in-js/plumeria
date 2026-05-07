@@ -1604,7 +1604,7 @@ function getValidator(key: string): ValidatorFn | null {
     validator = (v) => r.test(v);
   } else if (multipleValueProperties.includes(key)) {
     const r = new RegExp(
-      `^(${lvp})( (?!\\s)(${lvp})){0,${(valueCountMap[key] || 1) - 1}}$`,
+      `^(${lvp})( (?!\\s)(${lvp})){0,${valueCountMap[key] - 1}}$`,
     );
     validator = (v) => r.test(v);
   }
