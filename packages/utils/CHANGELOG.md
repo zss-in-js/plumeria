@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 11.1.2
+
+### Patch Changes
+
+- dfcda01: Support shorthand syntax for key functions
+
 ## 11.1.1
 
 ### Patch Changes
