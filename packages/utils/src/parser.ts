@@ -172,6 +172,22 @@ export function objectExpressionToObject(
       return;
     }
 
+    // Handle shorthand properties: { width } => { width: width }
+    if (t.isIdentifier(prop) && !t.isObjectProperty(prop)) {
+      const key = prop.value;
+      if (resolveVariable) {
+        const resolved = resolveVariable(key);
+        if (resolved !== undefined) {
+          obj[key] = resolved;
+          return;
+        }
+      }
+      if (staticTable[key] !== undefined) {
+        obj[key] = staticTable[key];
+      }
+      return;
+    }
+
     if (!t.isObjectProperty(prop)) return;
 
     const key = getPropertyKey(
