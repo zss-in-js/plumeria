@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 11.1.2
+
+### Patch Changes
+
+- dfcda01: Bump version to 11.1.2
+- Updated dependencies [dfcda01]
+  - @plumeria/utils@11.1.2
+
 ## 11.1.1
 
 ### Patch Changes
