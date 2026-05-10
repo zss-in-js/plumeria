@@ -864,7 +864,7 @@ function resolveCreateThemeTableMemberExpressionByNode(
 
         if (key && themeObj[key] !== undefined) {
           const cssVarName = camelToKebabCase(key);
-          return `var(--${cssVarName})`;
+          return `var(--${hash}-${cssVarName})`;
         }
       }
     }
@@ -1125,9 +1125,10 @@ export function scanAll(): Tables {
                     if (localTables.createThemeHashTable[uniqueKey]) {
                       const hash = localTables.createThemeHashTable[uniqueKey];
                       localCreateThemeHashTable[localName] = hash;
-                      // Do NOT populate localCreateThemeObjectTable with imported definitions.
-                      // This avoids caching imported themes as if they were defined in this file,
-                      // effectively preventing duplicate CSS output on cache restore.
+                      if (localTables.createThemeObjectTable[hash]) {
+                        localCreateThemeObjectTable[hash] =
+                          localTables.createThemeObjectTable[hash];
+                      }
                     }
                     // Resolve keyframes from global tables
                     if (localTables.keyframesHashTable[uniqueKey]) {
@@ -1287,7 +1288,7 @@ export function scanAll(): Tables {
                   const hashMap: Record<string, any> = {};
                   for (const [key] of Object.entries(obj)) {
                     const cssVarName = camelToKebabCase(key);
-                    hashMap[key] = `var(--${cssVarName})`;
+                    hashMap[key] = `var(--${hash}-${cssVarName})`;
                   }
                   localTables.createAtomicMapTable[hash] = hashMap;
                 } else if (method === 'create') {
@@ -1467,30 +1468,29 @@ export function extractOndemandStyles(
 
   // Change: Filter theme definitions based on used variables
   if (usedVariables.size > 0) {
-    for (const themeVarName in t.createThemeHashTable) {
-      const hash = t.createThemeHashTable[themeVarName];
-      const definition = t.createThemeObjectTable[hash];
-
-      if (definition && typeof definition === 'object') {
-        // Filter the definition to only include used variables
-        const filteredDefinition: Record<string, any> = {};
-        let hasUsed = false;
-
-        Object.keys(definition).forEach((key) => {
-          const varName = `--${camelToKebabCase(key)}`;
-          if (usedVariables.has(varName)) {
-            filteredDefinition[key] = definition[key];
-            hasUsed = true;
+    Object.keys(t.createThemeHashTable)
+      .sort()
+      .forEach((themeVarName) => {
+        const hash = t.createThemeHashTable[themeVarName];
+        const definition = t.createThemeObjectTable[hash];
+        if (definition && typeof definition === 'object') {
+          // Filter the definition to only include used variables
+          const filteredDefinition: Record<string, any> = {};
+          let hasUsed = false;
+          Object.keys(definition).forEach((key) => {
+            const varName = `--${hash}-${camelToKebabCase(key)}`;
+            if (usedVariables.has(varName)) {
+              filteredDefinition[key] = definition[key];
+              hasUsed = true;
+            }
+          });
+          if (hasUsed) {
+            const styles = createTheme(filteredDefinition, hash);
+            const { styleSheet } = transpile(styles, undefined, '--global');
+            addSheet(styleSheet);
           }
-        });
-
-        if (hasUsed) {
-          const styles = createTheme(filteredDefinition);
-          const { styleSheet } = transpile(styles, undefined, '--global');
-          addSheet(styleSheet);
         }
-      }
-    }
+      });
   }
 }
 
