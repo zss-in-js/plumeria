@@ -1,13 +1,13 @@
 import { camelToKebabCase } from 'zss-engine';
 import type { CreateTheme } from './types';
 
-const createTheme = <const T extends CreateTheme>(rule: T) => {
+const createTheme = <const T extends CreateTheme>(rule: T, hash?: string) => {
   const styles: Record<
     string,
     Record<string, string | number | Record<string, string | number>>
   > = {};
   for (const key in rule) {
-    const varKey = `--${camelToKebabCase(key)}`;
+    const varKey = `--${hash}-${camelToKebabCase(key)}`;
 
     const themeMap = rule[key];
     for (const themeKey in themeMap) {
