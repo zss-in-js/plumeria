@@ -15,7 +15,12 @@ import type {
   ExprOrSpread,
 } from '@swc/core';
 import * as path from 'path';
-import { applyCssValue, genBase36Hash, exceptionCamelCase } from 'zss-engine';
+import {
+  applyCssValue,
+  genBase36Hash,
+  exceptionCamelCase,
+  camelToKebabCase,
+} from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 import {
   traverse,
@@ -1060,13 +1065,23 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             const hash = genBase36Hash(obj, 1, 8);
             if (t.isIdentifier(node.id)) {
               const uniqueKey = `${resourcePath}-${node.id.value}`;
+
               scannedTables.createThemeHashTable[uniqueKey] = hash;
               scannedTables.createThemeObjectTable[hash] = obj;
+
+              mergedCreateThemeHashTable[node.id.value] = hash;
+
+              const themeHashMap: Record<string, any> = {};
+              for (const [key] of Object.entries(obj)) {
+                const cssVarName = camelToKebabCase(key);
+                themeHashMap[key] = `var(--${hash}-${cssVarName})`;
+              }
+
               localCreateStyles[node.id.value] = {
                 name: node.id.value,
                 type: 'constant',
                 obj,
-                hashMap: scannedTables.createAtomicMapTable[hash],
+                hashMap: themeHashMap,
                 isExported,
                 initSpan: {
                   start: init.span.start - baseByteOffset,
