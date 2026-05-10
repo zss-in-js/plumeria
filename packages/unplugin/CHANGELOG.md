@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 11.1.3
+
+### Patch Changes
+
+- a486adb: Prevent theme conflicts and stabilize HMR
+- Updated dependencies [a486adb]
+  - @plumeria/utils@11.1.3
+
 ## 11.1.2
 
 ### Patch Changes
