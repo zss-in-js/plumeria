@@ -16,7 +16,12 @@ import type {
 } from '@swc/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { applyCssValue, genBase36Hash, exceptionCamelCase } from 'zss-engine';
+import {
+  applyCssValue,
+  genBase36Hash,
+  exceptionCamelCase,
+  camelToKebabCase,
+} from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 
 import {
@@ -515,11 +520,19 @@ export default async function loader(this: LoaderContext, source: string) {
           scannedTables.createThemeHashTable[uniqueKey] = hash;
           scannedTables.createThemeObjectTable[hash] = obj;
 
+          mergedCreateThemeHashTable[node.id.value] = hash;
+
+          const themeHashMap: Record<string, any> = {};
+          for (const [key] of Object.entries(obj)) {
+            const cssVarName = camelToKebabCase(key);
+            themeHashMap[key] = `var(--${hash}-${cssVarName})`;
+          }
+
           localCreateStyles[node.id.value] = {
             name: node.id.value,
             type: 'constant',
             obj,
-            hashMap: scannedTables.createAtomicMapTable[hash],
+            hashMap: themeHashMap,
             isExported,
             initSpan: {
               start: init.span.start - baseByteOffset,
@@ -1682,6 +1695,7 @@ export default async function loader(this: LoaderContext, source: string) {
     });
   parts.push(buffer.subarray(offset));
   const transformedSource = Buffer.concat(parts).toString();
+  const optInCSS = await optimizer(extractedSheets.join(''));
 
   let relativeImportPath = path.relative(
     path.dirname(resourcePath),
@@ -1700,18 +1714,8 @@ export default async function loader(this: LoaderContext, source: string) {
     return callback(null, transformedSource);
   }
 
-  if (process.env.NODE_ENV === 'development') {
-    const optInCSS = await optimizer(extractedSheets.join(''));
-    // Create a marker that identifies the CSS block originating from this file, using the resourcePath as the key.
-    // Absorbs path delimiters in Windows environments
-    const projectName = path.basename(this.rootContext);
-    const relativeFromRoot = path
-      .relative(this.rootContext, resourcePath)
-      .replace(/\\/g, '/');
-    const filePathKey = `${projectName}/${relativeFromRoot}`;
-    const startMarker = `/* ---start:${filePathKey} */`;
-    const endMarker = `/* ---end:${filePathKey} */`;
-
+  if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
+    const newCss = optInCSS + '\n';
     let currentCss = '';
     try {
       currentCss = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
@@ -1719,33 +1723,12 @@ export default async function loader(this: LoaderContext, source: string) {
       // File doesn't exist yet
     }
 
-    let nextCss = currentCss;
-    const cleanOptInCSS = optInCSS.trim();
-
-    // If there is CSS to be generated, enclose it in a marker; otherwise, leave it as an empty string.
-    const newBlock = cleanOptInCSS
-      ? `${startMarker}\n${cleanOptInCSS}\n${endMarker}`
-      : '';
-
-    const startIndex = currentCss.indexOf(startMarker);
-    const endIndex = currentCss.indexOf(endMarker);
-
-    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-      // If a block already exists in this file, replace only that portion entirely.
-      const before = currentCss.substring(0, startIndex);
-      const after = currentCss.substring(endIndex + endMarker.length);
-      nextCss = before + newBlock + after;
-    } else if (newBlock) {
-      // If it doesn't already exist, append it to the end.
-      nextCss = currentCss + (currentCss.trim() ? '\n\n' : '') + newBlock;
-    }
-
-    // Removes extra consecutive line breaks (helps keep the file clean)
-    nextCss = nextCss.replace(/\n{3,}/g, '\n\n').trim() + '\n';
-
-    // Write only if the strings do not match exactly (i.e., there is a difference).
-    if (currentCss !== nextCss) {
-      fs.writeFileSync(VIRTUAL_FILE_PATH, nextCss, 'utf-8');
+    if (!currentCss.includes(optInCSS)) {
+      if (currentCss) {
+        fs.writeFileSync(VIRTUAL_FILE_PATH, currentCss + newCss, 'utf-8');
+      } else {
+        fs.writeFileSync(VIRTUAL_FILE_PATH, newCss, 'utf-8');
+      }
     }
   }
 
