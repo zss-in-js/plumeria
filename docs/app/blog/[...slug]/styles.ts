@@ -31,6 +31,7 @@ export const styles = css.create({
     marginBottom: '12px',
     fontSize: 28,
     fontWeight: '700',
+    color: '#2aaaca',
     textAlign: 'center',
   },
   description: {
