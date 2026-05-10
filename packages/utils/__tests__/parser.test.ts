@@ -275,7 +275,7 @@ describe('parser', () => {
         {},
       );
 
-      expect(result.color).toBe('var(--primary)');
+      expect(result.color).toBe('var(--hashT-primary)');
     });
 
     it('should handle boolean values', () => {
@@ -944,7 +944,7 @@ describe('parser', () => {
       );
       const hash = result.createHashTable[createKey!];
       const obj = result.createObjectTable[hash];
-      expect(obj.c).toBeUndefined();
+      expect(obj.c).toBeDefined();
     });
 
     it('should resolve aliased cross-file imports for createTheme in Pass 2', () => {
@@ -981,7 +981,7 @@ describe('parser', () => {
       );
       const hash = result.createHashTable[createKey!];
       const obj = result.createObjectTable[hash];
-      expect(obj.c).toBeUndefined();
+      expect(obj.c).toBeDefined();
     });
 
     it('should resolve exported keyframes in other files', () => {
@@ -1730,12 +1730,12 @@ describe('extractOndemandStyles (integration)', () => {
     // Map variable name 'T' to its hash
     tables.createThemeHashTable['T'] = themeHash;
 
-    const style = { color: 'var(--primary)' };
+    const style = { color: 'var(--themeHash-primary)' };
     extractOndemandStyles(style, extracted, tables);
 
     // Should have theme styles extracted
-    expect(extracted.length).toBeGreaterThan(0);
-    expect(extracted[0]).toContain('--primary: blue');
+    expect(extracted.length).toBe(1);
+    expect(extracted[0]).toContain('--theme-hash-primary: blue');
   });
   it('should ignore invalid input', () => {
     const extracted: string[] = [];
