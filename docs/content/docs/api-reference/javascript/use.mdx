@@ -72,3 +72,7 @@ const className = css.use(styles.text);
 <Callout title="Build time compiles">
 `styleName` and `css.use()` are both processed by the plugin at build time. There is zero runtime overhead, and the final bundle will only contain the class name as a string.
 </Callout>
+
+<Callout title="Strict Design Constraint">
+Plumeria treats code that cannot be statically parsed as non-existent. Unknown dynamic values passed, such as `styleName={props.color}`, are ignored. This is a contract with the 0-byte runtime to prevent unknown props from being passed around at the design level.
+</Callout>
