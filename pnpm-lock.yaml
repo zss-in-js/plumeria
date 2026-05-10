@@ -135,9 +135,6 @@ importers:
       '@eslint/js':
         specifier: ^9.20.0
         version: 9.39.3
-      '@plumeria/compiler':
-        specifier: workspace:^
-        version: link:../packages/compiler
       '@plumeria/core':
         specifier: workspace:^
         version: link:../packages/core
