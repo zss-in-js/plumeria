@@ -30,14 +30,14 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
     tables.createThemeHashTable['T'] = themeHash;
 
     // Simulate usage of ONLY primary
-    const style = { color: 'var(--primary)' };
+    const style = { color: 'var(--themeHash123-primary)' };
 
     extractOndemandStyles(style, extracted, tables);
 
     const output = extracted.join('');
 
     // Check that primary is present
-    expect(output).toContain('--primary: blue');
+    expect(output).toContain('--theme-hash123-primary: blue');
 
     // Check that secondary is NOT present
     expect(output).not.toContain('--secondary');
@@ -62,16 +62,16 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
     tables.createThemeHashTable['T'] = themeHash;
 
     const style = {
-      color: 'var(--primary)',
-      background: 'var(--accent)',
+      color: 'var(--themeHash456-primary)',
+      background: 'var(--themeHash456-accent)',
     };
 
     extractOndemandStyles(style, extracted, tables);
 
     const output = extracted.join('');
 
-    expect(output).toContain('--primary: blue');
-    expect(output).toContain('--accent: pink');
+    expect(output).toContain('--theme-hash456-primary: blue');
+    expect(output).toContain('--theme-hash456-accent: pink');
     expect(output).not.toContain('--secondary');
   });
 
