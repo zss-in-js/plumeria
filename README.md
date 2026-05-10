@@ -40,7 +40,7 @@ Read the [documentation](https://plumeria.dev/) for more details.
 - [Linaria](https://linaria.dev/) - for inspiring the Zero-Runtime architecture
 - [React Native](https://reactnative.dev/docs/stylesheet) - for inspiring the StyleSheet.create
 - [React Native for Web](https://necolas.github.io/react-native-web/) - for inspiring that attempt
-- [React Strict DOM](https://facebook.github.io/react-strict-dom/) - for inspiring the goal
+- [React Strict DOM](https://facebook.github.io/react-strict-dom/) - for inspiring the Strict architecture philosophy
 - [StyleX](https://stylexjs.com/) - for inspiring the optimized Atomic CSS  
 - [Tailwind CSS](https://tailwindcss.com/) - for inspiring the brilliance of its approach
 
