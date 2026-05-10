@@ -7,7 +7,9 @@ const createTheme = <const T extends CreateTheme>(rule: T, hash?: string) => {
     Record<string, string | number | Record<string, string | number>>
   > = {};
   for (const key in rule) {
-    const varKey = `--${hash}-${camelToKebabCase(key)}`;
+    const varKey = hash
+      ? `--${hash}-${camelToKebabCase(key)}`
+      : `--${camelToKebabCase(key)}`;
 
     const themeMap = rule[key];
     for (const themeKey in themeMap) {
