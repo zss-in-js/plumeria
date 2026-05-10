@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 11.1.3
+
+### Patch Changes
+
+- a486adb: Bump version to 11.1.3
+- Updated dependencies [a486adb]
+  - @plumeria/utils@11.1.3
+
 ## 11.1.2
 
 ### Patch Changes
