@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 11.1.3
+
+### Patch Changes
+
+- a486adb: Prevent theme conflicts and stabilize HMR
+
 ## 11.1.2
 
 ### Patch Changes
