@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "11.1.3",
+  "version": "11.2.0",
   "description": "A zero-cost abstraction for CSS.",
   "author": "Refirst 11",
   "license": "MIT",

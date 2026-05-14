@@ -1,5 +1,16 @@
 # @plumeria/unplugin
 
+## 11.2.0
+
+### Minor Changes
+
+- 99f5e6f: Implementation to remove import statements
+
+### Patch Changes
+
+- Updated dependencies [99f5e6f]
+  - @plumeria/utils@11.2.0
+
 ## 11.1.3
 
 ### Patch Changes

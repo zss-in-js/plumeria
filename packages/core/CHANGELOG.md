@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 11.2.0
+
+### Minor Changes
+
+- 99f5e6f: Remove css.js
+
 ## 11.1.3
 
 ### Patch Changes
