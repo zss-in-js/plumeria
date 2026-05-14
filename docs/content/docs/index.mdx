@@ -3,23 +3,18 @@ title: 'Introduction'
 ---
 
 ## A zero-cost abstraction for CSS.
-Most styling solutions still ship JavaScript. Typical CSS-in-JS solutions retain runtime code in the bundle. Plumeria is 0Byte. This library completely replaces type calls and is complete with just type definitions and plugins.
+Most styling solutions still ship JavaScript. Typical CSS-in-JS solutions retain runtime code in the bundle. Plumeria is not included. This library completely replaces type calls and is complete with just type definitions and plugins.
 Developers simply extend the type definition arguments as **schemas**, so no JS parsing is required and there are no memory allocation costs.
 
 
 ```json title="package.json"
 {
   "name": "@plumeria/core",
-  "type": "module",
   "exports": {
     ".": {
-      "types": "./lib/css.d.ts", // API type definitions only
-      "import": "./lib/css.js" // entry only empty export 0B by bundler
+      "types": "./lib/css.d.ts",
     },
   },
-  "files": [
-    "lib/"
-  ],
 }
 ```
 
