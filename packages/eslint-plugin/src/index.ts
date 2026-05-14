@@ -3,7 +3,7 @@ import { noCombinator } from './rules/no-combinator';
 import { noDestructure } from './rules/no-destructure';
 import { noInlineObject } from './rules/no-inline-object';
 import { noInnerCall } from './rules/no-inner-call';
-import { noInvalidSelectorNesting } from './rules/no-invalid-selector-nesting';
+import { noInvalidSelector } from './rules/no-invalid-selector';
 import { noMixedStylingProps } from './rules/no-mixed-styling-props';
 import { noUnknownCssProperties } from './rules/no-unknown-css-properties';
 import { noUnusedKeys } from './rules/no-unused-keys';
@@ -29,7 +29,7 @@ const rules: Record<string, Rule.RuleModule> = {
   'no-destructure': noDestructure,
   'no-inline-object': noInlineObject,
   'no-inner-call': noInnerCall,
-  'no-invalid-selector-nesting': noInvalidSelectorNesting,
+  'no-invalid-selector': noInvalidSelector,
   'no-mixed-styling-props': noMixedStylingProps,
   'no-unknown-css-properties': noUnknownCssProperties,
   'no-unused-keys': noUnusedKeys,
@@ -47,7 +47,7 @@ const configs: PlumeriaPlugin['configs'] = {
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inline-object': 'error',
       '@plumeria/no-inner-call': 'error',
-      '@plumeria/no-invalid-selector-nesting': 'error',
+      '@plumeria/no-invalid-selector': 'error',
       '@plumeria/no-mixed-styling-props': 'error',
       '@plumeria/no-unknown-css-properties': 'error',
       '@plumeria/no-unused-keys': 'warn',
@@ -70,7 +70,7 @@ const flatConfigs: PlumeriaPlugin['flatConfigs'] = {
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inline-object': 'error',
       '@plumeria/no-inner-call': 'error',
-      '@plumeria/no-invalid-selector-nesting': 'error',
+      '@plumeria/no-invalid-selector': 'error',
       '@plumeria/no-mixed-styling-props': 'error',
       '@plumeria/no-unknown-css-properties': 'error',
       '@plumeria/no-unused-keys': 'warn',
