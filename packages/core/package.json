@@ -21,12 +21,9 @@
     "react",
     "stylex"
   ],
-  "sideEffects": false,
-  "type": "module",
   "exports": {
     ".": {
-      "types": "./lib/css.d.ts",
-      "import": "./lib/css.js"
+      "types": "./lib/css.d.ts"
     }
   },
   "types": "./lib/css.d.ts",
