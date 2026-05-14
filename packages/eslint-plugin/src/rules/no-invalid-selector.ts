@@ -4,7 +4,7 @@ import ts from 'typescript';
 
 type SelectorType = 'QUERY' | 'PSEUDO' | 'CLASS' | 'PROPERTY' | 'UNKNOWN';
 
-export const noInvalidSelectorNesting: Rule.RuleModule = {
+export const noInvalidSelector: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
@@ -18,6 +18,10 @@ export const noInvalidSelectorNesting: Rule.RuleModule = {
         'Media/Container queries cannot be nested inside other queries.',
       noPseudoInsidePseudo:
         'Pseudo-selectors cannot be nested inside other pseudo-selectors.',
+      invalidKeyframeKey:
+        'Keyframes keys must be "from", "to", or a percentage value (e.g. "0%", "50%", "100%").',
+      invalidViewTransitionKey:
+        'ViewTransition keys must be one of: "group", "imagePair", "new", "old".',
     },
     schema: [],
   },
@@ -110,6 +114,48 @@ export const noInvalidSelectorNesting: Rule.RuleModule = {
       }
     }
 
+    function getKeyString(node: TSESTree.Node): string | null {
+      if (
+        node.type === TSESTree.AST_NODE_TYPES.Literal &&
+        typeof node.value === 'string'
+      ) {
+        return node.value;
+      }
+      if (node.type === TSESTree.AST_NODE_TYPES.Identifier) {
+        return node.name;
+      }
+      return null;
+    }
+
+    function checkKeyframesKeys(node: TSESTree.ObjectExpression): void {
+      for (const prop of node.properties) {
+        if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
+        const key = getKeyString(prop.key);
+        if (
+          key !== null &&
+          key !== 'from' &&
+          key !== 'to' &&
+          !/^\d+(\.\d+)?%$/.test(key)
+        ) {
+          context.report({ node: prop.key, messageId: 'invalidKeyframeKey' });
+        }
+      }
+    }
+
+    function checkViewTransitionKeys(node: TSESTree.ObjectExpression): void {
+      const allowed = new Set(['group', 'imagePair', 'new', 'old']);
+      for (const prop of node.properties) {
+        if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
+        const key = getKeyString(prop.key);
+        if (key !== null && !allowed.has(key)) {
+          context.report({
+            node: prop.key,
+            messageId: 'invalidViewTransitionKey',
+          });
+        }
+      }
+    }
+
     return {
       ImportDeclaration(node) {
         if (node.source.value === '@plumeria/core') {
@@ -130,8 +176,12 @@ export const noInvalidSelectorNesting: Rule.RuleModule = {
           });
         }
       },
+
       CallExpression(node) {
         let isCssCreate = false;
+        let isCssKeyframes = false;
+        let isCssViewTransition = false;
+
         if (node.callee.type === TSESTree.AST_NODE_TYPES.MemberExpression) {
           if (
             node.callee.object.type === TSESTree.AST_NODE_TYPES.Identifier &&
@@ -142,10 +192,14 @@ export const noInvalidSelectorNesting: Rule.RuleModule = {
                 ? node.callee.property.name
                 : null;
             if (propertyName === 'create') isCssCreate = true;
+            if (propertyName === 'keyframes') isCssKeyframes = true;
+            if (propertyName === 'viewTransition') isCssViewTransition = true;
           }
         } else if (node.callee.type === TSESTree.AST_NODE_TYPES.Identifier) {
           const alias = plumeriaAliases[node.callee.name];
           if (alias === 'create') isCssCreate = true;
+          if (alias === 'keyframes') isCssKeyframes = true;
+          if (alias === 'viewTransition') isCssViewTransition = true;
         }
 
         if (
@@ -161,6 +215,22 @@ export const noInvalidSelectorNesting: Rule.RuleModule = {
               checkNesting(prop.value as TSESTree.ObjectExpression, 'CLASS');
             }
           });
+        }
+
+        if (
+          isCssKeyframes &&
+          node.arguments[0]?.type === TSESTree.AST_NODE_TYPES.ObjectExpression
+        ) {
+          checkKeyframesKeys(node.arguments[0] as TSESTree.ObjectExpression);
+        }
+
+        if (
+          isCssViewTransition &&
+          node.arguments[0]?.type === TSESTree.AST_NODE_TYPES.ObjectExpression
+        ) {
+          checkViewTransitionKeys(
+            node.arguments[0] as TSESTree.ObjectExpression,
+          );
         }
       },
     };
