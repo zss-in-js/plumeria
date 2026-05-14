@@ -3,6 +3,7 @@ import type {
   Expression,
   HasSpan,
   ImportSpecifier,
+  ImportDeclaration,
   ObjectExpression,
   Identifier,
   CallExpression,
@@ -11,8 +12,10 @@ import type {
   JSXAttributeOrSpread,
   JSXAttribute,
   Statement,
-  ExprOrSpread,
   SpreadElement,
+  ExportDeclaration,
+  JSXOpeningElement,
+  MemberExpression,
 } from '@swc/core';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -61,6 +64,18 @@ type CreateStyleValue = {
   declSpan: { start: number; end: number };
   functions?: Record<string, { params: string[]; body: ObjectExpression }>;
 };
+
+interface StyleConditional {
+  test: Expression;
+  testString?: string;
+  testLHS?: string;
+  truthy: CSSObject;
+  falsy: CSSObject;
+  groupId?: number;
+  groupName?: string;
+  valueName?: string;
+  varName?: string;
+}
 
 interface LoaderContext {
   resourcePath: string;
@@ -134,11 +149,11 @@ export default async function loader(this: LoaderContext, source: string) {
   const plumeriaAliases: Record<string, string> = {};
 
   traverse(ast, {
-    ImportDeclaration({ node }) {
+    ImportDeclaration({ node }: { node: ImportDeclaration }) {
       const sourcePath = node.source.value;
 
       if (sourcePath === '@plumeria/core') {
-        node.specifiers.forEach((specifier: ImportSpecifier) => {
+        node.specifiers.forEach((specifier) => {
           if (specifier.type === 'ImportNamespaceSpecifier') {
             plumeriaAliases[specifier.local.value] = 'NAMESPACE';
           } else if (specifier.type === 'ImportDefaultSpecifier') {
@@ -549,36 +564,65 @@ export default async function loader(this: LoaderContext, source: string) {
   };
 
   traverse(ast, {
-    ImportDeclaration({ node }) {
-      if (node.specifiers) {
-        node.specifiers.forEach((specifier: ImportSpecifier) => {
-          if (specifier.local) {
-            excludedSpans.add(specifier.local.span.start);
-          }
-          if (specifier.type === 'ImportSpecifier' && specifier.imported) {
-            excludedSpans.add(specifier.imported.span.start);
-          }
-        });
+    ImportDeclaration({ node }: { node: ImportDeclaration }) {
+      if (node.source.value === '@plumeria/core') {
+        if (node.typeOnly) return;
+
+        const typeOnlySpecs = node.specifiers.filter(
+          (s) => s.type === 'ImportSpecifier' && s.isTypeOnly,
+        );
+
+        if (typeOnlySpecs.length > 0) {
+          const names = typeOnlySpecs
+
+            .map((s) => {
+              if (s.type !== 'ImportSpecifier') return;
+              const imported = s.imported ? s.imported.value : s.local.value;
+              const local = s.local.value;
+              return imported === local ? imported : `${imported} as ${local}`;
+            })
+            .join(', ');
+
+          replacements.push({
+            start: node.span.start - baseByteOffset,
+            end: node.span.end - baseByteOffset,
+            content: `import type { ${names} } from '@plumeria/core'`,
+          });
+        } else {
+          replacements.push({
+            start: node.span.start - baseByteOffset,
+            end: node.span.end - baseByteOffset,
+            content: '',
+          });
+        }
       }
+      node.specifiers.forEach((specifier) => {
+        if (specifier.local) {
+          excludedSpans.add(specifier.local.span.start);
+        }
+        if (specifier.type === 'ImportSpecifier' && specifier.imported) {
+          excludedSpans.add(specifier.imported.span.start);
+        }
+      });
     },
-    ExportDeclaration({ node }) {
+    ExportDeclaration({ node }: { node: ExportDeclaration }) {
       if (t.isVariableDeclaration(node.declaration)) {
         processedDecls.add(node.declaration);
-        node.declaration.declarations.forEach((decl: VariableDeclarator) => {
+        node.declaration.declarations.forEach((decl) => {
           checkVariantAssignment(decl);
           registerStyle(decl, node.span, true);
         });
       }
     },
-    VariableDeclaration({ node }) {
+    VariableDeclaration({ node }: { node: VariableDeclaration }) {
       if (processedDecls.has(node)) return;
-      node.declarations.forEach((decl: VariableDeclarator) => {
+      node.declarations.forEach((decl) => {
         checkVariantAssignment(decl);
         registerStyle(decl, node.span, false);
       });
     },
 
-    CallExpression({ node }) {
+    CallExpression({ node }: { node: CallExpression }) {
       const callee = node.callee;
       let propName: string | undefined;
 
@@ -706,18 +750,6 @@ export default async function loader(this: LoaderContext, source: string) {
   });
 
   const jsxOpeningElementMap = new Map<number, JSXAttributeOrSpread[]>();
-
-  interface StyleConditional {
-    test: Expression;
-    testString?: string;
-    testLHS?: string;
-    truthy: CSSObject;
-    falsy: CSSObject;
-    groupId?: number;
-    groupName?: string;
-    valueName?: string;
-    varName?: string;
-  }
 
   const getSource = (node: Expression): string => {
     const start = (node as HasSpan).span.start - baseByteOffset;
@@ -1223,10 +1255,10 @@ export default async function loader(this: LoaderContext, source: string) {
 
   // Pass 2: Confirm reference replacement
   traverse(ast, {
-    JSXOpeningElement({ node }) {
+    JSXOpeningElement({ node }: { node: JSXOpeningElement }) {
       jsxOpeningElementMap.set(node.span.start, node.attributes);
     },
-    MemberExpression({ node }) {
+    MemberExpression({ node }: { node: MemberExpression }) {
       if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
         const varName = node.object.value;
         const propName = node.property.value;
@@ -1291,7 +1323,7 @@ export default async function loader(this: LoaderContext, source: string) {
         }
       }
     },
-    Identifier({ node }) {
+    Identifier({ node }: { node: Identifier }) {
       if (excludedSpans.has(node.span.start)) return;
       if (idSpans.has(node.span.start)) return;
 
@@ -1370,7 +1402,7 @@ export default async function loader(this: LoaderContext, source: string) {
         }
       }
     },
-    JSXAttribute({ node }) {
+    JSXAttribute({ node }: { node: JSXAttribute }) {
       if (node.name.type !== 'Identifier' || node.name.value !== 'styleName')
         return;
 
@@ -1380,8 +1412,8 @@ export default async function loader(this: LoaderContext, source: string) {
       let args: Array<{ expression: Expression }> =
         expr.type === 'ArrayExpression'
           ? expr.elements
-              .filter((el: ExprOrSpread) => el !== undefined)
-              .map((el: ExprOrSpread) => ({ expression: el.expression }))
+              .filter((el) => el !== undefined)
+              .map((el) => ({ expression: el.expression }))
           : [{ expression: expr }];
 
       const dynamicClassParts: string[] = [];
@@ -1597,7 +1629,7 @@ export default async function loader(this: LoaderContext, source: string) {
         });
       }
     },
-    CallExpression({ node }) {
+    CallExpression({ node }: { node: CallExpression }) {
       const callee = node.callee;
       let isUseCall = false;
 
