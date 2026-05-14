@@ -8,6 +8,7 @@ import type {
   ResolvedConfig,
   HmrContext,
   Plugin,
+  UserConfig,
 } from 'vite';
 import {
   resolveVirtualCssPath,
@@ -78,16 +79,28 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
     return result;
   };
 
-  const vitePlugin: any = {
+  const vitePlugin = {
     ...plugin,
     name: '@plumeria/unplugin:vite',
 
-    config(userConfig: any, { command }: { command: string }) {
+    config(userConfig: UserConfig, { command }: { command: string }) {
+      const configToReturn: UserConfig = {
+        optimizeDeps: {
+          exclude: [
+            ...(userConfig.optimizeDeps?.exclude ?? []),
+            '@plumeria/core',
+          ],
+        },
+      };
+
       if (command === 'build') {
-        const build = userConfig.build || {};
-        build.cssCodeSplit = false;
-        return { build };
+        configToReturn.build = {
+          ...(userConfig.build ?? {}),
+          cssCodeSplit: false,
+        };
       }
+
+      return configToReturn;
     },
 
     configResolved(config: ResolvedConfig) {
