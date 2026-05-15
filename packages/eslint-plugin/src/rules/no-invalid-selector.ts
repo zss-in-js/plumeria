@@ -1,6 +1,5 @@
 import { TSESTree } from '@typescript-eslint/utils';
 import { Rule } from 'eslint';
-import ts from 'typescript';
 
 type SelectorType = 'QUERY' | 'PSEUDO' | 'CLASS' | 'PROPERTY' | 'UNKNOWN';
 
@@ -12,13 +11,14 @@ export const noInvalidSelector: Rule.RuleModule = {
         'Disallow invalid selector nesting (e.g. Pseudo -> Query, Query -> Query) based on Plumeria rules.',
     },
     messages: {
+      invalidKeySelector: 'Invalid key selector.',
       noQueryInsidePseudo:
         'Media/Container queries cannot be nested inside pseudo-selectors.',
       noQueryInsideQuery:
         'Media/Container queries cannot be nested inside other queries.',
       noPseudoInsidePseudo:
         'Pseudo-selectors cannot be nested inside other pseudo-selectors.',
-      invalidKeyframeKey:
+      invalidKeyframesKey:
         'Keyframes keys must be "from", "to", or a percentage value (e.g. "0%", "50%", "100%").',
       invalidViewTransitionKey:
         'ViewTransition keys must be one of: "group", "imagePair", "new", "old".',
@@ -59,22 +59,7 @@ export const noInvalidSelector: Rule.RuleModule = {
             if (type.value.startsWith('@')) return 'QUERY';
             if (type.value.startsWith(':')) return 'PSEUDO';
           }
-          if (type.isUnion()) {
-            const types = type.types;
-            if (
-              types.every(
-                (t: ts.Type) => t.isStringLiteral() && t.value.startsWith('@'),
-              )
-            )
-              return 'QUERY';
-            if (
-              types.every(
-                (t: ts.Type) => t.isStringLiteral() && t.value.startsWith(':'),
-              )
-            )
-              return 'PSEUDO';
-          }
-        } catch (e) {
+        } catch (error) {
           // Ignore
         }
       }
@@ -90,6 +75,13 @@ export const noInvalidSelector: Rule.RuleModule = {
         if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
 
         const currentType = getSelectorType(prop.key);
+
+        if (currentType === 'UNKNOWN') {
+          context.report({
+            node: prop.key,
+            messageId: 'invalidKeySelector',
+          });
+        }
 
         if (parentType === 'PSEUDO' && currentType === 'QUERY') {
           context.report({
@@ -114,6 +106,24 @@ export const noInvalidSelector: Rule.RuleModule = {
       }
     }
 
+    function checkOnlyProperties(node: TSESTree.ObjectExpression): void {
+      for (const prop of node.properties) {
+        if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
+        const currentType = getSelectorType(prop.key);
+
+        if (currentType !== 'PROPERTY') {
+          context.report({
+            node: prop.key,
+            messageId: 'invalidKeySelector',
+          });
+        }
+
+        if (prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression) {
+          checkOnlyProperties(prop.value);
+        }
+      }
+    }
+
     function getKeyString(node: TSESTree.Node): string | null {
       if (
         node.type === TSESTree.AST_NODE_TYPES.Literal &&
@@ -131,13 +141,24 @@ export const noInvalidSelector: Rule.RuleModule = {
       for (const prop of node.properties) {
         if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
         const key = getKeyString(prop.key);
+        if (key == null) {
+          context.report({
+            node: prop.key,
+            messageId: 'invalidKeyframesKey',
+          });
+        }
+
+        if (prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression) {
+          checkOnlyProperties(prop.value as TSESTree.ObjectExpression);
+        }
+
         if (
           key !== null &&
           key !== 'from' &&
           key !== 'to' &&
           !/^\d+(\.\d+)?%$/.test(key)
         ) {
-          context.report({ node: prop.key, messageId: 'invalidKeyframeKey' });
+          context.report({ node: prop.key, messageId: 'invalidKeyframesKey' });
         }
       }
     }
@@ -147,6 +168,17 @@ export const noInvalidSelector: Rule.RuleModule = {
       for (const prop of node.properties) {
         if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
         const key = getKeyString(prop.key);
+        if (key == null) {
+          context.report({
+            node: prop.key,
+            messageId: 'invalidViewTransitionKey',
+          });
+        }
+
+        if (prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression) {
+          checkOnlyProperties(prop.value as TSESTree.ObjectExpression);
+        }
+
         if (key !== null && !allowed.has(key)) {
           context.report({
             node: prop.key,
@@ -208,6 +240,15 @@ export const noInvalidSelector: Rule.RuleModule = {
         ) {
           const styleObj = node.arguments[0];
           styleObj.properties.forEach((prop) => {
+            if (prop.type === TSESTree.AST_NODE_TYPES.Property) {
+              const currentType = getSelectorType(prop.key as TSESTree.Node);
+              if (currentType === 'UNKNOWN') {
+                context.report({
+                  node: prop.key,
+                  messageId: 'invalidKeySelector',
+                });
+              }
+            }
             if (
               prop.type === TSESTree.AST_NODE_TYPES.Property &&
               prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression
