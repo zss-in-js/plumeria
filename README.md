@@ -3,7 +3,7 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/zss-in-js/plumeria/tests.yml?logo=github&logoColor=white&label=tests&color=10B981)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml)
 ![Codecov](https://img.shields.io/codecov/c/github/zss-in-js/plumeria?logo=codecov&logoColor=white&color=6366F1)
 
-**Plumeria** is a **zero-cost abstraction** for CSS designed for building styled React components for the web. It is a compiler with typed syntax and strict linting. The goal of Plumeria is to reduce the cognitive overhead for engineers.
+**Plumeria** is a **Compiler DSL for CSS in Abstraction** designed for development of styled React components. It enforces strict syntax and linting. Plumeria reduces the cognitive overhead for engineers.
 
 ## Structure
 
