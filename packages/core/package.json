@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "11.2.0",
-  "description": "A zero-cost abstraction for CSS.",
+  "description": "Compiler DSL for CSS in Abstraction",
   "author": "Refirst 11",
   "license": "MIT",
   "funding": "https://github.com/sponsors/refirst11",
@@ -16,10 +16,8 @@
   },
   "keywords": [
     "css",
-    "css-in-js",
-    "plumeria",
     "react",
-    "stylex"
+    "plumeria"
   ],
   "exports": {
     ".": {
