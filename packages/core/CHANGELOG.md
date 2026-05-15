@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 11.2.1
+
+### Patch Changes
+
+- 0e9ecfd: Update metadata and readme text
+
 ## 11.2.0
 
 ### Minor Changes
