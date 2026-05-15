@@ -2,9 +2,10 @@
 title: 'Introduction'
 ---
 
-## A zero-cost abstraction for CSS.
-Most styling solutions still ship JavaScript. Typical CSS-in-JS solutions retain runtime code in the bundle. Plumeria is not included. This library completely replaces type calls and is complete with just type definitions and plugins.
-Developers simply extend the type definition arguments as **schemas**, so no JS parsing is required and there are no memory allocation costs.
+---
+
+## Compiler DSL for CSS in Abstraction
+Unlike typical CSS-in-JS solutions that ship runtime code in the bundle, Plumeria operates entirely at compile time. It resolves styling purely through type definitions and plugins, with no JavaScript remaining at runtime.
 
 
 ```json title="package.json"
@@ -18,50 +19,32 @@ Developers simply extend the type definition arguments as **schemas**, so no JS 
 }
 ```
 
-## Why no JavaScript?
+Plumeria has no runtime evaluation. Except for dynamic styling with function keys and when receiving props for variants, styleName only resolves static styling.
+This guarantees that all APIs are compiled only into static class names and CSS.
+
+## Strictly no JavaScript
 
 Styling shouldn't require any runtime.
 By treating styles as **type schemas** instead of runtime objects:
-- No bundle
-- No runtime
-- No parsing overhead
-- No memory allocation
+- No runtime bundle
+- No runtime evaluation
+- No runtime parsing
+- No runtime dependencies
 
-## The Concept of Zero-Runtime
+## The concept of Zero-Runtime
 A library that is entirely Zero-Runtime doesn't truly exist.
 Even pure CSS will experience a slight increase in compilation time due to the bundler's build pipeline.
 
 Zero-Runtime CSS-in-JS adds processing time for parsing and conversion. However, understanding and acknowledging these factors is often the basis for the concept of Zero-Runtime, which signifies that no runtime remains in the execution environment.
 
-## Abstracting Psychological Costs
-Zero-Runtime is not just a performance decision.  
-I believe the problem with CSS frameworks lies in their reliability and transparency.
-When actually building a UI, it's sometimes difficult to know how many kilobytes it will take up.
 
-- Psychological burden of postponing cascading class specificity conflict issues
-- Psychological burden of continuously writing black boxes
-- Psychological burden of constantly considering when to remove them
-- Psychological burden of the potential for significant time consumption in the end
-
-These are always present, even when building CSS.
-If you're not accustomed to engineering, these psychological costs can be greater than expected.
-
-However, Zero-Runtime CSS libraries significantly reduce this problem.
-Because styles exist only as type schemas at the TypeScript/JavaScript layer, these burdens are structurally eliminated — not mitigated.
-
-**Hard validation and code formatting of CSS values by linters:**
-
-The target of writing is no longer a black box; sorting and values are automatically enforced through static analysis.
-As an engineering principle, it acts as a safety net, detecting and automatically correcting errors before they occur.
-As a result, a psychologically and code-wise clean state is maintained.
-This is because CSS-in-JS, by its very nature, directly benefits from TypeScript and JavaScript.
-
-**Challenges solved by build tools:**
+## Abstracting Layer concept
+Because we had no performance concerns, we were able to dedicate a lot of resources to developing toolchains such as ESLint and Bundler.
+As a result, the **cognitive overhead** of style coding is structurally eliminated at the abstraction layer.
 
 Styles written in Plumeria remain as a higher-level abstraction layer and are safely removed from the output by the build plugin (output layer).
 This is achieved through a design that completely separates the abstraction layer and the output layer.
 As a result, style definitions do not remain as JavaScript at runtime; only CSS smaller than the definition is output.
-As a side effect, psychological safety during styling is also maintained at all times through the two-tier architecture consisting of the abstraction layer and the output layer.
 
 ## Usage
 In practice, this means styling becomes straightforward.  
@@ -85,30 +68,31 @@ export const Footer = () => {
 };
 ```
 
-```tsx
-export const styles = css.create({...});
-```
+
 Compile to zero across file boundaries:
 "@plumeria/core" import is required for compilation.  
-The parsing cost of glob operations is higher when splitting files compared to when using colocation.
-```tsx
+Styles can be colocated with components or shared across files — 
+structure them to fit your project architecture.
+
+```tsx title="styles.ts"
+export const styles = css.create({...});
+```
+
+```tsx title="Component.tsx"
 import "@plumeria/core";
 import { styles } from './styles';
 
 styleName={styles.common}
 ```
 
-Except in special cases such as those involving a vast number of styles, collocation is recommended.
-
-**Conditional Expressions, Ternary Operators, and Specificity Rules:**  
-`styleName` prop accepts ternary operators and conditional expressions, and the style properties on the right side of the array always take precedence.
-For example, if `isActive` is true, the `color` of `active` will override the `color` of `base`.
-```ts
+### Specificity
+`styleName` prop accepts ternary operators and conditional expressions, and the style properties on the right side always take precedence.
+For example, if `isActive` is true, the `color` of active will override the `color` of base. The cascade specificity problem is completely resolved by the compiler-controlled merging.
+```tsx title="Component.tsx"
 styleName={[styles.base, isActive && styles.active]}
 ```
-The cascade specificity problem is completely resolved by the compiler-controlled merging.
 
 
-
+---
 
 For details on integration with other APIs and bundlers, please refer to the [API reference](/docs/api-reference)・[Installation](/docs/getting-started/installation).
