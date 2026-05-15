@@ -1,0 +1,43 @@
+---
+title: 'Plumeria 11.2'
+description: 'Merged ESLint Plugin Rules and Update Compiler'
+date: '2026-05-16'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 11.2 Improves ESLint plugin rule and update compiler.
+
+## Compiler
+
+The compiler removes the import statement for Plumeria.
+The empty entry file that was needed for Vite is no longer required, and it recorded "unmeasurable" on [bundlejs.com](https://bundlejs.com/?q=%40plumeria%2Fcore%4011.2.1/)
+
+```js title="css.js"
+export {}
+```
+The above files have been safely deleted.
+
+This means the core is no longer completely dependent on JavaScript, and at the same time, type definitions can be used in JavaScript.
+Even if your actual project is JavaScript, the ESLint-plugin and type definition completion will still work, so it supported both `TS/JS`.
+
+## Eslint plugin
+
+`no-invalid-selector-nesting` is changed to `no-invalid-selector`.
+
+Supported rules to `no-invalid-selector`:
+- `css.keyframes()`
+- `css.viewTransition()`
+- `css.create()`
+
+## Thanks
+I was able to notice the entry file issue while maintaining the Storybook sample repository, and I am grateful to the Storybook ecosystem for that.
+Through exchanging comments with former **StyleX users**, I was able to realize the limitations of static analysis. This constraint of avoiding a bucket brigade-like component design proved very useful in the Plumeria [documentation](/docs).
+
+---
+As always, thanks to everyone who is trying out Plumeria.  
+Feedback is welcome in [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) and bug reports in [Issues](https://github.com/zss-in-js/plumeria/issues).
