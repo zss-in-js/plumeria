@@ -1,3 +1,9 @@
+## 11.2.1
+
+### Patch Changes
+
+- 0e9ecfd: Reconfigured as no-invalid-selector
+
 ## 11.2.0
 
 ### Minor Changes
