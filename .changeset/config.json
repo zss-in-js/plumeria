@@ -18,6 +18,7 @@
     "example-rolldown",
     "example-rollup",
     "example-rspack",
+    "example-storybook",
     "example-vite-astro-ts",
     "example-vite-preact",
     "example-vite-qwik",
