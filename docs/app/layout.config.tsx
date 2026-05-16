@@ -11,7 +11,6 @@ const styles = css.create({
   },
   logo: {
     position: 'relative',
-    right: 8,
     display: 'flex',
     flexDirection: 'row',
     gap: 12,
@@ -41,6 +40,27 @@ export const baseOptions: BaseLayoutProps = {
     {
       text: 'Blog',
       url: '/blog',
+    },
+    {
+      type: 'icon',
+      label: 'GitHub',
+      text: 'GitHub',
+      icon: svg.Github({ width: '24px', height: '24px' }),
+      url: 'https://github.com/zss-in-js/plumeria',
+    },
+    {
+      type: 'icon',
+      label: 'Bluesky',
+      text: 'Bluesky',
+      icon: svg.Bluesky({ width: 21, height: 21 }),
+      url: 'https://bsky.app/profile/zss-in-js.bsky.social',
+    },
+    {
+      type: 'icon',
+      label: 'Discord',
+      text: 'Discord',
+      icon: svg.Discord({ width: 21, height: 21 }),
+      url: 'https://discord.gg/pKEBp4wYd8',
     },
   ],
 };
