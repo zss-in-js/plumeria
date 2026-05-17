@@ -1,4 +1,4 @@
-const { plumeria } = require('./dist/index.js');
+const plumeria = require('./dist/index.js');
 
 module.exports = {
   meta: { name: '@plumeria' },
