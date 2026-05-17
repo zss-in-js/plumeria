@@ -21,9 +21,9 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/validate-values`: **warn**
 
 ```js
-import { plumeria } from '@plumeria/eslint-plugin';
+import plumeria from '@plumeria/eslint-plugin';
 
-export default [plumeria.flatConfigs.recommended];
+export default [plumeria.configs.recommended];
 ```
 
 ## Rules
