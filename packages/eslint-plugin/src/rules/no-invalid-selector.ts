@@ -1,7 +1,17 @@
+/**
+ * @fileoverview Disallow invalid selector nesting (e.g. Pseudo -> Query, Query -> Query) based on Plumeria rules.
+ */
+
 import { TSESTree } from '@typescript-eslint/utils';
 import { Rule } from 'eslint';
 
-type SelectorType = 'QUERY' | 'PSEUDO' | 'CLASS' | 'PROPERTY' | 'UNKNOWN';
+type SelectorType =
+  | 'QUERY'
+  | 'PSEUDO'
+  | 'CLASS'
+  | 'PROPERTY'
+  | 'SKIP'
+  | 'UNKNOWN';
 
 export const noInvalidSelector: Rule.RuleModule = {
   meta: {
@@ -58,13 +68,15 @@ export const noInvalidSelector: Rule.RuleModule = {
           if (type.isStringLiteral()) {
             if (type.value.startsWith('@')) return 'QUERY';
             if (type.value.startsWith(':')) return 'PSEUDO';
+            return 'PROPERTY';
           }
         } catch (error) {
           // Ignore
         }
+        return 'UNKNOWN';
       }
 
-      return 'UNKNOWN';
+      return 'SKIP';
     }
 
     function checkNesting(
@@ -75,6 +87,8 @@ export const noInvalidSelector: Rule.RuleModule = {
         if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
 
         const currentType = getSelectorType(prop.key);
+
+        if (currentType === 'SKIP') continue;
 
         if (currentType === 'UNKNOWN') {
           context.report({
@@ -242,7 +256,7 @@ export const noInvalidSelector: Rule.RuleModule = {
           styleObj.properties.forEach((prop) => {
             if (prop.type === TSESTree.AST_NODE_TYPES.Property) {
               const currentType = getSelectorType(prop.key as TSESTree.Node);
-              if (currentType === 'UNKNOWN') {
+              if (currentType !== 'SKIP' && currentType === 'UNKNOWN') {
                 context.report({
                   node: prop.key,
                   messageId: 'invalidKeySelector',
