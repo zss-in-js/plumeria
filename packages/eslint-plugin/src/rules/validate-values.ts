@@ -1,7 +1,7 @@
 /**
  * @fileoverview CSS 412 Properties valid value verification
- * Compatible with eslint 8 and below or 9 and above
  */
+
 import { Rule } from 'eslint';
 import { validData } from '../util/validData';
 import { unitData } from '../util/unitData';
