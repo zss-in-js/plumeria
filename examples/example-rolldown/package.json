@@ -15,7 +15,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "postcss": "catalog:",
-    "rolldown": "^1.0.0-beta.2",
+    "rolldown": "^1.0.1",
     "rollup-plugin-postcss": "^4.0.2",
     "typescript": "^6.0.3"
   }
