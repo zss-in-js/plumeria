@@ -1,6 +1,5 @@
 /**
  * @fileoverview Disallow inline objects in styleName and css.use
- * Compatible with eslint 8 and below or 9 and above
  */
 
 import type { Rule } from 'eslint';
