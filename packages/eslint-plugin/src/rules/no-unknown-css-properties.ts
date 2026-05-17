@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Disallow unknown CSS properties
+ */
+
 import { all } from 'known-css-properties';
 import type { ObjectExpression, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
