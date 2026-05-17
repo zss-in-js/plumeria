@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 12.0.0
+
+### Major Changes
+
+- 3aba19c: Update npm readme and description
+
 ## 11.2.1
 
 ### Patch Changes
