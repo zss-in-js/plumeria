@@ -87,11 +87,13 @@ styleName={styles.common}
 
 ### Specificity
 `styleName` prop accepts ternary operators and conditional expressions, and the style properties on the right side always take precedence.
-For example, if `isActive` is true, the `color` of active will override the `color` of base. The cascade specificity problem is completely resolved by the compiler-controlled merging.
+For example, if `isActive` is true, the `color` of active will override the `color` of base.
 ```tsx title="Component.tsx"
 styleName={[styles.base, isActive && styles.active]}
 ```
+The cascade specificity problem is completely resolved by the compiler-controlled merging.
 
+$$parse(A \oplus B) \to \text{"class1 class2"}$$
 
 ---
 
