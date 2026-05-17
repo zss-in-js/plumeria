@@ -1,6 +1,5 @@
 /**
  * @fileoverview Disallow styleName prop in files that do not import @plumeria
- * Compatible with eslint 8 and below or 9 and above
  */
 
 import type { Rule } from 'eslint';
