@@ -1,6 +1,5 @@
 /**
- * @fileoverview Restrict destructure css.create and css.global
- * Compatible with eslint 8 and below or 9 and above
+ * @fileoverview Disallow destructure API
  */
 
 import type { Rule } from 'eslint';
