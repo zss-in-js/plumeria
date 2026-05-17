@@ -1,6 +1,5 @@
 /**
  * @fileoverview Restrict calls inside a function
- * Compatible with eslint 8 and below or 9 and above
  */
 
 import type { Rule } from 'eslint';
