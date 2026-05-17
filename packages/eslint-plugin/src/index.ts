@@ -16,9 +16,6 @@ import type { ESLint, Linter, Rule } from 'eslint';
 type PlumeriaPlugin = ESLint.Plugin & {
   rules: Record<string, Rule.RuleModule>;
   configs: {
-    recommended: Linter.LegacyConfig;
-  };
-  flatConfigs: {
     recommended: Linter.Config;
   };
 };
@@ -39,25 +36,6 @@ const rules: Record<string, Rule.RuleModule> = {
 };
 
 const configs: PlumeriaPlugin['configs'] = {
-  recommended: {
-    plugins: ['@plumeria'],
-    rules: {
-      '@plumeria/style-name-requires-import': 'error',
-      '@plumeria/no-combinator': 'error',
-      '@plumeria/no-destructure': 'error',
-      '@plumeria/no-inline-object': 'error',
-      '@plumeria/no-inner-call': 'error',
-      '@plumeria/no-invalid-selector': 'error',
-      '@plumeria/no-mixed-styling-props': 'error',
-      '@plumeria/no-unknown-css-properties': 'error',
-      '@plumeria/no-unused-keys': 'warn',
-      '@plumeria/sort-properties': 'warn',
-      '@plumeria/format-properties': 'warn',
-      '@plumeria/validate-values': 'warn',
-    },
-  },
-};
-const flatConfigs: PlumeriaPlugin['flatConfigs'] = {
   recommended: {
     plugins: {
       '@plumeria': {
@@ -84,5 +62,4 @@ const flatConfigs: PlumeriaPlugin['flatConfigs'] = {
 export const plumeria: PlumeriaPlugin = {
   rules,
   configs,
-  flatConfigs,
 };
