@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 12.0.1
+
+### Patch Changes
+
+- c8c9f74: Update readme text
+
 ## 12.0.0
 
 ### Major Changes
