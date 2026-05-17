@@ -10,24 +10,24 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@react-router/node": "^7.13.0",
-    "@react-router/serve": "^7.13.0",
-    "react-router": "^7.13.0",
-    "isbot": "^5.1.27",
+    "@react-router/node": "^7.15.1",
+    "@react-router/serve": "^7.15.1",
+    "isbot": "^5.1.40",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "react-router": "^7.15.1"
   },
   "devDependencies": {
     "@plumeria/core": "workspace:^",
     "@plumeria/unplugin": "workspace:^",
-    "@react-router/dev": "^7.13.0",
-    "@tailwindcss/vite": "^4.1.4",
-    "@types/node": "^22.15.3",
-    "@types/react": "^19.2.10",
+    "@react-router/dev": "^7.15.1",
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/node": "^25.8.0",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "tailwindcss": "^4.1.4",
-    "typescript": "^5.8.3",
-    "vite": "^7.1.1",
-    "vite-tsconfig-paths": "^5.1.4"
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13",
+    "vite-tsconfig-paths": "^6.1.1"
   }
 }
