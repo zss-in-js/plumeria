@@ -242,7 +242,7 @@ export const noCombinator: Rule.RuleModule = {
         text.includes('\n')
       ) {
         if (!isCombinatorAllowed(text)) {
-          let found = '';
+          let found: string;
           if (text.includes('>')) found = '>';
           else if (text.includes('+')) found = '+';
           else if (text.includes('~')) found = '~';
