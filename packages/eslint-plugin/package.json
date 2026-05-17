@@ -25,6 +25,13 @@
   "sideEffects": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./oxlint-plugin": "./oxlint-plugin.js"
+  },
   "files": [
     "dist/",
     "oxlint-plugin.js",
@@ -39,16 +46,16 @@
   },
   "devDependencies": {
     "@types/eslint": "^9.6.1",
-    "@types/estree": "^1.0.8",
-    "@typescript-eslint/parser": "^8.59.2",
-    "eslint": "^9.39.0"
+    "@types/estree": "^1.0.9",
+    "@typescript-eslint/parser": "^8.59.3",
+    "eslint": "^10.4.0"
   },
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
   "dependencies": {
-    "@typescript-eslint/utils": "^8.59.2",
+    "@typescript-eslint/utils": "^8.59.3",
     "known-css-properties": "^0.37.0"
   }
 }
