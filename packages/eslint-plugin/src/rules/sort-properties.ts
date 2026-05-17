@@ -1,6 +1,5 @@
 /**
  * @fileoverview CSS properties recess base reorder fix feature
- * Compatible with eslint 8 and below or 9 and above
  */
 
 import type {
@@ -12,11 +11,6 @@ import type {
 import type { Rule } from 'eslint';
 
 import { propertyGroups } from '../util/propertyGroups';
-
-/* istanbul ignore next */
-function getSourceCode(context: Rule.RuleContext) {
-  return context.getSourceCode ? context.getSourceCode() : context.sourceCode;
-}
 
 function getPropertyName(property: Property): string {
   if (property.key.type === 'Identifier') {
@@ -118,7 +112,7 @@ export const sortProperties: Rule.RuleModule = {
     const plumeriaAliases: Record<string, string> = {};
 
     function checkStyleObject(node: ObjectExpression) {
-      const sourceCode = getSourceCode(context);
+      const sourceCode = context.sourceCode;
       const properties = (
         node.properties as (Property | SpreadElement)[]
       ).filter(
