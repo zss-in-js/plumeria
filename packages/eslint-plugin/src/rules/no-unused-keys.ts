@@ -1,15 +1,9 @@
 /**
  * @fileoverview Warns about unused keys in objects inside functions
- * Compatible with eslint 8 and below or 9 and above
  */
 
 import type { Rule } from 'eslint';
 import type { Node, Identifier } from 'estree';
-
-/* istanbul ignore next */
-function getFilename(context: Rule.RuleContext): string {
-  return context.getFilename ? context.getFilename() : context.filename;
-}
 
 function getRootObject(node: Node): Identifier | undefined {
   if (node.type === 'Identifier') {
@@ -36,7 +30,7 @@ export const noUnusedKeys: Rule.RuleModule = {
   },
 
   create(context) {
-    const filename = getFilename(context as unknown as Rule.RuleContext);
+    const filename = context.filename;
     if (filename.endsWith('.ts')) {
       return {};
     }
