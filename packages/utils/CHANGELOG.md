@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 12.0.0
+
+### Major Changes
+
+- 3aba19c: Update dependencies
+
 ## 11.2.1
 
 ### Patch Changes

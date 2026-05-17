@@ -1,3 +1,9 @@
+## 12.0.0
+
+### Major Changes
+
+- 3aba19c: Support for ESLint 8 has ended
+
 ## 11.2.1
 
 ### Patch Changes
