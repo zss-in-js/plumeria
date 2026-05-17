@@ -1,4 +1,7 @@
-import { TSESTree } from '@typescript-eslint/utils';
+/**
+ * @fileoverview Disallow className and style props when styleName is present
+ */
+
 import type { Rule } from 'eslint';
 
 export const noMixedStylingProps: Rule.RuleModule = {
@@ -17,10 +20,10 @@ export const noMixedStylingProps: Rule.RuleModule = {
 
   create(context) {
     return {
-      JSXOpeningElement(node: TSESTree.JSXOpeningElement) {
+      JSXOpeningElement(node: any) {
         const attributes = node.attributes;
         const hasStyleName = attributes.some(
-          (attr) =>
+          (attr: any) =>
             attr.type === 'JSXAttribute' &&
             attr.name.type === 'JSXIdentifier' &&
             attr.name.name === 'styleName',
