@@ -19,7 +19,6 @@
     "@chromatic-com/storybook": "^5.2.1",
     "@eslint/js": "^10.0.1",
     "@plumeria/core": "workspace:^",
-    "@plumeria/eslint-plugin": "workspace:^",
     "@plumeria/unplugin": "workspace:^",
     "@storybook/addon-a11y": "^10.4.0",
     "@storybook/addon-docs": "^10.4.0",
