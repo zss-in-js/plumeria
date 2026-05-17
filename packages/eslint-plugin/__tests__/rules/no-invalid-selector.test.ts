@@ -101,6 +101,18 @@ ruleTester.run('no-invalid-selector', noInvalidSelector, {
         });
       `,
     },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+
+        const normal = 'color';
+        css.create({
+          list: {
+            [normal]: { color: 'red' }
+          }
+        })
+      `,
+    },
   ],
   invalid: [
     {
@@ -189,19 +201,6 @@ ruleTester.run('no-invalid-selector', noInvalidSelector, {
       code: `
         import * as css from '@plumeria/core';
 
-        const normal = 'color';
-        css.create({
-          list: {
-            [normal]: { color: 'red' }
-          }
-        })
-      `,
-      errors: [{ messageId: 'invalidKeySelector' }],
-    },
-    {
-      code: `
-        import * as css from '@plumeria/core';
-
         css.create({
           [1 + 1]: {},
         })
@@ -220,6 +219,19 @@ ruleTester.run('no-invalid-selector', noInvalidSelector, {
       `,
       errors: [{ messageId: 'invalidKeySelector' }],
     },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        
+        const invalidKey = 123;
+        css.create({
+          list: {
+            [invalidKey]: { color: 'red' }
+          }
+        });
+      `,
+      errors: [{ messageId: 'invalidKeySelector' }],
+    },
   ],
 });
 
@@ -230,6 +242,14 @@ ruleTesterNoType.run('no-invalid-selector', noInvalidSelector, {
         import * as css from '@plumeria/core';
         
         css.create({ list: { ['@media']: {} } })
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        
+        // This is invalid but will be skipped because type checker is not available
+        css.create({ list: { [1 + 1]: {} } })
       `,
     },
   ],
