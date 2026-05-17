@@ -1,7 +1,7 @@
 {
   "name": "@plumeria/core",
   "version": "11.2.1",
-  "description": "Compiler DSL for CSS in Abstraction",
+  "description": "CSS abstraction layer for styled React components",
   "author": "Refirst 11",
   "license": "MIT",
   "funding": "https://github.com/sponsors/refirst11",
