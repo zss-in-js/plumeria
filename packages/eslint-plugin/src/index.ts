@@ -11,16 +11,14 @@ import { sortProperties } from './rules/sort-properties';
 import { formatProperties } from './rules/format-properties';
 import { validateValues } from './rules/validate-values';
 
-import type { ESLint, Linter, Rule } from 'eslint';
+import type { Linter, Rule } from 'eslint';
 
-type PlumeriaPlugin = ESLint.Plugin & {
-  rules: Record<string, Rule.RuleModule>;
-  configs: {
-    recommended: Linter.Config;
-  };
+type Rules = Record<string, Rule.RuleModule>;
+type Configs = {
+  recommended: Linter.Config;
 };
 
-const rules: Record<string, Rule.RuleModule> = {
+const rules: Rules = {
   'style-name-requires-import': styleNameRequiresImport,
   'no-combinator': noCombinator,
   'no-destructure': noDestructure,
@@ -35,7 +33,7 @@ const rules: Record<string, Rule.RuleModule> = {
   'validate-values': validateValues,
 };
 
-const configs: PlumeriaPlugin['configs'] = {
+const configs: Configs = {
   recommended: {
     plugins: {
       '@plumeria': {
@@ -59,7 +57,14 @@ const configs: PlumeriaPlugin['configs'] = {
   },
 };
 
-export const plumeria: PlumeriaPlugin = {
+const plugin: {
+  rules: Record<string, Rule.RuleModule>;
+  configs: {
+    recommended: Linter.Config;
+  };
+} = {
   rules,
   configs,
 };
+
+export = plugin;
