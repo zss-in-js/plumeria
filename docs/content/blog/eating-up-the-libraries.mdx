@@ -1,56 +1,44 @@
 ---
-title: 'The tools are eating up the libraries'
+title: 'Eating up the libraries'
 date: '2026-05-10'
 ---
 
 import { GitHubUser } from 'component/GitHubUser'
 
 <div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
-  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="refirst11" subtext="Core Maintainer" />
 </div>
 
 Plumeria was originally a library.  
-More specifically, it was a pure library of the evalucation AOT-compiled type that evaluates and executes at runtime.
+More specifically, it was a pure library of the evaluation AOT-compiled type that evaluates and executes at runtime.
 
-However, we had to reconsider the issue of the instability of injected dependencies during execution.
-
+However, we had to reconsider the issue of the instability of injected dependencies during execution.  
 This is because it allows for the handling of unpredictable values.
 
-People call this “unpredictable” but I view it as a mysterious phenomenon.
+People call this “unpredictable,” but I view it as a mysterious phenomenon.
 
-Whether the return value is unknown
-or known
+Whether the return value is unknown—  
+or known—  
+is left entirely up to the writer.
 
-is left up to the writer.
-
-This flexibility is both an advantage and a disadvantage of runtime execution.
-
-Functions and internal implementations get mixed into the final product.
-
+This flexibility is both an advantage and a disadvantage of runtime execution.  
+Functions and internal implementations get mixed into the final product.  
 Anyone who has seen a beautiful design built solely with CSS would likely want to avoid this intentionally.
 
-If there is nothing to execute, “only” the bundler is executed.
-
-Formally, this means there is no code.
-However, it is necessary: “type definitions”.
-
+If there is nothing to execute, “only” the bundler is executed.  
+Formally, this means there is no code.  
+However, it is necessary: “type definitions”.  
 These function as interfaces and are interpreted by the bundler.
 
-What?
+...*Wait, what?*  
+*I’m starting to lose track of what I’m writing.*
 
-I don’t know what I’m writing.
-
-
-I’m starting to lose track of what I’m writing.
-
-
-In reality, the type definitions are about 60 KB, and they aren’t executed.
-
+In reality, the type definitions are about 60 KB, and they aren’t executed.  
 The tools are the interface and the bundler.  
 The library is nothing but a concept.
 
-What remained was a simple yet powerful constraint — that it doesn't run at runtime. The constraint itself has no shape. No code. Just a rule.
-
+What remained was a simple yet powerful constraint—that it doesn't run at runtime.  
+The constraint itself has no shape. No code. Just a rule.  
 Interfaces and the bundler. Linting is extremely useful for interfaces.
 
 So where is the real core, after all?
