@@ -5,8 +5,8 @@ import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
 
 export const metadata: Metadata = generateSEOData({
-  title: 'Plumeria - A zero-cost abstraction for CSS.',
-  subtitle: 'Plumeria is a zero-cost abstraction for CSS designed for building styled React components for the web.',
+  title: 'Plumeria - Abstraction layer',
+  subtitle: 'Plumeria is a zero-cost abstraction layer for styling React components.',
 });
 
 export default async function Page() {
