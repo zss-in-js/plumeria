@@ -768,6 +768,25 @@ export function compileCSS(options: CompilerOptions) {
           );
           const hash = genBase36Hash(obj, 1, 8);
           ctx.scannedTables.createThemeObjectTable[hash] = obj;
+        } else if (
+          propName === 'createStatic' &&
+          args.length > 0 &&
+          t.isObjectExpression(args[0].expression)
+        ) {
+          const obj = objectExpressionToObject(
+            args[0].expression as ObjectExpression,
+            ctx.mergedStaticTable,
+            ctx.mergedKeyframesTable,
+            ctx.mergedViewTransitionTable,
+            ctx.mergedCreateThemeHashTable,
+            ctx.scannedTables.createThemeObjectTable,
+            ctx.mergedCreateTable,
+            ctx.mergedCreateStaticHashTable,
+            ctx.scannedTables.createStaticObjectTable,
+            ctx.mergedVariantsTable,
+          );
+          const hash = genBase36Hash(obj, 1, 8);
+          ctx.scannedTables.createStaticObjectTable[hash] = obj;
         }
       }
     };
@@ -930,6 +949,26 @@ export function compileCSS(options: CompilerOptions) {
                 type: 'create',
                 obj: ctx.scannedTables.createAtomicMapTable[hash],
               };
+            } else if (pName === 'createStatic') {
+              const obj = objectExpressionToObject(
+                arg,
+                ctx.mergedStaticTable,
+                ctx.mergedKeyframesTable,
+                ctx.mergedViewTransitionTable,
+                ctx.mergedCreateThemeHashTable,
+                ctx.scannedTables.createThemeObjectTable,
+                ctx.mergedCreateTable,
+                ctx.mergedCreateStaticHashTable,
+                ctx.scannedTables.createStaticObjectTable,
+                ctx.mergedVariantsTable,
+              );
+              if (obj) {
+                const hash = genBase36Hash(obj, 1, 8);
+                const uKey = `${resourcePath}-${node.id.value}`;
+                ctx.scannedTables.createStaticHashTable[uKey] = hash;
+                ctx.scannedTables.createStaticObjectTable[hash] = obj;
+                ctx.mergedCreateStaticHashTable[node.id.value] = hash;
+              }
             }
           }
         }
