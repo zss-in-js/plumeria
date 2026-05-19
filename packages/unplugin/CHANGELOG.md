@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 12.0.2
+
+### Patch Changes
+
+- 9a3cd2f: Fix correct identifier resolution
+- Updated dependencies [9a3cd2f]
+  - @plumeria/utils@12.0.2
+
 ## 12.0.1
 
 ### Patch Changes

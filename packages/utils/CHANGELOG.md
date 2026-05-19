@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 12.0.2
+
+### Patch Changes
+
+- 9a3cd2f: Remove dev cache time
+
 ## 12.0.1
 
 ### Patch Changes
