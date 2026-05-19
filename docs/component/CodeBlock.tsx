@@ -60,9 +60,15 @@ export const InstallCode = async ({ code, lang }: { code: string; lang: string }
     },
     defaultColor: false,
   });
+
+  const processedTsx = tsx.replace(
+    /\$ pnpm/,
+    '<span style="user-select: none; opacity: 0.8; margin-right: 8px;">$</span>pnpm',
+  );
+
   return (
     <FumadocsCodeBlock styleName={styles.install_code}>
-      <Pre styleName={styles.pre} dangerouslySetInnerHTML={{ __html: tsx }} />
+      <Pre styleName={styles.pre} dangerouslySetInnerHTML={{ __html: processedTsx }} />
     </FumadocsCodeBlock>
   );
 };
