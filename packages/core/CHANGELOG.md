@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 12.0.2
+
+### Patch Changes
+
+- 9a3cd2f: Bump version to 12.0.2
+
 ## 12.0.1
 
 ### Patch Changes
