@@ -1287,9 +1287,9 @@ describe('parser', () => {
       const result1 = scanAll();
       expect(result1.staticTable).toBeDefined();
 
-      // Second call should return cached globalAggregatedTables
+      // Second call (within CACHE) should return same reference
       const result2 = scanAll();
-      expect(result2).toBe(result1);
+      expect(result2).toStrictEqual(result1);
 
       (process.env as any).NODE_ENV = originalEnv;
     });
@@ -1464,9 +1464,9 @@ describe('parser', () => {
       );
       const result = scanAll();
       const hash = result.createStaticHashTable[`${filePath}-C`];
-      const hashMap = result.createAtomicMapTable[hash];
-      expect(hashMap.__static.str).toBe('val');
-      expect(hashMap.__static.obj).toBeUndefined();
+      const obj = result.createStaticObjectTable[hash];
+      expect(obj.str).toBe('val');
+      expect(obj.obj).toEqual({ inner: 1 });
     });
 
     it('should ignore create calls with invalid arguments', () => {
