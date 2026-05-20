@@ -4,7 +4,7 @@ title: 'Introduction'
 
 ---
 
-## CSS abstraction layer for styled React components
+## Abstraction layer for styling React components
 Unlike typical CSS-in-JS solutions that ship runtime code in the bundle, Plumeria operates entirely at compile time. It resolves styling purely through type definitions and plugins, with no JavaScript remaining at runtime.
 
 
@@ -93,7 +93,7 @@ styleName={[styles.base, isActive && styles.active]}
 ```
 The cascade specificity problem is completely resolved by the compiler-controlled merging.
 
-$$parse(A \oplus B) \to \text{"class1 class2"}$$
+$$parse(A \oplus B \oplus C) \to \text{"classA classB classC"}$$
 
 ---
 
