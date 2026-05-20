@@ -2,6 +2,26 @@ import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import * as css from '@plumeria/core';
 import Image from 'next/image';
 import { svg } from 'component/svg';
+import { NavDropdown } from 'component/NavDropdown';
+import { blog } from 'lib/source';
+
+const latestMajorPosts = blog
+  .getPages()
+  .map((post) => {
+    const slug = post.slugs[0];
+    const match = slug.match(/^plumeria-(\d+)[-.]0/);
+    return {
+      post,
+      majorVersion: match ? match[1] : null,
+    };
+  })
+  .filter((x) => x.majorVersion !== null)
+  .sort((a, b) => new Date(b.post.data.date).getTime() - new Date(a.post.data.date).getTime())
+  .slice(0, 3)
+  .map(({ post, majorVersion }) => ({
+    text: `Plumeria v${majorVersion}.0`,
+    url: `/blog/${post.slugs.join('/')}`,
+  }));
 
 const styles = css.create({
   flower: {
@@ -33,13 +53,83 @@ export const baseOptions: BaseLayoutProps = {
 
   links: [
     {
-      text: 'Documentation',
-      url: '/docs',
-      active: 'nested-url',
+      type: 'custom',
+      children: (
+        <NavDropdown
+          title={'Documentation'}
+          url={'/docs'}
+          items={[
+            { type: 'header', text: 'Principles' },
+            { text: 'Category theory', url: '/docs/category' },
+            { text: 'AI.md', url: '/docs/AI' },
+            { type: 'divider' },
+            { type: 'header', text: 'Getting Started' },
+            { text: 'Installation', url: '/docs/getting-started/installation' },
+            { text: 'Selector rules', url: '/docs/getting-started/selector-rules' },
+            { text: 'Editor integration', url: '/docs/getting-started/editor-integration' },
+          ]}
+        />
+      ),
+      on: 'all',
     },
     {
-      text: 'Blog',
-      url: '/blog',
+      type: 'custom',
+      children: (
+        <NavDropdown
+          title={'API'}
+          url={'/docs/api-reference'}
+          items={[
+            { type: 'header', text: 'JavaScript API' },
+            { text: 'create', url: '/docs/api-reference/javascript/create' },
+            { text: 'createStatic', url: '/docs/api-reference/javascript/createStatic' },
+            { text: 'createTheme', url: '/docs/api-reference/javascript/createTheme' },
+            { text: 'variants', url: '/docs/api-reference/javascript/variants' },
+            { text: 'keyframes', url: '/docs/api-reference/javascript/keyframes' },
+            { text: 'viewTransition', url: '/docs/api-reference/javascript/viewTransition' },
+            { text: 'marker & extended', url: '/docs/api-reference/javascript/marker' },
+            { text: 'styleName & use()', url: '/docs/api-reference/javascript/use' },
+            { type: 'divider' },
+            { type: 'header', text: 'Plugins' },
+            { text: 'eslint-plugin', url: '/docs/api-reference/plugins/eslint-plugin' },
+            { text: 'next-plugin', url: '/docs/api-reference/plugins/next-plugin' },
+            { text: 'postcss-plugin', url: '/docs/api-reference/plugins/postcss-plugin' },
+            { text: 'unplugin', url: '/docs/api-reference/plugins/unplugin' },
+          ]}
+        />
+      ),
+      on: 'all',
+    },
+    {
+      type: 'custom',
+      children: (
+        <NavDropdown
+          title={'Integrations'}
+          url={'/docs/integration'}
+          items={[
+            { text: 'Bun', url: '/docs/integration/bun' },
+            { text: 'esbuild', url: '/docs/integration/esbuild' },
+            { text: 'Farm', url: '/docs/integration/farm' },
+            { text: 'Next.js', url: '/docs/integration/next' },
+            { text: 'Rollup', url: '/docs/integration/rollup' },
+            { text: 'Rolldown', url: '/docs/integration/rolldown' },
+            { text: 'Rspack', url: '/docs/integration/rspack' },
+            { text: 'Vite', url: '/docs/integration/vite' },
+            { text: 'Webpack', url: '/docs/integration/webpack' },
+          ]}
+        />
+      ),
+      on: 'all',
+    },
+    {
+      type: 'custom',
+      children: (
+        <NavDropdown
+          title={'Blog'}
+          url={'/blog'}
+          items={[...latestMajorPosts, { text: 'Eating up the libraries', url: '/blog/eating-up-the-libraries' }]}
+        />
+      ),
+      on: 'all',
     },
     {
       type: 'icon',
