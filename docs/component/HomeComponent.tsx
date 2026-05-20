@@ -189,13 +189,13 @@ export const HomeComponent = () => {
           <div styleName={styles.heroContent}>
             <h2 styleName={styles.mainHeadline}>
               <Plumeria />
-              Zero-Cost Abstraction
+              Abstraction layer
             </h2>
-            <p styleName={styles.subHeadline}>Fast · Composable · Predictable</p>
+            <p styleName={styles.subHeadline}>Pure · Self-evident · Mathematical</p>
             <InstallCode code={installCode} lang="text" />
             <div styleName={styles.buttonGroup}>
               <ButtonLink href="/docs" variant="getstarted">
-                Get Started
+                Read Docs
               </ButtonLink>
               <ButtonLink href="/docs/getting-started/installation" variant="installation">
                 Installation
@@ -210,17 +210,17 @@ export const HomeComponent = () => {
 
         <section styleName={styles.featuresSection}>
           <div styleName={styles.featureCard}>
-            <div styleName={styles.featureIcon}>{svg.Atom()}</div>
-            <h3 styleName={styles.featureTitle}>Atomic CSS</h3>
+            <div styleName={styles.featureIcon}>{svg.Ghost()}</div>
+            <h3 styleName={styles.featureTitle}>Ghost</h3>
             <p styleName={styles.featureDescription}>
-              The abstracted layers you control will be automatically atomized.
+              The core implementation does not use JavaScript. Therefore, there is no footprint.
             </p>
           </div>
 
           <div styleName={styles.featureCard}>
-            <div styleName={styles.featureIcon}>{svg.Feather()}</div>
-            <h3 styleName={styles.featureTitle}>Lightweight</h3>
-            <p styleName={styles.featureDescription}>The runtime is not included from the start.</p>
+            <div styleName={styles.featureIcon}>{svg.Eslint()}</div>
+            <h3 styleName={styles.featureTitle}>Linting</h3>
+            <p styleName={styles.featureDescription}>This improves efficiency during editing.</p>
           </div>
 
           <div styleName={styles.featureCard}>
@@ -232,9 +232,9 @@ export const HomeComponent = () => {
           </div>
 
           <div styleName={styles.featureCard}>
-            <div styleName={styles.featureIcon}>{svg.Eslint()}</div>
-            <h3 styleName={styles.featureTitle}>Linting</h3>
-            <p styleName={styles.featureDescription}>This improves efficiency during editing.</p>
+            <div styleName={styles.featureIcon}>{svg.Atom()}</div>
+            <h3 styleName={styles.featureTitle}>Atomic CSS</h3>
+            <p styleName={styles.featureDescription}>Abstracted layers are automatically atomized.</p>
           </div>
         </section>
       </main>
