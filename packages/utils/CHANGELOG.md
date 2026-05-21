@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 12.0.4
+
+### Patch Changes
+
+- 191a15d: Bump version to 12.0.4
+
 ## 12.0.3
 
 ### Patch Changes

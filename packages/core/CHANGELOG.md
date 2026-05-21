@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 12.0.4
+
+### Patch Changes
+
+- 191a15d: Update metadata
+
 ## 12.0.3
 
 ### Patch Changes
