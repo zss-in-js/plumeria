@@ -1,3 +1,9 @@
+## 12.0.3
+
+### Patch Changes
+
+- 8eef799: Improve validData.ts
+
 ## 12.0.2
 
 ### Patch Changes
