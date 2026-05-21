@@ -424,13 +424,20 @@ type dominantBaseline =
   | 'text-before-edge';
 type emptyCells = 'show' | 'hide';
 type end = number | StableString;
+type extrinsicSize = 'stretch' | 'contain';
 type fill = paint;
 type fillOpacity = number | StableString;
 type fillRule = 'nonzero' | 'evenodd';
 type filter = 'none' | StableString;
 type finalBgLayer = attachment | box | backgroundColor;
 type flex = 'none' | number | StableString;
-type flexBasis = 'content' | number | StableString;
+type flexBasis =
+  | 'auto'
+  | 'content'
+  | intrinsicSize
+  | extrinsicSize
+  | number
+  | StableString;
 type flexDirection = 'row' | 'row-reverse' | 'column' | 'column-reverse';
 type flexFlow = flexDirection | flexWrap;
 type flexGrow = number | StableString;
@@ -533,7 +540,7 @@ type gridTemplateAreas = 'none' | StableString;
 type gridTemplateColumns = 'none' | 'subgrid' | StableString;
 type gridTemplateRows = 'none' | 'subgrid' | StableString;
 type hangingPunctuation = number | StableString;
-type height = number | StableString;
+type height = 'auto' | intrinsicSize | extrinsicSize | number | StableString;
 type hyphenateCharacter = number | StableString;
 type hyphenateLimitChars = number | StableString;
 type hyphens = 'none' | 'manual' | 'auto';
@@ -558,6 +565,7 @@ type insetInline = number | StableString;
 type insetInlineEnd = number | StableString;
 type insetInlineStart = number | StableString;
 type interpolateSize = 'allow-keywords' | 'numeric-only';
+type intrinsicSize = 'min-content' | 'max-content' | 'fit-content';
 type isolation = 'auto' | 'isolate';
 type justifyContent =
   | 'center'
@@ -670,41 +678,13 @@ type mathDepth = number | StableString;
 type mathShift = 'normal' | 'compact';
 type mathStyle = 'normal' | 'compact';
 type maxBlockSize = maxWidth;
-type maxHeight =
-  | 'none'
-  | 'max-content'
-  | 'min-content'
-  | 'fit-content'
-  | 'fill-available'
-  | number
-  | StableString;
+type maxHeight = 'none' | intrinsicSize | extrinsicSize | number | StableString;
 type maxInlineSize = maxWidth;
-type maxWidth =
-  | 'none'
-  | 'max-content'
-  | 'min-content'
-  | 'fit-content'
-  | 'fill-available'
-  | number
-  | StableString;
+type maxWidth = 'none' | intrinsicSize | extrinsicSize | number | StableString;
 type minBlockSize = minWidth;
-type minHeight =
-  | 'auto'
-  | 'max-content'
-  | 'min-content'
-  | 'fit-content'
-  | 'fill-available'
-  | number
-  | StableString;
+type minHeight = 'auto' | intrinsicSize | extrinsicSize | number | StableString;
 type minInlineSize = minWidth;
-type minWidth =
-  | 'auto'
-  | 'max-content'
-  | 'min-content'
-  | 'fit-content'
-  | 'fill-available'
-  | number
-  | StableString;
+type minWidth = 'auto' | intrinsicSize | extrinsicSize | number | StableString;
 type mixBlendMode = blendMode;
 type motion = motionPath | motionOffset | motionRotation;
 type motionOffset = lengthPercentage;
@@ -1191,14 +1171,7 @@ type whiteSpaceCollapse =
   | 'preserve-spaces'
   | 'break-spaces';
 type widows = number | StableString;
-type width =
-  | 'available'
-  | 'min-content'
-  | 'max-content'
-  | 'fit-content'
-  | 'auto'
-  | number
-  | StableString;
+type width = 'auto' | intrinsicSize | extrinsicSize | number | StableString;
 type willChange = 'auto' | animatableFeature;
 type wordBreak = 'normal' | 'break-all' | 'keep-all' | nonStandardWordBreak;
 type wordSpacing = 'normal' | lengthPercentage;
