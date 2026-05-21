@@ -151,6 +151,7 @@ Plumeria supports nesting for pseudo-classes, pseudo-elements, and attribute sel
 
 - **NO `&` character**: Plumeria does NOT use the `&` character for self-reference.
 - **Allowed Selectors**: Nested keys must start with either `:` (for pseudo-classes and pseudo-elements) or `[` (for attribute selectors).
+- **NO Complex Pseudo-classes (`:has()`, `:is()`, `:where()`)**: DO NOT use complex CSS pseudo-classes such as `:has()`, `:is()`, or `:where()`. They are strictly forbidden. Instead, use the paired `css.marker()` and `css.extended()` APIs to handle any context-aware, parent-state dependent, or descendant styling. These APIs compile safely to container style queries and can achieve all use cases typically solved by `:has()`, `:is()`, or `:where()` without compromising CSS atomicity.
 - **Child Selectors are NOT Supported**: You cannot nest class names or child elements (like `.title` or `> div`) directly in the style object. Apply Plumeria styles directly to the child elements instead.
 - **Media/Container Queries**:
   - You can nest a pseudo-selector (like `:hover`) inside a media or container query **exactly once**.
@@ -202,6 +203,45 @@ const badStyles = css.create({
 ## Advanced APIs
 
 Plumeria provides several specialized APIs for advanced use cases:
+
+### `css.marker()` and `css.extended()` (Paired Descendant Styling)
+These paired APIs enable **context-aware / descendant styling** (e.g., styling a child element when the parent is hovered or focused) without relying on DOM structure combinators (which are strictly forbidden in Plumeria) or complex pseudo-classes like `:has()`, `:is()`, or `:where()`.
+
+- **`css.marker(id, pseudo)`**: Sets a CSS variable marker on a parent element when a pseudo-class state is active. Must be spread `...css.marker(...)` in the parent style.
+- **`css.extended(id, pseudo)`**: Applies styles to descendant elements when the linked marker is active. Used as a dynamic style key `[css.extended(...)]`.
+
+```tsx
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  parent: {
+    // 1. Set a marker with a unique identifier 'card' for ':hover' state
+    ...css.marker('card', ':hover'),
+    padding: '24px',
+    border: '1px solid #ccc',
+  },
+  child: {
+    transition: 'color 0.3s ease',
+    // 2. React to the 'card' marker being active
+    [css.extended('card', ':hover')]: {
+      color: 'blue',
+      // You can also nest further pseudo-classes!
+      ':hover': {
+        color: 'darkblue',
+      }
+    }
+  }
+});
+
+export const Card = () => {
+  return (
+    <div styleName={styles.parent}>
+      <span styleName={styles.child}>Hover parent to make me blue!</span>
+    </div>
+  );
+};
+```
+These APIs compile to a highly optimized and atomic container style query `@container style(--card-hover: 1)` at build time, maintaining zero runtime overhead and zero dependency on DOM hierarchy.
 
 ### `css.variants()`
 Allows you to map dynamic argument values to pre-defined Plumeria style objects. Note that it maps **existing** style objects (created with `css.create()`) rather than defining CSS rules inside itself.
