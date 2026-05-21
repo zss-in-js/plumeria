@@ -1436,7 +1436,7 @@ ruleTester.run('validate-values', validateValues, {
       errors: [
         {
           message:
-            "'width' has an invalid value 'none'. Valid values: auto, stretch, max-content, min-content, fit-content",
+            "'width' has an invalid value 'none'. Valid values: auto, max-content, min-content, fit-content, stretch, contain",
         },
       ],
     },
@@ -1554,7 +1554,7 @@ ruleTester.run('validate-values', validateValues, {
       errors: [
         {
           message:
-            "'animationTimingFunction' has an invalid value 'inherits'. Valid values: ",
+            "'animationTimingFunction' has an invalid value 'inherits'. Valid values: ease, linear, ease-in, ease-out, ease-in-out, step-start, step-end",
         },
       ],
     },
@@ -1892,7 +1892,7 @@ ruleTester.run('validate-values', validateValues, {
       errors: [
         {
           message:
-            "'textShadow' has an invalid value 'invalid'. Valid values: ",
+            "'textShadow' has an invalid value 'invalid'. Valid values: none",
         },
       ],
     },
@@ -2651,7 +2651,8 @@ ruleTester.run('validate-values', validateValues, {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { clipPath: 'invalid' } });`,
       errors: [
         {
-          message: "'clipPath' has an invalid value 'invalid'. Valid values: ",
+          message:
+            "'clipPath' has an invalid value 'invalid'. Valid values: none",
         },
       ],
     },
@@ -2661,7 +2662,8 @@ ruleTester.run('validate-values', validateValues, {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { boxShadow: 'invalid' } });`,
       errors: [
         {
-          message: "'boxShadow' has an invalid value 'invalid'. Valid values: ",
+          message:
+            "'boxShadow' has an invalid value 'invalid'. Valid values: none",
         },
       ],
     },
