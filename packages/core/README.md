@@ -7,8 +7,7 @@
 ![Types](https://img.shields.io/badge/Types-100%25-10B981?logo=npm&logoColor=white)
 ![Runtime](https://img.shields.io/badge/Runtime-never-10B981?logo=npm&logoColor=white)
 
-**Plumeria** is an **abstraction layer** for styled React component development without JavaScript.
-Styles grounded in the axioms of category theory are self-evident, predictable, and composable by construction. It enforces strict syntax and linting to reduce the cognitive overhead for engineers.
+**Plumeria** is a **zero-cost abstraction layer** for styling React components without JavaScript. Its axioms are grounded in category theory, making it self-evident, predictable, and composable by construction. It enforces strict syntax and linting to reduce the cognitive overhead for engineers.
 
 ## Documentation
 
