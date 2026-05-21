@@ -1,3 +1,12 @@
+const easingKeywords = [
+  'ease',
+  'linear',
+  'ease-in',
+  'ease-out',
+  'ease-in-out',
+  'step-start',
+  'step-end',
+];
 const fontSizeSubValues = [
   'xx-small',
   'x-small',
@@ -10,7 +19,13 @@ const fontSizeSubValues = [
   'smaller',
   'larger',
 ];
-const lengthSubValues = ['max-content', 'min-content', 'fit-content'];
+const lengthSubValues = [
+  'max-content',
+  'min-content',
+  'fit-content',
+  'stretch',
+  'contain',
+];
 const widthKeywords = ['thin', 'medium', 'thick'];
 const alignKeywords = [
   'start',
@@ -173,7 +188,7 @@ const validData: { [key: string]: readonly string[] } = {
   animationIterationCount: [], // <number|infinite>#, // 11
   animationName: ['none', 'slide', 'bounce'], // <custom-indent> | <string>#, // 12
   animationPlayState: [], // paused running #, // 13
-  animationTimingFunction: [], // <easing keyword | cubic-bezier() | linear() | steps()>#, // 14
+  animationTimingFunction: [...easingKeywords], // <easing keyword | cubic-bezier() | linear() | steps()>#, // 14
   aspectRatio: ['auto'], // 15
 
   backdropFilter: ['none'], // 16
@@ -215,7 +230,7 @@ const validData: { [key: string]: readonly string[] } = {
   backgroundSize: ['auto', 'cover', 'contain'], // 29
   blockSize: ['auto', ...lengthSubValues], // 30
   boxDecorationBreak: ['slice', 'clone'], // 31
-  boxShadow: [], // 32
+  boxShadow: ['none'], // 32
   boxSizing: ['content-box', 'border-box'], // 33
   breakAfter: [...breakBeforeAfterValues], // 34
   breakBefore: [...breakBeforeAfterValues], // 35
@@ -262,12 +277,12 @@ const validData: { [key: string]: readonly string[] } = {
   fontWeight: ['normal', 'bold', 'lighter', 'bolder'], // 75
 
   // length value
-  maxWidth: ['none', 'stretch', ...lengthSubValues], // 76
-  maxHeight: ['none', 'stretch', ...lengthSubValues], // 77
-  minWidth: ['none', 'stretch', ...lengthSubValues], // 78
-  minHeight: ['none', 'stretch', ...lengthSubValues], // 79
-  width: ['auto', 'stretch', ...lengthSubValues], // 80
-  height: ['auto', 'stretch', ...lengthSubValues], // 81
+  maxWidth: ['none', ...lengthSubValues], // 76
+  maxHeight: ['none', ...lengthSubValues], // 77
+  minWidth: ['auto', ...lengthSubValues], // 78
+  minHeight: ['auto', ...lengthSubValues], // 79
+  width: ['auto', ...lengthSubValues], // 80
+  height: ['auto', ...lengthSubValues], // 81
   flexBasis: ['auto', 'content', ...lengthSubValues], // 82
 
   // multiple value
@@ -354,7 +369,7 @@ const validData: { [key: string]: readonly string[] } = {
     'both',
     'none',
   ], // 136
-  clipPath: [], // 137
+  clipPath: ['none'], // 137
   clipRule: ['nonzero', 'evenodd'], // 138
   colorInterpolation: ['auto', 'sRGB', 'linearRGB'], // 139
   colorInterpolationFilters: ['auto', 'sRGB', 'linearRGB'], // 140
@@ -739,10 +754,10 @@ const validData: { [key: string]: readonly string[] } = {
   maskType: ['luminance', 'alpha'], // 262
   mathDepth: ['auto-add'], // 263
   mathStyle: ['normal', 'compact'], // 264
-  maxBlockSize: ['none', ...lengthSubValues], // 265
-  minBlockSize: ['none', ...lengthSubValues], // 266
-  maxInlineSize: ['none', ...lengthSubValues], // 267
-  minInlineSize: ['none', ...lengthSubValues], // 268
+  maxBlockSize: ['none', 'auto', ...lengthSubValues], // 265
+  minBlockSize: ['none', 'auto', ...lengthSubValues], // 266
+  maxInlineSize: ['none', 'auto', ...lengthSubValues], // 267
+  minInlineSize: ['none', 'auto', ...lengthSubValues], // 268
   mixBlendMode: [
     'normal',
     'multiply',
@@ -983,11 +998,11 @@ const validData: { [key: string]: readonly string[] } = {
     'optimizeLegibility',
     'geometricPrecision',
   ], // 380
-  textShadow: [], // 381
+  textShadow: ['none'], // 381
   textSizeAdjust: ['none', 'auto'], // 382
   textTransform: [
     'none',
-    'captalize',
+    'capitalize',
     'uppercase',
     'lowercase',
     'full-width',
@@ -1032,7 +1047,7 @@ const validData: { [key: string]: readonly string[] } = {
   transitionDelay: [], // 396
   transitionDuration: [], // 397
   transitionProperty: ['none', 'all'], // 398
-  transitionTimingFunction: [], // 399
+  transitionTimingFunction: [...easingKeywords], // 399
   translate: ['none'], // 400
   unicodeBidi: [
     'normal',
@@ -1042,7 +1057,7 @@ const validData: { [key: string]: readonly string[] } = {
     'isolate-override',
     'plaintext',
   ], // 401
-  userSelect: ['none', 'auto', 'text', 'all'], // 402
+  userSelect: ['none', 'auto', 'text', 'contain', 'all'], // 402
   vectorEffect: [
     'none',
     'non-scaling-stroke',
@@ -1060,7 +1075,7 @@ const validData: { [key: string]: readonly string[] } = {
     'top',
     'bottom',
   ], // 404
-  visibility: ['visible', 'hideen', 'collapse'], // 405
+  visibility: ['visible', 'hidden', 'collapse'], // 405
   whiteSpace: [
     'normal',
     'pre',
