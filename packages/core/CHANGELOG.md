@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 12.0.3
+
+### Patch Changes
+
+- 8eef799: Improve csstypes.d.ts
+
 ## 12.0.2
 
 ### Patch Changes
