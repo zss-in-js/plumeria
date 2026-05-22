@@ -8,7 +8,7 @@ export type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariabl
 export const createTheme: createTheme;
 ```
 `createTheme` defines global CSS variables for each theme.  
-This is shared globally, so care must be taken to ensure it does not conflict with global.css variable.
+Since a unique hash is automatically prepended to the generated variable names, there is no risk of name collisions with other themes or global CSS variables.
 
 ## Example
 
@@ -31,13 +31,13 @@ This will generate the following CSS
 
 ```css
 :root {
-  --colors: black;
-  --bg: white;
+  --xukqmak7-colors: black;
+  --xukqmak7-bg: white;
 }
 
 [data-theme="dark"] {
-  --colors: white;
-  --bg: black;
+  --xukqmak7-colors: white;
+  --xukqmak7-bg: black;
 }
 ```
 
@@ -67,22 +67,27 @@ export const theme = css.createTheme({
     '@media (prefers-color-scheme: dark)': 'white'
   }
 })
+
+// theme evaluates to:
+// {
+//   colors: 'var(--xukqmak7-colors)'
+// }
 ```
 
 This will generate the following CSS
 
 ```css
 :root {
-  --colors: black;
+  --xukqmak7-colors: black;
 }
 
 [data-theme="dark"] {
-  --colors: white;
+  --xukqmak7-colors: white;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --colors: white;
+    --xukqmak7-colors: white;
   }
 }
 ```
