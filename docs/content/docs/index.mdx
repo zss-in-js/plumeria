@@ -7,6 +7,9 @@ title: 'Introduction'
 ## Abstraction layer for styling React components
 Unlike typical CSS-in-JS solutions that ship runtime code in the bundle, Plumeria operates entirely at compile time. It resolves styling purely through type definitions and plugins, with no JavaScript remaining at runtime.
 
+```math
+\mathtt{Plumeria(Type)} \xrightarrow{\text{Compilation}} \mathtt{Static\ Atomic\ CSS}
+```
 
 ```json title="package.json"
 {
