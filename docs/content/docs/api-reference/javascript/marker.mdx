@@ -8,17 +8,17 @@ import MarkerExtended from 'component/MarkerExtended';
 
 ```ts
 export type marker = (id: string, pseudo: string) => Marker;
-export type extended = <I extends string, P extends string>(id: I, pseudo: P) => Extended<I, P>;
 export const marker: marker;
+
+export type extended = <I extends string, P extends string>(id: I, pseudo: P) => Extended<I, P>;
 export const extended: extended;
 ```
 
 The `marker` and `extended` APIs enable **context-aware styling** without relying on DOM structure or combinator syntax.
 These paired APIs maintain **atomicity** while allowing child elements to respond to parent states.
 
-<Callout type="warn" title="Browser Compatibility">
-  **Firefox is not supported** - These APIs use CSS Container Style Queries (`@container style()`), which are not yet implemented in Firefox.  
-  Check [Can I Use](https://caniuse.com/css-container-queries-style) for current browser support.
+<Callout type="info">
+  **Production Ready** - These APIs compile to CSS Container Style Queries (`@container style()`). Since Firefox 151, style queries are fully supported across all major modern browsers (**Chrome**/**Edge**, **Safari**, and **Firefox**), making `marker` and `extended` completely stable for production use.
 </Callout>
 
 - **`marker(id, pseudo)`** - Sets a CSS variable marker on a parent element
