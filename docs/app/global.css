@@ -122,3 +122,20 @@ code {
 .dark span.line.diff.remove {
   background: rgba(255, 83, 252, 0.14);
 }
+
+/* Left-align KaTeX display equations */
+.katex-display {
+  text-align: left;
+}
+
+.katex-display > .katex {
+  display: inline-block;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+  .katex {
+    font-size: 0.95em;
+  }
+}
