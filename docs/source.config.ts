@@ -1,4 +1,5 @@
-import { defineDocs, defineConfig, frontmatterSchema } from 'fumadocs-mdx/config';
+import { defineDocs, defineConfig } from 'fumadocs-mdx/config';
+import { pageSchema } from 'fumadocs-core/source/schema';
 import lastModified from 'fumadocs-mdx/plugins/last-modified';
 import { z } from 'zod';
 import rehypeKatex from 'rehype-katex';
@@ -11,7 +12,7 @@ export const { docs, meta } = defineDocs({
 export const { docs: blogDocs, meta: blogMeta } = defineDocs({
   dir: 'content/blog',
   docs: {
-    schema: frontmatterSchema.extend({
+    schema: pageSchema.extend({
       date: z.string(),
     }),
   },
