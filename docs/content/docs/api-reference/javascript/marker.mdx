@@ -14,7 +14,7 @@ export type extended = <I extends string, P extends string>(id: I, pseudo: P) =>
 export const extended: extended;
 ```
 
-The `marker` and `extended` APIs enable **context-aware styling** without relying on DOM structure or combinator syntax.
+The **marker** and **extended** APIs enable context-aware styling without relying on rigid DOM hierarchies (such as strict parent-child nesting) or combinator syntax.
 These paired APIs maintain **atomicity** while allowing child elements to respond to parent states.
 
 <Callout type="info">
@@ -24,15 +24,8 @@ These paired APIs maintain **atomicity** while allowing child elements to respon
 - **`marker(id, pseudo)`** - Sets a CSS variable marker on a parent element
 - **`extended(id, pseudo)`** - Applies styles to children when the marker is active
 
-## Syntax
-
-```ts
-type marker = (_id: string, _pseudo: string) => Marker;
-type extended = <I extends string, P extends string>(_id: I, _pseudo: P) => Extended<I, P>;
-```
-
 ### Parameters
-
+The parameters must be linked (match) in both cases.
 - **`id`** - A unique identifier linking the marker and extended styles
 - **`pseudo`** - The pseudo-class state (e.g., `':hover'`, `':focus'`, `':active'`)
 
@@ -45,31 +38,86 @@ type extended = <I extends string, P extends string>(_id: I, _pseudo: P) => Exte
     ```tsx title="TypeScript"
     import * as css from '@plumeria/core';
 
-    const styles = css.create({
-      table: {
-        ...css.marker('ul', ':hover'), // [!code highlight]
-        width: '100%',
-        height: 200,
-        listStyleType: 'none',
+    const animation = css.keyframes({
+      '0%': {
+        scale: 1.2,
       },
-      list: {
-        transition: 'all 0.5s',
-        [css.extended('ul', ':hover')]: { // [!code highlight]
-          color: 'orange',
-          scale: 1.2,
-          ':hover': {
-            scale: 1.8,
-          },
-        },
+      '50%': {
+        scale: 1.3,
+      },
+      '100%': {
+        scale: 1.2,
       },
     });
 
-    const Component = () => {
+    const styles = css.create({
+      grand: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        minHeight: 250,
+        padding: 20,
+        border: '2px dashed #c4c4c466',
+        borderRadius: 12,
+        transition: 'all 0.3s',
+        ...css.marker('grand', ':hover'),  // [!code highlight]
+      },
+      parent: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '80%',
+        minHeight: 120,
+        padding: 10,
+        backgroundColor: '#f5f5f7',
+        border: '2px solid #c4c4c444',
+        borderRadius: 8,
+        transition: 'all 0.3s',
+        ...css.marker('parent', ':hover'),  // [!code highlight]
+      },
+      child: {
+        padding: '8px 16px',
+        fontWeight: 'bold',
+        color: '#86868b',
+        background: '#e8e8ed',
+        borderRadius: 6,
+        transition: 'all 0.3s',
+        [css.extended('grand', ':hover')]: { // [!code highlight]
+          color: '#0066cc',
+          background: '#e1f0ff',
+        },
+        [css.extended('parent', ':hover')]: {  // [!code highlight]
+          color: '#ffffff',
+          background: '#ff9500',
+          scale: 1.2,
+          ':hover': {
+            background: 'skyblue',
+            animationName: animation,
+            animationDuration: '1.2s',
+            animationTimingFunction: 'ease-in-out',
+            animationIterationCount: 'infinite',
+          },
+        },
+      },
+      discription: {
+        fontSize: '14px',
+        color: '#86868b',
+      },
+    });
+
+    const MarkerExtended = () => {
       return (
-        <div>
-          <ul styleName={styles.table}>
-            <li styleName={styles.list}>Happy new year!</li>
-          </ul>
+        <div styleName={styles.grand}>
+          <span styleName={styles.discription}>Grand Container (Hover me)</span>
+          <div styleName={styles.parent}>
+            <span styleName={styles.discription}>Parent Container (Hover me too)</span>
+            <div styleName={styles.child}>Child Element</div>
+          </div>
         </div>
       );
     };
@@ -77,19 +125,55 @@ type extended = <I extends string, P extends string>(_id: I, _pseudo: P) => Exte
   </Tab>
   <Tab>
     ```css title="Generated CSS"
-    .xa3bzzr2:hover {
-      --ul-hover: 1;
+    .xtkxh191:hover {
+      --grand-hover: 1;
     }
 
-    @container style(--ul-hover: 1) {
-      .xhsfb1p9:not(#\#) {
-        color: orange;
+    .xhcsnlrf:hover {
+      --parent-hover: 1;
+    }
+
+    @container style(--grand-hover: 1) {
+      .x84muc4x:not(#\#) {
+        color: #06c;
       }
-      .xw7nub6k:not(#\#) {
-        scale: 1.2;
+
+      .x2x6k4j2:not(#\#):not(#\#) {
+        background-color: #e1f0ff;
       }
-      .xwntwjm5:not(#\#):hover {
-        scale: 1.8;
+    }
+
+    @container style(--parent-hover: 1) {
+      .xr8ck8y9:not(#\#) {
+        color: #fff;
+      }
+
+      .xb1yp2w2:not(#\#):not(#\#) {
+        background-color: #ff9500;
+      }
+
+      .xewf73ay:not(#\#) {
+        scale: 1.3;
+      }
+
+      .x8odz1r5:not(#\#):not(#\#) {
+        animation-name: kf-xmortmuw;
+      }
+
+      .x0guwijo:not(#\#):not(#\#) {
+        animation-duration: 1.2s;
+      }
+
+      .xek6euru:not(#\#):not(#\#) {
+        animation-timing-function: ease-in-out;
+      }
+
+      .xwdc6dqv:not(#\#):not(#\#) {
+        animation-iteration-count: infinite;
+      }
+
+      .xd9yj17o:not(#\#):hover {
+        color: #0ff;
       }
     }
     ```
