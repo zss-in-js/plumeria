@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 12.0.5
+
+### Patch Changes
+
+- 4187423: Fix path resolution and refactoring
+- Updated dependencies [4187423]
+  - @plumeria/utils@12.0.5
+
 ## 12.0.4
 
 ### Patch Changes

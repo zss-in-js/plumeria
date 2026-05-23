@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 12.0.5
+
+### Patch Changes
+
+- 4187423: Bump version to 12.0.5
+- Updated dependencies [4187423]
+  - @plumeria/compiler@12.0.5
+
 ## 12.0.4
 
 ### Patch Changes
