@@ -1,0 +1,50 @@
+---
+title: 'Plumeria 12.0'
+description: 'ESLint 9/10 Flat Config and Oxlint Support'
+date: '2026-05-23'
+---
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 12.0.0 has been released. This version includes updates centered on a refreshed ESLint plugin and Oxlint support.
+
+## ESLint 9/10 and Flat Config Support
+Support for ESLint 8 has ended, and support for ESLint 9 and 10 has been added.
+
+We have completely migrated to Flat Config (`eslint.config.js` and `eslint.config.ts`), optimizing type inference and configuration methods to match the latest ESLint ecosystem.
+
+The `flatConfig` object has been standardized to the `configs` object.  
+Named export has been updated to default export.
+```typescript
+import { defineConfig } from 'eslint';
+import plumeria from '@plumeria/eslint-plugin';
+
+export default defineConfig([
+  plumeria.configs.recommended,
+]);
+```
+
+Furthermore, improvements have been made to rules such as `no-invalid-selector`, and a mechanism has been introduced to safely skip dynamic properties (Computed properties) to prevent false positives, even in environments where TypeScript type information is not available, such as Oxlint.
+
+## Oxlint Update
+The plugin, which previously worked with Oxlint version v1.34.0, has been updated to support the latest version, v1.65.0.
+
+
+## Compiler & Bundler Fixes
+
+- **Compiler path resolution fix**: Fixed an issue where the compiler did not resolve file paths to absolute paths, causing mismatches with the hash table keys used by the bundler plugins (unplugin / turbopack-loader).
+
+- **Import resolution by type**: Previously, imported `keyframes`, `viewTransition`, `create`, and `variants` definitions were all stored into a single `importMap`. They are now correctly separated into dedicated maps per type, ensuring accurate resolution.
+
+- **Local definition resolution for all types**: The `startsWith(resourcePath)` pattern for resolving same-file definitions was previously only applied to `createTheme` and `createStatic`. It now covers `keyframes`, `viewTransition`, `create`, and `variants` as well, aligning all three packages (compiler, unplugin, turbopack-loader) to the same resolution logic.
+
+## Other Changes
+- **Added Storybook Sample**: `example-storybook` demonstrating integration with Storybook has been added to the `examples` directory.
+
+- **Documentation Improvements**: Added support for LaTeX rendering in the documentation site (`source.config.ts` and `layout.tsx`).
+
+As always, thanks to everyone who is trying out Plumeria.  
+Feedback is welcome in [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) and bug reports in [Issues](https://github.com/zss-in-js/plumeria/issues).
