@@ -102,10 +102,12 @@ const styles = css.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 20,
-    paddingTop: 20,
+    paddingTop: 10,
     paddingBottom: 20,
     [breakpoints.md]: {
-      paddingTop: 25,
+      justifyContent: 'flex-start',
+      width: 290,
+      paddingTop: 12,
     },
   },
 
