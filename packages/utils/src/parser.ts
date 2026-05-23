@@ -926,16 +926,8 @@ interface CachedData {
 const fileCache: Record<string, CachedData> = {};
 
 let globalAgregatedTables: Tables | null = null;
-let lastScanTime = 0;
-const CACHE_DURATION = 500; // 500ms cache to cover parallel calls during a single build cycle
-
 export function scanAll(): Tables {
-  const now = Date.now();
-  if (
-    globalAgregatedTables &&
-    (process.env.NODE_ENV === 'production' ||
-      now - lastScanTime < CACHE_DURATION)
-  ) {
+  if (globalAgregatedTables && process.env.NODE_ENV === 'production') {
     return globalAgregatedTables;
   }
 
@@ -1250,19 +1242,6 @@ export function scanAll(): Tables {
 
                   localTables.createStaticObjectTable[hash] = obj;
                   localCreateStaticObjectTable[hash] = obj;
-
-                  // Generate atomic maps for each property of createStatic
-                  // This allows createStatic values to work as computed keys in create calls
-                  const hashMap: Record<string, Record<string, string>> = {
-                    __static: {},
-                  };
-                  for (const [key, value] of Object.entries(obj)) {
-                    if (typeof value === 'string') {
-                      // For string values (like media queries), store the value directly
-                      hashMap.__static[key] = value;
-                    }
-                  }
-                  localTables.createAtomicMapTable[hash] = hashMap;
                 } else if (method === 'keyframes') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localKeyframesHashTable[name] = hash;
@@ -1283,13 +1262,13 @@ export function scanAll(): Tables {
                   localCreateThemeObjectTable[hash] = obj;
                   localCreateThemeHashTable[name] = hash;
                   localTables.createThemeHashTable[uniqueKey] = hash;
-                  // It embeds hash recovery logic.
                   localTables.createThemeObjectTable[hash] = obj;
                   const hashMap: Record<string, any> = {};
                   for (const [key] of Object.entries(obj)) {
                     const cssVarName = camelToKebabCase(key);
                     hashMap[key] = `var(--${hash}-${cssVarName})`;
                   }
+                  localCreateAtomicMapTable[hash] = hashMap;
                   localTables.createAtomicMapTable[hash] = hashMap;
                 } else if (method === 'create') {
                   const hash = genBase36Hash(obj, 1, 8);
@@ -1348,7 +1327,6 @@ export function scanAll(): Tables {
   } // End of two-pass scanning
 
   globalAgregatedTables = localTables;
-  lastScanTime = now;
 
   return localTables;
 }
