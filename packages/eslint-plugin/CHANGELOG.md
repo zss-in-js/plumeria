@@ -1,3 +1,9 @@
+## 12.0.5
+
+### Patch Changes
+
+- 4187423: Bump version to 12.0.5
+
 ## 12.0.4
 
 ### Patch Changes
