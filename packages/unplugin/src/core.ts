@@ -211,6 +211,10 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       const localConsts = collectLocalConsts(ast);
       const resourcePath = id;
       const importMap: Record<string, any> = {};
+      const keyframesImportMap: KeyframesHashTable = {};
+      const viewTransitionImportMap: ViewTransitionHashTable = {};
+      const createImportMap: CreateHashTable = {};
+      const variantsImportMap: VariantsHashTable = {};
       const createThemeImportMap: Record<string, any> = {};
       const createStaticImportMap: Record<string, any> = {};
       const plumeriaAliases: Record<string, string> = {};
@@ -249,19 +253,19 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                   importMap[localName] = scannedTables.staticTable[uniqueKey];
                 }
                 if (scannedTables.keyframesHashTable[uniqueKey]) {
-                  importMap[localName] =
+                  keyframesImportMap[localName] =
                     scannedTables.keyframesHashTable[uniqueKey];
                 }
                 if (scannedTables.viewTransitionHashTable[uniqueKey]) {
-                  importMap[localName] =
+                  viewTransitionImportMap[localName] =
                     scannedTables.viewTransitionHashTable[uniqueKey];
                 }
                 if (scannedTables.createHashTable[uniqueKey]) {
-                  importMap[localName] =
+                  createImportMap[localName] =
                     scannedTables.createHashTable[uniqueKey];
                 }
                 if (scannedTables.variantsHashTable[uniqueKey]) {
-                  importMap[localName] =
+                  variantsImportMap[localName] =
                     scannedTables.variantsHashTable[uniqueKey];
                 }
                 if (scannedTables.createThemeHashTable[uniqueKey]) {
@@ -292,46 +296,51 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       const mergedKeyframesTable: KeyframesHashTable = {};
       for (const key of Object.keys(scannedTables.keyframesHashTable)) {
         mergedKeyframesTable[key] = scannedTables.keyframesHashTable[key];
-      }
-      for (const key of Object.keys(importMap)) {
-        const val = importMap[key];
-        if (typeof val === 'string') {
-          mergedKeyframesTable[key] = val;
+        if (key.startsWith(`${resourcePath}-`)) {
+          const varName = key.slice(resourcePath.length + 1);
+          mergedKeyframesTable[varName] = scannedTables.keyframesHashTable[key];
         }
+      }
+      for (const key of Object.keys(keyframesImportMap)) {
+        mergedKeyframesTable[key] = keyframesImportMap[key];
       }
 
       const mergedViewTransitionTable: ViewTransitionHashTable = {};
       for (const key of Object.keys(scannedTables.viewTransitionHashTable)) {
         mergedViewTransitionTable[key] =
           scannedTables.viewTransitionHashTable[key];
-      }
-      for (const key of Object.keys(importMap)) {
-        const val = importMap[key];
-        if (typeof val === 'string') {
-          mergedViewTransitionTable[key] = val;
+        if (key.startsWith(`${resourcePath}-`)) {
+          const varName = key.slice(resourcePath.length + 1);
+          mergedViewTransitionTable[varName] =
+            scannedTables.viewTransitionHashTable[key];
         }
+      }
+      for (const key of Object.keys(viewTransitionImportMap)) {
+        mergedViewTransitionTable[key] = viewTransitionImportMap[key];
       }
 
       const mergedCreateTable: CreateHashTable = {};
       for (const key of Object.keys(scannedTables.createHashTable)) {
         mergedCreateTable[key] = scannedTables.createHashTable[key];
-      }
-      for (const key of Object.keys(importMap)) {
-        const val = importMap[key];
-        if (typeof val === 'string') {
-          mergedCreateTable[key] = val;
+        if (key.startsWith(`${resourcePath}-`)) {
+          const varName = key.slice(resourcePath.length + 1);
+          mergedCreateTable[varName] = scannedTables.createHashTable[key];
         }
+      }
+      for (const key of Object.keys(createImportMap)) {
+        mergedCreateTable[key] = createImportMap[key];
       }
 
       const mergedVariantsTable: VariantsHashTable = {};
       for (const key of Object.keys(scannedTables.variantsHashTable)) {
         mergedVariantsTable[key] = scannedTables.variantsHashTable[key];
-      }
-      for (const key of Object.keys(importMap)) {
-        const val = importMap[key];
-        if (typeof val === 'string') {
-          mergedVariantsTable[key] = val;
+        if (key.startsWith(`${resourcePath}-`)) {
+          const varName = key.slice(resourcePath.length + 1);
+          mergedVariantsTable[varName] = scannedTables.variantsHashTable[key];
         }
+      }
+      for (const key of Object.keys(variantsImportMap)) {
+        mergedVariantsTable[key] = variantsImportMap[key];
       }
 
       const mergedCreateThemeHashTable: CreateThemeHashTable = {};
