@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 12.0.6
+
+### Patch Changes
+
+- d435d9d: Fix a bug in the ternary operator for function keys
+- Updated dependencies [d435d9d]
+  - @plumeria/utils@12.0.6
+
 ## 12.0.5
 
 ### Patch Changes
