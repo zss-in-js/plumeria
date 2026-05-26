@@ -1665,7 +1665,7 @@ export default async function loader(this: LoaderContext, source: string) {
                     } else {
                       valueExpr = exceptionCamelCase.includes(targetProp)
                         ? argSource
-                        : `(typeof ${argSource} === 'number' ? ${argSource} + 'px' : ${argSource})`;
+                        : `(typeof (${argSource}) === 'number' ? (${argSource}) + 'px' : (${argSource}))`;
                     }
                     dynamicStyleParts.push(`"${info.cssVar}": ${valueExpr}`);
                   }
