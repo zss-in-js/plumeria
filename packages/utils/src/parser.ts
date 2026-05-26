@@ -317,13 +317,28 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
   const localConsts: Record<string, any> = {};
   const decls = new Map<string, any>();
 
-  traverse(ast, {
-    VariableDeclarator({ node }: { node: VariableDeclarator }) {
-      if (t.isIdentifier(node.id) && node.init) {
-        decls.set(node.id.value, node.init);
+  for (const node of ast.body) {
+    let declarations: VariableDeclarator[] = [];
+
+    if (t.isVariableDeclaration(node)) {
+      declarations = node.declarations;
+    } else if (
+      t.isExportDeclaration(node) &&
+      t.isVariableDeclaration(node.declaration)
+    ) {
+      declarations = node.declaration.declarations;
+    }
+
+    for (const decl of declarations) {
+      if (
+        t.isVariableDeclarator(decl) &&
+        t.isIdentifier(decl.id) &&
+        decl.init
+      ) {
+        decls.set(decl.id.value, decl.init);
       }
-    },
-  });
+    }
+  }
 
   const visiting = new Set<string>();
 
@@ -954,107 +969,126 @@ export function scanAll(): Tables {
   // Pass 1: Collect all createStatic and createTheme definitions
   // Pass 2: Process css.create, keyframes, viewTransition, variants (with all createStatic/createTheme available)
 
-  // Execute two passes
+  // Pre-process cached files (merge once, outside the 2-pass loop)
+  const uncachedFiles: string[] = [];
+  for (const filePath of files) {
+    try {
+      const stats = fs.statSync(filePath);
+      const cached = fileCache[filePath];
+
+      if (cached && cached.mtimeMs === stats.mtimeMs) {
+        if (cached.hasCssUsage) {
+          for (const key of Object.keys(cached.staticTable)) {
+            localTables.staticTable[`${filePath}-${key}`] =
+              cached.staticTable[key];
+          }
+          for (const key of Object.keys(cached.keyframesHashTable)) {
+            localTables.keyframesHashTable[`${filePath}-${key}`] =
+              cached.keyframesHashTable[key];
+          }
+          for (const key of Object.keys(cached.keyframesObjectTable)) {
+            localTables.keyframesObjectTable[key] =
+              cached.keyframesObjectTable[key];
+          }
+          for (const key of Object.keys(cached.viewTransitionHashTable)) {
+            localTables.viewTransitionHashTable[`${filePath}-${key}`] =
+              cached.viewTransitionHashTable[key];
+          }
+          for (const key of Object.keys(cached.viewTransitionObjectTable)) {
+            localTables.viewTransitionObjectTable[key] =
+              cached.viewTransitionObjectTable[key];
+          }
+          for (const key of Object.keys(cached.createThemeHashTable)) {
+            localTables.createThemeHashTable[`${filePath}-${key}`] =
+              cached.createThemeHashTable[key];
+          }
+          for (const key of Object.keys(cached.createThemeObjectTable)) {
+            localTables.createThemeObjectTable[key] =
+              cached.createThemeObjectTable[key];
+          }
+          for (const key of Object.keys(cached.createStaticHashTable)) {
+            localTables.createStaticHashTable[`${filePath}-${key}`] =
+              cached.createStaticHashTable[key];
+          }
+          for (const key of Object.keys(cached.createStaticObjectTable)) {
+            localTables.createStaticObjectTable[key] =
+              cached.createStaticObjectTable[key];
+          }
+          for (const key of Object.keys(cached.createHashTable)) {
+            localTables.createHashTable[`${filePath}-${key}`] =
+              cached.createHashTable[key];
+          }
+          for (const key of Object.keys(cached.createObjectTable)) {
+            localTables.createObjectTable[key] = cached.createObjectTable[key];
+          }
+          for (const key of Object.keys(cached.createAtomicMapTable)) {
+            localTables.createAtomicMapTable[key] =
+              cached.createAtomicMapTable[key];
+          }
+          for (const key of Object.keys(cached.variantsHashTable)) {
+            localTables.variantsHashTable[`${filePath}-${key}`] =
+              cached.variantsHashTable[key];
+          }
+          for (const key of Object.keys(cached.variantsObjectTable)) {
+            localTables.variantsObjectTable[key] =
+              cached.variantsObjectTable[key];
+          }
+        }
+      } else {
+        uncachedFiles.push(filePath);
+      }
+    } catch (e) {
+      // If statSync fails, add to uncachedFiles to handle potential read/parse exceptions correctly
+      uncachedFiles.push(filePath);
+    }
+  }
+
+  // Pre-scan uncached files: read, parse, and filter (each file read/parsed only once)
+  const parsedFiles: { filePath: string; ast: Module; mtimeMs: number }[] = [];
+  for (const filePath of uncachedFiles) {
+    try {
+      const stats = fs.statSync(filePath);
+      const source = fs.readFileSync(filePath, 'utf8');
+      if (!source.includes('@plumeria/core')) {
+        // Cache negative result
+        fileCache[filePath] = {
+          mtimeMs: stats.mtimeMs,
+          staticTable: {},
+          keyframesHashTable: {},
+          keyframesObjectTable: {},
+          viewTransitionHashTable: {},
+          viewTransitionObjectTable: {},
+          createThemeHashTable: {},
+          createThemeObjectTable: {},
+          createHashTable: {},
+          createObjectTable: {},
+          createAtomicMapTable: {},
+          variantsHashTable: {},
+          variantsObjectTable: {},
+          createStaticHashTable: {},
+          createStaticObjectTable: {},
+          hasCssUsage: false,
+        };
+        continue;
+      }
+
+      const ast = parseSync(source, {
+        syntax: 'typescript',
+        tsx: true,
+        target: 'es2022',
+      });
+      parsedFiles.push({ filePath, ast, mtimeMs: stats.mtimeMs });
+    } catch (e) {
+      // Ignore read/parse/stat errors, matching original per-file exception handling
+    }
+  }
+
+  // Execute two passes (only for files with @plumeria/core usage)
   for (let passNumber = 1; passNumber <= 2; passNumber++) {
     const isFirstPass = passNumber === 1;
 
-    for (const filePath of files) {
+    for (const { filePath, ast, mtimeMs } of parsedFiles) {
       try {
-        const stats = fs.statSync(filePath);
-        const cached = fileCache[filePath];
-
-        if (cached && cached.mtimeMs === stats.mtimeMs) {
-          if (cached.hasCssUsage) {
-            for (const key of Object.keys(cached.staticTable)) {
-              localTables.staticTable[`${filePath}-${key}`] =
-                cached.staticTable[key];
-            }
-            for (const key of Object.keys(cached.keyframesHashTable)) {
-              localTables.keyframesHashTable[`${filePath}-${key}`] =
-                cached.keyframesHashTable[key];
-            }
-            for (const key of Object.keys(cached.keyframesObjectTable)) {
-              localTables.keyframesObjectTable[key] =
-                cached.keyframesObjectTable[key];
-            }
-            for (const key of Object.keys(cached.viewTransitionHashTable)) {
-              localTables.viewTransitionHashTable[`${filePath}-${key}`] =
-                cached.viewTransitionHashTable[key];
-            }
-            for (const key of Object.keys(cached.viewTransitionObjectTable)) {
-              localTables.viewTransitionObjectTable[key] =
-                cached.viewTransitionObjectTable[key];
-            }
-            for (const key of Object.keys(cached.createThemeHashTable)) {
-              localTables.createThemeHashTable[`${filePath}-${key}`] =
-                cached.createThemeHashTable[key];
-            }
-            for (const key of Object.keys(cached.createThemeObjectTable)) {
-              localTables.createThemeObjectTable[key] =
-                cached.createThemeObjectTable[key];
-            }
-            for (const key of Object.keys(cached.createStaticHashTable)) {
-              localTables.createStaticHashTable[`${filePath}-${key}`] =
-                cached.createStaticHashTable[key];
-            }
-            for (const key of Object.keys(cached.createStaticObjectTable)) {
-              localTables.createStaticObjectTable[key] =
-                cached.createStaticObjectTable[key];
-            }
-            for (const key of Object.keys(cached.createHashTable)) {
-              localTables.createHashTable[`${filePath}-${key}`] =
-                cached.createHashTable[key];
-            }
-            for (const key of Object.keys(cached.createObjectTable)) {
-              localTables.createObjectTable[key] =
-                cached.createObjectTable[key];
-            }
-            for (const key of Object.keys(cached.createAtomicMapTable)) {
-              localTables.createAtomicMapTable[key] =
-                cached.createAtomicMapTable[key];
-            }
-            for (const key of Object.keys(cached.variantsHashTable)) {
-              localTables.variantsHashTable[`${filePath}-${key}`] =
-                cached.variantsHashTable[key];
-            }
-            for (const key of Object.keys(cached.variantsObjectTable)) {
-              localTables.variantsObjectTable[key] =
-                cached.variantsObjectTable[key];
-            }
-          }
-          continue;
-        }
-
-        const source = fs.readFileSync(filePath, 'utf8');
-        if (!source.includes('@plumeria/core')) {
-          // Cache negative result
-          fileCache[filePath] = {
-            mtimeMs: stats.mtimeMs,
-            staticTable: {},
-            keyframesHashTable: {},
-            keyframesObjectTable: {},
-            viewTransitionHashTable: {},
-            viewTransitionObjectTable: {},
-            createThemeHashTable: {},
-            createThemeObjectTable: {},
-            createHashTable: {},
-            createObjectTable: {},
-            createAtomicMapTable: {},
-            variantsHashTable: {},
-            variantsObjectTable: {},
-            createStaticHashTable: {},
-            createStaticObjectTable: {},
-            hasCssUsage: false,
-          };
-          continue;
-        }
-
-        const ast = parseSync(source, {
-          syntax: 'typescript',
-          tsx: true,
-          target: 'es2022',
-        });
-
         const localStaticTable: StaticTable = {};
         const localKeyframesHashTable: KeyframesHashTable = {};
         const localKeyframesObjectTable: KeyframesObjectTable = {};
@@ -1165,7 +1199,6 @@ export function scanAll(): Tables {
               t.isVariableDeclarator(decl) &&
               t.isIdentifier(decl.id) &&
               decl.init &&
-              t.isCallExpression(decl.init) &&
               t.isCallExpression(decl.init)
             ) {
               const callee = decl.init.callee;
@@ -1302,7 +1335,7 @@ export function scanAll(): Tables {
         // Update cache (only in second pass to ensure all data is collected)
         if (!isFirstPass) {
           fileCache[filePath] = {
-            mtimeMs: stats.mtimeMs,
+            mtimeMs: mtimeMs,
             staticTable: localStaticTable,
             keyframesHashTable: localKeyframesHashTable,
             keyframesObjectTable: localKeyframesObjectTable,
