@@ -1765,7 +1765,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                         } else {
                           valueExpr = exceptionCamelCase.includes(targetProp)
                             ? argSource
-                            : `(typeof ${argSource} === 'number' ? ${argSource} + 'px' : ${argSource})`;
+                            : `(typeof (${argSource}) === 'number' ? (${argSource}) + 'px' : (${argSource}))`;
                         }
                         dynamicStyleParts.push(
                           `"${info.cssVar}": ${valueExpr}`,
