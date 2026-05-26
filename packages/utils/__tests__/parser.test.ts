@@ -193,6 +193,17 @@ describe('parser', () => {
       const consts = collectLocalConsts(ast);
       expect(consts.a.prop).toBeUndefined();
     });
+
+    it('should collect constants from exported variable declarations', () => {
+      const ast = parseSync(
+        'export const color = "red"; export const theme = { primary: "blue" };',
+        { syntax: 'typescript' },
+      );
+      const consts = collectLocalConsts(ast);
+
+      expect(consts.color).toBe('red');
+      expect(consts.theme).toEqual({ primary: 'blue' });
+    });
   });
 
   describe('objectExpressionToObject', () => {
@@ -850,6 +861,47 @@ describe('parser', () => {
 
       expect(result).toEqual({ valid: 123 });
     });
+
+    it('should resolve shorthand properties via resolveVariable and staticTable', () => {
+      const source = `const obj = { width }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      // 1. resolveVariable returns a value
+      const resolveVariable = jest.fn().mockReturnValue('100px');
+      const result1 = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        resolveVariable,
+      );
+      expect(result1.width).toBe('100px');
+      expect(resolveVariable).toHaveBeenCalledWith('width');
+
+      // 2. resolveVariable returns undefined, fall back to staticTable
+      const result2 = objectExpressionToObject(
+        objectExpr,
+        { width: '200px' },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        () => undefined,
+      );
+      expect(result2.width).toBe('200px');
+    });
   });
 
   describe('scan functions', () => {
@@ -867,6 +919,25 @@ describe('parser', () => {
       const keys = Object.keys(result.keyframesHashTable);
       expect(keys.some((key) => key.endsWith('-fade'))).toBe(true);
       expect(result.keyframesObjectTable).toBeDefined();
+    });
+
+    it('should handle fs.statSync failure and recover gracefully', () => {
+      mockedRs.globSync.mockReturnValue(['/test/fail-stat.ts'] as any);
+      let callCount = 0;
+      mockedFs.statSync.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          throw new Error('statSync failed');
+        }
+        return { isDirectory: () => false, mtimeMs: 1 } as any;
+      });
+      mockedFs.readFileSync.mockReturnValue(
+        'import * as css from "@plumeria/core"; export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });',
+      );
+
+      const result = scanAll();
+      const keys = Object.keys(result.keyframesHashTable);
+      expect(keys.some((key) => key.endsWith('-fade'))).toBe(true);
     });
 
     it('should sort files with lib/ utils/ common/ priority', () => {
