@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 12.0.6
+
+### Patch Changes
+
+- d435d9d: Bump version to 12.0.6
+- Updated dependencies [d435d9d]
+  - @plumeria/turbopack-loader@12.0.6
+
 ## 12.0.5
 
 ### Patch Changes
