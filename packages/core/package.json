@@ -16,12 +16,14 @@
   },
   "keywords": [
     "css",
-    "react",
+    "css-in-js",
     "plumeria",
-    "lint",
+    "react",
+    "stylex",
     "type",
     "typed",
-    "types"
+    "types",
+    "lint"
   ],
   "exports": {
     ".": {
