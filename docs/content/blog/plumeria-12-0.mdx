@@ -33,13 +33,21 @@ Furthermore, improvements have been made to rules such as `no-invalid-selector`,
 The plugin, which previously worked with Oxlint version v1.34.0, has been updated to support the latest version, v1.65.0.
 
 
-## Compiler & Bundler Fixes
+## Compiler & Bundler Fixes (v12.0.5)
 
 - **Compiler path resolution fix**: Fixed an issue where the compiler did not resolve file paths to absolute paths, causing mismatches with the hash table keys used by the bundler plugins (unplugin / turbopack-loader).
 
 - **Import resolution by type**: Previously, imported `keyframes`, `viewTransition`, `create`, and `variants` definitions were all stored into a single `importMap`. They are now correctly separated into dedicated maps per type, ensuring accurate resolution.
 
 - **Local definition resolution for all types**: The `startsWith(resourcePath)` pattern for resolving same-file definitions was previously only applied to `createTheme` and `createStatic`. It now covers `keyframes`, `viewTransition`, `create`, and `variants` as well, aligning all three packages (compiler, unplugin, turbopack-loader) to the same resolution logic.
+
+## Build Performance Optimizations (v12.0.6)
+
+In `v12.0.6`, we introduced major compiler optimizations to the core stylesheet scanner to significantly speed up build times, especially during development mode and incremental builds:
+
+- **Single-Pass AST Parsing**: Uncached files are now read and parsed via SWC exactly once instead of twice during the two-pass compilation scan, cutting file I/O and parsing overhead in half.
+- **Cache Merging Deduplication**: Cached file tables are now merged once instead of twice per scan, streamlining hot reloads.
+- **Flat-Body Variable Resolution**: The local constant collector has been optimized to resolve module-level variables using a fast, flat statement loop instead of a recursive AST traversal. This delivers an astronomical **130x+ speedup** in local constant resolution for large files.
 
 ## Other Changes
 - **Added Storybook Sample**: `example-storybook` demonstrating integration with Storybook has been added to the `examples` directory.
