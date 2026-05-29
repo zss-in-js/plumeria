@@ -61,7 +61,7 @@ export const baseOptions: BaseLayoutProps = {
           items={[
             { type: 'header', text: 'Principles' },
             { text: 'Category theory', url: '/docs/category' },
-            { text: 'AI.md', url: '/docs/AI' },
+            { text: 'AI.md', url: '/docs/ai' },
             { type: 'divider' },
             { type: 'header', text: 'Getting Started' },
             { text: 'Installation', url: '/docs/getting-started/installation' },
