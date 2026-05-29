@@ -323,6 +323,137 @@ export const theme = css.createTheme({
 // @media (prefers-color-scheme: dark) { :root { --colors: white; } }
 ```
 
+## Styling Custom Components
+
+There are exactly **3 patterns** for applying Plumeria styles to custom components. In all patterns, compilation is always concentrated at `styleName` or `css.use()` call sites. The custom component itself simply passes the compiled `className` / `style` through to the DOM — a pure, transparent operation.
+
+> **Core Principle**: What is impossible is dynamic compilation of custom props. Passing styles to custom components is fully supported.
+
+### Pattern 1: Direct `styleName` inside the component
+
+The component imports its own styles and applies them via `styleName` on internal DOM elements. The simplest pattern — styles are self-contained within the component.
+
+```tsx
+import React from 'react';
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  button: {
+    padding: '10px',
+    backgroundColor: 'navy',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+});
+
+export const Button = ({ children }: { children: React.ReactNode }) => {
+  return (
+    // The compiler transforms styleName → className here
+    <button styleName={styles.button}>
+      {children}
+    </button>
+  );
+};
+
+// Usage
+<Button>Click me</Button>;
+```
+
+### Pattern 2: `styleName` on the custom component at the call site
+
+The custom component accepts `className` / `style` props (via `React.HTMLAttributes<T>`), and the **call site** applies styles using `styleName`. Since `styleName` is globally typed on `React.HTMLAttributes<T>`, it works on custom components and the compiler compiles it to `className`/`style` at the call site.
+
+```tsx
+// --- Button.tsx ---
+import React from 'react';
+
+interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+}
+
+// Pure passthrough — receives compiled className/style and forwards to DOM
+export const Button = ({ className, style, children, ...rest }: ButtonProps) => {
+  return (
+    <button className={className} style={style} {...rest}>
+      {children}
+    </button>
+  );
+};
+
+// --- Usage (call site) ---
+import * as css from '@plumeria/core';
+import { Button } from './Button';
+
+const styles = css.create({
+  primary: {
+    padding: '10px',
+    backgroundColor: 'navy',
+    color: '#fff',
+  },
+});
+
+// styleName is compiled to className="hash_primary" at this call site
+<Button styleName={styles.primary}>Click me</Button>;
+```
+
+### Pattern 3: `className` bypass with `css.use()`
+
+Use `css.use()` to convert static styles into a class name string, then pass it directly as `className`. This bypasses `styleName` entirely and relies only on the `css.use()` compilation.
+
+```tsx
+// --- Button.tsx ---
+import React from 'react';
+
+interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode;
+}
+
+export const Button = ({ className, children, ...rest }: ButtonProps) => {
+  return (
+    <button className={className} {...rest}>
+      {children}
+    </button>
+  );
+};
+
+// --- Usage (call site) ---
+import * as css from '@plumeria/core';
+import { Button } from './Button';
+
+const styles = css.create({
+  primary: {
+    padding: '10px',
+    backgroundColor: 'navy',
+    color: '#fff',
+  },
+});
+
+// css.use() is replaced with a static class name string at build time
+<Button className={css.use(styles.primary)}>Click me</Button>;
+```
+
+### Summary
+
+| Pattern | Compilation site | Component's role |
+|---------|-----------------|-----------------|
+| 1. Direct `styleName` | Inside the component | Self-contained styles |
+| 2. `styleName` at call site | Call site | Passthrough `className`/`style` |
+| 3. `className` bypass | Call site (`css.use`) | Passthrough `className` |
+
+### ❌ Anti-pattern: Custom props with dynamic compilation
+
+Custom-named props cannot be dynamically compiled because the compiler only hooks into `styleName` and `css.use()`. Custom prop names are invisible to the compiler.
+
+```tsx
+// ❌ DOES NOT WORK
+const MyComponent = ({ myCustomStyle }) => {
+  // The compiler cannot statically trace myCustomStyle
+  return <div styleName={css.use(styles.base, myCustomStyle)} />;
+};
+```
+
 ## Animation APIs
 
 ### `css.keyframes()`
