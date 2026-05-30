@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 12.0.8
+
+### Patch Changes
+
+- 51606d5: Fix lightningcss target browser and fix resolver.ts
+
 ## 12.0.7
 
 ### Patch Changes
