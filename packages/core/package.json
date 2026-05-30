@@ -17,13 +17,11 @@
   "keywords": [
     "css",
     "css-in-js",
-    "plumeria",
     "react",
-    "stylex",
+    "plumeria",
     "type",
     "typed",
-    "types",
-    "lint"
+    "types"
   ],
   "exports": {
     ".": {
