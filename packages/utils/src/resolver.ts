@@ -1,51 +1,38 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const tsConfigCache = new Map<
-  string,
-  { paths?: Record<string, string[]> } | null
->();
-const tsConfigPathCache = new Map<string, string | null>();
+let cachedTsConfig:
+  | {
+      config: { paths?: Record<string, string[]> } | null;
+      basePath: string;
+    }
+  | null
+  | undefined = undefined;
 
-function getTsConfig(startDir: string): {
+function getTsConfig(): {
   config: { paths?: Record<string, string[]> } | null;
   basePath: string;
 } | null {
-  let currentDir = startDir;
-
-  if (tsConfigPathCache.has(currentDir)) {
-    const cachedPath = tsConfigPathCache.get(currentDir);
-    if (cachedPath === null) return null;
-    return {
-      config: tsConfigCache.get(cachedPath as string) ?? null,
-      basePath: path.dirname(cachedPath as string),
-    };
+  if (cachedTsConfig !== undefined) {
+    return cachedTsConfig;
   }
 
-  while (currentDir !== path.parse(currentDir).root) {
-    const tsConfigPath = path.join(process.cwd(), 'tsconfig.json');
-    if (fs.existsSync(tsConfigPath)) {
-      if (!tsConfigCache.has(tsConfigPath)) {
-        try {
-          const config = require(tsConfigPath);
-          tsConfigCache.set(tsConfigPath, config.compilerOptions || null);
-        } catch {
-          tsConfigCache.set(tsConfigPath, null);
-        }
-      }
-
-      tsConfigPathCache.set(startDir, tsConfigPath);
-
-      return {
-        config: tsConfigCache.get(tsConfigPath) ?? null,
+  const tsConfigPath = path.join(process.cwd(), 'tsconfig.json');
+  if (fs.existsSync(tsConfigPath)) {
+    try {
+      const config = require(tsConfigPath);
+      cachedTsConfig = {
+        config: config.compilerOptions || null,
         basePath: path.dirname(tsConfigPath),
       };
+    } catch {
+      cachedTsConfig = null;
     }
-    currentDir = path.dirname(currentDir);
+  } else {
+    cachedTsConfig = null;
   }
 
-  tsConfigPathCache.set(startDir, null);
-  return null;
+  return cachedTsConfig;
 }
 
 const extensions = [
@@ -80,7 +67,7 @@ export function resolveImportPath(
     );
   }
 
-  const tsConfig = getTsConfig(path.dirname(importerPath));
+  const tsConfig = getTsConfig();
   const config = tsConfig?.config;
 
   if (config?.paths) {
