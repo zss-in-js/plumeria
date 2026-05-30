@@ -47,7 +47,7 @@
   "devDependencies": {
     "@types/eslint": "^9.6.1",
     "@types/estree": "^1.0.9",
-    "@typescript-eslint/parser": "^8.59.3",
+    "@typescript-eslint/parser": "^8.60.0",
     "eslint": "^10.4.0"
   },
   "publishConfig": {
@@ -55,7 +55,7 @@
     "provenance": true
   },
   "dependencies": {
-    "@typescript-eslint/utils": "^8.59.3",
+    "@typescript-eslint/utils": "^8.60.0",
     "known-css-properties": "^0.37.0"
   }
 }
