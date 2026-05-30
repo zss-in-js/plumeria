@@ -12,10 +12,10 @@ export async function optimizer(cssCode: string): Promise<string> {
     code: Buffer.from(merged.css),
     minify: process.env.NODE_ENV === 'production',
     targets: {
-      safari: 16,
-      edge: 110,
-      firefox: 110,
-      chrome: 110,
+      safari: 16 << 16,
+      edge: 110 << 16,
+      firefox: 110 << 16,
+      chrome: 110 << 16,
     },
   });
 
