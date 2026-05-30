@@ -177,7 +177,7 @@ const styles = css.create({
 
 export const Box = () => {
   return (
-    <div styleName={styles.box}>Hello, Plumeria Box!</div>
+    <div styleName={styles.box}>Box</div>
   );
 };`;
 
@@ -213,7 +213,7 @@ export const HomeComponent = () => {
         <section styleName={styles.featuresSection}>
           <div styleName={styles.featureCard}>
             <div styleName={styles.featureIcon}>{svg.Ghost()}</div>
-            <h3 styleName={styles.featureTitle}>Ghost</h3>
+            <h3 styleName={styles.featureTitle}>Ghostly</h3>
             <p styleName={styles.featureDescription}>
               The core implementation does not use JavaScript. Therefore, there is no footprint.
             </p>
