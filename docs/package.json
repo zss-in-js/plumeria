@@ -12,17 +12,17 @@
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
-    "fumadocs-core": "^16.8.11",
+    "fumadocs-core": "^16.9.3",
     "fumadocs-mdx": "^15.0.5",
-    "fumadocs-ui": "^16.8.11",
+    "fumadocs-ui": "^16.9.3",
     "geist": "^1.7.0",
-    "katex": "^0.16.47",
+    "katex": "^0.17.0",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
-    "shiki": "^4.0.2",
+    "shiki": "^4.1.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
