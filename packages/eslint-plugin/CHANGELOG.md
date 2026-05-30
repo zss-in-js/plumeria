@@ -1,3 +1,9 @@
+## 12.0.7
+
+### Patch Changes
+
+- b34c654: Update dependencies
+
 ## 12.0.6
 
 ### Patch Changes

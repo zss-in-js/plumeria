@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 12.0.7
+
+### Patch Changes
+
+- b34c654: Update dependencies
+- Updated dependencies [b34c654]
+  - @plumeria/utils@12.0.7
+
 ## 12.0.6
 
 ### Patch Changes
