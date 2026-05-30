@@ -27,12 +27,6 @@ const styles = css.create({
       cursor: 'not-allowed',
       opacity: 0.6,
     },
-    ':active': {
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.02)',
-    },
-    ':focus': {
-      outline: 'none',
-    },
   },
   getstarted: {
     color: 'var(--text-main-header-line)',
@@ -40,11 +34,13 @@ const styles = css.create({
     borderRadius: '16px',
     boxShadow: 'var(--card-box-shadow)',
     transition: 'all 0.3s ease',
-    [pseudos.hover]: {
-      scale: 1.1,
-    },
     [breakpoints.md]: {
       padding: '12px 24px',
+    },
+    '@media (any-hover: hover)': {
+      [pseudos.hover]: {
+        scale: 1.1,
+      },
     },
   },
   installation: {
