@@ -23,7 +23,7 @@
     "swc-loader": "^0.2.7",
     "typescript": "^6.0.3",
     "webpack": "catalog:",
-    "webpack-cli": "^7.0.2",
+    "webpack-cli": "^7.0.3",
     "webpack-dev-server": "^5.2.4"
   }
 }
