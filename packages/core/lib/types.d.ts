@@ -2,10 +2,16 @@ import type { CSSTypes } from './csstypes';
 
 type CSSVariableKey = `--${string}`;
 type CSSVariableValue = `var(${CSSVariableKey})`;
-type CSSVariableProperty = { [key: CSSVariableKey]: string | number };
+type ThemeValue = {
+  default: string | number;
+  theme: string | number;
+};
+type CSSVariableProperty = {
+  [key: CSSVariableKey]: string | number | ThemeValue;
+};
 
 type CommonProperties = {
-  [K in keyof CSSTypes]: CSSTypes[K] | CSSVariableValue;
+  [K in keyof CSSTypes]: CSSTypes[K] | CSSVariableValue | ThemeValue;
 };
 
 type ArrayString = `[${string}`;
@@ -47,12 +53,11 @@ type StyleName = CSSProperties | (false | CSSProperties | null | undefined)[];
 type CreateStatic = Record<string, string | number>;
 
 type CreateTheme = {
-  [key: string]: {
-    default: string | number;
-    theme: string | number;
-  };
+  [key: string]: ThemeValue;
 };
-type ReturnVariableType<T> = { [K in keyof T]: CSSVariableValue };
+type CreateThemeReturnType<T> = {
+  readonly [K in keyof T]: Readonly<T[K]>;
+};
 
 type KeyframesInSelector = 'from' | 'to' | `${number}%`;
 type Keyframes = {
@@ -86,7 +91,7 @@ export type {
   CreateTheme,
   Keyframes,
   ViewTransition,
-  ReturnVariableType,
+  CreateThemeReturnType,
   Variants,
   Marker,
   Extended,
