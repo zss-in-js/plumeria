@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 13.0.1
+
+### Patch Changes
+
+- 3afcccd: Fix atomize createTheme
+
 ## 13.0.0
 
 ### Major Changes
