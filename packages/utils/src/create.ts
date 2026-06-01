@@ -1,10 +1,11 @@
+import type { CSSProperties } from 'zss-engine';
 import {
-  CSSProperties,
   splitAtomicAndNested,
   processAtomicProps,
   genBase36Hash,
   overrideLonghand,
   transpileAtomic,
+  isAtRule,
 } from 'zss-engine';
 
 export interface StyleRecord {
@@ -24,7 +25,7 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
   const records: StyleRecord[] = [];
 
   Object.entries(finalFlat).forEach(([prop, value]) => {
-    if (prop.startsWith('@media') || prop.startsWith('@container')) {
+    if (isAtRule(prop)) {
       Object.entries(value).forEach(([innerProp, innerValue]) => {
         const atomicMap = new Map<string, string>();
         const notSuffix = innerProp.startsWith('--') ? '' : notNormalize;
@@ -72,7 +73,7 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
     const nonFlatQuery: Record<string, CSSProperties> = {};
 
     Object.entries(nonFlat).forEach(([atRule, nestedObj]) => {
-      if (atRule.startsWith('@media') || atRule.startsWith('@container')) {
+      if (isAtRule(atRule)) {
         nonFlatQuery[atRule] = nestedObj;
       } else {
         nonFlatBase[atRule] = nestedObj;
