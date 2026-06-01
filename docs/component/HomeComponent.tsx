@@ -4,6 +4,7 @@ import { Plumeria } from './Plumeria';
 import { CodeBlock, InstallCode } from './CodeBlock';
 import { ButtonLink } from './ButtonLink';
 import { svg } from './svg';
+import { theme } from 'lib/theme';
 
 const styles = css.create({
   container: {
@@ -58,7 +59,7 @@ const styles = css.create({
     fontSize: 51.2,
     fontWeight: 600,
     lineHeight: 1,
-    color: 'var(--text-main-header-line)',
+    color: theme.textMainHeaderLine,
     textAlign: 'left',
     [breakpoints.md]: {
       marginBottom: 8,
@@ -75,7 +76,7 @@ const styles = css.create({
     fontSize: 24,
     fontWeight: 420,
     lineHeight: 1.6,
-    color: 'var(--text-secondary)',
+    color: theme.textSecondary,
     textAlign: 'left',
     letterSpacing: '0.026em',
     [breakpoints.md]: {
@@ -128,9 +129,9 @@ const styles = css.create({
   featureCard: {
     position: 'relative',
     padding: '24px',
-    background: 'var(--card-bg)',
+    background: theme.cardBg,
     borderRadius: '16px',
-    boxShadow: 'var(--card-box-shadow)',
+    boxShadow: theme.cardBoxShadow,
     transition: 'all 0.3s ease',
     [breakpoints.md]: {
       padding: '24px',
@@ -145,8 +146,8 @@ const styles = css.create({
     height: '48px',
     marginBottom: '20px',
     fontSize: 18,
-    color: 'var(--icon-color)',
-    background: 'var(--icon-bg)',
+    color: theme.iconColor,
+    background: theme.iconBg,
     borderRadius: '8px',
   },
 
@@ -154,14 +155,14 @@ const styles = css.create({
     marginBottom: '12px',
     fontSize: 18,
     fontWeight: 600,
-    color: 'var(--text-main-header-line)',
+    color: theme.textMainHeaderLine,
   },
 
   featureDescription: {
     fontSize: 14,
     fontWeight: 400,
     lineHeight: 1.6,
-    color: 'var(--text-secondary)',
+    color: theme.textSecondary,
   },
 });
 
