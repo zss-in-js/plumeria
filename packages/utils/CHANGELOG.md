@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 13.0.0
+
+### Major Changes
+
+- 08751c3: Support new createTheme
+
 ## 12.0.8
 
 ### Patch Changes

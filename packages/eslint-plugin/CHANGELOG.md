@@ -1,3 +1,9 @@
+## 13.0.0
+
+### Major Changes
+
+- 08751c3: Bump version to 13.0.0
+
 ## 12.0.8
 
 ### Patch Changes

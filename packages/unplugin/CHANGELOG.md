@@ -1,5 +1,16 @@
 # @plumeria/unplugin
 
+## 13.0.0
+
+### Major Changes
+
+- 08751c3: Support new createTheme and robust error handling
+
+### Patch Changes
+
+- Updated dependencies [08751c3]
+  - @plumeria/utils@13.0.0
+
 ## 12.0.8
 
 ### Patch Changes
