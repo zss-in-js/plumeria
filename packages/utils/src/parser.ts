@@ -7,13 +7,14 @@ import type {
   KeyframesObjectTable,
   ViewTransitionHashTable,
   ViewTransitionObjectTable,
-  CreateThemeObjectTable,
   CreateHashTable,
   CreateObjectTable,
   CreateAtomicMapTable,
   VariantsHashTable,
   VariantsObjectTable,
   CreateThemeHashTable,
+  CreateThemeObjectTable,
+  CreateThemeSelectorTable,
   CreateStaticHashTable,
   CreateStaticObjectTable,
 } from './types';
@@ -878,8 +879,10 @@ function resolveCreateThemeTableMemberExpressionByNode(
         }
 
         if (key && themeObj[key] !== undefined) {
+          const value = themeObj[key];
+          const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
           const cssVarName = camelToKebabCase(key);
-          return `var(--${hash}-${cssVarName})`;
+          return `var(--${atomicHash}-${cssVarName})`;
         }
       }
     }
@@ -927,6 +930,7 @@ interface CachedData {
   viewTransitionHashTable: ViewTransitionHashTable;
   viewTransitionObjectTable: ViewTransitionObjectTable;
   createThemeHashTable: CreateThemeHashTable;
+  createThemeSelectorTable: CreateThemeSelectorTable;
   createThemeObjectTable: CreateThemeObjectTable;
   createHashTable: CreateHashTable;
   createObjectTable: CreateObjectTable;
@@ -953,6 +957,7 @@ export function scanAll(): Tables {
     viewTransitionHashTable: {},
     viewTransitionObjectTable: {},
     createThemeObjectTable: {},
+    createThemeSelectorTable: {},
     createHashTable: {},
     createObjectTable: {},
     createAtomicMapTable: {},
@@ -1005,6 +1010,10 @@ export function scanAll(): Tables {
           for (const key of Object.keys(cached.createThemeObjectTable)) {
             localTables.createThemeObjectTable[key] =
               cached.createThemeObjectTable[key];
+          }
+          for (const key of Object.keys(cached.createThemeSelectorTable)) {
+            localTables.createThemeSelectorTable[key] =
+              cached.createThemeSelectorTable[key];
           }
           for (const key of Object.keys(cached.createStaticHashTable)) {
             localTables.createStaticHashTable[`${filePath}-${key}`] =
@@ -1059,6 +1068,7 @@ export function scanAll(): Tables {
           viewTransitionHashTable: {},
           viewTransitionObjectTable: {},
           createThemeHashTable: {},
+          createThemeSelectorTable: {},
           createThemeObjectTable: {},
           createHashTable: {},
           createObjectTable: {},
@@ -1095,6 +1105,7 @@ export function scanAll(): Tables {
         const localViewTransitionHashTable: ViewTransitionHashTable = {};
         const localViewTransitionObjectTable: ViewTransitionObjectTable = {};
         const localCreateThemeObjectTable: CreateThemeObjectTable = {};
+        const localCreateThemeSelectorTable: CreateThemeSelectorTable = {};
         const localCreateHashTable: CreateHashTable = {};
         const localCreateObjectTable: CreateObjectTable = {};
         const localCreateAtomicMapTable: CreateAtomicMapTable = {};
@@ -1223,10 +1234,15 @@ export function scanAll(): Tables {
                 }
               }
 
+              const isCreateTheme = method === 'createTheme';
               if (
                 method &&
                 decl.init.arguments.length > 0 &&
-                t.isObjectExpression(decl.init.arguments[0].expression)
+                ((!isCreateTheme &&
+                  t.isObjectExpression(decl.init.arguments[0].expression)) ||
+                  (isCreateTheme &&
+                    decl.init.arguments.length >= 2 &&
+                    t.isObjectExpression(decl.init.arguments[1].expression)))
               ) {
                 const name = decl.id.value;
                 const init = decl.init;
@@ -1239,8 +1255,12 @@ export function scanAll(): Tables {
                   return undefined;
                 };
 
+                const objExpression = isCreateTheme
+                  ? (init.arguments[1].expression as ObjectExpression)
+                  : (init.arguments[0].expression as ObjectExpression);
+
                 const obj = objectExpressionToObject(
-                  init.arguments[0].expression as ObjectExpression,
+                  objExpression,
                   localStaticTable,
                   localKeyframesHashTable,
                   localViewTransitionHashTable,
@@ -1290,16 +1310,23 @@ export function scanAll(): Tables {
                   localTables.viewTransitionObjectTable[hash] = obj;
                   localViewTransitionObjectTable[hash] = obj;
                 } else if (method === 'createTheme') {
+                  let selector = '';
+                  const selectorExpr = init.arguments[0].expression;
+                  if (t.isStringLiteral(selectorExpr)) {
+                    selector = selectorExpr.value;
+                  }
                   const hash = genBase36Hash(obj, 1, 8);
                   localTables.createThemeObjectTable[hash] = obj;
                   localCreateThemeObjectTable[hash] = obj;
                   localCreateThemeHashTable[name] = hash;
                   localTables.createThemeHashTable[uniqueKey] = hash;
-                  localTables.createThemeObjectTable[hash] = obj;
+                  localCreateThemeSelectorTable[hash] = selector;
+                  localTables.createThemeSelectorTable[hash] = selector;
                   const hashMap: Record<string, any> = {};
-                  for (const [key] of Object.entries(obj)) {
+                  for (const [key, value] of Object.entries(obj)) {
+                    const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
                     const cssVarName = camelToKebabCase(key);
-                    hashMap[key] = `var(--${hash}-${cssVarName})`;
+                    hashMap[key] = `var(--${atomicHash}-${cssVarName})`;
                   }
                   localCreateAtomicMapTable[hash] = hashMap;
                   localTables.createAtomicMapTable[hash] = hashMap;
@@ -1342,6 +1369,7 @@ export function scanAll(): Tables {
             viewTransitionHashTable: localViewTransitionHashTable,
             viewTransitionObjectTable: localViewTransitionObjectTable,
             createThemeHashTable: localCreateThemeHashTable,
+            createThemeSelectorTable: localCreateThemeSelectorTable,
             createThemeObjectTable: localCreateThemeObjectTable,
             createHashTable: localCreateHashTable,
             createObjectTable: localCreateObjectTable,
@@ -1484,19 +1512,22 @@ export function extractOndemandStyles(
       .forEach((themeVarName) => {
         const hash = t.createThemeHashTable[themeVarName];
         const definition = t.createThemeObjectTable[hash];
-        if (definition && typeof definition === 'object') {
+        const selector = t.createThemeSelectorTable[hash];
+        if (definition && typeof definition === 'object' && selector) {
           // Filter the definition to only include used variables
           const filteredDefinition: Record<string, any> = {};
           let hasUsed = false;
           Object.keys(definition).forEach((key) => {
-            const varName = `--${hash}-${camelToKebabCase(key)}`;
+            const value = definition[key];
+            const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
+            const varName = `--${atomicHash}-${camelToKebabCase(key)}`;
             if (usedVariables.has(varName)) {
-              filteredDefinition[key] = definition[key];
+              filteredDefinition[key] = value;
               hasUsed = true;
             }
           });
           if (hasUsed) {
-            const styles = createTheme(filteredDefinition, hash);
+            const styles = createTheme(selector, filteredDefinition);
             const { styleSheet } = transpile(styles, undefined, '--global');
             addSheet(styleSheet);
           }
