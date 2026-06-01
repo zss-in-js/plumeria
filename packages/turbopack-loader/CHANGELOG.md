@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 13.0.1
+
+### Patch Changes
+
+- 3afcccd: Fix add a colon to the regular expression
+- Updated dependencies [3afcccd]
+  - @plumeria/utils@13.0.1
+
 ## 13.0.0
 
 ### Major Changes
