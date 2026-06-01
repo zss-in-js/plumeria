@@ -46,7 +46,12 @@ type StyleName = CSSProperties | (false | CSSProperties | null | undefined)[];
 
 type CreateStatic = Record<string, string | number>;
 
-type CreateTheme = Record<string, Record<string, string | number>>;
+type CreateTheme = {
+  [key: string]: {
+    default: string | number;
+    theme: string | number;
+  };
+};
 type ReturnVariableType<T> = { [K in keyof T]: CSSVariableValue };
 
 type KeyframesInSelector = 'from' | 'to' | `${number}%`;
