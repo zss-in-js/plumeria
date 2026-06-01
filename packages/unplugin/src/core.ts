@@ -98,7 +98,8 @@ function cleanStaleThemeRules(acc: Set<string>, newSheets: string[]): void {
   for (const sheet of acc) {
     let hasStaleHash = false;
     for (const hash of hashes) {
-      if (sheet.includes(`--${hash}-`)) {
+      const declRegex = new RegExp(`--${hash}-[a-zA-Z0-9-]+:`);
+      if (declRegex.test(sheet)) {
         hasStaleHash = true;
         break;
       }
