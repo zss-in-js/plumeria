@@ -1,98 +1,122 @@
 ---
 title: css.createTheme
-description: 'API reference for the createTheme'
+description: 'API reference for createTheme'
 ---
 
 ```ts
-export type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
+type CreateTheme = {
+  [key: string]: {
+    default: string | number;
+    theme: string | number;
+  };
+};
+
+export type createTheme = <const T extends CreateTheme>(
+  themeSelector: string,
+  rule: T,
+) => ReturnVariableType<T>;
+
 export const createTheme: createTheme;
 ```
-`createTheme` defines global CSS variables for each theme.  
-Since a unique hash is automatically prepended to the generated variable names, there is no risk of name collisions with other themes or global CSS variables.
 
-## Example
+`createTheme` defines scoped, dynamic CSS variables for custom themes.  
+Since a unique hash is automatically prepended to the generated variable names, there is zero risk of name collisions with other themes or global CSS variables.
+
+---
+
+## selector Patterns & Compiled CSS
+
+`createTheme` supports class names, attribute selectors, and nesting-capable conditional at-rules (like `@media`, `@container`, `@layer`, `@scope` and `@supports`). Here are three common selector patterns and their compiled native CSS outputs:
+
+### 1. Class-based Selector (`.dark`)
+
+Excellent for toggling themes by adding a class to the root element.
 
 ```ts
-import * as css from '@plumeria/core'
+import * as css from '@plumeria/core';
 
-export const theme = css.createTheme({
-  colors: {
-    default: 'black',
-    dark: 'white'
+export const theme = css.createTheme('.dark', {
+  text: {
+    default: '#333',
+    theme: '#eaeaea',
   },
-  bg: {
-    default: 'white',
-    dark: 'black'
-  }
-})
+});
 ```
 
-This will generate the following CSS
+**Compiled CSS:**
 
 ```css
-:root {
-  --xukqmak7-colors: black;
-  --xukqmak7-bg: white;
+:where(:root) {
+  --xkktl0fl-text: #333;
 }
 
-[data-theme="dark"] {
-  --xukqmak7-colors: white;
-  --xukqmak7-bg: black;
+.dark {
+  --xkktl0fl-text: #eaeaea;
 }
 ```
 
-### Using Themes
+---
 
-To use themes, you need to add the `data-theme` attribute to the root element.
+### 2. Attribute-based Selector (`[data-theme="dark"]`)
 
-```tsx
-<html data-theme="dark">
-  <body>
-    ...
-  </body>
-</html>
-```
-
-
-
-## Media Queries
-
-`createTheme` can also be used with media queries.
+Great for attribute-based theme setups (e.g. Next-Themes).
 
 ```ts
-export const theme = css.createTheme({
-  colors: {
-    default: 'black',
-    dark: 'white',
-    '@media (prefers-color-scheme: dark)': 'white'
-  }
-})
+import * as css from '@plumeria/core';
 
-// theme evaluates to:
-// {
-//   colors: 'var(--xukqmak7-colors)'
-// }
+export const theme = css.createTheme('[data-theme="dark"]', {
+  text: {
+    default: '#333',
+    theme: '#eaeaea',
+  },
+});
 ```
 
-This will generate the following CSS
+**Compiled CSS:**
 
 ```css
-:root {
-  --xukqmak7-colors: black;
+:where(:root) {
+  --xkktl0fl-text: #333;
 }
 
 [data-theme="dark"] {
-  --xukqmak7-colors: white;
+  --xkktl0fl-text: #eaeaea;
+}
+```
+
+---
+
+### 3. Media Query (`@media (prefers-color-scheme: dark)`)
+
+Ideal for automatic system-level dark mode switching without any JavaScript.
+
+```ts
+import * as css from '@plumeria/core';
+
+export const theme = css.createTheme('@media (prefers-color-scheme: dark)', {
+  text: {
+    default: '#333',
+    theme: '#eaeaea',
+  },
+});
+```
+
+**Compiled CSS:**
+
+```css
+:where(:root) {
+  --xkktl0fl-text: #333;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --xukqmak7-colors: white;
+  :where(:root) {
+    --xkktl0fl-text: #eaeaea;
   }
 }
 ```
 
+---
 
 <Callout title="Good to know">
-All APIs, including createTheme, are not compiled until the variable is used.
-</Callout >
+All APIs, including createTheme, are not compiled until the theme variable is actually used in a styling block.
+</Callout>
