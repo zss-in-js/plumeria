@@ -1,9 +1,9 @@
 /**
- * Type definitions only. No runtime implementation provided.\
- * Configure the bundler plugin to extract and implement these APIs.
+ * Type definitions. Without runtime implementation.\
+ * Bundler plugin required.
  * ```ts
  * type create = <const T extends Record<string, CreateStyleValue>>(rule: T)=> CreateReturnType<T>;
- * type createTheme = <const T extends CreateTheme>(themeSelector: string, rule: T) => ReturnVariableType<T>;
+ * type createTheme = <const T extends CreateTheme>(themeSelector: string, rule: T) => CreateThemeReturnType<T>;
  * type createStatic = <const T extends CreateStatic>(rule: T)=> T;
  * type keyframes = <const T extends Keyframes>(rule: T) => string;
  * type viewTransition = <const T extends ViewTransition>(rule: T) => string;
@@ -21,9 +21,9 @@ declare module '@plumeria/core' {
     CreateReturnType,
     CreateStatic,
     CreateTheme,
+    CreateThemeReturnType,
     Keyframes,
     ViewTransition,
-    ReturnVariableType,
     Variants,
     Marker,
     Extended,
@@ -48,7 +48,7 @@ declare module '@plumeria/core' {
   export type createTheme = <const T extends CreateTheme>(
     themeSelector: string,
     rule: T,
-  ) => ReturnVariableType<T>;
+  ) => CreateThemeReturnType<T>;
 
   export const createStatic: createStatic;
   export type createStatic = <const T extends CreateStatic>(rule: T) => T;
