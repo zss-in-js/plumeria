@@ -2,6 +2,7 @@ import { codeToHtml } from 'shiki';
 import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import { CodeBlock as FumadocsCodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
+import { theme } from 'lib/theme';
 
 const styles = css.create({
   code_div: {
@@ -11,6 +12,10 @@ const styles = css.create({
     width: '100%',
     maxWidth: '590px',
     overflow: 'hidden',
+    background: theme.cardBg,
+    borderRadius: '16px',
+    boxShadow: theme.cardBoxShadow,
+    transition: 'all 0.3s ease',
     [breakpoints.md]: {
       maxWidth: '340px',
       overflowX: 'scroll',
@@ -25,6 +30,10 @@ const styles = css.create({
     width: 375,
     marginTop: 20,
     marginBottom: 20,
+    background: theme.cardBg,
+    borderRadius: '16px',
+    boxShadow: theme.cardBoxShadow,
+    transition: 'all 0.3s ease',
     [breakpoints.md]: {
       width: 290,
       marginTop: 10,
