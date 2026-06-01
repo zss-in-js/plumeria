@@ -25,6 +25,7 @@ import {
   genBase36Hash,
   exceptionCamelCase,
   camelToKebabCase,
+  isAtRule,
 } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 import {
@@ -84,6 +85,29 @@ interface StyleConditional {
 
 export const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx'];
 export const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx)$/;
+
+function cleanStaleThemeRules(acc: Set<string>, newSheets: string[]): void {
+  const newCss = newSheets.join('');
+  const hashRegex = /--([a-z0-9]{8})-[a-zA-Z0-9-]+/g;
+  const hashes = new Set<string>();
+  let match;
+  while ((match = hashRegex.exec(newCss)) !== null) {
+    hashes.add(match[1]);
+  }
+
+  for (const sheet of acc) {
+    let hasStaleHash = false;
+    for (const hash of hashes) {
+      if (sheet.includes(`--${hash}-`)) {
+        hasStaleHash = true;
+        break;
+      }
+    }
+    if (hasStaleHash && !newSheets.includes(sheet)) {
+      acc.delete(sheet);
+    }
+  }
+}
 
 export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
   options = {},
@@ -593,14 +617,27 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             }
           } else if (
             propName === 'createTheme' &&
-            t.isObjectExpression(init.arguments[0].expression)
+            init.arguments.length >= 2 &&
+            t.isObjectExpression(init.arguments[1].expression)
           ) {
             if (t.isIdentifier(node.id)) {
               idSpans.add(node.id.span.start);
             }
 
+            let selector = '';
+            const selectorExpr = init.arguments[0].expression;
+            if (t.isStringLiteral(selectorExpr)) {
+              selector = selectorExpr.value;
+            }
+
+            if (selector.startsWith('@') && !isAtRule(selector)) {
+              throw new Error(
+                `Plumeria: Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
+              );
+            }
+
             const obj = objectExpressionToObject(
-              init.arguments[0].expression as ObjectExpression,
+              init.arguments[1].expression as ObjectExpression,
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
@@ -618,13 +655,17 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
               scannedTables.createThemeHashTable[uniqueKey] = hash;
               scannedTables.createThemeObjectTable[hash] = obj;
+              if (scannedTables.createThemeSelectorTable) {
+                scannedTables.createThemeSelectorTable[hash] = selector;
+              }
 
               mergedCreateThemeHashTable[node.id.value] = hash;
 
               const themeHashMap: Record<string, any> = {};
-              for (const [key] of Object.entries(obj)) {
+              for (const [key, value] of Object.entries(obj)) {
                 const cssVarName = camelToKebabCase(key);
-                themeHashMap[key] = `var(--${hash}-${cssVarName})`;
+                const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
+                themeHashMap[key] = `var(--${atomicHash}-${cssVarName})`;
               }
 
               localCreateStyles[node.id.value] = {
@@ -828,7 +869,40 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 content: JSON.stringify(`vt-${hash}`),
               });
             } else if (
-              (propName === 'createTheme' || propName === 'createStatic') &&
+              propName === 'createTheme' &&
+              args.length >= 2 &&
+              t.isObjectExpression(args[1].expression)
+            ) {
+              let selector = '';
+              const selectorExpr = args[0].expression;
+              if (t.isStringLiteral(selectorExpr)) {
+                selector = selectorExpr.value;
+              }
+
+              if (selector.startsWith('@') && !isAtRule(selector)) {
+                throw new Error(
+                  `Plumeria: Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
+                );
+              }
+              const obj = objectExpressionToObject(
+                args[1].expression as ObjectExpression,
+                mergedStaticTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
+                mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
+                mergedVariantsTable,
+              );
+              const hash = genBase36Hash(obj, 1, 8);
+              scannedTables.createThemeObjectTable[hash] = obj;
+              if (scannedTables.createThemeSelectorTable) {
+                scannedTables.createThemeSelectorTable[hash] = selector;
+              }
+            } else if (
+              propName === 'createStatic' &&
               args.length > 0 &&
               t.isObjectExpression(args[0].expression)
             ) {
@@ -845,11 +919,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
-              if (propName === 'createTheme') {
-                scannedTables.createThemeObjectTable[hash] = obj;
-              } else {
-                scannedTables.createStaticObjectTable[hash] = obj;
-              }
+              scannedTables.createStaticObjectTable[hash] = obj;
             } else if (
               propName === 'create' &&
               args.length > 0 &&
@@ -1923,6 +1993,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             devCssSheets.set(cssFilename, new Set());
           }
           const acc = devCssSheets.get(cssFilename)!;
+
+          cleanStaleThemeRules(acc, extractedSheets);
+
           extractedSheets.forEach((sheet) => acc.add(sheet));
           const accCSS = await optimizer(Array.from(acc).join(''));
           cssLookup.set(cssFilename, accCSS);
