@@ -300,28 +300,32 @@ export const styles = css.create({
 ```
 
 ### `css.createTheme()`
-Defines CSS variables shared globally. It maps theme states (like `default` and `dark`) or media queries to specific variable values. These values are inlined when compiled.
+Defines scoped, dynamic CSS variables for custom themes. It takes the selector to apply as the **first argument**, and an object defining the default value and theme value (using `{ default, theme }` structure) as the **second argument**.
+
+Since a unique hash is automatically prepended to the generated variable names, there is zero risk of name collisions with other themes or global CSS variables.
+
+All theme values are only compiled when the theme variable is actually used in a styling block.
 
 ```tsx
 import * as css from '@plumeria/core';
 
-export const theme = css.createTheme({
-  colors: {
-    default: 'black',
-    dark: 'white',
-    '@media (prefers-color-scheme: dark)': 'white'
+// Class-based theme
+export const theme = css.createTheme('.dark', {
+  text: {
+    default: '#333',
+    theme: '#eaeaea',
   },
-  bg: {
+  background: {
     default: 'white',
-    dark: 'black'
-  }
+    theme: 'black',
+  },
 });
 
-// Generates:
-// :root { --colors: black; --bg: white; }
-// [data-theme="dark"] { --colors: white; --bg: black; }
-// @media (prefers-color-scheme: dark) { :root { --colors: white; } }
+// Attribute-based theme ([data-theme="dark"]) or Media queries (@media (prefers-color-scheme: dark)) are also supported:
+// export const theme = css.createTheme('[data-theme="dark"]', { ... });
+// export const theme = css.createTheme('@media (prefers-color-scheme: dark)', { ... });
 ```
+
 
 ## Styling Custom Components
 
