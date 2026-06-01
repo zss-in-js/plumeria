@@ -24,6 +24,12 @@ const plugin: PluginCreator<PlumeriaOptions> = (options = {}) => {
       }
 
       // Fill all caches called by the loader here
+      if (process.env.NODE_ENV === 'development') {
+        plumeriaAtRules.forEach((atRule) => {
+          atRule.remove();
+        });
+        return;
+      }
 
       const {
         cwd = process.cwd(),
