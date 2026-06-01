@@ -4,6 +4,14 @@ packages:
   - test-e2e/site
   - docs
 
+allowBuilds:
+  '@swc/core': true
+  core-js: true
+  core-js-pure: true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+
 catalog:
   '@rust-gear/glob': 1.0.0
   '@swc/core': 1.15.40
@@ -12,7 +20,10 @@ catalog:
   react: ^19.2.6
   react-dom: ^19.2.6
   webpack: 5.107.2
-  zss-engine: 2.2.8
+  zss-engine: 2.3.0
+
+minimumReleaseAgeExclude:
+  - zss-engine@2.3.0
 
 onlyBuiltDependencies:
   - '@swc/core'
