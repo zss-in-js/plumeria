@@ -1,5 +1,16 @@
 # @plumeria/postcss-plugin
 
+## 13.0.0
+
+### Major Changes
+
+- 08751c3: Disabled in dev mode
+
+### Patch Changes
+
+- Updated dependencies [08751c3]
+  - @plumeria/compiler@13.0.0
+
 ## 12.0.8
 
 ### Patch Changes
