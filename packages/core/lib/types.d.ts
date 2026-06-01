@@ -52,11 +52,13 @@ type StyleName = CSSProperties | (false | CSSProperties | null | undefined)[];
 
 type CreateStatic = Record<string, string | number>;
 
+type ReadonlyTheme<T> = Readonly<T> & CSSVariableValue;
+
 type CreateTheme = {
   [key: string]: ThemeValue;
 };
 type CreateThemeReturnType<T> = {
-  readonly [K in keyof T]: Readonly<T[K]>;
+  readonly [K in keyof T]: ReadonlyTheme<T[K]>;
 };
 
 type KeyframesInSelector = 'from' | 'to' | `${number}%`;
