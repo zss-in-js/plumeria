@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 13.0.2
+
+### Patch Changes
+
+- 37f0541: Fix add ReadonlyTheme in types.d.ts
+
 ## 13.0.1
 
 ### Patch Changes
