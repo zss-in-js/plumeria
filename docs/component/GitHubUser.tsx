@@ -1,6 +1,7 @@
 'use cache';
 
 import * as css from '@plumeria/core';
+import { theme } from 'lib/theme';
 
 const pulse = css.keyframes({
   '0%': {
@@ -57,11 +58,11 @@ const styles = css.create({
     fontSize: 14,
     fontWeight: 400,
     lineHeight: 1.2,
-    color: 'var(--text-secondary)',
+    color: theme.textSecondary,
     opacity: 0.8,
   },
   skeleton: {
-    background: 'var(--icon-bg)',
+    background: theme.iconBg,
     borderRadius: 4,
   },
   pulseAnimation: {
