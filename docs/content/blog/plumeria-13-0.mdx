@@ -1,0 +1,113 @@
+---
+title: 'Plumeria 13.0'
+description: 'Ultra robust type-safe theme functionality with the new "createTheme" API'
+date: '2026-06-01'
+---
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 13.0.0 has been released! 🎉
+
+This version features a **redesigned `createTheme` API** to make theme functionality safer and easier to write.
+
+---
+
+## 1. New `createTheme` API
+
+To maximize type safety in theme definitions, the argument structure of the `createTheme` API has been redesigned.
+
+### Background and Design of the Change
+Previously, `createTheme` was fixed to the `data-theme` attribute, making it difficult to use as it couldn't handle other selectors such as classes or media queries.
+The new API takes the selector to apply as the **first argument** and defines the default value and theme value as an object in the **second argument** using the `{ default, theme }` structure.
+
+```ts title="types.d.ts"
+type CreateTheme = {
+  [key: string]: {
+    default: string | number;
+    theme: string | number;
+  };
+};
+```
+
+### Code Example
+Besides `.dark`, you can also pass arguments such as `[data-theme="dark"]` and `"@media (prefers-color-scheme: light)"`!
+
+```ts
+import * as css from '@plumeria/core';
+// Here, we're passing the standard Tailwind theme, .dark, as an example.
+export const theme = css.createTheme('.dark', {
+  text: {
+    default: '#333', // Default value (light mode, etc.)
+    theme: '#eaeaea',  // Value when the selector (.dark) is applied
+  },
+  background: {
+    default: 'white',
+    theme: 'black',
+  }
+});
+```
+
+---
+
+- **Automatic dot addition**: Even if you write `dark`, it will be interpreted as `.dark`. If it starts with `@`, `[`, `#`, or `:`, it will be interpreted as is.
+
+---
+
+## 2. Compiled CSS Output (Build Result)
+
+Plumeria's compilation engine converts JavaScript theme objects into efficient and lightweight native CSS variables.
+
+The above `createTheme` definition will be output as clean CSS like the following during the build process:
+
+```css
+/* When using theme.text */
+:root {
+  --xkktl0fl-text: #333;
+}
+
+.dark {
+  --xkktl0fl-text: #eaeaea;
+}
+
+.xc7ocvtc {
+  color: var(--xkktl0fl-text);
+}
+```
+
+For details, see the API [createTheme](/docs/api-reference/javascript/createTheme)
+
+---
+
+## 3. Realizing a Self-Healing, Robust HMR Environment
+
+To further strengthen the developer experience (DX) during local development, we have introduced **"Self-Healing Error Handling (Self-Healing HMR)"** which prevents design breakdowns when code typos or temporary compilation errors occur, and automatically restores the original state when corrected.
+
+### What kind of function is it?
+- **Prevents Instant Style Dropouts**: Even if a coding error or temporary compilation error occurs during development, the entire screen's style will not suddenly drop to a blank white screen. **The previous, correct style display will be perfectly preserved.**
+- **Instant and Automatic HMR Recovery**: Correcting and saving the code error will instantly and automatically restore the latest correct style state without restarting the development server or manually resetting files.
+
+### Technical Mechanism
+- **`@plumeria/turbopack-loader` (for Next.js/Turbopack)**: A secure automatic recovery mechanism has been built that rolls back the "last successful, correct CSS state" from memory to disk when a compilation exception occurs.
+- **`@plumeria/unplugin` (for Vite, Webpack, Farm)**: Achieves a consistently ultra-robust error-safe environment, identical to memory-based HMR such as Vite, by "maintaining a normal state without rewriting memory in case of errors and instantly self-repairing upon correction."
+
+---
+
+## 4. Other
+
+Updated to allow compilation of `@supports`, `@layer`, and `@scope`.  
+Impact:
+- `@plumeria/utils`
+- `@plumeria/compiler`
+- `@plumeria/turbopack-loader`
+- `@plumeria/unplugin`
+- `@plumeria/core`
+  
+
+---
+
+Plumeria continues to pursue the ultimate in developer experience (DX) and type safety.  
+Please try out the new theme features and the evolved, robust development environment.  
+Thank you for using it and We welcome your feedback!
