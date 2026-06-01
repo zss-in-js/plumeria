@@ -1,43 +1,43 @@
-import { camelToKebabCase } from 'zss-engine';
+import { camelToKebabCase, genBase36Hash, isAtRule } from 'zss-engine';
 import type { CreateTheme } from './types';
 
-const createTheme = <const T extends CreateTheme>(rule: T, hash?: string) => {
-  const styles: Record<
-    string,
-    Record<string, string | number | Record<string, string | number>>
-  > = {};
+const createTheme = <const T extends CreateTheme>(
+  themeSelector: string,
+  rule: T,
+) => {
+  const rootTarget: Record<string, string | number> = {};
+  const themeTarget: Record<string, string | number> = {};
+
   for (const key in rule) {
-    const varKey = hash
-      ? `--${hash}-${camelToKebabCase(key)}`
-      : `--${camelToKebabCase(key)}`;
-
-    const themeMap = rule[key];
-    for (const themeKey in themeMap) {
-      const value = themeMap[themeKey];
-
-      const isQuery =
-        themeKey.startsWith('@media') || themeKey.startsWith('@container');
-
-      const selector =
-        isQuery || themeKey === 'default'
-          ? ':root'
-          : `:root[data-theme="${themeKey}"]`;
-
-      const target = (styles[selector] ||= {});
-
-      if (isQuery) {
-        const queryObj = (target[themeKey] ||= {}) as Record<
-          string,
-          string | number
-        >;
-        queryObj[varKey] = value;
-      } else {
-        target[varKey] = value;
-      }
-    }
+    const valueObj = rule[key];
+    const hash = genBase36Hash({ [key]: valueObj }, 1, 8);
+    const cssVarName = `--${hash}-${camelToKebabCase(key)}`;
+    rootTarget[cssVarName] = valueObj.default;
+    themeTarget[cssVarName] = valueObj.theme;
   }
 
-  return styles;
+  if (isAtRule(themeSelector)) {
+    return {
+      ':where(:root)': {
+        ...rootTarget,
+        [themeSelector]: themeTarget,
+      },
+    };
+  }
+
+  const formattedSelector =
+    themeSelector.startsWith('@') ||
+    themeSelector.startsWith('.') ||
+    themeSelector.startsWith('#') ||
+    themeSelector.startsWith(':') ||
+    themeSelector.startsWith('[')
+      ? themeSelector
+      : '.' + themeSelector;
+
+  return {
+    ':where(:root)': rootTarget,
+    [formattedSelector]: themeTarget,
+  };
 };
 
 export { createTheme };
