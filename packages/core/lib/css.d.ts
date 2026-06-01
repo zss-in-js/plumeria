@@ -3,7 +3,7 @@
  * Configure the bundler plugin to extract and implement these APIs.
  * ```ts
  * type create = <const T extends Record<string, CreateStyleValue>>(rule: T)=> CreateReturnType<T>;
- * type createTheme = <const T extends CreateTheme>(rule: T)=> ReturnVariableType<T>;
+ * type createTheme = <const T extends CreateTheme>(themeSelector: string, rule: T) => ReturnVariableType<T>;
  * type createStatic = <const T extends CreateStatic>(rule: T)=> T;
  * type keyframes = <const T extends Keyframes>(rule: T) => string;
  * type viewTransition = <const T extends ViewTransition>(rule: T) => string;
@@ -46,6 +46,7 @@ declare module '@plumeria/core' {
 
   export const createTheme: createTheme;
   export type createTheme = <const T extends CreateTheme>(
+    themeSelector: string,
     rule: T,
   ) => ReturnVariableType<T>;
 
