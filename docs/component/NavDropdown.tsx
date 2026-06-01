@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import Link from 'next/link';
+import { theme } from 'lib/theme';
 
 const styles = css.create({
   container: {
@@ -20,7 +21,7 @@ const styles = css.create({
     padding: '6px 12px',
     fontSize: '14px',
     fontWeight: 500,
-    color: 'var(--text-secondary)',
+    color: theme.textSecondary,
     textDecoration: 'none',
     cursor: 'pointer',
     borderRadius: '8px',
@@ -31,20 +32,20 @@ const styles = css.create({
       width: '100%',
       padding: '12px 16px',
       fontSize: '16px',
-      color: 'var(--text-primary)',
+      color: theme.textPrimary,
       borderRadius: '8px',
       ':hover': {
-        backgroundColor: 'var(--icon-bg)',
+        background: theme.iconBg,
       },
     },
     ':hover': {
-      color: 'var(--text-primary)',
-      backgroundColor: 'var(--icon-bg)',
+      color: theme.textPrimary,
+      background: theme.iconBg,
     },
   },
   triggerHovered: {
-    color: 'var(--text-primary)',
-    backgroundColor: 'var(--icon-bg)',
+    color: theme.textPrimary,
+    background: theme.iconBg,
   },
   chevron: {
     display: 'inline-flex',
@@ -65,10 +66,10 @@ const styles = css.create({
     minWidth: '180px',
     padding: '6px',
     pointerEvents: 'none',
-    background: 'var(--dropdown-bg)',
-    border: '1px solid var(--card-border)',
+    background: theme.dropdownBg,
+    border: `1px solid ${theme.cardBorder}`,
     borderRadius: '12px',
-    boxShadow: 'var(--card-box-shadow)',
+    boxShadow: theme.cardBoxShadow,
     transform: 'translateY(4px)',
     transition: 'opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
     opacity: 0,
@@ -100,7 +101,7 @@ const styles = css.create({
     padding: '8px 12px',
     fontSize: '13px',
     fontWeight: 500,
-    color: 'var(--text-secondary)',
+    color: theme.textSecondary,
     textDecoration: 'none',
     borderRadius: '8px',
     transition: 'background-color 0.15s ease, color 0.15s ease',
@@ -109,15 +110,15 @@ const styles = css.create({
       fontSize: '14px',
     },
     ':hover': {
-      color: 'var(--text-primary)',
-      backgroundColor: 'var(--icon-bg)',
+      color: theme.textPrimary,
+      background: theme.iconBg,
     },
   },
   header: {
     padding: '6px 12px 2px 12px',
     fontSize: '12px',
     fontWeight: 600,
-    color: 'var(--text-primary)',
+    color: theme.textPrimary,
     letterSpacing: '0.05em',
     pointerEvents: 'none',
     [breakpoints.md]: {
@@ -128,7 +129,7 @@ const styles = css.create({
   divider: {
     height: '1px',
     margin: '6px 4px',
-    backgroundColor: 'var(--card-border)',
+    backgroundColor: theme.cardBorder,
     [breakpoints.md]: {
       margin: '6px 16px',
     },
