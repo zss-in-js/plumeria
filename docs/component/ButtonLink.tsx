@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { breakpoints } from 'lib/mediaQuery';
 import Link from 'next/link';
 import { pseudos } from 'lib/pseudos';
+import { theme } from 'lib/theme';
 
 const styles = css.create({
   button: {
@@ -29,10 +30,10 @@ const styles = css.create({
     },
   },
   getstarted: {
-    color: 'var(--text-main-header-line)',
-    background: 'var(--card-bg)',
+    color: theme.textMainHeaderLine,
+    background: theme.cardBg,
     borderRadius: '16px',
-    boxShadow: 'var(--card-box-shadow)',
+    boxShadow: theme.cardBoxShadow,
     transition: 'all 0.3s ease',
     [breakpoints.md]: {
       padding: '12px 24px',
@@ -44,10 +45,10 @@ const styles = css.create({
     },
   },
   installation: {
-    color: 'var(--text-main-header-line)',
-    background: 'var(--card-bg)',
+    color: theme.textMainHeaderLine,
+    background: theme.cardBg,
     borderRadius: '16px',
-    boxShadow: 'var(--card-box-shadow)',
+    boxShadow: theme.cardBoxShadow,
     transition: 'all 0.3s ease',
     [pseudos.hover]: {
       scale: 1.05,
