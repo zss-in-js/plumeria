@@ -27,6 +27,7 @@ export type CreateAtomicMapTable = Record<
 export type CreateStaticHashTable = Record<string, string>; // varName -> hash
 export type CreateStaticObjectTable = Record<string, CSSObject>;
 export type CreateThemeHashTable = Record<string, string>; // varName -> hash
+export type CreateThemeSelectorTable = Record<string, string>; // hash -> CSS selector
 
 export interface Tables {
   staticTable: StaticTable;
@@ -35,6 +36,7 @@ export interface Tables {
   viewTransitionHashTable: ViewTransitionHashTable;
   viewTransitionObjectTable: ViewTransitionObjectTable;
   createThemeHashTable: CreateThemeHashTable;
+  createThemeSelectorTable: CreateThemeSelectorTable;
   createThemeObjectTable: CreateThemeObjectTable;
   createHashTable: CreateHashTable;
   createObjectTable: CreateObjectTable;
@@ -45,7 +47,12 @@ export interface Tables {
   variantsObjectTable: VariantsObjectTable;
 }
 
-export type CreateTheme = Record<string, Record<string, string | number>>;
+export type CreateTheme = {
+  [key: string]: {
+    default: string | number;
+    theme: string | number;
+  };
+};
 
 export type ViewTransition = {
   group?: CSSProperties;
