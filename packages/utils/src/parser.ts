@@ -17,6 +17,7 @@ import type {
   CreateThemeSelectorTable,
   CreateStaticHashTable,
   CreateStaticObjectTable,
+  CreateTheme,
 } from './types';
 
 import { createTheme } from './createTheme';
@@ -1514,23 +1515,18 @@ export function extractOndemandStyles(
         const definition = t.createThemeObjectTable[hash];
         const selector = t.createThemeSelectorTable[hash];
         if (definition && typeof definition === 'object' && selector) {
-          // Filter the definition to only include used variables
-          const filteredDefinition: Record<string, any> = {};
-          let hasUsed = false;
           Object.keys(definition).forEach((key) => {
             const value = definition[key];
             const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
             const varName = `--${atomicHash}-${camelToKebabCase(key)}`;
             if (usedVariables.has(varName)) {
-              filteredDefinition[key] = value;
-              hasUsed = true;
+              const styles = createTheme(selector, {
+                [key]: value,
+              } as CreateTheme);
+              const { styleSheet } = transpile(styles, undefined, '--global');
+              addSheet(styleSheet);
             }
           });
-          if (hasUsed) {
-            const styles = createTheme(selector, filteredDefinition);
-            const { styleSheet } = transpile(styles, undefined, '--global');
-            addSheet(styleSheet);
-          }
         }
       });
   }
