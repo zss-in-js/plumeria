@@ -100,8 +100,10 @@ function cleanStaleThemeRules(currentCss: string, optInCss: string): string {
   let cleanedCss = currentCss;
   for (const hash of hashes) {
     // Matches nested rules like AtRule (Type B) OR standard rules (Type A)
+    // Adding a colon after the variable name to target only the variable definition,
+    // avoiding matching other rules that reference the variable (e.g. background: var(--hash-varName)).
     const ruleRegex = new RegExp(
-      `(@[a-zA-Z]+[^{]*\\{[^{]*\\{[^\\}]*--${hash}-[a-zA-Z0-9-]+[^\\}]*\\}[^\\}]*\\})|([^\\}]*\\{[^\\}]*--${hash}-[a-zA-Z0-9-]+[^\\}]*\\})`,
+      `(@[a-zA-Z]+[^{]*\\{[^{]*\\{[^\\}]*--${hash}-[a-zA-Z0-9-]+:[^\\}]*\\}[^\\}]*\\})|([^\\}]*\\{[^\\}]*--${hash}-[a-zA-Z0-9-]+:[^\\}]*\\})`,
       'g',
     );
     cleanedCss = cleanedCss.replace(ruleRegex, '');
