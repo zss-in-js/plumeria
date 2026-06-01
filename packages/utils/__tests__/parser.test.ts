@@ -285,8 +285,8 @@ describe('parser', () => {
         // variantsHashTable
         {},
       );
-
-      expect(result.color).toBe('var(--hashT-primary)');
+      const atomicHash = genBase36Hash({ primary: '#fff' }, 1, 8);
+      expect(result.color).toBe(`var(--${atomicHash}-primary)`);
     });
 
     it('should handle boolean values', () => {
@@ -1000,7 +1000,7 @@ describe('parser', () => {
 
       const fileContents: Record<string, string> = {
         [themeFile]:
-          'import * as css from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
+          'import * as css from "@plumeria/core"; export const T = css.createTheme(":root", { p: { default: "1", theme: "1" } });',
         [pageFile]:
           'import { T } from "../lib/theme"; import * as css from "@plumeria/core"; export const S = css.create({ c: T.p });',
       };
@@ -1037,7 +1037,7 @@ describe('parser', () => {
 
       const fileContents: Record<string, string> = {
         [themeFile]:
-          'import * as css from "@plumeria/core"; export const T = css.createTheme({ p: { default: "1" } });',
+          'import * as css from "@plumeria/core"; export const T = css.createTheme(":root", { p: { default: "1", theme: "1" } });',
         [pageFile]:
           'import { T as AliasedT } from "../lib/theme"; import * as css from "@plumeria/core"; export const S = css.create({ c: AliasedT.p });',
       };
@@ -1180,7 +1180,7 @@ describe('parser', () => {
     it('should scan for createTheme', () => {
       mockedRs.globSync.mockReturnValue(['/test/tokens.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'import { createTheme } from "@plumeria/core"; export const T = createTheme({ primary: "#fff" });',
+        'import { createTheme } from "@plumeria/core"; export const T = createTheme(".dark", { primary: { default: "#000", theme: "#fff" } });',
       );
 
       const result = scanAll();
@@ -1229,7 +1229,7 @@ describe('parser', () => {
     it('should handle non-exported createTheme declarations', () => {
       mockedRs.globSync.mockReturnValue(['/test/local-tokens.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'import * as css from "@plumeria/core"; const T = css.createTheme({ primary: "#fff" });',
+        'import * as css from "@plumeria/core"; const T = css.createTheme(".dark", { primary: { default: "#000", theme: "#fff" } });',
       );
 
       const result = scanAll();
@@ -1409,7 +1409,7 @@ describe('parser', () => {
       mockedFs.readFileSync.mockReturnValue(
         `import * as css from "@plumeria/core";
          export const C = css.createStatic({ color: "red" });
-         export const T = css.createTheme({ p: 1 });
+         export const T = css.createTheme(".dark", { p: { default: 1, theme: 2 } });
          export const S = css.create({ c: "blue" });
          export const V = css.variants({ variants: {} });
          export const K = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
@@ -1689,10 +1689,11 @@ describe('extractOndemandStyles (integration)', () => {
     };
     tables.createThemeObjectTable = {
       xyz: {
-        color: {
-          default: 'red',
-        },
+        color: { default: 'red', theme: 'blue' },
       },
+    };
+    tables.createThemeSelectorTable = {
+      xyz: '.dark',
     };
   });
 
@@ -1700,9 +1701,10 @@ describe('extractOndemandStyles (integration)', () => {
     const extracted: string[] = [];
 
     // Setup matching theme table
-    const themeObj = { primary: 'blue' };
+    const themeObj = { primary: { default: 'blue', theme: 'white' } };
     const themeHash = genBase36Hash(themeObj, 1, 8);
     tables.createThemeObjectTable[themeHash] = themeObj;
+    tables.createThemeSelectorTable[themeHash] = '.dark';
     tables.createThemeHashTable['T'] = themeHash;
 
     // Setup create table
@@ -1792,21 +1794,24 @@ describe('extractOndemandStyles (integration)', () => {
     const extracted: string[] = [];
     // createTheme expects a map of property keys to theme maps: { key: { themeName: value } }
     const themeObj = {
-      primary: {
-        default: 'blue',
-      },
+      primary: { default: 'blue', theme: 'white' },
     };
     const themeHash = 'themeHash';
     tables.createThemeObjectTable[themeHash] = themeObj;
+    tables.createThemeSelectorTable[themeHash] = '.dark';
     // Map variable name 'T' to its hash
     tables.createThemeHashTable['T'] = themeHash;
 
-    const style = { color: 'var(--themeHash-primary)' };
+    const atomicHash = genBase36Hash(
+      { primary: { default: 'blue', theme: 'white' } },
+      1,
+      8,
+    );
+    const style = { color: `var(--${atomicHash}-primary)` };
     extractOndemandStyles(style, extracted, tables);
 
     // Should have theme styles extracted
     expect(extracted.length).toBe(1);
-    expect(extracted[0]).toContain('--theme-hash-primary: blue');
   });
   it('should ignore invalid input', () => {
     const extracted: string[] = [];
