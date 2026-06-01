@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 13.0.1
+
+### Patch Changes
+
+- 3afcccd: Bump version to 13.0.1
+- Updated dependencies [3afcccd]
+  - @plumeria/turbopack-loader@13.0.1
+
 ## 13.0.0
 
 ### Major Changes
