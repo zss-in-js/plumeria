@@ -12,7 +12,11 @@ import {
   FunctionDeclaration,
   HasSpan,
 } from '@swc/core';
-import { type CSSProperties, genBase36Hash } from 'zss-engine';
+import {
+  type CSSProperties,
+  genBase36Hash,
+  camelToKebabCase,
+} from 'zss-engine';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rs from '@rust-gear/glob';
@@ -768,11 +772,16 @@ export function compileCSS(options: CompilerOptions) {
           ctx.scannedTables.viewTransitionObjectTable[hash] = obj;
         } else if (
           propName === 'createTheme' &&
-          args.length > 0 &&
-          t.isObjectExpression(args[0].expression)
+          args.length >= 2 &&
+          t.isObjectExpression(args[1].expression)
         ) {
+          let selector = '';
+          const selectorExpr = args[0].expression;
+          if (t.isStringLiteral(selectorExpr)) {
+            selector = selectorExpr.value;
+          }
           const obj = objectExpressionToObject(
-            args[0].expression as ObjectExpression,
+            args[1].expression as ObjectExpression,
             ctx.mergedStaticTable,
             ctx.mergedKeyframesTable,
             ctx.mergedViewTransitionTable,
@@ -785,6 +794,9 @@ export function compileCSS(options: CompilerOptions) {
           );
           const hash = genBase36Hash(obj, 1, 8);
           ctx.scannedTables.createThemeObjectTable[hash] = obj;
+          if (ctx.scannedTables.createThemeSelectorTable) {
+            ctx.scannedTables.createThemeSelectorTable[hash] = selector;
+          }
         } else if (
           propName === 'createStatic' &&
           args.length > 0 &&
@@ -837,12 +849,20 @@ export function compileCSS(options: CompilerOptions) {
             pName = plumeriaAliases[callee.value];
           }
 
+          const isTheme = pName === 'createTheme';
           if (
             pName &&
-            node.init.arguments.length === 1 &&
-            t.isObjectExpression(node.init.arguments[0].expression)
+            node.init.arguments.length > 0 &&
+            ((!isTheme &&
+              node.init.arguments.length === 1 &&
+              t.isObjectExpression(node.init.arguments[0].expression)) ||
+              (isTheme &&
+                node.init.arguments.length >= 2 &&
+                t.isObjectExpression(node.init.arguments[1].expression)))
           ) {
-            const arg = node.init.arguments[0].expression as ObjectExpression;
+            const arg = isTheme
+              ? (node.init.arguments[1].expression as ObjectExpression)
+              : (node.init.arguments[0].expression as ObjectExpression);
             const resolveVariable = (name: string) =>
               ctx.localCreateStyles[name]?.obj ||
               (ctx.mergedCreateThemeHashTable[name]
@@ -946,6 +966,11 @@ export function compileCSS(options: CompilerOptions) {
                 };
               }
             } else if (pName === 'createTheme') {
+              let selector = '';
+              const selectorExpr = node.init.arguments[0].expression;
+              if (t.isStringLiteral(selectorExpr)) {
+                selector = selectorExpr.value;
+              }
               const obj = objectExpressionToObject(
                 arg,
                 ctx.mergedStaticTable,
@@ -962,6 +987,16 @@ export function compileCSS(options: CompilerOptions) {
               const uKey = `${resourcePath}-${node.id.value}`;
               ctx.scannedTables.createThemeHashTable[uKey] = hash;
               ctx.scannedTables.createThemeObjectTable[hash] = obj;
+              if (ctx.scannedTables.createThemeSelectorTable) {
+                ctx.scannedTables.createThemeSelectorTable[hash] = selector;
+              }
+              const themeHashMap: Record<string, any> = {};
+              for (const [key, value] of Object.entries(obj)) {
+                const cssVarName = camelToKebabCase(key);
+                const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
+                themeHashMap[key] = `var(--${atomicHash}-${cssVarName})`;
+              }
+              ctx.scannedTables.createAtomicMapTable[hash] = themeHashMap;
               ctx.localCreateStyles[node.id.value] = {
                 type: 'create',
                 obj: ctx.scannedTables.createAtomicMapTable[hash],
