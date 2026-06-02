@@ -42,23 +42,39 @@ type CSSProperties =
 
 type CreateStyleValue = CSSProperties | ((...args: any[]) => CSSProperties);
 
-type CreateReturnType<T> = {
-  [K in keyof T]: T[K] extends (...args: infer A) => infer R
-    ? (...args: A) => Readonly<R>
-    : Readonly<T[K]>;
+const ClassNameTag: unique symbol;
+
+type AtomicClassNameFor<out P extends string, out V> = string & {
+  readonly _ident: typeof ClassNameTag;
+  readonly _key: P;
+  readonly _value: V;
 };
+
+type MapNamespace<T> = Readonly<{
+  [key in keyof T]: T[key] extends Record<string, unknown>
+    ? key extends `:${string}` | `@${string}` | `[${string}`
+      ? MapNamespace<T[key]>
+      : AtomicClassNameFor<key & string, T[key]>
+    : key extends string
+      ? AtomicClassNameFor<key, T[key]>
+      : never;
+}>;
+
+type CreateReturnType<T> = Readonly<{
+  [K in keyof T]: T[K] extends (...args: infer A) => infer R
+    ? (...args: A) => MapNamespace<R>
+    : MapNamespace<T[K]>;
+}>;
 
 type StyleName = CSSProperties | (false | CSSProperties | null | undefined)[];
 
 type CreateStatic = Record<string, string | number>;
 
-type ReadonlyTheme<T> = Readonly<T> & CSSVariableValue;
-
 type CreateTheme = {
   [key: string]: ThemeValue;
 };
 type CreateThemeReturnType<T> = {
-  readonly [K in keyof T]: ReadonlyTheme<T[K]>;
+  readonly [K in keyof T]: Readonly<T[K]>;
 };
 
 type KeyframesInSelector = 'from' | 'to' | `${number}%`;
@@ -97,4 +113,5 @@ export type {
   ViewTransition,
   Marker,
   Extended,
+  AtomicClassNameFor,
 };
