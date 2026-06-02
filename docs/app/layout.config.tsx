@@ -5,21 +5,21 @@ import { svg } from 'component/svg';
 import { NavDropdown } from 'component/NavDropdown';
 import { blog } from 'lib/source';
 
-const latestMajorPosts = blog
+const latestReleasePosts = blog
   .getPages()
   .map((post) => {
     const slug = post.slugs[0];
-    const match = slug.match(/^plumeria-(\d+)[-.]0/);
+    const match = slug.match(/^plumeria-([\d-]+)/);
     return {
       post,
-      majorVersion: match ? match[1] : null,
+      version: match ? match[1].replace(/-/g, '.') : null,
     };
   })
-  .filter((x) => x.majorVersion !== null)
+  .filter((x) => x.version !== null)
   .sort((a, b) => new Date(b.post.data.date).getTime() - new Date(a.post.data.date).getTime())
   .slice(0, 3)
-  .map(({ post, majorVersion }) => ({
-    text: `Plumeria v${majorVersion}.0`,
+  .map(({ post, version }) => ({
+    text: `Plumeria v${version}`,
     url: `/blog/${post.slugs.join('/')}`,
   }));
 
@@ -126,7 +126,7 @@ export const baseOptions: BaseLayoutProps = {
         <NavDropdown
           title={'Blog'}
           url={'/blog'}
-          items={[...latestMajorPosts, { text: 'Eating up the libraries', url: '/blog/eating-up-the-libraries' }]}
+          items={[...latestReleasePosts, { text: 'Eating up the libraries', url: '/blog/eating-up-the-libraries' }]}
         />
       ),
       on: 'all',
