@@ -1,5 +1,16 @@
 # @plumeria/unplugin
 
+## 13.1.0
+
+### Minor Changes
+
+- 77d7a5e: Fix HMR bug
+
+### Patch Changes
+
+- Updated dependencies [77d7a5e]
+  - @plumeria/utils@13.1.0
+
 ## 13.0.2
 
 ### Patch Changes
