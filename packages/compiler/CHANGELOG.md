@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 13.1.0
+
+### Minor Changes
+
+- 77d7a5e: Bump version to 13.1.0
+
+### Patch Changes
+
+- Updated dependencies [77d7a5e]
+  - @plumeria/utils@13.1.0
+
 ## 13.0.2
 
 ### Patch Changes

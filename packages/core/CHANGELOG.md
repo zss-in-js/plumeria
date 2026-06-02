@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 13.1.0
+
+### Minor Changes
+
+- 77d7a5e: Implementation type definition for IDE hover
+
 ## 13.0.2
 
 ### Patch Changes
