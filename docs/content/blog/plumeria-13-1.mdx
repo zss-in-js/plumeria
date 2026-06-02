@@ -1,0 +1,101 @@
+---
+title: 'Plumeria 13.1'
+description: 'Projection of Compilation: Mapping static compilation states onto TypeScript types'
+date: '2026-06-02'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 13.1.0 has been released! 🎉
+
+This release draws inspiration from [StyleX](https://stylexjs.com) types and treats TypeScript's type system as a projection of the static compilation process, preserving explicit atomic class associations as types (including a minor HMR bug fix for the newly revamped createTheme).
+
+---
+
+## 1. Static Proof of Atoms: The `_ident` Property
+
+### Real-World Behavior: What You See on Hover
+
+Instead of abstract type definitions, let’s look at a real-world component style definition featuring both **nested media queries and theme variables** (such as `theme.textSecondary` from our actual documentation component):
+
+```ts
+const styles = css.create({
+  codeSection: {
+    width: '100%',
+    maxWidth: '600px',
+    [breakpoints.md]: {
+      justifyContent: 'center',
+      maxWidth: '100%',
+    },
+  },
+
+  featureDescription: {
+    fontSize: 14,
+    fontWeight: 400,
+    lineHeight: 1.6,
+    color: theme.textSecondary,
+  },
+});
+```
+
+Hovering over this `styles` object in your editor reveals a beautifully structured, deeply-resolved type contract:
+
+```ts
+const styles: Readonly<{
+  readonly codeSection: Readonly<{
+    readonly width: AtomicClassNameFor<"width", "100%">;
+    readonly maxWidth: AtomicClassNameFor<"maxWidth", "600px">;
+    readonly "@media (max-width: 768px)": Readonly<{
+      readonly justifyContent: AtomicClassNameFor<"justifyContent", "center">;
+      readonly maxWidth: AtomicClassNameFor<"maxWidth", '100%'>;
+    }>;
+  }>;
+  readonly featureDescription: Readonly<{
+    readonly fontSize: AtomicClassNameFor<"fontSize", 14>;
+    readonly fontWeight: AtomicClassNameFor<"fontWeight", 400>;
+    readonly lineHeight: AtomicClassNameFor<"lineHeight", 1.6>;
+    readonly color: AtomicClassNameFor<"color", Readonly<{
+      readonly default: "#6c6b67";
+      readonly theme: "#9a989f";
+    }>>;
+  }>;
+}>
+```
+
+This is the static, mathematical proof that your style is fully atomic, checked at build time, and mapped 1-to-1 with the compiled CSS. Every theme variable resolves to its nested default and theme-specific values, and every media query nests neatly with pure, immutable types.
+
+---
+
+## 2. The Power of Design Constraints
+Because Plumeria is a pure zero-runtime CSS-in-JS library, it does not ship a JavaScript runtime to evaluate styles. Therefore, dynamic prop-drilling or "style props" (e.g., passing compiled style objects as component props to be dynamically merged or applied) **is physically impossible to compile.**
+
+- We **completely eliminate the temptation of prop-drilling styles** at the TypeScript level.
+- We enforce the ultimate zero-runtime design pattern: **strict static composition.**
+- This structural constraint guarantees that your production bundle remains entirely free of runtime style-merging overhead, achieving raw native performance.
+
+---
+
+## 3. Perfecting Development Mode CSS HMR
+
+In local development, the virtual CSS file (`zero-virtual.css`) now reacts
+instantly to HMR updates — no style drops, no flickering.
+
+### Turbopack
+`@plumeria/turbopack-loader` now accurately removes stale theme variable rules
+on each hot update, and automatically purges any empty blocks left behind.
+The virtual CSS stays pristine across the entire development session.
+
+### Unplugin
+For `@plumeria/unplugin` (Vite, Webpack, Farm), deleting all styles from a file
+now instantly clears the virtual cache. Deleted styles will never linger in
+the browser or memory, making HMR 100% accurate.
+
+---
+
+Plumeria 13.1.0 solidifies the bridge between compiler engineering and elegant type design. Experience the beautiful new static types, pristine DX, and rock-solid development environment today! 
+
+I would like to thank the [StyleX](https://stylexjs.com) implementer for providing this textbook up to this point.
