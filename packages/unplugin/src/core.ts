@@ -86,30 +86,6 @@ interface StyleConditional {
 export const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx'];
 export const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx)$/;
 
-function cleanStaleThemeRules(acc: Set<string>, newSheets: string[]): void {
-  const newCss = newSheets.join('');
-  const hashRegex = /--([a-z0-9]{8})-[a-zA-Z0-9-]+/g;
-  const hashes = new Set<string>();
-  let match;
-  while ((match = hashRegex.exec(newCss)) !== null) {
-    hashes.add(match[1]);
-  }
-
-  for (const sheet of acc) {
-    let hasStaleHash = false;
-    for (const hash of hashes) {
-      const declRegex = new RegExp(`--${hash}-[a-zA-Z0-9-]+:`);
-      if (declRegex.test(sheet)) {
-        hasStaleHash = true;
-        break;
-      }
-    }
-    if (hasStaleHash && !newSheets.includes(sheet)) {
-      acc.delete(sheet);
-    }
-  }
-}
-
 export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
   options = {},
   unpluginMeta,
@@ -1984,27 +1960,26 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       const transformedSource = Buffer.concat(parts).toString();
       const optInCSS = await optimizer(extractedSheets.join(''));
 
-      if (extractedSheets.length > 0) {
-        const baseId = id.replace(EXTENSION_PATTERN, '');
-        const cssFilename = `${baseId}.zero.css`;
-        const cssId = `/${path.relative(viteRoot, cssFilename).replace(/\\/g, '/')}`;
+      const cssFilename = `${baseId.replace(EXTENSION_PATTERN, '')}.zero.css`;
+      const cssId = `/${path.relative(viteRoot, cssFilename).replace(/\\/g, '/')}`;
 
-        if (isDev) {
-          if (!devCssSheets.has(cssFilename)) {
-            devCssSheets.set(cssFilename, new Set());
-          }
-          const acc = devCssSheets.get(cssFilename)!;
-
-          cleanStaleThemeRules(acc, extractedSheets);
-
-          extractedSheets.forEach((sheet) => acc.add(sheet));
-          const accCSS = await optimizer(Array.from(acc).join(''));
-          cssLookup.set(cssFilename, accCSS);
-        } else {
-          cssLookup.set(cssFilename, optInCSS);
+      if (isDev) {
+        if (!devCssSheets.has(cssFilename)) {
+          devCssSheets.set(cssFilename, new Set());
         }
-        cssFileLookup.set(cssId, cssFilename);
+        const acc = devCssSheets.get(cssFilename)!;
 
+        acc.clear();
+        extractedSheets.forEach((sheet) => acc.add(sheet));
+
+        const accCSS = await optimizer(Array.from(acc).join(''));
+        cssLookup.set(cssFilename, accCSS);
+      } else {
+        cssLookup.set(cssFilename, optInCSS);
+      }
+      cssFileLookup.set(cssId, cssFilename);
+
+      if (extractedSheets.length > 0) {
         const targetIndex = targets.findIndex((t) => t.id === id);
         if (targetIndex !== -1) {
           targets[targetIndex].dependencies = dependencies;
