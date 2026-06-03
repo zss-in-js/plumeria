@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 13.1.2
+
+### Patch Changes
+
+- da6941d: Update README.md
+
 ## 13.1.1
 
 ### Patch Changes
