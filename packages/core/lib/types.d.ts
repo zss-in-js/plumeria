@@ -91,6 +91,23 @@ type ViewTransition = {
 
 type Variants = Record<string, Record<string, CSSProperties>>;
 
+type AllOptionsOf<T> = {
+  [G in keyof T]: T[G][keyof T[G]];
+}[keyof T];
+
+type KeysOfUnion<U> = U extends unknown ? keyof U : never;
+type ValueForKeyInUnion<U, K> = U extends unknown
+  ? K extends keyof U
+    ? U[K]
+    : never
+  : never;
+
+type MergeVariants<U> = Readonly<{
+  [K in KeysOfUnion<U>]?: ValueForKeyInUnion<U, K>;
+}>;
+
+type VariantStyles<T> = MergeVariants<AllOptionsOf<T>>;
+
 type Marker = Record<string, CSSProperties>;
 
 type StripColon<T extends string> = T extends `:${infer R}` ? StripColon<R> : T;
@@ -109,6 +126,7 @@ export type {
   CreateThemeReturnType,
   CreateStatic,
   Variants,
+  VariantStyles,
   Keyframes,
   ViewTransition,
   Marker,
