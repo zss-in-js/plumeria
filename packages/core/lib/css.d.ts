@@ -3,11 +3,11 @@
  * Bundler plugin required.
  * ```ts
  * type create = <const T extends Record<string, CreateStyleValue>>(rule: T)=> CreateReturnType<T>;
+ * type variants = <T extends Variants>(rule: T) => (props: { [K in keyof T]?: keyof T[K] }) => VariantStyles<T>;
  * type createTheme = <const T extends CreateTheme>(themeSelector: string, rule: T) => CreateThemeReturnType<T>;
  * type createStatic = <const T extends CreateStatic>(rule: T)=> T;
  * type keyframes = <const T extends Keyframes>(rule: T) => string;
  * type viewTransition = <const T extends ViewTransition>(rule: T) => string;
- * type variants = <T extends Variants>(rule: T) => (props: { [K in keyof T]?: keyof T[K] }) => CSSProperties;
  * type marker = (id: string, pseudo: string) => Marker;
  * type extended = <I extends string, P extends string>(id: I, pseudo: P) => Extended<I, P>;
  * type use = (...rules: (false | CSSProperties | null | undefined)[])=> string;
@@ -23,6 +23,7 @@ declare module '@plumeria/core' {
     CreateThemeReturnType,
     CreateStatic,
     Variants,
+    VariantStyles,
     Keyframes,
     ViewTransition,
     Marker,
@@ -44,6 +45,11 @@ declare module '@plumeria/core' {
     rule: T,
   ) => CreateReturnType<T>;
 
+  export const variants: variants;
+  export type variants = <T extends Variants>(
+    rule: T,
+  ) => (props: { [K in keyof T]?: keyof T[K] }) => VariantStyles<T>;
+
   export const createTheme: createTheme;
   export type createTheme = <const T extends CreateTheme>(
     themeSelector: string,
@@ -60,11 +66,6 @@ declare module '@plumeria/core' {
   export type viewTransition = <const T extends ViewTransition>(
     rule: T,
   ) => string;
-
-  export const variants: variants;
-  export type variants = <T extends Variants>(
-    rule: T,
-  ) => (props: { [K in keyof T]?: keyof T[K] }) => CSSProperties;
 
   export const marker: marker;
   export type marker = (id: string, pseudo: string) => Marker;
