@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 13.1.2
+
+### Patch Changes
+
+- da6941d: Bump version to 13.1.2
+- Updated dependencies [da6941d]
+  - @plumeria/utils@13.1.2
+
 ## 13.1.1
 
 ### Patch Changes
