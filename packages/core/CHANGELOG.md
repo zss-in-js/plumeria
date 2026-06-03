@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 13.1.1
+
+### Patch Changes
+
+- 2f463a7: Add ident type to the return function of variants
+
 ## 13.1.0
 
 ### Minor Changes
