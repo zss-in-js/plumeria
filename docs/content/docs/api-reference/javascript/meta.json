@@ -1,5 +1,5 @@
 {
   "defaultOpen": true,
   "title": "JavaScript API",
-  "pages": ["create", "createTheme", "createStatic", "variants", "keyframes", "viewTransition", "marker", "use"]
+  "pages": ["create", "variants", "createTheme", "createStatic", "keyframes", "viewTransition", "marker", "use"]
 }
