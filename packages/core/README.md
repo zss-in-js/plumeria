@@ -1,11 +1,11 @@
 # @plumeria/core
 
-![License](https://img.shields.io/badge/License-MIT-6366F1)
-![npm](https://img.shields.io/npm/v/@plumeria/core?&color=6366F1)
+![License](https://img.shields.io/badge/License-MIT-10B981)
+![npm](https://img.shields.io/npm/v/@plumeria/core?&color=10B981)
 
-![Web](https://img.shields.io/badge/Web-atomic-10B981?logo=npm&logoColor=white)
-![Types](https://img.shields.io/badge/Types-100%25-10B981?logo=npm&logoColor=white)
-![Runtime](https://img.shields.io/badge/Runtime-never-10B981?logo=npm&logoColor=white)
+![Web](https://img.shields.io/badge/Web-atomic-6366F1?logo=npm&logoColor=white)
+![Types](https://img.shields.io/badge/Types-100%25-6366F1?logo=npm&logoColor=white)
+![Runtime](https://img.shields.io/badge/Runtime-never-6366F1?logo=npm&logoColor=white)
 
 **Plumeria** is a **zero-cost abstraction layer** for styling React components without JavaScript. Its axioms are grounded in category theory, making it self-evident, predictable, and composable by construction. It enforces strict syntax and linting to reduce the cognitive overhead for engineers.
 
