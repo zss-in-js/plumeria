@@ -1,3 +1,9 @@
+## 13.1.5
+
+### Patch Changes
+
+- 4401cb4: Fix types and add inline-object for variants to the rules in no-inline-object.ts
+
 ## 13.1.4
 
 ### Patch Changes

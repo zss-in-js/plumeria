@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 13.1.5
+
+### Patch Changes
+
+- 4401cb4: Bump version to 13.1.5
+
 ## 13.1.4
 
 ### Patch Changes
