@@ -3,6 +3,7 @@
  */
 
 import type { Rule } from 'eslint';
+import type { JSXAttribute } from 'estree-jsx';
 
 export const styleNameRequiresImport: Rule.RuleModule = {
   meta: {
@@ -29,7 +30,7 @@ export const styleNameRequiresImport: Rule.RuleModule = {
         }
       },
 
-      JSXAttribute(node: Rule.Node & { name: { name?: string } }) {
+      JSXAttribute(node: JSXAttribute & Rule.NodeParentExtension) {
         if (node.name && node.name.name === 'styleName') {
           styleNameNodes.push(node);
         }
