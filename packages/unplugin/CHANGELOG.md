@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 13.1.4
+
+### Patch Changes
+
+- a1caf4a: Add funding and homepage in package.json
+- Updated dependencies [a1caf4a]
+  - @plumeria/utils@13.1.4
+
 ## 13.1.3
 
 ### Patch Changes

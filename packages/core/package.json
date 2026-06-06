@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/core",
-  "version": "13.1.3",
+  "version": "13.1.4",
   "description": "Zero-cost abstraction layer for styling React components.",
   "author": "Refirst 11",
   "license": "MIT",
