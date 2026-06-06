@@ -131,5 +131,4 @@ export type {
   ViewTransition,
   Marker,
   Extended,
-  AtomicClassNameFor,
 };
