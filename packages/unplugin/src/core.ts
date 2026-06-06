@@ -25,6 +25,7 @@ import {
   genBase36Hash,
   exceptionCamelCase,
   camelToKebabCase,
+  isAtRule,
 } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 import {
@@ -593,14 +594,27 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             }
           } else if (
             propName === 'createTheme' &&
-            t.isObjectExpression(init.arguments[0].expression)
+            init.arguments.length >= 2 &&
+            t.isObjectExpression(init.arguments[1].expression)
           ) {
             if (t.isIdentifier(node.id)) {
               idSpans.add(node.id.span.start);
             }
 
+            let selector = '';
+            const selectorExpr = init.arguments[0].expression;
+            if (t.isStringLiteral(selectorExpr)) {
+              selector = selectorExpr.value;
+            }
+
+            if (selector.startsWith('@') && !isAtRule(selector)) {
+              throw new Error(
+                `Plumeria: Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
+              );
+            }
+
             const obj = objectExpressionToObject(
-              init.arguments[0].expression as ObjectExpression,
+              init.arguments[1].expression as ObjectExpression,
               mergedStaticTable,
               mergedKeyframesTable,
               mergedViewTransitionTable,
@@ -618,13 +632,17 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
               scannedTables.createThemeHashTable[uniqueKey] = hash;
               scannedTables.createThemeObjectTable[hash] = obj;
+              if (scannedTables.createThemeSelectorTable) {
+                scannedTables.createThemeSelectorTable[hash] = selector;
+              }
 
               mergedCreateThemeHashTable[node.id.value] = hash;
 
               const themeHashMap: Record<string, any> = {};
-              for (const [key] of Object.entries(obj)) {
+              for (const [key, value] of Object.entries(obj)) {
                 const cssVarName = camelToKebabCase(key);
-                themeHashMap[key] = `var(--${hash}-${cssVarName})`;
+                const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
+                themeHashMap[key] = `var(--${atomicHash}-${cssVarName})`;
               }
 
               localCreateStyles[node.id.value] = {
@@ -828,7 +846,40 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 content: JSON.stringify(`vt-${hash}`),
               });
             } else if (
-              (propName === 'createTheme' || propName === 'createStatic') &&
+              propName === 'createTheme' &&
+              args.length >= 2 &&
+              t.isObjectExpression(args[1].expression)
+            ) {
+              let selector = '';
+              const selectorExpr = args[0].expression;
+              if (t.isStringLiteral(selectorExpr)) {
+                selector = selectorExpr.value;
+              }
+
+              if (selector.startsWith('@') && !isAtRule(selector)) {
+                throw new Error(
+                  `Plumeria: Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
+                );
+              }
+              const obj = objectExpressionToObject(
+                args[1].expression as ObjectExpression,
+                mergedStaticTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
+                mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
+                mergedVariantsTable,
+              );
+              const hash = genBase36Hash(obj, 1, 8);
+              scannedTables.createThemeObjectTable[hash] = obj;
+              if (scannedTables.createThemeSelectorTable) {
+                scannedTables.createThemeSelectorTable[hash] = selector;
+              }
+            } else if (
+              propName === 'createStatic' &&
               args.length > 0 &&
               t.isObjectExpression(args[0].expression)
             ) {
@@ -845,11 +896,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
-              if (propName === 'createTheme') {
-                scannedTables.createThemeObjectTable[hash] = obj;
-              } else {
-                scannedTables.createStaticObjectTable[hash] = obj;
-              }
+              scannedTables.createStaticObjectTable[hash] = obj;
             } else if (
               propName === 'create' &&
               args.length > 0 &&
@@ -1913,24 +1960,26 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       const transformedSource = Buffer.concat(parts).toString();
       const optInCSS = await optimizer(extractedSheets.join(''));
 
-      if (extractedSheets.length > 0) {
-        const baseId = id.replace(EXTENSION_PATTERN, '');
-        const cssFilename = `${baseId}.zero.css`;
-        const cssId = `/${path.relative(viteRoot, cssFilename).replace(/\\/g, '/')}`;
+      const cssFilename = `${baseId.replace(EXTENSION_PATTERN, '')}.zero.css`;
+      const cssId = `/${path.relative(viteRoot, cssFilename).replace(/\\/g, '/')}`;
 
-        if (isDev) {
-          if (!devCssSheets.has(cssFilename)) {
-            devCssSheets.set(cssFilename, new Set());
-          }
-          const acc = devCssSheets.get(cssFilename)!;
-          extractedSheets.forEach((sheet) => acc.add(sheet));
-          const accCSS = await optimizer(Array.from(acc).join(''));
-          cssLookup.set(cssFilename, accCSS);
-        } else {
-          cssLookup.set(cssFilename, optInCSS);
+      if (isDev) {
+        if (!devCssSheets.has(cssFilename)) {
+          devCssSheets.set(cssFilename, new Set());
         }
-        cssFileLookup.set(cssId, cssFilename);
+        const acc = devCssSheets.get(cssFilename)!;
 
+        acc.clear();
+        extractedSheets.forEach((sheet) => acc.add(sheet));
+
+        const accCSS = await optimizer(Array.from(acc).join(''));
+        cssLookup.set(cssFilename, accCSS);
+      } else {
+        cssLookup.set(cssFilename, optInCSS);
+      }
+      cssFileLookup.set(cssId, cssFilename);
+
+      if (extractedSheets.length > 0) {
         const targetIndex = targets.findIndex((t) => t.id === id);
         if (targetIndex !== -1) {
           targets[targetIndex].dependencies = dependencies;
