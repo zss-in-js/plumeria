@@ -4,6 +4,8 @@
   "description": "Universal Plumeria plugin for various build tools",
   "author": "Refirst 11",
   "license": "MIT",
+  "funding": "https://github.com/sponsors/refirst11",
+  "homepage": "https://plumeria.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zss-in-js/plumeria.git",
