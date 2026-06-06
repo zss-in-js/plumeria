@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 13.1.3
+
+### Patch Changes
+
+- 3f7305f: Fix export in types.d.ts
+
 ## 13.1.2
 
 ### Patch Changes
