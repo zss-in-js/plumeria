@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 13.1.4
+
+### Patch Changes
+
+- a1caf4a: Bump version to 13.1.4
+- Updated dependencies [a1caf4a]
+  - @plumeria/turbopack-loader@13.1.4
+
 ## 13.1.3
 
 ### Patch Changes
