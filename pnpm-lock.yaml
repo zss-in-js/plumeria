@@ -833,6 +833,9 @@ importers:
       '@types/estree':
         specifier: ^1.0.9
         version: 1.0.9
+      '@types/estree-jsx':
+        specifier: ^1.0.5
+        version: 1.0.5
       '@typescript-eslint/parser':
         specifier: ^8.60.0
         version: 8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3)
