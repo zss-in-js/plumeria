@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 13.1.3
+
+### Patch Changes
+
+- 3f7305f: Update dependencies
+- Updated dependencies [3f7305f]
+  - @plumeria/compiler@13.1.3
+
 ## 13.1.2
 
 ### Patch Changes

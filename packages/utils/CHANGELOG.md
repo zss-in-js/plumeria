@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 13.1.3
+
+### Patch Changes
+
+- 3f7305f: Update dependencies
+
 ## 13.1.2
 
 ### Patch Changes
