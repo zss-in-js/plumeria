@@ -4,15 +4,18 @@ description: 'API reference for the variants'
 ---
 
 ```ts
-export type variants = <T extends Variants>(rule: T) => (props: { [K in keyof T]?: keyof T[K] }) => CSSProperties;
+export type variants = <T extends Variants>(rule: T) => (props: { [K in keyof T]?: keyof T[K] }) => VariantStyles<T>;
 export const variants: variants;
 ```
-`variants` returns a function that can accept arguments dynamically.
+
+`variants` returns a function that can accept arguments dynamically.  
+`props key → variantName key: create styles`
 
 ## Example
 
 ```tsx
 import * as css from "@plumeria/core";
+import { styles } from './styles';
 
 const getButtonStyle = css.variants({
   variant: {
