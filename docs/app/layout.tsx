@@ -1,5 +1,3 @@
-'use cache';
-
 import { RootProvider } from 'fumadocs-ui/provider/next';
 import 'fumadocs-ui/style.css';
 import 'katex/dist/katex.css';
@@ -9,7 +7,10 @@ import { GeistMono } from 'geist/font/mono';
 import { Analytics } from '@vercel/analytics/next';
 import type { ReactNode } from 'react';
 
-export default async function Layout({ children }: { children: ReactNode }) {
+export const dynamicParams = false;
+export const dynamic = 'force-static';
+
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${GeistSans.className} ${GeistMono.variable}`} suppressHydrationWarning>
       <head>
