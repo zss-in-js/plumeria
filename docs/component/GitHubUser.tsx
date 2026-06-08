@@ -1,5 +1,3 @@
-'use cache';
-
 import * as css from '@plumeria/core';
 import { theme } from 'lib/theme';
 
