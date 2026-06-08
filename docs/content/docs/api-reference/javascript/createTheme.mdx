@@ -11,11 +11,7 @@ type CreateTheme = {
   };
 };
 
-export type createTheme = <const T extends CreateTheme>(
-  themeSelector: string,
-  rule: T,
-) => ReturnVariableType<T>;
-
+export type createTheme = <const T extends CreateTheme>(themeSelector: string, rule: T) => CreateThemeReturnType<T>;
 export const createTheme: createTheme;
 ```
 
