@@ -1,5 +1,3 @@
-'use cache';
-
 import Link from 'next/link';
 import { JSX } from 'react';
 import * as css from '@plumeria/core';
@@ -14,7 +12,7 @@ const styles = css.create({
   },
 });
 
-const NotFound = async (): Promise<JSX.Element> => {
+const NotFound = (): JSX.Element => {
   return (
     <div styleName={styles.container}>
       <h1>ClientSide Error status code 404 Request page is not found:</h1>
