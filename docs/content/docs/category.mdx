@@ -1,0 +1,47 @@
+---
+title: 'Category theory'
+---
+
+A category is a mathematical structure consisting of objects and morphisms.
+If there are objects and morphisms, and the following two conditions are met, it is a category:
+
+- Identity morphism
+
+- Associativity
+
+## First Condition (Identity morphism)
+`create` is a monoid because it has a single object that satisfies the Identity morphism.
+
+- `create -> create`
+
+- `keyname -> keyname`
+
+- `css-property -> css-property`
+
+$$A \circ A = A$$
+
+$$A \oplus I = A$$
+
+Where the first expresses idempotency and the second expresses identity.
+
+## Second Condition (Associativity)
+The law of associativity states that the result is the same regardless of the order in which the expressions are calculated.
+
+Given `[A, B, C]`:
+- `(A + B) + C`
+- `A + (B + C)`
+
+result in the same result, thus satisfying the compositional condition of the associative law.
+
+$$(A \oplus B) \oplus C = A \oplus (B \oplus C)$$
+
+## Composition of Monoids
+When this is assigned to styling,
+
+{`[styles.A, styles.B, styles.C]`}
+Then, the monoid `create` is a category with objects in composition.  
+This is proof that a styling system closed to static analysis satisfies the axioms of category theory.
+
+Ultimately, it always converges to a single result.  
+$$parse(A \oplus B \oplus C) \to \text{"classA classB classC"}$$
+
