@@ -1,14 +1,13 @@
-# [Plumeria](https://plumeria.dev/)
+# plumeria/docs
 
-## 🎁 Support This Project
+Documentation site for [Plumeria](https://plumeria.dev), built with [Fumadocs](https://fumadocs.vercel.app/) and Next.js.
 
-Like Plumeria? Here's how you can help:
-- ⭐ Star this repo
-- 📝 Write about your experience (we'll feature it!)
-- 🐛 Report bugs
-- 💡 Suggest features
+## Development
 
-We're especially looking for:
-- [ ] Blog posts about real-world usage
-- [ ] Performance comparison articles
-- [ ] Migration guides from other solutions
+```bash
+pnpm dev
+```
+
+## Content
+
+Documentation content is located in `content/docs/`.
