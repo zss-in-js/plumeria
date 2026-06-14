@@ -15,7 +15,7 @@ In VScode create a shortcut for the style.use() object expansion in className.
 `select >` Snippets: Configure Snippets  
 `select >` typescriptreact.json (TypeScript JSX) or javascriptreact.json (JavaScript JSX)  
 
-```json
+```json title="typescriptreact.json"
 {
   "styleName": {
     "prefix": "style",
@@ -24,6 +24,16 @@ In VScode create a shortcut for the style.use() object expansion in className.
   }
 }
 ```
+
+This will make the snippet appear at the top.
+```json title="settings.json"
+{
+  // ...other settings
+  "editor.snippetSuggestions": "top",
+  // ...
+}
+```
+
 
 ### Macro Usage
 ```jsx
