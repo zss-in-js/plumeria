@@ -100,12 +100,12 @@ function cleanStaleThemeRules(currentCss: string, optInCss: string): string {
   let cleanedCss = currentCss;
   for (const hash of hashes) {
     const propRegex = new RegExp(
-      `--${hash}-[a-zA-Z0-9-]+:[^;}]+(?:;|(?=\\}))`,
+      `--${hash}-[a-zA-Z0-9-]+:[^}]*?(?:;|(?=\\}))`,
       'g',
     );
     cleanedCss = cleanedCss.replace(propRegex, '');
   }
-  const emptyBlockRegex = /(?<=^|[}])[^{}]*\{\s*\}/g;
+  const emptyBlockRegex = /(?<=^|[}{])[^{}]*\{\s*\}/g;
 
   let prevCss;
   do {
