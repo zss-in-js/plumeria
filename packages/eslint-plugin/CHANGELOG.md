@@ -1,3 +1,9 @@
+## 13.2.1
+
+### Patch Changes
+
+- f34661f: Bump version to 13.2.1
+
 ## 13.2.0
 
 ### Minor Changes
