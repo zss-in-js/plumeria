@@ -21,7 +21,8 @@
     "plumeria",
     "type",
     "typed",
-    "types"
+    "types",
+    "stylex"
   ],
   "exports": {
     ".": {
