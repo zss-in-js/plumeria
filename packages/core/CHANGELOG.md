@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 13.2.1
+
+### Patch Changes
+
+- f34661f: Update keywords in package.json
+
 ## 13.2.0
 
 ### Minor Changes
