@@ -24,9 +24,15 @@ type ColonSelector = {
   [key in ColonString]: CommonProperties | CSSVariableProperty;
 };
 
-type Query = `@media ${string}` | `@container ${string}`;
-type QuerySelector = {
-  [K in Query]:
+type AtRule =
+  | `@media ${string}`
+  | `@container ${string}`
+  | `@supports ${string}`
+  | `@layer ${string}`
+  | `@scope ${string}`;
+
+type AtRuleSelector = {
+  [K in AtRule]:
     | CommonProperties
     | ColonSelector
     | ArraySelector
@@ -35,9 +41,9 @@ type QuerySelector = {
 
 type CSSProperties =
   | CommonProperties
-  | ArraySelector
   | ColonSelector
-  | QuerySelector
+  | ArraySelector
+  | AtRuleSelector
   | CSSVariableProperty;
 
 type CreateStyleValue = CSSProperties | ((...args: any[]) => CSSProperties);
@@ -50,9 +56,10 @@ type AtomicClassNameFor<out P extends string, out V> = string & {
   readonly _value: V;
 };
 
+type AtString = `@${string}`;
 type MapNamespace<T> = Readonly<{
   [key in keyof T]: T[key] extends Record<string, unknown>
-    ? key extends `:${string}` | `@${string}` | `[${string}`
+    ? key extends ColonString | ArrayString | AtString
       ? MapNamespace<T[key]>
       : AtomicClassNameFor<key & string, T[key]>
     : key extends string
@@ -73,6 +80,9 @@ type CreateStatic = Record<string, string | number>;
 type CreateTheme = {
   [key: string]: ThemeValue;
 };
+
+type DotString = `.${string}`;
+type CreateThemeSelector = DotString | ArrayString | AtRule;
 type CreateThemeReturnType<T> = {
   readonly [K in keyof T]: Readonly<T[K]>;
 };
@@ -123,6 +133,7 @@ export type {
   CreateStyleValue,
   CreateReturnType,
   CreateTheme,
+  CreateThemeSelector,
   CreateThemeReturnType,
   CreateStatic,
   Variants,
