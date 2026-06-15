@@ -1,0 +1,43 @@
+---
+title: 'Plumeria 13.2'
+description: 'Fix turbopack-loader edge case and add createTheme argment type'
+date: '2026-06-15'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 13.2.0 has been released! 🎉
+
+- turbopack-loader has been tweaked and fixed.
+- The themeSelector argument of createTheme now has a type.
+
+## CreateTheme argument now has a TypeScript type
+
+First argument must be selector which start with `"."`, `"["`, `"@"`.
+
+```ts
+type CreateThemeSelector = DotString | ArrayString | AtRule;
+```
+
+```ts
+const theme = css.createTheme(".dark"{
+  primary: {
+    default: 'skyblue',
+    theme: 'yellow'
+  }
+})
+```
+
+## Fix turbopack-loader
+
+- fix dynamic className and style attributes
+- fix cleanStaleThemeRules regex edge cases
+
+---
+
+As always, thanks to everyone who is trying out Plumeria.  
+Feedback is welcome in [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) and bug reports in [Issues](https://github.com/zss-in-js/plumeria/issues).
