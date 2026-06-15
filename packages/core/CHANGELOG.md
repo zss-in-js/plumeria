@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 13.2.0
+
+### Minor Changes
+
+- 51c0d47: Fix type definitions and update
+
 ## 13.1.5
 
 ### Patch Changes

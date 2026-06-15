@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 13.2.0
+
+### Minor Changes
+
+- 51c0d47: Fix dynamic className and style attributes and cleanStaleThemeRules regex edge cases
+
+### Patch Changes
+
+- Updated dependencies [51c0d47]
+  - @plumeria/utils@13.2.0
+
 ## 13.1.5
 
 ### Patch Changes
