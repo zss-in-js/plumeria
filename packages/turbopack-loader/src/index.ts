@@ -89,38 +89,12 @@ interface LoaderContext {
 
 let lastValidCss = '';
 
-function cleanStaleThemeRules(currentCss: string, optInCss: string): string {
-  const hashRegex = /--([a-z0-9]{8})-[a-zA-Z0-9-]+:/g;
-  const hashes = new Set<string>();
-  let match;
-  while ((match = hashRegex.exec(optInCss)) !== null) {
-    hashes.add(match[1]);
-  }
-
-  let cleanedCss = currentCss;
-  for (const hash of hashes) {
-    const propRegex = new RegExp(
-      `--${hash}-[a-zA-Z0-9-]+:[^}]*?(?:;|(?=\\}))`,
-      'g',
-    );
-    cleanedCss = cleanedCss.replace(propRegex, '');
-  }
-  const emptyBlockRegex = /(?<=^|[}{])[^{}]*\{\s*\}/g;
-
-  let prevCss;
-  do {
-    prevCss = cleanedCss;
-    cleanedCss = cleanedCss.replace(emptyBlockRegex, '');
-  } while (cleanedCss !== prevCss);
-
-  return cleanedCss.trim();
-}
-
 export default async function loader(this: LoaderContext, source: string) {
   const callback = this.async();
   const resourcePath = this.resourcePath;
   const isProduction = process.env.NODE_ENV === 'production';
   const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
+  let isThemeCSS = false;
 
   if (!lastValidCss && !isProduction) {
     try {
@@ -567,6 +541,7 @@ export default async function loader(this: LoaderContext, source: string) {
           init.arguments.length >= 2 &&
           t.isObjectExpression(init.arguments[1].expression)
         ) {
+          isThemeCSS = true;
           if (t.isIdentifier(node.id)) {
             idSpans.add(node.id.span.start);
           }
@@ -596,7 +571,11 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedVariantsTable,
           );
 
-          const hash = genBase36Hash(obj, 1, 8);
+          const hash = genBase36Hash(
+            { _themeSelector: selector, ...obj },
+            1,
+            8,
+          );
           if (t.isIdentifier(node.id)) {
             const uniqueKey = `${resourcePath}-${node.id.value}`;
 
@@ -818,6 +797,7 @@ export default async function loader(this: LoaderContext, source: string) {
             args.length >= 2 &&
             t.isObjectExpression(args[1].expression)
           ) {
+            isThemeCSS = true;
             let selector = '';
             const selectorExpr = args[0].expression;
             if (t.isStringLiteral(selectorExpr)) {
@@ -841,7 +821,11 @@ export default async function loader(this: LoaderContext, source: string) {
               scannedTables.createStaticObjectTable,
               mergedVariantsTable,
             );
-            const hash = genBase36Hash(obj, 1, 8);
+            const hash = genBase36Hash(
+              { _themeSelector: selector, ...obj },
+              1,
+              8,
+            );
             scannedTables.createThemeObjectTable[hash] = obj;
             if (scannedTables.createThemeSelectorTable) {
               scannedTables.createThemeSelectorTable[hash] = selector;
@@ -1952,9 +1936,8 @@ export default async function loader(this: LoaderContext, source: string) {
         // File doesn't exist yet
       }
 
-      if (!currentCss.includes(optInCSS)) {
-        const cleanedCss = cleanStaleThemeRules(currentCss, optInCSS);
-        const nextCss = cleanedCss ? cleanedCss + '\n' + newCss : newCss;
+      if (!currentCss.includes(optInCSS) || isThemeCSS) {
+        const nextCss = currentCss + '\n' + newCss;
         fs.writeFileSync(VIRTUAL_FILE_PATH, nextCss, 'utf-8');
         lastValidCss = nextCss;
       } else {
