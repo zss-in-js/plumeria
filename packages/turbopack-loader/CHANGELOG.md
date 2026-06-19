@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 13.2.2
+
+### Patch Changes
+
+- 7e40f03: Remove regular expression logic
+- Updated dependencies [7e40f03]
+  - @plumeria/utils@13.2.2
+
 ## 13.2.1
 
 ### Patch Changes
