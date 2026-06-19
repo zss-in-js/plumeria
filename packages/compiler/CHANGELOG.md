@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 13.2.2
+
+### Patch Changes
+
+- 7e40f03: Align the hash logic of createTheme with turbopack-loader
+- Updated dependencies [7e40f03]
+  - @plumeria/utils@13.2.2
+
 ## 13.2.1
 
 ### Patch Changes

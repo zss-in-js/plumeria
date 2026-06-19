@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 13.2.2
+
+### Patch Changes
+
+- 7e40f03: Update dependencies in v13.2.2
+- Updated dependencies [7e40f03]
+  - @plumeria/turbopack-loader@13.2.2
+
 ## 13.2.1
 
 ### Patch Changes
