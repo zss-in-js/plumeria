@@ -792,7 +792,11 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
             ctx.mergedVariantsTable,
           );
-          const hash = genBase36Hash(obj, 1, 8);
+          const hash = genBase36Hash(
+            { _themeSelector: selector, ...obj },
+            1,
+            8,
+          );
           ctx.scannedTables.createThemeObjectTable[hash] = obj;
           if (ctx.scannedTables.createThemeSelectorTable) {
             ctx.scannedTables.createThemeSelectorTable[hash] = selector;
@@ -983,7 +987,11 @@ export function compileCSS(options: CompilerOptions) {
                 ctx.scannedTables.createStaticObjectTable,
                 ctx.mergedVariantsTable,
               );
-              const hash = genBase36Hash(obj, 1, 8);
+              const hash = genBase36Hash(
+                { _themeSelector: selector, ...obj },
+                1,
+                8,
+              );
               const uKey = `${resourcePath}-${node.id.value}`;
               ctx.scannedTables.createThemeHashTable[uKey] = hash;
               ctx.scannedTables.createThemeObjectTable[hash] = obj;
