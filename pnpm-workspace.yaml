@@ -14,8 +14,8 @@ allowBuilds:
 
 catalog:
   '@rust-gear/glob': 1.0.0
-  '@swc/core': 1.15.40
-  next: ^16.2.7
+  '@swc/core': 1.15.41
+  next: ^16.2.9
   postcss: 8.5.15
   react: ^19.2.6
   react-dom: ^19.2.6
