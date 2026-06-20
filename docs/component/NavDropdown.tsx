@@ -136,8 +136,8 @@ const styles = css.create({
   },
 });
 
-const ChevronDown = ({ styleName }: { styleName: any }) => (
-  <span styleName={styleName}>
+const ChevronDown = ({ className }: { className: string }) => (
+  <span className={className}>
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="14"
@@ -198,7 +198,7 @@ export const NavDropdown = ({ title, url, items }: NavDropdownProps) => {
     <div styleName={styles.container} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
       <Link href={url} styleName={[styles.trigger, isHovered && styles.triggerHovered]} onClick={handleTriggerClick}>
         {title}
-        <ChevronDown styleName={[styles.chevron, isMenuVisible && styles.chevronOpen]} />
+        <ChevronDown className={css.use(styles.chevron, isMenuVisible && styles.chevronOpen)} />
       </Link>
       <div styleName={[styles.menu, isMenuVisible && styles.menuVisible]}>
         {items.map((item, idx) => {
