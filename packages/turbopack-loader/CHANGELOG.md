@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 13.2.3
+
+### Patch Changes
+
+- f8bd7a0: Bump version to 13.2.3
+- Updated dependencies [f8bd7a0]
+  - @plumeria/utils@13.2.3
+
 ## 13.2.2
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 13.2.3
+
+### Patch Changes
+
+- f8bd7a0: Align the hash logic of createTheme with turbopack-loader
+- Updated dependencies [f8bd7a0]
+  - @plumeria/utils@13.2.3
+
 ## 13.2.2
 
 ### Patch Changes
