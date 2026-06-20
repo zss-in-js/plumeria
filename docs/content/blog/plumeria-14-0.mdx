@@ -1,0 +1,51 @@
+---
+title: 'Plumeria 14.0'
+description: 'Enhance error handling for edge cases'
+date: '2026-06-20'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 14.0.0 has been released! 🎉
+
+## Update
+Only accepts values that can be statically analyzed.
+Passing values that cannot be statically analyzed to `styleName` and `css.use()` will result in compilation errors during build and development. 
+
+### Patterns Affected
+
+**1. Unparsable Style Values**
+
+```tsx
+// Before: Silently ignored (style not applied)
+<div styleName={[styles.text, props.styles]} />
+```
+
+```sh title="Error"
+Plumeria: Dynamic or unresolvable style object "props.styles" is not supported.
+```
+
+**2. Spreading Variants**
+
+```tsx
+// Before: Similarly silently ignored
+getButtonStyle({ ...variant })
+```
+
+```sh title="Error"
+Plumeria: Spread operator in getButtonStyle({ ...variant }) is not supported. Please pass specific variant options directly.
+```
+
+### Migration
+
+We've intentionally modified the code to generate an error if unexecuted or unparsed values remain in the code.
+
+- Use `css.variants` for dynamic value switching.
+- Use function keys (`styles.scale(value)`) for injecting dynamic numerical values ​​and custom properties.
+
+As always, thanks to everyone who is trying out Plumeria.  
+Feedback is welcome in [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) and bug reports in [Issues](https://github.com/zss-in-js/plumeria/issues).
