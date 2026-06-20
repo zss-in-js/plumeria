@@ -31,11 +31,10 @@ const styles = css.create({
   })
 });
 
-export default function App(props) {
+export default function App({ cond }) {
   const scale = useScale();
   return (
     <div
-      {...props}
       styleName={[
         styles.text, 
         cond && styles.cond,
