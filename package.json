@@ -18,7 +18,8 @@
     "test:e2e": "playwright test",
     "prettier": "prettier --write \"**/*.js\" \"**/*.ts\"",
     "prettier:report": "prettier --check \"**/*.js\" \"**/*.ts\"",
-    "lint:report": "eslint --fix"
+    "lint:report": "eslint --fix",
+    "changeset:version": "node scripts/update-release-note.js"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
