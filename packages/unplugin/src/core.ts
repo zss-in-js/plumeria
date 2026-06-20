@@ -626,7 +626,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               mergedVariantsTable,
             );
 
-            const hash = genBase36Hash(obj, 1, 8);
+            const hash = genBase36Hash(
+              { _themeSelector: selector, ...obj },
+              1,
+              8,
+            );
             if (t.isIdentifier(node.id)) {
               const uniqueKey = `${resourcePath}-${node.id.value}`;
 
@@ -873,7 +877,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 scannedTables.createStaticObjectTable,
                 mergedVariantsTable,
               );
-              const hash = genBase36Hash(obj, 1, 8);
+              const hash = genBase36Hash(
+                { _themeSelector: selector, ...obj },
+                1,
+                8,
+              );
               scannedTables.createThemeObjectTable[hash] = obj;
               if (scannedTables.createThemeSelectorTable) {
                 scannedTables.createThemeSelectorTable[hash] = selector;
