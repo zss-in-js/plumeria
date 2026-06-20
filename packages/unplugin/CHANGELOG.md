@@ -1,5 +1,16 @@
 # @plumeria/unplugin
 
+## 14.0.0
+
+### Major Changes
+
+- 9103875: Enhance error handling for edge cases
+
+### Patch Changes
+
+- Updated dependencies [9103875]
+  - @plumeria/utils@14.0.0
+
 ## 13.2.3
 
 ### Patch Changes

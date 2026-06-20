@@ -4,6 +4,7 @@
 
 - Enhance error handling for edge cases
 
+
 ## 13.2.3 (Jun 20, 2026)
 
 - unplugin: Align the hash logic of createTheme with turbopack-loader
