@@ -4,7 +4,7 @@
 
 ### Major Changes
 
-- 9103875: Bump version to 14.0.0
+- 9103875: core: update README.md
 
 ## 13.2.3
 
