@@ -181,6 +181,29 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       );
       const baseByteOffset = ast.span.start - leadingBytes;
 
+      const throwCompilationError = (
+        message: string,
+        node?: HasSpan,
+      ): never => {
+        let suffix = '';
+        if (node) {
+          const offset = node.span.start - baseByteOffset;
+          let line = 1;
+          let colStart = 0;
+          for (let i = 0; i < offset && i < sourceBuffer.length; i++) {
+            if (sourceBuffer[i] === 10) {
+              line++;
+              colStart = i + 1;
+            }
+          }
+          const col = offset - colStart + 1;
+          suffix = ` (${path.basename(resourcePath)}:${line}:${col})`;
+        }
+        const err = new Error(`${message}${suffix}`);
+        err.stack = err.message;
+        throw err;
+      };
+
       for (const node of ast.body) {
         if (node.type === 'ImportDeclaration') {
           const sourcePath = node.source.value;
@@ -393,10 +416,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               localCreateStyles[varName].type === 'variant') ||
             mergedVariantsTable[varName]
           ) {
-            throw new Error(
-              `Plumeria: Assigning the return value of "css.variants" to a variable is not supported.\nPlease pass the variant function directly to "css.use". Found assignment to: ${
+            throwCompilationError(
+              `Plumeria: Assigning the return value of css.variants() to a variable is not supported.\nPlease pass the variant function directly to styleName or css.use(). Found assignment to: ${
                 t.isIdentifier(decl.id) ? decl.id.value : 'unknown'
               }`,
+              init,
             );
           }
         }
@@ -608,8 +632,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             }
 
             if (selector.startsWith('@') && !isAtRule(selector)) {
-              throw new Error(
+              throwCompilationError(
                 `Plumeria: Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
+                selectorExpr as HasSpan,
               );
             }
 
@@ -861,8 +886,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               }
 
               if (selector.startsWith('@') && !isAtRule(selector)) {
-                throw new Error(
+                throwCompilationError(
                   `Plumeria: Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
+                  selectorExpr as HasSpan,
                 );
               }
               const obj = objectExpressionToObject(
@@ -1002,6 +1028,25 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         let baseStyle: CSSObject = {};
         let isOptimizable = true;
 
+        const getRootIdentifier = (node: Expression): string | null => {
+          if (t.isIdentifier(node)) {
+            return node.value;
+          }
+          if (t.isMemberExpression(node)) {
+            return getRootIdentifier(node.object);
+          }
+          if (t.isCallExpression(node)) {
+            const callee = node.callee;
+            if (callee.type !== 'Super' && callee.type !== 'Import') {
+              return getRootIdentifier(callee as Expression);
+            }
+          }
+          if (node.type === 'ParenthesisExpression') {
+            return getRootIdentifier((node as any).expression);
+          }
+          return null;
+        };
+
         const collectConditions = (
           node: Expression,
           currentTestStrings: string[] = [],
@@ -1078,6 +1123,28 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
             if (variantObj) {
               const callArgs = expr.arguments;
+              const hasSpread = callArgs.some((a) => {
+                if (a.spread) return true;
+                if (a.expression.type === 'ObjectExpression') {
+                  return (a.expression as ObjectExpression).properties.some(
+                    (p) => p.type === 'SpreadElement',
+                  );
+                }
+                return false;
+              });
+              if (hasSpread) {
+                throwCompilationError(
+                  `Plumeria: Spread operator in ${getSource(expr)} is not supported. ` +
+                    `Please pass specific variant options directly.`,
+                  expr,
+                );
+              }
+              if (callArgs.length !== 1) {
+                throwCompilationError(
+                  `Plumeria: Variant function "${varName}" expects exactly 1 argument, found ${callArgs.length}.`,
+                  expr,
+                );
+              }
               if (callArgs.length === 1 && !callArgs[0].spread) {
                 const arg = callArgs[0].expression;
                 if (arg.type === 'ObjectExpression') {
@@ -1197,6 +1264,23 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
           const handled = collectConditions(expr);
           if (handled) continue;
+          if (t.isMemberExpression(expr) || t.isIdentifier(expr)) {
+            const rootId = getRootIdentifier(expr);
+            const isPlumeriaStyle =
+              rootId &&
+              ((localCreateStyles[rootId] !== undefined &&
+                localCreateStyles[rootId].type !== 'constant') ||
+                mergedCreateTable[rootId] !== undefined ||
+                mergedVariantsTable[rootId] !== undefined);
+
+            if (!isPlumeriaStyle) {
+              throwCompilationError(
+                `Plumeria: Dynamic or unresolvable style object "${getSource(expr)}" is not supported.`,
+                expr,
+              );
+            }
+          }
+
           isOptimizable = false;
           break;
         }
@@ -1908,10 +1992,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             const propKey = callee.property.value;
             const styleInfo = localCreateStyles[varName];
             if (styleInfo?.functions?.[propKey]) {
-              throw new Error(
+              throwCompilationError(
                 `Plumeria: css.use(${getSource(
                   expr,
-                )}) does not support dynamic function keys.\n`,
+                )}) does not support dynamic function keys.`,
+                expr,
               );
             }
           }
