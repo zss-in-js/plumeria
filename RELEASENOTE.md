@@ -3,6 +3,7 @@
 ## 14.0.0 (Jun 20, 2026)
 
 - Enhance error handling for edge cases
+- core: update README.md
 
 
 ## 13.2.3 (Jun 20, 2026)
