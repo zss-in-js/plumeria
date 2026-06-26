@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 import type { TurbopackLoaderItem } from 'next/dist/server/config-shared';
 import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
+import * as fs from 'fs';
 
 type TurbopackConfig = NonNullable<NextConfig['turbopack']>;
 type TurbopackRules = NonNullable<TurbopackConfig['rules']>;
@@ -18,6 +19,15 @@ type PlumeriaTurbopackRules = Record<
 >;
 
 export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
+  try {
+    const VIRTUAL_FILE_PATH =
+      require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
+
+    fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
+  } catch (e) {
+    console.error('Failed to reset Plumeria virtual CSS file:', e);
+  }
+
   const originalWebpack = nextConfig.webpack;
 
   const turbopackLoaders: TurbopackLoaderItem[] = [
