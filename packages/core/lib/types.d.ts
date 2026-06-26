@@ -3,8 +3,8 @@ import type { CSSTypes } from './csstypes';
 type CSSVariableKey = `--${string}`;
 type CSSVariableValue = `var(${CSSVariableKey})`;
 type ThemeValue = {
-  default: string | number;
-  theme: string | number;
+  default: string;
+  theme: string;
 };
 type CSSVariableProperty = {
   [key: CSSVariableKey]: string | number | ThemeValue;
