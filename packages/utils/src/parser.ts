@@ -37,6 +37,7 @@ import {
   TemplateLiteral,
   BinaryExpression,
   UnaryExpression,
+  ParenthesisExpression,
   VariableDeclaration,
   VariableDeclarator,
   ExportDeclaration,
@@ -79,6 +80,8 @@ export const t = {
     node?.type === 'MemberExpression',
   isUnaryExpression: (node: any): node is UnaryExpression =>
     node?.type === 'UnaryExpression',
+  isParenthesisExpression: (node: any): node is ParenthesisExpression =>
+    node?.type === 'ParenthesisExpression',
   isTemplateLiteral: (node: any): node is TemplateLiteral =>
     node?.type === 'TemplateLiteral',
   isBinaryExpression: (node: any): node is BinaryExpression =>
@@ -293,6 +296,20 @@ export function objectExpressionToObject(
         variantsHashTable,
         resolveVariable,
       );
+    } else if (t.isBinaryExpression(val) || t.isTemplateLiteral(val)) {
+      const resolved = evaluateExpression(
+        val,
+        staticTable,
+        keyframesHashTable,
+        viewTransitionHashTable,
+        createThemeHashTable,
+        createThemeObjectTable,
+        createStaticHashTable,
+        createStaticObjectTable,
+      );
+      if (resolved !== undefined) {
+        obj[key] = resolved as CSSObject;
+      }
     } else if (t.isMemberExpression(val)) {
       const resolved = resolveStaticTableMemberExpression(val, staticTable);
       if (resolved !== undefined) {
@@ -372,6 +389,12 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
         {},
         resolveValue,
       );
+    } else if (
+      t.isBinaryExpression(init) ||
+      t.isTemplateLiteral(init) ||
+      t.isUnaryExpression(init)
+    ) {
+      result = evaluateExpression(init, localConsts, {}, {}, {}, {}, {}, {});
     }
 
     visiting.delete(name);
@@ -398,7 +421,7 @@ function getPropertyKey(
   createThemeObjectTable: CreateThemeObjectTable,
   createStaticHashTable: CreateStaticHashTable,
   createStaticObjectTable: CreateStaticObjectTable,
-): string {
+): string | number {
   if (t.isIdentifier(node)) {
     return node.value;
   }
@@ -548,7 +571,7 @@ function evaluateBinaryExpression(
   createThemeObjectTable: CreateThemeObjectTable,
   createStaticHashTable: CreateStaticHashTable,
   createStaticObjectTable: CreateStaticObjectTable,
-): string {
+): string | number {
   const left = evaluateExpression(
     node.left as Expression,
     staticTable,
@@ -569,6 +592,21 @@ function evaluateBinaryExpression(
     createStaticHashTable,
     createStaticObjectTable,
   );
+
+  if (typeof left === 'number' && typeof right === 'number') {
+    if (node.operator === '+') {
+      return left + right;
+    }
+    if (node.operator === '-') {
+      return left - right;
+    }
+    if (node.operator === '*') {
+      return left * right;
+    }
+    if (node.operator === '/') {
+      return left / right;
+    }
+  }
 
   if (node.operator === '+') {
     return String(left) + String(right);
@@ -760,6 +798,19 @@ function evaluateExpression(
 
   if (t.isUnaryExpression(node)) {
     return evaluateUnaryExpression(node);
+  }
+
+  if (t.isParenthesisExpression(node)) {
+    return evaluateExpression(
+      node.expression,
+      staticTable,
+      keyframesHashTable,
+      viewTransitionHashTable,
+      createThemeHashTable,
+      createThemeObjectTable,
+      createStaticHashTable,
+      createStaticObjectTable,
+    );
   }
 
   throw new Error(`[plumeria] Unsupported expression type: ${node.type}`);
