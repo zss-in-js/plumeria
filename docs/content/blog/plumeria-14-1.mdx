@@ -1,0 +1,49 @@
+---
+title: 'Plumeria 14.1'
+description: 'Support for four arithmetic operations and next-plugin improved'
+date: '2026-06-26'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 14.1 has been released! 🎉
+
+- Feat: restore support for four arithmetic operations.
+- Fix: next-plugin resets CSS during development startup.
+- Fix: turbopack-loader outputs minimal atoms.
+- Fix: types: `default` and `theme` properties of `createTheme` are now restricted to strings.
+
+## Changes
+
+### support four arithmetic operations(add, sub, mul, div) and parentheses.
+
+```ts
+  fontSize: 10 + 14 * (20 - 17),
+  fontWeight: 200 / 2,
+```
+
+---
+
+### next-plugin resets CSS during development startup.
+The stylesheet is reset before starting up each time the development server is restarted.
+
+---
+
+### turbopack-loader outputs minimal atoms.
+In development mode, I fixed an issue where atomic output was being duplicated in certain cases.
+
+---
+
+### core 
+`default` and `theme` properties of `createTheme` are now restricted to strings.
+This is because the createTheme API does not go through the applyCssValue path provided by zss-engine.
+
+
+--- 
+
+As always, thanks to everyone who is trying out Plumeria.  
+Feedback is welcome in [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) and bug reports in [Issues](https://github.com/zss-in-js/plumeria/issues).
