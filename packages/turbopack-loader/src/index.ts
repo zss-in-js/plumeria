@@ -53,6 +53,7 @@ import type {
   CreateThemeHashTable,
   CreateStaticHashTable,
 } from '@plumeria/utils';
+import { splitCssRules } from './split-css-rules';
 
 type AtomicMap = Record<string, string>;
 type CreateStyleValue = {
@@ -2010,7 +2011,6 @@ export default async function loader(this: LoaderContext, source: string) {
     }
 
     if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-      const newCss = optInCSS + '\n';
       let currentCss = '';
       try {
         currentCss = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
@@ -2018,8 +2018,21 @@ export default async function loader(this: LoaderContext, source: string) {
         // File doesn't exist yet
       }
 
-      if (!currentCss.includes(optInCSS) || isThemeCSS) {
-        const nextCss = currentCss + '\n' + newCss;
+      const currentRules = splitCssRules(currentCss);
+      const newRules = splitCssRules(optInCSS);
+
+      const ruleSet = new Set(currentRules);
+      let hasNewRule = false;
+
+      for (const rule of newRules) {
+        if (!ruleSet.has(rule)) {
+          ruleSet.add(rule);
+          hasNewRule = true;
+        }
+      }
+
+      if (hasNewRule || isThemeCSS) {
+        const nextCss = Array.from(ruleSet).join('\n\n') + '\n';
         fs.writeFileSync(VIRTUAL_FILE_PATH, nextCss, 'utf-8');
         lastValidCss = nextCss;
       } else {
