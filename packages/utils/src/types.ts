@@ -49,8 +49,8 @@ export interface Tables {
 
 export type CreateTheme = {
   [key: string]: {
-    default: string | number;
-    theme: string | number;
+    default: string;
+    theme: string;
   };
 };
 
