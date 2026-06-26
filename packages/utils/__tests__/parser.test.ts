@@ -253,6 +253,88 @@ describe('parser', () => {
       expect(result.viewTransitionName).toBe('vt-xyz789');
     });
 
+    it('should handle binary expression with numeric values', () => {
+      const source = `const obj = {
+        add: 40 + 20,
+        sub: 40 - 20,
+        mul: 4 * 5,
+        div: 10 / 2,
+        parens: 1 + 14 * (20 - 17),
+      }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      expect(result.add).toBe(60);
+      expect(result.sub).toBe(20);
+      expect(result.mul).toBe(20);
+      expect(result.div).toBe(5);
+      expect(result.parens).toBe(43);
+    });
+
+    it('should handle binary expression with non-numeric values (fallback to string concat)', () => {
+      const source = `const obj = {
+        concat: "foo" + "bar"
+      }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const result = objectExpressionToObject(
+        objectExpr,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      expect(result.concat).toBe('foobar');
+    });
+
+    it('should handle binary expressions referencing local constants', () => {
+      const source = `
+        const SIZE = 40 + 20;
+        const obj = { fontSize: SIZE };
+      `;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const consts = collectLocalConsts(ast);
+      const varDecl = ast.body[1] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const result = objectExpressionToObject(
+        objectExpr,
+        consts,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      expect(result.fontSize).toBe(60);
+    });
+
     it('should handle tokens resolution', () => {
       const source = `const obj = { color: T.primary }`;
       const ast = parseSync(source, { syntax: 'typescript' });
