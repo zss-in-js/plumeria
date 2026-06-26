@@ -6,8 +6,8 @@ description: 'API reference for createTheme'
 ```ts
 type CreateTheme = {
   [key: string]: {
-    default: string | number;
-    theme: string | number;
+    default: string;
+    theme: string;
   };
 };
 
@@ -15,7 +15,7 @@ export type createTheme = <const T extends CreateTheme>(themeSelector: CreateThe
 export const createTheme: createTheme;
 ```
 
-`createTheme` defines scoped, dynamic CSS variables for custom themes.  
+`createTheme` defines scoped CSS variables for custom themes.  
 Since a unique hash is automatically prepended to the generated variable names, there is zero risk of name collisions with other themes or global CSS variables.
 
 ---
