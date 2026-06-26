@@ -5,8 +5,8 @@ const createTheme = <const T extends CreateTheme>(
   themeSelector: string,
   rule: T,
 ) => {
-  const rootTarget: Record<string, string | number> = {};
-  const themeTarget: Record<string, string | number> = {};
+  const rootTarget: Record<string, string> = {};
+  const themeTarget: Record<string, string> = {};
 
   for (const key in rule) {
     const valueObj = rule[key];
