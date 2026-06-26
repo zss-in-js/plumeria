@@ -1,5 +1,12 @@
 # Release Notes
 
+## 14.1.0 (Jun 26, 2026)
+
+- turbopack-loader: outputs minimal atoms
+- next-plugin: resets CSS during development startup
+- Fix default and theme properties of createTheme to be string type
+- Support basic arithmetic operations
+
 ## 14.0.0 (Jun 20, 2026)
 
 - Enhance error handling for edge cases

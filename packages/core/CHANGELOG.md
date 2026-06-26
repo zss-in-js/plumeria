@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 14.1.0
+
+### Minor Changes
+
+- 717cf1c: Fix default and theme properties of createTheme to be string type
+
 ## 14.0.0
 
 ### Major Changes
