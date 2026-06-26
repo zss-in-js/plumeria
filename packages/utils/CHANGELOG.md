@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 14.1.0
+
+### Minor Changes
+
+- 717cf1c: Support basic arithmetic operations
+
 ## 14.0.0
 
 ### Major Changes
