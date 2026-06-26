@@ -1,3 +1,9 @@
+## 14.1.0
+
+### Minor Changes
+
+- 717cf1c: Bump version to 14.1.0
+
 ## 14.0.0
 
 ### Major Changes
