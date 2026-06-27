@@ -74,8 +74,6 @@ export function processVariants(
       conflicts[curr].forEach((neighbor) => {
         if (!visited.has(neighbor)) {
           queue.push(neighbor);
-        } else if (!component.has(neighbor)) {
-          // Already visited or added
         }
       });
     }
