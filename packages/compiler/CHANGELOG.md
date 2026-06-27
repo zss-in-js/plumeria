@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 14.1.2
+
+### Patch Changes
+
+- c0ea263: Bump version to 14.1.2
+- Updated dependencies [c0ea263]
+  - @plumeria/utils@14.1.2
+
 ## 14.1.1
 
 ### Patch Changes
