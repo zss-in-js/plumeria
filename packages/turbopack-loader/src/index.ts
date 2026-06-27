@@ -54,6 +54,7 @@ import type {
   CreateStaticHashTable,
 } from '@plumeria/utils';
 import { splitCssRules } from './split-css-rules';
+import { acquireLockSync, releaseLockSync } from './file-lock';
 
 type AtomicMap = Record<string, string>;
 type CreateStyleValue = {
@@ -2011,32 +2012,39 @@ export default async function loader(this: LoaderContext, source: string) {
     }
 
     if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
-      let currentCss = '';
+      const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
+      acquireLockSync(LOCK_DIR_PATH);
+
       try {
-        currentCss = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
-      } catch (e) {
-        // File doesn't exist yet
-      }
-
-      const currentRules = splitCssRules(currentCss);
-      const newRules = splitCssRules(optInCSS);
-
-      const ruleSet = new Set(currentRules);
-      let hasNewRule = false;
-
-      for (const rule of newRules) {
-        if (!ruleSet.has(rule)) {
-          ruleSet.add(rule);
-          hasNewRule = true;
+        let currentCss = '';
+        try {
+          currentCss = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
+        } catch (e) {
+          // File doesn't exist yet
         }
-      }
 
-      if (hasNewRule || isThemeCSS) {
-        const nextCss = Array.from(ruleSet).join('\n\n') + '\n';
-        fs.writeFileSync(VIRTUAL_FILE_PATH, nextCss, 'utf-8');
-        lastValidCss = nextCss;
-      } else {
-        lastValidCss = currentCss;
+        const currentRules = splitCssRules(currentCss);
+        const newRules = splitCssRules(optInCSS);
+
+        const ruleSet = new Set(currentRules);
+        let hasNewRule = false;
+
+        for (const rule of newRules) {
+          if (!ruleSet.has(rule)) {
+            ruleSet.add(rule);
+            hasNewRule = true;
+          }
+        }
+
+        if (hasNewRule || isThemeCSS) {
+          const nextCss = Array.from(ruleSet).join('\n\n') + '\n';
+          fs.writeFileSync(VIRTUAL_FILE_PATH, nextCss, 'utf-8');
+          lastValidCss = nextCss;
+        } else {
+          lastValidCss = currentCss;
+        }
+      } finally {
+        releaseLockSync(LOCK_DIR_PATH);
       }
     } else if (!isProduction) {
       try {
