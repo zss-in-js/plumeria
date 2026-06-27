@@ -19,15 +19,33 @@ type PlumeriaTurbopackRules = Record<
 >;
 
 export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
-  try {
-    const VIRTUAL_FILE_PATH =
-      require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
+  const globalRef = global as typeof global & {
+    __PLUMERIA_RESET_DONE__?: boolean;
+  };
 
-    fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
-  } catch (e) {
-    console.error('Failed to reset Plumeria virtual CSS file:', e);
+  if (
+    process.env.NODE_ENV === 'development' &&
+    !globalRef.__PLUMERIA_RESET_DONE__
+  ) {
+    globalRef.__PLUMERIA_RESET_DONE__ = true;
+
+    try {
+      const VIRTUAL_FILE_PATH =
+        require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
+      const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
+
+      if (fs.existsSync(LOCK_DIR_PATH)) {
+        try {
+          fs.rmdirSync(LOCK_DIR_PATH);
+        } catch (e) {
+          // ignore
+        }
+      }
+      fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
+    } catch (e) {
+      console.error('Failed to reset Plumeria virtual CSS file:', e);
+    }
   }
-
   const originalWebpack = nextConfig.webpack;
 
   const turbopackLoaders: TurbopackLoaderItem[] = [
