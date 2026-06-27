@@ -985,7 +985,7 @@ export default async function loader(this: LoaderContext, source: string) {
           }
         }
         if (node.type === 'ParenthesisExpression') {
-          return getRootIdentifier((node as any).expression);
+          return getRootIdentifier(node.expression);
         }
         return null;
       };
