@@ -1,5 +1,10 @@
 # Release Notes
 
+## 14.1.2 (Jun 27, 2026)
+
+- Fix type assertion
+- Fix variants.ts dead code
+
 ## 14.1.1 (Jun 27, 2026)
 
 - Added logic to check for and delete the lock file, restricted to the development environment

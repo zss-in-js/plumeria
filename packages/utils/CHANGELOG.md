@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 14.1.2
+
+### Patch Changes
+
+- c0ea263: Fix variants.ts dead code
+
 ## 14.1.1
 
 ### Patch Changes
