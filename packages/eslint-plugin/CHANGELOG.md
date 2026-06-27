@@ -1,3 +1,9 @@
+## 14.1.1
+
+### Patch Changes
+
+- 6fa1869: Bump version to 14.1.1
+
 ## 14.1.0
 
 ### Minor Changes

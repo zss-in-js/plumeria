@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 14.1.1
+
+### Patch Changes
+
+- 6fa1869: Added logic to check for and delete the lock file, restricted to the development environment
+- Updated dependencies [6fa1869]
+  - @plumeria/turbopack-loader@14.1.1
+
 ## 14.1.0
 
 ### Minor Changes

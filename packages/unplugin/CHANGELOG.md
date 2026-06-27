@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 14.1.1
+
+### Patch Changes
+
+- 6fa1869: Bump version to 14.1.1
+- Updated dependencies [6fa1869]
+  - @plumeria/utils@14.1.1
+
 ## 14.1.0
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 14.1.1
+
+### Patch Changes
+
+- 6fa1869: Fix parallel write conflicts by serializing the operations
+- Updated dependencies [6fa1869]
+  - @plumeria/utils@14.1.1
+
 ## 14.1.0
 
 ### Minor Changes

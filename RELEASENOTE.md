@@ -1,5 +1,10 @@
 # Release Notes
 
+## 14.1.1 (Jun 27, 2026)
+
+- Added logic to check for and delete the lock file, restricted to the development environment
+- Fix parallel write conflicts by serializing the operations
+
 ## 14.1.0 (Jun 26, 2026)
 
 - turbopack-loader: outputs minimal atoms
