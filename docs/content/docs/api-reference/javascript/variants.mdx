@@ -46,6 +46,15 @@ export const ButtonLink = ({ children, variant, href }: Props) => {
 <ButtonLink href={"/docs"} variant="metallic">{...}</ButtonLink>
 ```
 
+## Under the Hood: How the Zero-Runtime Variant Works
+In Plumeria, all variants and conditional expressions are resolved at compile time by partially optimizing the Cartesian product and addition. There is absolutely no runtime overhead associated with merging objects or concatenating strings, as is common with many CSS-in-JS libraries.
+
+### 1. Minimizing Combinations via Partial Cartesian Products
+To avoid a combinatorial explosion, the Plumeria compiler constructs a **"property conflict graph"** between variants during static analysis. Independent variants—those that do not share conflicting properties (e.g., `size` and `theme` affecting entirely different CSS properties)—are treated as simple, independent mappings. Only variant axes that compete for the same properties (such as `margin` or `display`) are automatically grouped together, and only those specific combinations (partial decision tables) are expanded during the build process. Consequently, the number of combinations is constrained by the component's actual "local axes of conflict," preventing exponential growth unless variants are stacked haphazardly.
+
+### 2. Constant $O(1)$ Runtime Cost
+Even if the expansion causes the table to grow somewhat, this impact is limited to build time. At runtime, the browser performs a minimal operation: simply retrieving a single entry from a fully pre-computed, flat table in $O(1)$ time. This completely eliminates unnecessary JavaScript object allocations and the associated load on the Garbage Collector (GC).
+
 <Callout title="Good to know">
     After being expanded to className, it is safely deleted.  
     If the variant value is statically determined at build time, only styles for that key are generated.
