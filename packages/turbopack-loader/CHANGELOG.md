@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 14.2.0
+
+### Minor Changes
+
+- 3c790f4: Bump version to 14.2.0
+
+### Patch Changes
+
+- Updated dependencies [3c790f4]
+  - @plumeria/utils@14.2.0
+
 ## 14.1.2
 
 ### Patch Changes

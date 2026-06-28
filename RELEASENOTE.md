@@ -1,5 +1,9 @@
 # Release Notes
 
+## 14.2.0 (Jun 28, 2026)
+
+- Add headlessui package
+
 ## 14.1.2 (Jun 27, 2026)
 
 - Fix type assertion
