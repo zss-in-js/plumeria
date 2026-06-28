@@ -1,0 +1,118 @@
+---
+title: 'Plumeria 14.2'
+description: 'Add @plumeria/headlessui package'
+date: '2026-06-28'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 14.2 has been released! 🎉
+
+- Feat: @plumeria/headlessui
+
+## Features
+
+### Introducing `@plumeria/headlessui`
+
+We are excited to introduce `@plumeria/headlessui`, a new companion package that wraps Radix UI primitives to integrate seamlessly with Plumeria's zero-cost styling engine.
+
+By design, Plumeria compiles `styleName` to standard `className` and `style` objects at the **call site** before the component ever runs. This means custom components do not need any special Plumeria-specific logic; they only need to forward their ref and spread incoming props onto the DOM elements.
+
+`@plumeria/headlessui` pre-packages these passthrough wrappers for Radix UI, allowing you to build fully accessible components styled with Plumeria immediately.
+
+### Example: Styling an Accordion
+
+Here is how you can use the wrapped `Accordion` components from `@plumeria/headlessui` and style them cleanly using Plumeria:
+
+```tsx
+import * as css from '@plumeria/core';
+import {
+  Accordion,
+  AccordionItem,
+  AccordionHeader,
+  AccordionTrigger,
+  AccordionContent,
+} from '@plumeria/headlessui';
+
+const styles = css.create({
+  root: {
+    width: '100%',
+    maxWidth: '400px',
+    backgroundColor: '#fff',
+    border: '1px solid #e4e4e7',
+    borderRadius: '8px',
+    overflow: 'hidden',
+  },
+  item: {
+    borderBottom: '1px solid #e4e4e7',
+    ['&:last-child']: {
+      borderBottom: 'none',
+    },
+  },
+  header: {
+    margin: 0,
+    display: 'flex',
+  },
+  trigger: {
+    display: 'flex',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '14px 18px',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#18181b',
+    textAlign: 'left',
+    cursor: 'pointer',
+    backgroundColor: 'transparent',
+    border: 'none',
+    transition: 'background-color 0.2s',
+    ':hover': {
+      backgroundColor: '#f4f4f5',
+    },
+  },
+  content: {
+    padding: '14px 18px',
+    fontSize: '13.5px',
+    color: '#71717a',
+    backgroundColor: '#fafafa',
+    borderTop: '1px solid #e4e4e7',
+  },
+});
+
+export const AccessibleAccordion = () => (
+  <Accordion type="single" collapsible styleName={styles.root}>
+    <AccordionItem value="item-1" styleName={styles.item}>
+      <AccordionHeader styleName={styles.header}>
+        <AccordionTrigger styleName={styles.trigger}>
+          Is it accessible?
+        </AccordionTrigger>
+      </AccordionHeader>
+      <AccordionContent styleName={styles.content}>
+        Yes. It adheres to the WAI-ARIA design pattern out of the box.
+      </AccordionContent>
+    </AccordionItem>
+  </Accordion>
+);
+```
+
+### Supported Components
+
+The package currently includes wrapper components for:
+- **Dialog**
+- **Popover**
+- **Tooltip**
+- **Accordion**
+- **Tabs**
+- **Collapsible**
+
+Check out the full [headlessui documentation](/docs/api-reference/components/headlessui) for more details and interactive examples.
+
+---
+
+As always, thanks to everyone who is trying out Plumeria.  
+Feedback is welcome in [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) and bug reports in [Issues](https://github.com/zss-in-js/plumeria/issues).
