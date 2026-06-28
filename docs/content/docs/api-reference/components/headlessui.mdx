@@ -1,0 +1,120 @@
+---
+title: '@plumeria/headlessui'
+description: 'Wrapper component library that seamlessly integrates Radix UI with Plumeria styleName abstraction layer.'
+---
+
+import { HeadlessDemo } from 'component/HeadlessDemo';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+`@plumeria/headlessui` is a set of components that wrap Radix UI primitives.
+
+## Installation `headlessui`
+To use the headlessui integrated into `Radix UI`, configuration of `@plumeria/core` and your bundler is required.
+Please refer to the [Installation](getting-started/installation) section for details.
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    npm i @plumeria/headlessui
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    yarn add @plumeria/headlessui
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    pnpm i @plumeria/headlessui
+    ```
+  </Tab>
+</Tabs>
+
+## How styleName works
+
+When `styleName` is passed to a custom component, it is **automatically compiled to `className` and `style` at the call site — before the component ever runs**.
+Therefore, each `@plumeria/headlessui` component does not need to know about `styleName` at all; it simply spreads `...props` onto the underlying Radix primitive.
+
+```tsx
+import * as css from '@plumeria/core';
+import { DialogTrigger } from '@plumeria/headlessui';
+
+const styles = css.create({
+  primary: {
+    padding: '10px',
+    backgroundColor: 'navy',
+    color: '#fff',
+  },
+});
+
+// styleName is compiled to className="xxxxxxxx" at this call site
+<DialogTrigger styleName={styles.primary}>Open</DialogTrigger>;
+```
+
+---
+
+## Interactive Demo
+
+Below is a live demo of all six components from `@plumeria/headlessui`, styled with Plumeria.
+
+<HeadlessDemo />
+
+---
+
+## Component API
+
+The following six component groups are exported. All components support `ref` forwarding and props spread.
+
+### Dialog
+Build accessible modal dialogs.
+- `Dialog` — wraps `Dialog.Root`
+- `DialogTrigger` — wraps `Dialog.Trigger`
+- `DialogPortal` — wraps `Dialog.Portal`
+- `DialogOverlay` — wraps `Dialog.Overlay`
+- `DialogContent` — wraps `Dialog.Content`
+- `DialogTitle` — wraps `Dialog.Title`
+- `DialogDescription` — wraps `Dialog.Description`
+- `DialogClose` — wraps `Dialog.Close`
+
+### Popover
+Display a popup anchored to a trigger element.
+- `Popover` — wraps `Popover.Root`
+- `PopoverTrigger` — wraps `Popover.Trigger`
+- `PopoverPortal` — wraps `Popover.Portal`
+- `PopoverContent` — wraps `Popover.Content`
+- `PopoverClose` — wraps `Popover.Close`
+- `PopoverArrow` — wraps `Popover.Arrow`
+- `PopoverAnchor` — wraps `Popover.Anchor`
+
+### Tooltip
+Show brief supplementary information on hover or focus.
+- `TooltipProvider` — wraps `Tooltip.Provider`
+- `Tooltip` — wraps `Tooltip.Root`
+- `TooltipTrigger` — wraps `Tooltip.Trigger`
+- `TooltipPortal` — wraps `Tooltip.Portal`
+- `TooltipContent` — wraps `Tooltip.Content`
+- `TooltipArrow` — wraps `Tooltip.Arrow`
+
+### Accordion
+Expandable/collapsible panels triggered by header clicks.
+- `Accordion` — wraps `Accordion.Root`
+- `AccordionItem` — wraps `Accordion.Item`
+- `AccordionHeader` — wraps `Accordion.Header`
+- `AccordionTrigger` — wraps `Accordion.Trigger`
+- `AccordionContent` — wraps `Accordion.Content`
+
+### Tabs
+Organize content across switchable tab panels.
+- `Tabs` — wraps `Tabs.Root`
+- `TabsList` — wraps `Tabs.List`
+- `TabsTrigger` — wraps `Tabs.Trigger`
+- `TabsContent` — wraps `Tabs.Content`
+
+### Collapsible
+Toggle visibility of a content region.
+- `Collapsible` — wraps `Collapsible.Root`
+- `CollapsibleTrigger` — wraps `Collapsible.Trigger`
+- `CollapsibleContent` — wraps `Collapsible.Content`
