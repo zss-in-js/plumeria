@@ -17,6 +17,7 @@
   * [compiler](https://github.com/zss-in-js/plumeria/tree/main/packages/compiler)
   * [core](https://github.com/zss-in-js/plumeria/tree/main/packages/core)
   * [eslint-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/eslint-plugin)
+  * [headlessui](https://github.com/zss-in-js/plumeria/tree/main/packages/headlessui)
   * [next-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/next-plugin)
   * [postcss-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/postcss-plugin)
   * [turbopack-loader](https://github.com/zss-in-js/plumeria/tree/main/packages/turbopack-loader)
