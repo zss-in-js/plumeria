@@ -367,7 +367,7 @@ export const Button = ({ children }: { children: React.ReactNode }) => {
 
 ### Pattern 2: `styleName` on the custom component at the call site
 
-The custom component accepts `className` / `style` props (via `React.HTMLAttributes<T>`), and the **call site** applies styles using `styleName`. Since `styleName` is globally typed on `React.HTMLAttributes<T>`, it works on custom components and the compiler compiles it to `className`/`style` at the call site.
+The custom component simply spreads `...props` onto the underlying DOM element. Since `styleName` is compiled to `className`/`style` at the call site — before the component ever runs — the component itself doesn't need to know about `styleName` at all; it only ever sees ordinary `className`/`style` props arriving through the spread.
 
 ```tsx
 // --- Button.tsx ---
@@ -377,13 +377,9 @@ interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
 }
 
-// Pure passthrough — receives compiled className/style and forwards to DOM
-export const Button = ({ className, style, children, ...rest }: ButtonProps) => {
-  return (
-    <button className={className} style={style} {...rest}>
-      {children}
-    </button>
-  );
+// Pure passthrough — props (including compiled className/style) flow straight to the DOM
+export const Button = ({ children, ...props }: ButtonProps) => {
+  return <button {...props}>{children}</button>;
 };
 
 // --- Usage (call site) ---
@@ -398,7 +394,7 @@ const styles = css.create({
   },
 });
 
-// styleName is compiled to className="hash_primary" at this call site
+// styleName is compiled to className="xxxxxxxx" at this call site
 <Button styleName={styles.primary}>Click me</Button>;
 ```
 
