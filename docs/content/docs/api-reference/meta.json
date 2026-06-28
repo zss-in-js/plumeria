@@ -1,5 +1,5 @@
 {
   "defaultOpen": true,
   "title": "API Reference",
-  "pages": ["javascript", "plugins"]
+  "pages": ["javascript", "components", "plugins"]
 }
