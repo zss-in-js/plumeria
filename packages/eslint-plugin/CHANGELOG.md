@@ -1,3 +1,9 @@
+## 14.2.1
+
+### Patch Changes
+
+- 565fb17: Bump version to 14.2.1
+
 ## 14.2.0
 
 ### Minor Changes
