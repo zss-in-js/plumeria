@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 14.2.1
+
+### Patch Changes
+
+- 565fb17: Bump version to 14.2.1
+- Updated dependencies [565fb17]
+  - @plumeria/utils@14.2.1
+
 ## 14.2.0
 
 ### Minor Changes

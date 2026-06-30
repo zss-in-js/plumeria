@@ -1,5 +1,9 @@
 # Release Notes
 
+## 14.2.1 (Jun 30, 2026)
+
+- headlessui: refactor export in index.ts and sideEffects false in package.json
+
 ## 14.2.0 (Jun 28, 2026)
 
 - Add headlessui package
