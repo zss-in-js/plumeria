@@ -6,7 +6,7 @@ description: 'Wrapper component library that seamlessly integrates Radix UI with
 import { HeadlessDemo } from 'component/HeadlessDemo';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-`@plumeria/headlessui` is a set of components that wrap Radix UI primitives.
+`@plumeria/headlessui` is a curated set of essential headless primitives, built on [Radix UI](https://www.radix-ui.com/)
 
 ## Installation `headlessui`
 To use the headlessui integrated into `Radix UI`, configuration of `@plumeria/core` and your bundler is required.
@@ -51,7 +51,7 @@ const styles = css.create({
 });
 
 // styleName is compiled to className="xxxxxxxx" at this call site
-<DialogTrigger styleName={styles.primary}>Open</DialogTrigger>;
+<Dialog.Trigger styleName={styles.primary}>Open</Dialog.Trigger>;
 ```
 
 ---
@@ -64,57 +64,187 @@ Below is a live demo of all six components from `@plumeria/headlessui`, styled w
 
 ---
 
-## Component API
+## Components
 
-The following six component groups are exported. All components support `ref` forwarding and props spread.
-
-### Dialog
-Build accessible modal dialogs.
-- `Dialog` — wraps `Dialog.Root`
-- `DialogTrigger` — wraps `Dialog.Trigger`
-- `DialogPortal` — wraps `Dialog.Portal`
-- `DialogOverlay` — wraps `Dialog.Overlay`
-- `DialogContent` — wraps `Dialog.Content`
-- `DialogTitle` — wraps `Dialog.Title`
-- `DialogDescription` — wraps `Dialog.Description`
-- `DialogClose` — wraps `Dialog.Close`
-
-### Popover
-Display a popup anchored to a trigger element.
-- `Popover` — wraps `Popover.Root`
-- `PopoverTrigger` — wraps `Popover.Trigger`
-- `PopoverPortal` — wraps `Popover.Portal`
-- `PopoverContent` — wraps `Popover.Content`
-- `PopoverClose` — wraps `Popover.Close`
-- `PopoverArrow` — wraps `Popover.Arrow`
-- `PopoverAnchor` — wraps `Popover.Anchor`
-
-### Tooltip
-Show brief supplementary information on hover or focus.
-- `TooltipProvider` — wraps `Tooltip.Provider`
-- `Tooltip` — wraps `Tooltip.Root`
-- `TooltipTrigger` — wraps `Tooltip.Trigger`
-- `TooltipPortal` — wraps `Tooltip.Portal`
-- `TooltipContent` — wraps `Tooltip.Content`
-- `TooltipArrow` — wraps `Tooltip.Arrow`
+The following twenty component groups are exported. All components support `ref` forwarding and props spread.
 
 ### Accordion
-Expandable/collapsible panels triggered by header clicks.
-- `Accordion` — wraps `Accordion.Root`
-- `AccordionItem` — wraps `Accordion.Item`
-- `AccordionHeader` — wraps `Accordion.Header`
-- `AccordionTrigger` — wraps `Accordion.Trigger`
-- `AccordionContent` — wraps `Accordion.Content`
 
-### Tabs
-Organize content across switchable tab panels.
-- `Tabs` — wraps `Tabs.Root`
-- `TabsList` — wraps `Tabs.List`
-- `TabsTrigger` — wraps `Tabs.Trigger`
-- `TabsContent` — wraps `Tabs.Content`
+- `Item`
+- `Header`
+- `Trigger`
+- `Content`
+
+### AlertDialog
+
+- `Trigger`
+- `Portal`
+- `Overlay`
+- `Content`
+- `Title`
+- `Description`
+- `Action`
+- `Cancel`
+
+### Checkbox
+
+- `Indicator`
 
 ### Collapsible
-Toggle visibility of a content region.
-- `Collapsible` — wraps `Collapsible.Root`
-- `CollapsibleTrigger` — wraps `Collapsible.Trigger`
-- `CollapsibleContent` — wraps `Collapsible.Content`
+
+- `Trigger`
+- `Content`
+
+### ContextMenu
+
+- `Trigger`
+- `Portal`
+- `Content`
+- `Group`
+- `Label`
+- `Item`
+- `CheckboxItem`
+- `RadioGroup`
+- `RadioItem`
+- `ItemIndicator`
+- `Separator`
+- `Arrow`
+- `Sub`
+- `SubTrigger`
+- `SubContent`
+
+### Dialog
+
+- `Trigger`
+- `Portal`
+- `Overlay`
+- `Content`
+- `Title`
+- `Description`
+- `Close`
+
+### DropdownMenu
+
+- `Trigger`
+- `Portal`
+- `Content`
+- `Group`
+- `Label`
+- `Item`
+- `CheckboxItem`
+- `RadioGroup`
+- `RadioItem`
+- `ItemIndicator`
+- `Separator`
+- `Arrow`
+- `Sub`
+- `SubTrigger`
+- `SubContent`
+
+### Menubar
+
+- `Menu`
+- `Trigger`
+- `Portal`
+- `Content`
+- `Group`
+- `Label`
+- `Item`
+- `CheckboxItem`
+- `RadioGroup`
+- `RadioItem`
+- `ItemIndicator`
+- `Separator`
+- `Arrow`
+- `Sub`
+- `SubTrigger`
+- `SubContent`
+
+### NavigationMenu
+
+- `Sub`
+- `List`
+- `Item`
+- `Trigger`
+- `Link`
+- `Indicator`
+- `Content`
+- `Viewport`
+
+### Popover
+
+- `Trigger`
+- `Portal`
+- `Content`
+- `Close`
+- `Arrow`
+- `Anchor`
+
+### RadioGroup
+
+- `Item`
+- `Indicator`
+
+### ScrollArea
+
+- `Viewport`
+- `Scrollbar`
+- `Thumb`
+- `Corner`
+
+### Select
+
+- `Trigger`
+- `Value`
+- `Icon`
+- `Portal`
+- `Content`
+- `Viewport`
+- `Group`
+- `Label`
+- `Item`
+- `ItemText`
+- `ItemIndicator`
+- `ScrollUpButton`
+- `ScrollDownButton`
+- `Separator`
+- `Arrow`
+
+### Slider
+
+- `Track`
+- `Range`
+- `Thumb`
+
+### Switch
+
+- `Thumb`
+
+### Tabs
+
+- `List`
+- `Trigger`
+- `Content`
+
+### Toast
+
+- `Provider`
+- `Viewport`
+- `Title`
+- `Description`
+- `Action`
+- `Close`
+
+### Toggle
+
+### ToggleGroup
+
+- `Item`
+
+### Tooltip
+
+- `Provider`
+- `Trigger`
+- `Portal`
+- `Content`
+- `Arrow`
