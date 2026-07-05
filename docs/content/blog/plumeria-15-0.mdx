@@ -1,0 +1,93 @@
+---
+title: 'Plumeria 15.0'
+description: 'Update: Migration to dot-notation for headlessui and addition of 14 new components'
+date: '2026-07-05'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 15.0.0 has been released! 🎉
+
+This update brings a major overhaul to the `@plumeria/headlessui` API design. We have unified the API to use dot-notation (dot-chaining)—resulting in cleaner import code—and added 14 new components.
+
+---
+
+## Key Changes
+
+### 1. Standardization on Dot-Notation and Removal of Flat Exports
+
+In previous versions, components were exported with flat names like `<AccordionItem>` or `<DialogTrigger>`. These have been deprecated in favor of a unified structure where components are chained to the root component (dot-notation).
+
+This makes import statements much cleaner and helps reduce naming conflicts and redundant import declarations. 
+
+```tsx
+// Before (Flat exports)
+import {
+Accordion,
+AccordionItem, // [!code --]
+AccordionHeader, // [!code --]
+AccordionTrigger, // [!code --]
+AccordionContent, // [!code --]
+} from '@plumeria/headlessui';
+
+// After (Dot notation)
+import { Accordion } from '@plumeria/headlessui'; // [!code ++]
+
+// Usage example
+<Accordion type="single" collapsible>
+  <Accordion.Item value="item-1">
+    <Accordion.Header>
+      <Accordion.Trigger>Is it accessible?</Accordion.Trigger>
+    </Accordion.Header>
+    <Accordion.Content>
+      Yes. It adheres to the WAI-ARIA design pattern.
+    </Accordion.Content>
+  </Accordion.Item>
+</Accordion>
+```
+
+---
+
+### 2. Significant Component Expansion (Total of 20 Types)
+
+We have added 14 new components, enabling the construction of more complex UI designs using headless components.
+
+The 20 components currently supported by `@plumeria/headlessui` are as follows:
+
+- `Accordion`
+- `AlertDialog`
+- `Checkbox`
+- `Collapsible`
+- `ContextMenu`
+- `Dialog`
+- `DropdownMenu`
+- `Menubar`
+- `NavigationMenu`
+- `Popover`
+- `RadioGroup`
+- `ScrollArea`
+- `Select`
+- `Slider`
+- `Switch`
+- `Tabs`
+- `Toast`
+- `Toggle`
+- `ToggleGroup`
+- `Tooltip`
+
+For detailed specifications and usage instructions for each component, please refer to the [headlessui component documentation](/docs/api-reference/components/headlessui).
+
+---
+
+### 3. Plumeria Styling Integration
+
+Each component functions as a lightweight wrapper around Radix UI Primitives and integrates seamlessly with Plumeria's `styleName` abstraction layer. Since `styleName` undergoes static analysis at build time and is automatically compiled into `className` or `style` at the call site, the headless component itself contains no Plumeria-specific runtime logic, ensuring peak performance with zero overhead.
+
+---
+
+Thank you for trying out Plumeria!
+Please share your feedback and join the discussion on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions), or report any issues via [Issues](https://github.com/zss-in-js/plumeria/issues).
