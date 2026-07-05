@@ -1,5 +1,9 @@
 # Release Notes
 
+## 15.0.0 (Jul 5, 2026)
+
+- Add 14 headless components and updates to switch them from a flat structure to a chained component format
+
 ## 14.2.1 (Jun 30, 2026)
 
 - headlessui: refactor export in index.ts and sideEffects false in package.json
