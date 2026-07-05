@@ -1,3 +1,9 @@
+## 15.0.0
+
+### Major Changes
+
+- a235bdc: Bump version to 15.0.0
+
 ## 14.2.1
 
 ### Patch Changes

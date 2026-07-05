@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 15.0.0
+
+### Major Changes
+
+- a235bdc: Add 14 headless components and updates to switch them from a flat structure to a chained component format
+
 ## 14.2.1
 
 ### Patch Changes
