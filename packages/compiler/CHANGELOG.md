@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 15.0.0
+
+### Major Changes
+
+- a235bdc: Bump version to 15.0.0
+
+### Patch Changes
+
+- Updated dependencies [a235bdc]
+  - @plumeria/utils@15.0.0
+
 ## 14.2.1
 
 ### Patch Changes
