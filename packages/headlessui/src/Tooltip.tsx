@@ -2,17 +2,17 @@ import * as React from 'react';
 import type { StyleName } from '@plumeria/core';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
-export const TooltipProvider = (props: TooltipPrimitive.TooltipProviderProps) => {
+const TooltipProvider = (props: TooltipPrimitive.TooltipProviderProps) => {
   return <TooltipPrimitive.Provider {...props} />;
 };
 TooltipProvider.displayName = 'TooltipProvider';
 
-export const Tooltip = (props: TooltipPrimitive.TooltipProps) => {
+const TooltipRoot = (props: TooltipPrimitive.TooltipProps) => {
   return <TooltipPrimitive.Root {...props} />;
 };
-Tooltip.displayName = 'Tooltip';
+TooltipRoot.displayName = 'Tooltip';
 
-export const TooltipTrigger = React.forwardRef<
+const TooltipTrigger = React.forwardRef<
   React.ComponentRef<typeof TooltipPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>
 >((props, ref) => {
@@ -20,12 +20,12 @@ export const TooltipTrigger = React.forwardRef<
 });
 TooltipTrigger.displayName = 'TooltipTrigger';
 
-export const TooltipPortal = (props: TooltipPrimitive.TooltipPortalProps) => {
+const TooltipPortal = (props: TooltipPrimitive.TooltipPortalProps) => {
   return <TooltipPrimitive.Portal {...props} />;
 };
 TooltipPortal.displayName = 'TooltipPortal';
 
-export const TooltipContent = React.forwardRef<
+const TooltipContent = React.forwardRef<
   React.ComponentRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
 >((props, ref) => {
@@ -33,10 +33,20 @@ export const TooltipContent = React.forwardRef<
 });
 TooltipContent.displayName = 'TooltipContent';
 
-export const TooltipArrow = React.forwardRef<
+const TooltipArrow = React.forwardRef<
   React.ComponentRef<typeof TooltipPrimitive.Arrow>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Arrow> & { styleName?: StyleName }
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Arrow> & {
+    styleName?: StyleName;
+  }
 >((props, ref) => {
   return <TooltipPrimitive.Arrow ref={ref} {...props} />;
 });
 TooltipArrow.displayName = 'TooltipArrow';
+
+export const Tooltip = Object.assign(TooltipRoot, {
+  Provider: TooltipProvider,
+  Trigger: TooltipTrigger,
+  Portal: TooltipPortal,
+  Content: TooltipContent,
+  Arrow: TooltipArrow,
+});
