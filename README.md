@@ -7,6 +7,8 @@
 
 ## Structure
 
+Versioning: All versions are standardized for consistency.
+
 * `.github`
   * Contains workflows used by GitHub Actions.
   * Contains other templates.
