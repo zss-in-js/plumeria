@@ -2,12 +2,12 @@ import * as React from 'react';
 import type { StyleName } from '@plumeria/core';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 
-export const Popover = (props: PopoverPrimitive.PopoverProps) => {
+const PopoverRoot = (props: PopoverPrimitive.PopoverProps) => {
   return <PopoverPrimitive.Root {...props} />;
 };
-Popover.displayName = 'Popover';
+PopoverRoot.displayName = 'Popover';
 
-export const PopoverTrigger = React.forwardRef<
+const PopoverTrigger = React.forwardRef<
   React.ComponentRef<typeof PopoverPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>
 >((props, ref) => {
@@ -15,12 +15,12 @@ export const PopoverTrigger = React.forwardRef<
 });
 PopoverTrigger.displayName = 'PopoverTrigger';
 
-export const PopoverPortal = (props: PopoverPrimitive.PopoverPortalProps) => {
+const PopoverPortal = (props: PopoverPrimitive.PopoverPortalProps) => {
   return <PopoverPrimitive.Portal {...props} />;
 };
 PopoverPortal.displayName = 'PopoverPortal';
 
-export const PopoverContent = React.forwardRef<
+const PopoverContent = React.forwardRef<
   React.ComponentRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
 >((props, ref) => {
@@ -28,7 +28,7 @@ export const PopoverContent = React.forwardRef<
 });
 PopoverContent.displayName = 'PopoverContent';
 
-export const PopoverClose = React.forwardRef<
+const PopoverClose = React.forwardRef<
   React.ComponentRef<typeof PopoverPrimitive.Close>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Close>
 >((props, ref) => {
@@ -36,18 +36,29 @@ export const PopoverClose = React.forwardRef<
 });
 PopoverClose.displayName = 'PopoverClose';
 
-export const PopoverArrow = React.forwardRef<
+const PopoverArrow = React.forwardRef<
   React.ComponentRef<typeof PopoverPrimitive.Arrow>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Arrow> & { styleName?: StyleName }
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Arrow> & {
+    styleName?: StyleName;
+  }
 >((props, ref) => {
   return <PopoverPrimitive.Arrow ref={ref} {...props} />;
 });
 PopoverArrow.displayName = 'PopoverArrow';
 
-export const PopoverAnchor = React.forwardRef<
+const PopoverAnchor = React.forwardRef<
   React.ComponentRef<typeof PopoverPrimitive.Anchor>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Anchor>
 >((props, ref) => {
   return <PopoverPrimitive.Anchor ref={ref} {...props} />;
 });
 PopoverAnchor.displayName = 'PopoverAnchor';
+
+export const Popover = Object.assign(PopoverRoot, {
+  Trigger: PopoverTrigger,
+  Portal: PopoverPortal,
+  Content: PopoverContent,
+  Close: PopoverClose,
+  Arrow: PopoverArrow,
+  Anchor: PopoverAnchor,
+});

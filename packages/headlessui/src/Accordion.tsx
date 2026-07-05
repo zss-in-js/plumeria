@@ -1,15 +1,15 @@
 import * as React from 'react';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
 
-export const Accordion = React.forwardRef<
+const AccordionRoot = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Root>
 >((props, ref) => {
   return <AccordionPrimitive.Root ref={ref} {...props} />;
 });
-Accordion.displayName = 'Accordion';
+AccordionRoot.displayName = 'Accordion';
 
-export const AccordionItem = React.forwardRef<
+const AccordionItem = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
 >((props, ref) => {
@@ -17,7 +17,7 @@ export const AccordionItem = React.forwardRef<
 });
 AccordionItem.displayName = 'AccordionItem';
 
-export const AccordionHeader = React.forwardRef<
+const AccordionHeader = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Header>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Header>
 >((props, ref) => {
@@ -25,7 +25,7 @@ export const AccordionHeader = React.forwardRef<
 });
 AccordionHeader.displayName = 'AccordionHeader';
 
-export const AccordionTrigger = React.forwardRef<
+const AccordionTrigger = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
 >((props, ref) => {
@@ -33,10 +33,17 @@ export const AccordionTrigger = React.forwardRef<
 });
 AccordionTrigger.displayName = 'AccordionTrigger';
 
-export const AccordionContent = React.forwardRef<
+const AccordionContent = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
 >((props, ref) => {
   return <AccordionPrimitive.Content ref={ref} {...props} />;
 });
 AccordionContent.displayName = 'AccordionContent';
+
+export const Accordion = Object.assign(AccordionRoot, {
+  Item: AccordionItem,
+  Header: AccordionHeader,
+  Trigger: AccordionTrigger,
+  Content: AccordionContent,
+});
