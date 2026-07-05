@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/badge/License-MIT-10B981)
 ![npm](https://img.shields.io/npm/v/@plumeria/headlessui?&color=10B981)
 
-Accessible UI component wrappers built on [Radix UI](https://www.radix-ui.com/) primitives, designed to work seamlessly with Plumeria's `styleName` abstraction layer.
+A curated set of essential headless primitives, built on [Radix UI](https://www.radix-ui.com/) and designed to work seamlessly with Plumeria's `styleName` abstraction layer.
 
 Each component is a pure passthrough — it forwards refs and spreads props onto the underlying Radix primitive. `styleName` is compiled to `className`/`style` at the call site before the component runs, so no Plumeria-specific logic is needed inside the components.
 
@@ -23,13 +23,7 @@ pnpm i @plumeria/headlessui
 
 ```tsx
 import * as css from '@plumeria/core';
-import {
-  Accordion,
-  AccordionItem,
-  AccordionHeader,
-  AccordionTrigger,
-  AccordionContent,
-} from '@plumeria/headlessui';
+import { Accordion } from '@plumeria/headlessui';
 
 const styles = css.create({
   root: {
@@ -59,30 +53,205 @@ const styles = css.create({
 
 export const FAQ = () => (
   <Accordion type="single" collapsible styleName={styles.root}>
-    <AccordionItem value="item-1">
-      <AccordionHeader>
-        <AccordionTrigger styleName={styles.trigger}>
+    <Accordion.Item value="item-1">
+      <Accordion.Header>
+        <Accordion.Trigger styleName={styles.trigger}>
           Is it accessible?
-        </AccordionTrigger>
-      </AccordionHeader>
-      <AccordionContent styleName={styles.content}>
+        </Accordion.Trigger>
+      </Accordion.Header>
+      <Accordion.Content styleName={styles.content}>
         Yes. It adheres to the WAI-ARIA design pattern.
-      </AccordionContent>
-    </AccordionItem>
+      </Accordion.Content>
+    </Accordion.Item>
   </Accordion>
 );
 ```
 
 ## Components
 
-| Component group | Primitives |
-|---|---|
-| **Dialog** | Dialog, DialogTrigger, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogDescription, DialogClose |
-| **Popover** | Popover, PopoverTrigger, PopoverPortal, PopoverContent, PopoverClose, PopoverArrow, PopoverAnchor |
-| **Tooltip** | TooltipProvider, Tooltip, TooltipTrigger, TooltipPortal, TooltipContent, TooltipArrow |
-| **Accordion** | Accordion, AccordionItem, AccordionHeader, AccordionTrigger, AccordionContent |
-| **Tabs** | Tabs, TabsList, TabsTrigger, TabsContent |
-| **Collapsible** | Collapsible, CollapsibleTrigger, CollapsibleContent |
+The following twenty component groups are exported. All components support `ref` forwarding and props spread.
+
+### Accordion
+
+- `Item`
+- `Header`
+- `Trigger`
+- `Content`
+
+### AlertDialog
+
+- `Trigger`
+- `Portal`
+- `Overlay`
+- `Content`
+- `Title`
+- `Description`
+- `Action`
+- `Cancel`
+
+### Checkbox
+
+- `Indicator`
+
+### Collapsible
+
+- `Trigger`
+- `Content`
+
+### ContextMenu
+
+- `Trigger`
+- `Portal`
+- `Content`
+- `Group`
+- `Label`
+- `Item`
+- `CheckboxItem`
+- `RadioGroup`
+- `RadioItem`
+- `ItemIndicator`
+- `Separator`
+- `Arrow`
+- `Sub`
+- `SubTrigger`
+- `SubContent`
+
+### Dialog
+
+- `Trigger`
+- `Portal`
+- `Overlay`
+- `Content`
+- `Title`
+- `Description`
+- `Close`
+
+### DropdownMenu
+
+- `Trigger`
+- `Portal`
+- `Content`
+- `Group`
+- `Label`
+- `Item`
+- `CheckboxItem`
+- `RadioGroup`
+- `RadioItem`
+- `ItemIndicator`
+- `Separator`
+- `Arrow`
+- `Sub`
+- `SubTrigger`
+- `SubContent`
+
+### Menubar
+
+- `Menu`
+- `Trigger`
+- `Portal`
+- `Content`
+- `Group`
+- `Label`
+- `Item`
+- `CheckboxItem`
+- `RadioGroup`
+- `RadioItem`
+- `ItemIndicator`
+- `Separator`
+- `Arrow`
+- `Sub`
+- `SubTrigger`
+- `SubContent`
+
+### NavigationMenu
+
+- `Sub`
+- `List`
+- `Item`
+- `Trigger`
+- `Link`
+- `Indicator`
+- `Content`
+- `Viewport`
+
+### Popover
+
+- `Trigger`
+- `Portal`
+- `Content`
+- `Close`
+- `Arrow`
+- `Anchor`
+
+### RadioGroup
+
+- `Item`
+- `Indicator`
+
+### ScrollArea
+
+- `Viewport`
+- `Scrollbar`
+- `Thumb`
+- `Corner`
+
+### Select
+
+- `Trigger`
+- `Value`
+- `Icon`
+- `Portal`
+- `Content`
+- `Viewport`
+- `Group`
+- `Label`
+- `Item`
+- `ItemText`
+- `ItemIndicator`
+- `ScrollUpButton`
+- `ScrollDownButton`
+- `Separator`
+- `Arrow`
+
+### Slider
+
+- `Track`
+- `Range`
+- `Thumb`
+
+### Switch
+
+- `Thumb`
+
+### Tabs
+
+- `List`
+- `Trigger`
+- `Content`
+
+### Toast
+
+- `Provider`
+- `Viewport`
+- `Title`
+- `Description`
+- `Action`
+- `Close`
+
+### Toggle
+
+
+### ToggleGroup
+
+- `Item`
+
+### Tooltip
+
+- `Provider`
+- `Trigger`
+- `Portal`
+- `Content`
+- `Arrow`
 
 ## License
 
