@@ -368,33 +368,36 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
     visiting.add(name);
     const init = decls.get(name);
     let result: any;
-
-    if (
-      t.isStringLiteral(init) ||
-      t.isNumericLiteral(init) ||
-      t.isBooleanLiteral(init)
-    ) {
-      result = init.value;
-    } else if (t.isObjectExpression(init)) {
-      result = objectExpressionToObject(
-        init,
-        localConsts,
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        resolveValue,
-      );
-    } else if (
-      t.isBinaryExpression(init) ||
-      t.isTemplateLiteral(init) ||
-      t.isUnaryExpression(init)
-    ) {
-      result = evaluateExpression(init, localConsts, {}, {}, {}, {}, {}, {});
+    try {
+      if (
+        t.isStringLiteral(init) ||
+        t.isNumericLiteral(init) ||
+        t.isBooleanLiteral(init)
+      ) {
+        result = init.value;
+      } else if (t.isObjectExpression(init)) {
+        result = objectExpressionToObject(
+          init,
+          localConsts,
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          resolveValue,
+        );
+      } else if (
+        t.isBinaryExpression(init) ||
+        t.isTemplateLiteral(init) ||
+        t.isUnaryExpression(init)
+      ) {
+        result = evaluateExpression(init, localConsts, {}, {}, {}, {}, {}, {});
+      }
+    } catch (e) {
+      // Ignore
     }
 
     visiting.delete(name);
@@ -605,6 +608,30 @@ function evaluateBinaryExpression(
     }
     if (node.operator === '/') {
       return left / right;
+    }
+    if (node.operator === '%') {
+      return left % right;
+    }
+    if (node.operator === '**') {
+      return left ** right;
+    }
+    if (node.operator === '&') {
+      return left & right;
+    }
+    if (node.operator === '<<') {
+      return left << right;
+    }
+    if (node.operator === '>>') {
+      return left >> right;
+    }
+    if (node.operator === '>>>') {
+      return left >>> right;
+    }
+    if (node.operator === '^') {
+      return left ^ right;
+    }
+    if (node.operator === '|') {
+      return left | right;
     }
   }
 
