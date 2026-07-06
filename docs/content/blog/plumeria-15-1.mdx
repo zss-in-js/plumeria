@@ -1,0 +1,103 @@
+---
+title: 'Plumeria 15.1'
+description: 'Update: Robust local variable resolution with try-catch and new operator support in parser.ts'
+date: '2026-07-06'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 15.1.0 has been released! 🎉
+
+This update improves the static analysis engine in `parser.ts` with two key changes:
+
+- **Robust variable resolution** — Fixes build failures when used with external Vite plugins like `@vitejs/plugin-react`.
+- **New operator support** — Adds modulo, exponentiation, and bitwise operators for style value calculations.
+
+---
+
+## Key Changes
+
+### 1. Robust Local Variable Resolution (`try-catch`)
+
+Plumeria statically resolves local constants referenced in style definitions (e.g., `css.create`) at build time. Previously, the parser attempted to evaluate **every** variable declaration in the file, which caused problems with certain plugin configurations.
+
+#### The Problem
+
+When `react()` runs before `plumeria.vite()` in the Vite plugin order:
+
+```ts
+export default defineConfig({
+  plugins: [react(), plumeria.vite()],
+});
+```
+
+The `react()` plugin (Fast Refresh) injects helper code like `typeof Symbol !== 'undefined'` into the file. Plumeria's parser then tried to evaluate these unrelated expressions, triggering errors such as:
+
+- `Unsupported unary operator: typeof`
+- `Unsupported binary operator: !==`
+
+#### The Fix
+
+The local constant resolution in `collectLocalConsts` is now wrapped in a `try-catch` block. Evaluation errors for variables unrelated to Plumeria are safely ignored:
+
+```ts
+function resolveValue(name: string): any {
+  // ...
+  try {
+    result = evaluateExpression(init, localConsts, ...);
+  } catch (e) {
+    // Ignore — this variable is not used by Plumeria
+  }
+  // ...
+}
+```
+
+This ensures that **plugin order no longer causes build failures**. At the same time, unsupported expressions used directly inside style definitions (e.g., `css.create`) still throw strict compile errors (`compile-error-on-dynamic-props`) as expected.
+
+---
+
+### 2. New Operator Support
+
+The following operators are now statically evaluated within style definitions:
+
+#### Arithmetic
+
+| Operator | Description    | Example       |
+|----------|---------------|---------------|
+| `%`      | Modulo        | `1000 % 3`    |
+| `**`     | Exponentiation | `2 ** 8`     |
+
+#### Bitwise
+
+| Operator | Description          | Example    |
+|----------|---------------------|------------|
+| `&`      | AND                 | `0xFF & 0x0F` |
+| `\|`     | OR                  | `30 \| 8`  |
+| `^`      | XOR                 | `5 ^ 3`    |
+| `<<`     | Left shift          | `1 << 4`   |
+| `>>`     | Right shift         | `32 >> 2`  |
+| `>>>`    | Unsigned right shift | `32 >>> 2` |
+
+#### Usage Example
+
+```tsx
+const styles = css.create({
+  container: {
+    zIndex: 1 << 4,                    // 16
+    animationDuration: `${1000 % 3}ms`, // "1ms"
+  },
+});
+```
+
+#### Unsupported Operators
+
+Comparison operators (`===`, `!==`, `==`, `!=`, `<`, `>`, `<=`, `>=`) return boolean values, which are meaningless as CSS property values. These are intentionally **not** supported and will throw an `Unsupported binary operator` error if used within a style definition.
+
+---
+
+Thank you for trying out Plumeria!
+We welcome feedback and discussions on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions), and bug reports via [Issues](https://github.com/zss-in-js/plumeria/issues).
