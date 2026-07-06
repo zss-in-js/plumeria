@@ -1,5 +1,9 @@
 # Release Notes
 
+## 15.1.0 (Jul 6, 2026)
+
+- Added operators for modulo, exponentiation, and bitwise operations, and modified the code to skip operators such as typeof
+
 ## 15.0.0 (Jul 5, 2026)
 
 - Add 14 headless components and updates to switch them from a flat structure to a chained component format
