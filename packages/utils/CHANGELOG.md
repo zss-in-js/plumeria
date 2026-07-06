@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 15.1.0
+
+### Minor Changes
+
+- 2a406a5: Added operators for modulo, exponentiation, and bitwise operations, and modified the code to skip operators such as typeof
+
 ## 15.0.0
 
 ### Major Changes
