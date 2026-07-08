@@ -175,4 +175,59 @@ describe('withPlumeria', () => {
       expect(tsRule).not.toBe('some-string');
     });
   });
+
+  describe('development environment initialization', () => {
+    let originalEnv: 'development' | 'production' | 'test';
+
+    beforeEach(() => {
+      originalEnv = process.env.NODE_ENV;
+      delete (global as any).__PLUMERIA_RESET_DONE__;
+    });
+
+    afterEach(() => {
+      jest.replaceProperty(process.env, 'NODE_ENV', originalEnv);
+      delete (global as any).__PLUMERIA_RESET_DONE__;
+    });
+
+    it('runs reset logic in development mode', () => {
+      jest.replaceProperty(process.env, 'NODE_ENV', 'development');
+      expect((global as any).__PLUMERIA_RESET_DONE__).toBeUndefined();
+
+      withPlumeria();
+
+      expect((global as any).__PLUMERIA_RESET_DONE__).toBe(true);
+    });
+
+    it('removes lock directory if it exists and handles file write errors', () => {
+      const fs = require('fs');
+      jest.replaceProperty(process.env, 'NODE_ENV', 'development');
+      const VIRTUAL_FILE_PATH =
+        require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
+      const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
+
+      if (!fs.existsSync(LOCK_DIR_PATH)) {
+        fs.mkdirSync(LOCK_DIR_PATH);
+      }
+
+      withPlumeria();
+
+      expect(fs.existsSync(LOCK_DIR_PATH)).toBe(false);
+
+      const backup = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf8');
+      fs.unlinkSync(VIRTUAL_FILE_PATH);
+      fs.mkdirSync(VIRTUAL_FILE_PATH);
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+
+      delete (global as any).__PLUMERIA_RESET_DONE__;
+      expect(() => withPlumeria()).not.toThrow();
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      fs.rmdirSync(VIRTUAL_FILE_PATH);
+      fs.writeFileSync(VIRTUAL_FILE_PATH, backup, 'utf8');
+      consoleErrorSpy.mockRestore();
+    });
+  });
 });
