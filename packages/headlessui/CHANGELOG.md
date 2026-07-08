@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 15.1.1
+
+### Patch Changes
+
+- 87c6f77: Bump version to 15.1.1
+
 ## 15.1.0
 
 ### Minor Changes

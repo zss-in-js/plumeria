@@ -1,5 +1,12 @@
 # @plumeria/core
 
+## 15.1.1
+
+### Patch Changes
+
+- 87c6f77: Fix edge case merging the className with a ternary expression
+- 87c6f77: Bump version to 15.1.1
+
 ## 15.1.0
 
 ### Minor Changes

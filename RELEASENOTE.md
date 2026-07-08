@@ -1,5 +1,10 @@
 # Release Notes
 
+## 15.1.1 (Jul 8, 2026)
+
+- Fix edge case merging the className with a ternary expression
+- Refactor 2 pass comment in parser.ts with tested as parser.test.ts
+
 ## 15.1.0 (Jul 6, 2026)
 
 - Added operators for modulo, exponentiation, and bitwise operations, and modified the code to skip operators such as typeof
