@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 15.1.1
+
+### Patch Changes
+
+- 87c6f77: Fix edge case merging the className with a ternary expression
+- Updated dependencies [87c6f77]
+  - @plumeria/utils@15.1.1
+
 ## 15.1.0
 
 ### Minor Changes

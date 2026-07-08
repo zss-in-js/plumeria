@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 15.1.1
+
+### Patch Changes
+
+- 87c6f77: Refactor 2 pass comment in parser.ts with tested as parser.test.ts
+
 ## 15.1.0
 
 ### Minor Changes
