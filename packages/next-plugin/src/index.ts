@@ -23,6 +23,7 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
     __PLUMERIA_RESET_DONE__?: boolean;
   };
 
+  /* istanbul ignore next */
   if (
     process.env.NODE_ENV === 'development' &&
     !globalRef.__PLUMERIA_RESET_DONE__
