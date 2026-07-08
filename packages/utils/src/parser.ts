@@ -1354,9 +1354,9 @@ export function scanAll(): Tables {
 
                 const uniqueKey = `${filePath}-${name}`;
 
-                // Pass 1: Only collect createStatic and createTheme for global resolution
-                // Pass 2: Process ALL methods. We need to process createStatic/createTheme again
-                // in Pass 2 to populate the local variable maps for the current file correctly.
+                // Two-pass scanning:
+                // Pass 1: Collect all createStatic, createTheme, keyframes, and viewTransition definitions for global resolution
+                // Pass 2: Process css.create and variants (with all global definitions available)
                 const isPassOneMethod =
                   method === 'createStatic' ||
                   method === 'createTheme' ||
