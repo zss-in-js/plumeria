@@ -1904,6 +1904,29 @@ describe('extractOndemandStyles (integration)', () => {
 
     expect(extracted).toHaveLength(0);
   });
+
+  it('should resolve keyframes in css.create during Pass 2 by collecting it in Pass 1', () => {
+    mockedRs.globSync.mockReturnValue(['/test/style.ts'] as any);
+    mockedFs.readFileSync.mockReturnValue(`
+      import * as css from "@plumeria/core";
+      export const fade = css.keyframes({
+        from: { opacity: 0 },
+        to: { opacity: 1 }
+      });
+      export const style = css.create({
+        animationName: fade
+      });
+    `);
+
+    const result = scanAll();
+    const createKeys = Object.keys(result.createObjectTable);
+    expect(createKeys).toHaveLength(1);
+    const styleObj = result.createObjectTable[createKeys[0]];
+    const kfHash = result.keyframesHashTable['/test/style.ts-fade'];
+    expect(styleObj).toEqual({
+      animationName: `kf-${kfHash}`,
+    });
+  });
 });
 
 describe('deepMerge', () => {
