@@ -1694,9 +1694,9 @@ export default async function loader(this: LoaderContext, source: string) {
             const end =
               (classNameAttr.value.expression as HasSpan).span.end -
               baseByteOffset;
-            existingClassExpr = sourceBuffer
+            existingClassExpr = `(${sourceBuffer
               .subarray(start, end)
-              .toString('utf-8');
+              .toString('utf-8')})`;
           }
         }
 
@@ -1862,7 +1862,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
         const styleAttr =
           dynamicStyleParts.length > 0 || existingStyleExpr
-            ? ` style={{ ${existingStyleExpr ? existingStyleExpr + ', ' : ''}${dynamicStyleParts.join(', ')} }}`
+            ? ` style={{ ${[existingStyleExpr, ...dynamicStyleParts].filter(Boolean).join(', ')} }}`
             : '';
 
         const { classParts, isOptimizable, baseStyle } = buildClassParts(
