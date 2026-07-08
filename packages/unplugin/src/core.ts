@@ -232,8 +232,8 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         return records;
       };
 
-      const localConsts = collectLocalConsts(ast);
       const resourcePath = id;
+      const localConsts = collectLocalConsts(ast);
       const importMap: Record<string, any> = {};
       const keyframesImportMap: KeyframesHashTable = {};
       const viewTransitionImportMap: ViewTransitionHashTable = {};
@@ -1380,7 +1380,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
         const classParts: string[] = [];
 
-        if (existingClass) classParts.push(JSON.stringify(existingClass));
+        if (existingClass) classParts.push(existingClass);
 
         if (Object.keys(baseIndependent).length > 0) {
           const className = processStyleRecords(baseIndependent)
@@ -1752,14 +1752,27 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               attr.name.type === 'Identifier' &&
               attr.name.value === 'className',
           );
-          let existingClass = '';
-          if (classNameAttr?.value?.type === 'StringLiteral') {
-            existingClass = classNameAttr.value.value;
+          let existingClassExpr = '';
+
+          if (classNameAttr) {
             replacements.push({
               start: classNameAttr.span.start - baseByteOffset,
               end: classNameAttr.span.end - baseByteOffset,
               content: '',
             });
+            if (classNameAttr.value?.type === 'StringLiteral') {
+              existingClassExpr = JSON.stringify(classNameAttr.value.value);
+            } else if (classNameAttr.value?.type === 'JSXExpressionContainer') {
+              const start =
+                (classNameAttr.value.expression as HasSpan).span.start -
+                baseByteOffset;
+              const end =
+                (classNameAttr.value.expression as HasSpan).span.end -
+                baseByteOffset;
+              existingClassExpr = `(${sourceBuffer
+                .subarray(start, end)
+                .toString('utf-8')})`;
+            }
           }
 
           const styleAttrExisting = attributes.find(
@@ -1768,23 +1781,28 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               attr.name.type === 'Identifier' &&
               attr.name.value === 'style',
           );
+          let existingStyleExpr = '';
+
           if (styleAttrExisting) {
             replacements.push({
               start: styleAttrExisting.span.start - baseByteOffset,
               end: styleAttrExisting.span.end - baseByteOffset,
               content: '',
             });
-            // Extract the contents of existing style attributes from the source and place them in dynamicStyleParts
+
             if (styleAttrExisting.value?.type === 'JSXExpressionContainer') {
               const innerExpr = styleAttrExisting.value?.expression;
-              if (innerExpr?.type === 'ObjectExpression') {
-                const start = innerExpr.span.start - baseByteOffset;
-                const end = innerExpr.span.end - baseByteOffset;
-                const innerSource = sourceBuffer
-                  .subarray(start, end)
-                  .toString('utf-8');
+              const start = (innerExpr as HasSpan).span.start - baseByteOffset;
+              const end = (innerExpr as HasSpan).span.end - baseByteOffset;
+              const innerSource = sourceBuffer
+                .subarray(start, end)
+                .toString('utf-8');
+
+              if (innerExpr.type === 'ObjectExpression') {
                 const stripped = innerSource.slice(1, -1).trim();
                 if (stripped) dynamicStyleParts.push(stripped);
+              } else {
+                existingStyleExpr = `...(${innerSource})`;
               }
             }
           }
@@ -1920,14 +1938,14 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           });
 
           const styleAttr =
-            dynamicStyleParts.length > 0
-              ? ` style={{${dynamicStyleParts.join(', ')}}}`
+            dynamicStyleParts.length > 0 || existingStyleExpr
+              ? ` style={{ ${[existingStyleExpr, ...dynamicStyleParts].filter(Boolean).join(', ')} }}`
               : '';
 
           const { classParts, isOptimizable, baseStyle } = buildClassParts(
             args,
             dynamicClassParts,
-            existingClass,
+            existingClassExpr,
           );
 
           if (
