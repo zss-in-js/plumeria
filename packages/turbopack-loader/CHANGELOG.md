@@ -1,5 +1,11 @@
 # @plumeria/turbopack-loader
 
+## 15.1.1
+
+### Patch Changes
+
+- 27a4c06: Fix edge case merging the className with a ternary expression
+
 ## 15.1.0
 
 ### Minor Changes
