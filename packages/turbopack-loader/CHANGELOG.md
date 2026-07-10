@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 0e54f0e: Fix edge case and fix merging the className with a ternary expression
+- 0e54f0e: Fix edge case in style recovery resolution
 - Updated dependencies [0e54f0e]
   - @plumeria/utils@15.1.2
 
