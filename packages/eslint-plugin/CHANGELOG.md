@@ -1,3 +1,9 @@
+## 15.1.3
+
+### Patch Changes
+
+- f175e10: Support computed key in no-unknown-css-properties.ts
+
 ## 15.1.2
 
 ### Patch Changes
