@@ -1,0 +1,61 @@
+---
+title: 'Why use Plumeria?'
+description: 'What Plumeria can do that CSS Modules cannot'
+date: '2026-07-10'
+---
+
+# What Plumeria can do that CSS Modules cannot
+
+## Why choose Plumeria over CSS Modules?
+
+Have you ever had this experience? You try out a few CSS-in-JS libraries, only to eventually decide, "CSS Modules are fine after all."
+
+This isn't a compromise made due to a lack of features. CSS Modules are chosen because they offer a high level of **predictability**. The CSS you write behaves exactly as written; there is no need to worry about runtime behavior. Many CSS-in-JS solutions have sacrificed this predictability in exchange for greater expressiveness.
+
+Plumeria eliminates that trade-off entirely.
+In terms of predictability, it is on par with—or even superior to—CSS Modules.
+
+Try building this code:
+
+```ts
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  box: {
+    padding: 16,
+    color: 'red'
+  }
+});
+```
+
+If you look at the build output, the line `import * as css from '@plumeria/core'` has vanished. You rarely notice it during day-to-day development, yet the disappearance of that single line is the most concise illustration of "Zero Runtime." **Anything that shouldn't exist at runtime leaves no trace—not even an import statement.** This is the result of literally executing the concept of "Zero Runtime" as a compiler contract.
+
+Plumeria's strength doesn't lie in flashy, single-purpose features. Instead, it relies on the cumulative effect of six understated features that prove their value gradually as you use them.
+
+---
+
+### 1. Atomic CSS
+Identical combinations of style properties and values ​​are reused across the entire project under the same class name. CSS file sizes do not grow in proportion to the number of components.
+
+### 2. Fully controlled merging
+The design avoids reliance on cross-module cascading. This prevents issues where, for some reason, a specific order of operations fails to work.
+
+### 3. Provided dynamic patterns
+For scenarios requiring dynamic values, the system offers patterns that the compiler can handle safely. Any dynamic coding approaches outside of these are rejected as build-time errors rather than resulting in ambiguous runtime behavior.
+
+### 4. ESLint: Strict rules enabling optimistic development
+It tracks types to detect errors in selector nesting and prevents the mixing of `className` and `styleName`. The rules are designed not merely to prohibit certain actions, but to guide developers toward recommended design patterns.
+
+### 5. Colocation in a single file
+Writing styles and logic in the same file does not alter behavior based on how they are colocated; the result remains consistent regardless of where the code is written.
+
+### 6. The role of the compiler (achieving zero runtime)
+The compiler underpins all of the above. Anything that cannot be resolved statically or involves risky coding patterns surfaces as a build error; silent failures are not permitted. The fact that "import statements disappear"—mentioned at the beginning—is simply a consequence of this rigorous approach.
+
+---
+
+## The sum of its parts
+
+You cannot single out any one feature and claim it is the definitive selling point of Plumeria. In fact, on their own, none of these points might seem like a "must-have" feature.
+
+However, the reasons people revert to CSS Modules—specifically, the exhaustion caused by unpredictability—are systematically eliminated by the combination of these six factors. Plumeria aims to restore the sense of security found in CSS Modules without sacrificing expressive power.
