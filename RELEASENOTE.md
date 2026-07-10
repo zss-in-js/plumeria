@@ -1,5 +1,9 @@
 # Release Notes
 
+## 15.1.3 (Jul 10, 2026)
+
+- Support computed key in no-unknown-css-properties.ts
+
 ## 15.1.2 (Jul 10, 2026)
 
 - Update dependencies
