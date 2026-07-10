@@ -109,12 +109,24 @@ export const noUnknownCssProperties: Rule.RuleModule = {
             checkStyleObject(prop.value);
           }
 
+          let isCheckable = false;
+          let keyName = '';
+
           if (!prop.computed) {
-            const keyName =
+            isCheckable = true;
+            keyName =
               prop.key.type === 'Identifier'
                 ? prop.key.name
                 : String((prop.key as any).value);
+          } else if (
+            prop.key.type === 'Literal' &&
+            typeof prop.key.value === 'string'
+          ) {
+            isCheckable = true;
+            keyName = prop.key.value;
+          }
 
+          if (isCheckable) {
             if (
               !keyName.startsWith(':') &&
               !keyName.startsWith('[') &&
