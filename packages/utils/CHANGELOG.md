@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 15.1.3
+
+### Patch Changes
+
+- f175e10: Bump version to 15.1.3
+
 ## 15.1.2
 
 ### Patch Changes
