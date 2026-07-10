@@ -2043,6 +2043,13 @@ export default async function loader(this: LoaderContext, source: string) {
         } else {
           lastValidCss = currentCss;
         }
+      } catch (innerError) {
+        try {
+          fs.writeFileSync(VIRTUAL_FILE_PATH, lastValidCss, 'utf-8');
+        } catch (e) {
+          // Ignore
+        }
+        throw innerError;
       } finally {
         releaseLockSync(LOCK_DIR_PATH);
       }
@@ -2056,13 +2063,6 @@ export default async function loader(this: LoaderContext, source: string) {
 
     return callback(null, transformedSource + postfix);
   } catch (error) {
-    if (!isProduction) {
-      try {
-        fs.writeFileSync(VIRTUAL_FILE_PATH, lastValidCss, 'utf-8');
-      } catch (e) {
-        // Ignore
-      }
-    }
     return callback(error as Error);
   }
 }
