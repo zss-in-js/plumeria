@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 15.1.2
+
+### Patch Changes
+
+- 0e54f0e: Update dependencies
+- Updated dependencies [0e54f0e]
+  - @plumeria/turbopack-loader@15.1.2
+
 ## 15.1.1
 
 ### Patch Changes

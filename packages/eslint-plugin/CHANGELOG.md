@@ -1,3 +1,9 @@
+## 15.1.2
+
+### Patch Changes
+
+- 0e54f0e: Update dependencies
+
 ## 15.1.1
 
 ### Patch Changes

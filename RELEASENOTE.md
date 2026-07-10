@@ -1,5 +1,10 @@
 # Release Notes
 
+## 15.1.2 (Jul 10, 2026)
+
+- Update dependencies
+- Fix edge case and fix merging the className with a ternary expression
+
 ## 15.1.1 (Jul 10, 2026)
 
 - Fix edge case merging the className with a ternary expression
