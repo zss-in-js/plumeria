@@ -144,6 +144,17 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
       // Other import from @plumeria/core to cover alias lookup failure
       code: `import { use } from '@plumeria/core'; use({ s: { color: 'red' } });`,
     },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const styles = css.create({
+          main: {
+            ['color']: 'red',
+            ['backgroundColor']: 'blue'
+          }
+        });
+      `,
+    },
   ],
   invalid: [
     {
@@ -270,6 +281,24 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
           messageId: 'unknownProperty',
           data: {
             name: 'unkownProp',
+          },
+        },
+      ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const styles = css.create({
+          main: {
+            ['unknownProp']: 'value'
+          }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'unknownProperty',
+          data: {
+            name: 'unknownProp',
           },
         },
       ],
