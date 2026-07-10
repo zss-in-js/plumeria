@@ -3,11 +3,12 @@
 ## 15.1.2 (Jul 10, 2026)
 
 - Update dependencies
-- Fix edge case and fix merging the className with a ternary expression
+- turbopack-loader: Fix edge case in style recovery resolution
+- turbopack-loader: Fix merging the className with a ternary expression
 
 ## 15.1.1 (Jul 10, 2026)
 
-- Fix edge case merging the className with a ternary expression
+- unplugin: Fix edge case merging the className with a ternary expression
 
 
 ## 15.1.0 (Jul 6, 2026)
