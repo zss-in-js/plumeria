@@ -18,6 +18,7 @@ import type {
   CreateStaticHashTable,
   CreateStaticObjectTable,
   CreateTheme,
+  TableEntry,
 } from './types';
 
 import { createTheme } from './createTheme';
@@ -43,6 +44,8 @@ import {
   ExportDeclaration,
   ConditionalExpression,
   ImportSpecifier,
+  HasSpan,
+  JSXExpression,
 } from '@swc/core';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -100,7 +103,7 @@ export const t = {
 };
 
 export function traverse(
-  node: Module,
+  node: Module | JSXExpression,
   visitor: { [key: string]: (path: { node: any; stop: () => void }) => void },
 ) {
   let stopped = false;
@@ -1018,6 +1021,7 @@ interface CachedData {
   variantsObjectTable: VariantsObjectTable;
   createStaticHashTable: CreateStaticHashTable;
   createStaticObjectTable: CreateStaticObjectTable;
+  componentPropsTable?: Record<string, Record<string, TableEntry[]>>;
   hasCssUsage: boolean;
 }
 
@@ -1045,6 +1049,7 @@ export function scanAll(): Tables {
     createThemeHashTable: {},
     createStaticHashTable: {},
     createStaticObjectTable: {},
+    componentPropsTable: {},
   };
 
   const files = rs.globSync(PATTERN_PATH, GLOB_OPTIONS);
@@ -1121,6 +1126,33 @@ export function scanAll(): Tables {
             localTables.variantsObjectTable[key] =
               cached.variantsObjectTable[key];
           }
+          if (cached.componentPropsTable) {
+            const table = localTables.componentPropsTable!;
+            for (const compKey of Object.keys(cached.componentPropsTable)) {
+              if (!table[compKey]) {
+                table[compKey] = {};
+              }
+              for (const propName of Object.keys(
+                cached.componentPropsTable[compKey],
+              )) {
+                if (!table[compKey][propName]) {
+                  table[compKey][propName] = [];
+                }
+                const cachedEntries =
+                  cached.componentPropsTable[compKey][propName];
+                for (const entry of cachedEntries) {
+                  const exists = table[compKey][propName].some(
+                    (x) =>
+                      x.spanStart === entry.spanStart &&
+                      x.filePath === entry.filePath,
+                  );
+                  if (!exists) {
+                    table[compKey][propName].push(entry);
+                  }
+                }
+              }
+            }
+          }
         }
       } else {
         uncachedFiles.push(filePath);
@@ -1194,6 +1226,10 @@ export function scanAll(): Tables {
         const localCreateStaticHashTable: CreateStaticHashTable = {};
         const localCreateStaticObjectTable: CreateStaticObjectTable = {};
         const plumeriaAliases: Record<string, string> = {};
+        const localImports: Record<
+          string,
+          { actualPath: string; importedName: string }
+        > = {};
 
         for (const node of ast.body) {
           if (node.type === 'ImportDeclaration') {
@@ -1227,6 +1263,7 @@ export function scanAll(): Tables {
                       : specifier.local.value;
                     const localName = specifier.local.value;
                     const uniqueKey = `${actualPath}-${importedName}`;
+                    localImports[localName] = { actualPath, importedName };
 
                     // Resolve createStatic from global tables
                     if (localTables.createStaticHashTable[uniqueKey]) {
@@ -1264,6 +1301,11 @@ export function scanAll(): Tables {
                         localViewTransitionObjectTable[hash] =
                           localTables.viewTransitionObjectTable[hash];
                       }
+                    }
+                    // Resolve create from global tables
+                    if (localTables.createHashTable[uniqueKey]) {
+                      const hash = localTables.createHashTable[uniqueKey];
+                      localCreateHashTable[localName] = hash;
                     }
                   }
                 });
@@ -1440,6 +1482,199 @@ export function scanAll(): Tables {
 
         // Update cache (only in second pass to ensure all data is collected)
         if (!isFirstPass) {
+          const resolveCallStylePropInScan = (
+            expr: Expression,
+          ): { classString: string; styleObj: CSSObject } | null => {
+            if (expr.type === 'ArrayExpression') {
+              let mergedStyle: CSSObject = {};
+              const classList: string[] = [];
+              let valid = false;
+              for (const el of expr.elements) {
+                if (el && el.expression) {
+                  const res = resolveCallStylePropInScan(el.expression);
+                  if (res) {
+                    mergedStyle = deepMerge(mergedStyle, res.styleObj);
+                    if (res.classString) classList.push(res.classString);
+                    valid = true;
+                  }
+                }
+              }
+              return valid
+                ? { classString: classList.join(' '), styleObj: mergedStyle }
+                : null;
+            }
+
+            if (expr.type === 'ConditionalExpression') {
+              if (expr.test.type === 'BooleanLiteral') {
+                return resolveCallStylePropInScan(
+                  expr.test.value ? expr.consequent : expr.alternate,
+                );
+              }
+            }
+
+            if (expr.type === 'BinaryExpression') {
+              if (
+                expr.operator === '&&' &&
+                expr.left.type === 'BooleanLiteral'
+              ) {
+                if (expr.left.value) {
+                  return resolveCallStylePropInScan(expr.right);
+                }
+              }
+            }
+
+            if (expr.type === 'ParenthesisExpression') {
+              return resolveCallStylePropInScan(expr.expression);
+            }
+
+            if (
+              expr.type === 'MemberExpression' &&
+              expr.object.type === 'Identifier'
+            ) {
+              const varName = expr.object.value;
+              if (expr.property.type === 'Identifier') {
+                const propName = expr.property.value;
+                const uniqueKey = `${filePath}-${varName}`;
+
+                let hash = localCreateHashTable[varName];
+                if (!hash) hash = localTables.createHashTable[uniqueKey];
+
+                if (hash) {
+                  const styleObj =
+                    localTables.createObjectTable[hash]?.[propName];
+                  const atomMap =
+                    localTables.createAtomicMapTable[hash]?.[propName];
+                  if (styleObj && atomMap) {
+                    const classString = Object.values(atomMap).join(' ');
+                    return { classString, styleObj: styleObj as CSSObject };
+                  }
+                }
+              }
+            }
+
+            return null;
+          };
+
+          const localComponentPropsTable: Record<
+            string,
+            Record<string, TableEntry[]>
+          > = {};
+
+          const registerStyles = (
+            node: Expression,
+            propName: string,
+            compKey: string,
+            table: Record<string, Record<string, TableEntry[]>>,
+          ) => {
+            if (node.type === 'ConditionalExpression') {
+              registerStyles(node.consequent, propName, compKey, table);
+              registerStyles(node.alternate, propName, compKey, table);
+              return;
+            }
+            if (node.type === 'BinaryExpression' && node.operator === '&&') {
+              registerStyles(node.right, propName, compKey, table);
+              return;
+            }
+            if (node.type === 'ParenthesisExpression') {
+              registerStyles(node.expression, propName, compKey, table);
+              return;
+            }
+
+            const resolved = resolveCallStylePropInScan(node);
+            if (resolved) {
+              if (!table[compKey]) {
+                table[compKey] = {};
+              }
+              if (!table[compKey][propName]) {
+                table[compKey][propName] = [];
+              }
+              const list = table[compKey][propName];
+
+              const globalList =
+                localTables.componentPropsTable![compKey]?.[propName] || [];
+              let entry = globalList.find(
+                (x) => x.classString === resolved.classString,
+              );
+              if (!entry) {
+                entry = list.find(
+                  (x) => x.classString === resolved.classString,
+                );
+              }
+
+              const index = entry ? entry.index : globalList.length;
+              entry = {
+                index,
+                styleObj: resolved.styleObj,
+                classString: resolved.classString,
+                spanStart: (node as HasSpan).span.start,
+                filePath,
+              };
+
+              list.push(entry);
+            }
+          };
+
+          traverse(ast, {
+            JSXOpeningElement({ node }) {
+              if (node.name.type === 'Identifier') {
+                const name = node.name.value;
+                if (name[0] === name[0].toUpperCase()) {
+                  let compKey = '';
+                  const imported = localImports[name];
+                  if (imported) {
+                    compKey = `${imported.actualPath}-${imported.importedName}`;
+                  } else {
+                    compKey = `${filePath}-${name}`;
+                  }
+
+                  node.attributes.forEach((attr: any) => {
+                    if (
+                      attr.type === 'JSXAttribute' &&
+                      attr.name.type === 'Identifier'
+                    ) {
+                      const propName = attr.name.value;
+                      const val = attr.value;
+                      if (val && val.type === 'JSXExpressionContainer') {
+                        registerStyles(
+                          val.expression,
+                          propName,
+                          compKey,
+                          localComponentPropsTable,
+                        );
+                      }
+                    }
+                  });
+                }
+              }
+            },
+          });
+
+          // Merge localComponentPropsTable into global localTables.componentPropsTable
+          const globalTable = localTables.componentPropsTable!;
+          for (const compKey of Object.keys(localComponentPropsTable)) {
+            if (!globalTable[compKey]) {
+              globalTable[compKey] = {};
+            }
+            for (const propName of Object.keys(
+              localComponentPropsTable[compKey],
+            )) {
+              if (!globalTable[compKey][propName]) {
+                globalTable[compKey][propName] = [];
+              }
+              const entries = localComponentPropsTable[compKey][propName];
+              for (const entry of entries) {
+                const exists = globalTable[compKey][propName].some(
+                  (x) =>
+                    x.spanStart === entry.spanStart &&
+                    x.filePath === entry.filePath,
+                );
+                if (!exists) {
+                  globalTable[compKey][propName].push(entry);
+                }
+              }
+            }
+          }
+
           fileCache[filePath] = {
             mtimeMs: mtimeMs,
             staticTable: localStaticTable,
@@ -1457,6 +1692,7 @@ export function scanAll(): Tables {
             variantsObjectTable: localVariantsObjectTable,
             createStaticHashTable: localCreateStaticHashTable,
             createStaticObjectTable: localCreateStaticObjectTable,
+            componentPropsTable: localComponentPropsTable,
             hasCssUsage: true,
           };
         }
