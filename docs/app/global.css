@@ -69,11 +69,11 @@ div:has(.shiki)[data-orientation='horizontal'] [role='tablist'] {
 }
 
 pre span {
-  font-family: var(--font-geist-mono);
+  font-family: ui-monospace, 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
 }
 
 code {
-  font-family: var(--font-geist-mono);
+  font-family: ui-monospace, 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
 }
 
 /* Aside Styling */
