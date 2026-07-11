@@ -39,7 +39,6 @@ import {
   scanAll,
   resolveImportPath,
   optimizer,
-  processVariants,
   getLeadingCommentLength,
 } from '@plumeria/utils';
 import type {
@@ -347,6 +346,21 @@ export default async function loader(this: LoaderContext, source: string) {
     }
 
     const localCreateStyles: Record<string, CreateStyleValue> = {};
+    const localStyleAliases: Record<string, Expression> = {};
+
+    const checkStyleAliasAssignment = (decl: VariableDeclarator) => {
+      if (!t.isIdentifier(decl.id) || !decl.init) return;
+      const init = decl.init;
+      if (t.isMemberExpression(init) && t.isIdentifier(init.object)) {
+        const objName = init.object.value;
+        if (
+          localCreateStyles[objName] !== undefined ||
+          mergedCreateTable[objName] !== undefined
+        ) {
+          localStyleAliases[decl.id.value] = init;
+        }
+      }
+    };
 
     const replacements: Array<{ start: number; end: number; content: string }> =
       [];
@@ -511,58 +525,6 @@ export default async function loader(this: LoaderContext, source: string) {
                 functions: styleFunctions,
               };
             }
-          }
-        } else if (
-          propName === 'variants' &&
-          t.isObjectExpression(init.arguments[0].expression)
-        ) {
-          if (t.isIdentifier(node.id)) {
-            idSpans.add(node.id.span.start);
-          }
-          const obj = objectExpressionToObject(
-            init.arguments[0].expression as ObjectExpression,
-            mergedStaticTable,
-            mergedKeyframesTable,
-            mergedViewTransitionTable,
-            mergedCreateThemeHashTable,
-            scannedTables.createThemeObjectTable,
-            mergedCreateTable,
-            mergedCreateStaticHashTable,
-            scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
-            (name: string) => {
-              if (localCreateStyles[name]) {
-                return localCreateStyles[name].obj;
-              }
-              if (mergedCreateTable[name]) {
-                const hash = mergedCreateTable[name];
-                if (scannedTables.createObjectTable[hash]) {
-                  return scannedTables.createObjectTable[hash];
-                }
-              }
-              return undefined;
-            },
-          );
-          const { hashMap } = processVariants(
-            obj as Record<string, Record<string, CSSObject>>,
-          );
-
-          if (t.isIdentifier(node.id)) {
-            localCreateStyles[node.id.value] = {
-              name: node.id.value,
-              type: 'variant',
-              obj,
-              hashMap,
-              isExported,
-              initSpan: {
-                start: init.span.start - baseByteOffset,
-                end: init.span.end - baseByteOffset,
-              },
-              declSpan: {
-                start: declSpan.start - baseByteOffset,
-                end: declSpan.end - baseByteOffset,
-              },
-            };
           }
         } else if (
           propName === 'createTheme' &&
@@ -736,6 +698,7 @@ export default async function loader(this: LoaderContext, source: string) {
           node.declaration.declarations.forEach((decl) => {
             checkVariantAssignment(decl);
             registerStyle(decl, node.span, true);
+            checkStyleAliasAssignment(decl);
           });
         }
       },
@@ -744,6 +707,7 @@ export default async function loader(this: LoaderContext, source: string) {
         node.declarations.forEach((decl) => {
           checkVariantAssignment(decl);
           registerStyle(decl, node.span, false);
+          checkStyleAliasAssignment(decl);
         });
       },
 
@@ -971,7 +935,7 @@ export default async function loader(this: LoaderContext, source: string) {
         t.isIdentifier(expr.object) &&
         (t.isIdentifier(expr.property) || expr.property.type === 'Computed')
       ) {
-        if (expr.property.type === 'Computed') return {};
+        if (expr.property.type === 'Computed') return null;
         const varName = (expr.object as Identifier).value;
         const propName = (expr.property as Identifier).value;
         const styleInfo = localCreateStyles[varName];
@@ -1012,6 +976,13 @@ export default async function loader(this: LoaderContext, source: string) {
       isOptimizable: boolean;
       baseStyle: CSSObject;
     } => {
+      args.forEach((arg) => {
+        const expr = arg.expression;
+        if (t.isIdentifier(expr) && localStyleAliases[expr.value]) {
+          arg.expression = localStyleAliases[expr.value];
+        }
+      });
+
       const conditionals: StyleConditional[] = [];
       let groupIdCounter = 0;
       let baseStyle: CSSObject = {};
@@ -1033,6 +1004,18 @@ export default async function loader(this: LoaderContext, source: string) {
         if (node.type === 'ParenthesisExpression') {
           return getRootIdentifier(node.expression);
         }
+        return null;
+      };
+
+      const resolveCreateObject = (varName: string): CSSObject | null => {
+        const localStyle = localCreateStyles[varName];
+        if (localStyle?.type === 'create') return localStyle.obj;
+
+        let hash = scannedTables.createHashTable[`${resourcePath}-${varName}`];
+        if (!hash) hash = mergedCreateTable[varName];
+        if (hash && scannedTables.createObjectTable[hash])
+          return scannedTables.createObjectTable[hash];
+
         return null;
       };
 
@@ -1290,6 +1273,34 @@ export default async function loader(this: LoaderContext, source: string) {
                   valueName: optionName,
                   varName,
                 });
+              });
+            });
+            continue;
+          }
+        }
+
+        if (
+          t.isMemberExpression(expr) &&
+          t.isIdentifier(expr.object) &&
+          expr.property.type === 'Computed'
+        ) {
+          const varName = expr.object.value;
+          const styleObj = resolveCreateObject(varName);
+          if (styleObj) {
+            const dynExpr = expr.property.expression;
+            const dynSource = getSource(dynExpr);
+            const currentGroupId = ++groupIdCounter;
+            Object.entries(styleObj).forEach(([optionName, style]) => {
+              conditionals.push({
+                test: dynExpr,
+                testLHS: dynSource,
+                testString: `${dynSource} === '${optionName}'`,
+                truthy: style as CSSObject,
+                falsy: {},
+                groupId: currentGroupId,
+                groupName: undefined,
+                valueName: optionName,
+                varName,
               });
             });
             continue;
@@ -1572,10 +1583,51 @@ export default async function loader(this: LoaderContext, source: string) {
         });
       },
       MemberExpression({ node }: { node: MemberExpression }) {
-        if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
+        if (
+          t.isIdentifier(node.object) &&
+          (t.isIdentifier(node.property) || node.property.type === 'Computed')
+        ) {
           const varName = node.object.value;
-          const propName = node.property.value;
           const uniqueKey = `${resourcePath}-${varName}`;
+
+          if (node.property.type === 'Computed') {
+            const dynExpr = node.property.expression;
+            const dynSource = getSource(dynExpr);
+            const localStyle = localCreateStyles[varName];
+            let hashMap: Record<string, any> | undefined;
+
+            if (localStyle) {
+              hashMap = localStyle.hashMap;
+            } else {
+              let hash = scannedTables.createHashTable[uniqueKey];
+              if (!hash) {
+                hash = mergedCreateTable[varName];
+              }
+              if (hash) {
+                const obj = scannedTables.createObjectTable[hash];
+                const atomicMap = scannedTables.createAtomicMapTable[hash];
+                if (obj && atomicMap) {
+                  hashMap = {};
+                  Object.keys(obj).forEach((key) => {
+                    if (atomicMap[key]) {
+                      hashMap![key] = atomicMap[key];
+                    }
+                  });
+                }
+              }
+            }
+
+            if (hashMap) {
+              replacements.push({
+                start: node.span.start - baseByteOffset,
+                end: node.span.end - baseByteOffset,
+                content: `((${JSON.stringify(hashMap)})[${dynSource}] || {})`,
+              });
+            }
+            return;
+          }
+
+          const propName = node.property.value;
 
           // Check localCreateStyles first to ensure HMR updates correctly for local styles
           const localStyle = localCreateStyles[varName];
