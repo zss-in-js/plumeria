@@ -17,7 +17,6 @@ const styles = css.create({
     fontWeight: 'bold',
     color: 'white',
     letterSpacing: '1px',
-    cursor: 'pointer',
     background: 'var(--bg-gradient)',
     border: 'none',
     borderRadius: 'var(--border-radius)',
@@ -28,35 +27,25 @@ const styles = css.create({
       cursor: 'not-allowed',
       opacity: 0.6,
     },
-  },
-  getstarted: {
-    color: theme.textMainHeaderLine,
-    background: theme.cardBg,
-    borderRadius: '16px',
-    boxShadow: theme.cardBoxShadow,
-    transition: 'all 0.3s ease',
-    [breakpoints.md]: {
-      padding: '12px 24px',
-    },
     '@media (any-hover: hover)': {
       [pseudos.hover]: {
-        scale: 1.1,
+        scale: 1.03,
       },
     },
   },
-  installation: {
+  base: {
     color: theme.textMainHeaderLine,
     background: theme.cardBg,
     borderRadius: '16px',
     boxShadow: theme.cardBoxShadow,
     transition: 'all 0.3s ease',
-    [pseudos.hover]: {
-      scale: 1.05,
-    },
     [breakpoints.md]: {
       padding: '12px 24px',
     },
   },
+});
+
+const sizeStyles = css.create({
   medium: {
     '--padding': '12px 32px',
     '--font-size': '12px',
@@ -68,25 +57,14 @@ const styles = css.create({
   },
 });
 
-const getButtonStyle = css.variants({
-  variant: {
-    getstarted: styles.getstarted,
-    installation: styles.installation,
-  },
-  size: {
-    medium: styles.medium,
-  },
-});
-
-interface Props {
+type Props = {
   children: ReactNode;
-  variant: 'getstarted' | 'installation';
   href: string;
-}
+};
 
-export const ButtonLink = ({ children, variant, href }: Props) => {
+export const ButtonLink = ({ children, href }: Props) => {
   return (
-    <Link href={href} styleName={[styles.button, getButtonStyle({ variant, size: 'medium' })]}>
+    <Link href={href} styleName={[styles.button, styles.base, sizeStyles.medium]}>
       {children}
     </Link>
   );
