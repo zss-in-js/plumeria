@@ -2,45 +2,27 @@ import { codeToHtml } from 'shiki';
 import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import { CodeBlock as FumadocsCodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
-import { theme } from 'lib/theme';
 
 const styles = css.create({
   code_div: {
     position: 'relative',
     zIndex: 0,
     display: 'flex',
-    width: '100%',
-    maxWidth: '590px',
+    flexDirection: 'column',
+    width: 1000,
     overflow: 'hidden',
-    background: theme.cardBg,
+    background: 'rgb(24, 24, 27)',
     borderRadius: '16px',
-    boxShadow: theme.cardBoxShadow,
     transition: 'all 0.3s ease',
     [breakpoints.md]: {
-      maxWidth: '340px',
+      maxWidth: '100%',
       overflowX: 'scroll',
       textAlign: 'left',
     },
   },
   pre: {
-    fontFamily: 'var(--font-geist-mono)',
-    fontSize: 11,
-  },
-  install_code: {
-    width: 375,
-    marginTop: 20,
-    marginBottom: 20,
-    background: theme.cardBg,
-    borderRadius: '16px',
-    boxShadow: theme.cardBoxShadow,
-    transition: 'all 0.3s ease',
-    [breakpoints.md]: {
-      width: 290,
-      marginTop: 10,
-      marginBottom: 10,
-      overflowX: 'scroll',
-      textAlign: 'left',
-    },
+    padding: '10px 12px',
+    fontSize: 12.65,
   },
 });
 
@@ -48,29 +30,12 @@ export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) 
   const tsx = await codeToHtml(code, {
     lang: lang,
     themes: {
-      light: 'snazzy-light',
+      light: 'laserwave',
       dark: 'laserwave',
     },
-    defaultColor: false,
   });
   return (
-    <FumadocsCodeBlock styleName={styles.code_div}>
-      <Pre styleName={styles.pre} dangerouslySetInnerHTML={{ __html: tsx }} />
-    </FumadocsCodeBlock>
-  );
-};
-
-export const InstallCode = async ({ code, lang }: { code: string; lang: string }) => {
-  const tsx = await codeToHtml(code, {
-    lang: lang,
-    themes: {
-      light: 'snazzy-light',
-      dark: 'laserwave',
-    },
-    defaultColor: false,
-  });
-  return (
-    <FumadocsCodeBlock styleName={styles.install_code}>
+    <FumadocsCodeBlock styleName={styles.code_div} title="TypeScript" lang="ts">
       <Pre styleName={styles.pre} dangerouslySetInnerHTML={{ __html: tsx }} />
     </FumadocsCodeBlock>
   );
