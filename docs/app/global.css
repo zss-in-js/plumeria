@@ -39,11 +39,17 @@ body {
   background: black;
 }
 
-pre {
-  background: transparent !important;
+.shiki {
+  background: rgb(24, 24, 27);
 }
 
-.dark pre {
+.shiki [role='region'] {
+  padding-block: 16px;
+  padding-inline: 12px;
+}
+
+.shiki pre {
+  font-size: 12.65px;
   background: transparent !important;
 }
 
