@@ -1,5 +1,12 @@
 # Release Notes
 
+## 16.0.0 (Jul 11, 2026)
+
+- Add support for dynamic props and update variants API to use optimized bracket syntax
+- Feat dynamic props parsing and add helper types for component props
+- Remove variants API and update StyleName types
+- Add support for dynamic props compilation
+
 ## 15.1.3 (Jul 10, 2026)
 
 - Support computed key in no-unknown-css-properties.ts

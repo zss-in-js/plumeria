@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 16.0.0
+
+### Major Changes
+
+- f2dc684: Remove variants API and update StyleName types
+
 ## 15.1.3
 
 ### Patch Changes

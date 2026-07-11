@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.0.0
+
+### Major Changes
+
+- f2dc684: Feat dynamic props parsing and add helper types for component props
+
 ## 15.1.3
 
 ### Patch Changes

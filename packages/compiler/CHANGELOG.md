@@ -1,5 +1,16 @@
 # @plumeria/compiler
 
+## 16.0.0
+
+### Major Changes
+
+- f2dc684: Add support for dynamic props compilation
+
+### Patch Changes
+
+- Updated dependencies [f2dc684]
+  - @plumeria/utils@16.0.0
+
 ## 15.1.3
 
 ### Patch Changes
