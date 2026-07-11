@@ -523,7 +523,7 @@ export const HomeComponent = () => {
         </section>
 
         <div styleName={styles.codeSection}>
-          <CodeBlock code={demoCode} lang="typescript" />
+          <CodeBlock code={demoCode} lang="jsx" />
         </div>
       </main>
     </div>
