@@ -487,7 +487,7 @@ export const HomeComponent = () => {
           </div>
 
           <div styleName={styles.buttonGroup}>
-            <ButtonLink href="/docs">Read Docs</ButtonLink>
+            <ButtonLink href="/docs">Introduction</ButtonLink>
             <ButtonLink href="/docs/getting-started/installation">Installation</ButtonLink>
           </div>
         </section>
