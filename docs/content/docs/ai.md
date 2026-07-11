@@ -243,35 +243,41 @@ export const Card = () => {
 ```
 These APIs compile to a highly optimized and atomic container style query `@container style(--card-hover: 1)` at build time, maintaining zero runtime overhead and zero dependency on DOM hierarchy.
 
-### `css.variants()`
-Allows you to map dynamic argument values to pre-defined Plumeria style objects. Note that it maps **existing** style objects (created with `css.create()`) rather than defining CSS rules inside itself.
+### Dynamic Style Resolution (Bracket Notation)
+The `css.variants()` API has been removed in favor of standard bracket notation (`styles[variant]`). Plumeria compiles these expressions into static lookup tables at build time, preserving its zero-runtime philosophy.
 
 ```tsx
 import * as css from '@plumeria/core';
 
-const styles = css.create({
-  gradient: { background: 'linear-gradient(to right, red, blue)' },
-  metallic: { background: 'linear-gradient(to bottom, #ccc, #333)' },
-  small: { padding: '4px 8px' },
-  medium: { padding: '8px 16px' },
-  large: { padding: '12px 24px' },
+// 1. Define dynamic styles in a dedicated, minimal css.create()
+const sizeStyles = css.create({
+  small: { fontSize: '12px' },
+  medium: { fontSize: '16px' },
+  large: { fontSize: '20px' },
 });
 
-const getButtonStyle = css.variants({
-  variant: {
-    gradient: styles.gradient,
-    metallic: styles.metallic,
-  },
-  size: {
-    small: styles.small,
-    medium: styles.medium,
-    large: styles.large,
-  },
-});
+// 2. Define type schema (using string literal unions or keyof typeof)
+type Size = 'small' | 'medium' | 'large';
+// Or dynamically: type Size = keyof typeof sizeStyles;
 
-// Usage in Component:
-// <button styleName={getButtonStyle({ variant: 'gradient', size: 'medium' })}>
+interface ButtonProps {
+  size: Size;
+  children: React.ReactNode;
+}
+
+export const Button = ({ size, children }: ButtonProps) => {
+  return (
+    // 3. Resolve style dynamically using bracket notation
+    <button styleName={sizeStyles[size]}>
+      {children}
+    </button>
+  );
+};
 ```
+
+#### Best Practices for Bracket Notation:
+* ⚠️ **Minimize keys inside the style object**: Every key defined inside a `css.create()` that is used with bracket notation will be compiled into the generated inline lookup table (e.g., `{"small":"...","medium":"..."}[size]`). To avoid generating bloated tables, always separate your variants into dedicated, minimal `css.create()` calls rather than mixing them with unrelated static styles.
+* **Local variable assignments are supported**: Storing a bracket expression in a local constant before passing it to `styleName` (e.g., `const currentStyle = sizeStyles[size]; <div styleName={currentStyle} />`) is fully supported. The compiler dynamically traces local style variables and inlines them back during JSX extraction.
 
 ### `css.createStatic()`
 Defines **static variables** (such as media query breakpoint strings) and inlines them at build time. These are typically used as dynamic keys in `css.create()`.
@@ -331,7 +337,7 @@ export const theme = css.createTheme('.dark', {
 
 There are exactly **3 patterns** for applying Plumeria styles to custom components. In all patterns, compilation is always concentrated at `styleName` or `css.use()` call sites. The custom component itself simply passes the compiled `className` / `style` through to the DOM — a pure, transparent operation.
 
-> **Core Principle**: What is impossible is dynamic compilation of custom props. Passing styles to custom components is fully supported.
+> **Core Principle**: Custom props and `styleName` typed as `StyleName` are statically analyzed by the compiler, allowing you to pass styles seamlessly across custom components.
 
 ### Pattern 1: Direct `styleName` inside the component
 
@@ -365,21 +371,33 @@ export const Button = ({ children }: { children: React.ReactNode }) => {
 <Button>Click me</Button>;
 ```
 
-### Pattern 2: `styleName` on the custom component at the call site
+### Pattern 2: Direct `StyleName` prop passing (via custom prop like `styleArry`)
 
-The custom component simply spreads `...props` onto the underlying DOM element. Since `styleName` is compiled to `className`/`style` at the call site — before the component ever runs — the component itself doesn't need to know about `styleName` at all; it only ever sees ordinary `className`/`style` props arriving through the spread.
+Since `styleName` is compiled directly to `className`/`style` at the call site, using `styleName` as a prop name on a custom component will cause it to be replaced before the component runs. To pass styles down, use a custom prop name (such as `styleArry`) typed as `StyleName`. Plumeria's compiler statically traces and resolves these properties across component boundaries at build time, allowing you to pass them directly to the `styleName` of any internal elements.
+
+By composing styles in an array like `styleName={[styles.text, styleArry]}`, the styles passed from the call site can override the component's internal base styles (following the **"Right Side Always Wins"** rule). In the example below, the call site's `fontSize: '24px'` overrides the internal `fontSize: '12px'`.
 
 ```tsx
 // --- Button.tsx ---
 import React from 'react';
+import * as css from '@plumeria/core';
 
-interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+type ButtonProps = {
   children: React.ReactNode;
+  styleArry?: css.StyleName;
 }
 
-// Pure passthrough — props (including compiled className/style) flow straight to the DOM
-export const Button = ({ children, ...props }: ButtonProps) => {
-  return <button {...props}>{children}</button>;
+// base style
+const styles = css.create({
+  text: {
+    fontSize: '12px',
+  },
+});
+
+
+// Pass styleArry directly to the inner DOM element's styleName
+export const Button = ({ children, styleArry }: ButtonProps) => {
+  return <button styleName={[styles.text, styleArry]}>{children}</button>;
 };
 
 // --- Usage (call site) ---
@@ -392,27 +410,40 @@ const styles = css.create({
     backgroundColor: 'navy',
     color: '#fff',
   },
+  text: {
+    fontSize: '24px'
+  }
 });
 
-// styleName is compiled to className="xxxxxxxx" at this call site
-<Button styleName={styles.primary}>Click me</Button>;
+// The compiler traces styleArry and resolves it correctly
+<Button styleArry={[styles.primary, styles.text]}>Click me</Button>;
 ```
 
-### Pattern 3: `className` bypass with `css.use()`
+### Pattern 3: `className` bypass with `css.use()` (via custom prop like `styleArry`)
 
-Use `css.use()` to convert static styles into a class name string, then pass it directly as `className`. This bypasses `styleName` entirely and relies only on the `css.use()` compilation.
+You can also use `css.use()` inside custom components to compile static styles and dynamic props into a class name string. By passing the custom prop (typed as `StyleName`) directly to `css.use()`, Plumeria's compiler will statically trace and resolve the styling at build time.
 
 ```tsx
 // --- Button.tsx ---
 import React from 'react';
+import * as css from '@plumeria/core';
 
-interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+type ButtonProps = {
   children: React.ReactNode;
+  styleArry?: css.StyleName;
 }
 
-export const Button = ({ className, children, ...rest }: ButtonProps) => {
+// base style
+const styles = css.create({
+  text: {
+    fontSize: '12px',
+  },
+});
+
+// Pass styleArry inside css.use() to generate className
+export const Button = ({ children, styleArry }: ButtonProps) => {
   return (
-    <button className={className} {...rest}>
+    <button className={css.use(styles.text, styleArry)}>
       {children}
     </button>
   );
@@ -428,10 +459,13 @@ const styles = css.create({
     backgroundColor: 'navy',
     color: '#fff',
   },
+  text: {
+    fontSize: '24px'
+  }
 });
 
-// css.use() is replaced with a static class name string at build time
-<Button className={css.use(styles.primary)}>Click me</Button>;
+// The compiler traces styleArry inside css.use() and resolves it correctly
+<Button styleArry={[styles.primary, styles.text]}>Click me</Button>;
 ```
 
 ### Summary
@@ -439,20 +473,8 @@ const styles = css.create({
 | Pattern | Compilation site | Component's role |
 |---------|-----------------|-----------------|
 | 1. Direct `styleName` | Inside the component | Self-contained styles |
-| 2. `styleName` at call site | Call site | Passthrough `className`/`style` |
-| 3. `className` bypass | Call site (`css.use`) | Passthrough `className` |
-
-### ❌ Anti-pattern: Custom props with dynamic compilation
-
-Custom-named props cannot be dynamically compiled because the compiler only hooks into `styleName` and `css.use()`. Custom prop names are invisible to the compiler.
-
-```tsx
-// ❌ DOES NOT WORK
-const MyComponent = ({ myCustomStyle }) => {
-  // The compiler cannot statically trace myCustomStyle
-  return <div styleName={css.use(styles.base, myCustomStyle)} />;
-};
-```
+| 2. Direct `StyleName` prop | Traced and compiled | Receives and applies `StyleName` |
+| 3. `className` bypass | Inside the component (`css.use`) | Resolves `StyleName` into `className` |
 
 ## Animation APIs
 
