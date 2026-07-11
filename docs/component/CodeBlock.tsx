@@ -58,6 +58,9 @@ const styles = css.create({
   pre: {
     padding: '10px 12px',
     fontSize: 12.65,
+    [breakpoints.md]: {
+      padding: '4px 2px',
+    },
   },
 });
 
