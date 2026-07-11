@@ -1068,7 +1068,8 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           const localStyle = localCreateStyles[varName];
           if (localStyle?.type === 'create') return localStyle.obj;
 
-          let hash = scannedTables.createHashTable[`${resourcePath}-${varName}`];
+          let hash =
+            scannedTables.createHashTable[`${resourcePath}-${varName}`];
           if (!hash) hash = mergedCreateTable[varName];
           if (hash && scannedTables.createObjectTable[hash])
             return scannedTables.createObjectTable[hash];
