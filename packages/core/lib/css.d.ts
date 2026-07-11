@@ -3,7 +3,6 @@
  * Bundler plugin required.
  * ```ts
  * type create = <const T extends Record<string, CreateStyleValue>>(rule: T)=> CreateReturnType<T>;
- * type variants = <T extends Variants>(rule: T) => (props: { [K in keyof T]?: keyof T[K] }) => VariantStyles<T>;
  * type createTheme = <const T extends CreateTheme>(themeSelector: CreateThemeSelector, rule: T) => CreateThemeReturnType<T>;
  * type createStatic = <const T extends CreateStatic>(rule: T)=> T;
  * type keyframes = <const T extends Keyframes>(rule: T) => string;
@@ -16,15 +15,12 @@
 declare module '@plumeria/core' {
   import type {
     StyleName,
-    CSSProperties,
     CreateStyleValue,
     CreateReturnType,
     CreateTheme,
     CreateThemeSelector,
     CreateThemeReturnType,
     CreateStatic,
-    Variants,
-    VariantStyles,
     Keyframes,
     ViewTransition,
     Marker,
@@ -45,11 +41,6 @@ declare module '@plumeria/core' {
   export type create = <const T extends Record<string, CreateStyleValue>>(
     rule: T,
   ) => CreateReturnType<T>;
-
-  export const variants: variants;
-  export type variants = <T extends Variants>(
-    rule: T,
-  ) => (props: { [K in keyof T]?: keyof T[K] }) => VariantStyles<T>;
 
   export const createTheme: createTheme;
   export type createTheme = <const T extends CreateTheme>(
