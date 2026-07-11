@@ -50,8 +50,8 @@ export const theme = css.createTheme('.dark', {
     theme: '#f4f4f5',
   },
   textSecondary: {
-    default: '#6c6b67',
-    theme: '#9a989f',
+    default: '#69676cff',
+    theme: '#a09ea4ff',
   },
   textMuted: {
     default: '#71717a',
