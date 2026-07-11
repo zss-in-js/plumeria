@@ -191,6 +191,10 @@ export function compileCSS(options: CompilerOptions) {
     const createThemeImportMap: CreateThemeHashTable = {};
     const createStaticImportMap: CreateStaticHashTable = {};
     const plumeriaAliases: Record<string, string> = {};
+    const localImports: Record<
+      string,
+      { actualPath: string; importedName: string }
+    > = {};
 
     traverse(ast, {
       ImportDeclaration({ node }) {
@@ -221,6 +225,7 @@ export function compileCSS(options: CompilerOptions) {
                 : specifier.local.value;
               const localName = specifier.local.value;
               const uniqueKey = `${actualPath}-${importedName}`;
+              localImports[localName] = { actualPath, importedName };
 
               if (scannedTables.staticTable[uniqueKey])
                 importMap[localName] = scannedTables.staticTable[uniqueKey];
@@ -349,6 +354,41 @@ export function compileCSS(options: CompilerOptions) {
       sourceBuffer,
       baseByteOffset,
     };
+
+    const componentParamNames = new Set<string>();
+    for (const node of ast.body) {
+      let declarations: VariableDeclarator[] = [];
+      if (node.type === 'VariableDeclaration') {
+        declarations = node.declarations;
+      } else if (
+        node.type === 'ExportDeclaration' &&
+        node.declaration.type === 'VariableDeclaration'
+      ) {
+        declarations = node.declaration.declarations;
+      }
+      for (const decl of declarations) {
+        if (!t.isIdentifier(decl.id) || !decl.init) continue;
+        const init = decl.init;
+        if (
+          init.type !== 'ArrowFunctionExpression' &&
+          init.type !== 'FunctionExpression'
+        )
+          continue;
+        if (init.params.length > 0) {
+          const p = init.params[0];
+          if (t.isIdentifier(p)) {
+            componentParamNames.add(p.value);
+          } else if (
+            typeof p === 'object' &&
+            p !== null &&
+            'pat' in p &&
+            t.isIdentifier(p.pat)
+          ) {
+            componentParamNames.add(p.pat.value);
+          }
+        }
+      }
+    }
 
     const processStyle = (style: CSSObject) => {
       extractOndemandStyles(style, extractedSheets, scannedTables);
@@ -535,6 +575,47 @@ export function compileCSS(options: CompilerOptions) {
       for (const arg of args) {
         checkFunctionKey(arg.expression);
         const expr = arg.expression;
+
+        if (
+          t.isIdentifier(expr) ||
+          (t.isMemberExpression(expr) &&
+            t.isIdentifier(expr.object) &&
+            componentParamNames.has(expr.object.value) &&
+            t.isIdentifier(expr.property))
+        ) {
+          const varName = t.isIdentifier(expr)
+            ? expr.value
+            : (expr.property as Identifier).value;
+
+          let propPossibilities: any[] | undefined;
+          for (const key of Object.keys(
+            ctx.scannedTables.componentPropsTable || {},
+          )) {
+            if (key.startsWith(`${resourcePath}-`)) {
+              if (ctx.scannedTables.componentPropsTable?.[key]?.[varName]) {
+                propPossibilities =
+                  ctx.scannedTables.componentPropsTable?.[key]?.[varName];
+                break;
+              }
+            }
+          }
+
+          if (propPossibilities && propPossibilities.length > 0) {
+            const uniqueEntries: any[] = [];
+            propPossibilities.forEach((entry) => {
+              if (!uniqueEntries.some((x) => x.index === entry.index)) {
+                uniqueEntries.push(entry);
+              }
+            });
+
+            uniqueEntries.forEach((entry) => {
+              if (entry.styleObj && Object.keys(entry.styleObj).length > 0) {
+                processStyle(entry.styleObj);
+              }
+            });
+            continue;
+          }
+        }
 
         if (t.isCallExpression(expr)) {
           if (t.isIdentifier(expr.callee)) {
@@ -1049,7 +1130,22 @@ export function compileCSS(options: CompilerOptions) {
         if (!processedNodes.has(path.node)) processCall(path.node);
       },
       JSXAttribute({ node }) {
-        if (node.name.value !== 'styleName') return;
+        if (node.name.type !== 'Identifier') return;
+        const attrName = node.name.value;
+
+        if (attrName !== 'styleName') {
+          if (
+            node.value &&
+            node.value.type === 'JSXExpressionContainer' &&
+            node.value.expression.type !== 'JSXEmptyExpression'
+          ) {
+            const expr = node.value.expression;
+            const styles = extractStylesFromExpression(expr, ctx);
+            styles.forEach(processStyle);
+          }
+          return;
+        }
+
         if (!node.value || node.value.type !== 'JSXExpressionContainer') return;
         if (node.value.expression.type === 'JSXEmptyExpression') return;
 
