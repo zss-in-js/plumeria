@@ -14,7 +14,7 @@ const styles = css.create({
     padding: 'var(--padding)',
     overflow: 'hidden',
     fontSize: 'var(--font-size)',
-    fontWeight: 'bold',
+    fontWeight: '500',
     color: 'white',
     letterSpacing: '1px',
     background: 'var(--bg-gradient)',
@@ -47,12 +47,12 @@ const styles = css.create({
 
 const sizeStyles = css.create({
   medium: {
-    '--padding': '12px 32px',
-    '--font-size': '12px',
+    '--padding': '0.8em 2.2em',
+    '--font-size': '12.8px',
     '--border-radius': '12px',
     [breakpoints.md]: {
-      '--padding': '10px 24px',
-      '--font-size': '11px',
+      '--padding': '0.75em 2em',
+      '--font-size': '14px',
     },
   },
 });
