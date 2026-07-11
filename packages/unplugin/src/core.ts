@@ -242,6 +242,10 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       const createThemeImportMap: Record<string, any> = {};
       const createStaticImportMap: Record<string, any> = {};
       const plumeriaAliases: Record<string, string> = {};
+      const localImports: Record<
+        string,
+        { actualPath: string; importedName: string }
+      > = {};
 
       traverse(ast, {
         ImportDeclaration({ node }: { node: ImportDeclaration }) {
@@ -272,6 +276,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                   : specifier.local.value;
                 const localName = specifier.local.value;
                 const uniqueKey = `${actualPath}-${importedName}`;
+                localImports[localName] = { actualPath, importedName };
 
                 if (scannedTables.staticTable[uniqueKey]) {
                   importMap[localName] = scannedTables.staticTable[uniqueKey];
@@ -955,7 +960,48 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         },
       });
 
-      const jsxOpeningElementMap = new Map<number, JSXAttributeOrSpread[]>();
+      const jsxOpeningElementMap = new Map<
+        number,
+        { tagName: string; attributes: JSXAttributeOrSpread[] }
+      >();
+
+      const componentParamNames = new Set<string>();
+      for (const node of ast.body) {
+        let declarations: VariableDeclarator[] = [];
+        if (t.isVariableDeclaration(node)) {
+          declarations = node.declarations;
+        } else if (
+          t.isExportDeclaration(node) &&
+          t.isVariableDeclaration(node.declaration)
+        ) {
+          declarations = node.declaration.declarations;
+        }
+        for (const decl of declarations) {
+          if (!t.isIdentifier(decl.id) || !decl.init) continue;
+          const init = decl.init;
+          if (
+            init.type !== 'ArrowFunctionExpression' &&
+            init.type !== 'FunctionExpression'
+          )
+            continue;
+          if (init.params.length > 0) {
+            const p = init.params[0];
+            if (t.isIdentifier(p)) {
+              componentParamNames.add(p.value);
+            } else if ((p as any).pat && t.isIdentifier((p as any).pat)) {
+              componentParamNames.add((p as any).pat.value);
+            }
+          }
+        }
+      }
+
+      const excludeSubtreeSpans = (n: any) => {
+        if (!n || typeof n !== 'object') return;
+        if (n.span) {
+          excludedSpans.add(n.span.start);
+        }
+        Object.values(n).forEach((val) => excludeSubtreeSpans(val));
+      };
 
       const getSource = (node: Expression): string => {
         const start = (node as HasSpan).span.start - baseByteOffset;
@@ -1042,7 +1088,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             }
           }
           if (node.type === 'ParenthesisExpression') {
-            return getRootIdentifier((node as any).expression);
+            return getRootIdentifier(node.expression);
           }
           return null;
         };
@@ -1108,6 +1154,58 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
         for (const arg of args) {
           const expr = arg.expression;
+
+          if (
+            t.isIdentifier(expr) ||
+            (t.isMemberExpression(expr) &&
+              t.isIdentifier(expr.object) &&
+              componentParamNames.has(expr.object.value) &&
+              t.isIdentifier(expr.property))
+          ) {
+            const varName = t.isIdentifier(expr)
+              ? expr.value
+              : (expr.property as Identifier).value;
+            const testLHS = t.isIdentifier(expr) ? varName : getSource(expr);
+
+            let propPossibilities: any[] | undefined;
+            for (const key of Object.keys(
+              scannedTables.componentPropsTable || {},
+            )) {
+              if (key.startsWith(`${resourcePath}-`)) {
+                if (scannedTables.componentPropsTable?.[key]?.[varName]) {
+                  propPossibilities =
+                    scannedTables.componentPropsTable?.[key]?.[varName];
+                  break;
+                }
+              }
+            }
+
+            if (propPossibilities && propPossibilities.length > 0) {
+              const currentGroupId = ++groupIdCounter;
+
+              const uniqueEntries: any[] = [];
+              propPossibilities.forEach((entry) => {
+                if (!uniqueEntries.some((x) => x.index === entry.index)) {
+                  uniqueEntries.push(entry);
+                }
+              });
+
+              uniqueEntries.forEach((entry) => {
+                conditionals.push({
+                  test: expr,
+                  testLHS,
+                  testString: `${testLHS} === ${entry.index}`,
+                  truthy: entry.styleObj,
+                  falsy: {},
+                  groupId: currentGroupId,
+                  groupName: undefined,
+                  valueName: String(entry.index),
+                  varName,
+                });
+              });
+              continue;
+            }
+          }
 
           if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
             const varName = expr.callee.value;
@@ -1534,7 +1632,14 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       // Pass 2: Confirm reference replacement
       traverse(ast, {
         JSXOpeningElement({ node }: { node: JSXOpeningElement }) {
-          jsxOpeningElementMap.set(node.span.start, node.attributes);
+          let tagName = '';
+          if (node.name.type === 'Identifier') {
+            tagName = node.name.value;
+          }
+          jsxOpeningElementMap.set(node.span.start, {
+            tagName,
+            attributes: node.attributes,
+          });
         },
         MemberExpression({ node }: { node: MemberExpression }) {
           if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
@@ -1715,11 +1820,77 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           }
         },
         JSXAttribute({ node }: { node: JSXAttribute }) {
-          if (
-            node.name.type !== 'Identifier' ||
-            node.name.value !== 'styleName'
-          )
+          if (node.name.type !== 'Identifier') return;
+          const attrName = node.name.value;
+
+          if (attrName !== 'styleName') {
+            let parentTagName = '';
+            for (const [, val] of jsxOpeningElementMap) {
+              const found = val.attributes
+                .filter((a): a is JSXAttribute => a.type === 'JSXAttribute')
+                .find((a) => a.span.start === node.span.start);
+              if (found) {
+                parentTagName = val.tagName;
+                break;
+              }
+            }
+
+            if (
+              parentTagName &&
+              parentTagName[0] === parentTagName[0].toUpperCase()
+            ) {
+              let compKey: string;
+              const imported = localImports[parentTagName];
+              if (imported) {
+                compKey = `${imported.actualPath}-${imported.importedName}`;
+              } else {
+                compKey = `${resourcePath}-${parentTagName}`;
+              }
+
+              const list =
+                scannedTables.componentPropsTable?.[compKey]?.[attrName];
+              if (
+                list &&
+                node.value &&
+                node.value.type === 'JSXExpressionContainer'
+              ) {
+                const expr = node.value.expression;
+                traverse(expr, {
+                  MemberExpression({ node: subNode }) {
+                    const entry = list.find(
+                      (x) =>
+                        x.spanStart === subNode.span.start &&
+                        x.filePath === resourcePath,
+                    );
+                    if (entry) {
+                      replacements.push({
+                        start: subNode.span.start - baseByteOffset,
+                        end: subNode.span.end - baseByteOffset,
+                        content: String(entry.index),
+                      });
+                      excludeSubtreeSpans(subNode);
+                    }
+                  },
+                  ArrayExpression({ node: subNode }) {
+                    const entry = list.find(
+                      (x) =>
+                        x.spanStart === subNode.span.start &&
+                        x.filePath === resourcePath,
+                    );
+                    if (entry) {
+                      replacements.push({
+                        start: subNode.span.start - baseByteOffset,
+                        end: subNode.span.end - baseByteOffset,
+                        content: String(entry.index),
+                      });
+                      excludeSubtreeSpans(subNode);
+                    }
+                  },
+                });
+              }
+            }
             return;
+          }
 
           if (!node.value || node.value.type !== 'JSXExpressionContainer')
             return;
@@ -1736,12 +1907,12 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           const dynamicStyleParts: string[] = [];
 
           let attributes: Array<JSXAttribute | SpreadElement> = [];
-          for (const [, attrs] of jsxOpeningElementMap) {
-            const found = attrs
+          for (const [, val] of jsxOpeningElementMap) {
+            const found = val.attributes
               .filter((a): a is JSXAttribute => a.type === 'JSXAttribute')
               .find((a) => a.span.start === node.span.start);
             if (found) {
-              attributes = attrs;
+              attributes = val.attributes;
               break;
             }
           }
@@ -2102,12 +2273,17 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           code: transformedSource + `\nimport ${JSON.stringify(cssId)};`,
           map: null,
         };
-      }
+      } else {
+        const targetIndex = targets.findIndex((t) => t.id === id);
+        if (targetIndex !== -1) {
+          targets.splice(targetIndex, 1);
+        }
 
-      return {
-        code: transformedSource,
-        map: null,
-      };
+        return {
+          code: transformedSource,
+          map: null,
+        };
+      }
     },
   };
 };
