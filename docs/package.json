@@ -15,7 +15,6 @@
     "fumadocs-core": "^16.9.3",
     "fumadocs-mdx": "^15.0.5",
     "fumadocs-ui": "^16.9.3",
-    "geist": "^1.7.0",
     "katex": "^0.17.0",
     "next": "catalog:",
     "react": "catalog:",
