@@ -68,6 +68,12 @@ div:has(.shiki)[data-orientation='horizontal'] [role='tablist'] {
   font-size: 12.65px;
 }
 
+@media screen and (max-width: 768px) {
+  .shiki pre {
+    font-size: 11.02px;
+  }
+}
+
 pre span {
   font-family: ui-monospace, 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
 }
