@@ -26,7 +26,7 @@ export default defineConfig({
     rehypeCodeOptions: {
       inline: 'tailing-curly-colon',
       themes: {
-        light: 'snazzy-light',
+        light: 'laserwave',
         dark: 'laserwave',
       },
     },
