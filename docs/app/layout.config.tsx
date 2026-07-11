@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { svg } from 'component/svg';
 import { NavDropdown } from 'component/NavDropdown';
 import { blog } from 'lib/source';
+import { theme } from 'lib/theme';
 
 const latestReleasePosts = blog
   .getPages()
@@ -29,7 +30,7 @@ const styles = css.create({
     bottom: 2,
     left: 8,
   },
-  logo: {
+  image: {
     position: 'relative',
     display: 'flex',
     flexDirection: 'row',
@@ -37,6 +38,8 @@ const styles = css.create({
     alignItems: 'center',
     fontSize: 15,
     fontWeight: 600,
+    color: theme.textMainHeaderLine,
+    filter: 'hue-rotate(342deg) saturate(0.5) contrast(0.95)',
   },
 });
 
@@ -44,7 +47,7 @@ export const baseOptions: BaseLayoutProps = {
   nav: {
     transparentMode: 'top',
     title: (
-      <span styleName={styles.logo}>
+      <span styleName={styles.image}>
         <Image styleName={styles.flower} src="/LP_LG.png" alt="Plumeria logo" loading="lazy" height={40} width={40} />
         Plumeria
       </span>
