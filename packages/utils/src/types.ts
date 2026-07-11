@@ -29,6 +29,14 @@ export type CreateStaticObjectTable = Record<string, CSSObject>;
 export type CreateThemeHashTable = Record<string, string>; // varName -> hash
 export type CreateThemeSelectorTable = Record<string, string>; // hash -> CSS selector
 
+export interface TableEntry {
+  index: number;
+  styleObj: CSSObject;
+  classString: string;
+  spanStart: number;
+  filePath: string;
+}
+
 export interface Tables {
   staticTable: StaticTable;
   keyframesHashTable: KeyframesHashTable;
@@ -45,6 +53,7 @@ export interface Tables {
   createStaticObjectTable: CreateStaticObjectTable;
   variantsHashTable: VariantsHashTable;
   variantsObjectTable: VariantsObjectTable;
+  componentPropsTable?: Record<string, Record<string, TableEntry[]>>;
 }
 
 export type CreateTheme = {
