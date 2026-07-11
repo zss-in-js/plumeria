@@ -88,6 +88,53 @@ export const Color = ({ color }) => {
 }
 ```
 
-<Callout title="Atomic API">
-Unique atom classes are reused without duplication, keeping the amount of class names constant.
+## Variants bracket notation
+
+You can resolve dynamic variant styles using standard bracket notation (e.g., `variantStyles[size]`). Plumeria's compiler automatically extracts these variants and creates static lookup tables at build time.
+
+```tsx
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  base: {
+    display: 'inline-flex',
+    borderRadius: '4px',
+    backgroundColor: 'blue',
+    color: 'white',
+  }
+});
+
+const sizeStyles = css.create({
+  small: {
+    fontSize: '12px',
+    padding: '4px 8px',
+  },
+  large: {
+    fontSize: '18px',
+    padding: '12px 24px',
+  }
+});
+
+type Size = 'small' | 'large';
+// can also use the type exhaustively via typeof sizeStyles
+
+export const Button = ({ size }: { size: Size }) => {
+  return (
+    <button styleName={[styles.base, sizeStyles[size]]}>Button</button>
+  );
+};
+```
+
+<Callout type="warn" title="Function keys are ignored">
+  Function keys (dynamic styles) within the style object are ignored during bracket notation lookup table compilation.
+</Callout>
+
+### Optimization Tip: Keep Common Properties in Base Styles
+
+To keep the generated lookup table small and efficient, you should concentrate common, non-variant properties in your base styles (like `baseStyles`). 
+In that case, a optimized cartesian product is not generated.
+
+<Callout title="Atomic static API">
+  Unique atom classes are reused without duplication, keeping the total number of class names constant.  
+  And all imports are stripped away by the compiler.
 </Callout>
