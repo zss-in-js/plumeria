@@ -6,15 +6,15 @@ export const theme = css.createTheme('.dark', {
     theme: '#5dcac8',
   },
   cardBg: {
-    default: 'linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(235, 235, 235, 0.6) 100%)',
-    theme: 'linear-gradient(135deg, rgba(24, 24, 27, 1) 0%, rgba(24, 24, 27, 0.1) 100%)',
+    default: 'rgba(255, 255, 255, 0.5)',
+    theme: 'rgba(24, 24, 27, 0.5)',
   },
   dropdownBg: {
     default: '#ffffff',
     theme: '#18181b',
   },
   cardBorder: {
-    default: 'rgba(100, 100, 100, 0.2)',
+    default: 'rgba(100, 100, 100, 0.4)',
     theme: 'rgba(255, 255, 255, 0.12)',
   },
   cardHoverBorder: {
@@ -22,20 +22,18 @@ export const theme = css.createTheme('.dark', {
     theme: 'rgba(255, 255, 255, 0.3)',
   },
   cardCutGlass: {
-    default:
-      'inset 0 1.5px 1.5px 0 rgba(200, 200, 200, 0.1), inset 1.5px 0 1.5px 0 rgba(200, 200, 200, 0.2), inset -1.5px -1.5px 1.5px 0 rgba(200, 200, 200, 0.8)',
-    theme:
-      'inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.15), inset 1.5px 0 1.5px 0 rgba(255, 255, 255, 0.05), inset -1px -1px 1.5px 0 rgba(0, 0, 0, 0.3)',
+    default: 'inset 0 0 1.5px 1px rgba(200, 200, 200, 0.2)',
+    theme: 'inset 0 0 1.5px 1px rgba(255, 255, 255, 0.05)',
   },
   cardShadow: {
-    default: '0 8px 32px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(0, 0, 0, 0.03)',
+    default: '0 8px 32px 0 rgba(0, 0, 0, 1), 0 2px 8px 0 rgba(0, 0, 0, 1)',
     theme: '0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 2px 8px 0 rgba(0, 0, 0, 0.2)',
   },
   cardBoxShadow: {
     default:
-      '0 8px 32px 0 rgba(0, 0, 0, 0.08), 0 2px 8px 0 rgba(0, 0, 0, 0.03), inset 0 1.5px 1.5px 0 rgba(200, 200, 200, 0.1), inset 1.5px 0 1.5px 0 rgba(200, 200, 200, 0.2), inset -1.5px -1.5px 1.5px 0 rgba(200, 200, 200, 0.8)',
+      '0 8px 32px 0 rgba(0, 0, 0, 0.1), 0 2px 8px 0 rgba(0, 0, 0, 0.02), inset 0 0 1.5px 1px rgba(200, 200, 200, 0.4)',
     theme:
-      '0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 2px 8px 0 rgba(0, 0, 0, 0.2), inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.15), inset 1.5px 0 1.5px 0 rgba(255, 255, 255, 0.05), inset -1px -1px 1.5px 0 rgba(0, 0, 0, 0.3)',
+      '0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 2px 8px 0 rgba(0, 0, 0, 0.2), inset 0 0 1.5px 1px rgba(255, 255, 255, 0.05)',
   },
   iconColor: {
     default: '#71717a',
