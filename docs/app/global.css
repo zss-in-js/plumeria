@@ -41,6 +41,8 @@ body {
 
 .shiki {
   background: rgb(24, 24, 27);
+  border-color: rgba(255, 255, 255, 0.12);
+  --color-fd-border: rgba(255, 255, 255, 0.12);
 }
 
 .shiki [role='region'] {
@@ -60,10 +62,6 @@ div:has(.shiki)[data-orientation='horizontal'] [role='tablist'] {
   --color-fd-muted-foreground: hsl(0, 0%, 63.9%);
   --color-fd-primary: hsl(0, 0%, 98%);
   --color-fd-accent-foreground: hsl(0, 0%, 98%);
-}
-
-div:has(.shiki)[data-orientation='horizontal'] [role='tabpanel'] {
-  background: transparent !important;
 }
 
 .shiki pre {
