@@ -33,6 +33,7 @@ export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) 
       light: 'laserwave',
       dark: 'laserwave',
     },
+    defaultColor: false,
   });
   return (
     <FumadocsCodeBlock styleName={styles.code_div} title="TypeScript" lang="ts">
