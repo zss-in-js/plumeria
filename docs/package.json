@@ -11,6 +11,7 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@plumeria/inspector": "workspace:^",
     "@vercel/analytics": "^2.0.1",
     "fumadocs-core": "^16.9.3",
     "fumadocs-mdx": "^15.0.5",
