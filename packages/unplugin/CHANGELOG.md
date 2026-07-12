@@ -1,5 +1,16 @@
 # @plumeria/unplugin
 
+## 16.1.0
+
+### Minor Changes
+
+- 901ebf0: Bump version to 16.1.0 (add inspector)
+
+### Patch Changes
+
+- Updated dependencies [901ebf0]
+  - @plumeria/utils@16.1.0
+
 ## 16.0.0
 
 ### Major Changes
