@@ -1,5 +1,5 @@
 {
   "defaultOpen": true,
   "title": "Components",
-  "pages": ["headlessui"]
+  "pages": ["headlessui", "inspector"]
 }
