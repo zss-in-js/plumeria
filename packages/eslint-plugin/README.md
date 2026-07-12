@@ -117,4 +117,19 @@ Example usage in `package.json`:
 }
 ```
 
+### Aborting Builds on Lint Errors (Parallel Pipeline)
+
+You can run `plumerialint` in parallel with your build command (e.g. `next build` or `vite build`) using the `--` separator:
+
+```json
+{
+  "scripts": {
+    "build": "plumerialint -- next build"
+  }
+}
+```
+
+If `plumerialint` detects any styling errors or warnings, it will print the diagnostics, kill the build process immediately, and exit with a non-zero code. This avoids compiling when styling validation fails.
+
 **Note:** `oxlint` is required as `plumerialint` uses it internally.
+
