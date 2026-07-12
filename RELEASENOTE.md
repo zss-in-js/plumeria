@@ -1,5 +1,11 @@
 # Release Notes
 
+## 16.1.1 (Jul 12, 2026)
+- inspector enable OIDC
+
+## 16.1.0 (Jul 12, 2026)
+- Add inspector package (Development Visualization Support Tool)
+
 ## 16.0.0 (Jul 12, 2026)
 
 - Add support for dynamic props and update variants API to use optimized bracket syntax
