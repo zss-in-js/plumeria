@@ -41,6 +41,22 @@ css.create({
 
 ---
 
+## Parallel Build Integration (Fail Fast)
+
+To prevent compiling when linting checks fail, you can run `plumerialint` in parallel with your build command using the `--` separator:
+
+```json title="package.json"
+{
+  "scripts": {
+    "build": "plumerialint -- next build"
+  }
+}
+```
+
+If `plumerialint` detects any styling errors or warnings, it will print the diagnostics, immediately abort/kill the parallel build process (`next build`), and exit with a non-zero code. This avoids compiling when styling validation fails.
+
+---
+
 ## Modern Selectors Support
 
 The validation reference has been updated to support modern CSS pseudo-selectors:
