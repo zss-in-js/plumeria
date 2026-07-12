@@ -14,6 +14,7 @@
  */
 declare module '@plumeria/core' {
   import type {
+    AtomicClassNameFor,
     StyleName,
     CreateStyleValue,
     CreateReturnType,
@@ -35,7 +36,7 @@ declare module '@plumeria/core' {
     }
   }
 
-  export type { StyleName };
+  export type { AtomicClassNameFor, StyleName };
 
   export const create: create;
   export type create = <const T extends Record<string, CreateStyleValue>>(
