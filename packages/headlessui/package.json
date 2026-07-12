@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/headlessui",
-  "version": "16.1.0",
+  "version": "16.1.1",
   "description": "Headless UI components wrapper for Plumeria based on Radix UI",
   "author": "Refirst 11",
   "license": "MIT",

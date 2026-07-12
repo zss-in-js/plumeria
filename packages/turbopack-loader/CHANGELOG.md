@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 16.1.1
+
+### Patch Changes
+
+- 7d73f9c: Bump version to 16.1.1 (inspector OIDC)
+- Updated dependencies [7d73f9c]
+  - @plumeria/utils@16.1.1
+
 ## 16.1.0
 
 ### Minor Changes
