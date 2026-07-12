@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 16.2.1
+
+### Patch Changes
+
+- c7a3a47: Bump version to 16.2.1 (plumerialint can now be executed in parallel)
+- Updated dependencies [c7a3a47]
+  - @plumeria/compiler@16.2.1
+
 ## 16.2.0
 
 ### Minor Changes
