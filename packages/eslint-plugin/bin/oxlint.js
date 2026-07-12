@@ -77,7 +77,10 @@ if (!buildCommand) {
   });
 
   buildChild.on('error', (err) => {
-    console.error(`Error running build command "${buildCommand}":`, err.message);
+    console.error(
+      `Error running build command "${buildCommand}":`,
+      err.message,
+    );
     abort(1, 'build');
   });
 
