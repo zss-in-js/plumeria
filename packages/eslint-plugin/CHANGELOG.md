@@ -1,3 +1,9 @@
+## 16.2.1
+
+### Patch Changes
+
+- 0cb7b5b: Feat parallel run oxlint for CLI
+
 ## 16.2.0
 
 ### Minor Changes

@@ -1,5 +1,9 @@
 # Release Notes
 
+## 16.2.1 (Jul 12, 2026)
+
+- Feat parallel run oxlint for CLI
+
 ## 16.2.0 (Jul 12, 2026)
 
 - Bump version 16.2.0 (add validate-pseudos eslint rule)
