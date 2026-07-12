@@ -65,6 +65,7 @@ Pseudo-classes target elements based on their state, position, or user interacti
 | `:indeterminate` | Indeterminate checkboxes | Style indeterminate state |
 | `:default` | Default element in a group | Highlight default button |
 | `:autofill` | Auto-filled form elements | Customize autofill appearance |
+| `:state(name)` | Custom state for custom elements | Style custom element based on state |
 
 ### Structural Pseudo-Classes
 
@@ -106,6 +107,10 @@ Pseudo-classes target elements based on their state, position, or user interacti
 | `:modal` | Modal dialogs | Style modal elements |
 | `:open` | Open details/dialog elements | Style open accordions |
 | `:defined` | Defined custom elements | Style web components |
+| `:popover-open` | Popover element that is open | Style active popovers |
+| `:host` | Shadow DOM host element | Style host component |
+| `:host(selector)` | Shadow DOM host matching selector | Style host component conditionally |
+| `:host-context(selector)` | Shadow DOM host based on ancestor | Contextual component styling |
 
 ---
 
@@ -127,6 +132,8 @@ Pseudo-elements style specific parts of an element or insert generated content.
 | `::first-letter` | First letter of text | Drop caps |
 | `::first-line` | First line of text | Emphasize opening line |
 | `::selection` | Selected text | Custom highlight color |
+| `::target-text` | Element text targeted by URL fragment | Highlight target text fragment |
+| `::highlight(name)` | Custom highlight registered via API | Custom text highlighting |
 
 ### Form Elements
 
@@ -134,6 +141,7 @@ Pseudo-elements style specific parts of an element or insert generated content.
 | -------------- | ----------- | ---------------- |
 | `::placeholder` | Placeholder text | Style input placeholders |
 | `::marker` | List item markers | Custom bullet styles |
+| `::file-selector-button` | Button of a file input | Style file uploads |
 
 ### Media Elements
 
@@ -151,6 +159,7 @@ Pseudo-elements style specific parts of an element or insert generated content.
 | `::slotted(selector)` | Slotted shadow DOM content | Style slot content |
 | `::spelling-error` | Spelling errors | Highlight misspellings |
 | `::grammar-error` | Grammar errors | Highlight grammar issues |
+| `::details-content` | Content container of details element | Style open accordion contents |
 
 ---
 
