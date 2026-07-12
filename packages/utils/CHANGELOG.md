@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.1.0
+
+### Minor Changes
+
+- 901ebf0: Bump version to 16.1.0 (add inspector)
+
 ## 16.0.0
 
 ### Major Changes
