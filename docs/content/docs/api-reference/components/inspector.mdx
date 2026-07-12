@@ -1,0 +1,95 @@
+---
+title: '@plumeria/inspector'
+description: 'A debugging utility component for inspecting Plumeria styled components and their CSS rules in real-time.'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Inspector } from '@plumeria/inspector';
+
+<Inspector production={true} />
+`@plumeria/inspector` is an interactive DevTools utility component that allows you to inspect elements, highlight components, and view their compiled Plumeria styles directly in the browser.
+
+---
+
+## Installation
+
+To start using the inspector, install the `@plumeria/inspector` package in your project.
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    npm i @plumeria/inspector
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    yarn add @plumeria/inspector
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    pnpm i @plumeria/inspector
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Basic Usage
+
+Import `Inspector` and render it at the root of your application (e.g., in a root layout or main entry point component).
+
+```tsx title="app/layout.tsx"
+import { Inspector } from '@plumeria/inspector';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <html>
+      <body>
+        {/* Render the inspector component */}
+        <Inspector />
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+Once rendered, the inspector is enabled by default in development environments (`process.env.NODE_ENV === 'development'`).
+
+---
+
+## Features
+
+- **Interactive Hover Overlay**: Hovering over elements displays a visual border highlight showing their target area.
+- **CSS Property Tooltip**: Shows the active CSS rules, classes, and properties injected by Plumeria for the hovered element.
+- **Target Freezing**: Press the `Shift` key to freeze/lock targeting onto the currently hovered element. This allows you to move your cursor into the inspector tooltip and scroll through rules. Press `Shift` again to unlock.
+- **Keyboard Shortcut**: Press `Alt + I` or `Cmd + I` (on macOS) to toggle the inspector on and off.
+- **Floating Badge Toggle**: A minimalist, semi-transparent badge in the bottom-right corner shows the inspector status and can be clicked to toggle it.
+
+---
+
+## Production Mode
+
+By default, the `Inspector` does not render in production environments to avoid overhead and keep build assets clean.
+
+However, if you want to make the inspector accessible to users in production (for staging environments, demos, or public showcases), you can enable it by passing the `production` prop:
+
+```tsx
+<Inspector production={true} />
+```
+
+---
+
+## Live Demo
+
+The inspector is active right here on this documentation site! 
+
+To try it out:
+1. Click the **Inspector: ON** badge in the bottom-right corner, or press `Cmd + I` / `Alt + I`.
+2. Hover over any text, heading, or container on this page to see the outline and compiles rules.
+3. Press `Shift` to freeze the selection and explore the details in the tooltip.
