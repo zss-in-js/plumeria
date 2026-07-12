@@ -63,6 +63,7 @@ export const baseOptions: BaseLayoutProps = {
           url={'/docs'}
           items={[
             { type: 'header', text: 'Principles' },
+            { text: 'Why Plumeria?', url: '/docs/why-plumeria' },
             { text: 'Category theory', url: '/docs/category' },
             { text: 'AI.md', url: '/docs/ai' },
             { type: 'divider' },
