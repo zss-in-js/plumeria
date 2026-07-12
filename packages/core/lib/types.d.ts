@@ -109,8 +109,9 @@ type Extended<
 > = `@container style(--${I}-${StripColon<P>}: 1)`;
 
 export type {
-  CSSProperties,
+  AtomicClassNameFor,
   StyleName,
+  CSSProperties,
   CreateStyleValue,
   CreateReturnType,
   CreateTheme,
