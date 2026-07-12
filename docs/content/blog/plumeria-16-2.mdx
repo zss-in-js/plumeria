@@ -1,0 +1,64 @@
+---
+title: 'Plumeria 16.2'
+description: 'Update: Announcing validate-pseudos rule in @plumeria/eslint-plugin'
+date: '2026-07-13'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v16.2 introduces `validate-pseudos` in `@plumeria/eslint-plugin`, a new rule to validate CSS pseudo-classes and pseudo-elements inside `css.create()`.
+
+Plumeria extracts styles during compilation, so invalid pseudo-selectors or typos can slip through to production unnoticed. The new `validate-pseudos` rule catches these at lint time. It is included in `plumeria.configs.recommended` as an error by default, and comprehensively covers legacy (`:before`), functional (`:nth-child(2n)`), and chained (`:hover::after`) selectors.
+
+```tsx
+import * as css from '@plumeria/core';
+
+css.create({
+  button: {
+    ':hover::before': { content: '""' },   // ✅
+    ':nth-child(2n)': { color: 'red' },    // ✅
+    ':hovver': { color: 'blue' },          // ❌ Invalid pseudo-class
+    ':hover::befor': { content: '""' },    // ❌ Invalid pseudo-element
+  }
+});
+```
+
+When TypeScript type information is available, the rule also resolves and validates computed keys:
+
+```tsx
+const pseudo = ':hovver' as const;
+
+css.create({
+  button: {
+    [pseudo]: { color: 'red' },  // ❌ Error: Invalid pseudo-class: ":hovver"
+  }
+});
+```
+
+---
+
+## Modern Selectors Support
+
+The validation reference has been updated to support modern CSS pseudo-selectors:
+
+*   **Pseudo-classes**: `:popover-open`, `:state()`, `:host`, `:host()`, `:host-context()`
+*   **Pseudo-elements**: `::details-content`, `::file-selector-button`, `::target-text`, `::highlight()`
+
+```tsx
+css.create({
+  input: {
+    '::file-selector-button': { backgroundColor: 'purple' },
+  },
+  popover: {
+    ':popover-open': { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' },
+  },
+});
+```
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
