@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/compiler",
-  "version": "15.1.3",
+  "version": "16.0.0",
   "description": "Plumeria swc based compiler for statically extracting css",
   "author": "Refirst 11",
   "license": "MIT",
