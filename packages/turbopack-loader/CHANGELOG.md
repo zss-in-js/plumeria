@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 16.2.0
+
+### Minor Changes
+
+- 1e54d3b: Bump version 16.2.0 (add validate-pseudos eslint rule)
+
+### Patch Changes
+
+- Updated dependencies [1e54d3b]
+  - @plumeria/utils@16.2.0
+
 ## 16.1.1
 
 ### Patch Changes

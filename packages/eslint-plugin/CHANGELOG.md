@@ -1,3 +1,9 @@
+## 16.2.0
+
+### Minor Changes
+
+- 1e54d3b: Add validate-pseudos eslint rule
+
 ## 16.1.1
 
 ### Patch Changes

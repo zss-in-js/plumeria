@@ -1,5 +1,10 @@
 # Release Notes
 
+## 16.2.0 (Jul 12, 2026)
+
+- Bump version 16.2.0 (add validate-pseudos eslint rule)
+- Add validate-pseudos eslint rule
+
 ## 16.1.1 (Jul 12, 2026)
 - inspector enable OIDC
 
