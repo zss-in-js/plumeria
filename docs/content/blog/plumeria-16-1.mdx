@@ -1,0 +1,101 @@
+---
+title: 'Plumeria 16.1'
+description: 'Update: Announcing @plumeria/inspector for real-time visual styling debugging'
+date: '2026-07-12'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+import { Inspector } from '@plumeria/inspector'
+
+<Inspector production={true} />
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v16.1 introduces `@plumeria/inspector`, a new package for visual style debugging tools.
+
+As a zero-runtime CSS-in-JS library, Plumeria optimizes and extracts styles during compilation. While this provides great performance, debugging compiled utility classes in the browser DevTools could sometimes feel like reading alphabet soup.
+
+To solve this, we are shipping a dedicated DevTools utility component that allows you to inspect elements, highlight components, and view their original Plumeria styles directly in the browser—in real-time.
+
+Let's see it in action and learn how to set it up.
+
+## How to distribute packages
+
+Before we dive into the details of the new tool, a quick technical note on how we built it: Plumeria dogfoods `@plumeria/unplugin` (specifically the esbuild integration) to compile and bundle the inspector package, which inlines the styles into the final asset. 
+
+However, if you are simply looking to build and distribute your own components styled with Plumeria, you don't need to do any complex inline bundling. You only need to include `@plumeria/unplugin` and `@plumeria/core` in your `devDependencies`, compile your code, and distribute the generated artifacts under `dist`. It's that simple!
+
+
+---
+
+## What is `@plumeria/inspector`?
+
+The Plumeria Inspector is an interact visual debugging utility designed for development environments. It overlays layout boundaries on hover, shows the exact Plumeria style rules applied to elements, and offers shortcuts to freeze/lock selections.
+
+### Key Features
+- **Interactive Hover Overlay**: Instantly highlights targeted elements and containers.
+- **CSS Property Tooltip**: Shows the active rules, classes, and raw properties resolved by the Plumeria compiler.
+- **Target Freezing**: Press the `Shift` key to freeze/lock onto the hovered element so you can scroll through rule properties inside the tooltip without losing your place.
+- **Keyboard Shortcuts**: Toggle the inspector quickly by pressing `Alt + I` or `Cmd + I` (on macOS).
+- **Floating Badge**: Click the minimalist badge in the bottom-right corner to toggle the overlay on and off.
+
+---
+
+## Installation
+
+Install the `@plumeria/inspector` package in your project:
+
+```sh title="Terminal"
+pnpm i @plumeria/inspector
+```
+
+---
+
+## Basic Usage
+
+Import the `Inspector` component and render it at the root of your application (typically in your root layout or entry component):
+
+```tsx title="app/layout.tsx"
+import { Inspector } from '@plumeria/inspector';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <html>
+      <body>
+         <Inspector />
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+By default, the component automatically restricts itself to development environments (`process.env.NODE_ENV === 'development'`) to ensure no additional code or visual elements leak into production.
+
+---
+
+## Production Mode
+
+If you are deploying a demo site, a staging preview, or a public docs showcase (like the page you are reading right now!), you can explicitly enable the inspector in production by passing the `production` prop:
+
+```tsx
+<Inspector production={true} />
+```
+
+---
+
+## Live Demo
+
+Because we have initialized `<Inspector production={true} />` at the top of this blog post, the Plumeria Inspector is active on this page!
+
+To try it:
+1. Press `Cmd + I` (macOS) / `Alt + I` (Windows/Linux) or click the **Inspector: ON** floating badge in the bottom right.
+2. Hover over any text blocks, code boxes, or headers to see the visual highlight overlays.
+3. Press `Shift` to freeze the selection and scroll through the properties in the popup window.
+
+---
+
+Thanks for using Plumeria! Let us know what you think of the new inspector tool on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or report issues on [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
