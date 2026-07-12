@@ -1,0 +1,164 @@
+---
+title: 'Plumeria 16.0'
+description: 'Update: Dynamic Props static analysis and migration to Bracket Notation styling'
+date: '2026-07-11'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 16.0.0 is here. 🎉
+
+This release focuses on one thing we've wanted to get right for a while: dynamic styling. Three changes ship together in this update, all built without bending our zero-runtime philosophy an inch:
+
+1. **Dynamic Props Static Analysis** — the compiler now statically tracks style props passed down to components and maps them to lookup tables.
+2. **Bracket Notation (`styles[variant]`) Support & `css.variants` Deprecation** — standard bracket-style lookups are back, and they replace the now-redundant `css.variants` API.
+3. **Style Variable Aliasing** — you can assign a style bracket reference to a local constant (e.g. `const myStyle = styles[v]`) and pass it to `styleName` without any extra ceremony.
+
+Let's walk through each.
+
+---
+
+## 1. Dynamic Props Static Analysis
+
+If you've styled a component based on props passed down from a parent, you've probably run into this before: the value isn't resolvable inside the child, so the compiler hits a wall and gives up.
+
+Plumeria 16.0 fixes that. The compiler now traces dynamic props as they flow into a component, scans the possible source style objects behind them, and packages the whole thing into a compile-time lookup table. The result is that components can switch styles based on props dynamically, with **zero runtime JavaScript overhead** — the resolution work has already happened before your code ever runs.
+
+This enhancement makes Plumeria highly powerful for building **component**. You can now design reusable components that accept custom styles from consumers to override default styles, while fully preserving zero-runtime static optimization.
+
+For example, here is how `ComponentA` passes custom styles to `ComponentB` to override its base design:
+
+```tsx
+// ComponentB.tsx
+import * as css from '@plumeria/core';
+
+const baseStyles = css.create({
+  container: {
+    padding: '16px',
+    backgroundColor: 'lightgray', // Base style
+    borderRadius: '8px',
+  },
+});
+
+type ComponentBProps = {
+  style?: css.StyleName;
+  children: React.ReactNode;
+};
+
+export const ComponentB = ({ style, children }: ComponentBProps) => {
+  return (
+    // Merges default styles with consumer overrides
+    <div styleName={[baseStyles.container, style]}>
+      {children}
+    </div>
+  );
+};
+```
+
+```tsx
+// ComponentA.tsx
+import * as css from '@plumeria/core';
+import { ComponentB } from './ComponentB';
+
+const styles = css.create({
+  customTheme: {
+    // Overriding the base background color
+    backgroundColor: 'darkblue',
+  },
+});
+
+export const ComponentA = () => {
+  return (
+    // The compiler statically traces and resolves the style prop passed to ComponentB
+    <ComponentB style={styles.customTheme}>
+      Custom Theme Content
+    </ComponentB>
+  );
+};
+```
+
+---
+
+## 2. Bracket Notation (`styles[variant]`)
+
+We've deprecated and removed `css.variants` entirely. In its place, you write plain JavaScript/TypeScript bracket access — `styles[variant]` — the way you'd expect to in any other context.
+
+Under the hood, the compiler scans the keys in your `css.create()` call, builds an atomic CSS class lookup dictionary from them, and rewrites the runtime expression into an inline lookup: something like `({"primary":"class-a", "secondary":"class-b"}[variant] || "")`. No hashmap access at runtime, no extra API to learn — just the syntax you already know, compiled away.
+The internal implementation of this bracket notation carries over the previous css.variants implementation as-is.
+
+### Example
+
+Here's what defining and consuming variants looks like in 16.0:
+
+```tsx
+import * as css from '@plumeria/core';
+
+// 1. Define your variant styles in a dedicated styles object
+const styles = css.create({
+  primary: {
+    backgroundColor: 'blue',
+  },
+  secondary: {
+    backgroundColor: 'gray',
+  },
+});
+
+// 2. Safely capture the valid keys using typescript keyof typeof!
+type ButtonProps = { 
+  variant: keyof typeof styles
+};
+// (Alternatively, you can also define it manually: type ButtonProps = 'primary' | 'secondary')
+
+export const Button = ({ variant }: ButtonProps) => {
+  return (
+    // 3. Directly access style object via bracket notation
+    <button styleName={styles[variant]}>
+      Click Me
+    </button>
+  );
+};
+
+// calling
+<Button variant="primary" />
+<Button variant="secondary" />
+```
+
+---
+
+## Best Practices for Bracket Notation
+
+### ⚠️ Minimize keys in dynamic `css.create` objects
+
+Here's something worth knowing before you reach for bracket notation everywhere: the compiler generates a lookup mapping for *every* key in a `css.create` object that gets accessed via brackets. Mix static styles into that same object, and the lookup table inherits keys it never needed — which means bloated generated code for no real benefit.
+
+The fix is simple: keep your dynamic variants in their own, minimal `css.create` call, separate from static styles.
+
+```tsx
+// ❌ Avoid mixing static and dynamic keys:
+const styles = css.create({
+  button: { padding: '10px' }, // Static
+  primary: { color: 'blue' },   // Dynamic Variant
+  secondary: { color: 'gray' }, // Dynamic Variant
+});
+
+// ✅ Prefer splitting them up:
+const styles = css.create({
+  button: { padding: '10px' },
+});
+const buttonVariants = css.create({
+  primary: { color: 'blue' },
+  secondary: { color: 'gray' },
+});
+```
+
+### Local Style Variable Aliasing
+
+Want to stash a bracket style reference in a local constant before handing it to `styleName`? Go ahead — `const myStyle = styles[variant]; <div styleName={myStyle} />` is fully supported. The compiler traces local style variables and inlines this back during JSX extraction, so nothing is lost in translation. It's a small thing, but it keeps your JSX readable instead of forcing everything into one dense expression.
+
+---
+
+Thanks for trying out Plumeria! We'd love to hear from you — drop by [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) to talk it through, or file an [Issue](https://github.com/zss-in-js/plumeria/issues) if something's not working right.
