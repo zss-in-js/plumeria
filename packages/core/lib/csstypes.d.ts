@@ -1098,7 +1098,7 @@ type textTransform =
   | 'full-width';
 type textUnderlineOffset = number | StableString;
 type textUnderlinePosition = 'auto' | StableString;
-type textWrap = 'wrap' | 'nowrap' | 'balance';
+type textWrap = 'wrap' | 'nowrap' | 'balance' | 'pretty' | 'stable';
 type time = StableString;
 type timelineScope = number | StableString;
 type top = number | StableString;
