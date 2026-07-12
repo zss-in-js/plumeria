@@ -77,7 +77,7 @@ For `Next`, we recommend running rimraf to clean up the cache to accommodate the
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
     "dev": "next dev",
-    "build": "plumerialint && next build",
+    "build": "plumerialint -- next build",
     "start": "next start",
   },
 ```
@@ -87,7 +87,7 @@ For `Next`, we recommend running rimraf to clean up the cache to accommodate the
 ```json title="package.json"
   "scripts": {
     "dev": "vite",
-    "build": "plumerialint && tsc -b && vite build", 
+    "build": "plumerialint -- tsc -b && vite build", 
   },
 ```
 </Tab>
