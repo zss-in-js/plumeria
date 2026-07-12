@@ -1,3 +1,9 @@
+## 16.1.1
+
+### Patch Changes
+
+- 7d73f9c: Bump version to 16.1.1 (inspector OIDC)
+
 ## 16.1.0
 
 ### Minor Changes
