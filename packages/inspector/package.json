@@ -1,0 +1,53 @@
+{
+  "name": "@plumeria/inspector",
+  "version": "16.1.0",
+  "description": "Styled components inspector for development",
+  "author": "Refirst 11",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/refirst11",
+  "homepage": "https://plumeria.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/inspector"
+  },
+  "bugs": {
+    "url": "https://github.com/zss-in-js/plumeria/issues"
+  },
+  "keywords": [
+    "react",
+    "inspector",
+    "devtools",
+    "plumeria",
+    "css-in-js"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "rimraf dist && node scripts/build.js && tsc --emitDeclarationOnly --declarationDir dist"
+  },
+  "dependencies": {
+    "@plumeria/headlessui": "workspace:^"
+  },
+  "devDependencies": {
+    "@plumeria/core": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "esbuild": "^0.28.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
