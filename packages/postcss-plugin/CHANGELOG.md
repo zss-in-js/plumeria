@@ -1,5 +1,16 @@
 # @plumeria/postcss-plugin
 
+## 16.0.0
+
+### Major Changes
+
+- 08c5be7: Bump version to 16.0.0
+
+### Patch Changes
+
+- Updated dependencies [08c5be7]
+  - @plumeria/compiler@16.0.0
+
 ## 15.1.3
 
 ### Patch Changes

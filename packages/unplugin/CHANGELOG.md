@@ -1,5 +1,16 @@
 # @plumeria/unplugin
 
+## 16.0.0
+
+### Major Changes
+
+- 08c5be7: Add support for dynamic props and update variants API to use optimized bracket syntax
+
+### Patch Changes
+
+- Updated dependencies [08c5be7]
+  - @plumeria/utils@16.0.0
+
 ## 15.1.3
 
 ### Patch Changes
