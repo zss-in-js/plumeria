@@ -94,6 +94,7 @@ export const baseOptions: BaseLayoutProps = {
             { type: 'divider' },
             { type: 'header', text: 'Components' },
             { text: 'headlessui', url: '/docs/api-reference/components/headlessui' },
+            { text: 'inspector', url: '/docs/api-reference/components/inspector' },
             { type: 'divider' },
             { type: 'header', text: 'Plugins' },
             { text: 'eslint-plugin', url: '/docs/api-reference/plugins/eslint-plugin' },
