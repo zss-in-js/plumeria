@@ -1,5 +1,9 @@
 # Release Notes
 
+## 16.2.2 (Jul 13, 2026)
+
+- Fix other css supported
+
 ## 16.2.1 (Jul 12, 2026)
 
 - Feat parallel run oxlint for CLI
