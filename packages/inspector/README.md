@@ -2,11 +2,6 @@
 
 A development inspector for visualizing and debugging styled components in the browser.
 
-## Features
-
-- **Inlined CSS** — No additional `.css` imports required. The stylesheet is bundled into the JavaScript output.
-- **Zero production overhead** — Renders `null` and skips CSS injection when `process.env.NODE_ENV === 'production'`. Safe to leave in your root layout.
-
 ## Documentation(Demo)
 
 Read the [documentation](https://plumeria.dev/docs/api-reference/components/inspector) for more details.
@@ -33,9 +28,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
+## Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `production` | `boolean` | `false` | If `true`, the inspector is enabled in production environments. |
+| `initial` | `boolean` | `false` | If `true`, the inspector starts toggled ON. If `false`, it starts toggled OFF. |
+
 ## Keyboard Shortcuts
 
 | Shortcut | Action |
 | --- | --- |
 | `Cmd + I` / `Ctrl + I` | Toggle inspector |
 | `Shift` | Lock / unlock target element |
+
