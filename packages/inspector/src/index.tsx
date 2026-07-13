@@ -13,7 +13,7 @@ const injectInspectorCSS = () => {
   }
   const style = document.createElement('style');
   style.id = styleId;
-  style.textContent = "__INLINE_CSS__";
+  style.textContent = '__INLINE_CSS__';
   document.head.appendChild(style);
   isCssInjected = true;
 };
@@ -219,12 +219,12 @@ const parseCssText = (cssText: string): { name: string; value: string }[] => {
     .filter((x): x is { name: string; value: string } => x !== null);
 };
 
-const DevInspector = () => {
+const DevInspector = ({ initial }: { initial?: boolean }) => {
   React.useEffect(() => {
     injectInspectorCSS();
   }, []);
 
-  const [isActive, setIsActive] = React.useState(true);
+  const [isActive, setIsActive] = React.useState(initial);
   const [isFrozen, setIsFrozen] = React.useState(false);
   const [hoveredElement, setHoveredElement] =
     React.useState<HTMLElement | null>(null);
@@ -460,9 +460,15 @@ const DevInspector = () => {
   );
 };
 
-export const Inspector = ({ production = false }: { production?: boolean }) => {
+export const Inspector = ({
+  production = false,
+  initial = false,
+}: {
+  production?: boolean;
+  initial?: boolean;
+}) => {
   if (!production && process.env.NODE_ENV === 'production') {
     return null;
   }
-  return <DevInspector />;
+  return <DevInspector initial={initial} />;
 };
