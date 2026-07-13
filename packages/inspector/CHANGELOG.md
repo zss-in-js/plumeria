@@ -1,5 +1,13 @@
 # @plumeria/inspector
 
+## 16.2.2
+
+### Patch Changes
+
+- 8c10355: Fix other css supported
+- Updated dependencies [8c10355]
+  - @plumeria/headlessui@16.2.2
+
 ## 16.2.1
 
 ### Patch Changes
