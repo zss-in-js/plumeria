@@ -182,23 +182,31 @@ const getClassName = (el: HTMLElement | SVGElement | null): string => {
 
 const getStylesForElement = (el: HTMLElement): RuleInfo[] => {
   const rulesFound: RuleInfo[] = [];
-  for (const sheet of Array.from(document.styleSheets)) {
+
+  const traverse = (rule: CSSRule | CSSStyleSheet) => {
     try {
-      const rules = Array.from(sheet.cssRules || sheet.rules || []);
-      for (const rule of rules) {
-        if (rule instanceof CSSStyleRule) {
-          if (el.matches(rule.selectorText)) {
+      const rules = 'cssRules' in rule ? Array.from(rule.cssRules) : [];
+      for (const r of rules) {
+        if (r instanceof CSSStyleRule) {
+          if (el.matches(r.selectorText)) {
             rulesFound.push({
-              selector: rule.selectorText,
-              cssText: rule.style.cssText,
+              selector: r.selectorText,
+              cssText: r.style.cssText,
             });
           }
+        } else if ('cssRules' in r) {
+          traverse(r);
         }
       }
     } catch (e) {
-      // Ignore cross-origin stylesheet errors
+      // Ignore cross-origin stylesheet / nested rule errors
     }
+  };
+
+  for (const sheet of Array.from(document.styleSheets)) {
+    traverse(sheet);
   }
+
   return rulesFound;
 };
 
@@ -219,7 +227,7 @@ const parseCssText = (cssText: string): { name: string; value: string }[] => {
     .filter((x): x is { name: string; value: string } => x !== null);
 };
 
-const DevInspector = ({ initial }: { initial?: boolean }) => {
+const DevInspector = ({ initial }: { initial: boolean }) => {
   React.useEffect(() => {
     injectInspectorCSS();
   }, []);
@@ -298,6 +306,15 @@ const DevInspector = ({ initial }: { initial?: boolean }) => {
     };
   }, [isActive, isFrozen]);
 
+  // Fetch rules only when hoveredElement changes
+  React.useEffect(() => {
+    if (!hoveredElement || !isActive) {
+      setRules([]);
+      return;
+    }
+    setRules(getStylesForElement(hoveredElement));
+  }, [hoveredElement, isActive]);
+
   // Track and position relative to hoveredElement
   React.useEffect(() => {
     if (!hoveredElement || !isActive) return;
@@ -311,9 +328,6 @@ const DevInspector = ({ initial }: { initial?: boolean }) => {
         height: `${rect.height}px`,
         opacity: 1,
       });
-
-      const matchedRules = getStylesForElement(hoveredElement);
-      setRules(matchedRules);
 
       // Measure tooltip dimensions dynamically
       const tooltipWidth = tooltipRef.current
@@ -422,9 +436,7 @@ const DevInspector = ({ initial }: { initial?: boolean }) => {
           </div>
           <div styleName={styles.rulesContainer}>
             {rules.length === 0 ? (
-              <div styleName={styles.emptyText}>
-                No matching Plumeria CSS rules
-              </div>
+              <div styleName={styles.emptyText}>No matching CSS rules</div>
             ) : (
               rules.map((rule, idx) => {
                 const parsedProps = parseCssText(rule.cssText);
