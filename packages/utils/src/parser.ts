@@ -1006,6 +1006,7 @@ function resolveCreateStaticTableMemberExpression(
 // Cache for incremental scanning
 interface CachedData {
   mtimeMs: number;
+  dependencies?: string[];
   staticTable: StaticTable;
   keyframesHashTable: KeyframesHashTable;
   keyframesObjectTable: KeyframesObjectTable;
@@ -1054,6 +1055,48 @@ export function scanAll(): Tables {
 
   const files = rs.globSync(PATTERN_PATH, GLOB_OPTIONS);
 
+  // Build dependents map from existing fileCache
+  const dependents = new Map<string, Set<string>>();
+  for (const [fp, data] of Object.entries(fileCache)) {
+    if (data.dependencies) {
+      for (const dep of data.dependencies) {
+        if (!dependents.has(dep)) dependents.set(dep, new Set());
+        dependents.get(dep)!.add(fp);
+      }
+    }
+  }
+
+  // Propagate cache invalidation recursively
+  const invalidated = new Set<string>();
+  const queue: string[] = [];
+
+  for (const filePath of files) {
+    try {
+      const stats = fs.statSync(filePath);
+      const cached = fileCache[filePath];
+      if (!cached || cached.mtimeMs !== stats.mtimeMs) {
+        invalidated.add(filePath);
+        queue.push(filePath);
+      }
+    } catch (e) {
+      invalidated.add(filePath);
+      queue.push(filePath);
+    }
+  }
+
+  while (queue.length > 0) {
+    const fp = queue.shift()!;
+    const deps = dependents.get(fp);
+    if (deps) {
+      for (const dep of deps) {
+        if (!invalidated.has(dep)) {
+          invalidated.add(dep);
+          queue.push(dep);
+        }
+      }
+    }
+  }
+
   // Two-pass scanning:
   // Pass 1: Collect all createStatic and createTheme definitions
   // Pass 2: Process css.create, keyframes, viewTransition, variants (with all createStatic/createTheme available)
@@ -1065,7 +1108,11 @@ export function scanAll(): Tables {
       const stats = fs.statSync(filePath);
       const cached = fileCache[filePath];
 
-      if (cached && cached.mtimeMs === stats.mtimeMs) {
+      if (
+        cached &&
+        cached.mtimeMs === stats.mtimeMs &&
+        !invalidated.has(filePath)
+      ) {
         if (cached.hasCssUsage) {
           for (const key of Object.keys(cached.staticTable)) {
             localTables.staticTable[`${filePath}-${key}`] =
@@ -1210,6 +1257,7 @@ export function scanAll(): Tables {
 
     for (const { filePath, ast, mtimeMs } of parsedFiles) {
       try {
+        const localDependencies = new Set<string>();
         const localStaticTable: StaticTable = {};
         const localKeyframesHashTable: KeyframesHashTable = {};
         const localKeyframesObjectTable: KeyframesObjectTable = {};
@@ -1256,6 +1304,7 @@ export function scanAll(): Tables {
               // Resolve imports from user modules (e.g., lib/mediaQuery)
               const actualPath = resolveImportPath(sourceValue, filePath);
               if (actualPath) {
+                localDependencies.add(actualPath);
                 node.specifiers.forEach((specifier: ImportSpecifier) => {
                   if (specifier.type === 'ImportSpecifier') {
                     const importedName = specifier.imported
@@ -1677,6 +1726,7 @@ export function scanAll(): Tables {
 
           fileCache[filePath] = {
             mtimeMs: mtimeMs,
+            dependencies: Array.from(localDependencies),
             staticTable: localStaticTable,
             keyframesHashTable: localKeyframesHashTable,
             keyframesObjectTable: localKeyframesObjectTable,
@@ -1705,6 +1755,26 @@ export function scanAll(): Tables {
   globalAgregatedTables = localTables;
 
   return localTables;
+}
+
+export function getFileDependencies(filePath: string): string[] {
+  const visited = new Set<string>();
+  const deps: string[] = [];
+
+  const collect = (fp: string) => {
+    if (visited.has(fp)) return;
+    visited.add(fp);
+    const cached = fileCache[fp];
+    if (cached && cached.dependencies) {
+      for (const dep of cached.dependencies) {
+        deps.push(dep);
+        collect(dep);
+      }
+    }
+  };
+
+  collect(filePath);
+  return Array.from(new Set(deps));
 }
 
 export function extractOndemandStyles(
