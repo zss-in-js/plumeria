@@ -48,7 +48,13 @@ if (!buildCommand) {
   let aborted = false;
 
   const oxlintChild = spawn('oxlint', oxlintArgs, { stdio: 'inherit' });
-  const buildChild = spawn(buildCommand, buildArgs, {
+
+  const fullBuildCommand =
+    buildArgs.length > 0
+      ? [buildCommand, ...buildArgs].join(' ')
+      : buildCommand;
+
+  const buildChild = spawn(fullBuildCommand, {
     stdio: 'inherit',
     shell: true,
   });
