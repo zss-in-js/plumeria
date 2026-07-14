@@ -1,3 +1,9 @@
+## 16.2.4
+
+### Patch Changes
+
+- 6172179: Bump version to 16.2.4
+
 ## 16.2.3
 
 ### Patch Changes
