@@ -40,6 +40,7 @@ import {
   resolveImportPath,
   optimizer,
   getLeadingCommentLength,
+  getFileDependencies,
 } from '@plumeria/utils';
 import type {
   StyleRecord,
@@ -155,6 +156,10 @@ export default async function loader(this: LoaderContext, source: string) {
         const actualPath = resolveImportPath(sourcePath, resourcePath);
         if (actualPath) {
           this.addDependency(actualPath);
+          const transDeps = getFileDependencies(actualPath);
+          for (const dep of transDeps) {
+            this.addDependency(dep);
+          }
         }
       }
     }
