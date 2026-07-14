@@ -1,5 +1,9 @@
 # Release Notes
 
+## 16.2.4 (Jul 14, 2026)
+
+- Fix bracket expansion
+
 ## 16.2.3 (Jul 14, 2026)
 
 - Fix: add resolveExport

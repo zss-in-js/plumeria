@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 16.2.4
+
+### Patch Changes
+
+- 6172179: Fix bracket expansion
+- Updated dependencies [6172179]
+  - @plumeria/utils@16.2.4
+
 ## 16.2.3
 
 ### Patch Changes
