@@ -1,5 +1,5 @@
-import {
-  parseSync,
+import { parseSync } from '@swc/core';
+import type {
   ObjectExpression,
   Expression,
   ImportSpecifier,
@@ -32,6 +32,7 @@ import {
   scanAll,
   resolveImportPath,
   processVariants,
+  resolveExport,
 } from '@plumeria/utils';
 import type {
   StyleRecord,
@@ -219,12 +220,23 @@ export function compileCSS(options: CompilerOptions) {
 
         if (actualPath) {
           node.specifiers.forEach((specifier: ImportSpecifier) => {
-            if (specifier.type === 'ImportSpecifier') {
-              const importedName = specifier.imported
-                ? specifier.imported.value
-                : specifier.local.value;
+            if (
+              specifier.type === 'ImportSpecifier' ||
+              specifier.type === 'ImportDefaultSpecifier'
+            ) {
+              const importedName =
+                specifier.type === 'ImportDefaultSpecifier'
+                  ? 'default'
+                  : specifier.imported
+                    ? specifier.imported.value
+                    : specifier.local.value;
               const localName = specifier.local.value;
-              const uniqueKey = `${actualPath}-${importedName}`;
+              let resolvedKey = `${actualPath}-${importedName}`;
+              const resolved = resolveExport(actualPath, importedName);
+              if (resolved) {
+                resolvedKey = `${resolved.filePath}-${resolved.localName}`;
+              }
+              const uniqueKey = resolvedKey;
               localImports[localName] = { actualPath, importedName };
 
               if (scannedTables.staticTable[uniqueKey])
