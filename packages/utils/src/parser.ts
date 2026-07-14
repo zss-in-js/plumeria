@@ -23,8 +23,8 @@ import type {
 
 import { createTheme } from './createTheme';
 
-import {
-  parseSync,
+import { parseSync } from '@swc/core';
+import type {
   Module,
   Expression,
   CallExpression,
@@ -1007,6 +1007,11 @@ function resolveCreateStaticTableMemberExpression(
 interface CachedData {
   mtimeMs: number;
   dependencies?: string[];
+  exports?: {
+    localExports: string[];
+    reExports: Record<string, { source: string | null; localName: string }>;
+    starExports: string[];
+  };
   staticTable: StaticTable;
   keyframesHashTable: KeyframesHashTable;
   keyframesObjectTable: KeyframesObjectTable;
@@ -1306,12 +1311,23 @@ export function scanAll(): Tables {
               if (actualPath) {
                 localDependencies.add(actualPath);
                 node.specifiers.forEach((specifier: ImportSpecifier) => {
-                  if (specifier.type === 'ImportSpecifier') {
-                    const importedName = specifier.imported
-                      ? specifier.imported.value
-                      : specifier.local.value;
+                  if (
+                    specifier.type === 'ImportSpecifier' ||
+                    specifier.type === 'ImportDefaultSpecifier'
+                  ) {
+                    const importedName =
+                      specifier.type === 'ImportDefaultSpecifier'
+                        ? 'default'
+                        : specifier.imported
+                          ? specifier.imported.value
+                          : specifier.local.value;
                     const localName = specifier.local.value;
-                    const uniqueKey = `${actualPath}-${importedName}`;
+                    let resolvedKey = `${actualPath}-${importedName}`;
+                    const resolved = resolveExport(actualPath, importedName);
+                    if (resolved) {
+                      resolvedKey = `${resolved.filePath}-${resolved.localName}`;
+                    }
+                    const uniqueKey = resolvedKey;
                     localImports[localName] = { actualPath, importedName };
 
                     // Resolve createStatic from global tables
@@ -1358,6 +1374,20 @@ export function scanAll(): Tables {
                     }
                   }
                 });
+              }
+            }
+          } else if (node.type === 'ExportNamedDeclaration') {
+            if (node.source) {
+              const actualPath = resolveImportPath(node.source.value, filePath);
+              if (actualPath) {
+                localDependencies.add(actualPath);
+              }
+            }
+          } else if (node.type === 'ExportAllDeclaration') {
+            if (node.source) {
+              const actualPath = resolveImportPath(node.source.value, filePath);
+              if (actualPath) {
+                localDependencies.add(actualPath);
               }
             }
           }
@@ -1529,6 +1559,10 @@ export function scanAll(): Tables {
           }
         }
 
+        if (isFirstPass) {
+          extractAndCacheExports(filePath, ast, mtimeMs);
+        }
+
         // Update cache (only in second pass to ensure all data is collected)
         if (!isFirstPass) {
           const resolveCallStylePropInScan = (
@@ -1671,7 +1705,15 @@ export function scanAll(): Tables {
                   let compKey = '';
                   const imported = localImports[name];
                   if (imported) {
-                    compKey = `${imported.actualPath}-${imported.importedName}`;
+                    let resolvedKey = `${imported.actualPath}-${imported.importedName}`;
+                    const resolved = resolveExport(
+                      imported.actualPath,
+                      imported.importedName,
+                    );
+                    if (resolved) {
+                      resolvedKey = `${resolved.filePath}-${resolved.localName}`;
+                    }
+                    compKey = resolvedKey;
                   } else {
                     compKey = `${filePath}-${name}`;
                   }
@@ -1727,6 +1769,7 @@ export function scanAll(): Tables {
           fileCache[filePath] = {
             mtimeMs: mtimeMs,
             dependencies: Array.from(localDependencies),
+            exports: fileCache[filePath]?.exports,
             staticTable: localStaticTable,
             keyframesHashTable: localKeyframesHashTable,
             keyframesObjectTable: localKeyframesObjectTable,
@@ -1775,6 +1818,218 @@ export function getFileDependencies(filePath: string): string[] {
 
   collect(filePath);
   return Array.from(new Set(deps));
+}
+
+function extractAndCacheExports(
+  filePath: string,
+  ast: Module,
+  mtimeMs: number,
+) {
+  const localExports: string[] = [];
+  const reExports: Record<
+    string,
+    { source: string | null; localName: string }
+  > = {};
+  const starExports: string[] = [];
+  const localDependencies = new Set<string>();
+
+  const imports: Record<string, { source: string; importedName: string }> = {};
+  for (const node of ast.body) {
+    if (node.type === 'ImportDeclaration') {
+      const source = node.source.value;
+      node.specifiers.forEach((spec) => {
+        if (spec.type === 'ImportSpecifier') {
+          const orig = spec.imported ? spec.imported.value : spec.local.value;
+          imports[spec.local.value] = { source, importedName: orig };
+        } else if (spec.type === 'ImportDefaultSpecifier') {
+          imports[spec.local.value] = { source, importedName: 'default' };
+        } else if (spec.type === 'ImportNamespaceSpecifier') {
+          imports[spec.local.value] = { source, importedName: '*' };
+        }
+      });
+    }
+  }
+
+  for (const node of ast.body) {
+    if (node.type === 'ImportDeclaration') {
+      const actualPath = resolveImportPath(node.source.value, filePath);
+      if (actualPath) {
+        localDependencies.add(actualPath);
+      }
+    } else if (node.type === 'ExportDeclaration') {
+      const decl = node.declaration;
+      if (decl && decl.type === 'VariableDeclaration') {
+        decl.declarations.forEach((d) => {
+          if (d.id && d.id.type === 'Identifier') {
+            localExports.push(d.id.value);
+          }
+        });
+      } else if (decl && decl.type === 'FunctionDeclaration') {
+        if (decl.identifier) {
+          localExports.push(decl.identifier.value);
+        }
+      } else if (decl && decl.type === 'ClassDeclaration') {
+        if (decl.identifier) {
+          localExports.push(decl.identifier.value);
+        }
+      }
+    } else if (node.type === 'ExportNamedDeclaration') {
+      const source = node.source ? node.source.value : null;
+      if (source) {
+        const actualPath = resolveImportPath(source, filePath);
+        if (actualPath) {
+          localDependencies.add(actualPath);
+        }
+      }
+      node.specifiers.forEach((spec) => {
+        if (spec.type === 'ExportSpecifier') {
+          const orig = spec.orig.value;
+          const exported = spec.exported ? spec.exported.value : orig;
+          if (source) {
+            reExports[exported] = { source, localName: orig };
+          } else {
+            const imp = imports[orig];
+            if (imp) {
+              reExports[exported] = {
+                source: imp.source,
+                localName: imp.importedName,
+              };
+            } else {
+              reExports[exported] = { source: null, localName: orig };
+            }
+          }
+        }
+      });
+    } else if (node.type === 'ExportAllDeclaration') {
+      if (node.source) {
+        starExports.push(node.source.value);
+        const actualPath = resolveImportPath(node.source.value, filePath);
+        if (actualPath) {
+          localDependencies.add(actualPath);
+        }
+      }
+    } else if (node.type === 'ExportDefaultExpression') {
+      if (node.expression.type === 'Identifier') {
+        const name = node.expression.value;
+        const imp = imports[name];
+        if (imp) {
+          reExports['default'] = {
+            source: imp.source,
+            localName: imp.importedName,
+          };
+        } else {
+          reExports['default'] = { source: null, localName: name };
+        }
+      } else {
+        localExports.push('default');
+      }
+    } else if (node.type === 'ExportDefaultDeclaration') {
+      const decl = node.decl as any;
+      if (decl && decl.identifier) {
+        const name = decl.identifier.value;
+        const imp = imports[name];
+        if (imp) {
+          reExports['default'] = {
+            source: imp.source,
+            localName: imp.importedName,
+          };
+        } else {
+          reExports['default'] = { source: null, localName: name };
+        }
+      } else {
+        localExports.push('default');
+      }
+    }
+  }
+
+  if (!fileCache[filePath]) {
+    fileCache[filePath] = {
+      mtimeMs: mtimeMs,
+      exports: { localExports, reExports, starExports },
+      dependencies: Array.from(localDependencies),
+      staticTable: {},
+      keyframesHashTable: {},
+      keyframesObjectTable: {},
+      viewTransitionHashTable: {},
+      viewTransitionObjectTable: {},
+      createThemeHashTable: {},
+      createThemeSelectorTable: {},
+      createThemeObjectTable: {},
+      createHashTable: {},
+      createObjectTable: {},
+      createAtomicMapTable: {},
+      variantsHashTable: {},
+      variantsObjectTable: {},
+      createStaticHashTable: {},
+      createStaticObjectTable: {},
+      hasCssUsage: false,
+    };
+  } else {
+    fileCache[filePath].exports = {
+      localExports,
+      reExports,
+      starExports,
+    };
+    fileCache[filePath].dependencies = Array.from(localDependencies);
+  }
+}
+
+export function resolveExport(
+  filePath: string,
+  exportName: string,
+  visited: Set<string> = new Set(),
+): { filePath: string; localName: string } | null {
+  const key = `${filePath}-${exportName}`;
+  if (visited.has(key)) return null;
+  visited.add(key);
+
+  if (!fileCache[filePath] || !fileCache[filePath].exports) {
+    try {
+      const stats = fs.statSync(filePath);
+      if (stats.isFile()) {
+        const source = fs.readFileSync(filePath, 'utf8');
+        const ast = parseSync(source, {
+          syntax: 'typescript',
+          tsx: true,
+          target: 'es2022',
+        });
+        extractAndCacheExports(filePath, ast, stats.mtimeMs);
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  const cached = fileCache[filePath];
+  if (!cached || !cached.exports) return null;
+
+  const { localExports, reExports, starExports } = cached.exports;
+
+  if (reExports[exportName]) {
+    const { source, localName } = reExports[exportName];
+    if (source) {
+      const actualPath = resolveImportPath(source, filePath);
+      if (actualPath) {
+        return resolveExport(actualPath, localName, visited);
+      }
+    } else {
+      return resolveExport(filePath, localName, visited);
+    }
+  }
+
+  if (localExports.includes(exportName)) {
+    return { filePath, localName: exportName };
+  }
+
+  for (const source of starExports) {
+    const actualPath = resolveImportPath(source, filePath);
+    if (actualPath) {
+      const resolved = resolveExport(actualPath, exportName, visited);
+      if (resolved) return resolved;
+    }
+  }
+
+  return null;
 }
 
 export function extractOndemandStyles(
