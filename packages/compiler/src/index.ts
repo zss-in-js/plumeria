@@ -77,17 +77,27 @@ interface TraversalContext {
   >;
   sourceBuffer: Buffer;
   baseByteOffset: number;
+  localStyleAliases?: Record<string, Expression>;
 }
 
 function extractStylesFromExpression(
   expression: Expression,
   ctx: TraversalContext,
 ): CSSObject[] {
+  let expr = expression;
+  if (
+    ctx.localStyleAliases &&
+    t.isIdentifier(expr) &&
+    ctx.localStyleAliases[expr.value]
+  ) {
+    expr = ctx.localStyleAliases[expr.value];
+  }
+
   const results: CSSObject[] = [];
 
-  if (t.isObjectExpression(expression)) {
+  if (t.isObjectExpression(expr)) {
     const object = objectExpressionToObject(
-      expression as ObjectExpression,
+      expr as ObjectExpression,
       ctx.mergedStaticTable,
       ctx.mergedKeyframesTable,
       ctx.mergedViewTransitionTable,
@@ -99,29 +109,55 @@ function extractStylesFromExpression(
       ctx.mergedVariantsTable,
     );
     if (object) results.push(object);
-  } else if (t.isMemberExpression(expression)) {
-    const memberExpr = expression as MemberExpression;
-    if (
-      t.isIdentifier(memberExpr.object) &&
-      t.isIdentifier(memberExpr.property)
-    ) {
+  } else if (t.isMemberExpression(expr)) {
+    const memberExpr = expr as MemberExpression;
+    if (t.isIdentifier(memberExpr.object)) {
       const variableName = (memberExpr.object as Identifier).value;
-      const propertyName = (memberExpr.property as Identifier).value;
-      const styleSet = ctx.localCreateStyles[variableName];
-      if (styleSet && styleSet.obj[propertyName]) {
-        results.push(styleSet.obj[propertyName] as CSSObject);
-      } else {
-        const hash = ctx.mergedCreateTable[variableName];
-        if (hash) {
-          const object = ctx.scannedTables.createObjectTable[hash];
-          if (object && object[propertyName]) {
-            results.push(object[propertyName] as CSSObject);
+      if (t.isIdentifier(memberExpr.property)) {
+        const propertyName = (memberExpr.property as Identifier).value;
+        const styleSet = ctx.localCreateStyles[variableName];
+        if (styleSet && styleSet.obj[propertyName]) {
+          results.push(styleSet.obj[propertyName] as CSSObject);
+        } else {
+          const hash = ctx.mergedCreateTable[variableName];
+          if (hash) {
+            const object = ctx.scannedTables.createObjectTable[hash];
+            if (object && object[propertyName]) {
+              results.push(object[propertyName] as CSSObject);
+            }
+          }
+        }
+      } else if (memberExpr.property.type === 'Computed') {
+        const computedProp = memberExpr.property;
+        const innerExpr = computedProp.expression;
+        let styleObj: CSSObject | undefined;
+        const styleSet = ctx.localCreateStyles[variableName];
+        if (styleSet) {
+          styleObj = styleSet.obj;
+        } else {
+          const hash = ctx.mergedCreateTable[variableName];
+          if (hash) {
+            styleObj = ctx.scannedTables.createObjectTable[hash] as CSSObject;
+          }
+        }
+        if (styleObj) {
+          if (t.isStringLiteral(innerExpr)) {
+            const key = innerExpr.value;
+            if (styleObj[key]) {
+              results.push(styleObj[key] as CSSObject);
+            }
+          } else {
+            Object.values(styleObj).forEach((style) => {
+              if (style && typeof style === 'object') {
+                results.push(style as CSSObject);
+              }
+            });
           }
         }
       }
     }
-  } else if (t.isIdentifier(expression)) {
-    const identifier = expression as Identifier;
+  } else if (t.isIdentifier(expr)) {
+    const identifier = expr as Identifier;
     const object = ctx.localCreateStyles[identifier.value];
     if (object) results.push(object.obj);
     else {
@@ -131,19 +167,19 @@ function extractStylesFromExpression(
         if (objectFromTable) results.push(objectFromTable as CSSObject);
       }
     }
-  } else if (t.isConditionalExpression(expression)) {
-    const condExpr = expression;
+  } else if (t.isConditionalExpression(expr)) {
+    const condExpr = expr;
     results.push(...extractStylesFromExpression(condExpr.consequent, ctx));
     results.push(...extractStylesFromExpression(condExpr.alternate, ctx));
   } else if (
-    t.isBinaryExpression(expression) &&
-    ['&&', '||', '??'].includes(expression.operator)
+    t.isBinaryExpression(expr) &&
+    ['&&', '||', '??'].includes(expr.operator)
   ) {
-    const binaryExpr = expression;
+    const binaryExpr = expr;
     results.push(...extractStylesFromExpression(binaryExpr.left, ctx));
     results.push(...extractStylesFromExpression(binaryExpr.right, ctx));
-  } else if (expression.type === 'ParenthesisExpression') {
-    const parenExpr = expression;
+  } else if (expr.type === 'ParenthesisExpression') {
+    const parenExpr = expr;
     results.push(...extractStylesFromExpression(parenExpr.expression, ctx));
   }
 
@@ -196,6 +232,7 @@ export function compileCSS(options: CompilerOptions) {
       string,
       { actualPath: string; importedName: string }
     > = {};
+    const localStyleAliases: Record<string, Expression> = {};
 
     traverse(ast, {
       ImportDeclaration({ node }) {
@@ -365,6 +402,7 @@ export function compileCSS(options: CompilerOptions) {
       localCreateStyles: {},
       sourceBuffer,
       baseByteOffset,
+      localStyleAliases,
     };
 
     const componentParamNames = new Set<string>();
@@ -413,6 +451,15 @@ export function compileCSS(options: CompilerOptions) {
       args: Array<{ expression: Expression }>,
       isStyleName: boolean = false,
     ) => {
+      args.forEach((arg) => {
+        if (
+          t.isIdentifier(arg.expression) &&
+          localStyleAliases[arg.expression.value]
+        ) {
+          arg.expression = localStyleAliases[arg.expression.value];
+        }
+      });
+
       const conditionals: Array<{
         test: Expression;
         testString?: string;
@@ -927,201 +974,214 @@ export function compileCSS(options: CompilerOptions) {
     // Pass 1: Register all style definitions (create/variants/createTheme/keyframes/viewTransition)
     traverse(ast, {
       VariableDeclarator({ node }: { node: VariableDeclarator }) {
-        if (
-          t.isIdentifier(node.id) &&
-          node.init &&
-          t.isCallExpression(node.init)
-        ) {
-          const callee = node.init.callee;
-          let pName: string | undefined;
+        if (t.isIdentifier(node.id) && node.init) {
+          const init = node.init;
+          if (t.isCallExpression(init)) {
+            const callee = init.callee;
+            let pName: string | undefined;
 
-          if (
-            t.isMemberExpression(callee) &&
-            t.isIdentifier(callee.object) &&
-            t.isIdentifier(callee.property)
-          ) {
-            if (plumeriaAliases[callee.object.value] === 'NAMESPACE')
-              pName = callee.property.value;
-          } else if (t.isIdentifier(callee) && plumeriaAliases[callee.value]) {
-            pName = plumeriaAliases[callee.value];
-          }
+            if (
+              t.isMemberExpression(callee) &&
+              t.isIdentifier(callee.object) &&
+              t.isIdentifier(callee.property)
+            ) {
+              if (plumeriaAliases[callee.object.value] === 'NAMESPACE')
+                pName = callee.property.value;
+            } else if (
+              t.isIdentifier(callee) &&
+              plumeriaAliases[callee.value]
+            ) {
+              pName = plumeriaAliases[callee.value];
+            }
 
-          const isTheme = pName === 'createTheme';
-          if (
-            pName &&
-            node.init.arguments.length > 0 &&
-            ((!isTheme &&
-              node.init.arguments.length === 1 &&
-              t.isObjectExpression(node.init.arguments[0].expression)) ||
-              (isTheme &&
-                node.init.arguments.length >= 2 &&
-                t.isObjectExpression(node.init.arguments[1].expression)))
-          ) {
-            const arg = isTheme
-              ? (node.init.arguments[1].expression as ObjectExpression)
-              : (node.init.arguments[0].expression as ObjectExpression);
-            const resolveVariable = (name: string) =>
-              ctx.localCreateStyles[name]?.obj ||
-              (ctx.mergedCreateThemeHashTable[name]
-                ? ctx.scannedTables.createAtomicMapTable[
-                    ctx.mergedCreateThemeHashTable[name]
-                  ]
-                : undefined);
+            const isTheme = pName === 'createTheme';
+            if (
+              pName &&
+              init.arguments.length > 0 &&
+              ((!isTheme &&
+                init.arguments.length === 1 &&
+                t.isObjectExpression(init.arguments[0].expression)) ||
+                (isTheme &&
+                  init.arguments.length >= 2 &&
+                  t.isObjectExpression(init.arguments[1].expression)))
+            ) {
+              const arg = isTheme
+                ? (init.arguments[1].expression as ObjectExpression)
+                : (init.arguments[0].expression as ObjectExpression);
+              const resolveVariable = (name: string) =>
+                ctx.localCreateStyles[name]?.obj ||
+                (ctx.mergedCreateThemeHashTable[name]
+                  ? ctx.scannedTables.createAtomicMapTable[
+                      ctx.mergedCreateThemeHashTable[name]
+                    ]
+                  : undefined);
 
-            if (pName === 'create') {
-              const obj = objectExpressionToObject(
-                arg,
-                ctx.mergedStaticTable,
-                ctx.mergedKeyframesTable,
-                ctx.mergedViewTransitionTable,
-                ctx.mergedCreateThemeHashTable,
-                ctx.scannedTables.createThemeObjectTable,
-                ctx.mergedCreateTable,
-                ctx.mergedCreateStaticHashTable,
-                ctx.scannedTables.createStaticObjectTable,
-                ctx.mergedVariantsTable,
-                resolveVariable,
-              );
+              if (pName === 'create') {
+                const obj = objectExpressionToObject(
+                  arg,
+                  ctx.mergedStaticTable,
+                  ctx.mergedKeyframesTable,
+                  ctx.mergedViewTransitionTable,
+                  ctx.mergedCreateThemeHashTable,
+                  ctx.scannedTables.createThemeObjectTable,
+                  ctx.mergedCreateTable,
+                  ctx.mergedCreateStaticHashTable,
+                  ctx.scannedTables.createStaticObjectTable,
+                  ctx.mergedVariantsTable,
+                  resolveVariable,
+                );
 
-              if (obj) {
-                const styleFunctions: Record<
-                  string,
-                  { params: string[]; body: ObjectExpression }
-                > = {};
+                if (obj) {
+                  const styleFunctions: Record<
+                    string,
+                    { params: string[]; body: ObjectExpression }
+                  > = {};
 
-                arg.properties.forEach((prop) => {
-                  if (
-                    prop.type !== 'KeyValueProperty' ||
-                    prop.key.type !== 'Identifier'
-                  )
-                    return;
-                  const func = prop.value;
-                  if (
-                    func.type !== 'ArrowFunctionExpression' &&
-                    func.type !== 'FunctionExpression'
-                  )
-                    return;
-
-                  const params: string[] = func.params.map((p) => {
-                    if (t.isIdentifier(p)) return p.value;
+                  arg.properties.forEach((prop) => {
                     if (
-                      typeof p === 'object' &&
-                      p !== null &&
-                      'pat' in p &&
-                      t.isIdentifier(p.pat)
+                      prop.type !== 'KeyValueProperty' ||
+                      prop.key.type !== 'Identifier'
                     )
-                      return p.pat.value;
-                    return 'arg';
-                  });
+                      return;
+                    const func = prop.value;
+                    if (
+                      func.type !== 'ArrowFunctionExpression' &&
+                      func.type !== 'FunctionExpression'
+                    )
+                      return;
 
-                  let actualBody: Expression | Statement | undefined =
-                    func.body;
-                  if (actualBody?.type === 'ParenthesisExpression')
-                    actualBody = actualBody.expression;
-                  if (actualBody?.type === 'BlockStatement') {
-                    const first = actualBody.stmts?.[0];
-                    if (first?.type === 'ReturnStatement')
-                      actualBody = first.argument;
+                    const params: string[] = func.params.map((p) => {
+                      if (t.isIdentifier(p)) return p.value;
+                      if (
+                        typeof p === 'object' &&
+                        p !== null &&
+                        'pat' in p &&
+                        t.isIdentifier(p.pat)
+                      )
+                        return p.pat.value;
+                      return 'arg';
+                    });
+
+                    let actualBody: Expression | Statement | undefined =
+                      func.body;
                     if (actualBody?.type === 'ParenthesisExpression')
                       actualBody = actualBody.expression;
-                  }
+                    if (actualBody?.type === 'BlockStatement') {
+                      const first = actualBody.stmts?.[0];
+                      if (first?.type === 'ReturnStatement')
+                        actualBody = first.argument;
+                      if (actualBody?.type === 'ParenthesisExpression')
+                        actualBody = actualBody.expression;
+                    }
 
-                  if (actualBody && actualBody.type === 'ObjectExpression') {
-                    styleFunctions[prop.key.value] = {
-                      params,
-                      body: actualBody as ObjectExpression,
-                    };
-                  }
-                });
+                    if (actualBody && actualBody.type === 'ObjectExpression') {
+                      styleFunctions[prop.key.value] = {
+                        params,
+                        body: actualBody as ObjectExpression,
+                      };
+                    }
+                  });
 
+                  ctx.localCreateStyles[node.id.value] = {
+                    type: 'create',
+                    obj,
+                    functions: styleFunctions,
+                  };
+                }
+              } else if (pName === 'variants') {
+                const obj = objectExpressionToObject(
+                  arg,
+                  ctx.mergedStaticTable,
+                  ctx.mergedKeyframesTable,
+                  ctx.mergedViewTransitionTable,
+                  ctx.mergedCreateThemeHashTable,
+                  ctx.scannedTables.createThemeObjectTable,
+                  ctx.mergedCreateTable,
+                  ctx.mergedCreateStaticHashTable,
+                  ctx.scannedTables.createStaticObjectTable,
+                  ctx.mergedVariantsTable,
+                  resolveVariable,
+                );
+                if (obj) {
+                  const { hashMap } = processVariants(obj as any);
+                  ctx.localCreateStyles[node.id.value] = {
+                    type: 'variant',
+                    obj,
+                    hashMap,
+                  };
+                }
+              } else if (pName === 'createTheme') {
+                let selector = '';
+                const selectorExpr = init.arguments[0].expression;
+                if (t.isStringLiteral(selectorExpr)) {
+                  selector = selectorExpr.value;
+                }
+                const obj = objectExpressionToObject(
+                  arg,
+                  ctx.mergedStaticTable,
+                  ctx.mergedKeyframesTable,
+                  ctx.mergedViewTransitionTable,
+                  ctx.mergedCreateThemeHashTable,
+                  ctx.scannedTables.createThemeObjectTable,
+                  ctx.mergedCreateTable,
+                  ctx.mergedCreateStaticHashTable,
+                  ctx.scannedTables.createStaticObjectTable,
+                  ctx.mergedVariantsTable,
+                );
+                const hash = genBase36Hash(
+                  { _themeSelector: selector, ...obj },
+                  1,
+                  8,
+                );
+                const uKey = `${resourcePath}-${node.id.value}`;
+                ctx.scannedTables.createThemeHashTable[uKey] = hash;
+                ctx.scannedTables.createThemeObjectTable[hash] = obj;
+                if (ctx.scannedTables.createThemeSelectorTable) {
+                  ctx.scannedTables.createThemeSelectorTable[hash] = selector;
+                }
+                const themeHashMap: Record<string, any> = {};
+                for (const [key, value] of Object.entries(obj)) {
+                  const cssVarName = camelToKebabCase(key);
+                  const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
+                  themeHashMap[key] = `var(--${atomicHash}-${cssVarName})`;
+                }
+                ctx.scannedTables.createAtomicMapTable[hash] = themeHashMap;
                 ctx.localCreateStyles[node.id.value] = {
                   type: 'create',
-                  obj,
-                  functions: styleFunctions,
+                  obj: ctx.scannedTables.createAtomicMapTable[hash],
                 };
+              } else if (pName === 'createStatic') {
+                const obj = objectExpressionToObject(
+                  arg,
+                  ctx.mergedStaticTable,
+                  ctx.mergedKeyframesTable,
+                  ctx.mergedViewTransitionTable,
+                  ctx.mergedCreateThemeHashTable,
+                  ctx.scannedTables.createThemeObjectTable,
+                  ctx.mergedCreateTable,
+                  ctx.mergedCreateStaticHashTable,
+                  ctx.scannedTables.createStaticObjectTable,
+                  ctx.mergedVariantsTable,
+                );
+                if (obj) {
+                  const hash = genBase36Hash(obj, 1, 8);
+                  const uKey = `${resourcePath}-${node.id.value}`;
+                  ctx.scannedTables.createStaticHashTable[uKey] = hash;
+                  ctx.scannedTables.createStaticObjectTable[hash] = obj;
+                  ctx.mergedCreateStaticHashTable[node.id.value] = hash;
+                }
               }
-            } else if (pName === 'variants') {
-              const obj = objectExpressionToObject(
-                arg,
-                ctx.mergedStaticTable,
-                ctx.mergedKeyframesTable,
-                ctx.mergedViewTransitionTable,
-                ctx.mergedCreateThemeHashTable,
-                ctx.scannedTables.createThemeObjectTable,
-                ctx.mergedCreateTable,
-                ctx.mergedCreateStaticHashTable,
-                ctx.scannedTables.createStaticObjectTable,
-                ctx.mergedVariantsTable,
-                resolveVariable,
-              );
-              if (obj) {
-                const { hashMap } = processVariants(obj as any);
-                ctx.localCreateStyles[node.id.value] = {
-                  type: 'variant',
-                  obj,
-                  hashMap,
-                };
-              }
-            } else if (pName === 'createTheme') {
-              let selector = '';
-              const selectorExpr = node.init.arguments[0].expression;
-              if (t.isStringLiteral(selectorExpr)) {
-                selector = selectorExpr.value;
-              }
-              const obj = objectExpressionToObject(
-                arg,
-                ctx.mergedStaticTable,
-                ctx.mergedKeyframesTable,
-                ctx.mergedViewTransitionTable,
-                ctx.mergedCreateThemeHashTable,
-                ctx.scannedTables.createThemeObjectTable,
-                ctx.mergedCreateTable,
-                ctx.mergedCreateStaticHashTable,
-                ctx.scannedTables.createStaticObjectTable,
-                ctx.mergedVariantsTable,
-              );
-              const hash = genBase36Hash(
-                { _themeSelector: selector, ...obj },
-                1,
-                8,
-              );
-              const uKey = `${resourcePath}-${node.id.value}`;
-              ctx.scannedTables.createThemeHashTable[uKey] = hash;
-              ctx.scannedTables.createThemeObjectTable[hash] = obj;
-              if (ctx.scannedTables.createThemeSelectorTable) {
-                ctx.scannedTables.createThemeSelectorTable[hash] = selector;
-              }
-              const themeHashMap: Record<string, any> = {};
-              for (const [key, value] of Object.entries(obj)) {
-                const cssVarName = camelToKebabCase(key);
-                const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
-                themeHashMap[key] = `var(--${atomicHash}-${cssVarName})`;
-              }
-              ctx.scannedTables.createAtomicMapTable[hash] = themeHashMap;
-              ctx.localCreateStyles[node.id.value] = {
-                type: 'create',
-                obj: ctx.scannedTables.createAtomicMapTable[hash],
-              };
-            } else if (pName === 'createStatic') {
-              const obj = objectExpressionToObject(
-                arg,
-                ctx.mergedStaticTable,
-                ctx.mergedKeyframesTable,
-                ctx.mergedViewTransitionTable,
-                ctx.mergedCreateThemeHashTable,
-                ctx.scannedTables.createThemeObjectTable,
-                ctx.mergedCreateTable,
-                ctx.mergedCreateStaticHashTable,
-                ctx.scannedTables.createStaticObjectTable,
-                ctx.mergedVariantsTable,
-              );
-              if (obj) {
-                const hash = genBase36Hash(obj, 1, 8);
-                const uKey = `${resourcePath}-${node.id.value}`;
-                ctx.scannedTables.createStaticHashTable[uKey] = hash;
-                ctx.scannedTables.createStaticObjectTable[hash] = obj;
-                ctx.mergedCreateStaticHashTable[node.id.value] = hash;
-              }
+            }
+          } else if (
+            t.isMemberExpression(init) &&
+            t.isIdentifier(init.object)
+          ) {
+            const objName = init.object.value;
+            if (
+              ctx.localCreateStyles[objName] !== undefined ||
+              ctx.mergedCreateTable[objName] !== undefined
+            ) {
+              localStyleAliases[node.id.value] = init;
             }
           }
         }
@@ -1151,7 +1211,10 @@ export function compileCSS(options: CompilerOptions) {
             node.value.type === 'JSXExpressionContainer' &&
             node.value.expression.type !== 'JSXEmptyExpression'
           ) {
-            const expr = node.value.expression;
+            let expr = node.value.expression;
+            if (t.isIdentifier(expr) && localStyleAliases[expr.value]) {
+              expr = localStyleAliases[expr.value];
+            }
             const styles = extractStylesFromExpression(expr, ctx);
             styles.forEach(processStyle);
           }
