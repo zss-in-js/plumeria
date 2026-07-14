@@ -16,6 +16,7 @@ export {
   extractOndemandStyles,
   deepMerge,
   scanAll,
+  getFileDependencies,
 } from './parser';
 export type { StyleRecord } from './create';
 export { getStyleRecords } from './create';
