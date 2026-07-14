@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 16.2.3
+
+### Patch Changes
+
+- 2bc62ee: Fix: add getFileDependencies and resolveExport
+- Updated dependencies [2bc62ee]
+  - @plumeria/utils@16.2.3
+
 ## 16.2.2
 
 ### Patch Changes
