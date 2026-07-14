@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 16.2.3
+
+### Patch Changes
+
+- 9a85e20: Fix: add getFileDependencies and resolveExport
+- Updated dependencies [9a85e20]
+  - @plumeria/utils@16.2.3
+
 ## 16.2.2
 
 ### Patch Changes

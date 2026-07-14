@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 16.2.3
+
+### Patch Changes
+
+- 9a85e20: Bump version 16.2.3
+- Updated dependencies [9a85e20]
+  - @plumeria/compiler@16.2.3
+
 ## 16.2.2
 
 ### Patch Changes

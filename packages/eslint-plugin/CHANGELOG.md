@@ -1,3 +1,9 @@
+## 16.2.3
+
+### Patch Changes
+
+- 9a85e20: Fix: remove warning in plumerialint
+
 ## 16.2.2
 
 ### Patch Changes

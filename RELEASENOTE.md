@@ -1,5 +1,13 @@
 # Release Notes
 
+## 16.2.3 (Jul 14, 2026)
+
+- Fix: add resolveExport
+- Fix: add getFileDependencies and resolveExport
+- Bump version 16.2.3
+- Fix dependencies graph and re export
+- Fix: remove warning in plumerialint
+
 ## 16.2.2 (Jul 13, 2026)
 
 - Fix other css supported
