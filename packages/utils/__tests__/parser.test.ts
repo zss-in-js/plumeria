@@ -1533,8 +1533,18 @@ describe('parser', () => {
 
       mockedRs.globSync.mockReturnValue([fileA, fileB]);
       mockedFs.statSync.mockImplementation(((p: string) => {
-        if (p === fileA) return { mtimeMs: 100, isDirectory: () => false, isFile: () => true } as any;
-        if (p === fileB) return { mtimeMs: 200, isDirectory: () => false, isFile: () => true } as any;
+        if (p === fileA)
+          return {
+            mtimeMs: 100,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileB)
+          return {
+            mtimeMs: 200,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
         return { isDirectory: () => false, isFile: () => false } as any;
       }) as any);
       mockedFs.existsSync.mockImplementation(((p: string) => {
@@ -1554,7 +1564,7 @@ describe('parser', () => {
               color: C.color,
             }
           });
-        `
+        `,
       };
 
       mockedFs.readFileSync.mockImplementation(((p: string) => {
@@ -1563,10 +1573,12 @@ describe('parser', () => {
 
       // Run 1: initial parse
       const res1 = scanAll();
-      const bKey = Object.keys(res1.createObjectTable).find(k => k !== undefined);
+      const bKey = Object.keys(res1.createObjectTable).find(
+        (k) => k !== undefined,
+      );
       expect(bKey).toBeDefined();
       expect(res1.createObjectTable[bKey!]).toEqual({
-        text: { color: 'red' }
+        text: { color: 'red' },
       });
 
       // Run 2: Only fileA is updated (mtime updated, contents updated)
@@ -1577,17 +1589,280 @@ describe('parser', () => {
 
       // Update fileA's mtimeMs, keep fileB's mtimeMs unchanged
       mockedFs.statSync.mockImplementation(((p: string) => {
-        if (p === fileA) return { mtimeMs: 101, isDirectory: () => false, isFile: () => true } as any;
-        if (p === fileB) return { mtimeMs: 200, isDirectory: () => false, isFile: () => true } as any;
+        if (p === fileA)
+          return {
+            mtimeMs: 101,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileB)
+          return {
+            mtimeMs: 200,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
         return { isDirectory: () => false, isFile: () => false } as any;
       }) as any);
 
       // Now run scanAll again
       const res2 = scanAll();
-      const bKey2 = Object.keys(res2.createObjectTable).find(k => k !== undefined);
+      const bKey2 = Object.keys(res2.createObjectTable).find(
+        (k) => k !== undefined,
+      );
       // Since fileA changed, fileB (which depends on fileA) must be invalidated and re-evaluated with C.color = "blue"
       expect(res2.createObjectTable[bKey2!]).toEqual({
-        text: { color: 'blue' }
+        text: { color: 'blue' },
+      });
+    });
+
+    it('should resolve style definitions transitively re-exported via named ESM re-exports', () => {
+      const fileA = path.resolve(process.cwd(), 'test/styleA_trans.ts');
+      const fileB = path.resolve(process.cwd(), 'test/styleB_trans.ts');
+      const fileC = path.resolve(process.cwd(), 'test/styleC_trans.ts');
+
+      mockedRs.globSync.mockReturnValue([fileA, fileB, fileC]);
+      mockedFs.statSync.mockImplementation(((p: string) => {
+        if (p === fileA)
+          return {
+            mtimeMs: 400,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileB)
+          return {
+            mtimeMs: 500,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileC)
+          return {
+            mtimeMs: 600,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        return { isDirectory: () => false, isFile: () => false } as any;
+      }) as any);
+      mockedFs.existsSync.mockImplementation(((p: string) => {
+        return p === fileA || p === fileB || p === fileC;
+      }) as any);
+
+      const fileContents: Record<string, string> = {
+        [fileA]: `
+          import * as css from "@plumeria/core";
+          export const themeColors = css.createStatic({
+            primary: "red"
+          });
+        `,
+        [fileB]: `
+          export { themeColors } from "./styleA_trans";
+          export { themeColors as aliasColors } from "./styleA_trans";
+        `,
+        [fileC]: `
+          import * as css from "@plumeria/core";
+          import { themeColors, aliasColors } from "./styleB_trans";
+          export const S = css.create({
+            text1: {
+              color: themeColors.primary,
+            },
+            text2: {
+              color: aliasColors.primary,
+            }
+          });
+        `,
+      };
+
+      mockedFs.readFileSync.mockImplementation(((p: string) => {
+        return fileContents[p] || '';
+      }) as any);
+
+      // Run scanAll
+      const res = scanAll();
+
+      const sKey = Object.keys(res.createObjectTable).find((k) => {
+        const item = res.createObjectTable[k] as any;
+        return item && item.text1 !== undefined;
+      });
+      expect(sKey).toBeDefined();
+      expect(res.createObjectTable[sKey!]).toEqual({
+        text1: { color: 'red' },
+        text2: { color: 'red' },
+      });
+    });
+
+    it('should resolve imported styles re-exported via export default expression', () => {
+      const fileA = path.resolve(process.cwd(), 'test/styleA_def.ts');
+      const fileB = path.resolve(process.cwd(), 'test/styleB_def.ts');
+      const fileC = path.resolve(process.cwd(), 'test/styleC_def.ts');
+
+      mockedRs.globSync.mockReturnValue([fileA, fileB, fileC]);
+      mockedFs.statSync.mockImplementation(((p: string) => {
+        if (p === fileA)
+          return {
+            mtimeMs: 1000,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileB)
+          return {
+            mtimeMs: 1100,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileC)
+          return {
+            mtimeMs: 1200,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        return { isDirectory: () => false, isFile: () => false } as any;
+      }) as any);
+      mockedFs.existsSync.mockImplementation(((p: string) => {
+        return p === fileA || p === fileB || p === fileC;
+      }) as any);
+
+      const fileContents: Record<string, string> = {
+        [fileA]: `
+          import * as css from "@plumeria/core";
+          export const themeColors = css.createStatic({
+            primary: "red"
+          });
+        `,
+        [fileB]: `
+          import { themeColors } from "./styleA_def";
+          import "@plumeria/core";
+          export default themeColors;
+        `,
+        [fileC]: `
+          import * as css from "@plumeria/core";
+          import aliasColors from "./styleB_def";
+          export const S = css.create({
+            text: {
+              color: aliasColors.primary,
+            }
+          });
+        `,
+      };
+
+      mockedFs.readFileSync.mockImplementation(((p: string) => {
+        return fileContents[p] || '';
+      }) as any);
+
+      const res = scanAll();
+      const sKey = Object.keys(res.createObjectTable).find((k) => {
+        const item = res.createObjectTable[k] as any;
+        return item && item.text !== undefined;
+      });
+      expect(sKey).toBeDefined();
+      expect(res.createObjectTable[sKey!]).toEqual({
+        text: { color: 'red' },
+      });
+    });
+
+    it('should invalidate cached file if its transitive re-export dependency changes', () => {
+      const fileA = path.resolve(process.cwd(), 'test/styleA_hmr.ts');
+      const fileB = path.resolve(process.cwd(), 'test/styleB_hmr.ts');
+      const fileC = path.resolve(process.cwd(), 'test/styleC_hmr.ts');
+
+      mockedRs.globSync.mockReturnValue([fileA, fileB, fileC]);
+      mockedFs.statSync.mockImplementation(((p: string) => {
+        if (p === fileA)
+          return {
+            mtimeMs: 700,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileB)
+          return {
+            mtimeMs: 800,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileC)
+          return {
+            mtimeMs: 900,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        return { isDirectory: () => false, isFile: () => false } as any;
+      }) as any);
+      mockedFs.existsSync.mockImplementation(((p: string) => {
+        return p === fileA || p === fileB || p === fileC;
+      }) as any);
+
+      const fileContents: Record<string, string> = {
+        [fileA]: `
+          import * as css from "@plumeria/core";
+          export const themeColors = css.createStatic({
+            primary: "red"
+          });
+        `,
+        [fileB]: `
+          export { themeColors } from "./styleA_hmr";
+        `,
+        [fileC]: `
+          import * as css from "@plumeria/core";
+          import { themeColors } from "./styleB_hmr";
+          export const S = css.create({
+            text: {
+              color: themeColors.primary,
+            }
+          });
+        `,
+      };
+
+      mockedFs.readFileSync.mockImplementation(((p: string) => {
+        return fileContents[p] || '';
+      }) as any);
+
+      // Run 1: initial parse (primary: "red")
+      const res1 = scanAll();
+      const sKey1 = Object.keys(res1.createObjectTable).find((k) => {
+        const item = res1.createObjectTable[k] as any;
+        return item && item.text !== undefined;
+      });
+      expect(sKey1).toBeDefined();
+      expect(res1.createObjectTable[sKey1!]).toEqual({
+        text: { color: 'red' },
+      });
+
+      // Run 2: only fileA is updated (primary: "blue")
+      fileContents[fileA] = `
+        import * as css from "@plumeria/core";
+        export const themeColors = css.createStatic({
+          primary: "blue"
+        });
+      `;
+      mockedFs.statSync.mockImplementation(((p: string) => {
+        if (p === fileA)
+          return {
+            mtimeMs: 701,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileB)
+          return {
+            mtimeMs: 800,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileC)
+          return {
+            mtimeMs: 900,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        return { isDirectory: () => false, isFile: () => false } as any;
+      }) as any);
+
+      // Now run scanAll again
+      const res2 = scanAll();
+      const sKey2 = Object.keys(res2.createObjectTable).find((k) => {
+        const item = res2.createObjectTable[k] as any;
+        return item && item.text !== undefined;
+      });
+      expect(sKey2).toBeDefined();
+      expect(res2.createObjectTable[sKey2!]).toEqual({
+        text: { color: 'blue' },
       });
     });
 
