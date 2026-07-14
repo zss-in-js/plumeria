@@ -40,6 +40,7 @@ import {
   resolveImportPath,
   getLeadingCommentLength,
   optimizer,
+  getFileDependencies,
 } from '@plumeria/utils';
 import type {
   StyleRecord,
@@ -209,6 +210,10 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           const actualPath = resolveImportPath(sourcePath, id);
           if (actualPath) {
             addDependency(actualPath);
+            const transDeps = getFileDependencies(actualPath);
+            for (const dep of transDeps) {
+              addDependency(dep);
+            }
           }
         }
       }
