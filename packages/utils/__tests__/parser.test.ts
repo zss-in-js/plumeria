@@ -1527,6 +1527,70 @@ describe('parser', () => {
       expect(vtKeys.some((k) => k.endsWith('-VT'))).toBe(true);
     });
 
+    it('should invalidate cached file if its dependency changes', () => {
+      const fileA = path.resolve(process.cwd(), 'test/styleA.ts');
+      const fileB = path.resolve(process.cwd(), 'test/styleB.ts');
+
+      mockedRs.globSync.mockReturnValue([fileA, fileB]);
+      mockedFs.statSync.mockImplementation(((p: string) => {
+        if (p === fileA) return { mtimeMs: 100, isDirectory: () => false, isFile: () => true } as any;
+        if (p === fileB) return { mtimeMs: 200, isDirectory: () => false, isFile: () => true } as any;
+        return { isDirectory: () => false, isFile: () => false } as any;
+      }) as any);
+      mockedFs.existsSync.mockImplementation(((p: string) => {
+        return p === fileA || p === fileB;
+      }) as any);
+
+      const fileContents: Record<string, string> = {
+        [fileA]: `
+          import * as css from "@plumeria/core";
+          export const C = css.createStatic({ color: "red" });
+        `,
+        [fileB]: `
+          import * as css from "@plumeria/core";
+          import { C } from "./styleA";
+          export const S = css.create({
+            text: {
+              color: C.color,
+            }
+          });
+        `
+      };
+
+      mockedFs.readFileSync.mockImplementation(((p: string) => {
+        return fileContents[p] || '';
+      }) as any);
+
+      // Run 1: initial parse
+      const res1 = scanAll();
+      const bKey = Object.keys(res1.createObjectTable).find(k => k !== undefined);
+      expect(bKey).toBeDefined();
+      expect(res1.createObjectTable[bKey!]).toEqual({
+        text: { color: 'red' }
+      });
+
+      // Run 2: Only fileA is updated (mtime updated, contents updated)
+      fileContents[fileA] = `
+        import * as css from "@plumeria/core";
+        export const C = css.createStatic({ color: "blue" });
+      `;
+
+      // Update fileA's mtimeMs, keep fileB's mtimeMs unchanged
+      mockedFs.statSync.mockImplementation(((p: string) => {
+        if (p === fileA) return { mtimeMs: 101, isDirectory: () => false, isFile: () => true } as any;
+        if (p === fileB) return { mtimeMs: 200, isDirectory: () => false, isFile: () => true } as any;
+        return { isDirectory: () => false, isFile: () => false } as any;
+      }) as any);
+
+      // Now run scanAll again
+      const res2 = scanAll();
+      const bKey2 = Object.keys(res2.createObjectTable).find(k => k !== undefined);
+      // Since fileA changed, fileB (which depends on fileA) must be invalidated and re-evaluated with C.color = "blue"
+      expect(res2.createObjectTable[bKey2!]).toEqual({
+        text: { color: 'blue' }
+      });
+    });
+
     it('should handle default import', () => {
       mockedRs.globSync.mockReturnValue(['/test/default.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
