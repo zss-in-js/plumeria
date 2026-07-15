@@ -9,13 +9,14 @@
  * type viewTransition = <const T extends ViewTransition>(rule: T) => string;
  * type marker = (id: string, pseudo: string) => Marker;
  * type extended = <I extends string, P extends string>(id: I, pseudo: P) => Extended<I, P>;
- * type use = (...rules: (false | CSSProperties | null | undefined)[])=> string;
+ * type use = (...rules: StyleName[]) => string;
  * ```
  */
 declare module '@plumeria/core' {
   import type {
     AtomicClassNameFor,
     StyleName,
+    CSSProperties,
     CreateStyleValue,
     CreateReturnType,
     CreateTheme,
@@ -36,7 +37,7 @@ declare module '@plumeria/core' {
     }
   }
 
-  export type { AtomicClassNameFor, StyleName };
+  export type { AtomicClassNameFor, StyleName, CSSProperties };
 
   export const create: create;
   export type create = <const T extends Record<string, CreateStyleValue>>(
@@ -70,7 +71,5 @@ declare module '@plumeria/core' {
   ) => Extended<I, P>;
 
   export const use: use;
-  export type use = (
-    ...rules: (false | CSSProperties | null | undefined)[]
-  ) => string;
+  export type use = (...rules: StyleName) => string;
 }
