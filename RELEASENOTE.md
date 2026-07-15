@@ -1,5 +1,9 @@
 # Release Notes
 
+## 16.2.6 (Jul 15, 2026)
+
+- Fix: support createStatic spread cross file
+
 ## 16.2.5 (Jul 15, 2026)
 
 - Fix: style-name-requires-imports rule add fix

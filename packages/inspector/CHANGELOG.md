@@ -1,5 +1,13 @@
 # @plumeria/inspector
 
+## 16.2.6
+
+### Patch Changes
+
+- e1302b6: Bump version to 16.2.6
+- Updated dependencies [e1302b6]
+  - @plumeria/headlessui@16.2.6
+
 ## 16.2.5
 
 ### Patch Changes

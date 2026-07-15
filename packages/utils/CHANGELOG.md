@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.2.6
+
+### Patch Changes
+
+- e1302b6: Fix: support createStatic spread cross file
+
 ## 16.2.5
 
 ### Patch Changes
