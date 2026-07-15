@@ -1,3 +1,9 @@
+## 16.2.5
+
+### Patch Changes
+
+- 5a9f52e: Fix: add fix style-name-requires-imports rule
+
 ## 16.2.4
 
 ### Patch Changes

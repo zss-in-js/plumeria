@@ -1,5 +1,9 @@
 # Release Notes
 
+## 16.2.5 (Jul 15, 2026)
+
+- Fix: add fix style-name-requires-imports rule
+
 ## 16.2.4 (Jul 14, 2026)
 
 - Fix bracket expansion
