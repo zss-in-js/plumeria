@@ -48,6 +48,7 @@ ruleTester.run('style-name-requires-import', styleNameRequiresImport, {
       code: `
           const el = <div styleName={[styles.foo]} />;
         `,
+      output: `import "@plumeria/core";\n\n          const el = <div styleName={[styles.foo]} />;\n        `,
       errors: [
         {
           messageId: 'styleNameError',
@@ -59,6 +60,7 @@ ruleTester.run('style-name-requires-import', styleNameRequiresImport, {
           import React from 'react';
           const el = <div styleName={[styles.foo]} />;
         `,
+      output: `import "@plumeria/core";\n\n          import React from 'react';\n          const el = <div styleName={[styles.foo]} />;\n        `,
       errors: [
         {
           messageId: 'styleNameError',
@@ -71,6 +73,7 @@ ruleTester.run('style-name-requires-import', styleNameRequiresImport, {
           const el = <div styleName={[styles.foo]} />;
           const el2 = <span styleName={[styles.bar]} />;
         `,
+      output: `import "@plumeria/core";\n\n          import something from 'other-lib';\n          const el = <div styleName={[styles.foo]} />;\n          const el2 = <span styleName={[styles.bar]} />;\n        `,
       errors: [
         {
           messageId: 'styleNameError',
