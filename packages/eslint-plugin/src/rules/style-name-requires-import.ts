@@ -12,6 +12,7 @@ export const styleNameRequiresImport: Rule.RuleModule = {
       description:
         'Disallow styleName prop in files without a @plumeria/core import',
     },
+    fixable: 'code',
     messages: {
       styleNameError: 'styleName requires importing "@plumeria/core".',
     },
@@ -38,12 +39,21 @@ export const styleNameRequiresImport: Rule.RuleModule = {
 
       'Program:exit'() {
         if (!hasPlumeriaImport) {
-          for (const node of styleNameNodes) {
+          styleNameNodes.forEach((node, index) => {
             context.report({
               node,
               messageId: 'styleNameError',
+              fix(fixer) {
+                if (index === 0) {
+                  return fixer.insertTextBefore(
+                    context.sourceCode.ast,
+                    'import "@plumeria/core";\n',
+                  );
+                }
+                return null;
+              },
             });
-          }
+          });
         }
       },
     };
