@@ -771,6 +771,13 @@ function evaluateExpression(
       return viewTransitionHashTable[node.value];
     }
 
+    if (createStaticHashTable[node.value] !== undefined) {
+      const hash = createStaticHashTable[node.value];
+      if (createStaticObjectTable[hash] !== undefined) {
+        return createStaticObjectTable[hash];
+      }
+    }
+
     return '';
   }
 
@@ -1500,13 +1507,11 @@ export function scanAll(): Tables {
                   localKeyframesHashTable[name] = hash;
                   localTables.keyframesHashTable[uniqueKey] = hash;
                   localTables.keyframesObjectTable[hash] = obj;
-                  localTables.keyframesObjectTable[hash] = obj;
                   localKeyframesObjectTable[hash] = obj;
                 } else if (method === 'viewTransition') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localViewTransitionHashTable[name] = hash;
                   localTables.viewTransitionHashTable[uniqueKey] = hash;
-                  localTables.viewTransitionObjectTable[hash] = obj;
                   localTables.viewTransitionObjectTable[hash] = obj;
                   localViewTransitionObjectTable[hash] = obj;
                 } else if (method === 'createTheme') {
