@@ -2008,6 +2008,38 @@ describe('parser', () => {
       expect(result.staticTable[sKey!]).toEqual({ ref: 'blue' });
     });
 
+    it('should support spreading an imported createStatic object', () => {
+      const libFile = path.resolve(process.cwd(), 'lib/utils-spread.ts');
+      const appFile = path.resolve(process.cwd(), 'app/check-spread.ts');
+
+      mockedRs.globSync.mockReturnValue([libFile, appFile]);
+      mockedFs.statSync.mockReturnValue({
+        mtimeMs: 4,
+        isDirectory: () => false,
+        isFile: () => true,
+      } as any);
+
+      const fileContents: Record<string, string> = {
+        [libFile]:
+          'import * as css from "@plumeria/core"; export const C = css.createStatic({ color: "red", padding: 16 });',
+        [appFile]:
+          'import { C } from "../lib/utils-spread"; import * as css from "@plumeria/core"; export const S = css.createStatic({ ...C });',
+      };
+
+      mockedFs.readFileSync.mockImplementation(
+        (p: any) => fileContents[p] || '',
+      );
+      mockedFs.existsSync.mockImplementation((p: any) =>
+        [libFile, appFile].includes(path.resolve(p)),
+      );
+
+      const result = scanAll();
+      const keys = Object.keys(result.staticTable);
+      const sKey = keys.find((k) => k.endsWith('-S'));
+      expect(sKey).toBeDefined();
+      expect(result.staticTable[sKey!]).toEqual({ color: 'red', padding: 16 });
+    });
+
     it('should handle missing objects in resolveCreateStaticTableMemberExpression', () => {
       // This forces the 'if (hash) { if (staticObj) { ... } }' check where staticObj is missing
       const filePath = '/test/static-missing.ts';
