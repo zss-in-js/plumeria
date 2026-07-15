@@ -2,7 +2,7 @@
 
 ### Patch Changes
 
-- 5a9f52e: Fix: add fix style-name-requires-imports rule
+- 5a9f52e: Fix: style-name-requires-imports rule add fix
 
 ## 16.2.4
 
