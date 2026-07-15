@@ -43,6 +43,27 @@ export const styles = css.create({
 });
 ```
 
+## Spreading Static Styles
+
+Since `createStatic` returns static values that are inlined at build time, you can also use it to define shared styles and spread them inside `create`. To ensure type safety, you can use the TypeScript `satisfies` operator with Plumeria's `css.CSSProperties` type.
+
+```ts title="TypeScript"
+import * as css from "@plumeria/core";
+
+const flexBox = css.createStatic({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+} satisfies css.CSSProperties);
+
+export const styles = css.create({
+  container: {
+    ...flexBox,
+    backgroundColor: "red",
+  },
+});
+```
+
 <Callout title="Good to know">
   Internal API variables such as keyframes and viewTransition and createTheme are inlined at parse time.
 </Callout>
