@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.2.7
+
+### Patch Changes
+
+- 542859d: Perf: update dependencies code
+
 ## 16.2.6
 
 ### Patch Changes
