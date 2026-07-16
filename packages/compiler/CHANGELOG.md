@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 16.2.6
+
+### Patch Changes
+
+- 0b56e62: Fix: change x.index and entry.index to x.key and entry.key in compiler
+- Updated dependencies [0b56e62]
+  - @plumeria/utils@16.2.6
+
 ## 16.2.5
 
 ### Patch Changes
