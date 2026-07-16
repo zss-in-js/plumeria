@@ -1678,20 +1678,9 @@ export function scanAll(): Tables {
               }
               const list = table[compKey][propName];
 
-              const globalList =
-                localTables.componentPropsTable![compKey]?.[propName] || [];
-              let entry = globalList.find(
-                (x) => x.classString === resolved.classString,
-              );
-              if (!entry) {
-                entry = list.find(
-                  (x) => x.classString === resolved.classString,
-                );
-              }
-
-              const index = entry ? entry.index : globalList.length;
-              entry = {
-                index,
+              // Content-derived key: stable across scan order and cache state.
+              const entry: TableEntry = {
+                key: genBase36Hash(resolved.classString, 1, 8),
                 styleObj: resolved.styleObj,
                 classString: resolved.classString,
                 spanStart: (node as HasSpan).span.start,
