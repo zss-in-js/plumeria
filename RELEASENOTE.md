@@ -46,7 +46,7 @@
 
 - Add support for dynamic props and update variants API to use optimized bracket syntax
 - Feat dynamic props parsing and add helper types for component props
-- Remove variants API and update StyleName types
+- Remove variants API and update StyleName types and export AtomicClassNameFor
 - Add support for dynamic props compilation
 
 ## 15.1.3 (Jul 10, 2026)
