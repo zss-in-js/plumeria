@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 16.2.7
+
+### Patch Changes
+
+- 542859d: Bump version to 16.2.7
+
 ## 16.2.6
 
 ### Patch Changes

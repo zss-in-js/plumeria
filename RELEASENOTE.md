@@ -1,5 +1,9 @@
 # Release Notes
 
+## 16.2.7 (Jul 16, 2026)
+
+- Perf: update dependencies code
+
 ## 16.2.6 (Jul 16, 2026)
 
 - Fix: change index to key hash(classString) in parser.ts
