@@ -2340,3 +2340,79 @@ describe('deepMerge', () => {
     });
   });
 });
+
+describe('componentPropsTable key stability (HMR)', () => {
+  const childFile = path.resolve(process.cwd(), 'comp/hmr-test-child.tsx');
+  const parent1 = path.resolve(process.cwd(), 'app/hmr-parent1.tsx');
+  const parent2 = path.resolve(process.cwd(), 'app/hmr-parent2.tsx');
+  const compKey = `${childFile}-Test`;
+
+  const childSource =
+    'import * as css from "@plumeria/core"; export const Test = ({ styleArr }: any) => <div className={css.use(styleArr)} />;';
+  const parentSource = (propKey: string, styleBody: string) =>
+    `import * as css from "@plumeria/core"; import { Test } from "../comp/hmr-test-child"; const styles = css.create({ ${propKey}: ${styleBody} }); export const P = () => <Test styleArr={styles.${propKey}} />;`;
+
+  const setup = (
+    contents: Record<string, string>,
+    mtimes: Record<string, number>,
+  ) => {
+    mockedRs.globSync.mockReturnValue([childFile, parent1, parent2] as any);
+    mockedFs.statSync.mockImplementation(
+      (p: any) =>
+        ({
+          mtimeMs: mtimes[path.resolve(p)] ?? 1,
+          isDirectory: () => false,
+          isFile: () => true,
+        }) as any,
+    );
+    mockedFs.existsSync.mockImplementation((p: any) =>
+      [childFile, parent1, parent2].includes(path.resolve(p)),
+    );
+    mockedFs.readFileSync.mockImplementation(
+      (p: any) => contents[path.resolve(p)] || '',
+    );
+  };
+
+  it('assigns distinct content-derived keys and keeps unrelated keys stable across an edit', () => {
+    setup(
+      {
+        [childFile]: childSource,
+        [parent1]: parentSource('color', '{ color: "green" }'),
+        [parent2]: parentSource('font', '{ fontSize: 50 }'),
+      },
+      { [childFile]: 1, [parent1]: 1, [parent2]: 1 },
+    );
+
+    const first = scanAll();
+    const firstEntries = first.componentPropsTable![compKey].styleArr;
+    expect(firstEntries.length).toBe(2);
+
+    const p1Before = firstEntries.find((e: any) => e.filePath === parent1)!;
+    const p2Before = firstEntries.find((e: any) => e.filePath === parent2)!;
+    expect(p1Before.key).not.toBe(p2Before.key);
+    // Keys are derived from content, not scan order
+    expect(p1Before.key).toBe(genBase36Hash(p1Before.classString, 1, 8));
+    expect(p2Before.key).toBe(genBase36Hash(p2Before.classString, 1, 8));
+
+    // Edit parent1 (style change + mtime bump); parent2 stays cached
+    setup(
+      {
+        [childFile]: childSource,
+        [parent1]: parentSource('color', '{ color: "red" }'),
+        [parent2]: parentSource('font', '{ fontSize: 50 }'),
+      },
+      { [childFile]: 1, [parent1]: 2, [parent2]: 1 },
+    );
+
+    const second = scanAll();
+    const secondEntries = second.componentPropsTable![compKey].styleArr;
+    const p1After = secondEntries.find((e: any) => e.filePath === parent1)!;
+    const p2After = secondEntries.find((e: any) => e.filePath === parent2)!;
+
+    // The untouched parent keeps its exact key (no renumbering)
+    expect(p2After.key).toBe(p2Before.key);
+    // The edited style gets a new key, and it never collides with others
+    expect(p1After.key).not.toBe(p1Before.key);
+    expect(p1After.key).not.toBe(p2After.key);
+  });
+});
