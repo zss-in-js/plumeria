@@ -3,26 +3,10 @@ import * as css from '@plumeria/core';
 import Image from 'next/image';
 import { svg } from 'component/svg';
 import { NavDropdown } from 'component/NavDropdown';
-import { blog } from 'lib/source';
+import { latestReleases } from 'lib/latestReleases';
 import { theme } from 'lib/theme';
 
-const latestReleasePosts = blog
-  .getPages()
-  .map((post) => {
-    const slug = post.slugs[0];
-    const match = slug.match(/^plumeria-([\d-]+)/);
-    return {
-      post,
-      version: match ? match[1].replace(/-/g, '.') : null,
-    };
-  })
-  .filter((x) => x.version !== null)
-  .sort((a, b) => new Date(b.post.data.date).getTime() - new Date(a.post.data.date).getTime())
-  .slice(0, 3)
-  .map(({ post, version }) => ({
-    text: `Plumeria v${version}`,
-    url: `/blog/${post.slugs.join('/')}`,
-  }));
+const latestReleasePosts = latestReleases(3);
 
 const styles = css.create({
   flower: {
