@@ -141,10 +141,10 @@ const GLOB_OPTIONS = {
   cwd: PROJECT_ROOT,
 };
 
-/* 
+/*
 These internal functions are executed through the loader function, so they are already comprehensively covered by the current tests.
 Implementation details: These are implementation details that are not exposed, and you end up testing the implementation instead of the behavior.
- */
+*/
 
 export function objectExpressionToObject(
   node: ObjectExpression,
@@ -1040,6 +1040,32 @@ interface CachedData {
 
 const fileCache: Record<string, CachedData> = {};
 
+// Global reverse dependency map and known file tracking for incremental updates
+const dependentsMap = new Map<string, Set<string>>();
+let knownFiles = new Set<string>();
+
+function updateDependencyEdges(
+  filePath: string,
+  oldDeps: string[] | undefined,
+  newDeps: string[] | undefined,
+) {
+  if (oldDeps) {
+    for (const dep of oldDeps) {
+      dependentsMap.get(dep)?.delete(filePath);
+    }
+  }
+  if (newDeps) {
+    for (const dep of newDeps) {
+      let set = dependentsMap.get(dep);
+      if (!set) {
+        set = new Set();
+        dependentsMap.set(dep, set);
+      }
+      set.add(filePath);
+    }
+  }
+}
+
 let globalAgregatedTables: Tables | null = null;
 export function scanAll(): Tables {
   if (globalAgregatedTables && process.env.NODE_ENV === 'production') {
@@ -1066,19 +1092,16 @@ export function scanAll(): Tables {
   };
 
   const files = rs.globSync(PATTERN_PATH, GLOB_OPTIONS);
+  const currentFiles = new Set(files);
 
-  // Build dependents map from existing fileCache
-  const dependents = new Map<string, Set<string>>();
-  for (const [fp, data] of Object.entries(fileCache)) {
-    if (data.dependencies) {
-      for (const dep of data.dependencies) {
-        if (!dependents.has(dep)) dependents.set(dep, new Set());
-        dependents.get(dep)!.add(fp);
-      }
-    }
+  // Detect deleted files
+  const deletedFiles: string[] = [];
+  for (const fp of knownFiles) {
+    if (!currentFiles.has(fp)) deletedFiles.push(fp);
   }
+  knownFiles = currentFiles;
 
-  // Propagate cache invalidation recursively
+  // Detect changed files and files affected by them using dependentsMap (BFS)
   const invalidated = new Set<string>();
   const queue: string[] = [];
 
@@ -1095,10 +1118,14 @@ export function scanAll(): Tables {
       queue.push(filePath);
     }
   }
+  for (const fp of deletedFiles) {
+    invalidated.add(fp);
+    queue.push(fp);
+  }
 
   while (queue.length > 0) {
     const fp = queue.shift()!;
-    const deps = dependents.get(fp);
+    const deps = dependentsMap.get(fp);
     if (deps) {
       for (const dep of deps) {
         if (!invalidated.has(dep)) {
@@ -1109,11 +1136,18 @@ export function scanAll(): Tables {
     }
   }
 
-  // Two-pass scanning:
-  // Pass 1: Collect all createStatic and createTheme definitions
-  // Pass 2: Process css.create, keyframes, viewTransition, variants (with all createStatic/createTheme available)
+  // Return the most recent aggregated data immediately if there are no changes
+  if (invalidated.size === 0 && globalAgregatedTables) {
+    return globalAgregatedTables;
+  }
 
-  // Pre-process cached files (merge once, outside the 2-pass loop)
+  // Clean up cache and dependency edges for deleted files
+  for (const fp of deletedFiles) {
+    updateDependencyEdges(fp, fileCache[fp]?.dependencies, undefined);
+    delete fileCache[fp];
+  }
+
+  // Bulk-merge data from valid caches (combining into a fresh object on every build)
   const uncachedFiles: string[] = [];
   for (const filePath of files) {
     try {
@@ -1217,19 +1251,23 @@ export function scanAll(): Tables {
         uncachedFiles.push(filePath);
       }
     } catch (e) {
-      // If statSync fails, add to uncachedFiles to handle potential read/parse exceptions correctly
       uncachedFiles.push(filePath);
     }
   }
 
-  // Pre-scan uncached files: read, parse, and filter (each file read/parsed only once)
+  // Parsing of uncached or modified files
   const parsedFiles: { filePath: string; ast: Module; mtimeMs: number }[] = [];
   for (const filePath of uncachedFiles) {
     try {
       const stats = fs.statSync(filePath);
       const source = fs.readFileSync(filePath, 'utf8');
       if (!source.includes('@plumeria/core')) {
-        // Cache negative result
+        // Store an empty record in the cache and clear old dependency edges
+        updateDependencyEdges(
+          filePath,
+          fileCache[filePath]?.dependencies,
+          undefined,
+        );
         fileCache[filePath] = {
           mtimeMs: stats.mtimeMs,
           staticTable: {},
@@ -1259,11 +1297,11 @@ export function scanAll(): Tables {
       });
       parsedFiles.push({ filePath, ast, mtimeMs: stats.mtimeMs });
     } catch (e) {
-      // Ignore read/parse/stat errors, matching original per-file exception handling
+      // ignore
     }
   }
 
-  // Execute two passes (only for files with @plumeria/core usage)
+  // 2 pass scanning
   for (let passNumber = 1; passNumber <= 2; passNumber++) {
     const isFirstPass = passNumber === 1;
 
@@ -1313,7 +1351,6 @@ export function scanAll(): Tables {
                 }
               });
             } else {
-              // Resolve imports from user modules (e.g., lib/mediaQuery)
               const actualPath = resolveImportPath(sourceValue, filePath);
               if (actualPath) {
                 localDependencies.add(actualPath);
@@ -1337,7 +1374,6 @@ export function scanAll(): Tables {
                     const uniqueKey = resolvedKey;
                     localImports[localName] = { actualPath, importedName };
 
-                    // Resolve createStatic from global tables
                     if (localTables.createStaticHashTable[uniqueKey]) {
                       const hash = localTables.createStaticHashTable[uniqueKey];
                       localCreateStaticHashTable[localName] = hash;
@@ -1346,7 +1382,6 @@ export function scanAll(): Tables {
                           localTables.createStaticObjectTable[hash];
                       }
                     }
-                    // Resolve createTheme from global tables
                     if (localTables.createThemeHashTable[uniqueKey]) {
                       const hash = localTables.createThemeHashTable[uniqueKey];
                       localCreateThemeHashTable[localName] = hash;
@@ -1355,7 +1390,6 @@ export function scanAll(): Tables {
                           localTables.createThemeObjectTable[hash];
                       }
                     }
-                    // Resolve keyframes from global tables
                     if (localTables.keyframesHashTable[uniqueKey]) {
                       const hash = localTables.keyframesHashTable[uniqueKey];
                       localKeyframesHashTable[localName] = hash;
@@ -1364,7 +1398,6 @@ export function scanAll(): Tables {
                           localTables.keyframesObjectTable[hash];
                       }
                     }
-                    // Resolve viewTransition from global tables
                     if (localTables.viewTransitionHashTable[uniqueKey]) {
                       const hash =
                         localTables.viewTransitionHashTable[uniqueKey];
@@ -1374,7 +1407,6 @@ export function scanAll(): Tables {
                           localTables.viewTransitionObjectTable[hash];
                       }
                     }
-                    // Resolve create from global tables
                     if (localTables.createHashTable[uniqueKey]) {
                       const hash = localTables.createHashTable[uniqueKey];
                       localCreateHashTable[localName] = hash;
@@ -1485,6 +1517,7 @@ export function scanAll(): Tables {
                 // Two-pass scanning:
                 // Pass 1: Collect all createStatic, createTheme, keyframes, and viewTransition definitions for global resolution
                 // Pass 2: Process css.create and variants (with all global definitions available)
+
                 const isPassOneMethod =
                   method === 'createStatic' ||
                   method === 'createTheme' ||
@@ -1525,7 +1558,7 @@ export function scanAll(): Tables {
                   localCreateThemeObjectTable[hash] = obj;
                   localCreateThemeHashTable[name] = hash;
                   localTables.createThemeHashTable[uniqueKey] = hash;
-                  localCreateThemeSelectorTable[hash] = selector;
+                  localTables.createThemeSelectorTable[hash] = selector;
                   localTables.createThemeSelectorTable[hash] = selector;
                   const hashMap: Record<string, any> = {};
                   for (const [key, value] of Object.entries(obj)) {
@@ -1568,7 +1601,6 @@ export function scanAll(): Tables {
           extractAndCacheExports(filePath, ast, mtimeMs);
         }
 
-        // Update cache (only in second pass to ensure all data is collected)
         if (!isFirstPass) {
           const resolveCallStylePropInScan = (
             expr: Expression,
@@ -1678,7 +1710,7 @@ export function scanAll(): Tables {
               }
               const list = table[compKey][propName];
 
-              // Content-derived key: stable across scan order and cache state.
+              // Content-derived key: stable across scan order and cache state
               const entry: TableEntry = {
                 key: genBase36Hash(resolved.classString, 1, 8),
                 styleObj: resolved.styleObj,
@@ -1734,7 +1766,6 @@ export function scanAll(): Tables {
             },
           });
 
-          // Merge localComponentPropsTable into global localTables.componentPropsTable
           const globalTable = localTables.componentPropsTable!;
           for (const compKey of Object.keys(localComponentPropsTable)) {
             if (!globalTable[compKey]) {
@@ -1760,6 +1791,8 @@ export function scanAll(): Tables {
             }
           }
 
+          // Update incremental edges and cache
+          const prevDependencies = fileCache[filePath]?.dependencies;
           fileCache[filePath] = {
             mtimeMs: mtimeMs,
             dependencies: Array.from(localDependencies),
@@ -1782,15 +1815,20 @@ export function scanAll(): Tables {
             componentPropsTable: localComponentPropsTable,
             hasCssUsage: true,
           };
+
+          updateDependencyEdges(
+            filePath,
+            prevDependencies,
+            fileCache[filePath].dependencies,
+          );
         }
       } catch (e) {
-        // Ignore parsing errors for non-relevant files or syntax errors
+        // ignore
       }
     }
-  } // End of two-pass scanning
+  }
 
   globalAgregatedTables = localTables;
-
   return localTables;
 }
 
@@ -1936,11 +1974,16 @@ function extractAndCacheExports(
     }
   }
 
+  // Clear and update old dependency edges
+  const prevDeps = fileCache[filePath]?.dependencies;
+  const newDeps = Array.from(localDependencies);
+  updateDependencyEdges(filePath, prevDeps, newDeps);
+
   if (!fileCache[filePath]) {
     fileCache[filePath] = {
       mtimeMs: mtimeMs,
       exports: { localExports, reExports, starExports },
-      dependencies: Array.from(localDependencies),
+      dependencies: newDeps,
       staticTable: {},
       keyframesHashTable: {},
       keyframesObjectTable: {},
@@ -1964,7 +2007,7 @@ function extractAndCacheExports(
       reExports,
       starExports,
     };
-    fileCache[filePath].dependencies = Array.from(localDependencies);
+    fileCache[filePath].dependencies = newDeps;
   }
 }
 
@@ -1990,7 +2033,7 @@ export function resolveExport(
         extractAndCacheExports(filePath, ast, stats.mtimeMs);
       }
     } catch (e) {
-      // Ignore
+      // ignore
     }
   }
 
@@ -2037,14 +2080,12 @@ export function extractOndemandStyles(
   const keyframesHashes = new Set<string>();
   const viewTransitionHashes = new Set<string>();
   const createHashes = new Set<string>();
-  // Change: Track used variables instead of a boolean flag
   const usedVariables = new Set<string>();
 
   function walk(n: any) {
     if (!n || typeof n !== 'object' || visited.has(n)) return;
     visited.add(n);
 
-    // Using recursion for deep traversal
     Object.values(n).forEach((val) => {
       if (typeof val === 'string') {
         if (val.startsWith('kf-')) {
@@ -2066,14 +2107,12 @@ export function extractOndemandStyles(
             walk(t.createObjectTable[hash]);
           }
         } else if (val.includes('var(--')) {
-          // Change: Optimized manual parser instead of Regex
           let startIdx = 0;
           while ((startIdx = val.indexOf('var(--', startIdx)) !== -1) {
-            startIdx += 4; // Skip "var("
+            startIdx += 4;
             const endIdx = val.indexOf(')', startIdx);
             if (endIdx !== -1) {
               const content = val.slice(startIdx, endIdx);
-              // Fallback handling removed as per API spec
               const varName = content.trim();
               if (varName.startsWith('--')) {
                 usedVariables.add(varName);
@@ -2139,7 +2178,6 @@ export function extractOndemandStyles(
     }
   }
 
-  // Change: Filter theme definitions based on used variables
   if (usedVariables.size > 0) {
     Object.keys(t.createThemeHashTable)
       .sort()
