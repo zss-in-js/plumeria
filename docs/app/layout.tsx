@@ -1,6 +1,5 @@
 import { RootProvider } from 'fumadocs-ui/provider/next';
 import 'fumadocs-ui/style.css';
-import 'katex/dist/katex.css';
 import './global.css';
 import { Analytics } from '@vercel/analytics/next';
 import { Inter } from 'next/font/google';
@@ -24,7 +23,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <link rel="icon" href="/favi.ico" sizes="any" />
       </head>
       <body>
-        <Inspector />
+        {process.env.NODE_ENV === 'development' && <Inspector />}
         <RootProvider>{children}</RootProvider>
         <Analytics mode="production" />
       </body>
