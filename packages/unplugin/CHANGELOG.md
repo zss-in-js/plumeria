@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 16.2.6
+
+### Patch Changes
+
+- 0b56e62: Fix: change the reverse edge to a safe implementation and switched the key from index to key also output the CSS prop on the parent side
+- Updated dependencies [0b56e62]
+  - @plumeria/utils@16.2.6
+
 ## 16.2.5
 
 ### Patch Changes

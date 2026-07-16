@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.2.6
+
+### Patch Changes
+
+- 0b56e62: Fix: change index to key hash(classString) in parser.ts
+
 ## 16.2.5
 
 ### Patch Changes
