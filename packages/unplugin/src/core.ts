@@ -221,6 +221,27 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
       const scannedTables = scanAll();
 
+      // Reverse edges child -> parents: this file's compiled lookup map
+      // depends on prop entries discovered while scanning the parents that
+      // render it, so editing a parent must re-transform this file.
+      if (scannedTables.componentPropsTable) {
+        const parentFiles = new Set<string>();
+        for (const compKey of Object.keys(scannedTables.componentPropsTable)) {
+          if (!compKey.startsWith(`${id}-`)) continue;
+          const props = scannedTables.componentPropsTable[compKey];
+          for (const propName of Object.keys(props)) {
+            for (const entry of props[propName]) {
+              if (entry.filePath !== id) {
+                parentFiles.add(entry.filePath);
+              }
+            }
+          }
+        }
+        for (const parentFile of parentFiles) {
+          addDependency(parentFile);
+        }
+      }
+
       const extractedSheets: string[] = [];
       const addSheet = (sheet: string) => {
         if (!extractedSheets.includes(sheet)) {
@@ -1186,7 +1207,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
               const uniqueEntries: any[] = [];
               propPossibilities.forEach((entry) => {
-                if (!uniqueEntries.some((x) => x.index === entry.index)) {
+                if (!uniqueEntries.some((x) => x.key === entry.key)) {
                   uniqueEntries.push(entry);
                 }
               });
@@ -1195,12 +1216,12 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 conditionals.push({
                   test: expr,
                   testLHS,
-                  testString: `${testLHS} === ${entry.index}`,
+                  testString: `${testLHS} === ${JSON.stringify(entry.key)}`,
                   truthy: entry.styleObj,
                   falsy: {},
                   groupId: currentGroupId,
                   groupName: undefined,
-                  valueName: String(entry.index),
+                  valueName: entry.key,
                   varName,
                 });
               });
@@ -1912,7 +1933,16 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               let compKey: string;
               const imported = localImports[parentTagName];
               if (imported) {
+                // Resolve re-exports the same way the scanner does so the
+                // compKey matches componentPropsTable's keys.
                 compKey = `${imported.actualPath}-${imported.importedName}`;
+                const resolved = resolveExport(
+                  imported.actualPath,
+                  imported.importedName,
+                );
+                if (resolved) {
+                  compKey = `${resolved.filePath}-${resolved.localName}`;
+                }
               } else {
                 compKey = `${resourcePath}-${parentTagName}`;
               }
@@ -1925,34 +1955,36 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 node.value.type === 'JSXExpressionContainer'
               ) {
                 const expr = node.value.expression;
+                const replaceWithKey = (subNode: {
+                  span: { start: number; end: number };
+                }) => {
+                  const entry = list.find(
+                    (x) =>
+                      x.spanStart === subNode.span.start &&
+                      x.filePath === resourcePath,
+                  );
+                  if (entry) {
+                    replacements.push({
+                      start: subNode.span.start - baseByteOffset,
+                      end: subNode.span.end - baseByteOffset,
+                      content: JSON.stringify(entry.key),
+                    });
+                    // Emit the prop style's CSS from the parent too, so the
+                    // rules are live as soon as the parent recompiles even if
+                    // the child module hasn't re-transformed yet.
+                    processStyleRecords(entry.styleObj);
+                    return true;
+                  }
+                  return false;
+                };
                 traverse(expr, {
                   MemberExpression({ node: subNode }) {
-                    const entry = list.find(
-                      (x) =>
-                        x.spanStart === subNode.span.start &&
-                        x.filePath === resourcePath,
-                    );
-                    if (entry) {
-                      replacements.push({
-                        start: subNode.span.start - baseByteOffset,
-                        end: subNode.span.end - baseByteOffset,
-                        content: String(entry.index),
-                      });
+                    if (replaceWithKey(subNode)) {
                       excludeSubtreeSpans(subNode);
                     }
                   },
                   ArrayExpression({ node: subNode }) {
-                    const entry = list.find(
-                      (x) =>
-                        x.spanStart === subNode.span.start &&
-                        x.filePath === resourcePath,
-                    );
-                    if (entry) {
-                      replacements.push({
-                        start: subNode.span.start - baseByteOffset,
-                        end: subNode.span.end - baseByteOffset,
-                        content: String(entry.index),
-                      });
+                    if (replaceWithKey(subNode)) {
                       excludeSubtreeSpans(subNode);
                     }
                   },
@@ -2321,8 +2353,14 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         }
         const acc = devCssSheets.get(cssFilename)!;
 
-        acc.clear();
-        extractedSheets.forEach((sheet) => acc.add(sheet));
+        // Additive in dev: keep previously emitted sheets so classes still
+        // referenced by not-yet-retransformed modules never flash away.
+        // Re-adding moves a sheet to the end so latest-wins order is kept
+        // for :root/theme rules.
+        extractedSheets.forEach((sheet) => {
+          acc.delete(sheet);
+          acc.add(sheet);
+        });
 
         const accCSS = await optimizer(Array.from(acc).join(''));
         cssLookup.set(cssFilename, accCSS);
