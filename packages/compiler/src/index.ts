@@ -662,7 +662,7 @@ export function compileCSS(options: CompilerOptions) {
           if (propPossibilities && propPossibilities.length > 0) {
             const uniqueEntries: any[] = [];
             propPossibilities.forEach((entry) => {
-              if (!uniqueEntries.some((x) => x.index === entry.index)) {
+              if (!uniqueEntries.some((x) => x.key === entry.key)) {
                 uniqueEntries.push(entry);
               }
             });
