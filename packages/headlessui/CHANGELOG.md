@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 16.2.6
+
+### Patch Changes
+
+- 0b56e62: Bump version to 16.2.6
+
 ## 16.2.5
 
 ### Patch Changes

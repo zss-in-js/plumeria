@@ -1,5 +1,12 @@
 # Release Notes
 
+## 16.2.6 (Jul 16, 2026)
+
+- Fix: change index to key hash(classString) in parser.ts
+- Fix: change x.index and entry.index to x.key and entry.key in compiler
+- Fix: change the reverse edge to a safe implementation and switched the key from index to key also output the CSS prop on the parent side
+- Fix: fix use function and export CSSProperties
+
 ## 16.2.5 (Jul 15, 2026)
 
 - Fix: style-name-requires-imports rule add fix
