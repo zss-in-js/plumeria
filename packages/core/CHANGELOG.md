@@ -58,7 +58,7 @@
 
 ### Major Changes
 
-- 08c5be7: Remove variants API and update StyleName types
+- 08c5be7: Remove variants API and update StyleName types and export AtomicClassNameFor
 
 ## 15.1.3
 
