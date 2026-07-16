@@ -167,6 +167,30 @@ export default async function loader(this: LoaderContext, source: string) {
 
     const scannedTables = scanAll();
 
+    // Reverse edges child -> parents: this file's compiled lookup map depends
+    // on prop entries discovered while scanning the parents that render it.
+    // Register exactly those parent files (never self, never the virtual CSS
+    // file) so editing a parent re-runs this loader. Registering anything
+    // broader here (e.g. the repopulated global dependency closure) makes the
+    // watch set huge and unstable and triggers full reloads.
+    if (scannedTables.componentPropsTable) {
+      const parentFiles = new Set<string>();
+      for (const compKey of Object.keys(scannedTables.componentPropsTable)) {
+        if (!compKey.startsWith(`${resourcePath}-`)) continue;
+        const props = scannedTables.componentPropsTable[compKey];
+        for (const propName of Object.keys(props)) {
+          for (const entry of props[propName]) {
+            if (entry.filePath !== resourcePath) {
+              parentFiles.add(entry.filePath);
+            }
+          }
+        }
+      }
+      for (const parentFile of parentFiles) {
+        this.addDependency(parentFile);
+      }
+    }
+
     const extractedSheets: string[] = [];
     const addSheet = (sheet: string) => {
       if (!extractedSheets.includes(sheet)) {
@@ -1125,7 +1149,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
             const uniqueEntries: any[] = [];
             propPossibilities.forEach((entry) => {
-              if (!uniqueEntries.some((x) => x.index === entry.index)) {
+              if (!uniqueEntries.some((x) => x.key === entry.key)) {
                 uniqueEntries.push(entry);
               }
             });
@@ -1134,12 +1158,12 @@ export default async function loader(this: LoaderContext, source: string) {
               conditionals.push({
                 test: expr,
                 testLHS,
-                testString: `${testLHS} === ${entry.index}`,
+                testString: `${testLHS} === ${JSON.stringify(entry.key)}`,
                 truthy: entry.styleObj,
                 falsy: {},
                 groupId: currentGroupId,
                 groupName: undefined,
-                valueName: String(entry.index),
+                valueName: entry.key,
                 varName,
               });
             });
@@ -1840,7 +1864,16 @@ export default async function loader(this: LoaderContext, source: string) {
             let compKey: string;
             const imported = localImports[parentTagName];
             if (imported) {
+              // Resolve re-exports the same way the scanner does so the
+              // compKey matches componentPropsTable's keys.
               compKey = `${imported.actualPath}-${imported.importedName}`;
+              const resolved = resolveExport(
+                imported.actualPath,
+                imported.importedName,
+              );
+              if (resolved) {
+                compKey = `${resolved.filePath}-${resolved.localName}`;
+              }
             } else {
               compKey = `${resourcePath}-${parentTagName}`;
             }
@@ -1853,34 +1886,36 @@ export default async function loader(this: LoaderContext, source: string) {
               node.value.type === 'JSXExpressionContainer'
             ) {
               const expr = node.value.expression;
+              const replaceWithKey = (subNode: {
+                span: { start: number; end: number };
+              }) => {
+                const entry = list.find(
+                  (x) =>
+                    x.spanStart === subNode.span.start &&
+                    x.filePath === resourcePath,
+                );
+                if (entry) {
+                  replacements.push({
+                    start: subNode.span.start - baseByteOffset,
+                    end: subNode.span.end - baseByteOffset,
+                    content: JSON.stringify(entry.key),
+                  });
+                  // Emit the prop style's CSS from the parent too, so the
+                  // rules are live as soon as the parent recompiles even if
+                  // the child module hasn't re-transformed yet.
+                  processStyleRecords(entry.styleObj);
+                  return true;
+                }
+                return false;
+              };
               traverse(expr, {
                 MemberExpression({ node: subNode }) {
-                  const entry = list.find(
-                    (x) =>
-                      x.spanStart === subNode.span.start &&
-                      x.filePath === resourcePath,
-                  );
-                  if (entry) {
-                    replacements.push({
-                      start: subNode.span.start - baseByteOffset,
-                      end: subNode.span.end - baseByteOffset,
-                      content: String(entry.index),
-                    });
+                  if (replaceWithKey(subNode)) {
                     excludeSubtreeSpans(subNode);
                   }
                 },
                 ArrayExpression({ node: subNode }) {
-                  const entry = list.find(
-                    (x) =>
-                      x.spanStart === subNode.span.start &&
-                      x.filePath === resourcePath,
-                  );
-                  if (entry) {
-                    replacements.push({
-                      start: subNode.span.start - baseByteOffset,
-                      end: subNode.span.end - baseByteOffset,
-                      content: String(entry.index),
-                    });
+                  if (replaceWithKey(subNode)) {
                     excludeSubtreeSpans(subNode);
                   }
                 },
