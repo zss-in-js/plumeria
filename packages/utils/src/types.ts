@@ -30,7 +30,7 @@ export type CreateThemeHashTable = Record<string, string>; // varName -> hash
 export type CreateThemeSelectorTable = Record<string, string>; // hash -> CSS selector
 
 export interface TableEntry {
-  index: number;
+  key: string;
   styleObj: CSSObject;
   classString: string;
   spanStart: number;
