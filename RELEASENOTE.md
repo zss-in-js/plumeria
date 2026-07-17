@@ -1,5 +1,9 @@
 # Release Notes
 
+## 16.2.9 (Jul 17, 2026)
+
+- Update npm core README.md
+
 ## 16.2.8 (Jul 17, 2026)
 
 - Update @rust-gear/glob to v1.1.0
