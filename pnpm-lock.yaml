@@ -7,8 +7,8 @@ settings:
 catalogs:
   default:
     '@rust-gear/glob':
-      specifier: 1.0.0
-      version: 1.0.0
+      specifier: 1.1.0
+      version: 1.1.0
     '@swc/core':
       specifier: 1.15.43
       version: 1.15.43
@@ -817,7 +817,7 @@ importers:
     devDependencies:
       '@rust-gear/glob':
         specifier: 'catalog:'
-        version: 1.0.0
+        version: 1.1.0
       '@swc/core':
         specifier: 'catalog:'
         version: 1.15.43(@swc/helpers@0.5.23)
@@ -1012,7 +1012,7 @@ importers:
     dependencies:
       '@rust-gear/glob':
         specifier: 'catalog:'
-        version: 1.0.0
+        version: 1.1.0
       '@swc/core':
         specifier: 'catalog:'
         version: 1.15.43(@swc/helpers@0.5.23)
@@ -4595,66 +4595,66 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@rust-gear/glob-darwin-arm64@1.0.0':
-    resolution: {integrity: sha512-umbyvUthV9KNdoG4AuMEV/uBqZ45Nrt14IOq/PrjXxg45hj4EaSkYC+Yc4kK+KM09ABs1z15wLZ/nfvj57KqRA==}
+  '@rust-gear/glob-darwin-arm64@1.1.0':
+    resolution: {integrity: sha512-olr+i03pY+kqOZXsTY6GFz3Bq0G+puKEDE834GuJIk3ktRpULlj/0aq/vWBdbXfWyLDDQtjXR7mLYumYVRxIGw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
 
-  '@rust-gear/glob-darwin-x64@1.0.0':
-    resolution: {integrity: sha512-eCYFXGfOxuZKruuRagE1s3WkZH4bgiKWR9t9Eqd+UJWVjeo+jsyiq/s8VjjMEQSEpWM1s2XyQoQCpGwDOtovbA==}
+  '@rust-gear/glob-darwin-x64@1.1.0':
+    resolution: {integrity: sha512-nTmnzXhlaclqzVfJIG0XqFS+YzDBRuxWzVsV0+tq5muuW8529SGduEMRQ/J/vx8KWvny+tM6K4adhdtMgJWwpQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
-  '@rust-gear/glob-linux-arm64-gnu@1.0.0':
-    resolution: {integrity: sha512-f4TdRT4+TTe3tbMyPX8MODeeISCA0SKKCeKIeXUGcQMCzEDCSOrBgDamO+p+VT7RRtx6QjsBr57SkrFJA3FzLQ==}
+  '@rust-gear/glob-linux-arm64-gnu@1.1.0':
+    resolution: {integrity: sha512-wTWGBT76vDJqaf3Yqp+o/ZJgBsFEsN/1xAUCEoFwxYA9S07uppIKxtAId+3tkksu0LUfah48M7ZqsWoACEKGoQ==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@rust-gear/glob-linux-arm64-musl@1.0.0':
-    resolution: {integrity: sha512-2aFbF97bUD06nGL7v5wfcp1tp1yfMPRkVaJCVWwgDDvfYUCrsfDpAEi7AhLFn/IyK0leTEbg/2uq/DDABsIIbg==}
+  '@rust-gear/glob-linux-arm64-musl@1.1.0':
+    resolution: {integrity: sha512-xeoqD6bytIuRMz9BVEBv6akT57LicBi1rfvL5OCnTEo+5AXy2lCQjaTKnDt5fY59ytUFy0xhM+MYLc9FDyAb5A==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@rust-gear/glob-linux-x64-gnu@1.0.0':
-    resolution: {integrity: sha512-G+7EujFK40RgJl+d0LjuZP2JN1d4HdHQ6fC7vmSmKU+FSWrSP9r/IfSGpTAluRpVA+b5+5M6z9IphD61tqy8Rg==}
+  '@rust-gear/glob-linux-x64-gnu@1.1.0':
+    resolution: {integrity: sha512-91I8v8NyFp849/xuFPdTgA5NrzFSdC7+ky+jyTcVPVbJbdwwtCMCdeII1jl8w3zD8LyGO9OaXC+koyfhXxo2Rw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@rust-gear/glob-linux-x64-musl@1.0.0':
-    resolution: {integrity: sha512-umqsMBc8Trf3gZ4JqmCoNDXashD5x/tsn9cmJkQbIzD+zHQinvH5ctzMR+IO6bBIn9Wt4QCVtBPRKB4MeCgSjg==}
+  '@rust-gear/glob-linux-x64-musl@1.1.0':
+    resolution: {integrity: sha512-tZlGmT2K1ZReBi4kh2lUs4qwcqXSFlrxmF/71sG6yFeIavZXPShstizIdPOJzbeCMtcC+x6N9/qK+45ZkRhSrA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@rust-gear/glob-win32-arm64-msvc@1.0.0':
-    resolution: {integrity: sha512-4OhAXKzDRCOV9gdpQ5jF4NodDMNxZ9ERYiH0bVfPSfobmPzGeKntUuVRZNazghNzpHpyIeff81qedYECv03W/A==}
+  '@rust-gear/glob-win32-arm64-msvc@1.1.0':
+    resolution: {integrity: sha512-hWrITd46Lh5hxHNriw4wNhqR8fm9PneHEAIq9jFbEiFRqWE8O8Q5S/UrABfc1WZmcxGwuFnnHJ2VuOr7JF/URA==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
-  '@rust-gear/glob-win32-ia32-msvc@1.0.0':
-    resolution: {integrity: sha512-0ytgFlxeQ4GxD6FkYi+6fL9iJmtX+2odd9McBQHntijRMDW/dzoH4SKx6vlEa+FHZTO9HphVNpE082PtrbBhog==}
+  '@rust-gear/glob-win32-ia32-msvc@1.1.0':
+    resolution: {integrity: sha512-Fpf+YxcLmZGMedD/7BFrZ2AOsPzO40M+COXKuLmJoNK/SCNtny3gJcuMVYmVXQhMEgRmvUHKfpVyocH41oK8fw==}
     engines: {node: '>= 10'}
     cpu: [ia32]
     os: [win32]
 
-  '@rust-gear/glob-win32-x64-msvc@1.0.0':
-    resolution: {integrity: sha512-Yxdkeu/OFqOjd7sSm2I7i8hc+WfpXrYFIHabwfXrY9qFDgy6RvoO0EPy2ljzI2cBNFqf13GVBSws7+Bjb9nkFw==}
+  '@rust-gear/glob-win32-x64-msvc@1.1.0':
+    resolution: {integrity: sha512-xdrFY+J7uVcZQqPoWF5idJVaLNYtdsA2JMfDj9S9bwyzl5+E0RTYoXlyzAVpVP0zKUUYs8f8SC4MBxMcgIflqw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
 
-  '@rust-gear/glob@1.0.0':
-    resolution: {integrity: sha512-LxP+vIxEJEYHhgxHmA2fJkZLv/qt+E2SXJR4o3uTIwORUOZKUzpqKSIQtLl8sdPS6gOUwDxHkqnA3EF3y3AU9A==}
+  '@rust-gear/glob@1.1.0':
+    resolution: {integrity: sha512-r7vMFkvP3MSPbhj8JsUBWTrlvylcJwwPBmcIRjqw+Dxi8ozL0kXrzWuYYcx/WgGvcPeSvATNpSDowAkZ8FZI6Q==}
     engines: {node: '>=10'}
 
   '@shikijs/core@4.1.0':
@@ -14376,44 +14376,44 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@rust-gear/glob-darwin-arm64@1.0.0':
+  '@rust-gear/glob-darwin-arm64@1.1.0':
     optional: true
 
-  '@rust-gear/glob-darwin-x64@1.0.0':
+  '@rust-gear/glob-darwin-x64@1.1.0':
     optional: true
 
-  '@rust-gear/glob-linux-arm64-gnu@1.0.0':
+  '@rust-gear/glob-linux-arm64-gnu@1.1.0':
     optional: true
 
-  '@rust-gear/glob-linux-arm64-musl@1.0.0':
+  '@rust-gear/glob-linux-arm64-musl@1.1.0':
     optional: true
 
-  '@rust-gear/glob-linux-x64-gnu@1.0.0':
+  '@rust-gear/glob-linux-x64-gnu@1.1.0':
     optional: true
 
-  '@rust-gear/glob-linux-x64-musl@1.0.0':
+  '@rust-gear/glob-linux-x64-musl@1.1.0':
     optional: true
 
-  '@rust-gear/glob-win32-arm64-msvc@1.0.0':
+  '@rust-gear/glob-win32-arm64-msvc@1.1.0':
     optional: true
 
-  '@rust-gear/glob-win32-ia32-msvc@1.0.0':
+  '@rust-gear/glob-win32-ia32-msvc@1.1.0':
     optional: true
 
-  '@rust-gear/glob-win32-x64-msvc@1.0.0':
+  '@rust-gear/glob-win32-x64-msvc@1.1.0':
     optional: true
 
-  '@rust-gear/glob@1.0.0':
+  '@rust-gear/glob@1.1.0':
     optionalDependencies:
-      '@rust-gear/glob-darwin-arm64': 1.0.0
-      '@rust-gear/glob-darwin-x64': 1.0.0
-      '@rust-gear/glob-linux-arm64-gnu': 1.0.0
-      '@rust-gear/glob-linux-arm64-musl': 1.0.0
-      '@rust-gear/glob-linux-x64-gnu': 1.0.0
-      '@rust-gear/glob-linux-x64-musl': 1.0.0
-      '@rust-gear/glob-win32-arm64-msvc': 1.0.0
-      '@rust-gear/glob-win32-ia32-msvc': 1.0.0
-      '@rust-gear/glob-win32-x64-msvc': 1.0.0
+      '@rust-gear/glob-darwin-arm64': 1.1.0
+      '@rust-gear/glob-darwin-x64': 1.1.0
+      '@rust-gear/glob-linux-arm64-gnu': 1.1.0
+      '@rust-gear/glob-linux-arm64-musl': 1.1.0
+      '@rust-gear/glob-linux-x64-gnu': 1.1.0
+      '@rust-gear/glob-linux-x64-musl': 1.1.0
+      '@rust-gear/glob-win32-arm64-msvc': 1.1.0
+      '@rust-gear/glob-win32-ia32-msvc': 1.1.0
+      '@rust-gear/glob-win32-x64-msvc': 1.1.0
 
   '@shikijs/core@4.1.0':
     dependencies:
@@ -16659,7 +16659,7 @@ snapshots:
       '@next/eslint-plugin-next': 16.2.6
       eslint: 10.4.1(jiti@2.7.0)
       eslint-import-resolver-node: 0.3.10
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@10.4.1(jiti@2.7.0))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0))
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1)(eslint@10.4.1(jiti@2.7.0))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@10.4.1(jiti@2.7.0))
       eslint-plugin-react: 7.37.5(eslint@10.4.1(jiti@2.7.0))
@@ -16682,7 +16682,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@10.4.1(jiti@2.7.0)):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
@@ -16697,14 +16697,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.13.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1)(eslint@10.4.1(jiti@2.7.0)):
+  eslint-module-utils@2.13.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3)
       eslint: 10.4.1(jiti@2.7.0)
       eslint-import-resolver-node: 0.3.10
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@10.4.1(jiti@2.7.0))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0))
     transitivePeerDependencies:
       - supports-color
 
@@ -16719,7 +16719,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 10.4.1(jiti@2.7.0)
       eslint-import-resolver-node: 0.3.10
-      eslint-module-utils: 2.13.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1)(eslint@10.4.1(jiti@2.7.0))
+      eslint-module-utils: 2.13.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0))
       hasown: 2.0.4
       is-core-module: 2.16.2
       is-glob: 4.0.3
