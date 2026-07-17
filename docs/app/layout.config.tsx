@@ -69,7 +69,6 @@ export const baseOptions: BaseLayoutProps = {
           items={[
             { type: 'header', text: 'JavaScript API' },
             { text: 'create', url: '/docs/api-reference/javascript/create' },
-            { text: 'variants', url: '/docs/api-reference/javascript/variants' },
             { text: 'createTheme', url: '/docs/api-reference/javascript/createTheme' },
             { text: 'createStatic', url: '/docs/api-reference/javascript/createStatic' },
             { text: 'keyframes', url: '/docs/api-reference/javascript/keyframes' },
