@@ -1,5 +1,13 @@
 # @plumeria/postcss-plugin
 
+## 16.2.8
+
+### Patch Changes
+
+- 0906bc9: Bump version to 16.2.8 (@rust-gear/glob to 1.1.0)
+- Updated dependencies [0906bc9]
+  - @plumeria/compiler@16.2.8
+
 ## 16.2.7
 
 ### Patch Changes

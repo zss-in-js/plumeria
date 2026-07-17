@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.2.8
+
+### Patch Changes
+
+- 0906bc9: Update @rust-gear/glob to v1.1.0
+
 ## 16.2.7
 
 ### Patch Changes
