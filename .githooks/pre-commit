@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+
+# Check staged JS/TS files with Prettier. Formatting is never done automatically
+# here: a hook that rewrites files would commit contents the author never saw.
+staged=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(js|ts)$' || true)
+
+[ -z "$staged" ] && exit 0
+
+# shellcheck disable=SC2086
+if ! echo "$staged" | xargs pnpm exec prettier --check --ignore-unknown; then
+  cat <<'EOF'
+
+✖ Prettier check failed. 
+  Please run the following command before committing:
+
+      pnpm prettier && git add -u
+
+EOF
+  exit 1
+fi
