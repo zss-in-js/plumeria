@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 16.2.9
+
+### Patch Changes
+
+- e71ab6f: Update npm core README.md
+
 ## 16.2.8
 
 ### Patch Changes

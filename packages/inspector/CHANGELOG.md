@@ -1,5 +1,13 @@
 # @plumeria/inspector
 
+## 16.2.9
+
+### Patch Changes
+
+- e71ab6f: Bump version to 16.2.9 (Update core README.md)
+- Updated dependencies [e71ab6f]
+  - @plumeria/headlessui@16.2.9
+
 ## 16.2.8
 
 ### Patch Changes
