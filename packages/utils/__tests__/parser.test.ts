@@ -2114,6 +2114,148 @@ describe('parser', () => {
       const result = scanAll();
       expect(result).toBeDefined();
     });
+
+    it('should remove a deleted file hash-table entry and its now-orphaned Object-table entry', () => {
+      const fileX = path.resolve(process.cwd(), 'test/deleted-owner.ts');
+      mockedRs.globSync.mockReturnValue([fileX] as any);
+      mockedFs.statSync.mockReturnValue({
+        mtimeMs: 1,
+        isDirectory: () => false,
+        isFile: () => true,
+      } as any);
+      mockedFs.readFileSync.mockReturnValue(`
+        import * as css from "@plumeria/core";
+        export const spin = css.keyframes({ from: { opacity: 0.42 }, to: { opacity: 0.99 } });
+      `);
+
+      const res1 = scanAll();
+      const expectedObj = { from: { opacity: 0.42 }, to: { opacity: 0.99 } };
+      const expectedHash = genBase36Hash(expectedObj, 1, 8);
+      expect(res1.keyframesHashTable[`${fileX}-spin`]).toBe(expectedHash);
+      expect(res1.keyframesObjectTable[expectedHash]).toEqual(expectedObj);
+
+      // fileX is deleted: no longer present in the next glob result
+      mockedRs.globSync.mockReturnValue([] as any);
+      const res2 = scanAll();
+      expect(res2.keyframesHashTable[`${fileX}-spin`]).toBeUndefined();
+      expect(res2.keyframesObjectTable[expectedHash]).toBeUndefined();
+    });
+
+    it('should not re-read or re-parse an unchanged file when a new file is added to the project', () => {
+      const fileA = path.resolve(process.cwd(), 'test/stable-file.ts');
+      const fileB = path.resolve(process.cwd(), 'test/newly-added-file.ts');
+      const sourceA =
+        'import * as css from "@plumeria/core"; export const a = css.createStatic({ color: "teal" });';
+      const sourceB =
+        'import * as css from "@plumeria/core"; export const b = css.createStatic({ color: "maroon" });';
+
+      mockedRs.globSync.mockReturnValue([fileA] as any);
+      mockedFs.statSync.mockImplementation(((p: string) => {
+        if (p === fileA)
+          return {
+            mtimeMs: 1,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        return { isDirectory: () => false, isFile: () => false } as any;
+      }) as any);
+      mockedFs.readFileSync.mockImplementation(((p: string) => {
+        if (p === fileA) return sourceA;
+        return '';
+      }) as any);
+
+      scanAll();
+      const readCallsAfterFirstRun = mockedFs.readFileSync.mock.calls.filter(
+        ([p]) => p === fileA,
+      ).length;
+      expect(readCallsAfterFirstRun).toBe(1);
+
+      // fileB is newly added; fileA's mtime is unchanged
+      mockedRs.globSync.mockReturnValue([fileA, fileB] as any);
+      mockedFs.statSync.mockImplementation(((p: string) => {
+        if (p === fileA)
+          return {
+            mtimeMs: 1,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileB)
+          return {
+            mtimeMs: 1,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        return { isDirectory: () => false, isFile: () => false } as any;
+      }) as any);
+      mockedFs.readFileSync.mockImplementation(((p: string) => {
+        if (p === fileA) return sourceA;
+        if (p === fileB) return sourceB;
+        return '';
+      }) as any);
+
+      const result = scanAll();
+      const readCallsAfterSecondRun = mockedFs.readFileSync.mock.calls.filter(
+        ([p]) => p === fileA,
+      ).length;
+      expect(readCallsAfterSecondRun).toBe(readCallsAfterFirstRun);
+      expect(result.createStaticHashTable[`${fileA}-a`]).toBeDefined();
+      expect(result.createStaticHashTable[`${fileB}-b`]).toBeDefined();
+    });
+
+    it('should keep a shared Object-table entry intact for one file after only the other sharing file changes', () => {
+      const fileA = path.resolve(process.cwd(), 'test/shared-hash-a.ts');
+      const fileB = path.resolve(process.cwd(), 'test/shared-hash-b.ts');
+      const sharedSource =
+        'import * as css from "@plumeria/core"; export const shared = css.create({ box: { padding: 42 } });';
+
+      mockedRs.globSync.mockReturnValue([fileA, fileB] as any);
+      mockedFs.statSync.mockImplementation(((p: string) => {
+        if (p === fileA || p === fileB)
+          return {
+            mtimeMs: 1,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        return { isDirectory: () => false, isFile: () => false } as any;
+      }) as any);
+      mockedFs.readFileSync.mockImplementation(((p: string) => {
+        if (p === fileA || p === fileB) return sharedSource;
+        return '';
+      }) as any);
+
+      const res1 = scanAll();
+      const hashA = res1.createHashTable[`${fileA}-shared`];
+      const hashB = res1.createHashTable[`${fileB}-shared`];
+      expect(hashA).toBe(hashB);
+      expect(res1.createObjectTable[hashA]).toEqual({ box: { padding: 42 } });
+
+      // fileA changes to different content; fileB is untouched
+      mockedFs.statSync.mockImplementation(((p: string) => {
+        if (p === fileA)
+          return {
+            mtimeMs: 2,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        if (p === fileB)
+          return {
+            mtimeMs: 1,
+            isDirectory: () => false,
+            isFile: () => true,
+          } as any;
+        return { isDirectory: () => false, isFile: () => false } as any;
+      }) as any);
+      mockedFs.readFileSync.mockImplementation(((p: string) => {
+        if (p === fileA)
+          return 'import * as css from "@plumeria/core"; export const shared = css.create({ box: { padding: 99 } });';
+        if (p === fileB) return sharedSource;
+        return '';
+      }) as any);
+
+      const res2 = scanAll();
+      expect(res2.createHashTable[`${fileB}-shared`]).toBe(hashB);
+      expect(res2.createObjectTable[hashB]).toEqual({ box: { padding: 42 } });
+    });
   });
 });
 
@@ -2122,6 +2264,23 @@ describe('extractOndemandStyles (integration)', () => {
     jest.clearAllMocks();
     mockedRs.globSync.mockReturnValue([]);
     tables = scanAll();
+
+    // scanAll() now returns the same persistent, mutated-in-place tables
+    // object across calls (rather than a fresh object per call), so every
+    // sub-table must be reset here to keep each test in this block isolated
+    // from whatever earlier tests wrote directly onto `tables`.
+    tables.staticTable = {};
+    tables.keyframesHashTable = {};
+    tables.viewTransitionHashTable = {};
+    tables.createThemeHashTable = {};
+    tables.createHashTable = {};
+    tables.createObjectTable = {};
+    tables.createAtomicMapTable = {};
+    tables.variantsHashTable = {};
+    tables.variantsObjectTable = {};
+    tables.createStaticHashTable = {};
+    tables.createStaticObjectTable = {};
+    tables.componentPropsTable = {};
 
     tables.keyframesObjectTable = {
       abc: {
