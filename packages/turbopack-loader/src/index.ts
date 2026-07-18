@@ -55,7 +55,7 @@ import type {
   CreateStaticHashTable,
 } from '@plumeria/utils';
 import { splitCssRules } from './split-css-rules';
-import { acquireLockSync, releaseLockSync } from './file-lock';
+import { acquireLock, releaseLockSync } from './file-lock';
 
 type AtomicMap = Record<string, string>;
 type CreateStyleValue = {
@@ -2291,7 +2291,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
     if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
       const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
-      acquireLockSync(LOCK_DIR_PATH);
+      await acquireLock(LOCK_DIR_PATH);
 
       try {
         let currentCss = '';
