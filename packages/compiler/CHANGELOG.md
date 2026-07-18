@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 16.2.10
+
+### Patch Changes
+
+- 8a93dce: Bump version to 16.2.10 (improve dev mode Incremental generation)
+- Updated dependencies [8a93dce]
+  - @plumeria/utils@16.2.10
+
 ## 16.2.9
 
 ### Patch Changes

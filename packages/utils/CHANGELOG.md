@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.2.10
+
+### Patch Changes
+
+- 8a93dce: Fix: incremental generation HMR and initial startup in dev mode
+
 ## 16.2.9
 
 ### Patch Changes
