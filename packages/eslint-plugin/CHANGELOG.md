@@ -1,3 +1,9 @@
+## 16.2.10
+
+### Patch Changes
+
+- 8a93dce: Bump version to 16.2.10 (improve dev mode Incremental generation)
+
 ## 16.2.9
 
 ### Patch Changes

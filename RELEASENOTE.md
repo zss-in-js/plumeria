@@ -1,5 +1,10 @@
 # Release Notes
 
+## 16.2.10 (Jul 18, 2026)
+
+- Refactor: improve acquireLock (turbopack-loader)
+- Fix: incremental generation HMR and initial startup in dev mode
+
 ## 16.2.9 (Jul 17, 2026)
 
 - Update npm core README.md
