@@ -1066,30 +1066,187 @@ function updateDependencyEdges(
   }
 }
 
-let globalAgregatedTables: Tables | null = null;
+const globalAgregatedTables: Tables = {
+  staticTable: {},
+  keyframesHashTable: {},
+  keyframesObjectTable: {},
+  viewTransitionHashTable: {},
+  viewTransitionObjectTable: {},
+  createThemeObjectTable: {},
+  createThemeSelectorTable: {},
+  createHashTable: {},
+  createObjectTable: {},
+  createAtomicMapTable: {},
+  variantsHashTable: {},
+  variantsObjectTable: {},
+  createThemeHashTable: {},
+  createStaticHashTable: {},
+  createStaticObjectTable: {},
+  componentPropsTable: {},
+};
+let hasComputedOnce = false;
+
+// Content-hash-keyed "Object" tables (keyframesObjectTable, createObjectTable,
+// etc.) have keys derived purely from style content, not from the file that
+// wrote them, so two files can legitimately share one entry. Reference-count
+// each entry by contributing file so it can be safely removed once its last
+// owning file is invalidated/deleted, without disturbing an entry another
+// live file still relies on.
+const objectTableOwners = new Map<string, Set<string>>();
+
+function registerObjectOwner(
+  tableName: string,
+  hash: string,
+  filePath: string,
+) {
+  const key = `${tableName}:${hash}`;
+  let owners = objectTableOwners.get(key);
+  if (!owners) {
+    owners = new Set();
+    objectTableOwners.set(key, owners);
+  }
+  owners.add(filePath);
+}
+
+function releaseObjectOwner(
+  tableName: string,
+  hash: string,
+  filePath: string,
+  table: Record<string, unknown>,
+) {
+  const key = `${tableName}:${hash}`;
+  const owners = objectTableOwners.get(key);
+  if (!owners) return;
+  owners.delete(filePath);
+  if (owners.size === 0) {
+    objectTableOwners.delete(key);
+    delete table[hash];
+  }
+}
+
+// Removes one file's previously-recorded contributions from the persistent
+// aggregated tables. Must be called with that file's OLD fileCache entry,
+// and BEFORE that entry is overwritten or deleted, since the composite keys
+// to remove are derived from it.
+function stripFileContributions(filePath: string, cached: CachedData) {
+  if (!cached.hasCssUsage) return;
+
+  const localTables = globalAgregatedTables;
+  for (const key of Object.keys(cached.staticTable)) {
+    delete localTables.staticTable[`${filePath}-${key}`];
+  }
+  for (const key of Object.keys(cached.keyframesHashTable)) {
+    delete localTables.keyframesHashTable[`${filePath}-${key}`];
+  }
+  for (const key of Object.keys(cached.viewTransitionHashTable)) {
+    delete localTables.viewTransitionHashTable[`${filePath}-${key}`];
+  }
+  for (const key of Object.keys(cached.createThemeHashTable)) {
+    delete localTables.createThemeHashTable[`${filePath}-${key}`];
+  }
+  for (const key of Object.keys(cached.createStaticHashTable)) {
+    delete localTables.createStaticHashTable[`${filePath}-${key}`];
+  }
+  for (const key of Object.keys(cached.createHashTable)) {
+    delete localTables.createHashTable[`${filePath}-${key}`];
+  }
+  for (const key of Object.keys(cached.variantsHashTable)) {
+    delete localTables.variantsHashTable[`${filePath}-${key}`];
+  }
+
+  for (const key of Object.keys(cached.createStaticObjectTable)) {
+    releaseObjectOwner(
+      'createStaticObjectTable',
+      key,
+      filePath,
+      localTables.createStaticObjectTable,
+    );
+  }
+  for (const key of Object.keys(cached.keyframesObjectTable)) {
+    releaseObjectOwner(
+      'keyframesObjectTable',
+      key,
+      filePath,
+      localTables.keyframesObjectTable,
+    );
+  }
+  for (const key of Object.keys(cached.viewTransitionObjectTable)) {
+    releaseObjectOwner(
+      'viewTransitionObjectTable',
+      key,
+      filePath,
+      localTables.viewTransitionObjectTable,
+    );
+  }
+  for (const key of Object.keys(cached.createThemeObjectTable)) {
+    releaseObjectOwner(
+      'createThemeObjectTable',
+      key,
+      filePath,
+      localTables.createThemeObjectTable,
+    );
+  }
+  for (const key of Object.keys(cached.createThemeSelectorTable)) {
+    releaseObjectOwner(
+      'createThemeSelectorTable',
+      key,
+      filePath,
+      localTables.createThemeSelectorTable,
+    );
+  }
+  for (const key of Object.keys(cached.createObjectTable)) {
+    releaseObjectOwner(
+      'createObjectTable',
+      key,
+      filePath,
+      localTables.createObjectTable,
+    );
+  }
+  for (const key of Object.keys(cached.createAtomicMapTable)) {
+    releaseObjectOwner(
+      'createAtomicMapTable',
+      key,
+      filePath,
+      localTables.createAtomicMapTable,
+    );
+  }
+  for (const key of Object.keys(cached.variantsObjectTable)) {
+    releaseObjectOwner(
+      'variantsObjectTable',
+      key,
+      filePath,
+      localTables.variantsObjectTable,
+    );
+  }
+
+  if (cached.componentPropsTable) {
+    const table = localTables.componentPropsTable!;
+    for (const compKey of Object.keys(cached.componentPropsTable)) {
+      const propTable = table[compKey];
+      if (!propTable) continue;
+      for (const propName of Object.keys(cached.componentPropsTable[compKey])) {
+        const entries = propTable[propName];
+        if (!entries) continue;
+        const filtered = entries.filter((x) => x.filePath !== filePath);
+        if (filtered.length > 0) {
+          propTable[propName] = filtered;
+        } else {
+          delete propTable[propName];
+        }
+      }
+      if (Object.keys(propTable).length === 0) {
+        delete table[compKey];
+      }
+    }
+  }
+}
+
 export function scanAll(): Tables {
-  if (globalAgregatedTables && process.env.NODE_ENV === 'production') {
+  if (hasComputedOnce && process.env.NODE_ENV === 'production') {
     return globalAgregatedTables;
   }
 
-  const localTables: Tables = {
-    staticTable: {},
-    keyframesHashTable: {},
-    keyframesObjectTable: {},
-    viewTransitionHashTable: {},
-    viewTransitionObjectTable: {},
-    createThemeObjectTable: {},
-    createThemeSelectorTable: {},
-    createHashTable: {},
-    createObjectTable: {},
-    createAtomicMapTable: {},
-    variantsHashTable: {},
-    variantsObjectTable: {},
-    createThemeHashTable: {},
-    createStaticHashTable: {},
-    createStaticObjectTable: {},
-    componentPropsTable: {},
-  };
+  const localTables = globalAgregatedTables;
 
   const files = rs.globSync(PATTERN_PATH, GLOB_OPTIONS);
   const currentFiles = new Set(files);
@@ -1137,122 +1294,26 @@ export function scanAll(): Tables {
   }
 
   // Return the most recent aggregated data immediately if there are no changes
-  if (invalidated.size === 0 && globalAgregatedTables) {
-    return globalAgregatedTables;
+  if (invalidated.size === 0 && hasComputedOnce) {
+    return localTables;
   }
 
-  // Clean up cache and dependency edges for deleted files
+  // Strip deleted files' stale contributions, then clean up cache/dependency edges
   for (const fp of deletedFiles) {
-    updateDependencyEdges(fp, fileCache[fp]?.dependencies, undefined);
+    const cached = fileCache[fp];
+    if (cached) stripFileContributions(fp, cached);
+    updateDependencyEdges(fp, cached?.dependencies, undefined);
     delete fileCache[fp];
   }
 
-  // Bulk-merge data from valid caches (combining into a fresh object on every build)
-  const uncachedFiles: string[] = [];
-  for (const filePath of files) {
-    try {
-      const stats = fs.statSync(filePath);
-      const cached = fileCache[filePath];
-
-      if (
-        cached &&
-        cached.mtimeMs === stats.mtimeMs &&
-        !invalidated.has(filePath)
-      ) {
-        if (cached.hasCssUsage) {
-          for (const key of Object.keys(cached.staticTable)) {
-            localTables.staticTable[`${filePath}-${key}`] =
-              cached.staticTable[key];
-          }
-          for (const key of Object.keys(cached.keyframesHashTable)) {
-            localTables.keyframesHashTable[`${filePath}-${key}`] =
-              cached.keyframesHashTable[key];
-          }
-          for (const key of Object.keys(cached.keyframesObjectTable)) {
-            localTables.keyframesObjectTable[key] =
-              cached.keyframesObjectTable[key];
-          }
-          for (const key of Object.keys(cached.viewTransitionHashTable)) {
-            localTables.viewTransitionHashTable[`${filePath}-${key}`] =
-              cached.viewTransitionHashTable[key];
-          }
-          for (const key of Object.keys(cached.viewTransitionObjectTable)) {
-            localTables.viewTransitionObjectTable[key] =
-              cached.viewTransitionObjectTable[key];
-          }
-          for (const key of Object.keys(cached.createThemeHashTable)) {
-            localTables.createThemeHashTable[`${filePath}-${key}`] =
-              cached.createThemeHashTable[key];
-          }
-          for (const key of Object.keys(cached.createThemeObjectTable)) {
-            localTables.createThemeObjectTable[key] =
-              cached.createThemeObjectTable[key];
-          }
-          for (const key of Object.keys(cached.createThemeSelectorTable)) {
-            localTables.createThemeSelectorTable[key] =
-              cached.createThemeSelectorTable[key];
-          }
-          for (const key of Object.keys(cached.createStaticHashTable)) {
-            localTables.createStaticHashTable[`${filePath}-${key}`] =
-              cached.createStaticHashTable[key];
-          }
-          for (const key of Object.keys(cached.createStaticObjectTable)) {
-            localTables.createStaticObjectTable[key] =
-              cached.createStaticObjectTable[key];
-          }
-          for (const key of Object.keys(cached.createHashTable)) {
-            localTables.createHashTable[`${filePath}-${key}`] =
-              cached.createHashTable[key];
-          }
-          for (const key of Object.keys(cached.createObjectTable)) {
-            localTables.createObjectTable[key] = cached.createObjectTable[key];
-          }
-          for (const key of Object.keys(cached.createAtomicMapTable)) {
-            localTables.createAtomicMapTable[key] =
-              cached.createAtomicMapTable[key];
-          }
-          for (const key of Object.keys(cached.variantsHashTable)) {
-            localTables.variantsHashTable[`${filePath}-${key}`] =
-              cached.variantsHashTable[key];
-          }
-          for (const key of Object.keys(cached.variantsObjectTable)) {
-            localTables.variantsObjectTable[key] =
-              cached.variantsObjectTable[key];
-          }
-          if (cached.componentPropsTable) {
-            const table = localTables.componentPropsTable!;
-            for (const compKey of Object.keys(cached.componentPropsTable)) {
-              if (!table[compKey]) {
-                table[compKey] = {};
-              }
-              for (const propName of Object.keys(
-                cached.componentPropsTable[compKey],
-              )) {
-                if (!table[compKey][propName]) {
-                  table[compKey][propName] = [];
-                }
-                const cachedEntries =
-                  cached.componentPropsTable[compKey][propName];
-                for (const entry of cachedEntries) {
-                  const exists = table[compKey][propName].some(
-                    (x) =>
-                      x.spanStart === entry.spanStart &&
-                      x.filePath === entry.filePath,
-                  );
-                  if (!exists) {
-                    table[compKey][propName].push(entry);
-                  }
-                }
-              }
-            }
-          }
-        }
-      } else {
-        uncachedFiles.push(filePath);
-      }
-    } catch (e) {
-      uncachedFiles.push(filePath);
-    }
+  // Only invalidated files need work. Their stale contributions are stripped
+  // BEFORE reparsing below — cross-file resolution during the 2-pass scan must
+  // not see a changed file's old data. Files whose cache is still valid are
+  // left untouched in `localTables`: no per-file copy work at all.
+  const uncachedFiles = files.filter((f) => invalidated.has(f));
+  for (const filePath of uncachedFiles) {
+    const cached = fileCache[filePath];
+    if (cached) stripFileContributions(filePath, cached);
   }
 
   // Parsing of uncached or modified files
@@ -1535,18 +1596,29 @@ export function scanAll(): Tables {
 
                   localTables.createStaticObjectTable[hash] = obj;
                   localCreateStaticObjectTable[hash] = obj;
+                  registerObjectOwner(
+                    'createStaticObjectTable',
+                    hash,
+                    filePath,
+                  );
                 } else if (method === 'keyframes') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localKeyframesHashTable[name] = hash;
                   localTables.keyframesHashTable[uniqueKey] = hash;
                   localTables.keyframesObjectTable[hash] = obj;
                   localKeyframesObjectTable[hash] = obj;
+                  registerObjectOwner('keyframesObjectTable', hash, filePath);
                 } else if (method === 'viewTransition') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localViewTransitionHashTable[name] = hash;
                   localTables.viewTransitionHashTable[uniqueKey] = hash;
                   localTables.viewTransitionObjectTable[hash] = obj;
                   localViewTransitionObjectTable[hash] = obj;
+                  registerObjectOwner(
+                    'viewTransitionObjectTable',
+                    hash,
+                    filePath,
+                  );
                 } else if (method === 'createTheme') {
                   let selector = '';
                   const selectorExpr = init.arguments[0].expression;
@@ -1556,10 +1628,16 @@ export function scanAll(): Tables {
                   const hash = genBase36Hash(obj, 1, 8);
                   localTables.createThemeObjectTable[hash] = obj;
                   localCreateThemeObjectTable[hash] = obj;
+                  registerObjectOwner('createThemeObjectTable', hash, filePath);
                   localCreateThemeHashTable[name] = hash;
                   localTables.createThemeHashTable[uniqueKey] = hash;
                   localTables.createThemeSelectorTable[hash] = selector;
-                  localTables.createThemeSelectorTable[hash] = selector;
+                  localCreateThemeSelectorTable[hash] = selector;
+                  registerObjectOwner(
+                    'createThemeSelectorTable',
+                    hash,
+                    filePath,
+                  );
                   const hashMap: Record<string, any> = {};
                   for (const [key, value] of Object.entries(obj)) {
                     const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
@@ -1568,12 +1646,14 @@ export function scanAll(): Tables {
                   }
                   localCreateAtomicMapTable[hash] = hashMap;
                   localTables.createAtomicMapTable[hash] = hashMap;
+                  registerObjectOwner('createAtomicMapTable', hash, filePath);
                 } else if (method === 'create') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localCreateHashTable[name] = hash;
                   localTables.createHashTable[uniqueKey] = hash;
                   localTables.createObjectTable[hash] = obj;
                   localCreateObjectTable[hash] = obj;
+                  registerObjectOwner('createObjectTable', hash, filePath);
 
                   const hashMap: Record<string, Record<string, string>> = {};
 
@@ -1585,12 +1665,14 @@ export function scanAll(): Tables {
                   });
                   localCreateAtomicMapTable[hash] = hashMap;
                   localTables.createAtomicMapTable[hash] = hashMap;
+                  registerObjectOwner('createAtomicMapTable', hash, filePath);
                 } else if (method === 'variants') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localVariantsHashTable[name] = hash;
                   localTables.variantsHashTable[uniqueKey] = hash;
                   localTables.variantsObjectTable[hash] = obj;
                   localVariantsObjectTable[hash] = obj;
+                  registerObjectOwner('variantsObjectTable', hash, filePath);
                 }
               }
             }
@@ -1828,7 +1910,7 @@ export function scanAll(): Tables {
     }
   }
 
-  globalAgregatedTables = localTables;
+  hasComputedOnce = true;
   return localTables;
 }
 
