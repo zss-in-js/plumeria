@@ -1,16 +1,22 @@
 import * as fs from 'fs';
 
-export function acquireLockSync(lockDir: string, delayMs = 2) {
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+export async function acquireLock(
+  lockDir: string,
+  delayMs = 2,
+  maxDelayMs = 50,
+) {
+  let delay = delayMs;
   while (true) {
     try {
       fs.mkdirSync(lockDir);
       return;
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
-        const start = Date.now();
-        while (Date.now() - start < delayMs) {
-          // waiting
-        }
+        await sleep(delay);
+        delay = Math.min(delay * 2, maxDelayMs);
         continue;
       }
       throw err;
