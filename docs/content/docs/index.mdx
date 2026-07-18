@@ -2,60 +2,17 @@
 title: 'Introduction'
 ---
 
----
+Plumeria is a compile-time CSS-in-JS library for React. You write style objects in TypeScript, and the compiler turns them into static atomic CSS — while removing every trace of the library from your JavaScript bundle. No runtime code ships, no styles are computed in the browser.
 
-## Abstraction layer for styling React components
-Unlike typical CSS-in-JS solutions that ship runtime code in the bundle, Plumeria operates entirely at compile time. It resolves styling purely through type definitions and plugins, with no JavaScript remaining at runtime.
+In notation:
 
 ```math
 \mathtt{Plumeria(Type)} \xrightarrow{\text{Compilation}} \mathtt{Static\ Atomic\ CSS}
 ```
 
-```json title="package.json"
-{
-  "name": "@plumeria/core",
-  "exports": {
-    ".": {
-      "types": "./lib/css.d.ts",
-    },
-  },
-}
-```
-
-Plumeria has no runtime evaluation. Except for dynamic styling with function keys and when receiving props for variants, styleName only resolves static styling.
-This guarantees that all APIs are compiled only into static class names and CSS.
-
-## Strictly no JavaScript
-
-Styling shouldn't require any runtime.
-By treating styles as **type schemas** instead of runtime objects:
-- No runtime bundle
-- No runtime evaluation
-- No runtime parsing
-- No runtime dependencies
-
-## The concept of Zero-Runtime
-A library that is entirely Zero-Runtime doesn't truly exist.
-Even pure CSS will experience a slight increase in compilation time due to the bundler's build pipeline.
-
-Zero-Runtime CSS-in-JS adds processing time for parsing and conversion. However, understanding and acknowledging these factors is often the basis for the concept of Zero-Runtime, which signifies that no runtime remains in the execution environment.
-
-
-## Abstracting Layer concept
-Because we had no performance concerns, we were able to dedicate a lot of resources to developing toolchains such as ESLint and Bundler.
-As a result, the **cognitive overhead** of style coding is structurally eliminated at the abstraction layer.
-
-Styles written in Plumeria remain as a higher-level abstraction layer and are safely removed from the output by the build plugin (output layer).
-This is achieved through a design that completely separates the abstraction layer and the output layer.
-As a result, style definitions do not remain as JavaScript at runtime; only CSS smaller than the definition is output.
-
 ## Usage
-In practice, this means styling becomes straightforward.  
-You define styles once, and everything else is handled by the compiler.
 
-
-Use `css.create()` to define an object as a style.
-At this point, the atomic hash is determined, and all that remains is to receive it via `styleName`.
+Styling is straightforward: define styles once with `css.create()`, and the compiler handles everything else. The atomic class names are determined at that point — all that remains is to attach them via the `styleName` prop.
 
 ```tsx
 import * as css from "@plumeria/core";
@@ -71,33 +28,73 @@ export const Footer = () => {
 };
 ```
 
-
-Compile to zero across file boundaries:
-"@plumeria/core" import is required for compilation.  
-Styles can be colocated with components or shared across files — 
-structure them to fit your project architecture.
+Styles compile to zero across file boundaries, too. You can colocate styles with components or share them across files — structure them to fit your project. The only requirement is that every file using Plumeria imports `@plumeria/core`, which is how the compiler finds it.
 
 ```tsx title="styles.ts"
-export const styles = css.create({...});
+import * as css from "@plumeria/core";
+
+export const styles = css.create({
+  common: {
+    color: "gray",
+  },
+});
 ```
 
 ```tsx title="Component.tsx"
 import "@plumeria/core";
-import { styles } from './styles';
+import { styles } from "./styles";
 
-styleName={styles.common}
+export const Component = () => {
+  return <p styleName={styles.common}>Shared style</p>;
+};
 ```
 
 ### Specificity
-`styleName` prop accepts ternary operators and conditional expressions, and the style properties on the right side always take precedence.
-For example, if `isActive` is true, the `color` of active will override the `color` of base.
+
+The `styleName` prop accepts arrays, ternaries, and conditional expressions. Merging follows one rule: **the right side wins**. If `isActive` is true, the properties of `active` override the properties of `base` — always.
+
 ```tsx title="Component.tsx"
 styleName={[styles.base, isActive && styles.active]}
 ```
-The cascade specificity problem is completely resolved by the compiler-controlled merging.
+
+Because the compiler controls the merge, the cascade specificity problem disappears entirely. Writing the merge as an operation, where $\oplus$ combines styles left to right:
 
 $$parse(A \oplus B \oplus C) \to \text{"classA classB classC"}$$
 
+## Types all the way down
+
+Styling shouldn't require a runtime. Plumeria treats styles as **type schemas** rather than runtime objects — in fact, the package's only entry point is a `.d.ts` file. There is no JavaScript to import:
+
+```json title="package.json"
+{
+  "name": "@plumeria/core",
+  "exports": {
+    ".": {
+      "types": "./lib/css.d.ts",
+    },
+  },
+}
+```
+
+Static styles resolve to class names entirely at compile time. The only dynamic pieces — function keys and variant props — compile down to CSS variables, so even they leave no JavaScript behind. Every API compiles to nothing but static class names and CSS:
+
+- No runtime bundle
+- No runtime evaluation
+- No runtime parsing
+- No runtime dependencies
+
+## What "zero-runtime" really means
+
+Strictly speaking, no styling solution is free. Even plain CSS adds a little build time as it moves through the bundler's pipeline, and zero-runtime CSS-in-JS adds parsing and transformation on top of that.
+
+"Zero-runtime" doesn't claim the cost vanishes — it claims the cost moves. All of the work happens at build time, and nothing remains in the execution environment. Plumeria embraces this definition fully: the browser only ever receives class names and CSS.
+
+## Separation of layers
+
+Plumeria is designed as two strictly separated layers. The **abstraction layer** is what you write: typed style definitions, colocated with your components. The **output layer** is what ships: plain atomic CSS. The build plugin removes the abstraction layer from the output completely, so style definitions never survive as JavaScript — only CSS, smaller than the definitions that produced it.
+
+Because nothing ships at runtime, there were no runtime performance trade-offs to manage — so that effort went into the toolchain instead: the ESLint plugin and the bundler integrations. The result is that the **cognitive overhead** of style coding is eliminated structurally, at the abstraction layer, rather than managed by convention.
+
 ---
 
-For details on integration with other APIs and bundlers, please refer to the [API reference](/docs/api-reference)・[Installation](/docs/getting-started/installation).
+To learn what motivated this design, read [Why Plumeria?](/docs/why-plumeria). For integration with bundlers and the full API, see the [API reference](/docs/api-reference) and [Installation](/docs/getting-started/installation).
