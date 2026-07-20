@@ -34,6 +34,7 @@ import {
   collectLocalConsts,
   objectExpressionToObject,
   t,
+  getRootIdentifier,
   extractOndemandStyles,
   deepMerge,
   scanAll,
@@ -203,6 +204,32 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         const err = new Error(`${message}${suffix}`);
         err.stack = err.message;
         throw err;
+      };
+
+      const assertResolvable = (node: HasSpan): void => {
+        if (t.isIdentifier(node) && (node as Identifier).value === 'undefined')
+          return;
+        if (
+          t.isMemberExpression(node) ||
+          t.isIdentifier(node) ||
+          t.isCallExpression(node) ||
+          t.isArrowFunctionExpression(node) ||
+          t.isFunctionExpression(node)
+        ) {
+          const rootId = getRootIdentifier(node);
+          const isPlumeriaStyle =
+            rootId &&
+            ((localCreateStyles[rootId] !== undefined &&
+              localCreateStyles[rootId].type !== 'constant') ||
+              mergedCreateTable[rootId] !== undefined ||
+              mergedVariantsTable[rootId] !== undefined);
+          if (!isPlumeriaStyle) {
+            throwCompilationError(
+              `Plumeria: Dynamic or unresolvable style object "${getSource(node)}" is not supported.`,
+              node,
+            );
+          }
+        }
       };
 
       for (const node of ast.body) {
@@ -1083,25 +1110,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         let baseStyle: CSSObject = {};
         let isOptimizable = true;
 
-        const getRootIdentifier = (node: Expression): string | null => {
-          if (t.isIdentifier(node)) {
-            return node.value;
-          }
-          if (t.isMemberExpression(node)) {
-            return getRootIdentifier(node.object);
-          }
-          if (t.isCallExpression(node)) {
-            const callee = node.callee;
-            if (callee.type !== 'Super' && callee.type !== 'Import') {
-              return getRootIdentifier(callee as Expression);
-            }
-          }
-          if (node.type === 'ParenthesisExpression') {
-            return getRootIdentifier(node.expression);
-          }
-          return null;
-        };
-
         const resolveCreateObject = (varName: string): CSSObject | null => {
           const localStyle = localCreateStyles[varName];
           if (localStyle?.type === 'create') return localStyle.obj;
@@ -1171,6 +1179,8 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           } else if (node.type === 'ParenthesisExpression') {
             return collectConditions(node.expression, currentTestStrings);
           }
+
+          assertResolvable(node as HasSpan);
           return false;
         };
 
@@ -1412,22 +1422,8 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
           const handled = collectConditions(expr);
           if (handled) continue;
-          if (t.isMemberExpression(expr) || t.isIdentifier(expr)) {
-            const rootId = getRootIdentifier(expr);
-            const isPlumeriaStyle =
-              rootId &&
-              ((localCreateStyles[rootId] !== undefined &&
-                localCreateStyles[rootId].type !== 'constant') ||
-                mergedCreateTable[rootId] !== undefined ||
-                mergedVariantsTable[rootId] !== undefined);
 
-            if (!isPlumeriaStyle) {
-              throwCompilationError(
-                `Plumeria: Dynamic or unresolvable style object "${getSource(expr)}" is not supported.`,
-                expr,
-              );
-            }
-          }
+          assertResolvable(expr as HasSpan);
 
           isOptimizable = false;
           break;
