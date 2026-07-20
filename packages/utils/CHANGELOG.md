@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.2.11
+
+### Patch Changes
+
+- 2f08d34: Fix: extend overrideLonghand scope to pseudo-selectors
+
 ## 16.2.10
 
 ### Patch Changes
