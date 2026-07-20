@@ -27,6 +27,7 @@ import {
   collectLocalConsts,
   objectExpressionToObject,
   t,
+  getRootIdentifier,
   extractOndemandStyles,
   deepMerge,
   scanAll,
@@ -534,6 +535,30 @@ export function compileCSS(options: CompilerOptions) {
           )
           .toString('utf-8');
 
+      const assertResolvable = (node: Expression): void => {
+        if (t.isIdentifier(node) && (node as Identifier).value === 'undefined')
+          return;
+        if (
+          t.isMemberExpression(node) ||
+          t.isIdentifier(node) ||
+          t.isCallExpression(node) ||
+          t.isArrowFunctionExpression(node) ||
+          t.isFunctionExpression(node)
+        ) {
+          const rootId = getRootIdentifier(node);
+          const isPlumeriaStyle =
+            rootId &&
+            (ctx.localCreateStyles[rootId] !== undefined ||
+              ctx.mergedCreateTable[rootId] !== undefined ||
+              ctx.mergedVariantsTable[rootId] !== undefined);
+          if (!isPlumeriaStyle) {
+            throw new Error(
+              `[plumeria] Dynamic or unresolvable style object "${getSource(node)}" is not supported. (${path.basename(resourcePath)})`,
+            );
+          }
+        }
+      };
+
       const collectConditions = (
         node: Expression,
         currentTestStrings: string[] = [],
@@ -588,6 +613,8 @@ export function compileCSS(options: CompilerOptions) {
           }
           return true;
         }
+
+        assertResolvable(node);
         return false;
       };
 
@@ -830,6 +857,9 @@ export function compileCSS(options: CompilerOptions) {
         }
 
         if (collectConditions(arg.expression)) continue;
+
+        assertResolvable(expr);
+
         const extractedStyles = extractStylesFromExpression(
           arg.expression,
           ctx,
