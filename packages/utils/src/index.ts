@@ -13,6 +13,7 @@ export {
   collectLocalConsts,
   traverse,
   t,
+  getRootIdentifier,
   extractOndemandStyles,
   deepMerge,
   scanAll,
