@@ -20,6 +20,7 @@
     "@plumeria/no-unused-keys": "warn",
     "@plumeria/sort-properties": "warn",
     "@plumeria/format-properties": "warn",
-    "@plumeria/validate-values": "warn"
+    "@plumeria/validate-values": "warn",
+    "@plumeria/validate-pseudos": "error"
   }
 }
