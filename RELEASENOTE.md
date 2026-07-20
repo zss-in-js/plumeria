@@ -1,5 +1,10 @@
 # Release Notes
 
+## 16.2.12 (Jul 20, 2026)
+
+- Feat: export getRootIdentifier
+- Fix: throw an unknown function
+
 ## 16.2.11 (Jul 20, 2026)
 
 - Fix: extend overrideLonghand scope to pseudo-selectors
