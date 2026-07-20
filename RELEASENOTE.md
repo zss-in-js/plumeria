@@ -1,5 +1,10 @@
 # Release Notes
 
+## 16.2.11 (Jul 20, 2026)
+
+- Fix: extend overrideLonghand scope to pseudo-selectors
+- Fix: enable validate-pseudos rule for the plumerialint command
+
 ## 16.2.10 (Jul 18, 2026)
 
 - Refactor: improve acquireLock (turbopack-loader)
