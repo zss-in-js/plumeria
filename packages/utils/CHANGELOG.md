@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.2.12
+
+### Patch Changes
+
+- 8eb82a7: Feat: export getRootIdentifier
+
 ## 16.2.11
 
 ### Patch Changes
