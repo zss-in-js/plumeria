@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { source } from 'lib/source';
+import { source, blog } from 'lib/source';
 
 export const revalidate = false;
 
@@ -12,8 +12,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 1,
     },
+    {
+      url: url('/blog'),
+      changeFrequency: 'weekly',
+      priority: 0.5,
+    },
     ...(await Promise.all(
       source.getPages().map(async (page) => {
+        return {
+          url: url(page.url),
+          changeFrequency: 'weekly',
+          priority: 0.5,
+        } as MetadataRoute.Sitemap[number];
+      }),
+    )),
+    ...(await Promise.all(
+      blog.getPages().map(async (page) => {
         return {
           url: url(page.url),
           changeFrequency: 'weekly',
