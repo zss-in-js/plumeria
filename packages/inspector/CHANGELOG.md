@@ -1,5 +1,13 @@
 # @plumeria/inspector
 
+## 16.2.12
+
+### Patch Changes
+
+- 8eb82a7: Bump version to 16.2.12 (fix throw an unknown function)
+- Updated dependencies [8eb82a7]
+  - @plumeria/headlessui@16.2.12
+
 ## 16.2.11
 
 ### Patch Changes
