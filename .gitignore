@@ -12,4 +12,4 @@ package-lock.json
 coverage
 test-results
 playwright-report
-
+AGENTS.md
