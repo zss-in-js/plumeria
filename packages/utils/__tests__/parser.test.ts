@@ -1,6 +1,7 @@
 import {
   objectExpressionToObject,
   t,
+  getRootIdentifier,
   traverse,
   collectLocalConsts,
   scanAll,
@@ -28,6 +29,25 @@ const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedRs = rs as jest.Mocked<typeof rs>;
 
 let tables: any;
+
+const expr = (code: string) =>
+  (parseSync(`const _ = ${code};`, { syntax: 'typescript' }).body[0] as any)
+    .declarations[0].init;
+
+describe('getRootIdentifier', () => {
+  it.each([
+    ['a', 'a'],
+    ['a.b.c', 'a'],
+    ['f()', 'f'],
+    ['a.b()', 'a'],
+    ['(a.b)', 'a'],
+    ['styles[key]', 'styles'],
+    ['import("x")', null], // callee.type === 'Import'
+    ['42', null],
+  ])('%s -> %s', (code, expected) => {
+    expect(getRootIdentifier(expr(code))).toBe(expected);
+  });
+});
 
 describe('parser', () => {
   let currentTime = Date.now();
