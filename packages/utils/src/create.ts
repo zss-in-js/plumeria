@@ -19,8 +19,8 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
   const nonFlat: CSSProperties = {};
   const notNormalize = ':not(#\\#)';
 
-  splitAtomicAndNested(styleRule, flat, nonFlat);
-  const finalFlat = overrideLonghand(flat);
+  splitAtomicAndNested(overrideLonghand(styleRule), flat, nonFlat);
+  const finalFlat = flat;
 
   const records: StyleRecord[] = [];
 
