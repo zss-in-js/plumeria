@@ -46,6 +46,8 @@ import type {
   ImportSpecifier,
   HasSpan,
   JSXExpression,
+  ArrowFunctionExpression,
+  FunctionExpression,
 } from '@swc/core';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -61,6 +63,25 @@ import { resolveImportPath } from './resolver';
 const getMarkerVar = (id: string, pseudo: string): string => {
   const state = pseudo.replace(/:/g, '');
   return `--${id}-${state}`;
+};
+
+export const getRootIdentifier = (node: Expression): string | null => {
+  if (t.isIdentifier(node)) {
+    return node.value;
+  }
+  if (t.isMemberExpression(node)) {
+    return getRootIdentifier(node.object);
+  }
+  if (t.isCallExpression(node)) {
+    const callee = node.callee;
+    if (callee.type !== 'Super' && callee.type !== 'Import') {
+      return getRootIdentifier(callee as Expression);
+    }
+  }
+  if (node.type === 'ParenthesisExpression') {
+    return getRootIdentifier(node.expression);
+  }
+  return null;
 };
 
 export const t = {
@@ -100,6 +121,10 @@ export const t = {
   isNullLiteral: (node: any): boolean => node?.type === 'NullLiteral',
   isConditionalExpression: (node: any): node is ConditionalExpression =>
     node?.type === 'ConditionalExpression',
+  isArrowFunctionExpression: (node: any): node is ArrowFunctionExpression =>
+    node?.type === 'ArrowFunctionExpression',
+  isFunctionExpression: (node: any): node is FunctionExpression =>
+    node?.type === 'FunctionExpression',
 };
 
 export function traverse(
