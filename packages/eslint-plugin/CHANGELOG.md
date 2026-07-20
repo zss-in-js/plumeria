@@ -1,3 +1,9 @@
+## 16.2.11
+
+### Patch Changes
+
+- 2f08d34: Fix: enable validate-pseudos rule for the plumerialint command
+
 ## 16.2.10
 
 ### Patch Changes
