@@ -1,5 +1,16 @@
 # @plumeria/turbopack-loader
 
+## 16.4.0
+
+### Minor Changes
+
+- 9b6ad43: Bump version to 16.4.0 (update inspector)
+
+### Patch Changes
+
+- Updated dependencies [9b6ad43]
+  - @plumeria/utils@16.4.0
+
 ## 16.3.0
 
 ### Minor Changes

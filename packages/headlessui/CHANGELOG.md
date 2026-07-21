@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 16.4.0
+
+### Minor Changes
+
+- 9b6ad43: Bump version to 16.4.0 (update inspector)
+
 ## 16.3.0
 
 ### Minor Changes
