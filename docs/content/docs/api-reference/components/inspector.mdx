@@ -59,8 +59,6 @@ export default function Layout({ children }: { children: ReactNode }) {
 }
 ```
 
-Once rendered, the inspector is enabled by default in development environments (`process.env.NODE_ENV === 'development'`).
-
 ---
 
 ## Features
@@ -68,7 +66,7 @@ Once rendered, the inspector is enabled by default in development environments (
 - **Interactive Hover Overlay**: Hovering over elements displays a visual border highlight showing their target area.
 - **CSS Property Tooltip**: Shows the active CSS rules, classes, and properties injected by Plumeria for the hovered element.
 - **Target Freezing**: Press the `Shift` key to freeze/lock targeting onto the currently hovered element. This allows you to move your cursor into the inspector tooltip and scroll through rules. Press `Shift` again to unlock.
-- **Keyboard Shortcut**: Press `Alt + I` or `Cmd + I` (on macOS) to toggle the inspector on and off.
+- **Keyboard Shortcut**: Press `Cmd + I` / `Ctrl + I` to toggle the inspector on and off.
 - **Floating Badge Toggle**: A minimalist, semi-transparent badge in the bottom-right corner shows the inspector status and can be clicked to toggle it.
 
 ---
@@ -77,29 +75,30 @@ Once rendered, the inspector is enabled by default in development environments (
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `production` | `boolean` | `false` | If `true`, the inspector is enabled in production environments. Only takes effect when imported from `@plumeria/inspector/production` — see [Production Mode](#production-mode). |
 | `initial` | `boolean` | `false` | If `true`, the inspector starts toggled ON. If `false`, it starts toggled OFF. |
 
 ---
 
 ## Production Mode
 
-By default, the `Inspector` is stripped from production builds entirely. The main entry point resolves through the `production` export condition to a no-op module with no `'use client'` directive, so your bundler emits no client chunk for it at all — the inspector costs 0KB in production.
+By default, the `Inspector` imported from `@plumeria/inspector` is stripped from production builds entirely. The main entry point resolves through the `production` export condition to a no-op module, so your bundler emits no client chunk for it — costing 0KB in production.
 
-If you want the inspector accessible to users in production (for staging environments, demos, or public showcases), import from the `/production` subpath and pass the `production` prop:
+If you want the inspector accessible in production (for staging environments, demos, or public showcases), import from the `@plumeria/inspector/production` subpath instead:
 
 ```tsx
 import { Inspector } from '@plumeria/inspector/production';
 
-<Inspector production={true} />;
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <html>
+      <body>
+        <Inspector />
+        {children}
+      </body>
+    </html>
+  );
+}
 ```
-
-<Callout title="production prop and the main entry point">
-  Passing `production={true}` to the **main** entry point has no effect in a
-  production build. Export conditions are resolved when the module is loaded,
-  before any prop is read, so the no-op module is already in place. Use the
-  `/production` subpath instead.
-</Callout>
 
 ---
 
@@ -108,6 +107,6 @@ import { Inspector } from '@plumeria/inspector/production';
 The inspector is active right here on this documentation site! 
 
 To try it out:
-1. Click the **Inspector: ON** badge in the bottom-right corner, or press `Cmd + I` / `Alt + I`.
-2. Hover over any text, heading, or container on this page to see the outline and compiles rules.
+1. Click the **Inspector: ON** badge in the bottom-right corner, or press `Cmd + I` / `Ctrl + I`.
+2. Hover over any text, heading, or container on this page to see the outline and compiled rules.
 3. Press `Shift` to freeze the selection and explore the details in the tooltip.
