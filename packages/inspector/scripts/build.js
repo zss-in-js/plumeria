@@ -38,7 +38,20 @@ async function run() {
     ],
   });
 
-  // 2. Inline CSS
+  // 2. Build the production no-op entry.
+  // Built without the plumeria plugin so it emits no CSS of its own.
+  await esbuild.build({
+    entryPoints: ['src/index.noop.tsx'],
+    bundle: true,
+    outfile: 'dist/index.noop.js',
+    loader: {
+      '.tsx': 'tsx',
+      '.ts': 'ts',
+    },
+    format: 'esm',
+  });
+
+  // 3. Inline CSS
   const files = fs.readdirSync(distDir);
   const cssFile = files.find((f) => f.endsWith('.css'));
 
