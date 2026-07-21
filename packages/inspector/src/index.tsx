@@ -472,15 +472,6 @@ const DevInspector = ({ initial }: { initial: boolean }) => {
   );
 };
 
-export const Inspector = ({
-  production = false,
-  initial = false,
-}: {
-  production?: boolean;
-  initial?: boolean;
-}) => {
-  if (!production && process.env.NODE_ENV === 'production') {
-    return null;
-  }
+export const Inspector = ({ initial = false }: { initial?: boolean }) => {
   return <DevInspector initial={initial} />;
 };
