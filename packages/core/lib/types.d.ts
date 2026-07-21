@@ -48,9 +48,9 @@ type CSSProperties =
 
 type CreateStyleValue = CSSProperties | ((...args: any[]) => CSSProperties);
 
-const ClassNameTag: unique symbol;
+declare const ClassNameTag: unique symbol;
 
-type AtomicClassNameFor<out P extends string, out V> = string & {
+type AtomicClassNameFor<P extends string, V> = string & {
   readonly _ident: typeof ClassNameTag;
   readonly _key: P;
   readonly _value: V;
