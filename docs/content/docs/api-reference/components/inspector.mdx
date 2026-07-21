@@ -4,9 +4,9 @@ description: 'A debugging utility component for inspecting Plumeria styled compo
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-import { Inspector } from '@plumeria/inspector';
+import { Inspector } from '@plumeria/inspector/production';
 
-<Inspector production={true} />
+<Inspector />
 `@plumeria/inspector` is an interactive DevTools utility component that allows you to inspect elements, highlight components, and view their compiled Plumeria styles directly in the browser.
 
 ---
@@ -77,20 +77,29 @@ Once rendered, the inspector is enabled by default in development environments (
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `production` | `boolean` | `false` | If `true`, the inspector is enabled in production environments. |
+| `production` | `boolean` | `false` | If `true`, the inspector is enabled in production environments. Only takes effect when imported from `@plumeria/inspector/production` — see [Production Mode](#production-mode). |
 | `initial` | `boolean` | `false` | If `true`, the inspector starts toggled ON. If `false`, it starts toggled OFF. |
 
 ---
 
 ## Production Mode
 
-By default, the `Inspector` does not render in production environments to avoid overhead and keep build assets clean.
+By default, the `Inspector` is stripped from production builds entirely. The main entry point resolves through the `production` export condition to a no-op module with no `'use client'` directive, so your bundler emits no client chunk for it at all — the inspector costs 0KB in production.
 
-However, if you want to make the inspector accessible to users in production (for staging environments, demos, or public showcases), you can enable it by passing the `production` prop:
+If you want the inspector accessible to users in production (for staging environments, demos, or public showcases), import from the `/production` subpath and pass the `production` prop:
 
 ```tsx
-<Inspector production={true} />
+import { Inspector } from '@plumeria/inspector/production';
+
+<Inspector production={true} />;
 ```
+
+<Callout title="production prop and the main entry point">
+  Passing `production={true}` to the **main** entry point has no effect in a
+  production build. Export conditions are resolved when the module is loaded,
+  before any prop is read, so the no-op module is already in place. Use the
+  `/production` subpath instead.
+</Callout>
 
 ---
 
