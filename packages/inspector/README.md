@@ -14,7 +14,8 @@ pnpm install -D @plumeria/inspector
 ## Usage
 
 ```tsx
-import { Inspector } from '@plumeria/inspector';
+// Use '@plumeria/inspector/production' subpath in production.
+import { Inspector } from '@plumeria/inspector'; 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -32,7 +33,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `production` | `boolean` | `false` | If `true`, the inspector is enabled in production environments. |
 | `initial` | `boolean` | `false` | If `true`, the inspector starts toggled ON. If `false`, it starts toggled OFF. |
 
 ## Keyboard Shortcuts
