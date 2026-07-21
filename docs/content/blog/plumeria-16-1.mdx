@@ -5,9 +5,9 @@ date: '2026-07-12'
 ---
 
 import { GitHubUser } from 'component/GitHubUser'
-import { Inspector } from '@plumeria/inspector'
+import { Inspector } from '@plumeria/inspector/production'
 
-<Inspector production={true} />
+<Inspector />
 
 <div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
 <GitHubUser username="refirst11" subtext="Core team members" />
