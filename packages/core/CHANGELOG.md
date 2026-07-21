@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 16.3.0
+
+### Minor Changes
+
+- d04bc8a: Fix: add StyleName to SVG Attributes in css.d.ts
+
 ## 16.2.12
 
 ### Patch Changes
