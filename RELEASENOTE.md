@@ -1,5 +1,9 @@
 # Release Notes
 
+## 16.3.0 (Jul 21, 2026)
+
+- Fix: add StyleName to SVG Attributes in css.d.ts
+
 ## 16.2.12 (Jul 20, 2026)
 
 - Feat: export getRootIdentifier
