@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <link rel="icon" href="/favi.ico" sizes="any" />
       </head>
       <body>
-        {process.env.NODE_ENV === 'development' && <Inspector />}
+        <Inspector initial={false} />
         <RootProvider>{children}</RootProvider>
         <Analytics mode="production" />
       </body>
