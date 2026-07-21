@@ -1,0 +1,68 @@
+---
+title: 'Plumeria 16.3'
+description: 'Update: styleName support for SVG elements'
+date: '2026-07-21'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v16.3 extends `styleName` to SVG elements. Until now `@plumeria/core` augmented only `React.HTMLAttributes`, so `styleName` was accepted on `<div>`, `<button>`, and other HTML elements, but not on `<svg>`, `<path>`, or `<circle>`. `React.SVGAttributes` is now augmented as well, so every host element accepts `styleName`.
+
+```tsx
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  icon: {
+    fill: 'gray',
+    transition: 'fill 0.2s',
+    ':hover': {
+      fill: 'black'
+    }
+  }
+});
+
+export function Icon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+      <path styleName={[styles.icon]} d="M12 2 L22 22 L2 22 Z" />
+    </svg>
+  );
+}
+```
+
+No new style properties were needed for this. `fill`, `fillOpacity`, `stroke`, `strokeWidth`, and `strokeDasharray` were already part of `CSSProperties`, so only the prop declaration was missing.
+
+---
+
+## Why not just use the attributes?
+
+`fill` and `stroke` can be written directly on the element, and for a fixed color that remains the simplest choice. The two are not in competition: presentation attributes carry a **static default**, while CSS carries **variation**.
+
+This layering is by design. Presentation attributes have a specificity of zero in the cascade, which means any CSS declaration overrides them. That is why `fill="currentColor"` is the dominant convention in icon sets — the attribute supplies a fallback, and the surrounding `color` drives the actual value.
+
+What attributes cannot express is state. Hover and focus styling, transitions, `stroke-dashoffset` animations, and per-element theming all require CSS, and those were previously out of reach for SVG in Plumeria.
+
+---
+
+## What shipped in 16.2
+
+The 16.2 series was largely internal correctness and tooling work:
+
+*   **Compiler and parser** — `parser.ts` and the compiler moved from a positional `index` to a `key` hash derived from the class string, and the reverse edge was replaced with a safe implementation. Dependency resolution gained `getFileDependencies` and `resolveExport`, correcting re-export handling. Bracket notation for Next.js variants was fixed.
+*   **Linting** — `validate-pseudos` was enabled for the `plumerialint` command, `style-name-requires-imports` gained an autofix, oxlint runs in parallel from the CLI, and a spurious warning was removed.
+*   **Development experience** — incremental generation was fixed for HMR and for initial startup in dev mode, and `acquireLock` in `turbopack-loader` was improved.
+*   **Performance** — parser performance work landed in `utils`, and `@rust-gear/glob` was updated to v1.1.0.
+*   **API surface** — `CSSProperties` and `getRootIdentifier` are now exported, `overrideLonghand` was extended to cover pseudo-selectors, and `@plumeria/inspector` gained support for other CSS.
+
+## Fixes
+
+## 16.3.0 (Jul 21, 2026)
+- Feat: add styleName to SVG elements
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
