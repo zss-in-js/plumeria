@@ -25,7 +25,13 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "development": "./dist/index.js",
+      "production": "./dist/index.noop.js",
+      "default": "./dist/index.js"
+    },
+    "./production": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "type": "module",
