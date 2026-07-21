@@ -1,5 +1,16 @@
 # @plumeria/inspector
 
+## 16.3.0
+
+### Minor Changes
+
+- d04bc8a: Bump version to 16.3.0 (core fixed)
+
+### Patch Changes
+
+- Updated dependencies [d04bc8a]
+  - @plumeria/headlessui@16.3.0
+
 ## 16.2.12
 
 ### Patch Changes

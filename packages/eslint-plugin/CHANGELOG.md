@@ -1,3 +1,9 @@
+## 16.3.0
+
+### Minor Changes
+
+- d04bc8a: Bump version to 16.3.0 (core fixed)
+
 ## 16.2.12
 
 ### Patch Changes
