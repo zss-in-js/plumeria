@@ -1,5 +1,16 @@
 # @plumeria/inspector
 
+## 16.4.0
+
+### Minor Changes
+
+- 9b6ad43: Fix: inspector to subpath architecture and remove production argument
+
+### Patch Changes
+
+- Updated dependencies [9b6ad43]
+  - @plumeria/headlessui@16.4.0
+
 ## 16.3.0
 
 ### Minor Changes

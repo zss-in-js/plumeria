@@ -1,5 +1,9 @@
 # Release Notes
 
+## 16.4.0 (Jul 21, 2026)
+
+- Fix: inspector to subpath architecture and remove production argument
+
 ## 16.3.0 (Jul 21, 2026)
 
 - Fix: add StyleName to SVG Attributes in css.d.ts
