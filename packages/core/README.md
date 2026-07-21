@@ -11,7 +11,7 @@
 
 ## Installation
 
-`@plumeria/core` contains type definitions only. Styles are compiled away at build time by a bundler integration — [`@plumeria/next-plugin`](https://www.npmjs.com/package/@plumeria/next-plugin) for Next.js, or [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) for Vite, Webpack, and others.
+`@plumeria/core` contains type definitions only — importing it augments React's JSX types so that styleName is accepted on host elements. Styles are compiled away at build time by a bundler integration — [`@plumeria/next-plugin`](https://www.npmjs.com/package/@plumeria/next-plugin) for Next.js, or [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) for Vite, Webpack, and others.
 
 ```sh
 pnpm add -D @plumeria/core
@@ -39,7 +39,7 @@ const styles = css.create({
 });
 
 export default function App({ cond }) {
-  const scale = useScale();
+  const scale = useScale(); // from your own hook
   return (
     <div
       styleName={[
