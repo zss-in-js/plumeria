@@ -34,6 +34,9 @@ declare module '@plumeria/core' {
       interface HTMLAttributes<T> {
         styleName?: StyleName;
       }
+      interface SVGAttributes<T> {
+        styleName?: StyleName;
+      }
     }
   }
 
