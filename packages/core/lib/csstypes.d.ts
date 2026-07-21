@@ -97,7 +97,13 @@ type animationRangeEnd = number | StableString;
 type animationRangeStart = number | StableString;
 type animationTimeline = number | StableString;
 type animationTimingFunction = singleTimingFunction;
-type appearance = 'auto' | 'none' | 'textfield';
+type appearance =
+  | 'auto'
+  | 'none'
+  | 'menulist-button'
+  | 'textfield'
+  | 'base'
+  | 'base-select';
 type aspectRatio = number | StableString;
 type attachment = 'scroll' | 'fixed' | 'local';
 type azimuth = number | StableString;
@@ -1162,7 +1168,14 @@ type WebkitTapHighlightColor = color;
 type WebkitTextFillColor = color;
 type WebkitTextStrokeColor = color;
 type WebkitTextStrokeWidth = number | StableString;
-type whiteSpace = 'normal' | 'pre' | 'nowrap' | 'pre-wrap' | 'pre-line';
+type whiteSpace =
+  | 'normal'
+  | 'pre'
+  | 'pre-wrap'
+  | 'pre-line'
+  | 'wrap'
+  | 'nowrap'
+  | whiteSpaceCollapse;
 type whiteSpaceCollapse =
   | 'collapse'
   | 'discard'
@@ -1173,7 +1186,12 @@ type whiteSpaceCollapse =
 type widows = number | StableString;
 type width = 'auto' | intrinsicSize | extrinsicSize | number | StableString;
 type willChange = 'auto' | animatableFeature;
-type wordBreak = 'normal' | 'break-all' | 'keep-all' | nonStandardWordBreak;
+type wordBreak =
+  | 'normal'
+  | 'break-all'
+  | 'keep-all'
+  | 'auto-phrase'
+  | nonStandardWordBreak;
 type wordSpacing = 'normal' | lengthPercentage;
 type wordWrap = 'normal' | 'break-word';
 type writingMode =
@@ -1184,7 +1202,7 @@ type writingMode =
   | 'sideways-lr'
   | svgWritingMode;
 type zIndex = 'auto' | number | StableString;
-type zoom = 'normal';
+type zoom = 'normal' | number | StableString;
 
 export type CSSTypes = Readonly<{
   WebkitFontSmoothing?: all | WebkitFontSmoothing;
