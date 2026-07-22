@@ -1,0 +1,92 @@
+---
+title: 'Plumeria 16.4'
+description: 'Update: Zero-cost production inspector via export conditions'
+date: '2026-07-22'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+import { Inspector } from '@plumeria/inspector/production'
+
+<Inspector />
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Core team members" /> 
+</div>
+
+Plumeria v16.4 reworks `@plumeria/inspector` to use **export conditions** for environment separation. The inspector now costs exactly **0KB in production** — no runtime guard, no empty component, no client chunk at all.
+
+## What changed
+
+Previously, `@plumeria/inspector` shipped a single entry point with a runtime `process.env.NODE_ENV` check and an optional `production` prop:
+
+```tsx
+// Before (16.1–16.3)
+import { Inspector } from '@plumeria/inspector';
+
+<Inspector />                    // dev only (runtime guard)
+<Inspector production={true} />  // force in production
+```
+
+This worked, but the full inspector module was still bundled and shipped to the client in production — even though it rendered `null`. The `'use client'` directive in the entry caused Next.js to emit a client chunk regardless.
+
+---
+
+## How it works now
+
+The package now declares `development` and `production` [export conditions](https://nodejs.org/api/packages.html#conditional-exports) in its `package.json`:
+
+```json
+"exports": {
+  ".": {
+    "development": "./dist/index.js",
+    "production":  "./dist/index.noop.js",
+    "default":     "./dist/index.js"
+  },
+  "./production": {
+    "default": "./dist/index.js"
+  }
+}
+```
+
+- **`@plumeria/inspector`** — In development, webpack resolves the `development` condition and loads the full inspector. In production, the `production` condition resolves to `index.noop.js`, a minimal no-op module that intentionally omits the `'use client'` directive. Without a client entry, the bundler never generates a client chunk — the inspector is completely absent from the production build.
+- **`@plumeria/inspector/production`** — Always resolves to the full inspector, for staging, demos, or documentation sites that need the inspector in production.
+
+The `default` field falls back to the full inspector for bundlers that don't support export conditions, where the runtime `NODE_ENV` guard inside `index.tsx` still prevents rendering.
+
+---
+
+## Migration
+
+The `production` prop has been removed. If you were using it, switch to the `/production` subpath:
+
+```diff
+-import { Inspector } from '@plumeria/inspector';
++import { Inspector } from '@plumeria/inspector/production';
+
+-<Inspector production={true} />
++<Inspector />
+```
+
+For development-only usage, no changes are needed — `import { Inspector } from '@plumeria/inspector'` continues to work as before.
+
+---
+
+## Results
+
+| Environment | Inspector chunk | Badge |
+| --- | --- | --- |
+| Production / top page | 0KB (eliminated) | None |
+| Production / inspector docs | Loaded (`/production` subpath) | ✅ |
+| Development / all pages | Loaded | ✅ |
+
+---
+
+## Fixes
+
+## 16.4.0 (Jul 21, 2026)
+- Feat: zero-cost production inspector via export conditions
+- Breaking: remove `production` prop — use `@plumeria/inspector/production` subpath instead
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
