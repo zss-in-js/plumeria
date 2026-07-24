@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 16.4.2
+
+### Patch Changes
+
+- a994769: Bump version to 16.4.2 (fix utils/parser.ts for dynamic props edge cases)
+- Updated dependencies [a994769]
+  - @plumeria/utils@16.4.2
+
 ## 16.4.1
 
 ### Patch Changes
