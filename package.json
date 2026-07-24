@@ -27,6 +27,8 @@
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.60.0",
     "@plumeria/eslint-plugin": "workspace:^",
+    "@swc/core": "catalog:",
+    "@swc/jest": "^0.2.39",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.8.0",
     "eslint": "^10.4.1",
