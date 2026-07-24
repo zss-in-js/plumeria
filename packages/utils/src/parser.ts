@@ -325,7 +325,7 @@ export function objectExpressionToObject(
         resolveVariable,
       );
     } else if (t.isBinaryExpression(val) || t.isTemplateLiteral(val)) {
-      const resolved = evaluateExpression(
+      obj[key] = evaluateExpression(
         val,
         staticTable,
         keyframesHashTable,
@@ -334,10 +334,7 @@ export function objectExpressionToObject(
         createThemeObjectTable,
         createStaticHashTable,
         createStaticObjectTable,
-      );
-      if (resolved !== undefined) {
-        obj[key] = resolved as CSSObject;
-      }
+      ) as CSSObject;
     } else if (t.isMemberExpression(val)) {
       const resolved = resolveStaticTableMemberExpression(val, staticTable);
       if (resolved !== undefined) {
