@@ -2066,15 +2066,7 @@ function extractAndCacheExports(
       const decl = node.decl as any;
       if (decl && decl.identifier) {
         const name = decl.identifier.value;
-        const imp = imports[name];
-        if (imp) {
-          reExports['default'] = {
-            source: imp.source,
-            localName: imp.importedName,
-          };
-        } else {
-          reExports['default'] = { source: null, localName: name };
-        }
+        reExports['default'] = { source: null, localName: name };
       } else {
         localExports.push('default');
       }
