@@ -40,6 +40,7 @@ import {
   scanAll,
   resolveImportPath,
   optimizer,
+  orderMediaLast,
   getLeadingCommentLength,
   getFileDependencies,
   resolveExport,
@@ -2311,7 +2312,8 @@ export default async function loader(this: LoaderContext, source: string) {
         }
 
         if (hasNewRule || isThemeCSS) {
-          const nextCss = Array.from(ruleSet).join('\n\n') + '\n';
+          const nextCss =
+            orderMediaLast(Array.from(ruleSet)).join('\n\n') + '\n';
           fs.writeFileSync(VIRTUAL_FILE_PATH, nextCss, 'utf-8');
           lastValidCss = nextCss;
         } else {
