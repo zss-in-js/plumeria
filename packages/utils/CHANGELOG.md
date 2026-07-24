@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.4.2
+
+### Patch Changes
+
+- a994769: Fix: fix error occurring with dynamic props
+
 ## 16.4.1
 
 ### Patch Changes
