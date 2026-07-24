@@ -24,6 +24,6 @@ export type { StyleRecord } from './create';
 export { getStyleRecords } from './create';
 export { createTheme } from './createTheme';
 export { resolveImportPath } from './resolver';
-export { optimizer } from './optimizer';
+export { optimizer, orderMediaLast } from './optimizer';
 export { processVariants } from './variants';
 export { getLeadingCommentLength } from './ast';
