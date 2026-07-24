@@ -1,6 +1,6 @@
 module.exports = {
   transform: {
-    '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }],
+    '^.+\\.ts$': '@swc/jest',
   },
   moduleNameMapper: {
     '^(\\..+)\\.js$': '$1',
@@ -13,7 +13,6 @@ module.exports = {
     '<rootDir>/packages/turbopack-loader/__tests__',
     '<rootDir>/packages/compiler/__tests__',
   ],
-  preset: 'ts-jest',
   testEnvironment: 'node',
   coverageReporters: ['text', 'lcov', 'html'],
   reporters: [
