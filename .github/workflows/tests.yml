@@ -26,17 +26,30 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
 
+      - uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
       - name: lint execute
         run: |
           pnpm build
           pnpm lint:report
-           
 
   unit-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
+
+      - uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
 
       - name: Build packages
         run: pnpm build
@@ -55,24 +68,39 @@ jobs:
           name: coverage-report
           path: coverage/
 
-
-
   e2e-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
 
+      - uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
       - name: Build packages
         run: pnpm build
 
+      - name: Get Playwright version
+        id: pw-version
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v6
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ steps.pw-version.outputs.version }}
+
       - name: Install Playwright chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install chromium --with-deps
 
-      - name: Start Next.js Dev Server
-        run: npm run dev:e2e &
-        env:
-          CI: true
+      - name: Install Playwright OS deps only
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
 
       - name: Run Playwright tests
         run: pnpm exec playwright test
