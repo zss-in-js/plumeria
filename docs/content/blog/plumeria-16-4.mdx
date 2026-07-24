@@ -83,6 +83,17 @@ For development-only usage, no changes are needed — `import { Inspector } from
 
 ## Fixes
 
+## 16.4.1 (Jul 24, 2026)
+- Fix: dev-only cascade divergence in `@plumeria/turbopack-loader` where the winning style depended on module compile order
+
+In development the Turbopack loader accumulates every module's rules into one shared stylesheet, appending only the rules it does not already contain. `optimizer()` runs **per module**, so the "`@media` last" ordering that production establishes in a single global pass was never re-applied across the accumulated file.
+
+That mattered because `@media { padding }` and base `paddingTop` carry the same specificity — one `:not(#\#)` each — and `overrideLonghand` treats a nested at-rule as its own cascade scope, so neither eliminates the other. Nothing resolves that pair; it falls through to cascading order. Production is stable only because `postcss-combine-media-query` always hoists `@media` to the end. Development had no such guarantee: when an `@media` rule was inserted by an earlier-compiled module and a conflicting base longhand was appended later, the base rule won in development while production resolved it to the `@media` rule.
+
+Because the write order is decided by which module wins the file lock, the outcome was not even stable. Across 100 independent trials it diverged in ~57% of cases, and roughly half of them flipped between two identical runs.
+
+`orderMediaLast` in `@plumeria/utils` now reorders the accumulated rule set before it is written, so `@media` always lands last and development matches the order production ships. Media detection is a single-pass character scan that skips leading whitespace and block comments, so a rule preceded by a comment — such as the placeholder the Next.js plugin writes when it resets the shared file — is still classified correctly.
+
 ## 16.4.0 (Jul 21, 2026)
 - Feat: zero-cost production inspector via export conditions
 - Breaking: remove `production` prop — use `@plumeria/inspector/production` subpath instead
