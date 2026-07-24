@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 16.4.1
+
+### Patch Changes
+
+- ac13d67: Bump version to 16.4.1 (fix next dev mode)
+
 ## 16.4.0
 
 ### Minor Changes

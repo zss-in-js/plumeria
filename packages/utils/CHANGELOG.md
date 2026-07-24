@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 16.4.1
+
+### Patch Changes
+
+- ac13d67: Fix: parser.ts remove dead code and utils/optimizer.ts add orderMediaLast and isMediaRule
+
 ## 16.4.0
 
 ### Minor Changes
