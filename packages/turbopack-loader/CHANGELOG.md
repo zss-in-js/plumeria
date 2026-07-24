@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 16.4.1
+
+### Patch Changes
+
+- ac13d67: Fix: add orderMdeiaLast for development mode
+- Updated dependencies [ac13d67]
+  - @plumeria/utils@16.4.1
+
 ## 16.4.0
 
 ### Minor Changes

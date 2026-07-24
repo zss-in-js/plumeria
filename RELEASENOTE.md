@@ -1,5 +1,10 @@
 # Release Notes
 
+## 16.4.1 (Jul 24, 2026)
+
+- Fix: add orderMdeiaLast for development mode
+- Fix: parser.ts remove dead code and utils/optimizer.ts add orderMediaLast and isMediaRule
+
 ## 16.4.0 (Jul 21, 2026)
 
 - Fix: inspector to subpath architecture and remove production argument

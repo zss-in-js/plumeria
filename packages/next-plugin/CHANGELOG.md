@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 16.4.1
+
+### Patch Changes
+
+- ac13d67: Bump version to 16.4.1 (fix next dev mode)
+- Updated dependencies [ac13d67]
+  - @plumeria/turbopack-loader@16.4.1
+
 ## 16.4.0
 
 ### Minor Changes
