@@ -18,9 +18,9 @@ But the safety has a price. You give up TypeScript-integrated styling, compile-t
 
 ## The Zero-Trace Runtime
 
-Try compiling this:
+Try compiling this — note that the style is actually applied, not left unused:
 
-```ts
+```tsx
 import * as css from '@plumeria/core';
 
 const styles = css.create({
@@ -29,54 +29,41 @@ const styles = css.create({
     color: 'red'
   }
 });
+
+export const Box = () => <div styleName={styles.box}>Box</div>;
 ```
 
-Look at the build output: the line `import * as css from '@plumeria/core'` has completely vanished. That disappearing import is the most concise illustration of a **Zero-Trace Runtime** — anything that shouldn't exist at runtime leaves no trace, not even an import statement. This isn't a best practice; it's a compiler contract.
+Here is the *entire* JavaScript build output:
+
+```tsx
+export const Box = () => <div className={'xqqbxt1d xq96bg3w'}>Box</div>;
+```
+
+The declarations move to a generated stylesheet:
+
+```css
+.xqqbxt1d { padding: 16px; }
+.xq96bg3w { color: red; }
+```
+
+The style still renders, yet `import * as css from '@plumeria/core'` and the entire `css.create` declaration have vanished. This is not dead-code elimination — nothing in this file is unused, and no bundler could remove a live call for you. The compiler resolves the class names statically and rewrites the call site, so the library never has a runtime form to eliminate in the first place. That disappearing import is the most concise illustration of a **Zero-Trace Runtime** — anything that shouldn't exist at runtime leaves no trace, not even an import statement. This isn't a best practice; it's a compiler contract.
 
 Plumeria goes one step further than CSS Modules here. Where CSS Modules ship a class mapping object in your JS bundle, Plumeria inlines the final class name strings directly into the compiled output and deletes the `css.create` declarations. Not even a styling map remains in production JS. (See the [Introduction](/docs) for how the compilation works.)
 
-Plumeria's strength doesn't come from flashy, single-purpose features. It comes from the cumulative effect of **six understated pillars** that prove their value as your application grows.
+Note the two class names in that output: one per property. Every property–value pair compiles to a global atomic class shared across your entire project, so your CSS stops growing in proportion to your component count — it plateaus.
+
+Plumeria's strength doesn't come from flashy, single-purpose features. It comes from the cumulative effect of a few understated pillars that prove their value as your application grows.
 
 ---
 
-### 1. Atomic CSS at Scale
-
-Every property–value pair compiles to a global atomic utility class, shared across your entire project. Identical styles always produce the same class name, so your CSS stops growing in proportion to your component count — it plateaus.
-
-### 2. Predictable Module Merging (Right-Wins Rule)
-
-Specificity collisions and module-order bugs are a thing of the past. The compiler enforces a strict **right-wins** merge:
-
-```tsx
-styleName={[styles.base, isActive && styles.active]}
-```
-
-If `isActive` is true, `active` is guaranteed to override `base`. No runtime resolution function decides this at execution time — the compiler guarantees it statically, during AST transformation.
-
-### 3. Statically Verifiable Dynamic Styling (Function Keys & Cross-Component Tracing)
-
-Most static CSS-in-JS tools compromise at file boundaries: they leave style mapping objects in the bundle and call runtime helpers to merge them. Plumeria rejects that compromise. By detecting `@plumeria/core` imports and building a component dependency graph, the compiler traces style variables as they flow through props (such as `props.style` or `props.styles`) across files, and maps those flows to static lookup tables at compile time. Reusable child components accept custom overrides with **zero runtime JavaScript overhead**.
-
-For dynamic values, **function keys** compile down to CSS variables — which means dynamic styles still fully support `@media` and `@container` queries, resolved at build time.
-
-**The Design Boundary**: analyze statically wherever possible; reject at compile time whatever cannot be resolved. Function keys and prop tracing exist because they close into a static set of values. Arbitrary runtime functions in style objects do not — so the compiler rejects them. That is not a missing feature; it is the boundary that makes every other guarantee on this list possible.
-
-### 4. ESLint Guarantees & Fail-Fast Integration
-
-The ESLint plugin doesn't just check syntax — it enforces structural safety before the compiler runs. For example, v16.2 introduced the `validate-pseudos` rule, which catches pseudo-class typos (like `:hovver`) at lint time. Run `plumerialint` in parallel with your build (e.g. `plumerialint -- next build`) and the process aborts immediately on styling errors, so invalid patterns never reach your compilation pipeline.
-
-### 5. Deterministic Cross-File Module Graph
+## Deterministic Cross-File Module Graph
 
 Split, organize, and refactor styles across files without fear. Where traditional approaches let bundling order and import hierarchies alter CSS injection sequences — silently breaking layouts — Plumeria's output is determined strictly by the compiler's module graph. Your layouts look identical no matter how files are structured or in what order they are bundled.
 
-### 6. Never Executes Your Application Code
+## Never Executes Your Application Code
 
 Plumeria's compiler never executes your application code. It relies purely on fast static analysis (oxlint/ESLint) and direct AST rewrites, and the hand-written type definitions of `@plumeria/core` resolve without any evaluation. The build pipeline stays fast and lightweight — and it can never break on a runtime evaluation error, because there is no runtime evaluation.
 
 ---
-
-## The Certainty of CSS Modules. The Power of CSS-in-JS.
-
-Individually, these six pillars may read as incremental improvements. Together, they systematically eliminate the reason people retreat to CSS Modules: the cognitive fatigue of unpredictability. Plumeria restores the absolute certainty of writing raw CSS, and pairs it with the safety and ergonomics of a modern, type-driven toolchain.
 
 Plumeria is for those who say, "I never compromise." Ready to try it? Start with [Getting started](/docs/getting-started).
