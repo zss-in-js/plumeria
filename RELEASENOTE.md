@@ -1,5 +1,9 @@
 # Release Notes
 
+## 16.4.2 (Jul 24, 2026)
+
+- Fix: fix error occurring with dynamic props
+
 ## 16.4.1 (Jul 24, 2026)
 
 - Fix: add orderMdeiaLast for development mode
