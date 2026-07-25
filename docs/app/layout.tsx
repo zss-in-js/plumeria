@@ -20,7 +20,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.className} ${inter.variable}`} suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favi.ico" sizes="any" />
+        <link rel="icon" href="/logo.svg" sizes="any" />
       </head>
       <body>
         <Inspector initial={false} />
