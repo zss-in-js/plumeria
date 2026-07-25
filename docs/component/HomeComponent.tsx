@@ -339,8 +339,8 @@ const styles = css.create({
 
   imageSection: {
     position: 'absolute',
-    top: '60px',
-    left: '55%',
+    top: '75px',
+    left: '58%',
     zIndex: 0,
     width: '40%',
     paddingBottom: 40,
@@ -360,12 +360,16 @@ const styles = css.create({
   },
 
   image: {
-    margin: '-90px',
-    filter: 'hue-rotate(342deg) saturate(0.5) contrast(0.8) drop-shadow(0 0 20px rgba(107, 201, 255, 0.6))',
+    filter: 'drop-shadow(0 0 90px rgba(13, 255, 255, 1))',
     [breakpoints.md]: {
-      width: '200px',
-      height: '200px',
-      margin: '-40px 0',
+      width: '120px',
+      height: '120px',
+      margin: '-15px 0 0',
+      filter: 'drop-shadow(0 0 50px rgba(13, 255, 255, 1))',
+    },
+    ':hover': {
+      filter: 'none',
+      transition: 'all 0.3s',
     },
   },
 
@@ -472,7 +476,14 @@ export const HomeComponent = () => {
       <main styleName={styles.container}>
         <section styleName={styles.heroSection}>
           <div styleName={styles.imageSection}>
-            <Image styleName={styles.image} src="/LP_LG.png" alt="Plumeria logo" width={420} height={420} priority />
+            <Image
+              styleName={styles.image}
+              src="/logo.svg"
+              alt="Plumeria logo"
+              width={220}
+              height={220}
+              loading="eager"
+            />
           </div>
 
           <div styleName={styles.heroContent}>
