@@ -11,7 +11,7 @@ const latestReleasePosts = latestReleases(3);
 const styles = css.create({
   flower: {
     position: 'relative',
-    bottom: 2,
+    bottom: 0,
     left: 8,
   },
   image: {
@@ -23,7 +23,6 @@ const styles = css.create({
     fontSize: 15,
     fontWeight: 600,
     color: theme.textMainHeaderLine,
-    filter: 'hue-rotate(342deg) saturate(0.5) contrast(0.95)',
   },
 });
 
@@ -32,7 +31,7 @@ export const baseOptions: BaseLayoutProps = {
     transparentMode: 'top',
     title: (
       <span styleName={styles.image}>
-        <Image styleName={styles.flower} src="/LP_LG.png" alt="Plumeria logo" loading="lazy" height={40} width={40} />
+        <Image styleName={styles.flower} src="/logo.svg" alt="Plumeria logo" loading="lazy" height={20} width={20} />
         Plumeria
       </span>
     ),
