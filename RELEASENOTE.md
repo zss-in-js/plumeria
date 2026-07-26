@@ -1,5 +1,12 @@
 # Release Notes
 
+## 16.5.0 (Jul 26, 2026)
+
+- fix: identifier replacement now skips non-reference positions
+- feat: bracket conditional expressions with dynamic and literal keys
+- fix: splitCssRules standalone comment handling
+- refactor: remove dead code across compiler, turbopack-loader, and unplugin
+
 ## 16.4.2 (Jul 24, 2026)
 
 - Fix: fix error occurring with dynamic props
