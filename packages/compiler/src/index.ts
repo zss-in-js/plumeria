@@ -486,10 +486,21 @@ export function compileCSS(options: CompilerOptions) {
         } else if (
           t.isMemberExpression(expr) &&
           t.isIdentifier(expr.object) &&
-          t.isIdentifier(expr.property)
+          (t.isIdentifier(expr.property) || expr.property.type === 'Computed')
         ) {
           const varName = expr.object.value;
-          const propName = expr.property.value;
+          // A literal bracket key names one style, so it resolves exactly like
+          // `.key`. Only a non-literal key has to fall through: it cannot
+          // collapse to a single object here, and the caller expands it into
+          // per-key conditionals instead.
+          let propName: string;
+          if (expr.property.type === 'Computed') {
+            const keyExpr = expr.property.expression;
+            if (!t.isStringLiteral(keyExpr)) return null;
+            propName = keyExpr.value;
+          } else {
+            propName = expr.property.value;
+          }
           const styleInfo = ctx.localCreateStyles[varName];
           if (styleInfo && styleInfo.type === 'create') {
             const style = styleInfo.obj[propName];
