@@ -12,7 +12,8 @@
     "target": "ES2022",
     "noEmitOnError": true,
     "skipLibCheck": true,
-    "removeComments": true
+    "removeComments": true,
+    "types": ["jest", "node"]
   },
   "exclude": ["node_modules"]
 }
