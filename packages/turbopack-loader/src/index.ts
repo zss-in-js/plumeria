@@ -30,6 +30,7 @@ import type { CSSProperties } from 'zss-engine';
 
 import {
   traverse,
+  collectReferenceIdentifiers,
   getStyleRecords,
   collectLocalConsts,
   objectExpressionToObject,
@@ -437,6 +438,7 @@ export default async function loader(this: LoaderContext, source: string) {
     const processedDecls = new Set<VariableDeclaration>();
     const idSpans = new Set<number>();
     const excludedSpans = new Set<number>();
+    const referenceIdents = collectReferenceIdentifiers(ast);
 
     const checkVariantAssignment = (decl: VariableDeclarator) => {
       const init = decl.init;
@@ -1762,14 +1764,22 @@ export default async function loader(this: LoaderContext, source: string) {
       Identifier({ node }: { node: Identifier }) {
         if (excludedSpans.has(node.span.start)) return;
         if (idSpans.has(node.span.start)) return;
+        if (!referenceIdents.references.has(node.span.start)) return;
 
-        const styleInfo = localCreateStyles[node.value];
-        if (styleInfo) {
+        const prefix = referenceIdents.shorthands.has(node.span.start)
+          ? `${node.value}: `
+          : '';
+        const pushReplacement = (content: string) => {
           replacements.push({
             start: node.span.start - baseByteOffset,
             end: node.span.end - baseByteOffset,
-            content: `(${JSON.stringify(styleInfo.hashMap)})`,
+            content: `${prefix}${content}`,
           });
+        };
+
+        const styleInfo = localCreateStyles[node.value];
+        if (styleInfo) {
+          pushReplacement(`(${JSON.stringify(styleInfo.hashMap)})`);
           return;
         }
 
@@ -1794,11 +1804,7 @@ export default async function loader(this: LoaderContext, source: string) {
               }
             });
 
-            replacements.push({
-              start: node.span.start - baseByteOffset,
-              end: node.span.end - baseByteOffset,
-              content: `(${JSON.stringify(hashMap)})`,
-            });
+            pushReplacement(`(${JSON.stringify(hashMap)})`);
           }
         }
 
@@ -1812,11 +1818,7 @@ export default async function loader(this: LoaderContext, source: string) {
           // Use createAtomicMapTable to get resolved CSS variables
           const atomicMap = scannedTables.createAtomicMapTable[themeHash];
           if (atomicMap) {
-            replacements.push({
-              start: node.span.start - baseByteOffset,
-              end: node.span.end - baseByteOffset,
-              content: `(${JSON.stringify(atomicMap)})`,
-            });
+            pushReplacement(`(${JSON.stringify(atomicMap)})`);
             return;
           }
         }
@@ -1830,11 +1832,7 @@ export default async function loader(this: LoaderContext, source: string) {
         if (staticHash) {
           const staticObj = scannedTables.createStaticObjectTable[staticHash];
           if (staticObj) {
-            replacements.push({
-              start: node.span.start - baseByteOffset,
-              end: node.span.end - baseByteOffset,
-              content: `(${JSON.stringify(staticObj)})`,
-            });
+            pushReplacement(`(${JSON.stringify(staticObj)})`);
           }
         }
       },
