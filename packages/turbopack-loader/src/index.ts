@@ -93,22 +93,12 @@ interface LoaderContext {
   clearDependencies: () => void;
 }
 
-let lastValidCss = '';
-
 export default async function loader(this: LoaderContext, source: string) {
   const callback = this.async();
   const resourcePath = this.resourcePath;
   const isProduction = process.env.NODE_ENV === 'production';
   const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
   let isThemeCSS = false;
-
-  if (!lastValidCss && !isProduction) {
-    try {
-      lastValidCss = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
-    } catch (e) {
-      // Ignore
-    }
-  }
 
   if (
     resourcePath.includes('node_modules') ||
@@ -2288,8 +2278,8 @@ export default async function loader(this: LoaderContext, source: string) {
       const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
       await acquireLock(LOCK_DIR_PATH);
 
+      let currentCss = '';
       try {
-        let currentCss = '';
         try {
           currentCss = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
         } catch (e) {
@@ -2313,25 +2303,16 @@ export default async function loader(this: LoaderContext, source: string) {
           const nextCss =
             orderMediaLast(Array.from(ruleSet)).join('\n\n') + '\n';
           fs.writeFileSync(VIRTUAL_FILE_PATH, nextCss, 'utf-8');
-          lastValidCss = nextCss;
-        } else {
-          lastValidCss = currentCss;
         }
       } catch (innerError) {
         try {
-          fs.writeFileSync(VIRTUAL_FILE_PATH, lastValidCss, 'utf-8');
+          fs.writeFileSync(VIRTUAL_FILE_PATH, currentCss, 'utf-8');
         } catch (e) {
           // Ignore
         }
         throw innerError;
       } finally {
         releaseLockSync(LOCK_DIR_PATH);
-      }
-    } else if (!isProduction) {
-      try {
-        lastValidCss = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
-      } catch (e) {
-        // Ignore
       }
     }
 
