@@ -92,20 +92,37 @@ describe('shared virtual CSS rule order', () => {
     );
   });
 
-  it('moves an @media rule that splitCssRules prefixed with a comment', () => {
-    // next-plugin resets the shared file to a placeholder comment, and
-    // splitCssRules attaches a leading comment to the rule that follows it
+  it('keeps a standalone comment out of the rule that follows it', () => {
+    // next-plugin resets the shared file to a placeholder comment. A comment
+    // glued onto the next rule would make that rule's text differ from the
+    // freshly generated one, so @media ordering has to survive it too.
     const rules = splitCssRules(
       '/** Placeholder file */\n\n@media (min-width: 600px) { .m { padding: 40px; } }\n\n.b { padding-top: 4px; }\n',
     );
 
-    expect(rules[0]).toContain('Placeholder');
-    expect(rules[0]).toContain('@media');
+    expect(rules[0]).toBe('/** Placeholder file */');
+    expect(rules[1]).toContain('@media');
 
     const ordered = orderMediaLast(rules);
 
     expect(ordered[ordered.length - 1]).toContain('@media');
-    expect(ordered[0]).toContain('padding-top');
+    expect(ordered.some((rule) => rule.includes('padding-top'))).toBe(true);
+  });
+
+  it('re-matches the rule after a comment instead of appending it twice', async () => {
+    // The module that owns the first rule in the file recompiles on every save
+    // and offers the same CSS again. If the placeholder comment were attached to
+    // that rule, the offer would never match and the rule would pile up.
+    const moduleCss = await optimizer(sheetsOf(BASE_STYLE));
+
+    let css = '/** Placeholder file */\n';
+    for (let save = 0; save < 3; save++) {
+      const ruleSet = new Set(splitCssRules(css));
+      for (const rule of splitCssRules(moduleCss)) ruleSet.add(rule);
+      css = orderMediaLast(Array.from(ruleSet)).join('\n\n') + '\n';
+    }
+
+    expect(css.match(/padding-top: 4px/g)).toHaveLength(1);
   });
 
   it('matches the order optimizer() produces', async () => {
