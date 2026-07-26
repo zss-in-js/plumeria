@@ -483,6 +483,7 @@ export const HomeComponent = () => {
               width={220}
               height={220}
               loading="eager"
+              preload={true}
             />
           </div>
 
