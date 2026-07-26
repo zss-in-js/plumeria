@@ -129,6 +129,23 @@ export const Button = ({ size }: { size: Size }) => {
   Function keys (dynamic styles) within the style object are ignored during bracket notation lookup table compilation.
 </Callout>
 
+### Conditional Expressions with Bracket Notation
+
+When using conditional expressions with bracket notation, place the condition **inside** the brackets (e.g., `styles[isLarge ? keyA : keyB]` or `styles[isActive && key]`). This works with both dynamic key variables and literal values.
+
+```tsx
+// ✅ Correct: Condition is inside the brackets (using dynamic keys or literals)
+<button styleName={sizeStyles[isLarge ? keyA : keyB]} />
+<button styleName={sizeStyles[isLarge ? 'large' : 'small']} />
+<button styleName={sizeStyles[isActive && key]} />
+
+// ❌ Incorrect: Condition is outside the brackets (causes a compilation error)
+<button styleName={isLarge ? sizeStyles[keyA] : sizeStyles[keyB]} />
+```
+
+Placing the condition outside the brackets prevents the compiler from folding the condition into the static lookup table. Move the condition inside the brackets so Plumeria can generate the lookup table at build time.
+
+
 ### Optimization Tip: Keep Common Properties in Base Styles
 
 To keep the generated lookup table small and efficient, you should concentrate common, non-variant properties in your base styles (like `baseStyles`). 
