@@ -32,7 +32,6 @@ import {
   deepMerge,
   scanAll,
   resolveImportPath,
-  processVariants,
   resolveExport,
 } from '@plumeria/utils';
 import type {
@@ -70,9 +69,8 @@ interface TraversalContext {
   localCreateStyles: Record<
     string,
     {
-      type: 'create' | 'variant' | 'theme';
+      type: 'create' | 'theme';
       obj: CSSObject;
-      hashMap?: any;
       functions?: Record<string, { params: string[]; body: ObjectExpression }>;
     }
   >;
@@ -468,11 +466,7 @@ export function compileCSS(options: CompilerOptions) {
         truthy: CSSObject;
         falsy: CSSObject;
         varName: string | undefined;
-        groupId?: number;
-        groupName?: string;
-        valueName?: string;
       }> = [];
-      let groupIdCounter = 0;
       let baseStyle: CSSObject = {};
 
       const resolveStyleObject = (expr: Expression): CSSObject | null => {
@@ -704,94 +698,7 @@ export function compileCSS(options: CompilerOptions) {
         }
 
         if (t.isCallExpression(expr)) {
-          if (t.isIdentifier(expr.callee)) {
-            const varName = expr.callee.value;
-            const styleInfo = ctx.localCreateStyles[varName];
-
-            if (styleInfo && styleInfo.type === 'variant') {
-              const variantObj = styleInfo.obj as Record<
-                string,
-                Record<string, CSSObject>
-              >;
-              const callArgs = expr.arguments;
-              if (callArgs.length === 1 && !callArgs[0].spread) {
-                const argExpr = callArgs[0].expression;
-                if (argExpr.type === 'ObjectExpression') {
-                  for (const prop of argExpr.properties) {
-                    let groupName: string | undefined;
-                    let valExpr: Expression | undefined;
-                    if (
-                      prop.type === 'KeyValueProperty' &&
-                      prop.key.type === 'Identifier'
-                    ) {
-                      groupName = prop.key.value;
-                      valExpr = prop.value;
-                    } else if (prop.type === 'Identifier') {
-                      groupName = prop.value;
-                      valExpr = prop;
-                    }
-                    if (groupName && valExpr) {
-                      const groupVariants = variantObj[groupName];
-                      if (!groupVariants) continue;
-                      const currentGroupId = ++groupIdCounter;
-                      const valSource = getSource(valExpr);
-                      if (valExpr.type === 'StringLiteral') {
-                        const groupVariantsAsObj = groupVariants as CSSObject;
-                        if (groupVariantsAsObj[valExpr.value as string])
-                          baseStyle = deepMerge(
-                            baseStyle,
-                            groupVariantsAsObj[
-                              valExpr.value as string
-                            ] as CSSObject,
-                          );
-                        continue;
-                      }
-                      Object.entries(groupVariants).forEach(
-                        ([optionName, style]) => {
-                          conditionals.push({
-                            test: valExpr!,
-                            testLHS: valSource,
-                            testString: `${valSource} === '${optionName}'`,
-                            truthy: style as CSSObject,
-                            falsy: {},
-                            groupId: currentGroupId,
-                            groupName,
-                            valueName: optionName,
-                            varName,
-                          });
-                        },
-                      );
-                    }
-                  }
-                  continue;
-                }
-                const argSource = getSource(argExpr);
-                if (t.isStringLiteral(argExpr)) {
-                  if ((variantObj as any)[argExpr.value as string])
-                    baseStyle = deepMerge(
-                      baseStyle,
-                      (variantObj as any)[argExpr.value as string] as CSSObject,
-                    );
-                  continue;
-                }
-                const currentGroupId = ++groupIdCounter;
-                Object.entries(variantObj).forEach(([key, style]) => {
-                  conditionals.push({
-                    test: argExpr,
-                    testLHS: argSource,
-                    testString: `${argSource} === '${key}'`,
-                    truthy: style as CSSObject,
-                    falsy: {},
-                    groupId: currentGroupId,
-                    groupName: undefined,
-                    valueName: key,
-                    varName,
-                  });
-                });
-                continue;
-              }
-            }
-          } else if (t.isMemberExpression(expr.callee)) {
+          if (t.isMemberExpression(expr.callee)) {
             const callee = expr.callee;
             if (
               t.isIdentifier(callee.object) &&
@@ -1001,7 +908,7 @@ export function compileCSS(options: CompilerOptions) {
         if (k !== 'span' && k !== 'loc') traverseInternal(node[k]);
     };
 
-    // Pass 1: Register all style definitions (create/variants/createTheme/keyframes/viewTransition)
+    // Pass 1: Register all style definitions (create/createTheme/keyframes/viewTransition)
     traverse(ast, {
       VariableDeclarator({ node }: { node: VariableDeclarator }) {
         if (t.isIdentifier(node.id) && node.init) {
@@ -1116,28 +1023,6 @@ export function compileCSS(options: CompilerOptions) {
                     type: 'create',
                     obj,
                     functions: styleFunctions,
-                  };
-                }
-              } else if (pName === 'variants') {
-                const obj = objectExpressionToObject(
-                  arg,
-                  ctx.mergedStaticTable,
-                  ctx.mergedKeyframesTable,
-                  ctx.mergedViewTransitionTable,
-                  ctx.mergedCreateThemeHashTable,
-                  ctx.scannedTables.createThemeObjectTable,
-                  ctx.mergedCreateTable,
-                  ctx.mergedCreateStaticHashTable,
-                  ctx.scannedTables.createStaticObjectTable,
-                  ctx.mergedVariantsTable,
-                  resolveVariable,
-                );
-                if (obj) {
-                  const { hashMap } = processVariants(obj as any);
-                  ctx.localCreateStyles[node.id.value] = {
-                    type: 'variant',
-                    obj,
-                    hashMap,
                   };
                 }
               } else if (pName === 'createTheme') {
