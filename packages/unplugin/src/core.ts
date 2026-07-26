@@ -1038,9 +1038,15 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           t.isIdentifier(expr.object) &&
           (t.isIdentifier(expr.property) || expr.property.type === 'Computed')
         ) {
-          if (expr.property.type === 'Computed') return null;
           const varName = (expr.object as Identifier).value;
-          const propName = (expr.property as Identifier).value;
+          let propName: string;
+          if (expr.property.type === 'Computed') {
+            const keyExpr = expr.property.expression;
+            if (!t.isStringLiteral(keyExpr)) return null;
+            propName = keyExpr.value;
+          } else {
+            propName = (expr.property as Identifier).value;
+          }
           const styleInfo = localCreateStyles[varName];
           if (styleInfo?.obj[propName]) {
             const style = styleInfo.obj[propName];
@@ -1159,6 +1165,20 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             return true;
           } else if (node.type === 'ParenthesisExpression') {
             return collectConditions(node.expression, currentTestStrings);
+          }
+
+          if (
+            currentTestStrings.length > 0 &&
+            t.isMemberExpression(node) &&
+            t.isIdentifier(node.object) &&
+            node.property.type === 'Computed' &&
+            resolveCreateObject(node.object.value)
+          ) {
+            const varName = (node.object as Identifier).value;
+            throwCompilationError(
+              `Plumeria: "${getSource(node)}" cannot be used inside a condition, because its bracket key is not a literal.\nMove the condition into the brackets instead, e.g. ${varName}[cond ? 'a' : 'b'].`,
+              node as HasSpan,
+            );
           }
 
           assertResolvable(node as HasSpan);
