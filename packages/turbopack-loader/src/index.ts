@@ -98,7 +98,6 @@ export default async function loader(this: LoaderContext, source: string) {
   const resourcePath = this.resourcePath;
   const isProduction = process.env.NODE_ENV === 'production';
   const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
-  let isThemeCSS = false;
 
   if (
     resourcePath.includes('node_modules') ||
@@ -592,7 +591,6 @@ export default async function loader(this: LoaderContext, source: string) {
           init.arguments.length >= 2 &&
           t.isObjectExpression(init.arguments[1].expression)
         ) {
-          isThemeCSS = true;
           if (t.isIdentifier(node.id)) {
             idSpans.add(node.id.span.start);
           }
@@ -851,7 +849,6 @@ export default async function loader(this: LoaderContext, source: string) {
             args.length >= 2 &&
             t.isObjectExpression(args[1].expression)
           ) {
-            isThemeCSS = true;
             let selector = '';
             const selectorExpr = args[0].expression;
             if (t.isStringLiteral(selectorExpr)) {
@@ -2298,7 +2295,7 @@ export default async function loader(this: LoaderContext, source: string) {
           }
         }
 
-        if (hasNewRule || isThemeCSS) {
+        if (hasNewRule) {
           const nextCss =
             orderMediaLast(Array.from(ruleSet)).join('\n\n') + '\n';
           fs.writeFileSync(VIRTUAL_FILE_PATH, nextCss, 'utf-8');
