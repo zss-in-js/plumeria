@@ -1,0 +1,71 @@
+---
+title: 'Plumeria 16.5'
+description: 'Update: Bracket conditional support and identifier fix'
+date: '2026-07-26'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v16.5 fixes identifier replacement accuracy, adds bracket-level conditional expressions, and cleans up internal dead code across the compiler, turbopack-loader, and unplugin.
+
+## Identifier replacement fix
+
+The Identifier visitor in both `@plumeria/turbopack-loader` and `@plumeria/unplugin` previously matched every `Identifier` node whose name happened to collide with a style binding. This meant declaration sites, import specifiers, labels, property keys, and shorthand object properties could all be incorrectly rewritten.
+
+A new `collectReferenceIdentifiers` utility in `@plumeria/utils` now walks the AST once before compilation and builds two sets:
+
+- **`references`** — span positions of identifiers that appear in a *reference* (value) context.
+- **`shorthands`** — span positions of identifiers that are shorthand object properties (e.g. `{ styles }`) and need a `styles: ` prefix when expanded.
+
+The Identifier visitor now skips any node whose span is not in `references`, eliminating false-positive replacements. Shorthand properties are expanded correctly with the original key preserved.
+
+---
+
+## Bracket conditional expressions
+
+Previously, using a bracket-notation style reference inside a conditional expression — such as `cond ? styles[key] : styles[other]` or `cond && styles[key]` — would silently drop the style, because the compiler had no way to fold an enclosing condition into a dynamic lookup table.
+
+Plumeria 16.5 now **detects this pattern and throws a compilation error** with a clear message guiding you to move the condition inside the brackets:
+
+```tsx
+// ✅ Compiles — condition is inside the brackets
+<div styleName={styles[isLarge ? 'large' : 'small']} />
+<div styleName={styles[isActive && 'active']} />
+<div styleName={styles[cond ? keyA : keyB]} />
+
+// ❌ Compilation error — condition wraps the bracket access
+<div styleName={isLarge ? styles[keyA] : styles[keyB]} />
+```
+
+In addition, literal bracket keys (e.g. `styles['large']`) inside conditionals are now correctly resolved to the corresponding style object, matching the behavior of dot-notation access. This applies to `@plumeria/compiler`, `@plumeria/turbopack-loader`, and `@plumeria/unplugin`.
+
+---
+
+## splitCssRules standalone comment fix
+
+`splitCssRules` in `@plumeria/turbopack-loader` now treats a top-level CSS comment that is not attached to a rule as its own chunk. Previously, a standalone comment (such as the placeholder the Next.js plugin writes when it resets the shared file) was glued to the following rule, making the rule's text differ from the freshly generated version. This caused the rule to be appended a second time on subsequent incremental writes.
+
+---
+
+## Internal cleanup
+
+- Removed `lastValidCss` fallback logic from turbopack-loader — the write-failure recovery path no longer needs it.
+- Removed `isThemeCSS` write trigger from turbopack-loader.
+- Removed postfix hash query parameter from turbopack-loader.
+- Removed variants dead code from compiler, turbopack-loader, and unplugin.
+
+---
+
+## 16.5.0 (Jul 26, 2026)
+- Feat: bracket conditional expressions — move conditions inside brackets for dynamic variant selection
+- Fix: identifier replacement now skips non-reference positions (declarations, imports, labels, property keys)
+- Fix: `splitCssRules` standalone comment handling
+- Refactor: remove dead code across compiler, turbopack-loader, and unplugin
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
