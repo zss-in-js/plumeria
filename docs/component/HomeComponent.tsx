@@ -4,7 +4,6 @@ import { CodeBlock } from './CodeBlock';
 import { ButtonLink } from './ButtonLink';
 import { svg } from './svg';
 import { theme } from 'lib/theme';
-import Image from 'next/image';
 
 const typing1 = css.keyframes({
   '0%': {
@@ -359,20 +358,6 @@ const styles = css.create({
     },
   },
 
-  image: {
-    filter: 'drop-shadow(0 0 90px rgba(13, 255, 255, 1))',
-    [breakpoints.md]: {
-      width: '120px',
-      height: '120px',
-      margin: '-15px 0 0',
-      filter: 'drop-shadow(0 0 50px rgba(13, 255, 255, 1))',
-    },
-    ':hover': {
-      filter: 'none',
-      transition: 'all 0.3s',
-    },
-  },
-
   codeSection: {
     display: 'flex',
     justifyContent: 'center',
@@ -476,15 +461,7 @@ export const HomeComponent = () => {
       <main styleName={styles.container}>
         <section styleName={styles.heroSection}>
           <div styleName={styles.imageSection}>
-            <Image
-              styleName={styles.image}
-              src="/logo.svg"
-              alt="Plumeria logo"
-              width={220}
-              height={220}
-              loading="eager"
-              preload={true}
-            />
+            <svg.PlumeriaLogo size={220} />
           </div>
 
           <div styleName={styles.heroContent}>
