@@ -87,6 +87,37 @@ describe('compiler: bracket notation emits CSS', () => {
     expect(css).toContain('color: purple');
   });
 
+  // Bracket access with a literal key must resolve inside a conditional
+  // exactly as `.key` does. It used to emit nothing at all, with no error.
+  it('emits both sides of a ternary over bracket access', () => {
+    const css = compile(`
+      export const A = ({ on }: { on: boolean }) => (
+        <div styleName={on ? s['p1'] : s['p3']} />
+      );
+    `);
+    expect(css).toContain('color: green');
+    expect(css).toContain('color: teal');
+  });
+
+  it('emits the right-hand side of a logical &&', () => {
+    const css = compile(`
+      export const A = ({ on }: { on: boolean }) => (
+        <div styleName={on && s['p1']} />
+      );
+    `);
+    expect(css).toContain('color: green');
+  });
+
+  it('emits a bracket branch mixed with dot access', () => {
+    const css = compile(`
+      export const A = ({ on }: { on: boolean }) => (
+        <div styleName={on ? s['p1'] : s.p3} />
+      );
+    `);
+    expect(css).toContain('color: green');
+    expect(css).toContain('color: teal');
+  });
+
   it('emits bracket access assigned to an intermediate variable', () => {
     const css = compile(`
       export const A = () => {
