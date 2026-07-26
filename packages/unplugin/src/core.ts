@@ -65,7 +65,7 @@ export interface PluginOptions {
 
 type CreateStyleValue = {
   name: string;
-  type: 'create' | 'constant' | 'variant';
+  type: 'create' | 'constant';
   obj: CSSObject;
   hashMap: Record<string, Record<string, string>> | CSSObject;
   isExported: boolean;
@@ -493,25 +493,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       const excludedSpans = new Set<number>();
       const referenceIdents = collectReferenceIdentifiers(ast);
 
-      const checkVariantAssignment = (decl: VariableDeclarator) => {
-        const init = decl.init;
-        if (init && t.isCallExpression(init) && t.isIdentifier(init.callee)) {
-          const varName = init.callee.value;
-          if (
-            (localCreateStyles[varName] &&
-              localCreateStyles[varName].type === 'variant') ||
-            mergedVariantsTable[varName]
-          ) {
-            throwCompilationError(
-              `Plumeria: Assigning the return value of css.variants() to a variable is not supported.\nPlease pass the variant function directly to styleName or css.use(). Found assignment to: ${
-                t.isIdentifier(decl.id) ? decl.id.value : 'unknown'
-              }`,
-              init,
-            );
-          }
-        }
-      };
-
       const registerStyle = (
         node: VariableDeclarator,
         declSpan: { start: number; end: number },
@@ -821,7 +802,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           if (t.isVariableDeclaration(node.declaration)) {
             processedDecls.add(node.declaration);
             node.declaration.declarations.forEach((decl) => {
-              checkVariantAssignment(decl);
               registerStyle(decl, node.span, true);
               checkStyleAliasAssignment(decl);
             });
@@ -830,7 +810,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         VariableDeclaration({ node }: { node: VariableDeclaration }) {
           if (processedDecls.has(node)) return;
           node.declarations.forEach((decl) => {
-            checkVariantAssignment(decl);
             registerStyle(decl, node.span, false);
             checkStyleAliasAssignment(decl);
           });
@@ -1750,19 +1729,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               }
             }
 
-            // Check local variants
-            if (localStyle && localStyle.type === 'variant') {
-              const variantMap = localStyle.hashMap[propName];
-              if (variantMap) {
-                replacements.push({
-                  start: node.span.start - baseByteOffset,
-                  end: node.span.end - baseByteOffset,
-                  content: `(${JSON.stringify(variantMap)})`,
-                });
-                return;
-              }
-            }
-
             let hash = scannedTables.createHashTable[uniqueKey];
             if (!hash) {
               hash = mergedCreateTable[varName];
@@ -2304,13 +2270,33 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         },
       });
 
+      const buildExportedInit = (info: CreateStyleValue): string => {
+        const keys = Object.keys(info.obj);
+        if (!isDev || keys.length === 0) {
+          return JSON.stringify('');
+        }
+        const head = JSON.stringify(`Plumeria: "${info.name}.`);
+        const tail = JSON.stringify(
+          `" was read at runtime. The file that read it was not compiled ` +
+            `because it does not reference "@plumeria/core" — add ` +
+            `import '@plumeria/core'; to it (see the stack below). Defined in ` +
+            `${path.relative(viteRoot, baseId)}.`,
+        );
+        return (
+          `(()=>{const k=new Set(${JSON.stringify(keys)});` +
+          `return new Proxy({},{get(t,p){` +
+          `if(typeof p==="string"&&k.has(p))throw new Error(${head}+p+${tail});` +
+          `return t[p];}});})()`
+        );
+      };
+
       // Confirm the replacement of the styles declaration
       Object.values(localCreateStyles).forEach((info) => {
         if (info.isExported) {
           replacements.push({
             start: info.initSpan.start,
             end: info.initSpan.end,
-            content: JSON.stringify(''),
+            content: buildExportedInit(info),
           });
         } else {
           replacements.push({
