@@ -2267,8 +2267,7 @@ export default async function loader(this: LoaderContext, source: string) {
       relativeImportPath = './' + relativeImportPath;
     }
 
-    const hash = genBase36Hash(optInCSS, 1, 8);
-    const postfix = `\nimport "${relativeImportPath}?v=${hash}";`;
+    const postfix = `\nimport "${relativeImportPath}";`;
 
     if (process.env.NODE_ENV === 'production') {
       return callback(null, transformedSource);
