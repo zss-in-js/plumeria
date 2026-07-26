@@ -1387,6 +1387,30 @@ export function scanAll(): Tables {
     }
   }
 
+  type JsxPhaseEntry = {
+    filePath: string;
+    ast: Module;
+    mtimeMs: number;
+    localDependencies: Set<string>;
+    localStaticTable: StaticTable;
+    localKeyframesHashTable: KeyframesHashTable;
+    localKeyframesObjectTable: KeyframesObjectTable;
+    localViewTransitionHashTable: ViewTransitionHashTable;
+    localViewTransitionObjectTable: ViewTransitionObjectTable;
+    localCreateThemeObjectTable: CreateThemeObjectTable;
+    localCreateThemeSelectorTable: CreateThemeSelectorTable;
+    localCreateHashTable: CreateHashTable;
+    localCreateObjectTable: CreateObjectTable;
+    localCreateAtomicMapTable: CreateAtomicMapTable;
+    localVariantsHashTable: VariantsHashTable;
+    localVariantsObjectTable: VariantsObjectTable;
+    localCreateThemeHashTable: CreateThemeHashTable;
+    localCreateStaticHashTable: CreateStaticHashTable;
+    localCreateStaticObjectTable: CreateStaticObjectTable;
+    localImports: Record<string, { actualPath: string; importedName: string }>;
+  };
+  const jsxPhaseQueue: JsxPhaseEntry[] = [];
+
   // 2 pass scanning
   for (let passNumber = 1; passNumber <= 2; passNumber++) {
     const isFirstPass = passNumber === 1;
@@ -1706,232 +1730,290 @@ export function scanAll(): Tables {
 
         if (isFirstPass) {
           extractAndCacheExports(filePath, ast, mtimeMs);
+          continue;
         }
 
-        if (!isFirstPass) {
-          const resolveCallStylePropInScan = (
-            expr: Expression,
-          ): { classString: string; styleObj: CSSObject } | null => {
-            if (expr.type === 'ArrayExpression') {
-              let mergedStyle: CSSObject = {};
-              const classList: string[] = [];
-              let valid = false;
-              for (const el of expr.elements) {
-                if (el && el.expression) {
-                  const res = resolveCallStylePropInScan(el.expression);
-                  if (res) {
-                    mergedStyle = deepMerge(mergedStyle, res.styleObj);
-                    if (res.classString) classList.push(res.classString);
-                    valid = true;
-                  }
-                }
-              }
-              return valid
-                ? { classString: classList.join(' '), styleObj: mergedStyle }
-                : null;
-            }
-
-            if (expr.type === 'ConditionalExpression') {
-              if (expr.test.type === 'BooleanLiteral') {
-                return resolveCallStylePropInScan(
-                  expr.test.value ? expr.consequent : expr.alternate,
-                );
-              }
-            }
-
-            if (expr.type === 'BinaryExpression') {
-              if (
-                expr.operator === '&&' &&
-                expr.left.type === 'BooleanLiteral'
-              ) {
-                if (expr.left.value) {
-                  return resolveCallStylePropInScan(expr.right);
-                }
-              }
-            }
-
-            if (expr.type === 'ParenthesisExpression') {
-              return resolveCallStylePropInScan(expr.expression);
-            }
-
-            if (
-              expr.type === 'MemberExpression' &&
-              expr.object.type === 'Identifier'
-            ) {
-              const varName = expr.object.value;
-              if (expr.property.type === 'Identifier') {
-                const propName = expr.property.value;
-                const uniqueKey = `${filePath}-${varName}`;
-
-                let hash = localCreateHashTable[varName];
-                if (!hash) hash = localTables.createHashTable[uniqueKey];
-
-                if (hash) {
-                  const styleObj =
-                    localTables.createObjectTable[hash]?.[propName];
-                  const atomMap =
-                    localTables.createAtomicMapTable[hash]?.[propName];
-                  if (styleObj && atomMap) {
-                    const classString = Object.values(atomMap).join(' ');
-                    return { classString, styleObj: styleObj as CSSObject };
-                  }
-                }
-              }
-            }
-
-            return null;
-          };
-
-          const localComponentPropsTable: Record<
-            string,
-            Record<string, TableEntry[]>
-          > = {};
-
-          const registerStyles = (
-            node: Expression,
-            propName: string,
-            compKey: string,
-            table: Record<string, Record<string, TableEntry[]>>,
-          ) => {
-            if (node.type === 'ConditionalExpression') {
-              registerStyles(node.consequent, propName, compKey, table);
-              registerStyles(node.alternate, propName, compKey, table);
-              return;
-            }
-            if (node.type === 'BinaryExpression' && node.operator === '&&') {
-              registerStyles(node.right, propName, compKey, table);
-              return;
-            }
-            if (node.type === 'ParenthesisExpression') {
-              registerStyles(node.expression, propName, compKey, table);
-              return;
-            }
-
-            const resolved = resolveCallStylePropInScan(node);
-            if (resolved) {
-              if (!table[compKey]) {
-                table[compKey] = {};
-              }
-              if (!table[compKey][propName]) {
-                table[compKey][propName] = [];
-              }
-              const list = table[compKey][propName];
-
-              // Content-derived key: stable across scan order and cache state
-              const entry: TableEntry = {
-                key: genBase36Hash(resolved.classString, 1, 8),
-                styleObj: resolved.styleObj,
-                classString: resolved.classString,
-                spanStart: (node as HasSpan).span.start,
-                filePath,
-              };
-
-              list.push(entry);
-            }
-          };
-
-          traverse(ast, {
-            JSXOpeningElement({ node }) {
-              if (node.name.type === 'Identifier') {
-                const name = node.name.value;
-                if (name[0] === name[0].toUpperCase()) {
-                  let compKey = '';
-                  const imported = localImports[name];
-                  if (imported) {
-                    let resolvedKey = `${imported.actualPath}-${imported.importedName}`;
-                    const resolved = resolveExport(
-                      imported.actualPath,
-                      imported.importedName,
-                    );
-                    if (resolved) {
-                      resolvedKey = `${resolved.filePath}-${resolved.localName}`;
-                    }
-                    compKey = resolvedKey;
-                  } else {
-                    compKey = `${filePath}-${name}`;
-                  }
-
-                  node.attributes.forEach((attr: any) => {
-                    if (
-                      attr.type === 'JSXAttribute' &&
-                      attr.name.type === 'Identifier'
-                    ) {
-                      const propName = attr.name.value;
-                      const val = attr.value;
-                      if (val && val.type === 'JSXExpressionContainer') {
-                        registerStyles(
-                          val.expression,
-                          propName,
-                          compKey,
-                          localComponentPropsTable,
-                        );
-                      }
-                    }
-                  });
-                }
-              }
-            },
-          });
-
-          const globalTable = localTables.componentPropsTable!;
-          for (const compKey of Object.keys(localComponentPropsTable)) {
-            if (!globalTable[compKey]) {
-              globalTable[compKey] = {};
-            }
-            for (const propName of Object.keys(
-              localComponentPropsTable[compKey],
-            )) {
-              if (!globalTable[compKey][propName]) {
-                globalTable[compKey][propName] = [];
-              }
-              const entries = localComponentPropsTable[compKey][propName];
-              for (const entry of entries) {
-                const exists = globalTable[compKey][propName].some(
-                  (x) =>
-                    x.spanStart === entry.spanStart &&
-                    x.filePath === entry.filePath,
-                );
-                if (!exists) {
-                  globalTable[compKey][propName].push(entry);
-                }
-              }
-            }
-          }
-
-          // Update incremental edges and cache
-          const prevDependencies = fileCache[filePath]?.dependencies;
-          fileCache[filePath] = {
-            mtimeMs: mtimeMs,
-            dependencies: Array.from(localDependencies),
-            exports: fileCache[filePath]?.exports,
-            staticTable: localStaticTable,
-            keyframesHashTable: localKeyframesHashTable,
-            keyframesObjectTable: localKeyframesObjectTable,
-            viewTransitionHashTable: localViewTransitionHashTable,
-            viewTransitionObjectTable: localViewTransitionObjectTable,
-            createThemeHashTable: localCreateThemeHashTable,
-            createThemeSelectorTable: localCreateThemeSelectorTable,
-            createThemeObjectTable: localCreateThemeObjectTable,
-            createHashTable: localCreateHashTable,
-            createObjectTable: localCreateObjectTable,
-            createAtomicMapTable: localCreateAtomicMapTable,
-            variantsHashTable: localVariantsHashTable,
-            variantsObjectTable: localVariantsObjectTable,
-            createStaticHashTable: localCreateStaticHashTable,
-            createStaticObjectTable: localCreateStaticObjectTable,
-            componentPropsTable: localComponentPropsTable,
-            hasCssUsage: true,
-          };
-
-          updateDependencyEdges(
-            filePath,
-            prevDependencies,
-            fileCache[filePath].dependencies,
-          );
-        }
+        jsxPhaseQueue.push({
+          filePath,
+          ast,
+          mtimeMs,
+          localDependencies,
+          localStaticTable,
+          localKeyframesHashTable,
+          localKeyframesObjectTable,
+          localViewTransitionHashTable,
+          localViewTransitionObjectTable,
+          localCreateThemeObjectTable,
+          localCreateThemeSelectorTable,
+          localCreateHashTable,
+          localCreateObjectTable,
+          localCreateAtomicMapTable,
+          localVariantsHashTable,
+          localVariantsObjectTable,
+          localCreateThemeHashTable,
+          localCreateStaticHashTable,
+          localCreateStaticObjectTable,
+          localImports,
+        });
       } catch (e) {
         // ignore
       }
+    }
+  }
+
+  for (const entry of jsxPhaseQueue) {
+    try {
+      const {
+        filePath,
+        ast,
+        mtimeMs,
+        localDependencies,
+        localStaticTable,
+        localKeyframesHashTable,
+        localKeyframesObjectTable,
+        localViewTransitionHashTable,
+        localViewTransitionObjectTable,
+        localCreateThemeObjectTable,
+        localCreateThemeSelectorTable,
+        localCreateHashTable,
+        localCreateObjectTable,
+        localCreateAtomicMapTable,
+        localVariantsHashTable,
+        localVariantsObjectTable,
+        localCreateThemeHashTable,
+        localCreateStaticHashTable,
+        localCreateStaticObjectTable,
+        localImports,
+      } = entry;
+
+      for (const localName of Object.keys(localImports)) {
+        const { actualPath, importedName } = localImports[localName];
+        let resolvedKey = `${actualPath}-${importedName}`;
+        const resolved = resolveExport(actualPath, importedName);
+        if (resolved) {
+          resolvedKey = `${resolved.filePath}-${resolved.localName}`;
+        }
+        const hash = localTables.createHashTable[resolvedKey];
+        if (hash) {
+          localCreateHashTable[localName] = hash;
+        }
+      }
+
+      const resolveCallStylePropInScan = (
+        expr: Expression,
+      ): { classString: string; styleObj: CSSObject } | null => {
+        if (expr.type === 'ArrayExpression') {
+          let mergedStyle: CSSObject = {};
+          const classList: string[] = [];
+          let valid = false;
+          for (const el of expr.elements) {
+            if (el && el.expression) {
+              const res = resolveCallStylePropInScan(el.expression);
+              if (res) {
+                mergedStyle = deepMerge(mergedStyle, res.styleObj);
+                if (res.classString) classList.push(res.classString);
+                valid = true;
+              }
+            }
+          }
+          return valid
+            ? { classString: classList.join(' '), styleObj: mergedStyle }
+            : null;
+        }
+
+        if (expr.type === 'ConditionalExpression') {
+          if (expr.test.type === 'BooleanLiteral') {
+            return resolveCallStylePropInScan(
+              expr.test.value ? expr.consequent : expr.alternate,
+            );
+          }
+        }
+
+        if (expr.type === 'BinaryExpression') {
+          if (expr.operator === '&&' && expr.left.type === 'BooleanLiteral') {
+            if (expr.left.value) {
+              return resolveCallStylePropInScan(expr.right);
+            }
+          }
+        }
+
+        if (expr.type === 'ParenthesisExpression') {
+          return resolveCallStylePropInScan(expr.expression);
+        }
+
+        if (
+          expr.type === 'MemberExpression' &&
+          expr.object.type === 'Identifier'
+        ) {
+          const varName = expr.object.value;
+          if (expr.property.type === 'Identifier') {
+            const propName = expr.property.value;
+            const uniqueKey = `${filePath}-${varName}`;
+
+            let hash = localCreateHashTable[varName];
+            if (!hash) hash = localTables.createHashTable[uniqueKey];
+
+            if (hash) {
+              const styleObj = localTables.createObjectTable[hash]?.[propName];
+              const atomMap =
+                localTables.createAtomicMapTable[hash]?.[propName];
+              if (styleObj && atomMap) {
+                const classString = Object.values(atomMap).join(' ');
+                return { classString, styleObj: styleObj as CSSObject };
+              }
+            }
+          }
+        }
+
+        return null;
+      };
+
+      const localComponentPropsTable: Record<
+        string,
+        Record<string, TableEntry[]>
+      > = {};
+
+      const registerStyles = (
+        node: Expression,
+        propName: string,
+        compKey: string,
+        table: Record<string, Record<string, TableEntry[]>>,
+      ) => {
+        if (node.type === 'ConditionalExpression') {
+          registerStyles(node.consequent, propName, compKey, table);
+          registerStyles(node.alternate, propName, compKey, table);
+          return;
+        }
+        if (node.type === 'BinaryExpression' && node.operator === '&&') {
+          registerStyles(node.right, propName, compKey, table);
+          return;
+        }
+        if (node.type === 'ParenthesisExpression') {
+          registerStyles(node.expression, propName, compKey, table);
+          return;
+        }
+
+        const resolved = resolveCallStylePropInScan(node);
+        if (resolved) {
+          if (!table[compKey]) {
+            table[compKey] = {};
+          }
+          if (!table[compKey][propName]) {
+            table[compKey][propName] = [];
+          }
+          const list = table[compKey][propName];
+
+          // Content-derived key: stable across scan order and cache state
+          const entry: TableEntry = {
+            key: genBase36Hash(resolved.classString, 1, 8),
+            styleObj: resolved.styleObj,
+            classString: resolved.classString,
+            spanStart: (node as HasSpan).span.start,
+            filePath,
+          };
+
+          list.push(entry);
+        }
+      };
+
+      traverse(ast, {
+        JSXOpeningElement({ node }) {
+          if (node.name.type === 'Identifier') {
+            const name = node.name.value;
+            if (name[0] === name[0].toUpperCase()) {
+              let compKey = '';
+              const imported = localImports[name];
+              if (imported) {
+                let resolvedKey = `${imported.actualPath}-${imported.importedName}`;
+                const resolved = resolveExport(
+                  imported.actualPath,
+                  imported.importedName,
+                );
+                if (resolved) {
+                  resolvedKey = `${resolved.filePath}-${resolved.localName}`;
+                }
+                compKey = resolvedKey;
+              } else {
+                compKey = `${filePath}-${name}`;
+              }
+
+              node.attributes.forEach((attr: any) => {
+                if (
+                  attr.type === 'JSXAttribute' &&
+                  attr.name.type === 'Identifier'
+                ) {
+                  const propName = attr.name.value;
+                  const val = attr.value;
+                  if (val && val.type === 'JSXExpressionContainer') {
+                    registerStyles(
+                      val.expression,
+                      propName,
+                      compKey,
+                      localComponentPropsTable,
+                    );
+                  }
+                }
+              });
+            }
+          }
+        },
+      });
+
+      const globalTable = localTables.componentPropsTable!;
+      for (const compKey of Object.keys(localComponentPropsTable)) {
+        if (!globalTable[compKey]) {
+          globalTable[compKey] = {};
+        }
+        for (const propName of Object.keys(localComponentPropsTable[compKey])) {
+          if (!globalTable[compKey][propName]) {
+            globalTable[compKey][propName] = [];
+          }
+          const entries = localComponentPropsTable[compKey][propName];
+          for (const entry of entries) {
+            const exists = globalTable[compKey][propName].some(
+              (x) =>
+                x.spanStart === entry.spanStart &&
+                x.filePath === entry.filePath,
+            );
+            if (!exists) {
+              globalTable[compKey][propName].push(entry);
+            }
+          }
+        }
+      }
+
+      // Update incremental edges and cache
+      const prevDependencies = fileCache[filePath]?.dependencies;
+      fileCache[filePath] = {
+        mtimeMs: mtimeMs,
+        dependencies: Array.from(localDependencies),
+        exports: fileCache[filePath]?.exports,
+        staticTable: localStaticTable,
+        keyframesHashTable: localKeyframesHashTable,
+        keyframesObjectTable: localKeyframesObjectTable,
+        viewTransitionHashTable: localViewTransitionHashTable,
+        viewTransitionObjectTable: localViewTransitionObjectTable,
+        createThemeHashTable: localCreateThemeHashTable,
+        createThemeSelectorTable: localCreateThemeSelectorTable,
+        createThemeObjectTable: localCreateThemeObjectTable,
+        createHashTable: localCreateHashTable,
+        createObjectTable: localCreateObjectTable,
+        createAtomicMapTable: localCreateAtomicMapTable,
+        variantsHashTable: localVariantsHashTable,
+        variantsObjectTable: localVariantsObjectTable,
+        createStaticHashTable: localCreateStaticHashTable,
+        createStaticObjectTable: localCreateStaticObjectTable,
+        componentPropsTable: localComponentPropsTable,
+        hasCssUsage: true,
+      };
+
+      updateDependencyEdges(
+        filePath,
+        prevDependencies,
+        fileCache[filePath].dependencies,
+      );
+    } catch (e) {
+      // ignore
     }
   }
 
