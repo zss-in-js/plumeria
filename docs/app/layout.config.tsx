@@ -1,6 +1,6 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import * as css from '@plumeria/core';
-import Image from 'next/image';
+
 import { svg } from 'component/svg';
 import { NavDropdown } from 'component/NavDropdown';
 import { latestReleases } from 'lib/latestReleases';
@@ -9,11 +9,6 @@ import { theme } from 'lib/theme';
 const latestReleasePosts = latestReleases(3);
 
 const styles = css.create({
-  flower: {
-    position: 'relative',
-    bottom: 0,
-    left: 8,
-  },
   image: {
     position: 'relative',
     display: 'flex',
@@ -31,7 +26,7 @@ export const baseOptions: BaseLayoutProps = {
     transparentMode: 'top',
     title: (
       <span styleName={styles.image}>
-        <Image styleName={styles.flower} src="/logo.svg" alt="Plumeria logo" loading="lazy" height={20} width={20} />
+        <svg.PlumeriaLogo size={20} />
         Plumeria
       </span>
     ),
