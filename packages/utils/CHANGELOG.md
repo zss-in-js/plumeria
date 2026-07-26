@@ -1,5 +1,14 @@
 # @plumeria/utils
 
+## 16.5.0
+
+### Minor Changes
+
+- e0efd1c: fix: identifier replacement now skips non-reference positions
+  feat: bracket conditional expressions with dynamic and literal keys
+  fix: splitCssRules standalone comment handling
+  refactor: remove dead code across compiler, turbopack-loader, and unplugin
+
 ## 16.4.2
 
 ### Patch Changes

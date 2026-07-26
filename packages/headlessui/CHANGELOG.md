@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 16.5.0
+
+### Minor Changes
+
+- e0efd1c: Bump version to 16.5.0
+
 ## 16.4.2
 
 ### Patch Changes
