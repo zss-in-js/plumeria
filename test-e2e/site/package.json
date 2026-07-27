@@ -6,7 +6,7 @@
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
     "dev": "next dev",
-    "build": "plumerialint & next build",
+    "build": "plumerialint -- next build",
     "start": "next start",
     "lint": "next lint"
   },
