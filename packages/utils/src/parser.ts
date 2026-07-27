@@ -1601,6 +1601,16 @@ export function scanAll(): Tables {
                   return undefined;
                 };
 
+                // Two-pass scanning:
+                // Pass 1: Collect all createStatic, createTheme, keyframes, and viewTransition definitions for global resolution
+                // Pass 2: Process css.create and variants (with all global definitions available)
+                const isPassOneMethod =
+                  method === 'createStatic' ||
+                  method === 'createTheme' ||
+                  method === 'keyframes' ||
+                  method === 'viewTransition';
+                if (isFirstPass && !isPassOneMethod) continue;
+
                 const objExpression = isCreateTheme
                   ? (init.arguments[1].expression as ObjectExpression)
                   : (init.arguments[0].expression as ObjectExpression);
@@ -1620,17 +1630,6 @@ export function scanAll(): Tables {
                 );
 
                 const uniqueKey = `${filePath}-${name}`;
-
-                // Two-pass scanning:
-                // Pass 1: Collect all createStatic, createTheme, keyframes, and viewTransition definitions for global resolution
-                // Pass 2: Process css.create and variants (with all global definitions available)
-
-                const isPassOneMethod =
-                  method === 'createStatic' ||
-                  method === 'createTheme' ||
-                  method === 'keyframes' ||
-                  method === 'viewTransition';
-                if (isFirstPass && !isPassOneMethod) continue;
 
                 if (method === 'createStatic') {
                   localStaticTable[name] = obj;
