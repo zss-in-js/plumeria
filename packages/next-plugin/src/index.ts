@@ -15,8 +15,17 @@ const isRuleConfigItem = (
 
 type PlumeriaTurbopackRules = Record<
   string,
-  { loaders: TurbopackLoaderItem[] }
+  { loaders: TurbopackLoaderItem[]; condition?: unknown }
 >;
+
+function supportsRuleCondition(): boolean {
+  try {
+    const { version } = require('next/package.json') as { version: string };
+    return Number(version.split('.')[0]) >= 16;
+  } catch {
+    return false;
+  }
+}
 
 export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
   const globalRef = global as typeof global & {
@@ -53,11 +62,20 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
     { loader: '@plumeria/turbopack-loader', options: {} },
   ];
 
+  const ruleItem = supportsRuleCondition()
+    ? {
+        loaders: turbopackLoaders,
+        condition: {
+          all: [{ not: 'foreign' }, { content: /@plumeria\/core/ }],
+        },
+      }
+    : { loaders: turbopackLoaders };
+
   const plumeriaRules: PlumeriaTurbopackRules = {
-    '*.ts': { loaders: turbopackLoaders },
-    '*.tsx': { loaders: turbopackLoaders },
-    '*.js': { loaders: turbopackLoaders },
-    '*.jsx': { loaders: turbopackLoaders },
+    '*.ts': ruleItem,
+    '*.tsx': ruleItem,
+    '*.js': ruleItem,
+    '*.jsx': ruleItem,
   };
 
   const mergeTurbopackRules = (
@@ -83,7 +101,7 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
           loaders: [...newLoaders, ...existingLoaders],
         };
       } else {
-        mergedRules[key] = newRule;
+        mergedRules[key] = newRule as TurbopackRuleValue;
       }
     }
     return mergedRules;
