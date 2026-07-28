@@ -363,7 +363,7 @@ export const transition = css.create({
 
 There are exactly **3 patterns** for applying Plumeria styles to custom components. In all of them, compilation happens at the `styleName` / `css.use()` call sites; the component itself just passes the compiled `className` / `style` through to the DOM.
 
-> **Core principle**: Custom props typed as `StyleName` are statically traced by the compiler, so styles pass seamlessly across component boundaries.
+> **Core principle**: Custom props typed as `Style` are statically traced by the compiler, so styles pass seamlessly across component boundaries.
 
 ### Pattern 1: Direct `styleName` inside the component
 
@@ -397,9 +397,9 @@ export const Button = ({ children }: { children: React.ReactNode }) => {
 <Button>Click me</Button>;
 ```
 
-### Pattern 2: Passing a `StyleName` prop
+### Pattern 2: Passing a `Style` prop
 
-`styleName` itself is compiled away at the call site, so it cannot be used as a prop name on a custom component. Instead, define a custom prop (e.g. `styleArray`) typed as `css.StyleName`. The compiler statically traces it across component boundaries and resolves it into the internal element's `styleName`. Composing as `[styles.text, styleArray]` lets call-site styles override the component's base styles (right-wins — see Core Usage): below, the call site's `fontSize: '24px'` overrides the internal `fontSize: '12px'`.
+`styleName` itself is compiled away at the call site, so it cannot be used as a prop name on a custom component. Instead, define a custom prop (e.g. `styleArray`) typed as `css.Style`. The compiler statically traces it across component boundaries and resolves it into the internal element's `styleName`. Composing as `[styles.text, styleArray]` lets call-site styles override the component's base styles (right-wins — see Core Usage): below, the call site's `fontSize: '24px'` overrides the internal `fontSize: '12px'`.
 
 ```tsx
 // --- Button.tsx ---
@@ -408,7 +408,7 @@ import * as css from '@plumeria/core';
 
 type ButtonProps = {
   children: React.ReactNode;
-  styleArray?: css.StyleName;
+  styleArray?: css.Style;
 };
 
 // base style
@@ -444,7 +444,7 @@ const styles = css.create({
 
 ### Pattern 3: `className` bypass with `css.use()`
 
-The component resolves the `StyleName` prop into a class name string with `css.use()` and passes it to `className`. The compiler traces the prop into the `css.use()` call the same way:
+The component resolves the `Style` prop into a class name string with `css.use()` and passes it to `className`. The compiler traces the prop into the `css.use()` call the same way:
 
 ```tsx
 // --- Button.tsx ---
@@ -453,7 +453,7 @@ import * as css from '@plumeria/core';
 
 type ButtonProps = {
   children: React.ReactNode;
-  styleArray?: css.StyleName;
+  styleArray?: css.Style;
 };
 
 // base style
@@ -496,8 +496,8 @@ const styles = css.create({
 | Pattern | Compilation site | Component's role |
 |---------|-----------------|-----------------|
 | 1. Direct `styleName` | Inside the component | Self-contained styles |
-| 2. `StyleName` prop | Traced and compiled | Receives and applies `StyleName` |
-| 3. `className` bypass | Inside the component (`css.use`) | Resolves `StyleName` into `className` |
+| 2. `Style` prop | Traced and compiled | Receives and applies `Style` |
+| 3. `className` bypass | Inside the component (`css.use`) | Resolves `Style` into `className` |
 
 ## Toolchain Notes
 
