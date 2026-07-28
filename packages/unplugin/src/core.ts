@@ -44,6 +44,7 @@ import {
   optimizer,
   getFileDependencies,
   resolveExport,
+  DEFAULT_STYLE_PROP,
 } from '@plumeria/utils';
 import type {
   StyleRecord,
@@ -61,6 +62,7 @@ export interface PluginOptions {
   include?: string | RegExp | Array<string | RegExp>;
   exclude?: string | RegExp | Array<string | RegExp>;
   devEmitToDisk?: boolean;
+  styleProp?: string;
 }
 
 type CreateStyleValue = {
@@ -94,6 +96,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
   unpluginMeta,
 ) => {
   const filter = createFilter(options.include, options.exclude);
+  const styleProp = options.styleProp ?? DEFAULT_STYLE_PROP;
 
   const cssLookup = new Map<string, string>();
   const cssFileLookup = new Map<string, string>();
@@ -1894,7 +1897,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           if (node.name.type !== 'Identifier') return;
           const attrName = node.name.value;
 
-          if (attrName !== 'styleName') {
+          if (attrName !== styleProp) {
             let parentTagName = '';
             for (const [, val] of jsxOpeningElementMap) {
               const found = val.attributes
