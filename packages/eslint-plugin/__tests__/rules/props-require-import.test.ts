@@ -1,5 +1,5 @@
 import { RuleTester } from 'eslint';
-import { styleNameRequiresImport } from '../../src/rules/style-name-requires-import';
+import { propsRequireImport } from '../../src/rules/props-require-import';
 
 const ruleTester = new RuleTester({
   languageOptions: {
@@ -11,8 +11,13 @@ const ruleTester = new RuleTester({
   },
 });
 
-ruleTester.run('style-name-requires-import', styleNameRequiresImport, {
+ruleTester.run('props-require-import', propsRequireImport, {
   valid: [
+    {
+      // the default name stops being the styling prop once renamed
+      code: '<div styleName={[styles.foo]} />;',
+      settings: { plumeria: { styleProp: 'sx' } },
+    },
     {
       code: `
           import * as css from '@plumeria/core';
@@ -51,7 +56,7 @@ ruleTester.run('style-name-requires-import', styleNameRequiresImport, {
       output: `import "@plumeria/core";\n\n          const el = <div styleName={[styles.foo]} />;\n        `,
       errors: [
         {
-          messageId: 'styleNameError',
+          messageId: 'requiresImport',
         },
       ],
     },
@@ -63,7 +68,7 @@ ruleTester.run('style-name-requires-import', styleNameRequiresImport, {
       output: `import "@plumeria/core";\n\n          import React from 'react';\n          const el = <div styleName={[styles.foo]} />;\n        `,
       errors: [
         {
-          messageId: 'styleNameError',
+          messageId: 'requiresImport',
         },
       ],
     },
@@ -76,12 +81,24 @@ ruleTester.run('style-name-requires-import', styleNameRequiresImport, {
       output: `import "@plumeria/core";\n\n          import something from 'other-lib';\n          const el = <div styleName={[styles.foo]} />;\n          const el2 = <span styleName={[styles.bar]} />;\n        `,
       errors: [
         {
-          messageId: 'styleNameError',
+          messageId: 'requiresImport',
         },
         {
-          messageId: 'styleNameError',
+          messageId: 'requiresImport',
         },
       ],
+    },
+    {
+      code: '<div sx={[styles.foo]} />;',
+      settings: { plumeria: { styleProp: 'sx' } },
+      errors: [{ messageId: 'requiresImport' }],
+      output: 'import "@plumeria/core";\n<div sx={[styles.foo]} />;',
+    },
+    {
+      code: '<div sx={[styles.foo]} />;',
+      options: [{ styleProp: 'sx' }],
+      errors: [{ messageId: 'requiresImport' }],
+      output: 'import "@plumeria/core";\n<div sx={[styles.foo]} />;',
     },
   ],
 });
