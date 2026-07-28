@@ -28,6 +28,26 @@ jest.mock('@rust-gear/glob', () => ({
 const mockedFs = fs as jest.Mocked<typeof fs>;
 const mockedRs = rs as jest.Mocked<typeof rs>;
 
+const mockFileSet = (
+  known: string[],
+  mtimeMs: number | ((resolved: string) => number) = 1,
+) => {
+  const has = (p: any) => known.includes(path.resolve(p));
+  mockedFs.existsSync.mockImplementation(has);
+  mockedFs.statSync.mockImplementation((p: any, opts?: any) => {
+    if (!has(p)) {
+      if (opts?.throwIfNoEntry === false) return undefined as any;
+      throw Object.assign(new Error(`ENOENT: ${p}`), { code: 'ENOENT' });
+    }
+    return {
+      mtimeMs:
+        typeof mtimeMs === 'function' ? mtimeMs(path.resolve(p)) : mtimeMs,
+      isDirectory: () => false,
+      isFile: () => true,
+    } as any;
+  });
+};
+
 let tables: any;
 
 const expr = (code: string) =>
@@ -1053,22 +1073,12 @@ describe('parser', () => {
         path.resolve(process.cwd(), 'utils/core.ts'),
         path.resolve(process.cwd(), 'common/types.ts'),
       ]);
-      mockedFs.statSync.mockImplementation(
-        () =>
-          ({
-            mtimeMs: 1,
-            isDirectory: () => false,
-            isFile: () => true,
-          }) as any,
-      );
-      mockedFs.existsSync.mockImplementation((p: any) =>
-        [
-          libFile,
-          appFile,
-          path.resolve(process.cwd(), 'utils/core.ts'),
-          path.resolve(process.cwd(), 'common/types.ts'),
-        ].includes(path.resolve(p)),
-      );
+      mockFileSet([
+        libFile,
+        appFile,
+        path.resolve(process.cwd(), 'utils/core.ts'),
+        path.resolve(process.cwd(), 'common/types.ts'),
+      ]);
 
       const fileContents: Record<string, string> = {
         [libFile]:
@@ -1091,14 +1101,7 @@ describe('parser', () => {
       const pageFile = path.resolve(process.cwd(), 'app/page.ts');
 
       mockedRs.globSync.mockReturnValue([themeFile, pageFile]);
-      mockedFs.statSync.mockReturnValue({
-        mtimeMs: 1,
-        isDirectory: () => false,
-        isFile: () => true,
-      } as any);
-      mockedFs.existsSync.mockImplementation((p: any) =>
-        [themeFile, pageFile].includes(path.resolve(p)),
-      );
+      mockFileSet([themeFile, pageFile]);
 
       const fileContents: Record<string, string> = {
         [themeFile]:
@@ -1125,17 +1128,7 @@ describe('parser', () => {
       const pageFile = path.resolve(process.cwd(), 'app/page.ts');
 
       mockedRs.globSync.mockReturnValue([themeFile, pageFile]);
-      mockedFs.statSync.mockImplementation(
-        () =>
-          ({
-            mtimeMs: 1,
-            isDirectory: () => false,
-            isFile: () => true,
-          }) as any,
-      );
-      mockedFs.existsSync.mockImplementation((p: any) =>
-        [themeFile, pageFile].includes(path.resolve(p)),
-      );
+      mockFileSet([themeFile, pageFile]);
 
       const fileContents: Record<string, string> = {
         [themeFile]:
@@ -1166,21 +1159,11 @@ describe('parser', () => {
         libFile,
         path.resolve(process.cwd(), 'utils/core.ts'),
       ]);
-      mockedFs.statSync.mockImplementation(
-        () =>
-          ({
-            mtimeMs: 1,
-            isDirectory: () => false,
-            isFile: () => true,
-          }) as any,
-      );
-      mockedFs.existsSync.mockImplementation((p: any) =>
-        [
-          libFile,
-          appFile,
-          path.resolve(process.cwd(), 'utils/core.ts'),
-        ].includes(path.resolve(p)),
-      );
+      mockFileSet([
+        libFile,
+        appFile,
+        path.resolve(process.cwd(), 'utils/core.ts'),
+      ]);
 
       const fileContents: Record<string, string> = {
         [libFile]:
@@ -1220,21 +1203,11 @@ describe('parser', () => {
         libFile,
         path.resolve(process.cwd(), 'utils/core.ts'),
       ]);
-      mockedFs.statSync.mockImplementation(
-        () =>
-          ({
-            mtimeMs: 1,
-            isDirectory: () => false,
-            isFile: () => true,
-          }) as any,
-      );
-      mockedFs.existsSync.mockImplementation((p: any) =>
-        [
-          libFile,
-          appFile,
-          path.resolve(process.cwd(), 'utils/core.ts'),
-        ].includes(path.resolve(p)),
-      );
+      mockFileSet([
+        libFile,
+        appFile,
+        path.resolve(process.cwd(), 'utils/core.ts'),
+      ]);
 
       const fileContents: Record<string, string> = {
         [libFile]:
@@ -1904,11 +1877,7 @@ describe('parser', () => {
       const appFile = path.resolve(process.cwd(), 'app/check-unique.ts');
 
       mockedRs.globSync.mockReturnValue([libFile, appFile]);
-      mockedFs.statSync.mockReturnValue({
-        mtimeMs: 2, // Use different mtime just in case
-        isDirectory: () => false,
-        isFile: () => true,
-      } as any);
+      mockFileSet([libFile, appFile], 2);
 
       // Setup lib file normally to populate the table (so resolution works)
       const fileContents: Record<string, string> = {
@@ -1921,9 +1890,6 @@ describe('parser', () => {
 
       mockedFs.readFileSync.mockImplementation(
         (p: any) => fileContents[p] || '',
-      );
-      mockedFs.existsSync.mockImplementation((p: any) =>
-        [libFile, appFile].includes(path.resolve(p)),
       );
 
       const result = scanAll();
@@ -1941,11 +1907,7 @@ describe('parser', () => {
       const appFile = path.resolve(process.cwd(), 'app/check-aliased.ts');
 
       mockedRs.globSync.mockReturnValue([libFile, appFile]);
-      mockedFs.statSync.mockReturnValue({
-        mtimeMs: 3,
-        isDirectory: () => false,
-        isFile: () => true,
-      } as any);
+      mockFileSet([libFile, appFile], 3);
 
       const fileContents: Record<string, string> = {
         [libFile]:
@@ -1956,9 +1918,6 @@ describe('parser', () => {
 
       mockedFs.readFileSync.mockImplementation(
         (p: any) => fileContents[p] || '',
-      );
-      mockedFs.existsSync.mockImplementation((p: any) =>
-        [libFile, appFile].includes(path.resolve(p)),
       );
 
       const result = scanAll();
@@ -2033,11 +1992,7 @@ describe('parser', () => {
       const appFile = path.resolve(process.cwd(), 'app/check-spread.ts');
 
       mockedRs.globSync.mockReturnValue([libFile, appFile]);
-      mockedFs.statSync.mockReturnValue({
-        mtimeMs: 4,
-        isDirectory: () => false,
-        isFile: () => true,
-      } as any);
+      mockFileSet([libFile, appFile], 4);
 
       const fileContents: Record<string, string> = {
         [libFile]:
@@ -2048,9 +2003,6 @@ describe('parser', () => {
 
       mockedFs.readFileSync.mockImplementation(
         (p: any) => fileContents[p] || '',
-      );
-      mockedFs.existsSync.mockImplementation((p: any) =>
-        [libFile, appFile].includes(path.resolve(p)),
       );
 
       const result = scanAll();
@@ -2536,16 +2488,9 @@ describe('componentPropsTable key stability (HMR)', () => {
     mtimes: Record<string, number>,
   ) => {
     mockedRs.globSync.mockReturnValue([childFile, parent1, parent2] as any);
-    mockedFs.statSync.mockImplementation(
-      (p: any) =>
-        ({
-          mtimeMs: mtimes[path.resolve(p)] ?? 1,
-          isDirectory: () => false,
-          isFile: () => true,
-        }) as any,
-    );
-    mockedFs.existsSync.mockImplementation((p: any) =>
-      [childFile, parent1, parent2].includes(path.resolve(p)),
+    mockFileSet(
+      [childFile, parent1, parent2],
+      (resolved) => mtimes[resolved] ?? 1,
     );
     mockedFs.readFileSync.mockImplementation(
       (p: any) => contents[path.resolve(p)] || '',
