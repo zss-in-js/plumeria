@@ -34,16 +34,20 @@ describe('parser3 HMR cleanup tests for lines 1259 and 1263', () => {
       mtimes: Record<string, number>,
     ) => {
       mockedRs.globSync.mockReturnValue([childFile, parent1, parent2] as any);
-      mockedFs.statSync.mockImplementation(
-        (p: any) =>
-          ({
-            mtimeMs: mtimes[path.resolve(p)] ?? 1,
-            isDirectory: () => false,
-            isFile: () => true,
-          }) as any,
-      );
+      const known = [childFile, parent1, parent2];
+      mockedFs.statSync.mockImplementation((p: any, opts?: any) => {
+        if (!known.includes(path.resolve(p))) {
+          if (opts?.throwIfNoEntry === false) return undefined as any;
+          throw Object.assign(new Error(`ENOENT: ${p}`), { code: 'ENOENT' });
+        }
+        return {
+          mtimeMs: mtimes[path.resolve(p)] ?? 1,
+          isDirectory: () => false,
+          isFile: () => true,
+        } as any;
+      });
       mockedFs.existsSync.mockImplementation((p: any) =>
-        [childFile, parent1, parent2].includes(path.resolve(p)),
+        known.includes(path.resolve(p)),
       );
       mockedFs.readFileSync.mockImplementation(
         (p: any) => contents[path.resolve(p)] || '',
