@@ -1,4 +1,4 @@
-import { styleNameRequiresImport } from './rules/style-name-requires-import';
+import { propsRequireImport } from './rules/props-require-import';
 import { noCombinator } from './rules/no-combinator';
 import { noDestructure } from './rules/no-destructure';
 import { noInlineObject } from './rules/no-inline-object';
@@ -20,7 +20,7 @@ type Configs = {
 };
 
 const rules: Rules = {
-  'style-name-requires-import': styleNameRequiresImport,
+  'props-require-import': propsRequireImport,
   'no-combinator': noCombinator,
   'no-destructure': noDestructure,
   'no-inline-object': noInlineObject,
@@ -43,7 +43,7 @@ const configs: Configs = {
       },
     },
     rules: {
-      '@plumeria/style-name-requires-import': 'error',
+      '@plumeria/props-require-import': 'error',
       '@plumeria/no-combinator': 'error',
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inline-object': 'error',
