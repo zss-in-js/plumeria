@@ -41,7 +41,7 @@ const styles = css.create({
   },
   searchSlot: {
     display: 'none',
-    [breakpoints.lgup]: {
+    [breakpoints.lgUp]: {
       display: 'block',
       width: '100%',
       maxWidth: 140,
@@ -61,7 +61,7 @@ const styles = css.create({
   },
   wide: {
     display: 'none',
-    [breakpoints.lgup]: {
+    [breakpoints.lgUp]: {
       display: 'flex',
       gap: 4,
       alignItems: 'center',
@@ -71,7 +71,7 @@ const styles = css.create({
     display: 'flex',
     gap: 4,
     alignItems: 'center',
-    [breakpoints.lgup]: {
+    [breakpoints.lgUp]: {
       display: 'none',
     },
   },
@@ -83,7 +83,7 @@ const styles = css.create({
     backdropFilter: 'blur(2px)',
     transition: 'opacity 0.25s ease',
     opacity: 0,
-    [breakpoints.lgup]: {
+    [breakpoints.lgUp]: {
       display: 'none',
     },
   },
@@ -108,7 +108,7 @@ const styles = css.create({
     boxShadow: theme.cardBoxShadow,
     transform: 'translateX(100%)',
     transition: 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
-    [breakpoints.lgup]: {
+    [breakpoints.lgUp]: {
       display: 'none',
     },
   },
