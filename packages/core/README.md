@@ -11,7 +11,7 @@
 
 ## Installation
 
-`@plumeria/core` contains type definitions only — importing it augments React's JSX types so that styleName is accepted on host elements. Styles are compiled away at build time by a bundler integration — [`@plumeria/next-plugin`](https://www.npmjs.com/package/@plumeria/next-plugin) for Next.js, or [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) for Vite, Webpack, and others.
+`@plumeria/core` contains type definitions only. Which JSX prop carries styles is declared in your project — one line for the default `styleName`, see [Declaring the styling prop](#declaring-the-styling-prop). Styles are compiled away at build time by a bundler integration — [`@plumeria/next-plugin`](https://www.npmjs.com/package/@plumeria/next-plugin) for Next.js, or [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) for Vite, Webpack, and others.
 
 ```sh
 pnpm add -D @plumeria/core
@@ -74,6 +74,41 @@ export default function App({ cond }) {
   scale: var(--scale-value);
 }
 ```
+
+## Declaring the styling prop
+
+The prop name is a build-time setting — `styleProp` on the bundler plugin — so `@plumeria/core` declares no prop of its own. Baking one in would let the types and the compiler disagree. Add one file to your project naming the prop you compile with.
+
+For the default, `styleName`, reference the declaration that ships with the package:
+
+```ts
+// plumeria.d.ts
+/// <reference types="@plumeria/core/style-name" />
+```
+
+If you renamed the prop, declare that name on React's attribute interfaces instead. `Style` is the type of anything the prop accepts — a style, a conditional, or an array of them:
+
+```ts
+// plumeria.d.ts
+import type { Style } from '@plumeria/core';
+
+declare global {
+  namespace React {
+    interface HTMLAttributes<T> {
+      sx?: Style
+    }
+    interface SVGAttributes<T> {
+      sx?: Style
+    }
+  }
+}
+```
+
+```tsx
+<div sx={[styles.text, cond && styles.cond]} />
+```
+
+Declaration merging is additive, so several names can coexist during a migration. Whichever you declare has to match what the bundler plugin was given — if they disagree the prop type-checks but is never compiled away.
 
 Explore the [documentation](https://plumeria.dev/) for the core principles, full API reference, and integrations.
 
