@@ -17,6 +17,16 @@ ruleTester.run('no-mixed-styling-props', noMixedStylingProps, {
       code: '<div styleName={styles.text} />',
     },
     {
+      // once the prop is renamed, the old name is just an ordinary attribute
+      code: '<div styleName={styles.text} className="text" />',
+      settings: { plumeria: { styleProp: 'sx' } },
+    },
+    {
+      // renaming the prop to `style` must not make the rule flag it against itself
+      code: '<div style={styles.text} />',
+      settings: { plumeria: { styleProp: 'style' } },
+    },
+    {
       code: '<div className="text" />',
     },
     {
@@ -44,6 +54,19 @@ ruleTester.run('no-mixed-styling-props', noMixedStylingProps, {
         { messageId: 'noMixedStylingProps' },
         { messageId: 'noMixedStylingProps' },
       ],
+    },
+    {
+      // settings retarget every rule at once, without per-rule options
+      code: '<div sx={styles.text} className="text" />',
+      settings: { plumeria: { styleProp: 'sx' } },
+      errors: [{ messageId: 'noMixedStylingProps' }],
+    },
+    {
+      // a per-rule option wins over the shared setting
+      code: '<div sx={styles.text} style={{ color: "red" }} />',
+      settings: { plumeria: { styleProp: 'styleName' } },
+      options: [{ styleProp: 'sx' }],
+      errors: [{ messageId: 'noMixedStylingProps' }],
     },
   ],
 });
