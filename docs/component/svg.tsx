@@ -1,7 +1,7 @@
 import { theme } from 'lib/theme';
 import * as css from '@plumeria/core';
 
-export function PlumeriaLogo({ size = 220, styleArray }: { size?: number; styleArray: css.StyleName }) {
+export function PlumeriaLogo({ size = 220, styleArray }: { size?: number; styleArray: css.Style }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
