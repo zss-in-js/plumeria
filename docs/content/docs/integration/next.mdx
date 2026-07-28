@@ -12,17 +12,17 @@ It compiles styles into CSS via AST parsing, with HMR support.
 <Tabs items={['npm',  'yarn', 'pnpm']}>
 <Tab>
 ```sh title="Terminal"
-npm i --save-dev @plumeria/next-plugin @plumeria/postcss-plugin
+npm i --save-dev @plumeria/next-plugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-yarn add -D @plumeria/next-plugin @plumeria/postcss-plugin
+yarn add -D @plumeria/next-plugin
 ```
 </Tab>
 <Tab>
 ```sh title="Terminal"
-pnpm i --save-dev @plumeria/next-plugin @plumeria/postcss-plugin
+pnpm i --save-dev @plumeria/next-plugin
 ```
 </Tab>
 </Tabs>
@@ -40,34 +40,22 @@ const nextConfig: NextConfig = {
 export default withPlumeria(nextConfig);
 ```
 
-##  postcss.config.js
+## plumeria.d.ts
 
-Reduce build times by narrowing the scope using include and exclude.
-```js title='postcss.config.js'
-module.exports = {
-  plugins: {
-    '@plumeria/postcss-plugin': {
-      include: [
-        './app/**/*.{ts,tsx}',
-        './components/**/*.{ts,tsx}',
-        './lib/**/*.{ts,tsx}'
-      ],
-      exclude: ['**/node_modules/**', '**/.next/**'],
-    },
-  },
-};
+`@plumeria/core` ships no prop declaration of its own, so name the styling prop your project compiles with.
+```ts title='plumeria.d.ts'
+/// <reference types="@plumeria/core/style-name" />
 ```
 
-## CSS extraction marker
-Include css file `@plumeria` marker.  
-Atomic css is aggregated at build time into marked css files.
-```css title="css"
-/* app/global.css */ 
-/* import in app/layout.tsx */
-@plumeria;
-...
-```
+## Narrowing the scope
 
+The stylesheet is compiled from every source file by default. Pass `include` and `exclude` to reduce build times on large projects.
+```ts title='next.config.ts'
+export default withPlumeria(nextConfig, {
+  include: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+  exclude: ['**/node_modules/**', '**/.next/**'],
+});
+```
 
 <Cards>
   <Card title="See more about Installation" href="/docs/getting-started/installation" />
