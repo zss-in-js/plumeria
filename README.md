@@ -35,7 +35,6 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 | `@plumeria/next-plugin`      | ★★★★☆     | Stable    |
 | `@plumeria/unplugin`         | ★★★★☆     | Stable    |
 | `@plumeria/turbopack-loader` | ★★★★☆     | Stable    |
-| `@plumeria/postcss-plugin`   | ★★★★☆     | Stable    |
 
 ### Tooling
 
@@ -71,7 +70,6 @@ Versioning: All versions are standardized for consistency.
   - [headlessui](https://github.com/zss-in-js/plumeria/tree/main/packages/headlessui)
   - [inspector](https://github.com/zss-in-js/plumeria/tree/main/packages/inspector)
   - [next-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/next-plugin)
-  - [postcss-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/postcss-plugin)
   - [turbopack-loader](https://github.com/zss-in-js/plumeria/tree/main/packages/turbopack-loader)
   - [unplugin](https://github.com/zss-in-js/plumeria/tree/main/packages/unplugin)
   - [utils](https://github.com/zss-in-js/plumeria/tree/main/packages/utils)
