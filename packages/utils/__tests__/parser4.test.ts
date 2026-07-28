@@ -27,14 +27,17 @@ const objExpr = (code: string) =>
 // and empty aggregated tables, then scans the given virtual file set.
 const scanFiles = (files: Record<string, string>) => {
   mockedRs.globSync.mockReturnValue(Object.keys(files) as any);
-  mockedFs.statSync.mockImplementation(
-    (p: any) =>
-      ({
-        mtimeMs: 1,
-        isDirectory: () => false,
-        isFile: () => true,
-      }) as any,
-  );
+  mockedFs.statSync.mockImplementation((p: any, opts?: any) => {
+    if (!(path.resolve(p) in files)) {
+      if (opts?.throwIfNoEntry === false) return undefined as any;
+      throw Object.assign(new Error(`ENOENT: ${p}`), { code: 'ENOENT' });
+    }
+    return {
+      mtimeMs: 1,
+      isDirectory: () => false,
+      isFile: () => true,
+    } as any;
+  });
   mockedFs.existsSync.mockImplementation((p: any) => path.resolve(p) in files);
   mockedFs.readFileSync.mockImplementation(
     (p: any) => files[path.resolve(p)] ?? '',
@@ -42,7 +45,6 @@ const scanFiles = (files: Record<string, string>) => {
 
   let mod: any;
   jest.isolateModules(() => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     mod = require('../src/parser');
   });
   return { mod, tables: mod.scanAll() };
@@ -60,7 +62,6 @@ beforeEach(() => {
 });
 
 describe('objectExpressionToObject fallbacks', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { objectExpressionToObject } = require('../src/parser');
 
   const call = (
@@ -113,7 +114,6 @@ describe('objectExpressionToObject fallbacks', () => {
 });
 
 describe('collectLocalConsts', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { collectLocalConsts } = require('../src/parser');
 
   it('ignores module items that declare no variables', () => {
