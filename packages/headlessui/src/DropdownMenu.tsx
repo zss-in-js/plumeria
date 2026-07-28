@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { StyleName } from '@plumeria/core';
+import type { Style } from '@plumeria/core';
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 
 const DropdownMenuRoot = (props: DropdownMenuPrimitive.DropdownMenuProps) => {
@@ -97,7 +97,7 @@ DropdownMenuSeparator.displayName = 'DropdownMenuSeparator';
 const DropdownMenuArrow = React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Arrow>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Arrow> & {
-    styleName?: StyleName;
+    styleName?: Style;
   }
 >((props, ref) => {
   return <DropdownMenuPrimitive.Arrow ref={ref} {...props} />;
