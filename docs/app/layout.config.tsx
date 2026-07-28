@@ -82,7 +82,6 @@ export const baseOptions: BaseLayoutProps = {
             { type: 'header', text: 'Plugins' },
             { text: 'eslint-plugin', url: '/docs/api-reference/plugins/eslint-plugin' },
             { text: 'next-plugin', url: '/docs/api-reference/plugins/next-plugin' },
-            { text: 'postcss-plugin', url: '/docs/api-reference/plugins/postcss-plugin' },
             { text: 'unplugin', url: '/docs/api-reference/plugins/unplugin' },
           ]}
         />
