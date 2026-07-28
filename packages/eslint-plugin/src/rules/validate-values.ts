@@ -552,6 +552,25 @@ function isValidTextDecorationLine(value: string) {
   });
 }
 
+function isValidContain(value: string) {
+  const singleValues = ['none', 'strict', 'content'];
+  const sizeValues = ['size', 'inline-size'];
+  const featureValues = ['layout', 'style', 'paint'];
+  const usedValues = new Set();
+  const trimmedValue = value.trim();
+  if (value !== trimmedValue) return false;
+  const tokens = trimmedValue.split(/\s+/);
+  return tokens.every((token) => {
+    if (token.startsWith('var(') && varRegex.test(token)) return true;
+    if (singleValues.includes(token)) return tokens.length === 1;
+    if (sizeValues.includes(token))
+      return !usedValues.has('size') && usedValues.add('size');
+    if (featureValues.includes(token))
+      return !usedValues.has(token) && usedValues.add(token);
+    return false;
+  });
+}
+
 function isValidFontVariantEastAsian(value: string) {
   const fontVariantEastAsianRegex = new RegExp(
     '^' +
@@ -1391,6 +1410,8 @@ function getValidator(key: string): ValidatorFn | null {
       `^(${urlString}|${gradientString}|${imageSetString}|${attrString}|${counterString}|${countersString}|${stringString})$`,
     );
     validator = (v) => r.test(v);
+  } else if (['contain'].includes(key)) {
+    validator = isValidContain;
   } else if (['columns'].includes(key)) {
     const r = new RegExp(
       `^(?:auto\\s*(?:auto|${lvp}|${numberPattern})?|${numberPattern}\\s*(?:auto|${lvp}|${numberPattern})?|${lvp}\\s*(?:auto|${lvp}|${numberPattern})?)$`,
