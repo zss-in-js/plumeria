@@ -159,9 +159,6 @@ importers:
       '@plumeria/next-plugin':
         specifier: workspace:^
         version: link:../packages/next-plugin
-      '@plumeria/postcss-plugin':
-        specifier: workspace:^
-        version: link:../packages/postcss-plugin
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13
@@ -298,9 +295,6 @@ importers:
       '@plumeria/next-plugin':
         specifier: workspace:^
         version: link:../../packages/next-plugin
-      '@plumeria/postcss-plugin':
-        specifier: workspace:^
-        version: link:../../packages/postcss-plugin
       '@types/node':
         specifier: ^25.8.0
         version: 25.9.1
@@ -981,6 +975,9 @@ importers:
 
   packages/turbopack-loader:
     dependencies:
+      '@plumeria/compiler':
+        specifier: workspace:^
+        version: link:../compiler
       '@plumeria/utils':
         specifier: workspace:^
         version: link:../utils
@@ -1053,9 +1050,6 @@ importers:
       '@plumeria/next-plugin':
         specifier: workspace:^
         version: link:../../packages/next-plugin
-      '@plumeria/postcss-plugin':
-        specifier: workspace:^
-        version: link:../../packages/postcss-plugin
       '@types/node':
         specifier: ^25.8.0
         version: 25.9.1
