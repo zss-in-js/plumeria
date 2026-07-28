@@ -16,6 +16,7 @@ export default defineConfig(
       parserOptions: { projectService: true },
     },
     rules: {
+      '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-extraneous-class': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
