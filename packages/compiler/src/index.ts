@@ -11,6 +11,7 @@ import type {
   VariableDeclarator,
   FunctionDeclaration,
   HasSpan,
+  JSXAttributeOrSpread,
 } from '@swc/core';
 import {
   type CSSProperties,
@@ -33,6 +34,7 @@ import {
   scanAll,
   resolveImportPath,
   resolveExport,
+  DEFAULT_STYLE_PROP,
 } from '@plumeria/utils';
 import type {
   StyleRecord,
@@ -51,6 +53,7 @@ interface CompilerOptions {
   include: string[];
   exclude: string[];
   cwd?: string;
+  styleProp?: string;
 }
 
 // ===========================================
@@ -189,7 +192,12 @@ function extractStylesFromExpression(
 // Main compiler function
 // ===========================================
 export function compileCSS(options: CompilerOptions) {
-  const { include, exclude, cwd = process.cwd() } = options;
+  const {
+    include,
+    exclude,
+    cwd = process.cwd(),
+    styleProp = DEFAULT_STYLE_PROP,
+  } = options;
   const allSheets = new Set<string>();
 
   const files = rs.globSync(include, {
@@ -445,7 +453,7 @@ export function compileCSS(options: CompilerOptions) {
       records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
     };
 
-    // Common processing for use() and styleName={}
+    // Common processing for use() and styleProp={}
     const extractAndProcessConditionals = (
       args: Array<{ expression: Expression }>,
       isStyleName: boolean = false,
@@ -489,10 +497,6 @@ export function compileCSS(options: CompilerOptions) {
           (t.isIdentifier(expr.property) || expr.property.type === 'Computed')
         ) {
           const varName = expr.object.value;
-          // A literal bracket key names one style, so it resolves exactly like
-          // `.key`. Only a non-literal key has to fall through: it cannot
-          // collapse to a single object here, and the caller expands it into
-          // per-key conditionals instead.
           let propName: string;
           if (expr.property.type === 'Computed') {
             const keyExpr = expr.property.expression;
@@ -1127,25 +1131,30 @@ export function compileCSS(options: CompilerOptions) {
       CallExpression: (path) => {
         if (!processedNodes.has(path.node)) processCall(path.node);
       },
+      JSXOpeningElement({ node }) {
+        if (node.name.type !== 'Identifier') return;
+        const tagName = node.name.value;
+        if (tagName[0] !== tagName[0].toUpperCase()) return;
+
+        node.attributes.forEach((attr: JSXAttributeOrSpread) => {
+          if (attr.type !== 'JSXAttribute') return;
+          if (attr.name.type !== 'Identifier') return;
+          if (attr.name.value === styleProp) return;
+
+          const value = attr.value;
+          if (!value || value.type !== 'JSXExpressionContainer') return;
+          if (value.expression.type === 'JSXEmptyExpression') return;
+
+          let expr: Expression = value.expression;
+          if (t.isIdentifier(expr) && localStyleAliases[expr.value]) {
+            expr = localStyleAliases[expr.value];
+          }
+          extractStylesFromExpression(expr, ctx).forEach(processStyle);
+        });
+      },
       JSXAttribute({ node }) {
         if (node.name.type !== 'Identifier') return;
-        const attrName = node.name.value;
-
-        if (attrName !== 'styleName') {
-          if (
-            node.value &&
-            node.value.type === 'JSXExpressionContainer' &&
-            node.value.expression.type !== 'JSXEmptyExpression'
-          ) {
-            let expr = node.value.expression;
-            if (t.isIdentifier(expr) && localStyleAliases[expr.value]) {
-              expr = localStyleAliases[expr.value];
-            }
-            const styles = extractStylesFromExpression(expr, ctx);
-            styles.forEach(processStyle);
-          }
-          return;
-        }
+        if (node.name.value !== styleProp) return;
 
         if (!node.value || node.value.type !== 'JSXExpressionContainer') return;
         if (node.value.expression.type === 'JSXEmptyExpression') return;
