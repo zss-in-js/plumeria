@@ -26,6 +26,7 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
+    "@plumeria/compiler": "workspace:^",
     "@plumeria/utils": "workspace:^"
   },
   "devDependencies": {
