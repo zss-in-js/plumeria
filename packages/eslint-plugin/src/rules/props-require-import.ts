@@ -1,27 +1,29 @@
 /**
- * @fileoverview Disallow styleName prop in files that do not import @plumeria
+ * @fileoverview Disallow the styling prop in files that do not import @plumeria
  */
 
 import type { Rule } from 'eslint';
 import type { JSXAttribute } from 'estree-jsx';
+import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
 
-export const styleNameRequiresImport: Rule.RuleModule = {
+export const propsRequireImport: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
       description:
-        'Disallow styleName prop in files without a @plumeria/core import',
+        'Disallow the styling prop in files without a @plumeria/core import',
     },
     fixable: 'code',
     messages: {
-      styleNameError: 'styleName requires importing "@plumeria/core".',
+      requiresImport: '{{prop}} requires importing "@plumeria/core".',
     },
-    schema: [],
+    schema: stylePropSchema,
   },
 
   create(context) {
+    const styleProp = resolveStyleProp(context);
     let hasPlumeriaImport = false;
-    const styleNameNodes: Rule.Node[] = [];
+    const stylePropNodes: Rule.Node[] = [];
 
     return {
       ImportDeclaration(node) {
@@ -32,17 +34,18 @@ export const styleNameRequiresImport: Rule.RuleModule = {
       },
 
       JSXAttribute(node: JSXAttribute & Rule.NodeParentExtension) {
-        if (node.name && node.name.name === 'styleName') {
-          styleNameNodes.push(node);
+        if (node.name && node.name.name === styleProp) {
+          stylePropNodes.push(node);
         }
       },
 
       'Program:exit'() {
         if (!hasPlumeriaImport) {
-          styleNameNodes.forEach((node, index) => {
+          stylePropNodes.forEach((node, index) => {
             context.report({
               node,
-              messageId: 'styleNameError',
+              messageId: 'requiresImport',
+              data: { prop: styleProp },
               fix(fixer) {
                 if (index === 0) {
                   return fixer.insertTextBefore(
