@@ -383,7 +383,16 @@ const validData: { [key: string]: readonly string[] } = {
   columnSpan: ['none', 'all'], // 148
   columnWidth: ['auto', 'max-content', 'min-content'], // 149
   columns: [], // 150
-  contain: ['none', 'strict', 'content'], // 151
+  contain: [
+    'none',
+    'strict',
+    'content',
+    'size',
+    'inline-size',
+    'layout',
+    'style',
+    'paint',
+  ], // 151
   containerType: ['size', 'inline-size', 'normal'], // 152
   content: [
     'open-quote',
