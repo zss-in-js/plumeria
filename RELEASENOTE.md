@@ -1,5 +1,18 @@
 # Release Notes
 
+## 17.0.0 (Jul 28, 2026)
+
+- feat: generate the production stylesheet from the loader, PostCSS is no longer required
+- feat: add styleProp, include and exclude options to the loader
+- feat: add styleProp option to unplugin and to the lint rules
+- feat: rename lint rule style-name-requires-import to props-require-import
+- fix: stop collecting prop styles from host elements
+- perf: apply Turbopack rule conditions on Next.js 16 and above
+- perf: skip discarded conversions in the first scanning pass
+- break: @plumeria/core no longer declares a styling prop, reference @plumeria/core/style-name
+- break: rename the StyleName type to Style
+- break: remove @plumeria/postcss-plugin
+
 ## 16.5.0 (Jul 26, 2026)
 
 - fix: identifier replacement now skips non-reference positions
