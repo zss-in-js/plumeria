@@ -146,8 +146,52 @@ plumeria.vite({
   include: ['**/*.{ts,tsx}'],
   exclude: ['**/node_modules/**'],
   devEmitToDisk: false,
+  styleProp: 'sx',
 });
 ```
+
+| Option | Default | Description |
+| :-- | :-- | :-- |
+| `include` | `ts/tsx/js/jsx` | Files to transform. |
+| `exclude` | — | Files to skip. |
+| `devEmitToDisk` | `false` | Write CSS to disk in development so the bundler's watcher drives HMR. |
+| `styleProp` | `'styleName'` | The JSX prop that carries styles. |
+
+### styleProp
+
+Renaming the prop takes two steps, and they have to agree. Tell the plugin:
+
+```js
+plumeria.vite({ styleProp: 'sx' });
+```
+
+and declare the same name for TypeScript. `@plumeria/core` ships no prop declaration of its own, so add one file to your project:
+
+```ts
+// plumeria.d.ts
+import type { Style } from '@plumeria/core';
+
+declare global {
+  namespace React {
+    interface HTMLAttributes<T> {
+      sx?: Style
+    }
+    interface SVGAttributes<T> {
+      sx?: Style
+    }
+  }
+}
+```
+
+For the default name, reference the declaration that ships with the package instead:
+
+```ts
+// plumeria.d.ts
+/// <reference types="@plumeria/core/style-name" />
+```
+
+If the two disagree, the prop type-checks but is never compiled away. [`@plumeria/eslint-plugin`](https://www.npmjs.com/package/@plumeria/eslint-plugin) reads the same name from `settings.plumeria.styleProp`.
+
 ## Development Mode and HMR (Hot Module Replacement)
 
 `@plumeria/unplugin` provides HMR optimized for each bundler in development mode (dev server).
