@@ -1,5 +1,14 @@
 # @plumeria/unplugin
 
+## 17.0.1
+
+### Patch Changes
+
+- 6db8b00: Fix: add contain autocomplete keywords size inline-size layout style paint in csstypes.d.ts
+  Fix: fix contain include multiple keywords and single keyword in validate-values.ts
+- Updated dependencies [6db8b00]
+  - @plumeria/utils@17.0.1
+
 ## 17.0.0
 
 ### Major Changes
