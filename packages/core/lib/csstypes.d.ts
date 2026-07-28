@@ -295,7 +295,16 @@ type columns = columnWidth | columnCount;
 type columnSpan = 'none' | 'all';
 type columnWidth = 'auto' | number | StableString;
 type compositeOperator = 'add' | 'subtract' | 'intersect' | 'exclude';
-type contain = 'none' | 'strict' | 'content' | StableString;
+type contain =
+  | 'none'
+  | 'strict'
+  | 'content'
+  | 'size'
+  | 'inline-size'
+  | 'layout'
+  | 'style'
+  | 'paint'
+  | StableString;
 type container = number | StableString;
 type containerName = number | StableString;
 type containerType = 'size' | 'inline-size' | 'normal';
