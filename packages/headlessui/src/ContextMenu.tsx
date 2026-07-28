@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { StyleName } from '@plumeria/core';
+import type { Style } from '@plumeria/core';
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu';
 
 const ContextMenuRoot = (props: ContextMenuPrimitive.ContextMenuProps) => {
@@ -97,7 +97,7 @@ ContextMenuSeparator.displayName = 'ContextMenuSeparator';
 const ContextMenuArrow = React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.Arrow>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Arrow> & {
-    styleName?: StyleName;
+    styleName?: Style;
   }
 >((props, ref) => {
   return <ContextMenuPrimitive.Arrow ref={ref} {...props} />;
