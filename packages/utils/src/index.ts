@@ -30,3 +30,4 @@ export { getLeadingCommentLength } from './ast';
 export type { ReferenceIdentifiers } from './references';
 export { collectReferenceIdentifiers } from './references';
 export { profiling, mark, measure, tally, timed, timedAsync } from './profiler';
+export { DEFAULT_STYLE_PROP } from './constants';
