@@ -1,0 +1,170 @@
+---
+title: 'Plumeria 17.0'
+description: 'Update: PostCSS is no longer required, and the styling prop is yours to name'
+date: '2026-07-28'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria 17.0.0 is here. 🎉
+
+This release is about what Plumeria costs you to adopt. Three changes ship together:
+
+1. **`postcss.config.js` is gone** — the loader emits the stylesheet itself, so Next.js keeps its native CSS pipeline.
+2. **The styling prop is configurable** — `styleName` is the default, not a hard-coded assumption.
+3. **Build cost is down about 5x** — measured on the same benchmark that produced the original number, on Next.js 16.
+
+Let's walk through each.
+
+---
+
+## 1. PostCSS is no longer required
+
+Until now, Next.js integration needed a `postcss.config.js` and a `@plumeria` at-rule inside your global stylesheet. That is how the whole-program stylesheet got injected.
+
+The cost of that was larger than it looked. The presence of *any* `postcss.config.js` moves Next off its native Rust CSS pipeline and onto the JavaScript PostCSS one — for every stylesheet in the project, not just yours. On top of that, the PostCSS plugin re-scanned and re-parsed the entire project to build the stylesheet, repeating work the loader had already done.
+
+The loader now generates the whole project's stylesheet once per build and imports it. Delete two things:
+
+```js
+// postcss.config.js — delete this file
+module.exports = {
+  plugins: {
+    '@plumeria/postcss-plugin': {}
+  }
+};
+```
+
+```css
+/* globals.css */
+- @plumeria;
+
+:root {
+  --background: #ffffff;
+}
+```
+
+And drop `@plumeria/postcss-plugin` from your dependencies. Nothing replaces it — `@plumeria/next-plugin` is all you need.
+
+The output is unchanged. Verified byte-for-byte against the PostCSS path at 4, 300, and 1,000 source files: identical rule sets, identical class names.
+
+---
+
+## 2. The styling prop is configurable
+
+`styleName` was hard-coded in three independent places: the Turbopack loader, the unplugin transform, and the compiler that collects the stylesheet. Now it is one option, and the loader hands its own value to the compiler, so the transform and the collection cannot disagree.
+
+```ts
+// next.config.ts
+import { withPlumeria } from '@plumeria/next-plugin';
+
+export default withPlumeria({}, { styleProp: 'sx' });
+```
+
+```ts
+// vite.config.ts
+plumeria.vite({ styleProp: 'sx' })
+```
+
+The lint rules follow the same name. Set it once in `settings` and every rule picks it up:
+
+```js
+export default [
+  plumeria.configs.recommended,
+  {
+    settings: {
+      plumeria: { styleProp: 'sx' }
+    }
+  }
+];
+```
+
+The loader also accepts `include` and `exclude` now, so the stylesheet is compiled from the globs you choose rather than a fixed set.
+
+### `@plumeria/core` no longer declares a prop
+
+Because the name is a build-time setting, keeping one in the type definitions would let the types and the compiler drift apart. `@plumeria/core` now declares nothing globally. Add one file to your project naming the prop you compile with.
+
+For the default:
+
+```ts
+// plumeria.d.ts
+/// <reference types="@plumeria/core/style-name" />
+```
+
+For a renamed prop:
+
+```ts
+// plumeria.d.ts
+import type { Style } from '@plumeria/core';
+
+declare global {
+  namespace React {
+    interface HTMLAttributes<T> {
+      sx?: Style
+    }
+    interface SVGAttributes<T> {
+      sx?: Style
+    }
+  }
+}
+```
+
+Declaration merging is additive, so several names can coexist while you migrate.
+
+---
+
+## 3. Build cost
+
+The benchmark is the same one that produced the previously published figure: an identical Next.js app rendering 1,000 components, measured against a CSS Modules build of the same DOM. Library cost is how much longer the Plumeria build takes than that control.
+
+| | Library cost |
+| :-- | --: |
+| Before | 498.4ms |
+| **After** | **about 100ms** |
+
+Where it came from:
+
+*   **Turbopack rule conditions** — the loader was being handed every `.ts`, `.tsx`, `.js` and `.jsx` module in the graph, `node_modules` included, and could only bail out after the source had already crossed the Rust/Node boundary. Both of its own early checks are now conditions Turbopack applies first. Loader invocations dropped from 753 to 2, and loader processes from 4 to 1. This was the single largest win.
+*   **Two-pass scanning** — the first pass was converting every style object it was about to discard. The bail-out moved ahead of the conversion.
+*   **PostCSS removal** — worth roughly 150ms at 300 files.
+
+A note on scale, because the headline number does not generalise evenly. These gains grow with project size and vanish on tiny ones: on a two-file app the PostCSS change is within measurement noise, because Plumeria's own work there totals under 10ms against a build dominated by Next's fixed costs.
+
+### This part needs Next.js 16
+
+Rule conditions are a Next.js 16 option, and they are where most of the gain came from. `withPlumeria` checks the installed version and only applies them from 16.0.0 up — on 15.x the option does not exist in the config schema, so the rule stays unfiltered and every module still reaches the loader. Everything else in this release works on both; if you are on 15.x and want the build time, upgrading Next is the step that gets it.
+
+---
+
+## Migration
+
+1.  Delete `postcss.config.js`, remove `@plumeria;` from your global stylesheet, and drop `@plumeria/postcss-plugin` from your dependencies.
+2.  Add `plumeria.d.ts` with `/// <reference types="@plumeria/core/style-name" />`.
+3.  If you import the `StyleName` type, it is now `Style`.
+4.  If you enable lint rules individually, `style-name-requires-import` is now `props-require-import`.
+
+---
+
+## Fixes
+
+Prop styles were being collected from host elements as well as components, so a plain React `style={{ ... }}` object was compiled into atomic rules that nothing ever carried. Only components receive styles through props, and only components are read now.
+
+## 17.0.0 (Jul 28, 2026)
+- Feat: generate the production stylesheet from the loader, PostCSS no longer required
+- Feat: add `styleProp`, `include` and `exclude` loader options
+- Feat: add `styleProp` option to unplugin and to the lint rules
+- Feat: rename lint rule `style-name-requires-import` to `props-require-import`
+- Fix: stop collecting prop styles from host elements
+- Perf: apply Turbopack rule conditions so only relevant modules reach the loader
+- Perf: skip discarded conversions in the first scanning pass
+- Break: `@plumeria/core` no longer declares a styling prop
+- Break: rename the `StyleName` type to `Style`
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
