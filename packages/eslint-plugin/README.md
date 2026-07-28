@@ -7,7 +7,7 @@ Below are the available rules and the recommended configuration.
 
 The `plugin:@plumeria/recommended` config enables the following:
 
-- `@plumeria/style-name-requires-import`: **error**
+- `@plumeria/props-require-import`: **error**
 - `@plumeria/no-combinator`: **error**
 - `@plumeria/no-destructure`: **error**
 - `@plumeria/no-inline-object`: **error**
@@ -27,11 +27,49 @@ import plumeria from '@plumeria/eslint-plugin';
 export default [plumeria.configs.recommended];
 ```
 
+## Configuring the styling prop
+
+Both `props-require-import` and `no-mixed-styling-props` need to know which JSX
+prop carries styles. It is `styleName` unless you changed it, so most projects
+configure nothing.
+
+If you did rename it — via `styleProp` on `withPlumeria` or on the unplugin
+options — tell the plugin the same name. ESLint cannot read it from your bundler
+config, so set it once in `settings` and every rule picks it up:
+
+```js
+import plumeria from '@plumeria/eslint-plugin';
+
+export default [
+  plumeria.configs.recommended,
+  {
+    settings: {
+      plumeria: { styleProp: 'sx' },
+    },
+  },
+];
+```
+
+A single rule can override that if you need it to:
+
+```js
+{
+  rules: {
+    '@plumeria/no-mixed-styling-props': ['error', { styleProp: 'sx' }],
+  },
+}
+```
+
+The name must match whatever the loader or unplugin was given. If they disagree,
+the lint rules report against a prop the compiler never transforms.
+
 ## Rules
 
-### style-name-requires-import
+### props-require-import
 
-Disallow styleName prop in files without a @plumeria/core import.
+Disallow the styling prop in files without a `@plumeria/core` import.
+
+Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-styling-prop).
 
 ### no-combinator
 
@@ -56,7 +94,9 @@ Disallow invalid selector inside `css.create()` and `css.keyframes()` and `css.v
 
 ### no-mixed-styling-props
 
-Disallow mixing `styleName` with `className` or `style`. `styleName` can handle both `className` and `style`.
+Disallow mixing the styling prop with `className` or `style`. `styleName` can handle both `className` and `style`.
+
+Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-styling-prop).
 
 ### no-unknown-css-properties
 
@@ -71,8 +111,10 @@ Warns when object keys are defined but not used, mainly in component files.
 Automatically sorts CSS properties in the recommended order for consistency and maintainability.
 
 ### format-properties
+
 Automatically format for consistency and maintainability.
-- Formats a line into a multi-line.  
+
+- Formats a line into a multi-line.
 - Formats by filling in blank lines.
 
 ### validate-values
@@ -132,4 +174,3 @@ You can run `plumerialint` in parallel with your build command (e.g. `next build
 If `plumerialint` detects any styling errors or warnings, it will print the diagnostics, kill the build process immediately, and exit with a non-zero code. This avoids compiling when styling validation fails.
 
 **Note:** `oxlint` is required as `plumerialint` uses it internally.
-
