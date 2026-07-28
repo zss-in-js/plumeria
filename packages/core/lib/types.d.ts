@@ -73,7 +73,7 @@ type CreateReturnType<T> = Readonly<{
     : MapNamespace<T[K]>;
 }>;
 type Conditional = false | CSSProperties | null | undefined;
-type StyleName = Conditional | StyleName[];
+type Style = Conditional | Style[];
 
 type CreateStatic = Record<string, string | number>;
 
@@ -110,7 +110,7 @@ type Extended<
 
 export type {
   AtomicClassNameFor,
-  StyleName,
+  Style,
   CSSProperties,
   CreateStyleValue,
   CreateReturnType,
