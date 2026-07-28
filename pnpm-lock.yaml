@@ -960,19 +960,6 @@ importers:
         specifier: 'catalog:'
         version: 5.107.2(@swc/core@1.15.43(@swc/helpers@0.5.23))
 
-  packages/postcss-plugin:
-    dependencies:
-      '@plumeria/compiler':
-        specifier: workspace:^
-        version: link:../compiler
-      postcss:
-        specifier: 'catalog:'
-        version: 8.5.15
-    devDependencies:
-      '@plumeria/utils':
-        specifier: workspace:^
-        version: link:../utils
-
   packages/turbopack-loader:
     dependencies:
       '@plumeria/compiler':
