@@ -152,6 +152,10 @@ Rule conditions are a Next.js 16 option, and they are where most of the gain cam
 
 ## Fixes
 
+## 17.0.1 (Jul 28, 2026)
+- Fix: add contain autocomplete keywords size inline-size layout style paint in csstypes.d.ts
+- Fix: fix contain include multiple keywords and single keyword in validate-values.ts
+
 Prop styles were being collected from host elements as well as components, so a plain React `style={{ ... }}` object was compiled into atomic rules that nothing ever carried. Only components receive styles through props, and only components are read now.
 
 ## 17.0.0 (Jul 28, 2026)
