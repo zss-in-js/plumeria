@@ -291,4 +291,27 @@ describe('resolver', () => {
       expect(resolveImportPath('@/utils', otherImporter)).toBe(target);
     });
   });
+
+  describe('the core package specifier', () => {
+    it('is answered without touching the fs, in any environment', () => {
+      // Every compiled file imports it and it can never be a local module, so
+      // resolving it would only ever walk the tree and stat paths that cannot
+      // exist. Callers rely on the null, not on the walk.
+      setupMockFs([]);
+
+      expect(resolveImportPath('@plumeria/core', importer)).toBeNull();
+      expect(mockedFs.statSync).not.toHaveBeenCalled();
+      expect(mockedFs.existsSync).not.toHaveBeenCalled();
+    });
+
+    it('still resolves a specifier that merely starts with the same prefix', () => {
+      // The gate is an exact match, so a longer specifier must take the normal
+      // bare-specifier path: walk up to the nearest package.json, resolve from
+      // there.
+      const target = path.resolve(root, '@plumeria/core-extras.ts');
+      setupMockFs([path.resolve(root, 'package.json'), target]);
+
+      expect(resolveImportPath('@plumeria/core-extras', importer)).toBe(target);
+    });
+  });
 });
