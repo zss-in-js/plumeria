@@ -60,7 +60,7 @@ describe('withPlumeria', () => {
       expect(config.module!.rules![0]).toMatchObject({
         enforce: 'pre',
         test: /\.(tsx|ts|jsx|js)$/,
-        use: '@plumeria/turbopack-loader',
+        use: { loader: '@plumeria/turbopack-loader', options: {} },
       });
       expect(config.watchOptions!.ignored).toEqual([
         'node_modules',
@@ -228,6 +228,38 @@ describe('withPlumeria', () => {
       fs.rmdirSync(VIRTUAL_FILE_PATH);
       fs.writeFileSync(VIRTUAL_FILE_PATH, backup, 'utf8');
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('loader options', () => {
+    const loaderItem = (config: NextConfig) => {
+      const rule = config.turbopack?.rules?.['*.tsx'] as {
+        loaders: { loader: string; options: unknown }[];
+      };
+      return rule.loaders[0];
+    };
+
+    it('reaches the turbopack loader', () => {
+      const options = { styleProp: 'sx', include: ['./src/**/*.tsx'] };
+      expect(loaderItem(withPlumeria({}, options)).options).toEqual(options);
+    });
+
+    it('reaches the webpack loader too, so both bundlers agree', () => {
+      const options = { styleProp: 'sx' };
+      const config: any = { module: { rules: [] } };
+      withPlumeria({}, options).webpack!(config, {
+        dev: false,
+        isServer: true,
+      } as WebpackConfigContext);
+
+      expect(config.module.rules[0].use).toEqual({
+        loader: '@plumeria/turbopack-loader',
+        options,
+      });
+    });
+
+    it('defaults to an empty set when the caller passes none', () => {
+      expect(loaderItem(withPlumeria()).options).toEqual({});
     });
   });
 });
