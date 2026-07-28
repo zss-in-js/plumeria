@@ -1015,6 +1015,36 @@ ruleTester.run('validate-values', validateValues, {
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'content' } });`,
     },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'size' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'inline-size' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'layout' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'style' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'paint' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'size layout' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'inline-size layout style paint' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'paint style layout size' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'layout paint' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'var(--contain) paint' } });`,
+    },
 
     // TextSizeAdjust valid cases
     {
@@ -2831,7 +2861,34 @@ ruleTester.run('validate-values', validateValues, {
       errors: [
         {
           message:
-            "'contain' has an invalid value 'invalid'. Valid values: none, strict, content",
+            "'contain' has an invalid value 'invalid'. Valid values: none, strict, content, size, inline-size, layout, style, paint",
+        },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'strict paint' } });`,
+      errors: [
+        {
+          message:
+            "'contain' has an invalid value 'strict paint'. Valid values: none, strict, content, size, inline-size, layout, style, paint",
+        },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'size inline-size' } });`,
+      errors: [
+        {
+          message:
+            "'contain' has an invalid value 'size inline-size'. Valid values: none, strict, content, size, inline-size, layout, style, paint",
+        },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: 'layout layout' } });`,
+      errors: [
+        {
+          message:
+            "'contain' has an invalid value 'layout layout'. Valid values: none, strict, content, size, inline-size, layout, style, paint",
         },
       ],
     },
