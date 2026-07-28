@@ -13,7 +13,7 @@ const styles = css.create({
     height: 56,
     paddingInline: 16,
     marginTop: 8,
-    [breakpoints.lgup]: {
+    [breakpoints.lgUp]: {
       display: 'none',
     },
   },
