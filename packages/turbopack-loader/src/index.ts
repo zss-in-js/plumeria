@@ -45,6 +45,7 @@ import {
   getLeadingCommentLength,
   getFileDependencies,
   resolveExport,
+  DEFAULT_STYLE_PROP,
 } from '@plumeria/utils';
 import type {
   StyleRecord,
@@ -57,8 +58,57 @@ import type {
   CreateThemeHashTable,
   CreateStaticHashTable,
 } from '@plumeria/utils';
+import { compileCSS } from '@plumeria/compiler';
 import { splitCssRules } from './split-css-rules';
 import { acquireLock, releaseLockSync } from './file-lock';
+
+const GENERATED_MARKER = '/* plumeria: generated */';
+const DEFAULT_INCLUDE = ['**/*.{js,jsx,ts,tsx}'];
+const DEFAULT_EXCLUDE = ['**/node_modules/**', '**/dist/**', '**/.next/**'];
+
+let productionCss: Promise<void> | null = null;
+
+async function generateProductionCss(
+  virtualFilePath: string,
+  options: LoaderOptions,
+): Promise<void> {
+  const lockDir = virtualFilePath + '.lock';
+  await acquireLock(lockDir);
+  try {
+    let current = '';
+    try {
+      current = fs.readFileSync(virtualFilePath, 'utf-8');
+    } catch (e) {
+      // ignore
+    }
+
+    if (current.startsWith(GENERATED_MARKER)) return;
+
+    const css = compileCSS({
+      include: options.include ?? DEFAULT_INCLUDE,
+      exclude: options.exclude ?? DEFAULT_EXCLUDE,
+      cwd: process.cwd(),
+      styleProp: options.styleProp ?? DEFAULT_STYLE_PROP,
+    });
+    const optimized = await optimizer(css);
+
+    const tempPath = `${virtualFilePath}.${process.pid}.tmp`;
+    fs.writeFileSync(tempPath, `${GENERATED_MARKER}\n${optimized}`, 'utf-8');
+    fs.renameSync(tempPath, virtualFilePath);
+  } finally {
+    releaseLockSync(lockDir);
+  }
+}
+
+const ensureProductionCss = (
+  virtualFilePath: string,
+  options: LoaderOptions,
+): Promise<void> => {
+  if (!productionCss) {
+    productionCss = generateProductionCss(virtualFilePath, options);
+  }
+  return productionCss;
+};
 
 type AtomicMap = Record<string, string>;
 type CreateStyleValue = {
@@ -84,6 +134,12 @@ interface StyleConditional {
   varName?: string;
 }
 
+export interface LoaderOptions {
+  include?: string[];
+  exclude?: string[];
+  styleProp?: string;
+}
+
 interface LoaderContext {
   resourcePath: string;
   context: string;
@@ -91,10 +147,17 @@ interface LoaderContext {
   async: () => (err: Error | null, content?: string) => void;
   addDependency: (path: string) => void;
   clearDependencies: () => void;
+  getOptions?: () => LoaderOptions | undefined;
+  query?: LoaderOptions | string;
 }
 
 export default async function loader(this: LoaderContext, source: string) {
   const callback = this.async();
+  const loaderOptions: LoaderOptions =
+    this.getOptions?.() ??
+    (typeof this.query === 'object' ? this.query : undefined) ??
+    {};
+  const styleProp = loaderOptions.styleProp ?? DEFAULT_STYLE_PROP;
   const resourcePath = this.resourcePath;
   const isProduction = process.env.NODE_ENV === 'production';
   const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
@@ -1813,7 +1876,7 @@ export default async function loader(this: LoaderContext, source: string) {
         if (node.name.type !== 'Identifier') return;
         const attrName = node.name.value;
 
-        if (attrName !== 'styleName') {
+        if (attrName !== styleProp) {
           let parentTagName = '';
           for (const [, val] of jsxOpeningElementMap) {
             const found = val.attributes
@@ -2272,8 +2335,9 @@ export default async function loader(this: LoaderContext, source: string) {
 
     const postfix = `\nimport "${relativeImportPath}";`;
 
-    if (process.env.NODE_ENV === 'production') {
-      return callback(null, transformedSource);
+    if (isProduction) {
+      await ensureProductionCss(VIRTUAL_FILE_PATH, loaderOptions);
+      return callback(null, transformedSource + postfix);
     }
 
     if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
