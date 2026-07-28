@@ -1,24 +1,20 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import * as css from '@plumeria/core';
 
-import { PlumeriaLogo, svg } from 'component/svg';
+import { PlumeriaLogo } from 'component/svg';
 import { NavDropdown } from 'component/NavDropdown';
 import { latestReleases } from 'lib/latestReleases';
+import { socialLinks } from 'lib/socialLinks';
 import { theme } from 'lib/theme';
 
 const latestReleasePosts = latestReleases(3);
 
 const styles = css.create({
-  flower: {
-    position: 'relative',
-    bottom: 0,
-    left: 5,
-  },
   image: {
     position: 'relative',
     display: 'flex',
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
     alignItems: 'center',
     fontSize: 15,
     fontWeight: 600,
@@ -31,7 +27,7 @@ export const baseOptions: BaseLayoutProps = {
     transparentMode: 'top',
     title: (
       <span styleName={styles.image}>
-        <PlumeriaLogo size={20} styleArray={styles.flower} />
+        <PlumeriaLogo size={20} />
         Plumeria
       </span>
     ),
@@ -120,26 +116,6 @@ export const baseOptions: BaseLayoutProps = {
       ),
       on: 'all',
     },
-    {
-      type: 'icon',
-      label: 'GitHub',
-      text: 'GitHub',
-      icon: svg.Github({ width: '24px', height: '24px' }),
-      url: 'https://github.com/zss-in-js/plumeria',
-    },
-    {
-      type: 'icon',
-      label: 'Bluesky',
-      text: 'Bluesky',
-      icon: svg.Bluesky({ width: 21, height: 21 }),
-      url: 'https://bsky.app/profile/zss-in-js.bsky.social',
-    },
-    {
-      type: 'icon',
-      label: 'Discord',
-      text: 'Discord',
-      icon: svg.Discord({ width: 21, height: 21 }),
-      url: 'https://discord.gg/pKEBp4wYd8',
-    },
+    ...socialLinks,
   ],
 };
