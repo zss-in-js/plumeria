@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { StyleName } from '@plumeria/core';
+import type { Style } from '@plumeria/core';
 import * as MenubarPrimitive from '@radix-ui/react-menubar';
 
 const MenubarRoot = React.forwardRef<
@@ -103,7 +103,7 @@ MenubarSeparator.displayName = 'MenubarSeparator';
 const MenubarArrow = React.forwardRef<
   React.ComponentRef<typeof MenubarPrimitive.Arrow>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Arrow> & {
-    styleName?: StyleName;
+    styleName?: Style;
   }
 >((props, ref) => {
   return <MenubarPrimitive.Arrow ref={ref} {...props} />;
