@@ -18,7 +18,6 @@ Our project uses `pnpm`. Here's how you can set it up:
 - **@plumeria/core**: This package is the core package that defines types only.
 - **@plumeria/eslint-plugin**: This package contains the eslint rules to keep Plumeria code clean.
 - **@plumeria/next-plugin**: This package contains the Next.js plugin for integrating Plumeria.
-- **@plumeria/postcss-plugin**: This package contains `@plumeria/compiler` for integrating Next.js with Plumeria.
 - **@plumeria/turbopack-loader**: This package contains the Turbopack loader for integrating Plumeria.
 - **@plumeria/utils**: This package contains the style parse and transform utils functions.
 - **@plumeria/vite-plugin**: This package contains the Vite plugin for integrating Plumeria.
