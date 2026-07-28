@@ -1,5 +1,10 @@
 # Release Notes
 
+## 17.0.1 (Jul 28, 2026)
+
+- Fix: add contain autocomplete keywords size inline-size layout style paint in csstypes.d.ts
+- Fix: fix contain include multiple keywords and single keyword in validate-values.ts
+
 ## 17.0.0 (Jul 28, 2026)
 
 - feat: generate the production stylesheet from the loader, PostCSS is no longer required
