@@ -20,6 +20,7 @@ module.exports = {
     'summary',
   ],
   coveragePathIgnorePatterns: [
+    '<rootDir>/packages/compiler/dist/',
     '<rootDir>/packages/eslint-plugin/dist/',
     '<rootDir>/packages/next-plugin/dist/',
     '<rootDir>/packages/utils/dist/',
