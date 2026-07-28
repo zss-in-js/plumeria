@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import type { LoaderOptions } from '@plumeria/turbopack-loader';
 import type { TurbopackLoaderItem } from 'next/dist/server/config-shared';
 import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
@@ -27,16 +28,19 @@ function supportsRuleCondition(): boolean {
   }
 }
 
-export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
+export function withPlumeria(
+  nextConfig: NextConfig = {},
+  options: LoaderOptions = {},
+): NextConfig {
   const globalRef = global as typeof global & {
     __PLUMERIA_RESET_DONE__?: boolean;
   };
 
+  // Production needs this as much as development does: the loader treats "still
+  // the placeholder" as "this build has not generated the CSS yet", which only
+  // holds if every build starts from the placeholder.
   /* istanbul ignore next */
-  if (
-    process.env.NODE_ENV === 'development' &&
-    !globalRef.__PLUMERIA_RESET_DONE__
-  ) {
+  if (!globalRef.__PLUMERIA_RESET_DONE__) {
     globalRef.__PLUMERIA_RESET_DONE__ = true;
 
     try {
@@ -59,7 +63,10 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
   const originalWebpack = nextConfig.webpack;
 
   const turbopackLoaders: TurbopackLoaderItem[] = [
-    { loader: '@plumeria/turbopack-loader', options: {} },
+    {
+      loader: '@plumeria/turbopack-loader',
+      options: options as Record<string, never>,
+    },
   ];
 
   const ruleItem = supportsRuleCondition()
@@ -145,7 +152,7 @@ export function withPlumeria(nextConfig: NextConfig = {}): NextConfig {
         enforce: 'pre',
         test: /\.(tsx|ts|jsx|js)$/,
         exclude: [/node_modules/, /\.next/, /\.git/],
-        use: '@plumeria/turbopack-loader',
+        use: { loader: '@plumeria/turbopack-loader', options },
       });
 
       return config;
