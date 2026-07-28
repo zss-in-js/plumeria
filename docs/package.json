@@ -33,7 +33,6 @@
     "@plumeria/eslint-plugin": "workspace:^",
     "@plumeria/headlessui": "workspace:^",
     "@plumeria/next-plugin": "workspace:^",
-    "@plumeria/postcss-plugin": "workspace:^",
     "@types/mdx": "^2.0.13",
     "@types/node": "^25.8.0",
     "@types/react": "^19.2.14",
