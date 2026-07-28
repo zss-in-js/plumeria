@@ -46,13 +46,15 @@ const extensions = [
   '/index.jsx',
 ];
 
+function isFile(candidate: string): boolean {
+  return fs.statSync(candidate, { throwIfNoEntry: false })?.isFile() ?? false;
+}
+
 function resolveWithExtension(basePath: string): string | null {
-  if (fs.existsSync(basePath) && fs.statSync(basePath).isFile())
-    return basePath;
+  if (isFile(basePath)) return basePath;
   for (const ext of extensions) {
     const fullPath = basePath + ext;
-    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile())
-      return fullPath;
+    if (isFile(fullPath)) return fullPath;
   }
   return null;
 }
@@ -61,6 +63,8 @@ export function resolveImportPath(
   importPath: string,
   importerPath: string,
 ): string | null {
+  if (importPath === '@plumeria/core') return null;
+
   if (importPath.startsWith('.')) {
     return resolveWithExtension(
       path.resolve(path.dirname(importerPath), importPath),
