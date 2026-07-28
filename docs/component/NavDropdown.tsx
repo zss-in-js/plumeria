@@ -10,7 +10,7 @@ const styles = css.create({
   container: {
     position: 'relative',
     display: 'inline-block',
-    [breakpoints.md]: {
+    [breakpoints.lg]: {
       display: 'block',
       width: '100%',
     },
@@ -26,7 +26,7 @@ const styles = css.create({
     cursor: 'pointer',
     borderRadius: '8px',
     transition: 'color 0.15s ease, background-color 0.15s ease',
-    [breakpoints.md]: {
+    [breakpoints.lg]: {
       display: 'flex',
       justifyContent: 'space-between',
       width: '100%',
@@ -73,7 +73,7 @@ const styles = css.create({
     transform: 'translateY(4px)',
     transition: 'opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
     opacity: 0,
-    [breakpoints.md]: {
+    [breakpoints.lg]: {
       position: 'static',
       display: 'none',
       width: '100%',
@@ -92,7 +92,7 @@ const styles = css.create({
     pointerEvents: 'auto',
     transform: 'translateY(0)',
     opacity: 1,
-    [breakpoints.md]: {
+    [breakpoints.lg]: {
       display: 'flex',
     },
   },
@@ -105,7 +105,7 @@ const styles = css.create({
     textDecoration: 'none',
     borderRadius: '8px',
     transition: 'background-color 0.15s ease, color 0.15s ease',
-    [breakpoints.md]: {
+    [breakpoints.lg]: {
       padding: '8px 16px',
       fontSize: '14px',
     },
@@ -121,7 +121,7 @@ const styles = css.create({
     color: theme.textPrimary,
     letterSpacing: '0.05em',
     pointerEvents: 'none',
-    [breakpoints.md]: {
+    [breakpoints.lg]: {
       padding: '8px 16px 2px 16px',
       fontSize: '12px',
     },
@@ -130,7 +130,7 @@ const styles = css.create({
     height: '1px',
     margin: '6px 4px',
     backgroundColor: theme.cardBorder,
-    [breakpoints.md]: {
+    [breakpoints.lg]: {
       margin: '6px 16px',
     },
   },
@@ -173,7 +173,9 @@ export const NavDropdown = ({ title, url, items }: NavDropdownProps) => {
   const [isOpenMobile, setIsOpenMobile] = React.useState(false);
 
   React.useEffect(() => {
-    const media = window.matchMedia('(max-width: 768px)');
+    // Must match `breakpoints.lg`: below it the dropdown lives inside a menu panel
+    // and expands in place, above it it hovers out of the header.
+    const media = window.matchMedia('(max-width: 1023.98px)');
     setIsMobile(media.matches);
     const listener = (e: MediaQueryListEvent) => {
       setIsMobile(e.matches);
