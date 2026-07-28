@@ -106,46 +106,27 @@ For `Next`, we recommend running rimraf to clean up the cache to accommodate the
   {/* prettier-ignore */}
   <Tab>
     ```sh title="Terminal"
-    npm i -D @plumeria/next-plugin @plumeria/postcss-plugin
+    npm i -D @plumeria/next-plugin
     ```
   </Tab>
   <Tab>
     ```sh title="Terminal"
-    yarn add -D @plumeria/next-plugin @plumeria/postcss-plugin
+    yarn add -D @plumeria/next-plugin
     ```
   </Tab>
   <Tab>
     ```sh title="Terminal"
-    pnpm add -D @plumeria/next-plugin @plumeria/postcss-plugin
+    pnpm add -D @plumeria/next-plugin
     ```
   </Tab>
 </Tabs>
 
-### postcss.config.js
-Reduce build times by narrowing the scope using `include` and `exclude`.
-```js title="postcss.config.js"
+### plumeria.d.ts
+`@plumeria/core` ships no prop declaration of its own, so name the styling prop your project compiles with.
+```ts title="plumeria.d.ts"
 /* application root */
-module.exports = {
-  plugins: {
-    '@plumeria/postcss-plugin': {
-      // use src directory
-      include: ['./src/**/*.{ts,tsx}'],
-      exclude: ['**/node_modules/**', '**/.next/**'],
-    },
-  },
-};
+/// <reference types="@plumeria/core/style-name" />
 ```
-
-### CSS extraction marke
-Inclulde css file `@plumeria` mark.  
-Atomic css is aggregated at build time into marked css files.
-```css title="css"
-/* app/global.css */ 
-/* import in app/layout.tsx */
-@plumeria;
-...
-```
-
 
 ### next.config.ts
 It works with both Turbopack and Webpack.
