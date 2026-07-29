@@ -155,7 +155,7 @@ plumeria.vite({
 | `include` | `ts/tsx/js/jsx` | Files to transform. |
 | `exclude` | — | Files to skip. |
 | `devEmitToDisk` | `false` | Write CSS to disk in development so the bundler's watcher drives HMR. |
-| `styleProp` | `'styleName'` | The JSX prop that carries styles. |
+| `styleProp` | `'classStyle'` | The JSX prop that carries styles. |
 
 ### styleProp
 
@@ -187,7 +187,7 @@ For the default name, reference the declaration that ships with the package inst
 
 ```ts
 // plumeria.d.ts
-/// <reference types="@plumeria/core/style-name" />
+/// <reference types="@plumeria/core/class-style" />
 ```
 
 If the two disagree, the prop type-checks but is never compiled away. [`@plumeria/eslint-plugin`](https://www.npmjs.com/package/@plumeria/eslint-plugin) reads the same name from `settings.plumeria.styleProp`.
