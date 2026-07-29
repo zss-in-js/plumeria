@@ -11,7 +11,7 @@ export function PlumeriaLogo({ size = 220, styleArray }: { size?: number; styleA
       height={size}
       aria-label="Plumeria logo"
       role="img"
-      styleName={styleArray}
+      classStyle={styleArray}
     >
       <defs>
         <linearGradient id="plumeria" x1="18" y1="18" x2="182" y2="182" gradientUnits="userSpaceOnUse">
