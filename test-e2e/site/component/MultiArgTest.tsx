@@ -29,7 +29,7 @@ export function MultiArgTest() {
       <h3>Multi-Arg Dynamic Style Test</h3>
       <div
         data-testid="multi-arg-box"
-        styleName={styles.box(width, height, color)}
+        classStyle={styles.box(width, height, color)}
       >
         {width}x{height}
       </div>
