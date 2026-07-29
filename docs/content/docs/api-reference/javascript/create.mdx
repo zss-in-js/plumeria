@@ -13,7 +13,7 @@ export const create: create;
 `create` defines css styles using plain JavaScript style objects.  
 type-safe・autocomplete・lintable
 
-Only the styles you use in `styleName` will be ondemand compiled.
+Only the styles you use in `classStyle` will be ondemand compiled.
 
 ## Example
 
@@ -34,7 +34,7 @@ const styles = css.create({
 export default function App() {
   return (
     <div
-      styleName={[
+      classStyle={[
         styles.container,
         styles.text
       ]}
@@ -83,7 +83,7 @@ const styles = css.create({
 
 export const Color = ({ color }) => {
   return (
-    <span styleName={styles.palette(color)}>Dynamic Color</span>
+    <span classStyle={styles.palette(color)}>Dynamic Color</span>
   )
 }
 ```
@@ -120,7 +120,7 @@ type Size = 'small' | 'large';
 
 export const Button = ({ size }: { size: Size }) => {
   return (
-    <button styleName={[styles.base, sizeStyles[size]]}>Button</button>
+    <button classStyle={[styles.base, sizeStyles[size]]}>Button</button>
   );
 };
 ```
@@ -135,12 +135,12 @@ When using conditional expressions with bracket notation, place the condition **
 
 ```tsx
 // ✅ Correct: Condition is inside the brackets (using dynamic keys or literals)
-<button styleName={sizeStyles[isLarge ? keyA : keyB]} />
-<button styleName={sizeStyles[isLarge ? 'large' : 'small']} />
-<button styleName={sizeStyles[isActive && key]} />
+<button classStyle={sizeStyles[isLarge ? keyA : keyB]} />
+<button classStyle={sizeStyles[isLarge ? 'large' : 'small']} />
+<button classStyle={sizeStyles[isActive && key]} />
 
 // ❌ Incorrect: Condition is outside the brackets (causes a compilation error)
-<button styleName={isLarge ? sizeStyles[keyA] : sizeStyles[keyB]} />
+<button classStyle={isLarge ? sizeStyles[keyA] : sizeStyles[keyB]} />
 ```
 
 Placing the condition outside the brackets prevents the compiler from folding the condition into the static lookup table. Move the condition inside the brackets so Plumeria can generate the lookup table at build time.
