@@ -12,20 +12,20 @@ The complete rule set, distilled. Each rule is explained with examples in the se
 **MUST:**
 
 - Call `css.create()` at module top level, never inside a component. (→ Forbidden Patterns)
-- Bind styles with the `styleName` prop, not `className`. (→ Mental Model)
+- Bind styles with the `classStyle` prop, not `className`. (→ Mental Model)
 - Import `@plumeria/core` in every file that uses Plumeria styles, including files that only consume imported styles. (→ Core Usage)
 - Start nested selector keys with `:` (pseudo) or `[` (attribute). (→ Selector Rules)
 - Compose with arrays; the right side always wins. (→ Core Usage)
 
 **NEVER:**
 
-- Pass a raw object to `styleName`, e.g. `styleName={{ color: 'red' }}`. (→ Forbidden Patterns)
+- Pass a raw object to `classStyle`, e.g. `classStyle={{ color: 'red' }}`. (→ Forbidden Patterns)
 - Call `css.create()` inside a component body. (→ Forbidden Patterns)
 - Use the `&` self-reference character. (→ Selector Rules)
 - Use `:has()`, `:is()`, or `:where()` — use `css.marker()` / `css.extended()` instead. (→ Selector Rules, Advanced APIs)
 - Use child or descendant selectors (`.title`, `> div`) — style child elements directly. (→ Selector Rules)
 - Nest a media/container query inside a pseudo-selector. The reverse (pseudo inside media) is allowed once. (→ Selector Rules)
-- Mix `className` and `styleName` on the same element. (→ Forbidden Patterns)
+- Mix `className` and `classStyle` on the same element. (→ Forbidden Patterns)
 - Merge `css.use()` output with the inline `style` prop. (→ Dynamic Styling)
 
 ## Mental Model
@@ -34,12 +34,12 @@ AI assistants often misapply runtime CSS-in-JS habits to Plumeria. Correct your 
 
 - **Styles are type schemas, not runtime objects.** Plumeria definitions are static schemas read by the compiler; they do not exist as JavaScript objects at runtime.
 - **`css.create()` is a compiler directive, not an object factory.** Everything inside it is statically analyzed — the compiler must be able to read all styling information without executing code.
-- **`styleName` is NOT `className`.** Plumeria binds styles through its own `styleName` prop. Never reach for `className` reflexively.
+- **`classStyle` is NOT `className`.** Plumeria binds styles through its own `classStyle` prop. Never reach for `className` reflexively.
 - **Zero-byte CSS in the JS bundle.** All CSS is resolved at build time. The abstraction layer (your definitions) and the output layer (generated CSS) are completely separated, so Plumeria has no side effects and high referential transparency.
 
 ## Core Usage
 
-Define styles at module top level with `css.create()`, bind them with `styleName`:
+Define styles at module top level with `css.create()`, bind them with `classStyle`:
 
 ```tsx
 import * as css from '@plumeria/core';
@@ -56,14 +56,14 @@ const styles = css.create({
 
 export const MyComponent = ({ isActive }) => {
   return (
-    <div styleName={[styles.container, isActive && styles.active]}>
+    <div classStyle={[styles.container, isActive && styles.active]}>
       Hello Plumeria
     </div>
   );
 };
 ```
 
-**Right-wins composition.** `styleName` accepts arrays, ternaries, and conditional expressions. The right-most style always takes precedence: above, `styles.active` overrides `styles.container` when `isActive` is true. `css.use()` follows the same rule. Specificity is always 1 — there are no specificity collisions, and "right side wins" is the only rule you need.
+**Right-wins composition.** `classStyle` accepts arrays, ternaries, and conditional expressions. The right-most style always takes precedence: above, `styles.active` overrides `styles.container` when `isActive` is true. `css.use()` follows the same rule. Specificity is always 1 — there are no specificity collisions, and "right side wins" is the only rule you need.
 
 **Cross-file imports.** Styles can be imported across files, but the consuming component file MUST contain `import "@plumeria/core";` — the import is how the compiler finds the file.
 
@@ -71,10 +71,10 @@ export const MyComponent = ({ isActive }) => {
 
 Never generate these patterns. They break static analysis or cause runtime errors.
 
-❌ **Passing an object directly to `styleName`:**
+❌ **Passing an object directly to `classStyle`:**
 
 ```tsx
-<span styleName={{ fontSize: '12px' }}>Small Text</span>
+<span classStyle={{ fontSize: '12px' }}>Small Text</span>
 ```
 
 ❌ **Creating styles inside a component body:**
@@ -88,10 +88,10 @@ export const BadComponent = ({ dynamicColor }) => {
 };
 ```
 
-❌ **Mixing `className` and `styleName` on the same element:**
+❌ **Mixing `className` and `classStyle` on the same element:**
 
 ```tsx
-<span className="global-class" styleName={styles.base}>Text</span>
+<span className="global-class" classStyle={styles.base}>Text</span>
 ```
 
 ❌ **Complex JS expressions in style values.** Only simple ternary operators are allowed, and only when necessary. Never put complex logic or function calls inside style values.
@@ -165,7 +165,7 @@ const styles = css.create({
   }),
 });
 
-// Usage: <div styleName={styles.palette(color)} />
+// Usage: <div classStyle={styles.palette(color)} />
 ```
 
 ### Bracket notation (variants)
@@ -192,14 +192,14 @@ interface ButtonProps {
 
 // 3. Resolve dynamically with bracket notation
 export const Button = ({ size, children }: ButtonProps) => {
-  return <button styleName={sizeStyles[size]}>{children}</button>;
+  return <button classStyle={sizeStyles[size]}>{children}</button>;
 };
 ```
 
 Best practices:
 
 - ⚠️ **Keep variant `css.create()` calls minimal.** Every key in a `css.create()` used with bracket notation is compiled into the generated lookup table (e.g. `{"small":"...","medium":"..."}[size]`). Separate variants into dedicated calls; don't mix them with unrelated static styles.
-- **Local variable assignment is supported.** `const currentStyle = sizeStyles[size]; <div styleName={currentStyle} />` works — the compiler traces local style variables and inlines them during JSX extraction.
+- **Local variable assignment is supported.** `const currentStyle = sizeStyles[size]; <div classStyle={currentStyle} />` works — the compiler traces local style variables and inlines them during JSX extraction.
 
 ### `css.use()` returns a static string
 
@@ -239,8 +239,8 @@ const styles = css.create({
 
 export const Card = () => {
   return (
-    <div styleName={styles.parent}>
-      <span styleName={styles.child}>Hover parent to make me blue!</span>
+    <div classStyle={styles.parent}>
+      <span classStyle={styles.child}>Hover parent to make me blue!</span>
     </div>
   );
 };
@@ -361,11 +361,11 @@ export const transition = css.create({
 
 ## Styling Custom Components
 
-There are exactly **3 patterns** for applying Plumeria styles to custom components. In all of them, compilation happens at the `styleName` / `css.use()` call sites; the component itself just passes the compiled `className` / `style` through to the DOM.
+There are exactly **3 patterns** for applying Plumeria styles to custom components. In all of them, compilation happens at the `classStyle` / `css.use()` call sites; the component itself just passes the compiled `className` / `style` through to the DOM.
 
 > **Core principle**: Custom props typed as `Style` are statically traced by the compiler, so styles pass seamlessly across component boundaries.
 
-### Pattern 1: Direct `styleName` inside the component
+### Pattern 1: Direct `classStyle` inside the component
 
 The component imports its own styles and applies them internally. Simplest pattern — fully self-contained:
 
@@ -386,8 +386,8 @@ const styles = css.create({
 
 export const Button = ({ children }: { children: React.ReactNode }) => {
   return (
-    // The compiler transforms styleName → className here
-    <button styleName={styles.button}>
+    // The compiler transforms classStyle → className here
+    <button classStyle={styles.button}>
       {children}
     </button>
   );
@@ -399,7 +399,7 @@ export const Button = ({ children }: { children: React.ReactNode }) => {
 
 ### Pattern 2: Passing a `Style` prop
 
-`styleName` itself is compiled away at the call site, so it cannot be used as a prop name on a custom component. Instead, define a custom prop (e.g. `styleArray`) typed as `css.Style`. The compiler statically traces it across component boundaries and resolves it into the internal element's `styleName`. Composing as `[styles.text, styleArray]` lets call-site styles override the component's base styles (right-wins — see Core Usage): below, the call site's `fontSize: '24px'` overrides the internal `fontSize: '12px'`.
+`classStyle` itself is compiled away at the call site, so it cannot be used as a prop name on a custom component. Instead, define a custom prop (e.g. `styleArray`) typed as `css.Style`. The compiler statically traces it across component boundaries and resolves it into the internal element's `classStyle`. Composing as `[styles.text, styleArray]` lets call-site styles override the component's base styles (right-wins — see Core Usage): below, the call site's `fontSize: '24px'` overrides the internal `fontSize: '12px'`.
 
 ```tsx
 // --- Button.tsx ---
@@ -418,9 +418,9 @@ const styles = css.create({
   },
 });
 
-// Pass styleArray directly to the inner element's styleName
+// Pass styleArray directly to the inner element's classStyle
 export const Button = ({ children, styleArray }: ButtonProps) => {
-  return <button styleName={[styles.text, styleArray]}>{children}</button>;
+  return <button classStyle={[styles.text, styleArray]}>{children}</button>;
 };
 
 // --- Usage (call site) ---
@@ -495,7 +495,7 @@ const styles = css.create({
 
 | Pattern | Compilation site | Component's role |
 |---------|-----------------|-----------------|
-| 1. Direct `styleName` | Inside the component | Self-contained styles |
+| 1. Direct `classStyle` | Inside the component | Self-contained styles |
 | 2. `Style` prop | Traced and compiled | Receives and applies `Style` |
 | 3. `className` bypass | Inside the component (`css.use`) | Resolves `Style` into `className` |
 
