@@ -1,6 +1,6 @@
 ---
 title: '@plumeria/headlessui'
-description: 'Wrapper component library that seamlessly integrates Radix UI with Plumeria styleName abstraction layer.'
+description: 'Wrapper component library that seamlessly integrates Radix UI with Plumeria classStyle abstraction layer.'
 ---
 
 import { HeadlessDemoLazy } from 'component/HeadlessDemoLazy';
@@ -33,10 +33,10 @@ Please refer to the [Installation](getting-started/installation) section for det
   </Tab>
 </Tabs>
 
-## How styleName works
+## How classStyle works
 
-When `styleName` is passed to a custom component, it is **automatically compiled to `className` and `style` at the call site — before the component ever runs**.
-Therefore, each `@plumeria/headlessui` component does not need to know about `styleName` at all; it simply spreads `...props` onto the underlying Radix primitive.
+When `classStyle` is passed to a custom component, it is **automatically compiled to `className` and `style` at the call site — before the component ever runs**.
+Therefore, each `@plumeria/headlessui` component does not need to know about `classStyle` at all; it simply spreads `...props` onto the underlying Radix primitive.
 
 ```tsx
 import * as css from '@plumeria/core';
@@ -50,8 +50,8 @@ const styles = css.create({
   },
 });
 
-// styleName is compiled to className="xxxxxxxx" at this call site
-<Dialog.Trigger styleName={styles.primary}>Open</Dialog.Trigger>;
+// classStyle is compiled to className="xxxxxxxx" at this call site
+<Dialog.Trigger classStyle={styles.primary}>Open</Dialog.Trigger>;
 ```
 
 ---
