@@ -36,7 +36,7 @@ TooltipContent.displayName = 'TooltipContent';
 const TooltipArrow = React.forwardRef<
   React.ComponentRef<typeof TooltipPrimitive.Arrow>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Arrow> & {
-    styleName?: Style;
+    classStyle?: Style;
   }
 >((props, ref) => {
   return <TooltipPrimitive.Arrow ref={ref} {...props} />;
