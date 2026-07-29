@@ -28,10 +28,33 @@ pnpm i --save-dev @plumeria/eslint-plugin
 
 ## Usage
 ```js
-import { plumeria } from '@plumeria/eslint-plugin';
+import plumeria from '@plumeria/eslint-plugin';
 
-export default [plumeria.flatConfigs.recommended];
+export default [plumeria.configs.recommended];
 ```
+
+`no-invalid-selector` and `validate-pseudos` read TypeScript's type information to resolve selectors that are not written as string literals — a key that comes from a variable or a `const` object, for example. Without it the rules see nothing to check and skip those keys silently.
+
+Turn it on in the root `eslint.config.ts` by giving the TypeScript files a project service:
+
+```ts title="eslint.config.ts"
+import tseslint from 'typescript-eslint';
+import { defineConfig } from 'eslint/config';
+import plumeria from '@plumeria/eslint-plugin';
+
+export default defineConfig(
+  tseslint.configs.recommended,
+  plumeria.configs.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: { projectService: true },
+    },
+  },
+);
+```
+
+Literal selectors are still checked without this, so the rules work either way — the project service only widens what they can see.
 
 ## Rules
 `Rules: recommended`
@@ -50,6 +73,37 @@ export default [plumeria.flatConfigs.recommended];
 - `'@plumeria/validate-pseudos': 'error'`
 
 When using `recommended`, all rules are turned on.
+
+## Configuring the styling prop
+
+`props-require-import`, `no-inline-object` and `no-mixed-styling-props` need to know which JSX prop carries styles. It is `classStyle` unless you changed it, so most projects configure nothing.
+
+If you did rename it — via `styleProp` on `withPlumeria` or on the unplugin options — tell the plugin the same name. ESLint cannot read it from your bundler config, so set it once in `settings` and every rule picks it up:
+
+```js
+import plumeria from '@plumeria/eslint-plugin';
+
+export default [
+  plumeria.configs.recommended,
+  {
+    settings: {
+      plumeria: { styleProp: 'sx' },
+    },
+  },
+];
+```
+
+A single rule can override that if you need it to:
+
+```js
+{
+  rules: {
+    '@plumeria/no-mixed-styling-props': ['error', { styleProp: 'sx' }],
+  },
+}
+```
+
+The name must match whatever the loader or unplugin was given. If they disagree, the lint rules report against a prop the compiler never transforms.
 
 <Cards>
   <Card title="See more about Editor integration" href="/docs/getting-started/editor-integration" />
