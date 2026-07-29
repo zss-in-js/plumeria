@@ -194,7 +194,7 @@ export const SiteHeader = ({ title, links, sidebarTrigger }: SiteHeaderProps) =>
         aria-label={item.label}
         target="_blank"
         rel="noreferrer"
-        styleName={navStyles.iconButton}
+        classStyle={navStyles.iconButton}
       >
         {item.icon}
       </a>
@@ -202,46 +202,46 @@ export const SiteHeader = ({ title, links, sidebarTrigger }: SiteHeaderProps) =>
 
   const drawer = (
     <>
-      <div styleName={[styles.scrim, open && styles.scrimOpen]} onClick={() => setOpen(false)} aria-hidden />
+      <div classStyle={[styles.scrim, open && styles.scrimOpen]} onClick={() => setOpen(false)} aria-hidden />
       <aside
         id="site-menu"
         aria-label="Menu"
         aria-hidden={!open}
-        styleName={[styles.drawer, open && styles.drawerOpen]}
+        classStyle={[styles.drawer, open && styles.drawerOpen]}
       >
-        <div styleName={[navStyles.iconRow, styles.drawerTop]}>
+        <div classStyle={[navStyles.iconRow, styles.drawerTop]}>
           {renderIcons()}
-          <div styleName={navStyles.spacer} />
-          <ThemeSwitch styleName={[navStyles.themeToggle, styles.toggle]} />
-          <button type="button" aria-label="Close menu" styleName={navStyles.iconButton} onClick={() => setOpen(false)}>
+          <div classStyle={navStyles.spacer} />
+          <ThemeSwitch classStyle={[navStyles.themeToggle, styles.toggle]} />
+          <button type="button" aria-label="Close menu" classStyle={navStyles.iconButton} onClick={() => setOpen(false)}>
             <SidebarIcon />
           </button>
         </div>
-        <div styleName={styles.drawerBody}>{renderMenus()}</div>
+        <div classStyle={styles.drawerBody}>{renderMenus()}</div>
       </aside>
     </>
   );
 
   return (
-    <header id="nd-nav" styleName={styles.header}>
-      <div data-header-body="" styleName={styles.body}>
+    <header id="nd-nav" classStyle={styles.header}>
+      <div data-header-body="" classStyle={styles.body}>
         {typeof title === 'function' ? (
           React.createElement(title, { href: '/', className: css.use(styles.title) })
         ) : (
-          <Link href="/" styleName={styles.title}>
+          <Link href="/" classStyle={styles.title}>
             {title}
           </Link>
         )}
-        <div styleName={styles.searchSlot}>
+        <div classStyle={styles.searchSlot}>
           <FullSearchTrigger hideIfDisabled className={css.use(styles.searchButton)} />
         </div>
-        <div styleName={styles.actions}>
-          <nav styleName={styles.wide}>{renderMenus()}</nav>
-          <div styleName={styles.wide}>{renderIcons()}</div>
-          <div styleName={styles.wide}>
-            <ThemeSwitch styleName={navStyles.themeToggle} />
+        <div classStyle={styles.actions}>
+          <nav classStyle={styles.wide}>{renderMenus()}</nav>
+          <div classStyle={styles.wide}>{renderIcons()}</div>
+          <div classStyle={styles.wide}>
+            <ThemeSwitch classStyle={navStyles.themeToggle} />
           </div>
-          <div styleName={styles.compact}>
+          <div classStyle={styles.compact}>
             <SearchTrigger hideIfDisabled />
             {sidebarTrigger ?? (
               <button
@@ -249,7 +249,7 @@ export const SiteHeader = ({ title, links, sidebarTrigger }: SiteHeaderProps) =>
                 aria-label="Open menu"
                 aria-expanded={open}
                 aria-controls="site-menu"
-                styleName={navStyles.iconButton}
+                classStyle={navStyles.iconButton}
                 onClick={() => setOpen(true)}
               >
                 <MenuIcon />
