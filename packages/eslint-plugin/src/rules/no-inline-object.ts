@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint';
 import type { ImportSpecifier, CallExpression } from 'estree';
 import { JSXAttribute } from 'estree-jsx';
+import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
 
 type PlumeriaMethod = 'use' | 'variants';
 
@@ -31,20 +32,21 @@ export const noInlineObject: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow inline objects in styleName and css.use',
+      description: 'Disallow inline objects in the styling prop and css.use',
     },
     messages: {
-      noInlineObjectInStyleName:
-        'Do not pass inline objects to styleName. It only accepts compiled styles from css.create().',
+      noInlineObjectInStyleProp:
+        'Do not pass inline objects to "{{prop}}". It only accepts compiled styles from css.create().',
       noInlineObjectInCssUse:
         'Do not pass inline objects to css.use(). It only accepts compiled styles from css.create().',
       noInlineObjectInCssVariants:
         'Do not pass inline objects to css.variants(). It only accepts compiled styles from css.create().',
     },
-    schema: [],
+    schema: stylePropSchema,
   },
 
   create(context) {
+    const styleProp = resolveStyleProp(context);
     const plumeriaAliases: Record<string, string> = {};
 
     return {
@@ -70,7 +72,7 @@ export const noInlineObject: Rule.RuleModule = {
       JSXAttribute(node: JSXAttribute & Rule.NodeParentExtension) {
         if (
           node.name.type === 'JSXIdentifier' &&
-          node.name.name === 'styleName'
+          node.name.name === styleProp
         ) {
           const value = node.value;
           if (value?.type === 'JSXExpressionContainer') {
@@ -78,14 +80,16 @@ export const noInlineObject: Rule.RuleModule = {
             if (expr.type === 'ObjectExpression') {
               context.report({
                 node: expr as Rule.Node,
-                messageId: 'noInlineObjectInStyleName',
+                messageId: 'noInlineObjectInStyleProp',
+                data: { prop: styleProp },
               });
             } else if (expr.type === 'ArrayExpression') {
               expr.elements.forEach((el) => {
                 if (el?.type === 'ObjectExpression') {
                   context.report({
                     node: el as Rule.Node,
-                    messageId: 'noInlineObjectInStyleName',
+                    messageId: 'noInlineObjectInStyleProp',
+                    data: { prop: styleProp },
                   });
                 }
               });
