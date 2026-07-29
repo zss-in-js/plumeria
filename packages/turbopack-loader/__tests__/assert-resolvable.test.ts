@@ -33,16 +33,16 @@ const UNSUPPORTED = /is not supported/;
 describe('turbopack-loader: assertResolvable', () => {
   it.each([
     [
-      'a function call in styleName',
-      'export const A = () => <div styleName={[styles.box, Test()]} />;',
+      'a function call in classStyle',
+      'export const A = () => <div classStyle={[styles.box, Test()]} />;',
     ],
     [
       'a function call nested in a ternary',
-      'export const A = () => <div styleName={cond ? Test() : styles.box} />;',
+      'export const A = () => <div classStyle={cond ? Test() : styles.box} />;',
     ],
     [
-      'an arrow function in styleName',
-      'export const A = () => <div styleName={[styles.box, () => styles.box]} />;',
+      'an arrow function in classStyle',
+      'export const A = () => <div classStyle={[styles.box, () => styles.box]} />;',
     ],
     [
       'a function call in css.use()',
@@ -56,7 +56,7 @@ describe('turbopack-loader: assertResolvable', () => {
   it('accepts undefined as a conditional branch', async () => {
     await expect(
       run(
-        'export const A = () => <div styleName={cond ? styles.box : undefined} />;',
+        'export const A = () => <div classStyle={cond ? styles.box : undefined} />;',
       ),
     ).resolves.toEqual(expect.any(String));
   });
