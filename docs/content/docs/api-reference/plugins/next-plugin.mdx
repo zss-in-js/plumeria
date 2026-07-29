@@ -43,12 +43,68 @@ export default withPlumeria(nextConfig);
 ```
 
 ## API
-### `withPlumeria(nextConfig)`
+### `withPlumeria(nextConfig, options)`
 
 Takes a Next.js configuration object and returns a new configuration object with the necessary Turbopack or Webpack configurations added for Plumeria.
 
 - `nextConfig`: Next.js configuration object.
+- `options`: Compiler options, passed through to the loader.
 
 ```ts
-function withPlumeria(nextConfig: NextConfig): NextConfig;
+function withPlumeria(nextConfig: NextConfig, options?: LoaderOptions): NextConfig;
 ```
+
+### Options
+
+```ts title="next.config.ts"
+export default withPlumeria(nextConfig, {
+  include: ['./src/**/*.{ts,tsx}'],
+  exclude: ['**/node_modules/**', '**/.next/**'],
+  styleProp: 'sx',
+});
+```
+
+- `include`: Globs the stylesheet is compiled from. The default is every `js/jsx/ts/tsx` file.
+- `exclude`: Globs excluded from that compilation. The default is `node_modules`, `dist` and `.next`.
+- `styleProp`: The JSX prop that carries styles. The default is `'classStyle'`.
+
+```ts
+interface LoaderOptions {
+  include?: string[];
+  exclude?: string[];
+  styleProp?: string;
+}
+```
+
+### styleProp
+
+Renaming the prop takes two steps, and they have to agree. Tell the plugin:
+
+```ts title="next.config.ts"
+export default withPlumeria(nextConfig, { styleProp: 'sx' });
+```
+
+and declare the same name for TypeScript instead of referencing the default:
+
+```ts title="plumeria.d.ts"
+import type { Style } from '@plumeria/core';
+
+declare global {
+  namespace React {
+    interface HTMLAttributes<T> {
+      sx?: Style;
+    }
+    interface SVGAttributes<T> {
+      sx?: Style;
+    }
+  }
+}
+```
+
+For the default name, reference the declaration that ships with the package instead:
+
+```ts title="plumeria.d.ts"
+/// <reference types="@plumeria/core/class-style" />
+```
+
+If the two disagree, the prop type-checks but is never compiled away. [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) reads the same name from `settings.plumeria.styleProp`.
