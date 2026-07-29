@@ -456,7 +456,7 @@ export function compileCSS(options: CompilerOptions) {
     // Common processing for use() and styleProp={}
     const extractAndProcessConditionals = (
       args: Array<{ expression: Expression }>,
-      isStyleName: boolean = false,
+      isStyleProp: boolean = false,
     ) => {
       args.forEach((arg) => {
         if (
@@ -628,7 +628,7 @@ export function compileCSS(options: CompilerOptions) {
       };
 
       const checkFunctionKey = (node: Expression): void => {
-        if (isStyleName) return;
+        if (isStyleProp) return;
         if (
           t.isCallExpression(node) &&
           t.isMemberExpression(node.callee) &&
@@ -645,7 +645,7 @@ export function compileCSS(options: CompilerOptions) {
             '__cssVars__' in atomMap
           ) {
             throw new Error(
-              `[plumeria] css.use(${getSource(node)}) cannot handle dynamic style functions. Use styleName instead.\n`,
+              `[plumeria] css.use(${getSource(node)}) cannot handle dynamic style functions. Use ${styleProp} instead.\n`,
             );
           }
         }
@@ -1118,7 +1118,7 @@ export function compileCSS(options: CompilerOptions) {
       },
     });
 
-    // Pass 2: Process usage sites (use()/styleName) - all definitions are now registered
+    // Pass 2: Process usage sites (use()/styleProp) - all definitions are now registered
     traverse(ast, {
       VariableDeclarator({ node }: { node: VariableDeclarator }) {
         if (t.isIdentifier(node.id) && node.init) {
