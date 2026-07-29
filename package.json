@@ -26,6 +26,7 @@
     "@changesets/cli": "^2.31.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.60.0",
+    "@plumeria/codemod": "workspace:^",
     "@plumeria/eslint-plugin": "workspace:^",
     "@swc/core": "catalog:",
     "@swc/jest": "^0.2.39",
