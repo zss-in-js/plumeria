@@ -47,31 +47,31 @@ export function VariantTest() {
       <h3>Variants Staticization Test</h3>
       <div
         data-testid="variant-div-1"
-        styleName={[sizeStyles[size1], colorStyles[color1]]}
+        classStyle={[sizeStyles[size1], colorStyles[color1]]}
       >
         Small Primary Variant
       </div>
       <div
         data-testid="variant-div-2"
-        styleName={[sizeStyles[size2], colorStyles[color2]]}
+        classStyle={[sizeStyles[size2], colorStyles[color2]]}
       >
         Large Secondary Variant
       </div>
       <div
         data-testid="bracket-div-1"
-        styleName={s[v1]}
+        classStyle={s[v1]}
       >
         Bracket p1
       </div>
       <div
         data-testid="bracket-div-2"
-        styleName={s[v2]}
+        classStyle={s[v2]}
       >
         Bracket p2
       </div>
       <div
         data-testid="bracket-div-3"
-        styleName={myStyles}
+        classStyle={myStyles}
       >
         Bracket p1 (indirect)
       </div>
