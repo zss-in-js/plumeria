@@ -23,7 +23,7 @@ export const panelStyles = css.create({ box: { color: 'red' } });
     `import '@plumeria/core';
 import { panelStyles } from './panel.styles';
 import { Item } from './Item';
-export const Panel = () => <Item styleName={panelStyles.box} />;
+export const Panel = () => <Item classStyle={panelStyles.box} />;
 `,
   );
 });
