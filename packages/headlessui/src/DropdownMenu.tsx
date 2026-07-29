@@ -97,7 +97,7 @@ DropdownMenuSeparator.displayName = 'DropdownMenuSeparator';
 const DropdownMenuArrow = React.forwardRef<
   React.ComponentRef<typeof DropdownMenuPrimitive.Arrow>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Arrow> & {
-    styleName?: Style;
+    classStyle?: Style;
   }
 >((props, ref) => {
   return <DropdownMenuPrimitive.Arrow ref={ref} {...props} />;
