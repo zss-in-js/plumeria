@@ -27,7 +27,7 @@ const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
 
 const moduleUsing = (color: string) => `import * as css from '@plumeria/core';
 const styles = css.create({ box: { color: '${color}' } });
-export const Box = () => <div styleName={styles.box} />;
+export const Box = () => <div classStyle={styles.box} />;
 `;
 
 const writeFileSyncMock = fs.writeFileSync as unknown as jest.Mock;
