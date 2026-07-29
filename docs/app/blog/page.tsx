@@ -15,9 +15,9 @@ export default function Page(): JSX.Element {
   const posts = blog.getPages();
 
   return (
-    <main styleName={styles.container}>
-      <div styleName={styles.header}>
-        <h1 styleName={styles.title}>Blog</h1>
+    <main classStyle={styles.container}>
+      <div classStyle={styles.header}>
+        <h1 classStyle={styles.title}>Blog</h1>
         <span>The latest updates and releases from the Plumeria at ZSS-in-JS.</span>
       </div>
 
@@ -25,11 +25,11 @@ export default function Page(): JSX.Element {
         .slice()
         .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
         .map((post) => (
-          <Link href={`/blog/${post.slugs.join('/')}`} styleName={styles.card} key={post.data.title}>
-            <h2 styleName={styles.cardTitle}>{post.data.title}</h2>
-            <p styleName={styles.cardDesc}>{post.data.description}</p>
-            <p styleName={styles.cardDesc}>Read more →</p>
-            <p styleName={styles.cardDate}>{post.data.date}</p>
+          <Link href={`/blog/${post.slugs.join('/')}`} classStyle={styles.card} key={post.data.title}>
+            <h2 classStyle={styles.cardTitle}>{post.data.title}</h2>
+            <p classStyle={styles.cardDesc}>{post.data.description}</p>
+            <p classStyle={styles.cardDesc}>Read more →</p>
+            <p classStyle={styles.cardDate}>{post.data.date}</p>
           </Link>
         ))}
     </main>
