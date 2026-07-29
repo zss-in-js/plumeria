@@ -39,7 +39,7 @@ PopoverClose.displayName = 'PopoverClose';
 const PopoverArrow = React.forwardRef<
   React.ComponentRef<typeof PopoverPrimitive.Arrow>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Arrow> & {
-    styleName?: Style;
+    classStyle?: Style;
   }
 >((props, ref) => {
   return <PopoverPrimitive.Arrow ref={ref} {...props} />;
