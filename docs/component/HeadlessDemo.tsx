@@ -832,31 +832,31 @@ export const HeadlessDemo = () => {
   const [toastOpen, setToastOpen] = React.useState(false);
 
   return (
-    <div styleName={styles.container}>
+    <div classStyle={styles.container}>
       <div>
-        <h4 styleName={styles.sectionTitle}>Dialog</h4>
+        <h4 classStyle={styles.sectionTitle}>Dialog</h4>
         <Dialog>
-          <Dialog.Trigger styleName={styles.button}>Open Dialog</Dialog.Trigger>
+          <Dialog.Trigger classStyle={styles.button}>Open Dialog</Dialog.Trigger>
           <Dialog.Portal>
-            <Dialog.Overlay styleName={styles.dialogOverlay} />
-            <Dialog.Content styleName={styles.dialogContent}>
-              <Dialog.Title styleName={styles.dialogTitle}>Edit Profile</Dialog.Title>
-              <Dialog.Description styleName={styles.dialogDescription}>
+            <Dialog.Overlay classStyle={styles.dialogOverlay} />
+            <Dialog.Content classStyle={styles.dialogContent}>
+              <Dialog.Title classStyle={styles.dialogTitle}>Edit Profile</Dialog.Title>
+              <Dialog.Description classStyle={styles.dialogDescription}>
                 Make changes to your profile here. Click close when you are done.
               </Dialog.Description>
-              <Dialog.Close styleName={styles.dialogClose}>Close</Dialog.Close>
+              <Dialog.Close classStyle={styles.dialogClose}>Close</Dialog.Close>
             </Dialog.Content>
           </Dialog.Portal>
         </Dialog>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Popover</h4>
+        <h4 classStyle={styles.sectionTitle}>Popover</h4>
         <Popover>
-          <Popover.Trigger styleName={styles.button}>Show Popover</Popover.Trigger>
-          <Popover.Content styleName={styles.popoverContent} sideOffset={6}>
-            <Popover.Arrow styleName={styles.popoverArrow} />
-            <Popover.Close styleName={styles.popoverClose}>✕</Popover.Close>
+          <Popover.Trigger classStyle={styles.button}>Show Popover</Popover.Trigger>
+          <Popover.Content classStyle={styles.popoverContent} sideOffset={6}>
+            <Popover.Arrow classStyle={styles.popoverArrow} />
+            <Popover.Close classStyle={styles.popoverClose}>✕</Popover.Close>
             <div>
               <strong>Dimensions</strong>
               <p style={{ margin: '6px 0 0' }}>Set the dimensions for the layer.</p>
@@ -866,12 +866,12 @@ export const HeadlessDemo = () => {
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Tooltip</h4>
+        <h4 classStyle={styles.sectionTitle}>Tooltip</h4>
         <Tooltip.Provider delayDuration={200}>
           <Tooltip>
-            <Tooltip.Trigger styleName={styles.button}>Hover me</Tooltip.Trigger>
-            <Tooltip.Content styleName={styles.tooltipContent} sideOffset={6}>
-              <Tooltip.Arrow styleName={styles.tooltipArrow} />
+            <Tooltip.Trigger classStyle={styles.button}>Hover me</Tooltip.Trigger>
+            <Tooltip.Content classStyle={styles.tooltipContent} sideOffset={6}>
+              <Tooltip.Arrow classStyle={styles.tooltipArrow} />
               Add to library
             </Tooltip.Content>
           </Tooltip>
@@ -879,21 +879,21 @@ export const HeadlessDemo = () => {
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Accordion</h4>
-        <Accordion type="single" collapsible styleName={styles.accordionRoot}>
-          <Accordion.Item value="item-1" styleName={styles.accordionItem}>
-            <Accordion.Header styleName={styles.accordionHeader}>
-              <Accordion.Trigger styleName={styles.accordionTrigger}>Is it accessible?</Accordion.Trigger>
+        <h4 classStyle={styles.sectionTitle}>Accordion</h4>
+        <Accordion type="single" collapsible classStyle={styles.accordionRoot}>
+          <Accordion.Item value="item-1" classStyle={styles.accordionItem}>
+            <Accordion.Header classStyle={styles.accordionHeader}>
+              <Accordion.Trigger classStyle={styles.accordionTrigger}>Is it accessible?</Accordion.Trigger>
             </Accordion.Header>
-            <Accordion.Content styleName={styles.accordionContent}>
+            <Accordion.Content classStyle={styles.accordionContent}>
               Yes. It adheres to the WAI-ARIA design pattern.
             </Accordion.Content>
           </Accordion.Item>
-          <Accordion.Item value="item-2" styleName={styles.accordionItem}>
-            <Accordion.Header styleName={styles.accordionHeader}>
-              <Accordion.Trigger styleName={styles.accordionTrigger}>Is it styled?</Accordion.Trigger>
+          <Accordion.Item value="item-2" classStyle={styles.accordionItem}>
+            <Accordion.Header classStyle={styles.accordionHeader}>
+              <Accordion.Trigger classStyle={styles.accordionTrigger}>Is it styled?</Accordion.Trigger>
             </Accordion.Header>
-            <Accordion.Content styleName={styles.accordionContent}>
+            <Accordion.Content classStyle={styles.accordionContent}>
               Yes. It is styled with Plumeria zero-cost styling!
             </Accordion.Content>
           </Accordion.Item>
@@ -901,33 +901,33 @@ export const HeadlessDemo = () => {
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Tabs</h4>
-        <Tabs defaultValue="tab1" styleName={styles.tabsRoot}>
-          <Tabs.List styleName={styles.tabsList}>
-            <Tabs.Trigger value="tab1" styleName={styles.tabsTrigger}>
+        <h4 classStyle={styles.sectionTitle}>Tabs</h4>
+        <Tabs defaultValue="tab1" classStyle={styles.tabsRoot}>
+          <Tabs.List classStyle={styles.tabsList}>
+            <Tabs.Trigger value="tab1" classStyle={styles.tabsTrigger}>
               Account
             </Tabs.Trigger>
-            <Tabs.Trigger value="tab2" styleName={styles.tabsTrigger}>
+            <Tabs.Trigger value="tab2" classStyle={styles.tabsTrigger}>
               Password
             </Tabs.Trigger>
           </Tabs.List>
-          <Tabs.Content value="tab1" styleName={styles.tabsContent}>
+          <Tabs.Content value="tab1" classStyle={styles.tabsContent}>
             Make changes to your account here.
           </Tabs.Content>
-          <Tabs.Content value="tab2" styleName={styles.tabsContent}>
+          <Tabs.Content value="tab2" classStyle={styles.tabsContent}>
             Change your password here.
           </Tabs.Content>
         </Tabs>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Collapsible</h4>
-        <Collapsible styleName={styles.collapsibleRoot}>
-          <div styleName={styles.collapsibleHeader}>
-            <span styleName={styles.collapsibleLabel}>@alexeriksson starred 3 repositories</span>
-            <Collapsible.Trigger styleName={styles.collapsibleTrigger}>Toggle</Collapsible.Trigger>
+        <h4 classStyle={styles.sectionTitle}>Collapsible</h4>
+        <Collapsible classStyle={styles.collapsibleRoot}>
+          <div classStyle={styles.collapsibleHeader}>
+            <span classStyle={styles.collapsibleLabel}>@alexeriksson starred 3 repositories</span>
+            <Collapsible.Trigger classStyle={styles.collapsibleTrigger}>Toggle</Collapsible.Trigger>
           </div>
-          <Collapsible.Content styleName={styles.collapsibleContent}>
+          <Collapsible.Content classStyle={styles.collapsibleContent}>
             <div>@radix-ui/primitives</div>
             <div>@plumeria/core</div>
             <div>@plumeria/headlessui</div>
@@ -936,41 +936,41 @@ export const HeadlessDemo = () => {
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>DropdownMenu</h4>
+        <h4 classStyle={styles.sectionTitle}>DropdownMenu</h4>
         <DropdownMenu>
-          <DropdownMenu.Trigger styleName={styles.button}>Options</DropdownMenu.Trigger>
+          <DropdownMenu.Trigger classStyle={styles.button}>Options</DropdownMenu.Trigger>
           <DropdownMenu.Portal>
-            <DropdownMenu.Content styleName={styles.dropdownMenuContent} sideOffset={5}>
-              <DropdownMenu.Item styleName={styles.dropdownMenuItem}>New Tab</DropdownMenu.Item>
-              <DropdownMenu.Item styleName={styles.dropdownMenuItem}>New Window</DropdownMenu.Item>
-              <DropdownMenu.Separator styleName={styles.dropdownMenuSeparator} />
-              <DropdownMenu.Item styleName={styles.dropdownMenuItem}>Settings</DropdownMenu.Item>
+            <DropdownMenu.Content classStyle={styles.dropdownMenuContent} sideOffset={5}>
+              <DropdownMenu.Item classStyle={styles.dropdownMenuItem}>New Tab</DropdownMenu.Item>
+              <DropdownMenu.Item classStyle={styles.dropdownMenuItem}>New Window</DropdownMenu.Item>
+              <DropdownMenu.Separator classStyle={styles.dropdownMenuSeparator} />
+              <DropdownMenu.Item classStyle={styles.dropdownMenuItem}>Settings</DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Select</h4>
+        <h4 classStyle={styles.sectionTitle}>Select</h4>
         <Select defaultValue="apple">
-          <Select.Trigger styleName={styles.selectTrigger}>
+          <Select.Trigger classStyle={styles.selectTrigger}>
             <Select.Value />
             <Select.Icon>▼</Select.Icon>
           </Select.Trigger>
           <Select.Portal>
-            <Select.Content styleName={styles.selectContent}>
-              <Select.Viewport styleName={styles.selectViewport}>
-                <Select.Item value="apple" styleName={styles.selectItem}>
+            <Select.Content classStyle={styles.selectContent}>
+              <Select.Viewport classStyle={styles.selectViewport}>
+                <Select.Item value="apple" classStyle={styles.selectItem}>
                   <Select.ItemText>Apple</Select.ItemText>
-                  <Select.ItemIndicator styleName={styles.selectItemIndicator}>✓</Select.ItemIndicator>
+                  <Select.ItemIndicator classStyle={styles.selectItemIndicator}>✓</Select.ItemIndicator>
                 </Select.Item>
-                <Select.Item value="banana" styleName={styles.selectItem}>
+                <Select.Item value="banana" classStyle={styles.selectItem}>
                   <Select.ItemText>Banana</Select.ItemText>
-                  <Select.ItemIndicator styleName={styles.selectItemIndicator}>✓</Select.ItemIndicator>
+                  <Select.ItemIndicator classStyle={styles.selectItemIndicator}>✓</Select.ItemIndicator>
                 </Select.Item>
-                <Select.Item value="orange" styleName={styles.selectItem}>
+                <Select.Item value="orange" classStyle={styles.selectItem}>
                   <Select.ItemText>Orange</Select.ItemText>
-                  <Select.ItemIndicator styleName={styles.selectItemIndicator}>✓</Select.ItemIndicator>
+                  <Select.ItemIndicator classStyle={styles.selectItemIndicator}>✓</Select.ItemIndicator>
                 </Select.Item>
               </Select.Viewport>
             </Select.Content>
@@ -979,45 +979,45 @@ export const HeadlessDemo = () => {
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Checkbox</h4>
-        <div styleName={styles.checkboxContainer}>
-          <Checkbox id="c1" styleName={styles.checkboxRoot}>
-            <Checkbox.Indicator styleName={styles.checkboxIndicator}>✓</Checkbox.Indicator>
+        <h4 classStyle={styles.sectionTitle}>Checkbox</h4>
+        <div classStyle={styles.checkboxContainer}>
+          <Checkbox id="c1" classStyle={styles.checkboxRoot}>
+            <Checkbox.Indicator classStyle={styles.checkboxIndicator}>✓</Checkbox.Indicator>
           </Checkbox>
-          <label htmlFor="c1" styleName={styles.checkboxLabel}>
+          <label htmlFor="c1" classStyle={styles.checkboxLabel}>
             Accept terms and conditions
           </label>
         </div>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Switch</h4>
-        <div styleName={styles.switchContainer}>
-          <Switch id="s1" styleName={styles.switchRoot}>
-            <Switch.Thumb styleName={styles.switchThumb} />
+        <h4 classStyle={styles.sectionTitle}>Switch</h4>
+        <div classStyle={styles.switchContainer}>
+          <Switch id="s1" classStyle={styles.switchRoot}>
+            <Switch.Thumb classStyle={styles.switchThumb} />
           </Switch>
-          <label htmlFor="s1" styleName={styles.checkboxLabel}>
+          <label htmlFor="s1" classStyle={styles.checkboxLabel}>
             Enable notifications
           </label>
         </div>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>RadioGroup</h4>
-        <RadioGroup defaultValue="default" styleName={styles.radioGroupRoot}>
-          <div styleName={styles.radioGroupContainer}>
-            <RadioGroup.Item value="default" id="r1" styleName={styles.radioGroupItem}>
-              <RadioGroup.Indicator styleName={styles.radioGroupIndicator} />
+        <h4 classStyle={styles.sectionTitle}>RadioGroup</h4>
+        <RadioGroup defaultValue="default" classStyle={styles.radioGroupRoot}>
+          <div classStyle={styles.radioGroupContainer}>
+            <RadioGroup.Item value="default" id="r1" classStyle={styles.radioGroupItem}>
+              <RadioGroup.Indicator classStyle={styles.radioGroupIndicator} />
             </RadioGroup.Item>
-            <label htmlFor="r1" styleName={styles.checkboxLabel}>
+            <label htmlFor="r1" classStyle={styles.checkboxLabel}>
               Default
             </label>
           </div>
-          <div styleName={styles.radioGroupContainer}>
-            <RadioGroup.Item value="comfortable" id="r2" styleName={styles.radioGroupItem}>
-              <RadioGroup.Indicator styleName={styles.radioGroupIndicator} />
+          <div classStyle={styles.radioGroupContainer}>
+            <RadioGroup.Item value="comfortable" id="r2" classStyle={styles.radioGroupItem}>
+              <RadioGroup.Indicator classStyle={styles.radioGroupIndicator} />
             </RadioGroup.Item>
-            <label htmlFor="r2" styleName={styles.checkboxLabel}>
+            <label htmlFor="r2" classStyle={styles.checkboxLabel}>
               Comfortable
             </label>
           </div>
@@ -1025,48 +1025,48 @@ export const HeadlessDemo = () => {
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Slider</h4>
-        <Slider defaultValue={[50]} max={100} step={1} styleName={styles.sliderRoot}>
-          <Slider.Track styleName={styles.sliderTrack}>
-            <Slider.Range styleName={styles.sliderRange} />
+        <h4 classStyle={styles.sectionTitle}>Slider</h4>
+        <Slider defaultValue={[50]} max={100} step={1} classStyle={styles.sliderRoot}>
+          <Slider.Track classStyle={styles.sliderTrack}>
+            <Slider.Range classStyle={styles.sliderRange} />
           </Slider.Track>
-          <Slider.Thumb styleName={styles.sliderThumb} />
+          <Slider.Thumb classStyle={styles.sliderThumb} />
         </Slider>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>ContextMenu</h4>
+        <h4 classStyle={styles.sectionTitle}>ContextMenu</h4>
         <ContextMenu>
-          <ContextMenu.Trigger styleName={styles.contextMenuTrigger}>Right click here</ContextMenu.Trigger>
+          <ContextMenu.Trigger classStyle={styles.contextMenuTrigger}>Right click here</ContextMenu.Trigger>
           <ContextMenu.Portal>
-            <ContextMenu.Content styleName={styles.dropdownMenuContent}>
-              <ContextMenu.Item styleName={styles.dropdownMenuItem}>Back</ContextMenu.Item>
-              <ContextMenu.Item styleName={styles.dropdownMenuItem}>Forward</ContextMenu.Item>
-              <ContextMenu.Separator styleName={styles.dropdownMenuSeparator} />
-              <ContextMenu.Item styleName={styles.dropdownMenuItem}>Reload</ContextMenu.Item>
+            <ContextMenu.Content classStyle={styles.dropdownMenuContent}>
+              <ContextMenu.Item classStyle={styles.dropdownMenuItem}>Back</ContextMenu.Item>
+              <ContextMenu.Item classStyle={styles.dropdownMenuItem}>Forward</ContextMenu.Item>
+              <ContextMenu.Separator classStyle={styles.dropdownMenuSeparator} />
+              <ContextMenu.Item classStyle={styles.dropdownMenuItem}>Reload</ContextMenu.Item>
             </ContextMenu.Content>
           </ContextMenu.Portal>
         </ContextMenu>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Menubar</h4>
-        <Menubar styleName={styles.menubarRoot}>
+        <h4 classStyle={styles.sectionTitle}>Menubar</h4>
+        <Menubar classStyle={styles.menubarRoot}>
           <Menubar.Menu>
-            <Menubar.Trigger styleName={styles.menubarTrigger}>File</Menubar.Trigger>
+            <Menubar.Trigger classStyle={styles.menubarTrigger}>File</Menubar.Trigger>
             <Menubar.Portal>
-              <Menubar.Content styleName={styles.dropdownMenuContent} align="start" sideOffset={5}>
-                <Menubar.Item styleName={styles.dropdownMenuItem}>New Tab</Menubar.Item>
-                <Menubar.Item styleName={styles.dropdownMenuItem}>New Window</Menubar.Item>
+              <Menubar.Content classStyle={styles.dropdownMenuContent} align="start" sideOffset={5}>
+                <Menubar.Item classStyle={styles.dropdownMenuItem}>New Tab</Menubar.Item>
+                <Menubar.Item classStyle={styles.dropdownMenuItem}>New Window</Menubar.Item>
               </Menubar.Content>
             </Menubar.Portal>
           </Menubar.Menu>
           <Menubar.Menu>
-            <Menubar.Trigger styleName={styles.menubarTrigger}>Edit</Menubar.Trigger>
+            <Menubar.Trigger classStyle={styles.menubarTrigger}>Edit</Menubar.Trigger>
             <Menubar.Portal>
-              <Menubar.Content styleName={styles.dropdownMenuContent} align="start" sideOffset={5}>
-                <Menubar.Item styleName={styles.dropdownMenuItem}>Undo</Menubar.Item>
-                <Menubar.Item styleName={styles.dropdownMenuItem}>Redo</Menubar.Item>
+              <Menubar.Content classStyle={styles.dropdownMenuContent} align="start" sideOffset={5}>
+                <Menubar.Item classStyle={styles.dropdownMenuItem}>Undo</Menubar.Item>
+                <Menubar.Item classStyle={styles.dropdownMenuItem}>Redo</Menubar.Item>
               </Menubar.Content>
             </Menubar.Portal>
           </Menubar.Menu>
@@ -1074,16 +1074,16 @@ export const HeadlessDemo = () => {
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>NavigationMenu</h4>
-        <NavigationMenu styleName={styles.navigationMenuRoot}>
-          <NavigationMenu.List styleName={styles.navigationMenuList}>
+        <h4 classStyle={styles.sectionTitle}>NavigationMenu</h4>
+        <NavigationMenu classStyle={styles.navigationMenuRoot}>
+          <NavigationMenu.List classStyle={styles.navigationMenuList}>
             <NavigationMenu.Item>
-              <NavigationMenu.Trigger styleName={styles.navigationMenuTrigger}>Learn</NavigationMenu.Trigger>
-              <NavigationMenu.Content styleName={styles.navigationMenuContent}>
-                <NavigationMenu.Link href="/docs" styleName={styles.navigationMenuLink}>
+              <NavigationMenu.Trigger classStyle={styles.navigationMenuTrigger}>Learn</NavigationMenu.Trigger>
+              <NavigationMenu.Content classStyle={styles.navigationMenuContent}>
+                <NavigationMenu.Link href="/docs" classStyle={styles.navigationMenuLink}>
                   Documentation
                 </NavigationMenu.Link>
-                <NavigationMenu.Link href="/guide" styleName={styles.navigationMenuLink}>
+                <NavigationMenu.Link href="/guide" classStyle={styles.navigationMenuLink}>
                   Getting Started
                 </NavigationMenu.Link>
               </NavigationMenu.Content>
@@ -1093,77 +1093,77 @@ export const HeadlessDemo = () => {
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Toast</h4>
+        <h4 classStyle={styles.sectionTitle}>Toast</h4>
         <Toast.Provider swipeDirection="right">
           <button
-            styleName={styles.button}
+            classStyle={styles.button}
             onClick={() => {
               setToastOpen(true);
             }}
           >
             Show Toast
           </button>
-          <Toast open={toastOpen} onOpenChange={setToastOpen} styleName={styles.toastRoot}>
-            <Toast.Title styleName={styles.toastTitle}>Scheduled Event</Toast.Title>
-            <Toast.Description styleName={styles.toastDescription}>
+          <Toast open={toastOpen} onOpenChange={setToastOpen} classStyle={styles.toastRoot}>
+            <Toast.Title classStyle={styles.toastTitle}>Scheduled Event</Toast.Title>
+            <Toast.Description classStyle={styles.toastDescription}>
               Upcoming meeting tomorrow at 10:00 AM.
             </Toast.Description>
-            <Toast.Close styleName={styles.toastCloseButton}>Dismiss</Toast.Close>
+            <Toast.Close classStyle={styles.toastCloseButton}>Dismiss</Toast.Close>
           </Toast>
-          <Toast.Viewport styleName={styles.toastViewport} />
+          <Toast.Viewport classStyle={styles.toastViewport} />
         </Toast.Provider>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>Toggle</h4>
-        <Toggle styleName={styles.toggleRoot}>Bold</Toggle>
+        <h4 classStyle={styles.sectionTitle}>Toggle</h4>
+        <Toggle classStyle={styles.toggleRoot}>Bold</Toggle>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>ToggleGroup</h4>
-        <ToggleGroup type="single" defaultValue="center" styleName={styles.toggleGroupRoot}>
-          <ToggleGroup.Item value="left" styleName={styles.toggleGroupItem}>
+        <h4 classStyle={styles.sectionTitle}>ToggleGroup</h4>
+        <ToggleGroup type="single" defaultValue="center" classStyle={styles.toggleGroupRoot}>
+          <ToggleGroup.Item value="left" classStyle={styles.toggleGroupItem}>
             Left
           </ToggleGroup.Item>
-          <ToggleGroup.Item value="center" styleName={styles.toggleGroupItem}>
+          <ToggleGroup.Item value="center" classStyle={styles.toggleGroupItem}>
             Center
           </ToggleGroup.Item>
-          <ToggleGroup.Item value="right" styleName={styles.toggleGroupItem}>
+          <ToggleGroup.Item value="right" classStyle={styles.toggleGroupItem}>
             Right
           </ToggleGroup.Item>
         </ToggleGroup>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>ScrollArea</h4>
-        <ScrollArea type="always" styleName={styles.scrollAreaRoot}>
-          <ScrollArea.Viewport styleName={styles.scrollAreaViewport}>
+        <h4 classStyle={styles.sectionTitle}>ScrollArea</h4>
+        <ScrollArea type="always" classStyle={styles.scrollAreaRoot}>
+          <ScrollArea.Viewport classStyle={styles.scrollAreaViewport}>
             {Array.from({ length: 15 }, (_, i) => (
-              <div key={i} styleName={styles.scrollAreaItem}>
+              <div key={i} classStyle={styles.scrollAreaItem}>
                 Item {i + 1}
               </div>
             ))}
           </ScrollArea.Viewport>
-          <ScrollArea.Scrollbar orientation="vertical" styleName={styles.scrollAreaScrollbar}>
-            <ScrollArea.Thumb styleName={styles.scrollAreaThumb} />
+          <ScrollArea.Scrollbar orientation="vertical" classStyle={styles.scrollAreaScrollbar}>
+            <ScrollArea.Thumb classStyle={styles.scrollAreaThumb} />
           </ScrollArea.Scrollbar>
         </ScrollArea>
       </div>
 
       <div>
-        <h4 styleName={styles.sectionTitle}>AlertDialog</h4>
+        <h4 classStyle={styles.sectionTitle}>AlertDialog</h4>
         <AlertDialog>
-          <AlertDialog.Trigger styleName={styles.button}>Delete Account</AlertDialog.Trigger>
+          <AlertDialog.Trigger classStyle={styles.button}>Delete Account</AlertDialog.Trigger>
           <AlertDialog.Portal>
-            <AlertDialog.Overlay styleName={styles.alertDialogOverlay} />
-            <AlertDialog.Content styleName={styles.alertDialogContent}>
-              <AlertDialog.Title styleName={styles.alertDialogTitle}>Are you sure?</AlertDialog.Title>
-              <AlertDialog.Description styleName={styles.alertDialogDescription}>
+            <AlertDialog.Overlay classStyle={styles.alertDialogOverlay} />
+            <AlertDialog.Content classStyle={styles.alertDialogContent}>
+              <AlertDialog.Title classStyle={styles.alertDialogTitle}>Are you sure?</AlertDialog.Title>
+              <AlertDialog.Description classStyle={styles.alertDialogDescription}>
                 This action cannot be undone. This will permanently delete your account.
               </AlertDialog.Description>
-              <div styleName={styles.alertDialogActions}>
-                <AlertDialog.Cancel styleName={styles.alertDialogCancel}>Cancel</AlertDialog.Cancel>
-                <AlertDialog.Action styleName={styles.alertDialogAction}>Delete</AlertDialog.Action>
+              <div classStyle={styles.alertDialogActions}>
+                <AlertDialog.Cancel classStyle={styles.alertDialogCancel}>Cancel</AlertDialog.Cancel>
+                <AlertDialog.Action classStyle={styles.alertDialogAction}>Delete</AlertDialog.Action>
               </div>
             </AlertDialog.Content>
           </AlertDialog.Portal>
