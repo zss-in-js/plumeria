@@ -472,60 +472,60 @@ export const Box = () => {
 export const HomeComponent = () => {
   return (
     <div>
-      <main styleName={styles.container}>
-        <section styleName={styles.heroSection}>
-          <div styleName={styles.imageSection}>
+      <main classStyle={styles.container}>
+        <section classStyle={styles.heroSection}>
+          <div classStyle={styles.imageSection}>
             <PlumeriaLogo size={220} styleArray={styles.image} />
           </div>
 
-          <div styleName={styles.heroContent}>
-            <h2 styleName={styles.mainHeadline}>
-              <span styleName={styles.headings}>Plumeria</span>
-              <span styleName={styles.headings2}>Abstraction layer</span>
+          <div classStyle={styles.heroContent}>
+            <h2 classStyle={styles.mainHeadline}>
+              <span classStyle={styles.headings}>Plumeria</span>
+              <span classStyle={styles.headings2}>Abstraction layer</span>
             </h2>
-            <div styleName={styles.subHeadlineWrapper}>
-              <span styleName={styles.typingText1}>A library for more ambitious interfaces</span>
-              <span styleName={styles.typingText2}>Pure · Self-evident · Mathematical</span>
+            <div classStyle={styles.subHeadlineWrapper}>
+              <span classStyle={styles.typingText1}>A library for more ambitious interfaces</span>
+              <span classStyle={styles.typingText2}>Pure · Self-evident · Mathematical</span>
             </div>
           </div>
 
-          <div styleName={styles.buttonGroup}>
+          <div classStyle={styles.buttonGroup}>
             <ButtonLink href="/docs">Introduction</ButtonLink>
             <ButtonLink href="/docs/getting-started/installation">Installation</ButtonLink>
           </div>
         </section>
 
-        <section styleName={styles.featuresSection}>
-          <div styleName={styles.featureCard}>
-            <div styleName={styles.featureIcon}>{svg.Ghost()}</div>
-            <h3 styleName={styles.featureTitle}>Ghostly</h3>
-            <p styleName={styles.featureDescription}>
+        <section classStyle={styles.featuresSection}>
+          <div classStyle={styles.featureCard}>
+            <div classStyle={styles.featureIcon}>{svg.Ghost()}</div>
+            <h3 classStyle={styles.featureTitle}>Ghostly</h3>
+            <p classStyle={styles.featureDescription}>
               The core implementation does not use JavaScript. Therefore, there is no footprint.
             </p>
           </div>
 
-          <div styleName={styles.featureCard}>
-            <div styleName={styles.featureIcon}>{svg.Eslint()}</div>
-            <h3 styleName={styles.featureTitle}>Linting</h3>
-            <p styleName={styles.featureDescription}>This improves efficiency during editing.</p>
+          <div classStyle={styles.featureCard}>
+            <div classStyle={styles.featureIcon}>{svg.Eslint()}</div>
+            <h3 classStyle={styles.featureTitle}>Linting</h3>
+            <p classStyle={styles.featureDescription}>This improves efficiency during editing.</p>
           </div>
 
-          <div styleName={styles.featureCard}>
-            <div styleName={styles.featureIcon}>⚡</div>
-            <h3 styleName={styles.featureTitle}>Build time</h3>
-            <p styleName={styles.featureDescription}>
+          <div classStyle={styles.featureCard}>
+            <div classStyle={styles.featureIcon}>⚡</div>
+            <h3 classStyle={styles.featureTitle}>Build time</h3>
+            <p classStyle={styles.featureDescription}>
               All style processing completes at build time leaving no runtime cost.
             </p>
           </div>
 
-          <div styleName={styles.featureCard}>
-            <div styleName={styles.featureIcon}>{svg.Atom()}</div>
-            <h3 styleName={styles.featureTitle}>Atomic CSS</h3>
-            <p styleName={styles.featureDescription}>Abstracted layers are automatically atomized.</p>
+          <div classStyle={styles.featureCard}>
+            <div classStyle={styles.featureIcon}>{svg.Atom()}</div>
+            <h3 classStyle={styles.featureTitle}>Atomic CSS</h3>
+            <p classStyle={styles.featureDescription}>Abstracted layers are automatically atomized.</p>
           </div>
         </section>
 
-        <div styleName={styles.codeSection}>
+        <div classStyle={styles.codeSection}>
           <CodeBlock code={demoCode} lang="jsx" />
         </div>
       </main>
