@@ -119,7 +119,7 @@ SelectSeparator.displayName = 'SelectSeparator';
 const SelectArrow = React.forwardRef<
   React.ComponentRef<typeof SelectPrimitive.Arrow>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Arrow> & {
-    styleName?: Style;
+    classStyle?: Style;
   }
 >((props, ref) => {
   return <SelectPrimitive.Arrow ref={ref} {...props} />;
