@@ -6,6 +6,7 @@ module.exports = {
     '^(\\..+)\\.js$': '$1',
   },
   roots: [
+    '<rootDir>/packages/codemod/__tests__',
     '<rootDir>/packages/eslint-plugin/__tests__',
     '<rootDir>/packages/next-plugin/__tests__',
     '<rootDir>/packages/utils/__tests__',
@@ -20,6 +21,7 @@ module.exports = {
     'summary',
   ],
   coveragePathIgnorePatterns: [
+    '<rootDir>/packages/codemod/dist/',
     '<rootDir>/packages/compiler/dist/',
     '<rootDir>/packages/eslint-plugin/dist/',
     '<rootDir>/packages/next-plugin/dist/',
