@@ -11,7 +11,7 @@
 
 ## Installation
 
-`@plumeria/core` contains type definitions only. Which JSX prop carries styles is declared in your project — one line for the default `styleName`, see [Declaring the styling prop](#declaring-the-styling-prop). Styles are compiled away at build time by a bundler integration — [`@plumeria/next-plugin`](https://www.npmjs.com/package/@plumeria/next-plugin) for Next.js, or [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) for Vite, Webpack, and others.
+`@plumeria/core` contains type definitions only. Which JSX prop carries styles is declared in your project — one line for the default `classStyle`, see [Declaring the styling prop](#declaring-the-styling-prop). Styles are compiled away at build time by a bundler integration — [`@plumeria/next-plugin`](https://www.npmjs.com/package/@plumeria/next-plugin) for Next.js, or [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) for Vite, Webpack, and others.
 
 ```sh
 pnpm add -D @plumeria/core
@@ -21,7 +21,7 @@ See the [installation guide](https://plumeria.dev/docs/getting-started/installat
 
 ## Example
 
-Styles can be passed to the `styleName` prop. That prop accepts static and dynamic styles as an array. At build time, the compiler resolves `styleName` into a static `className`; dynamic values are passed as CSS variables through the `style` attribute — no runtime library is involved.
+Styles can be passed to the `classStyle` prop. That prop accepts static and dynamic styles as an array. At build time, the compiler resolves `classStyle` into a static `className`; dynamic values are passed as CSS variables through the `style` attribute — no runtime library is involved.
 
 ```tsx
 import * as css from '@plumeria/core';
@@ -42,7 +42,7 @@ export default function App({ cond }) {
   const scale = useScale(); // from your own hook
   return (
     <div
-      styleName={[
+      classStyle={[
         styles.text,
         cond && styles.cond,
         styles.scale(scale)
@@ -79,11 +79,11 @@ export default function App({ cond }) {
 
 The prop name is a build-time setting — `styleProp` on the bundler plugin — so `@plumeria/core` declares no prop of its own. Baking one in would let the types and the compiler disagree. Add one file to your project naming the prop you compile with.
 
-For the default, `styleName`, reference the declaration that ships with the package:
+For the default, `classStyle`, reference the declaration that ships with the package:
 
 ```ts
 // plumeria.d.ts
-/// <reference types="@plumeria/core/style-name" />
+/// <reference types="@plumeria/core/class-style" />
 ```
 
 If you renamed the prop, declare that name on React's attribute interfaces instead. `Style` is the type of anything the prop accepts — a style, a conditional, or an array of them:
