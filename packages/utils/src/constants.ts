@@ -6,4 +6,4 @@
  * unplugin transform, and the compiler that collects the stylesheet — and they
  * have to agree or a style is transformed without its CSS being emitted.
  */
-export const DEFAULT_STYLE_PROP = 'styleName';
+export const DEFAULT_STYLE_PROP = 'classStyle';
