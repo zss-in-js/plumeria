@@ -8,7 +8,7 @@ const styles = css.create({
 
 export const ServerComponent = () => {
   return (
-    <p styleName={styles.test_server} data-testid="e2e-test-p">
+    <p classStyle={styles.test_server} data-testid="e2e-test-p">
       ServerComponent
     </p>
   );
