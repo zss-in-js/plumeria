@@ -26,7 +26,7 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 | `css.viewTransition` | ★★★★★     | Frozen |
 | `css.marker`         | ★★★★☆     | Stable |
 | `css.extended`       | ★★★★☆     | Stable |
-| `css.use`/`styleName`| ★★★★★     | Frozen |
+| `css.use`/`styleName`| ★★★☆☆     | Candidate |
 
 ### Bundler Integrations
 
