@@ -13,8 +13,6 @@ yarn add -D @plumeria/next-plugin
 pnpm add -D @plumeria/next-plugin
 ```
 
-No PostCSS setup is required. `@plumeria/postcss-plugin` was removed in 17.0.0 — if you are upgrading, delete `postcss.config.js` and the `@plumeria` at-rule from your global stylesheet.
-
 ## How to Use
 
 Wrap your config with `withPlumeria`. It works with both Turbopack and Webpack.
@@ -35,7 +33,7 @@ Then declare the styling prop once in your project. `@plumeria/core` ships no pr
 
 ```ts
 // plumeria.d.ts
-/// <reference types="@plumeria/core/style-name" />
+/// <reference types="@plumeria/core/class-style" />
 ```
 
 ## Options
@@ -44,17 +42,17 @@ Options are passed as the second argument.
 
 ```ts
 export default withPlumeria(nextConfig, {
-  styleProp: 'sx',
   include: ['./src/**/*.{ts,tsx}'],
   exclude: ['**/node_modules/**', '**/.next/**'],
+  styleProp: 'sx',
 });
 ```
 
 | Option | Default | Description |
 | :-- | :-- | :-- |
-| `styleProp` | `'styleName'` | The JSX prop that carries styles. |
 | `include` | all `js/jsx/ts/tsx` | Globs the stylesheet is compiled from. |
 | `exclude` | `node_modules`, `dist`, `.next` | Globs excluded from that compilation. |
+| `styleProp` | `'classStyle'` | The JSX prop that carries styles. |
 
 ### styleProp
 
