@@ -1,6 +1,6 @@
 import type { Rule } from 'eslint';
 
-export const DEFAULT_STYLE_PROP = 'styleName';
+export const DEFAULT_STYLE_PROP = 'classStyle';
 
 export const stylePropSchema = [
   {
