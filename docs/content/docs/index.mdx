@@ -10,7 +10,7 @@ Plumeria is a compile-time CSS-in-JS library for React. You write style objects 
 
 ## Usage
 
-Styling is straightforward: define styles once with `css.create()`, and the compiler handles everything else. The atomic class names are determined at that point — all that remains is to attach them via the `styleName` prop.
+Styling is straightforward: define styles once with `css.create()`, and the compiler handles everything else. The atomic class names are determined at that point — all that remains is to attach them via the `classStyle` prop.
 
 ```tsx
 import * as css from "@plumeria/core";
@@ -22,7 +22,7 @@ const styles = css.create({
 });
 
 export const Footer = () => {
-  return <div styleName={styles.text}>MyText</div>;
+  return <div classStyle={styles.text}>MyText</div>;
 };
 ```
 
@@ -43,13 +43,13 @@ import "@plumeria/core";
 import { styles } from "./styles";
 
 export const Component = () => {
-  return <p styleName={styles.common}>Shared style</p>;
+  return <p classStyle={styles.common}>Shared style</p>;
 };
 ```
 
 ### Specificity
 
-The `styleName` prop accepts arrays, ternaries, and conditional expressions. Merging follows one rule: **the right side wins**. If `isActive` is true, the properties of `active` override the properties of `base` — always.
+The `classStyle` prop accepts arrays, ternaries, and conditional expressions. Merging follows one rule: **the right side wins**. If `isActive` is true, the properties of `active` override the properties of `base` — always.
 
 ```tsx title="Component.tsx"
 const styles = css.create({
@@ -62,7 +62,7 @@ const styles = css.create({
   },
 });
 
-styleName={[styles.base, isActive && styles.active]}
+classStyle={[styles.base, isActive && styles.active]}
 ```
 
 Because the compiler controls the merge, the cascade specificity problem disappears entirely. Writing the merge as an operation, where $\oplus$ combines styles left to right, disjoint styles simply concatenate:
