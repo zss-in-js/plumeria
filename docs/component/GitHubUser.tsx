@@ -95,13 +95,13 @@ export const GitHubUser = async ({ username, subtext }: GitHubUserProps) => {
 
   if (!user) {
     return (
-      <div styleName={[styles.container, styles.pulseAnimation]}>
-        <div styleName={styles.avatarContainer}>
-          <div styleName={[styles.avatar, styles.skeleton]} />
+      <div classStyle={[styles.container, styles.pulseAnimation]}>
+        <div classStyle={styles.avatarContainer}>
+          <div classStyle={[styles.avatar, styles.skeleton]} />
         </div>
-        <div styleName={styles.info}>
-          <span styleName={styles.name}>User not found</span>
-          <span styleName={styles.company}>@{username}</span>
+        <div classStyle={styles.info}>
+          <span classStyle={styles.name}>User not found</span>
+          <span classStyle={styles.company}>@{username}</span>
         </div>
       </div>
     );
@@ -112,15 +112,15 @@ export const GitHubUser = async ({ username, subtext }: GitHubUserProps) => {
       href={user.html_url}
       target="_blank"
       rel="noopener noreferrer"
-      styleName={styles.container}
+      classStyle={styles.container}
       id={`github-user-${username}`}
     >
-      <div styleName={styles.avatarContainer}>
-        <img src={user.avatar_url} alt={user.name} styleName={styles.avatar} />
+      <div classStyle={styles.avatarContainer}>
+        <img src={user.avatar_url} alt={user.name} classStyle={styles.avatar} />
       </div>
-      <div styleName={styles.info}>
-        <span styleName={styles.name}>{user.name}</span>
-        <span styleName={styles.company}>{subtext || user.company || `@${username}`}</span>
+      <div classStyle={styles.info}>
+        <span classStyle={styles.name}>{user.name}</span>
+        <span classStyle={styles.company}>{subtext || user.company || `@${username}`}</span>
       </div>
     </a>
   );
