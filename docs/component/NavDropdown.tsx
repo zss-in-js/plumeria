@@ -197,25 +197,25 @@ export const NavDropdown = ({ title, url, items }: NavDropdownProps) => {
   const isMenuVisible = isMobile ? isOpenMobile : isHovered;
 
   return (
-    <div styleName={styles.container} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-      <Link href={url} styleName={[styles.trigger, isHovered && styles.triggerHovered]} onClick={handleTriggerClick}>
+    <div classStyle={styles.container} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+      <Link href={url} classStyle={[styles.trigger, isHovered && styles.triggerHovered]} onClick={handleTriggerClick}>
         {title}
         <ChevronDown className={css.use(styles.chevron, isMenuVisible && styles.chevronOpen)} />
       </Link>
-      <div styleName={[styles.menu, isMenuVisible && styles.menuVisible]}>
+      <div classStyle={[styles.menu, isMenuVisible && styles.menuVisible]}>
         {items.map((item, idx) => {
           if (item.type === 'header') {
             return (
-              <span key={idx} styleName={styles.header}>
+              <span key={idx} classStyle={styles.header}>
                 {item.text}
               </span>
             );
           }
           if (item.type === 'divider') {
-            return <div key={idx} styleName={styles.divider} />;
+            return <div key={idx} classStyle={styles.divider} />;
           }
           return (
-            <Link key={idx} href={item.url || ''} styleName={styles.item}>
+            <Link key={idx} href={item.url || ''} classStyle={styles.item}>
               {item.text}
             </Link>
           );
