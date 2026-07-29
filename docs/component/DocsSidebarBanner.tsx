@@ -24,7 +24,7 @@ const styles = css.create({
 
 export const DocsSidebarBanner = (props: ComponentProps<'div'>) => (
   // eslint-disable-next-line @plumeria/no-mixed-styling-props
-  <div className={props.className} styleName={[navStyles.iconRow, styles.banner]}>
+  <div className={props.className} classStyle={[navStyles.iconRow, styles.banner]}>
     {socialLinks.map((item, idx) => (
       <a
         key={idx}
@@ -32,13 +32,13 @@ export const DocsSidebarBanner = (props: ComponentProps<'div'>) => (
         aria-label={item.type === 'icon' ? item.label : undefined}
         target="_blank"
         rel="noreferrer"
-        styleName={navStyles.iconButton}
+        classStyle={navStyles.iconButton}
       >
         {item.type === 'icon' ? item.icon : null}
       </a>
     ))}
-    <div styleName={navStyles.spacer} />
-    <ThemeSwitch styleName={[navStyles.themeToggle, styles.toggle]} />
+    <div classStyle={navStyles.spacer} />
+    <ThemeSwitch classStyle={[navStyles.themeToggle, styles.toggle]} />
     <DocsSidebarTrigger />
   </div>
 );
