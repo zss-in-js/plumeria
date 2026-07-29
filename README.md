@@ -26,7 +26,9 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 | `css.viewTransition` | ★★★★★     | Frozen |
 | `css.marker`         | ★★★★☆     | Stable |
 | `css.extended`       | ★★★★☆     | Stable |
-| `css.use`/`styleName`| ★★★☆☆     | Candidate |
+| `css.use`/`classStyle`| ★★★★★    | Frozen | 
+
+> The **`classStyle`** property can be changed.
 
 ### Bundler Integrations
 
@@ -40,9 +42,9 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 
 | Package                   | Stability |           |
 | --------------------------| --------- | --------- |
+| `@plumeria/codemod`       | ★★★☆☆     | Candidate |
 | `@plumeria/eslint-plugin` | ★★★★☆     | Stable    |
 | `@plumeria/inspector`     | ★★★☆☆     | Candidate |
-| `@plumeria/headlessui`    | ★★★☆☆     | Candidate |
 
 ### Internal
 
@@ -64,6 +66,7 @@ Versioning: All versions are standardized for consistency.
   - Example applications using Plumeria.
 - `packages`
   - Contains the individual packages managed in the monorepo.
+  - [codemod](https://github.com/zss-in-js/plumeria/tree/main/packages/codemod)
   - [compiler](https://github.com/zss-in-js/plumeria/tree/main/packages/compiler)
   - [core](https://github.com/zss-in-js/plumeria/tree/main/packages/core)
   - [eslint-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/eslint-plugin)
