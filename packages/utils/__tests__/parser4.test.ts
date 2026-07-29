@@ -176,9 +176,9 @@ describe('scanAll import and export shapes', () => {
       [barrel]:
         'import "@plumeria/core"; export { Missing } from "./gone";\nexport * from "./also-gone";',
       [child]:
-        'import * as css from "@plumeria/core"; export const Child = (p: any) => <div className={css.use(p.styleName)} />;',
+        'import * as css from "@plumeria/core"; export const Child = (p: any) => <div className={css.use(p.classStyle)} />;',
       [user]:
-        'import * as css from "@plumeria/core"; import { Child } from "./Child"; import { Missing } from "./barrel"; const s = css.create({ box: { color: "red" } }); export const U = () => <Child styleName={s.box} />;',
+        'import * as css from "@plumeria/core"; import { Child } from "./Child"; import { Missing } from "./barrel"; const s = css.create({ box: { color: "red" } }); export const U = () => <Child classStyle={s.box} />;',
     });
 
     expect(propEntries(tables)).toHaveLength(1);
@@ -212,17 +212,17 @@ describe('scanAll import and export shapes', () => {
   });
 });
 
-describe('scanAll styleName prop registration', () => {
+describe('scanAll classStyle prop registration', () => {
   const child = f('props/Child.tsx');
   const childSource =
-    'import * as css from "@plumeria/core"; export const Child = (p: any) => <div className={css.use(p.styleName)} />;';
+    'import * as css from "@plumeria/core"; export const Child = (p: any) => <div className={css.use(p.classStyle)} />;';
 
   it('skips holes in a style array', () => {
     const user = f('props/holes.tsx');
     const { tables } = scanFiles({
       [child]: childSource,
       [user]:
-        'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ box: { color: "red" } }); export const U = () => <Child styleName={[, s.box]} />;',
+        'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ box: { color: "red" } }); export const U = () => <Child classStyle={[, s.box]} />;',
     });
 
     expect(propEntries(tables)).toHaveLength(1);
@@ -233,7 +233,7 @@ describe('scanAll styleName prop registration', () => {
     const { tables } = scanFiles({
       [child]: childSource,
       [user]:
-        'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ box: {} }); export const U = () => <Child styleName={[s.box]} />;',
+        'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ box: {} }); export const U = () => <Child classStyle={[s.box]} />;',
     });
 
     const entries = propEntries(tables);
@@ -246,7 +246,7 @@ describe('scanAll styleName prop registration', () => {
     const { tables } = scanFiles({
       [child]: childSource,
       [user]:
-        'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ a: { color: "red" }, b: { color: "blue" } }); export const U = ({ flag }: any) => <Child styleName={[flag ? s.a : s.b]} />;',
+        'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ a: { color: "red" }, b: { color: "blue" } }); export const U = ({ flag }: any) => <Child classStyle={[flag ? s.a : s.b]} />;',
     });
 
     expect(propEntries(tables)).toHaveLength(0);
@@ -257,7 +257,7 @@ describe('scanAll styleName prop registration', () => {
     const { tables } = scanFiles({
       [child]: childSource,
       [user]:
-        'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ box: { color: "red" } }); export const U = () => <Child styleName={s.nope} />;',
+        'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ box: { color: "red" } }); export const U = () => <Child classStyle={s.nope} />;',
     });
 
     expect(propEntries(tables)).toHaveLength(0);
@@ -269,7 +269,7 @@ describe('scanAll styleName prop registration', () => {
     const { tables } = scanFiles({
       [shim]: 'import "@plumeria/core"; export const somethingElse = 1;',
       [user]:
-        'import * as css from "@plumeria/core"; import { Child } from "./shim"; const s = css.create({ box: { color: "red" } }); export const U = () => <Child styleName={s.box} />;',
+        'import * as css from "@plumeria/core"; import { Child } from "./shim"; const s = css.create({ box: { color: "red" } }); export const U = () => <Child classStyle={s.box} />;',
     });
 
     const table = tables.componentPropsTable || {};
@@ -281,7 +281,7 @@ describe('scanAll styleName prop registration', () => {
     const { tables } = scanFiles({
       [child]: childSource,
       [user]:
-        'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ box: { color: "red" } }); export const U = (rest: any) => <Child {...rest} styleName={s.box} />;',
+        'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ box: { color: "red" } }); export const U = (rest: any) => <Child {...rest} classStyle={s.box} />;',
     });
 
     expect(propEntries(tables)).toHaveLength(1);
@@ -291,7 +291,7 @@ describe('scanAll styleName prop registration', () => {
     const a = f('props/same-a.tsx');
     const b = f('props/same-b.tsx');
     const identical =
-      'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ box: { color: "red" } }); export const U = () => <Child styleName={s.box} />;';
+      'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ box: { color: "red" } }); export const U = () => <Child classStyle={s.box} />;';
     const { tables } = scanFiles({
       [child]: childSource,
       [a]: identical,
