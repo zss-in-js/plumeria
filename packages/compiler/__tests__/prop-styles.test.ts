@@ -57,8 +57,8 @@ describe('compiler: styles passed through component props', () => {
     expect(css).not.toContain('gap: 2px');
   });
 
-  it('still emits styleName on a host element', () => {
-    const css = compile(`export const A = () => <div styleName={s.boxed} />;`);
+  it('still emits classStyle on a host element', () => {
+    const css = compile(`export const A = () => <div classStyle={s.boxed} />;`);
     expect(css).toContain('color: purple');
   });
 });
@@ -70,10 +70,10 @@ describe('compiler: a configured styleProp', () => {
   });
 
   it('stops treating the default name as the styling prop', () => {
-    // With `sx` configured, `styleName` on a host element is just an attribute
+    // With `sx` configured, `classStyle` on a host element is just an attribute
     // the transform will not rewrite, so collecting its CSS would be dead output.
     const css = compile(
-      `export const A = () => <div styleName={s.boxed} />;`,
+      `export const A = () => <div classStyle={s.boxed} />;`,
       'sx',
     );
     expect(css).not.toContain('color: purple');
