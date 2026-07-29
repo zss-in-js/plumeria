@@ -103,7 +103,7 @@ MenubarSeparator.displayName = 'MenubarSeparator';
 const MenubarArrow = React.forwardRef<
   React.ComponentRef<typeof MenubarPrimitive.Arrow>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Arrow> & {
-    styleName?: Style;
+    classStyle?: Style;
   }
 >((props, ref) => {
   return <MenubarPrimitive.Arrow ref={ref} {...props} />;
