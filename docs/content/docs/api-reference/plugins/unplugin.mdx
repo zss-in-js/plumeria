@@ -35,6 +35,7 @@ export default {
       include: ['**/*.{ts,tsx}'],
       exclude: ['**/node_modules/**'],
       devEmitToDisk: false,
+      styleProp: 'sx',
     }),
   ],
 };
@@ -45,11 +46,46 @@ export default {
 - `include`: The path to the file to be converted.
 - `exclude`: The path to the file to be excluded from conversion.
 - `devEmitToDisk`: Whether to write styles as actual files (`zero-virtual.css`) instead of virtual modules in development mode. The default is `false`.
+- `styleProp`: The JSX prop that carries styles. The default is `'classStyle'`.
 
 ```ts
 interface PluginOptions {
   include?: string | RegExp | Array<string | RegExp>;
   exclude?: string | RegExp | Array<string | RegExp>;
   devEmitToDisk?: boolean;
+  styleProp?: string;
 }
 ```
+
+### styleProp
+
+Renaming the prop takes two steps, and they have to agree. Tell the plugin:
+
+```ts
+plumeria.vite({ styleProp: 'sx' });
+```
+
+and declare the same name for TypeScript. `@plumeria/core` ships no prop declaration of its own, so add one file to your project:
+
+```ts title="plumeria.d.ts"
+import type { Style } from '@plumeria/core';
+
+declare global {
+  namespace React {
+    interface HTMLAttributes<T> {
+      sx?: Style;
+    }
+    interface SVGAttributes<T> {
+      sx?: Style;
+    }
+  }
+}
+```
+
+For the default name, reference the declaration that ships with the package instead:
+
+```ts title="plumeria.d.ts"
+/// <reference types="@plumeria/core/class-style" />
+```
+
+If the two disagree, the prop type-checks but is never compiled away. [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) reads the same name from `settings.plumeria.styleProp`.
