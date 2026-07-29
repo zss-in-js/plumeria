@@ -14,11 +14,11 @@ const ruleTester = new RuleTester({
 ruleTester.run('no-mixed-styling-props', noMixedStylingProps, {
   valid: [
     {
-      code: '<div styleName={styles.text} />',
+      code: '<div classStyle={styles.text} />',
     },
     {
       // once the prop is renamed, the old name is just an ordinary attribute
-      code: '<div styleName={styles.text} className="text" />',
+      code: '<div classStyle={styles.text} className="text" />',
       settings: { plumeria: { styleProp: 'sx' } },
     },
     {
@@ -41,15 +41,15 @@ ruleTester.run('no-mixed-styling-props', noMixedStylingProps, {
   ],
   invalid: [
     {
-      code: '<div styleName={styles.text} className="text" />',
+      code: '<div classStyle={styles.text} className="text" />',
       errors: [{ messageId: 'noMixedStylingProps' }],
     },
     {
-      code: '<div styleName={styles.text} style={{ color: "red" }} />',
+      code: '<div classStyle={styles.text} style={{ color: "red" }} />',
       errors: [{ messageId: 'noMixedStylingProps' }],
     },
     {
-      code: '<div styleName={styles.text} className="text" style={{ color: "red" }} />',
+      code: '<div classStyle={styles.text} className="text" style={{ color: "red" }} />',
       errors: [
         { messageId: 'noMixedStylingProps' },
         { messageId: 'noMixedStylingProps' },
@@ -64,7 +64,7 @@ ruleTester.run('no-mixed-styling-props', noMixedStylingProps, {
     {
       // a per-rule option wins over the shared setting
       code: '<div sx={styles.text} style={{ color: "red" }} />',
-      settings: { plumeria: { styleProp: 'styleName' } },
+      settings: { plumeria: { styleProp: 'classStyle' } },
       options: [{ styleProp: 'sx' }],
       errors: [{ messageId: 'noMixedStylingProps' }],
     },
