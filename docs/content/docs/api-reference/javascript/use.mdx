@@ -1,28 +1,28 @@
 ---
-title: 'css.use / styleName'
+title: 'css.use / classStyle'
 description: 'API and props for applying styles'
 ---
-To apply styles defined in Plumeria to a component, use the `styleName` prop or the `css.use()` function.
+To apply styles defined in Plumeria to a component, use the `classStyle` prop or the `css.use()` function.
 
-## styleName
+## classStyle
 ```ts
-type StyleName = CSSProperties | (false | CSSProperties | null | undefined)[];
+type Style = CSSProperties | (false | CSSProperties | null | undefined)[];
 
   global {
     namespace React {
       interface HTMLAttributes<T> {
-        styleName?: StyleName;
+        classStyle?: Style;
       }
     }
   }
 
-export type { StyleName };
+export type { Style };
 ```
 
-`styleName` is a special prop for applying styles to components such as React. It is converted to `className` by the plugin at build time.
+`classStyle` is a special prop for applying styles to components such as React. It is converted to `className` by the plugin at build time.
 
 ### Features
-- Automatically excludes false values ​​(`false`, `null`, `undefined`).
+- Automatically excludes false values (`false`, `null`, `undefined`).
 
 - Supports array format, making conditional branching easy.
 - Subsequent styles take precedence within the array.
@@ -39,7 +39,7 @@ const styles = css.create({
 
 function Component({ active }) {
   return (
-    <div styleName={[styles.base, active && styles.active]}>
+    <div classStyle={[styles.base, active && styles.active]}>
       Hello
     </div>
   );
@@ -51,7 +51,7 @@ function Component({ active }) {
 export type use = (...rules: (false | CSSProperties | null | undefined)[]) => string;
 export const use: use;
 ```
-`css.use()` is a function that converts a style object into a string of class names (`string`). Where the `styleName` prop cannot be used (for example, when passing class names to external libraries).
+`css.use()` is a function that converts a style object into a string of class names (`string`). Where the `classStyle` prop cannot be used (for example, when passing class names to external libraries).
 
 ### Example
 
@@ -70,9 +70,9 @@ const className = css.use(styles.text);
 ```
 
 <Callout title="Build time compiles">
-`styleName` and `css.use()` are both processed by the plugin at build time. There is zero runtime overhead, and the final bundle will only contain the class name as a string.
+`classStyle` and `css.use()` are both processed by the plugin at build time. There is zero runtime overhead, and the final bundle will only contain the class name as a string.
 </Callout>
 
 <Callout title="Strict Design Constraint">
-Plumeria treats code that cannot be statically parsed as non-existent. Unknown dynamic values passed, such as `styleName={props.color}`, are ignored. This is a contract with the 0-byte runtime to prevent unknown props from being passed around at the design level.
+Plumeria treats code that cannot be statically parsed as non-existent. Unknown dynamic values passed, such as `classStyle={props.color}`, are ignored. This is a contract with the 0-byte runtime to prevent unknown props from being passed around at the design level.
 </Callout>
