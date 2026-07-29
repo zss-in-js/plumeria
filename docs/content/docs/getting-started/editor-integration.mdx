@@ -17,10 +17,10 @@ In VScode create a shortcut for the style.use() object expansion in className.
 
 ```json title="typescriptreact.json"
 {
-  "styleName": {
-    "prefix": "style",
-    "body": "styleName={$1}",
-    "description": "React styleName with curly braces",
+  "classStyle": {
+    "prefix": "class",
+    "body": "classStyle={$1}",
+    "description": "Plumeria classStyle",
   }
 }
 ```
@@ -37,7 +37,7 @@ This will make the snippet appear at the top.
 
 ### Macro Usage
 ```jsx
-<div style /> -> Enter -> <div styleName={|} />
+<div class /> -> Enter -> <div classStyle={|} />
 ```
 </Step>
 <Step>
