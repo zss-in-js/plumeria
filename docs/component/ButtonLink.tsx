@@ -64,7 +64,7 @@ type Props = {
 
 export const ButtonLink = ({ children, href }: Props) => {
   return (
-    <Link href={href} styleName={[styles.button, styles.base, sizeStyles.medium]}>
+    <Link href={href} classStyle={[styles.button, styles.base, sizeStyles.medium]}>
       {children}
     </Link>
   );
