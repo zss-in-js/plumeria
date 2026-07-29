@@ -77,8 +77,8 @@ export const CodeBlock = async ({ code, lang }: { code: string; lang: string }) 
   const meta = langMeta[lang.toLowerCase()] || { title: lang, icon: <TerminalIcon /> };
 
   return (
-    <FumadocsCodeBlock styleName={styles.code_div} title={meta.title} icon={meta.icon} lang={lang}>
-      <Pre styleName={styles.pre} dangerouslySetInnerHTML={{ __html: tsx }} />
+    <FumadocsCodeBlock classStyle={styles.code_div} title={meta.title} icon={meta.icon} lang={lang}>
+      <Pre classStyle={styles.pre} dangerouslySetInnerHTML={{ __html: tsx }} />
     </FumadocsCodeBlock>
   );
 };
