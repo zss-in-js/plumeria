@@ -97,7 +97,7 @@ ContextMenuSeparator.displayName = 'ContextMenuSeparator';
 const ContextMenuArrow = React.forwardRef<
   React.ComponentRef<typeof ContextMenuPrimitive.Arrow>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Arrow> & {
-    styleName?: Style;
+    classStyle?: Style;
   }
 >((props, ref) => {
   return <ContextMenuPrimitive.Arrow ref={ref} {...props} />;
