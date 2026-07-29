@@ -1,0 +1,46 @@
+{
+  "name": "@plumeria/codemod",
+  "version": "18.0.0",
+  "description": "Codemods for migrating Plumeria APIs",
+  "author": "Refirst 11",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/refirst11",
+  "homepage": "https://plumeria.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/codemod"
+  },
+  "bugs": {
+    "url": "https://github.com/zss-in-js/plumeria/issues"
+  },
+  "keywords": [
+    "plumeria",
+    "codemod",
+    "migration",
+    "eslint",
+    "css-in-js"
+  ],
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "plumeria-codemod": "bin/codemod.js"
+  },
+  "files": [
+    "dist/",
+    "bin/"
+  ],
+  "scripts": {
+    "build": "rimraf dist && pnpm cjs",
+    "cjs": "tsc --project tsconfig.cjs.json"
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "^8.60.0",
+    "eslint": "^10.4.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
