@@ -26,7 +26,7 @@ export const baseOptions: BaseLayoutProps = {
   nav: {
     transparentMode: 'top',
     title: (
-      <span styleName={styles.image}>
+      <span classStyle={styles.image}>
         <PlumeriaLogo size={20} />
         Plumeria
       </span>
