@@ -382,11 +382,11 @@ const DevInspector = ({ initial }: { initial: boolean }) => {
       {/* Dynamic toggle badge */}
       <div
         data-plumeria-inspector-ignore="true"
-        styleName={[styles.toggleBadge, isActive && styles.toggleBadgeActive]}
+        classStyle={[styles.toggleBadge, isActive && styles.toggleBadgeActive]}
         onClick={() => setIsActive((prev) => !prev)}
       >
         <span
-          styleName={[styles.statusDot, isActive && styles.statusDotActive]}
+          classStyle={[styles.statusDot, isActive && styles.statusDotActive]}
         />
         <span>
           Inspector: {isActive ? 'ON' : 'OFF'}{' '}
@@ -398,7 +398,7 @@ const DevInspector = ({ initial }: { initial: boolean }) => {
       {isActive && hoveredElement && (
         <div
           data-plumeria-inspector-ignore="true"
-          styleName={styles.overlay(
+          classStyle={styles.overlay(
             (overlayStyle.top as string) || '0px',
             (overlayStyle.left as string) || '0px',
             (overlayStyle.width as string) || '0px',
@@ -412,7 +412,7 @@ const DevInspector = ({ initial }: { initial: boolean }) => {
         <div
           ref={tooltipRef}
           data-plumeria-inspector-ignore="true"
-          styleName={styles.tooltip(
+          classStyle={styles.tooltip(
             isFrozen ? 'auto' : 'none',
             (tooltipStyle.top as string) || '0px',
             (tooltipStyle.left as string) || '0px',
@@ -420,12 +420,12 @@ const DevInspector = ({ initial }: { initial: boolean }) => {
             (tooltipStyle.transform as string) || 'none',
           )}
         >
-          <div styleName={styles.title}>
-            <span styleName={styles.tag}>
+          <div classStyle={styles.title}>
+            <span classStyle={styles.tag}>
               &lt;{hoveredElement.tagName.toLowerCase()}&gt;
             </span>
             {getClassName(hoveredElement) && (
-              <span styleName={styles.classNameText}>
+              <span classStyle={styles.classNameText}>
                 .
                 {getClassName(hoveredElement)
                   .split(' ')
@@ -434,34 +434,36 @@ const DevInspector = ({ initial }: { initial: boolean }) => {
               </span>
             )}
           </div>
-          <div styleName={styles.rulesContainer}>
+          <div classStyle={styles.rulesContainer}>
             {rules.length === 0 ? (
-              <div styleName={styles.emptyText}>No matching CSS rules</div>
+              <div classStyle={styles.emptyText}>No matching CSS rules</div>
             ) : (
               rules.map((rule, idx) => {
                 const parsedProps = parseCssText(rule.cssText);
                 return (
-                  <div key={idx} styleName={styles.ruleBlock}>
-                    <span styleName={styles.selector}>
+                  <div key={idx} classStyle={styles.ruleBlock}>
+                    <span classStyle={styles.selector}>
                       {rule.selector} {'{'}
                     </span>
                     {parsedProps.map((prop, pIdx) => (
-                      <span key={pIdx} styleName={styles.propertyLine}>
-                        <span styleName={styles.propertyName}>{prop.name}</span>
+                      <span key={pIdx} classStyle={styles.propertyLine}>
+                        <span classStyle={styles.propertyName}>
+                          {prop.name}
+                        </span>
                         {': '}
-                        <span styleName={styles.propertyValue}>
+                        <span classStyle={styles.propertyValue}>
                           {prop.value}
                         </span>
                         {';'}
                       </span>
                     ))}
-                    <span styleName={styles.selector}>{'}'}</span>
+                    <span classStyle={styles.selector}>{'}'}</span>
                   </div>
                 );
               })
             )}
           </div>
-          <div styleName={styles.hintText}>
+          <div classStyle={styles.hintText}>
             {isFrozen
               ? '❄️ Targeting Locked (Press Shift to unlock)'
               : '⚡ Press Shift to lock targeting & scroll rules'}
