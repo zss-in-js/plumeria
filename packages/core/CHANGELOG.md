@@ -1,5 +1,18 @@
 # @plumeria/core
 
+## 18.0.0
+
+### Major Changes
+
+- 7664aa1: Bump version to 18.0.0
+  - feat: add @plumeria/codemod for renaming the styling prop across a codebase
+  - fix: read styleProp in no-inline-object, it matched styleName only
+  - fix: name the configured prop in the css.use() dynamic style error
+  - break: rename the default styling prop from styleName to classStyle
+  - break: rename the @plumeria/core/style-name subpath to @plumeria/core/class-style
+  - break: rename the styleName prop on @plumeria/headlessui components to classStyle
+  - break: rename the no-inline-object messageId to noInlineObjectInStyleProp
+
 ## 17.0.1
 
 ### Patch Changes
