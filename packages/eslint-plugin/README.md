@@ -30,7 +30,7 @@ export default [plumeria.configs.recommended];
 ## Configuring the styling prop
 
 Both `props-require-import` and `no-mixed-styling-props` need to know which JSX
-prop carries styles. It is `styleName` unless you changed it, so most projects
+prop carries styles. It is `classStyle` unless you changed it, so most projects
 configure nothing.
 
 If you did rename it — via `styleProp` on `withPlumeria` or on the unplugin
@@ -81,7 +81,7 @@ Disallow destructuring APIs.
 
 ### no-inline-object
 
-Disallow passing inline object to `styleName`, `css.use()` and `css.variants()`. Only compiled styles from `css.create()` are allowed.
+Disallow passing inline object to `classStyle`, `css.use()` and `css.variants()`. Only compiled styles from `css.create()` are allowed.
 
 ### no-inner-call
 
@@ -94,7 +94,7 @@ Disallow invalid selector inside `css.create()` and `css.keyframes()` and `css.v
 
 ### no-mixed-styling-props
 
-Disallow mixing the styling prop with `className` or `style`. `styleName` can handle both `className` and `style`.
+Disallow mixing the styling prop with `className` or `style`. `classStyle` can handle both `className` and `style`.
 
 Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-styling-prop).
 
