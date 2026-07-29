@@ -21,5 +21,5 @@ const styles = css.create({
 });
 
 export const Color = ({ color }: { color: string }) => {
-  return <span styleName={[styles.colorName, styles.palette(color)]} />;
+  return <span classStyle={[styles.colorName, styles.palette(color)]} />;
 };
