@@ -15,19 +15,19 @@ ruleTester.run('props-require-import', propsRequireImport, {
   valid: [
     {
       // the default name stops being the styling prop once renamed
-      code: '<div styleName={[styles.foo]} />;',
+      code: '<div classStyle={[styles.foo]} />;',
       settings: { plumeria: { styleProp: 'sx' } },
     },
     {
       code: `
           import * as css from '@plumeria/core';
-          const el = <div styleName={[styles.foo]} />;
+          const el = <div classStyle={[styles.foo]} />;
         `,
     },
     {
       code: `
           import { create } from '@plumeria/core';
-          const el = <div styleName={[styles.foo]} />;
+          const el = <div classStyle={[styles.foo]} />;
         `,
     },
     {
@@ -51,9 +51,9 @@ ruleTester.run('props-require-import', propsRequireImport, {
   invalid: [
     {
       code: `
-          const el = <div styleName={[styles.foo]} />;
+          const el = <div classStyle={[styles.foo]} />;
         `,
-      output: `import "@plumeria/core";\n\n          const el = <div styleName={[styles.foo]} />;\n        `,
+      output: `import "@plumeria/core";\n\n          const el = <div classStyle={[styles.foo]} />;\n        `,
       errors: [
         {
           messageId: 'requiresImport',
@@ -63,9 +63,9 @@ ruleTester.run('props-require-import', propsRequireImport, {
     {
       code: `
           import React from 'react';
-          const el = <div styleName={[styles.foo]} />;
+          const el = <div classStyle={[styles.foo]} />;
         `,
-      output: `import "@plumeria/core";\n\n          import React from 'react';\n          const el = <div styleName={[styles.foo]} />;\n        `,
+      output: `import "@plumeria/core";\n\n          import React from 'react';\n          const el = <div classStyle={[styles.foo]} />;\n        `,
       errors: [
         {
           messageId: 'requiresImport',
@@ -75,10 +75,10 @@ ruleTester.run('props-require-import', propsRequireImport, {
     {
       code: `
           import something from 'other-lib';
-          const el = <div styleName={[styles.foo]} />;
-          const el2 = <span styleName={[styles.bar]} />;
+          const el = <div classStyle={[styles.foo]} />;
+          const el2 = <span classStyle={[styles.bar]} />;
         `,
-      output: `import "@plumeria/core";\n\n          import something from 'other-lib';\n          const el = <div styleName={[styles.foo]} />;\n          const el2 = <span styleName={[styles.bar]} />;\n        `,
+      output: `import "@plumeria/core";\n\n          import something from 'other-lib';\n          const el = <div classStyle={[styles.foo]} />;\n          const el2 = <span classStyle={[styles.bar]} />;\n        `,
       errors: [
         {
           messageId: 'requiresImport',
