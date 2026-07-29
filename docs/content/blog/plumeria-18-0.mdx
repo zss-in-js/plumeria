@@ -1,0 +1,158 @@
+---
+title: 'Plumeria 18.0'
+description: 'Update: the styling prop is now classStyle, and a codemod does the rename for you'
+date: '2026-07-29'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v18.0 introduces `classStyle` as the default styling prop, replacing `styleName`, together with `@plumeria/codemod` — a new package that performs the rename across a codebase in one command.
+
+Renaming the default breaks every file that uses the prop, which is why the tool ships alongside it. Three things land together:
+
+1. **`styleName` is now `classStyle`** — the default only; the name has been yours to choose since 17.0.
+2. **`@plumeria/codemod`** — one command rewrites your codebase.
+3. **Two fixes** — a lint rule and a compiler error that both ignored a renamed prop.
+
+Let's walk through each.
+
+---
+
+## 1. The default styling prop is `classStyle`
+
+```diff
+- <div styleName={styles.card} />
++ <div classStyle={styles.card} />
+```
+
+The prop compiles to `className`, plus `style` when a value is dynamic. `classStyle` says that; `styleName` said something closer to the opposite, and it is already taken elsewhere in the ecosystem — in `babel-plugin-react-css-modules` a `styleName` is a CSS Modules class name, which is a different thing that resolves at a different time.
+
+Nothing about the mechanism changed. The name has been a build-time option since 17.0, and it still is:
+
+```ts
+// next.config.ts
+export default withPlumeria({}, { styleProp: 'sx' });
+```
+
+**If you already pass `styleProp`, this release changes nothing for you.** Only the value you get when you pass nothing has moved.
+
+### The `@plumeria/core` subpath followed the name
+
+```diff
+  // plumeria.d.ts
+- /// <reference types="@plumeria/core/style-name" />
++ /// <reference types="@plumeria/core/class-style" />
+```
+
+The old subpath is removed rather than aliased. Leaving it in place would mean shipping a declaration for a prop the compiler no longer looks for — the types would type-check code that never compiles away.
+
+### `@plumeria/headlessui` components
+
+The prop these components accept follows the same rename:
+
+```diff
+- <Accordion.Trigger styleName={styles.trigger}>
++ <Accordion.Trigger classStyle={styles.trigger}>
+```
+
+---
+
+## 2. `@plumeria/codemod`
+
+A rename that touches every styled element is not something to do by hand. This release adds a codemod:
+
+```sh
+npx @plumeria/codemod rename-prop styleName classStyle
+```
+
+Nothing to install. It prints what it changed and what it could not:
+
+```
+  plumeria.d.ts  2
+  src/components/Card.tsx  3
+  src/app/page.tsx  1
+
+✔ renamed 6 occurrence(s) of "styleName" to "classStyle" in 3 file(s).
+
+2 occurrence(s) need a manual rename — "styleName" is bound to a local name there:
+  src/components/Card.tsx:12:24
+  src/app/page.tsx:2:33
+```
+
+Use `--dry-run` first to see the same report without writing anything.
+
+### What it rewrites, and what it refuses to
+
+It rewrites JSX attributes, and property signatures annotated with `Style` — which covers your `plumeria.d.ts` as well as the props of your own components:
+
+```diff
+  interface CardProps {
+-   styleName?: Style;
++   classStyle?: Style;
+  }
+```
+
+The annotation has to be `Style`, so an unrelated interface that happens to share the key is left alone.
+
+Where the prop is destructured or read off an object, renaming it would change a local binding and not just the prop:
+
+```tsx
+const Card = ({ styleName }) => <div styleName={styleName} />;
+```
+
+Rewriting the attribute there is safe; rewriting the binding is a judgement call about the surrounding code. Those sites are listed with their positions instead of being guessed at.
+
+### It is not specific to this migration
+
+The names are arguments, so the same command renames the prop to whatever you want:
+
+```sh
+npx @plumeria/codemod rename-prop classStyle sx
+```
+
+The package depends only on ESLint and its TypeScript parser — nothing from Plumeria — so it runs the same on a 17.x codebase you have not upgraded yet.
+
+One practical note: the codemod does not reformat. `classStyle` is longer than `styleName`, so lines that were near your print width can cross it. Run your formatter afterwards.
+
+---
+
+## 3. Fixes
+
+Both of these were the same class of bug, and renaming the default is what exposed them.
+
+**`no-inline-object` ignored `styleProp`.** Every other rule resolved the prop name from your configuration; this one matched the literal string `styleName`. In a project that had renamed the prop, the rule reported nothing — quietly, since a rule that finds no problems looks identical to a rule that passes. It now reads the same `styleProp` as the rest, from either per-rule options or `settings.plumeria`.
+
+**`css.use()` named the wrong prop in an error.** The message telling you to use the styling prop for dynamic style functions had the default name baked in, so it advised a prop that did not exist in renamed projects. It now names the prop you actually compile with.
+
+---
+
+## Migration
+
+1.  Run `npx @plumeria/codemod rename-prop styleName classStyle`, then your formatter.
+2.  Handle any sites the codemod listed for manual rename.
+3.  Point `plumeria.d.ts` at `@plumeria/core/class-style`.
+4.  If you pass `styleProp` to the plugin and to `settings.plumeria`, nothing else changes — or drop both if you want the new default.
+5.  If you reference the `no-inline-object` message id, it is now `noInlineObjectInStyleProp`.
+
+There is no configuration step. `classStyle` is the default, so the codemod's output compiles as-is.
+
+---
+
+## Release notes
+
+## 18.0.0 (Jul 29, 2026)
+- Feat: add `@plumeria/codemod` for renaming the styling prop across a codebase
+- Fix: read `styleProp` in `no-inline-object`, it matched `styleName` only
+- Fix: name the configured prop in the `css.use()` dynamic style error
+- Break: rename the default styling prop from `styleName` to `classStyle`
+- Break: rename the `@plumeria/core/style-name` subpath to `@plumeria/core/class-style`
+- Break: rename the `styleName` prop on `@plumeria/headlessui` components to `classStyle`
+- Break: rename the `no-inline-object` message id to `noInlineObjectInStyleProp`
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
