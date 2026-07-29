@@ -21,8 +21,8 @@ const styles = css.create({
 });
 
 // Both produce the same result
-styleName={styles.base, styles.custom}
-styleName={styles.custom, styles.base}
+classStyle={styles.base, styles.custom}
+classStyle={styles.custom, styles.base}
 
 // Result: margin 10px on all sides, except top is 20px
 ```
@@ -78,9 +78,9 @@ These behaviors are complex even in normal CSS, so ESLint is effective for enfor
 </Step>
 
 <Step>
-## `styleName` prop merge styles
+## `classStyle` prop merge styles
 
-Also, when `styleName` prop has duplicate properties on its array, the style properties on the right always take precedence and duplicate properties on the left are filtered. In that case no filtered hash is generated.
+Also, when `classStyle` prop has duplicate properties on its array, the style properties on the right always take precedence and duplicate properties on the left are filtered. In that case no filtered hash is generated.
 
 ```js
 const styles = css.create({
@@ -93,8 +93,8 @@ const styles = css.create({
 });
 
 // The right always wins
-styleName={styles.base, styles.custom} // 16px
-styleName={styles.custom, styles.base} // 10px
+classStyle={styles.base, styles.custom} // 16px
+classStyle={styles.custom, styles.base} // 10px
 ```
 Generated as follows:
 ```css
