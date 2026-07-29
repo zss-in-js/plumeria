@@ -28,8 +28,8 @@
     ".": {
       "types": "./lib/css.d.ts"
     },
-    "./style-name": {
-      "types": "./lib/style-name.d.ts"
+    "./class-style": {
+      "types": "./lib/class-style.d.ts"
     }
   },
   "types": "./lib/css.d.ts",
