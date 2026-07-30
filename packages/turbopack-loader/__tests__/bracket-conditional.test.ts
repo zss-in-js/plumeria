@@ -69,18 +69,30 @@ describe('turbopack-loader: bracket access inside conditionals', () => {
     expect(out).toContain('xxcejlqg');
   });
 
-  // A non-literal key has no place to fold the outer test into, so it must
-  // fail loudly rather than compile to an empty className.
+  // The branches of a condition are mutually exclusive, so a group under one
+  // stays a single lookup: the condition folds into the key expression and the
+  // slot no key claims carries whatever the other branch contributes.
   it.each([
-    ['a ternary branch', `on ? s[k] : s['p3']`],
-    ['the right of a logical &&', `on && s[k]`],
-    ['an array element', `[s.p3, on && s[k]]`],
-  ])('rejects a non-literal bracket key in %s', async (_label, expr) => {
-    await expect(
-      run(
-        `export const A = ({ on, k }: { on: boolean; k: 'p1' | 'p3' }) => <div classStyle={${expr}} />;`,
-      ),
-    ).rejects.toThrow(/bracket key is not a literal/);
+    [
+      'a ternary branch',
+      `on ? s[k] : s['p3']`,
+      `{"p1":"x3git8yv","p3":"xxcejlqg","#0":"xxcejlqg"}[((on) ? k : "#0")]`,
+    ],
+    [
+      'the right of a logical &&',
+      `on && s[k]`,
+      `{"p1":"x3git8yv","p3":"xxcejlqg"}[((on) ? k : "")]`,
+    ],
+    [
+      'an array element',
+      `[s.p3, on && s[k]]`,
+      `{"p1":"x3git8yv","p3":"xxcejlqg"}[((on) ? k : "")] || "xxcejlqg"`,
+    ],
+  ])('folds an outer condition into the key in %s', async (_l, expr, want) => {
+    const out = await run(
+      `export const A = ({ on, k }: { on: boolean; k: 'p1' | 'p3' }) => <div classStyle={${expr}} />;`,
+    );
+    expect(out).toContain(want);
   });
 
   it('compiles the same intent with the condition inside the brackets', async () => {
