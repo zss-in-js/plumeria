@@ -23,7 +23,7 @@ export const panelStyles = css.create({ box: { color: 'red' } });
     `import '@plumeria/core';
 import { panelStyles } from './panel.styles';
 import { Item } from './Item';
-export const Panel = () => <Item styleName={panelStyles.box} />;
+export const Panel = () => <Item classStyle={panelStyles.box} />;
 `,
   );
 });
@@ -36,7 +36,7 @@ const scanWithOrder = (files: string[]) => {
   let entries: unknown[] = [];
   jest.isolateModules(() => {
     mockedRs.globSync.mockReturnValue(files);
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+
     const { scanAll } = require('../src/parser');
     const table = scanAll().componentPropsTable || {};
     entries = Object.keys(table).flatMap((compKey) =>
