@@ -1,7 +1,7 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import * as css from '@plumeria/core';
 
-import { PlumeriaLogo } from 'component/svg';
+import { svg } from 'component/svg';
 import { NavDropdown } from 'component/NavDropdown';
 import { latestReleases } from 'lib/latestReleases';
 import { socialLinks } from 'lib/socialLinks';
@@ -27,7 +27,7 @@ export const baseOptions: BaseLayoutProps = {
     transparentMode: 'top',
     title: (
       <span classStyle={styles.image}>
-        <PlumeriaLogo size={20} />
+        <svg.PlumeriaLogo size={20} />
         Plumeria
       </span>
     ),
