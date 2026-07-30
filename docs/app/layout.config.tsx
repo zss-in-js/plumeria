@@ -79,6 +79,9 @@ export const baseOptions: BaseLayoutProps = {
             { text: 'eslint-plugin', url: '/docs/api-reference/plugins/eslint-plugin' },
             { text: 'next-plugin', url: '/docs/api-reference/plugins/next-plugin' },
             { text: 'unplugin', url: '/docs/api-reference/plugins/unplugin' },
+            { type: 'divider' },
+            { type: 'header', text: 'Tools' },
+            { text: 'codemod', url: '/docs/api-reference/codemod' },
           ]}
         />
       ),
