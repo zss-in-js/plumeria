@@ -7,6 +7,15 @@ export const source = loader({
   source: toFumadocsSource(docs, meta),
 });
 
+// ai.md is written for AI assistants, so keep it out of the site search index.
+export const searchSource = loader({
+  baseUrl: '/docs',
+  source: toFumadocsSource(
+    docs.filter((doc) => doc.info.path !== 'ai.md'),
+    meta,
+  ),
+});
+
 export const blog = loader({
   baseUrl: '/blog',
   source: toFumadocsSource(blogDocs, blogMeta),
