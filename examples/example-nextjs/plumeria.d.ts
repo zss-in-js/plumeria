@@ -1,1 +1,1 @@
-/// <reference types="@plumeria/core/style-name" />
+/// <reference types="@plumeria/core/class-style" />
