@@ -152,10 +152,10 @@ const MenuIcon = () => (
 interface SiteHeaderProps {
   title: NavOptions['title'];
   links: LinkItemType[];
-  sidebarTrigger?: React.ReactNode;
+  sidebarTrigger?: React.ComponentType;
 }
 
-export const SiteHeader = ({ title, links, sidebarTrigger }: SiteHeaderProps) => {
+export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger }: SiteHeaderProps) => {
   const [open, setOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
   const pathname = usePathname();
@@ -247,7 +247,9 @@ export const SiteHeader = ({ title, links, sidebarTrigger }: SiteHeaderProps) =>
           </div>
           <div classStyle={styles.compact}>
             <SearchTrigger hideIfDisabled />
-            {sidebarTrigger ?? (
+            {SidebarTrigger ? (
+              <SidebarTrigger />
+            ) : (
               <button
                 type="button"
                 aria-label="Open menu"
@@ -262,7 +264,7 @@ export const SiteHeader = ({ title, links, sidebarTrigger }: SiteHeaderProps) =>
           </div>
         </div>
       </div>
-      {!sidebarTrigger && mounted && createPortal(drawer, document.body)}
+      {!SidebarTrigger && mounted && createPortal(drawer, document.body)}
     </header>
   );
 };
