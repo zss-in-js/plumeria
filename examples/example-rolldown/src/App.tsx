@@ -15,8 +15,8 @@ const styles = css.create({
 
 export const App = () => {
   return (
-    <div styleName={styles.container}>
-      <h1 styleName={styles.text}>Hello from Plumeria + Esbuild!</h1>
+    <div classStyle={styles.container}>
+      <h1 classStyle={styles.text}>Hello from Plumeria + Esbuild!</h1>
     </div>
   );
 };
