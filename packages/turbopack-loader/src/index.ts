@@ -1116,6 +1116,119 @@ export default async function loader(this: LoaderContext, source: string) {
         return null;
       };
 
+      // `s[k]` with a non-literal key: a set of alternatives selected by one
+      // runtime expression.
+      const resolveBracketGroup = (
+        node: Expression,
+      ): { varName: string; keyExpr: Expression; obj: CSSObject } | null => {
+        if (
+          !t.isMemberExpression(node) ||
+          !t.isIdentifier(node.object) ||
+          node.property.type !== 'Computed' ||
+          // A literal key names one style, not the whole set.
+          t.isStringLiteral(node.property.expression)
+        ) {
+          return null;
+        }
+        const varName = (node.object as Identifier).value;
+        const obj = resolveCreateObject(varName);
+        return obj ? { varName, keyExpr: node.property.expression, obj } : null;
+      };
+
+      interface Decision {
+        keyExpr: string;
+        options: Array<{ value: string; style: CSSObject }>;
+        leaves: number;
+        hasGroup: boolean;
+      }
+
+      // One argument is one decision tree, and its branches are mutually
+      // exclusive: only ever one of them applies. So they belong in a single
+      // lookup keyed by which branch won -- not one dimension each, which
+      // would enumerate combinations that can never occur.
+      //
+      // `prefix` names the branches that resolve to a fixed style; `off` is
+      // the key a false `&&` yields, which no branch claims so the result
+      // falls through to the surrounding styles.
+      const buildDecision = (
+        node: Expression,
+        prefix: string,
+        off: string,
+        counter: { n: number },
+      ): Decision | null => {
+        if (node.type === 'ParenthesisExpression') {
+          return buildDecision(node.expression, prefix, off, counter);
+        }
+        if (node.type === 'ConditionalExpression') {
+          const a = buildDecision(node.consequent, prefix, off, counter);
+          if (!a) return null;
+          const b = buildDecision(node.alternate, prefix, off, counter);
+          if (!b) return null;
+          return {
+            keyExpr: `((${getSource(node.test)}) ? ${a.keyExpr} : ${b.keyExpr})`,
+            options: [...a.options, ...b.options],
+            leaves: a.leaves + b.leaves,
+            hasGroup: a.hasGroup || b.hasGroup,
+          };
+        }
+        if (node.type === 'BinaryExpression' && node.operator === '&&') {
+          const right = buildDecision(node.right, prefix, off, counter);
+          if (!right) return null;
+          return {
+            keyExpr: `((${getSource(node.left)}) ? ${right.keyExpr} : ${JSON.stringify(off)})`,
+            options: right.options,
+            leaves: right.leaves,
+            hasGroup: right.hasGroup,
+          };
+        }
+        const group = resolveBracketGroup(node);
+        if (group) {
+          return {
+            keyExpr: getSource(group.keyExpr),
+            options: Object.entries(group.obj).map(([value, style]) => ({
+              value,
+              style: style as CSSObject,
+            })),
+            leaves: 1,
+            hasGroup: true,
+          };
+        }
+        const style = resolveStyleObject(node);
+        if (!style) return null;
+        const value = `${prefix}${counter.n++}`;
+        return {
+          keyExpr: JSON.stringify(value),
+          options: [{ value, style }],
+          leaves: 1,
+          hasGroup: false,
+        };
+      };
+
+      const collectGroupKeys = (node: Expression, acc: Set<string>) => {
+        if (node.type === 'ParenthesisExpression') {
+          collectGroupKeys(node.expression, acc);
+        } else if (node.type === 'ConditionalExpression') {
+          collectGroupKeys(node.consequent, acc);
+          collectGroupKeys(node.alternate, acc);
+        } else if (node.type === 'BinaryExpression' && node.operator === '&&') {
+          collectGroupKeys(node.right, acc);
+        } else {
+          const group = resolveBracketGroup(node);
+          if (group) Object.keys(group.obj).forEach((k) => acc.add(k));
+        }
+      };
+
+      const resolveDecision = (node: Expression): Decision | null => {
+        // Branch names share the lookup with the groups' own keys, so pick a
+        // prefix no key starts with and they can never be confused.
+        const groupKeys = new Set<string>();
+        collectGroupKeys(node, groupKeys);
+        let prefix = '#';
+        while ([...groupKeys].some((k) => k.startsWith(prefix))) prefix += '#';
+        const off = groupKeys.has('') ? `${prefix}off` : '';
+        return buildDecision(node, prefix, off, { n: 0 });
+      };
+
       const collectConditions = (
         node: Expression,
         currentTestStrings: string[] = [],
@@ -1168,20 +1281,6 @@ export default async function loader(this: LoaderContext, source: string) {
           return true;
         } else if (node.type === 'ParenthesisExpression') {
           return collectConditions(node.expression, currentTestStrings);
-        }
-
-        if (
-          currentTestStrings.length > 0 &&
-          t.isMemberExpression(node) &&
-          t.isIdentifier(node.object) &&
-          node.property.type === 'Computed' &&
-          resolveCreateObject(node.object.value)
-        ) {
-          const varName = (node.object as Identifier).value;
-          throwCompilationError(
-            `Plumeria: "${getSource(node)}" cannot be used inside a condition, because its bracket key is not a literal.\nMove the condition into the brackets instead, e.g. ${varName}[cond ? 'a' : 'b'].`,
-            node as HasSpan,
-          );
         }
 
         assertResolvable(node as HasSpan);
@@ -1420,6 +1519,27 @@ export default async function loader(this: LoaderContext, source: string) {
           }
         }
 
+        // Fold the branches into one dimension when the flat form would cost
+        // more: a group, or more than the two branches a plain ternary emits.
+        const decision = resolveDecision(expr);
+        if (decision && (decision.hasGroup || decision.leaves > 2)) {
+          const groupId = ++groupIdCounter;
+          decision.options.forEach(({ value, style }) =>
+            conditionals.push({
+              test: expr,
+              testLHS: decision.keyExpr,
+              testString: `${decision.keyExpr} === '${value}'`,
+              truthy: style,
+              falsy: {},
+              groupId,
+              groupName: undefined,
+              valueName: value,
+              varName: undefined,
+            }),
+          );
+          continue;
+        }
+
         const handled = collectConditions(expr);
         if (handled) continue;
 
@@ -1560,7 +1680,8 @@ export default async function loader(this: LoaderContext, source: string) {
           getSource(options[0].test);
         const lookupMap: Record<string, string> = {};
         options.forEach((opt) => {
-          if (opt.valueName && opt.truthy) {
+          // `''` is the off slot of a gated group, a real key -- not absence.
+          if (opt.valueName !== undefined && opt.truthy) {
             const className = processStyleRecords(opt.truthy)
               .map((r) => r.hash)
               .join(' ');
@@ -1610,6 +1731,18 @@ export default async function loader(this: LoaderContext, source: string) {
               conflictVarGroups[c.groupId] = [];
             conflictVarGroups[c.groupId].push(c);
           }
+        });
+        // A gated group's off slot can carry no style at all, so the split
+        // above drops it. The dimension still needs its key, or combinations
+        // where the gate is false have no entry to land on.
+        Object.keys(conflictVarGroups).forEach((id) => {
+          const groupId = Number(id);
+          const opts = conflictVarGroups[groupId];
+          if (opts.some((c) => c.valueName === '')) return;
+          const off = conditionals.find(
+            (c) => c.groupId === groupId && c.valueName === '',
+          );
+          if (off) opts.push({ ...off, truthy: {}, falsy: {} });
         });
         Object.entries(conflictVarGroups).forEach(([, opts]) => {
           dimensions.push({
