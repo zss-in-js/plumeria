@@ -212,7 +212,12 @@ export const SiteHeader = ({ title, links, sidebarTrigger }: SiteHeaderProps) =>
           {renderIcons()}
           <div classStyle={navStyles.spacer} />
           <ThemeSwitch classStyle={[navStyles.themeToggle, styles.toggle]} />
-          <button type="button" aria-label="Close menu" classStyle={navStyles.iconButton} onClick={() => setOpen(false)}>
+          <button
+            type="button"
+            aria-label="Close menu"
+            classStyle={navStyles.iconButton}
+            onClick={() => setOpen(false)}
+          >
             <SidebarIcon />
           </button>
         </div>
@@ -227,7 +232,7 @@ export const SiteHeader = ({ title, links, sidebarTrigger }: SiteHeaderProps) =>
         {typeof title === 'function' ? (
           React.createElement(title, { href: '/', className: css.use(styles.title) })
         ) : (
-          <Link href="/" classStyle={styles.title}>
+          <Link href="/" classStyle={styles.title} onNavigate={() => window.scrollTo(0, 0)}>
             {title}
           </Link>
         )}
