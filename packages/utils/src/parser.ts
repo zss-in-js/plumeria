@@ -84,6 +84,73 @@ export const getRootIdentifier = (node: Expression): string | null => {
   return null;
 };
 
+export function resolveComponentKey(
+  nameNode: any,
+  filePath: string,
+  localImports: Record<string, { actualPath: string; importedName: string }>,
+): string | null {
+  if (nameNode?.type === 'Identifier') {
+    const name = nameNode.value;
+    if (name[0] !== name[0].toUpperCase()) return null;
+    const site = resolveBinding(filePath, name, localImports);
+    return `${site.filePath}-${site.localName}`;
+  }
+  if (nameNode?.type !== 'JSXMemberExpression') return null;
+
+  const links: string[] = [];
+  let current = nameNode;
+  while (current.type === 'JSXMemberExpression') {
+    if (current.property?.type !== 'Identifier') return null;
+    links.unshift(current.property.value);
+    current = current.object;
+  }
+  if (current.type !== 'Identifier') return null;
+
+  let site = resolveBinding(filePath, current.value, localImports);
+  for (const link of links) {
+    site = resolveExport(site.filePath, link) ??
+      followImport(site.filePath, link) ?? {
+        filePath: site.filePath,
+        localName: link,
+      };
+  }
+  return `${site.filePath}-${site.localName}`;
+}
+
+function resolveBinding(
+  filePath: string,
+  name: string,
+  localImports: Record<string, { actualPath: string; importedName: string }>,
+): { filePath: string; localName: string } {
+  const imported = localImports[name];
+  if (!imported) return { filePath, localName: name };
+  if (imported.importedName === '*') {
+    return { filePath: imported.actualPath, localName: name };
+  }
+  return (
+    resolveExport(imported.actualPath, imported.importedName) ?? {
+      filePath: imported.actualPath,
+      localName: imported.importedName,
+    }
+  );
+}
+
+function followImport(
+  filePath: string,
+  name: string,
+): { filePath: string; localName: string } | null {
+  const imported = fileCache[filePath]?.exports?.imports?.[name];
+  if (!imported || imported.importedName === '*') return null;
+  const actualPath = resolveImportPath(imported.source, filePath);
+  if (!actualPath) return null;
+  return (
+    resolveExport(actualPath, imported.importedName) ?? {
+      filePath: actualPath,
+      localName: imported.importedName,
+    }
+  );
+}
+
 export const t = {
   isObjectExpression: (node: any): node is ObjectExpression =>
     node?.type === 'ObjectExpression',
@@ -1040,6 +1107,9 @@ interface CachedData {
     localExports: string[];
     reExports: Record<string, { source: string | null; localName: string }>;
     starExports: string[];
+    // Bindings this module imports, so a name that is used here without being
+    // re-exported can still be traced back to where it is declared.
+    imports: Record<string, { source: string; importedName: string }>;
   };
   staticTable: StaticTable;
   keyframesHashTable: KeyframesHashTable;
@@ -1462,6 +1532,15 @@ export function scanAll(): Tables {
               if (actualPath) {
                 localDependencies.add(actualPath);
                 node.specifiers.forEach((specifier: ImportSpecifier) => {
+                  if (specifier.type === 'ImportNamespaceSpecifier') {
+                    // `import * as Icons` carries no export name of its own;
+                    // `<Icons.Foo />` resolves from the module it points at.
+                    localImports[specifier.local.value] = {
+                      actualPath,
+                      importedName: '*',
+                    };
+                    return;
+                  }
                   if (
                     specifier.type === 'ImportSpecifier' ||
                     specifier.type === 'ImportDefaultSpecifier'
@@ -1914,44 +1993,30 @@ export function scanAll(): Tables {
 
       traverse(ast, {
         JSXOpeningElement({ node }) {
-          if (node.name.type === 'Identifier') {
-            const name = node.name.value;
-            if (name[0] === name[0].toUpperCase()) {
-              let compKey = '';
-              const imported = localImports[name];
-              if (imported) {
-                let resolvedKey = `${imported.actualPath}-${imported.importedName}`;
-                const resolved = resolveExport(
-                  imported.actualPath,
-                  imported.importedName,
-                );
-                if (resolved) {
-                  resolvedKey = `${resolved.filePath}-${resolved.localName}`;
-                }
-                compKey = resolvedKey;
-              } else {
-                compKey = `${filePath}-${name}`;
-              }
+          const compKey = resolveComponentKey(
+            node.name,
+            filePath,
+            localImports,
+          );
+          if (!compKey) return;
 
-              node.attributes.forEach((attr: any) => {
-                if (
-                  attr.type === 'JSXAttribute' &&
-                  attr.name.type === 'Identifier'
-                ) {
-                  const propName = attr.name.value;
-                  const val = attr.value;
-                  if (val && val.type === 'JSXExpressionContainer') {
-                    registerStyles(
-                      val.expression,
-                      propName,
-                      compKey,
-                      localComponentPropsTable,
-                    );
-                  }
-                }
-              });
+          node.attributes.forEach((attr: any) => {
+            if (
+              attr.type === 'JSXAttribute' &&
+              attr.name.type === 'Identifier'
+            ) {
+              const propName = attr.name.value;
+              const val = attr.value;
+              if (val && val.type === 'JSXExpressionContainer') {
+                registerStyles(
+                  val.expression,
+                  propName,
+                  compKey,
+                  localComponentPropsTable,
+                );
+              }
             }
-          }
+          });
         },
       });
 
@@ -2159,7 +2224,7 @@ function extractAndCacheExports(
   if (!fileCache[filePath]) {
     fileCache[filePath] = {
       mtimeMs: mtimeMs,
-      exports: { localExports, reExports, starExports },
+      exports: { localExports, reExports, starExports, imports },
       dependencies: newDeps,
       staticTable: {},
       keyframesHashTable: {},
@@ -2183,6 +2248,7 @@ function extractAndCacheExports(
       localExports,
       reExports,
       starExports,
+      imports,
     };
     fileCache[filePath].dependencies = newDeps;
   }
