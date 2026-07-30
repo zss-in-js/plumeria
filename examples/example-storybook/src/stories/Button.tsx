@@ -50,7 +50,33 @@ const styles = css.create({
       outline: 'none',
     },
   },
+  ripple: (top: number, left: number, size: number) => ({
+    position: 'absolute',
+    background: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: '50%',
+    transform: 'scale(0)',
+    animationName: rippleEffect,
+    animationDuration: '0.6s',
+    animationTimingFunction: 'linear',
+    top,
+    left,
+    width: size,
+    height: size,
+  }),
+  spinner: {
+    width: '1.2em',
+    height: '1.2em',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
+    borderTop: '2px solid white',
+    borderRadius: '50%',
+    animationName: spin,
+    animationDuration: '0.8s',
+    animationTimingFunction: 'linear',
+    animationIterationCount: 'infinite',
+  },
+});
 
+const variantStyles = css.create({
   primary: {
     '--bg-gradient': 'linear-gradient(-45deg, #0EA5E9, #38BDF8)',
   },
@@ -137,7 +163,9 @@ const styles = css.create({
     animationTimingFunction: 'ease',
     animationIterationCount: 'infinite',
   },
-  // Sizes
+});
+
+const sizeStyles = css.create({
   small: {
     '--padding': '8px 24px',
     '--font-size': '10px',
@@ -153,30 +181,6 @@ const styles = css.create({
     '--font-size': '14px',
     '--border-radius': '14px',
   },
-  ripple: (top: number, left: number, size: number) => ({
-    position: 'absolute',
-    background: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: '50%',
-    transform: 'scale(0)',
-    animationName: rippleEffect,
-    animationDuration: '0.6s',
-    animationTimingFunction: 'linear',
-    top,
-    left,
-    width: size,
-    height: size,
-  }),
-  spinner: {
-    width: '1.2em',
-    height: '1.2em',
-    border: '2px solid rgba(255, 255, 255, 0.3)',
-    borderTop: '2px solid white',
-    borderRadius: '50%',
-    animationName: spin,
-    animationDuration: '0.8s',
-    animationTimingFunction: 'linear',
-    animationIterationCount: 'infinite',
-  },
 });
 
 interface Ripple {
@@ -186,23 +190,9 @@ interface Ripple {
   size: number;
 }
 
-type ButtonVariant =
-  | 'primary'
-  | 'secondary'
-  | 'tertiary'
-  | 'danger'
-  | 'warning'
-  | 'info'
-  | 'light'
-  | 'dark'
-  | 'glass'
-  | 'neon'
-  | 'gradient'
-  | 'shimmer'
-  | 'metallic'
-  | 'aurora';
+type ButtonVariant = keyof typeof variantStyles;
 
-type ButtonSize = 'small' | 'medium' | 'large';
+type ButtonSize = keyof typeof sizeStyles;
 
 interface Props {
   children: ReactNode;
@@ -214,30 +204,6 @@ interface Props {
   name?: string;
   'aria-label'?: string;
 }
-
-const getVariants = css.variants({
-  variant: {
-    dark: styles.dark,
-    light: styles.light,
-    primary: styles.primary,
-    secondary: styles.secondary,
-    tertiary: styles.tertiary,
-    danger: styles.danger,
-    warning: styles.warning,
-    info: styles.info,
-    glass: styles.glass,
-    neon: styles.neon,
-    gradient: styles.gradient,
-    shimmer: styles.shimmer,
-    metallic: styles.metallic,
-    aurora: styles.aurora,
-  },
-  size: {
-    small: styles.small,
-    medium: styles.medium,
-    large: styles.large,
-  },
-});
 
 export const Button = ({
   children,
@@ -285,7 +251,7 @@ export const Button = ({
 
   return (
     <button
-      styleName={[styles.button, getVariants({ variant, size })]}
+      classStyle={[styles.button, variantStyles[variant], sizeStyles[size]]}
       name={name}
       onClick={handleClick}
       disabled={isDisabled}
@@ -293,15 +259,15 @@ export const Button = ({
       aria-busy={loading}
     >
       {loading ? (
-        <div styleName={styles.spinner} />
+        <div classStyle={styles.spinner} />
       ) : (
-        <span styleName={styles.content}>{children}</span>
+        <span classStyle={styles.content}>{children}</span>
       )}
       {!loading &&
         ripples.map((ripple) => (
           <span
             key={ripple.id}
-            styleName={styles.ripple(ripple.top, ripple.left, ripple.size)}
+            classStyle={styles.ripple(ripple.top, ripple.left, ripple.size)}
           />
         ))}
     </button>
