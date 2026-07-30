@@ -568,6 +568,36 @@ export function compileCSS(options: CompilerOptions) {
         }
       };
 
+      // `s[k]` with a non-literal key. Every key is reachable at runtime, so
+      // for CSS emission every key's style counts.
+      const resolveBracketGroupStyles = (
+        node: Expression,
+      ): CSSObject[] | null => {
+        if (
+          !t.isMemberExpression(node) ||
+          !t.isIdentifier(node.object) ||
+          node.property.type !== 'Computed' ||
+          t.isStringLiteral(node.property.expression)
+        ) {
+          return null;
+        }
+        const varName = node.object.value;
+        const styleInfo = ctx.localCreateStyles[varName];
+        let obj: CSSObject | undefined;
+        if (styleInfo && styleInfo.type === 'create') {
+          obj = styleInfo.obj;
+        } else {
+          const hash = ctx.mergedCreateTable[varName];
+          if (hash) {
+            obj = ctx.scannedTables.createObjectTable[hash] as CSSObject;
+          }
+        }
+        if (!obj) return null;
+        return Object.values(obj).filter(
+          (v): v is CSSObject => typeof v === 'object' && v !== null,
+        );
+      };
+
       const collectConditions = (
         node: Expression,
         currentTestStrings: string[] = [],
@@ -621,6 +651,24 @@ export function compileCSS(options: CompilerOptions) {
             });
           }
           return true;
+        }
+
+        // A group nested under a condition never reaches the fallback below,
+        // because the enclosing conditional already reported itself handled.
+        if (currentTestStrings.length > 0) {
+          const groupStyles = resolveBracketGroupStyles(node);
+          if (groupStyles) {
+            groupStyles.forEach((style) =>
+              conditionals.push({
+                test: node,
+                testString: currentTestStrings.join(' && '),
+                truthy: style,
+                falsy: {},
+                varName: undefined,
+              }),
+            );
+            return true;
+          }
         }
 
         assertResolvable(node);
