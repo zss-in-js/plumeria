@@ -27,13 +27,62 @@ pnpm i -D @plumeria/unplugin
 </Tabs>
 
 ## Usage
+
 ```ts title="vite.config.ts"
+import { defineConfig } from 'vite';
 import plumeria from '@plumeria/unplugin';
 
 export default defineConfig({
   plugins: [plumeria.vite()],
 });
 ```
+
+`plumeria.vite()` accepts an options object:
+
+```ts title="vite.config.ts"
+export default defineConfig({
+  plugins: [
+    plumeria.vite({
+      include: ['./src/**/*.{ts,tsx}'],
+      exclude: ['**/node_modules/**'],
+      styleProp: 'sx',
+    }),
+  ],
+});
+```
+
+- `include` — The path to the file to be converted.
+- `exclude` — The path to the file to be excluded from conversion.
+- `styleProp` — The JSX prop that carries styles. The default is `'classStyle'`.
+
+## plumeria.d.ts
+
+`@plumeria/core` ships no prop declaration of its own, so name the styling prop your project compiles with.
+
+For the default name (`classStyle`), reference the declaration that ships with the package:
+
+```ts title="plumeria.d.ts"
+/// <reference types="@plumeria/core/class-style" />
+```
+
+If you set a custom `styleProp` (such as `'sx'`), declare the same name for TypeScript instead:
+
+```ts title="plumeria.d.ts"
+import type { Style } from '@plumeria/core';
+
+declare global {
+  namespace React {
+    interface HTMLAttributes<T> {
+      sx?: Style;
+    }
+    interface SVGAttributes<T> {
+      sx?: Style;
+    }
+  }
+}
+```
+
+The `styleProp` in `next.config.ts` and the property name in `plumeria.d.ts` must match. If they disagree, the prop type-checks but is never compiled away.
 
 <Cards>
   <Card title="See more about Installation unplugin" href="/docs/getting-started/installation" />
