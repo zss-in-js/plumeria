@@ -47,6 +47,14 @@ describe('compiler: styles passed through component props', () => {
     expect(css).toContain('color: purple');
   });
 
+  it('emits CSS for a style handed to a member-chain tag', () => {
+    // `<svg.Card />` is a component too, however deep the chain runs.
+    const css = compile(
+      `export const A = () => <icons.svg.Card boxStyle={s.boxed} />;`,
+    );
+    expect(css).toContain('color: purple');
+  });
+
   it('ignores a host element attribute, which is React’s own DOM prop', () => {
     // Nothing renders these class names: the scanner only registers prop
     // styles for capitalised names, so emitting them is dead CSS.
