@@ -465,7 +465,7 @@ const styles = css.create({
 
 export const Box = () => {
   return (
-    <div styleName={styles.box}>Box</div>
+    <div classStyle={styles.box}>Box</div>
   );
 };`;
 
