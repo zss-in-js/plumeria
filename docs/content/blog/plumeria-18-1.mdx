@@ -1,0 +1,142 @@
+---
+title: 'Plumeria 18.1'
+description: 'Update: a bracket key works inside a condition, and nested conditions stopped growing'
+date: '2026-07-30'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v18.1 removes a compiler restriction: a bracket access with a runtime key can now sit inside a condition. Lifting it turned out to be the smaller half of the change — the way conditions are compiled was reworked underneath, and existing code gets smaller output for free.
+
+Three things land together:
+
+1. **`enabled ? styles[variant] : styles.disabled` compiles** — the error is gone.
+2. **Nested conditions stay linear** — a three-branch ternary used to emit seven entries; it now emits three.
+3. **A compiler fix** — `@plumeria/compiler` emitted no rules at all for a bracket group under a condition.
+
+Nothing about your code has to change.
+
+---
+
+## 1. The restriction
+
+Until 18.1, this failed the build:
+
+```tsx
+<button classStyle={enabled ? styles[variant] : styles.disabled} />
+```
+
+```
+Plumeria: "styles[variant]" cannot be used inside a condition, because its
+bracket key is not a literal.
+Move the condition into the brackets instead, e.g. styles[cond ? 'a' : 'b'].
+```
+
+The suggested rewrite works, and it is still the tidier way to say it when it fits. But it does not always fit — the two branches often come from different objects, or one branch is not a bracket access at all — and there was no reason for the compiler to insist.
+
+It now compiles:
+
+```js
+({"primary":"xd2z9dcc","danger":"x1hugtvn","ghost":"x6tgf1st","disabled":"xwepo8yj","#0":"xwepo8yj"}
+  [((enabled) ? variant : "#0")] || "")
+```
+
+One lookup. The condition folded into the key expression, and `#0` is the slot the alternate branch took. `&&` works the same way, with the false case landing on a key no branch claims:
+
+```tsx
+<button classStyle={enabled && styles[variant]} />
+```
+
+```js
+({"primary":"xd2z9dcc","danger":"x1hugtvn","ghost":"x6tgf1st","disabled":"xwepo8yj"}
+  [((enabled) ? variant : "")] || "")
+```
+
+---
+
+## 2. Why it was there, and why it is not
+
+Plumeria has no runtime resolver. Every class string a component can produce is computed at build time, so the compiler has to enumerate the possibilities — which means the syntax it accepts has to keep that number bounded. That is a real constraint, and it is the reason the restriction looked reasonable.
+
+It was the wrong reading of this case. **The branches of a condition are mutually exclusive.** Only one of them ever applies, so putting a group in one of them adds to the number of outcomes; it does not multiply it. A ternary over two groups of *N* and *M* keys has *N + M* outcomes, not *N × M*.
+
+Multiplication comes from a different place — sources that are all active at once and merge into the same property:
+
+```tsx
+// Two conditions, both live: four combinations to precompute
+<div classStyle={[a && styles.primary, b && styles.danger]} />
+```
+
+That has always been the case and still is. The old restriction was guarding the wrong operation.
+
+### What changed underneath
+
+An argument is now compiled as a **single decision tree** rather than one dimension per branch. The tree becomes the key expression, and each of its leaves gets one entry:
+
+```tsx
+<button classStyle={a ? (b ? styles.primary : styles.danger) : styles.ghost} />
+```
+
+```js
+({"#0":"xd2z9dcc","#1":"x1hugtvn","#2":"x6tgf1st"}
+  [((a) ? ((b) ? "#0" : "#1") : "#2")] || "")
+```
+
+Three branches, three entries. A leaf that is a bracket group contributes its own keys instead of a generated one, which is what makes the two features the same change.
+
+---
+
+## 3. Nested conditions got smaller
+
+This is where existing code benefits without touching anything. Previously each branch became its own dimension and the compiler enumerated every combination of them — including the ones that can never occur together:
+
+| Expression | Outcomes | Before | After |
+| --- | --- | --- | --- |
+| `a ? (b ? s.p2 : s.p1) : s.p3` | 3 | 7 | **3** |
+| `a ? (b ? s.p2 : (c ? s.p1 : s.p4)) : s.p3` | 4 | 15 | **4** |
+| `a ? (b ? s[k] : s.p1) : s.p3` | N + 2 | 19 | **6** |
+
+The old cost doubled with every level of nesting. It is now exactly the number of branches you wrote.
+
+**The class names your components render are unchanged** — byte for byte, for every input. Only the table the compiler ships got smaller. Simple forms that were already optimal are untouched: `a ? styles.x : styles.y` still compiles to a plain ternary between two class strings, not a lookup.
+
+---
+
+## 4. `@plumeria/compiler` emitted nothing
+
+Separately from the above, the standalone compiler had a hole. Where the bundler plugins raised an error, `compileCSS` accepted the same code and silently produced no rules for it:
+
+```tsx
+<button classStyle={enabled && styles[variant]} />
+```
+
+Before: no CSS at all for any key of `styles`. The class names were emitted into the markup with nothing behind them.
+
+The cause was that its conditional walk reported itself handled as soon as it entered a branch, so the bracket group inside never reached the code that collects styles. Every key of a group is reachable at runtime — being nested under a condition narrows nothing — so all of them are emitted now.
+
+If you use `@plumeria/compiler` directly, this is the fix worth upgrading for.
+
+---
+
+## Migration
+
+None. This release only accepts more than it did before, and the output for code that already compiled is identical.
+
+If you moved a condition into the brackets to work around the old error, you can leave it exactly as it is — `styles[cond ? 'a' : 'b']` remains one lookup and is still the clearest form when both branches come from the same object.
+
+---
+
+## Release notes
+
+## 18.1.0 (Jul 30, 2026)
+- Feat: accept a non-literal bracket key inside a condition, `enabled ? styles[variant] : styles.disabled` no longer fails to compile
+- Feat: fold an argument's mutually exclusive branches into one lookup, so nesting no longer doubles the generated table per level
+- Fix: emit CSS for a bracket group reached through a condition, `enabled && styles[variant]` produced no rules at all
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
