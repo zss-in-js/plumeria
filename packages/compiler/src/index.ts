@@ -1132,9 +1132,12 @@ export function compileCSS(options: CompilerOptions) {
         if (!processedNodes.has(path.node)) processCall(path.node);
       },
       JSXOpeningElement({ node }) {
-        if (node.name.type !== 'Identifier') return;
-        const tagName = node.name.value;
-        if (tagName[0] !== tagName[0].toUpperCase()) return;
+        if (node.name.type === 'Identifier') {
+          const tagName = node.name.value;
+          if (tagName[0] !== tagName[0].toUpperCase()) return;
+        } else if (node.name.type !== 'JSXMemberExpression') {
+          return;
+        }
 
         node.attributes.forEach((attr: JSXAttributeOrSpread) => {
           if (attr.type !== 'JSXAttribute') return;
