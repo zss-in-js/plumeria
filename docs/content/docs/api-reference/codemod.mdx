@@ -1,0 +1,158 @@
+---
+title: '@plumeria/codemod'
+description: 'Learn more about @plumeria/codemod.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`@plumeria/codemod`](https://www.npmjs.com/package/@plumeria/codemod) rewrites Plumeria APIs across a codebase. It ships one transform today: `rename-prop`, which changes the styling prop everywhere it appears.
+
+## Installation
+
+None. Run it with `npx` and it is gone again afterwards:
+
+```sh title="Terminal"
+npx @plumeria/codemod rename-prop classStyle sx
+```
+
+Install it only if you want it pinned in the repo:
+
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i --save-dev @plumeria/codemod
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/codemod
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i --save-dev @plumeria/codemod
+```
+</Tab>
+</Tabs>
+
+The package depends on ESLint and its TypeScript parser, and on nothing from Plumeria. It runs the same on a codebase you have not upgraded yet.
+
+## Usage
+
+```sh title="Terminal"
+npx @plumeria/codemod rename-prop <from> <to> [paths...]
+```
+
+`paths` default to the current directory. `dist`, `build`, `out`, `.next` and `coverage` are always skipped, and the transform reads `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts` and `.cts`.
+
+| Option | Description |
+| --- | --- |
+| `-d`, `--dry-run` | report what would change without writing |
+| `--no-types` | leave TypeScript declarations untouched |
+| `-h`, `--help` | show usage |
+| `-v`, `--version` | show the version |
+
+Start with `--dry-run`:
+
+```sh title="Terminal"
+npx @plumeria/codemod rename-prop classStyle sx --dry-run
+```
+
+```
+  src/Card.tsx  3
+  src/page.tsx  1
+
+4 occurrence(s) in 2 file(s) would become "sx".
+Run without --dry-run to apply.
+
+2 occurrence(s) need a manual rename — "classStyle" is bound to a local name there:
+  src/Card.tsx:8:24
+  src/Card.tsx:12:71
+```
+
+Drop the flag to apply. The report is the same, with the count confirmed rather than predicted:
+
+```
+✔ renamed 4 occurrence(s) of "classStyle" to "sx" in 2 file(s).
+```
+
+If the git working tree is dirty, it says so before writing — the rewrite is much easier to undo from a clean tree.
+
+## What it rewrites
+
+**JSX attributes.**
+
+```diff
+- <div classStyle={styles.card} />
++ <div sx={styles.card} />
+```
+
+**Property signatures annotated with `Style`.** That covers your `plumeria.d.ts` as well as the props of your own components:
+
+```diff
+  interface CardProps {
+-   classStyle?: Style;
++   sx?: Style;
+  }
+```
+
+The annotation has to be `Style` or `Plumeria.Style`, so an unrelated interface that happens to use the same key is left alone. Pass `--no-types` to skip declarations entirely.
+
+## What it reports instead of rewriting
+
+Where the prop is destructured, or read off an object, the name is a local binding and not only a prop:
+
+```tsx
+const Card = ({ classStyle }: CardProps) => <div classStyle={classStyle} />;
+
+const Panel = (props: CardProps) => <section classStyle={props.classStyle} />;
+```
+
+The attribute is safe to rewrite; the binding is a judgement call about the surrounding code. Those sites are listed with their positions so you can finish them by hand:
+
+```diff
+  const Card = ({ classStyle, title }: CardProps) => (
+-   <div classStyle={classStyle}>{title}</div>
++   <div sx={classStyle}>{title}</div>
+  );
+```
+
+Renaming the parameter as well is the usual next step — the codemod just will not guess it for you.
+
+## Names it refuses
+
+`<to>` has to be a valid identifier, has to differ from `<from>`, and cannot be a prop React already handles — `className`, `key`, `ref`, `children` or `style`:
+
+```
+✖ "style" is already used by React
+```
+
+Files that fail to parse are reported at the end and the command exits with `1`, so a broken file cannot be mistaken for a file with nothing to rename.
+
+## After the rewrite
+
+The codemod changes your source; it does not change your configuration. Point the toolchain at the new name:
+
+```ts title="next.config.ts"
+export default withPlumeria({}, { styleProp: 'sx' });
+```
+
+```ts title="eslint.config.ts"
+export default [
+  {
+    settings: { plumeria: { styleProp: 'sx' } },
+  },
+];
+```
+
+And point the type declaration at the same name — see [classStyle & use()](/docs/api-reference/javascript/use) for the reference that declares the prop.
+
+One practical note: the codemod does not reformat. If the new name is longer than the old one, lines that were near your print width can cross it. Run your formatter afterwards.
+
+## It is not only for migrations
+
+The names are arguments, so the transform is not tied to any particular release. Renaming the prop to whatever suits your codebase is the same command:
+
+```sh title="Terminal"
+npx @plumeria/codemod rename-prop styleName classStyle
+npx @plumeria/codemod rename-prop classStyle sx
+```
