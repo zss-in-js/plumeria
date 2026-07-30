@@ -44,6 +44,7 @@ import {
   optimizer,
   getFileDependencies,
   resolveExport,
+  resolveComponentKey,
   DEFAULT_STYLE_PROP,
 } from '@plumeria/utils';
 import type {
@@ -327,6 +328,15 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
           if (actualPath) {
             node.specifiers.forEach((specifier: ImportSpecifier) => {
+              if (specifier.type === 'ImportNamespaceSpecifier') {
+                // `import * as Icons` carries no export name of its own;
+                // `<Icons.Foo />` resolves from the module it points at.
+                localImports[specifier.local.value] = {
+                  actualPath,
+                  importedName: '*',
+                };
+                return;
+              }
               if (
                 specifier.type === 'ImportSpecifier' ||
                 specifier.type === 'ImportDefaultSpecifier'
@@ -975,7 +985,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
       const jsxOpeningElementMap = new Map<
         number,
-        { tagName: string; attributes: JSXAttributeOrSpread[] }
+        { compKey: string | null; attributes: JSXAttributeOrSpread[] }
       >();
 
       const componentParamNames = new Set<string>();
@@ -1682,12 +1692,8 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       // Pass 2: Confirm reference replacement
       traverse(ast, {
         JSXOpeningElement({ node }: { node: JSXOpeningElement }) {
-          let tagName = '';
-          if (node.name.type === 'Identifier') {
-            tagName = node.name.value;
-          }
           jsxOpeningElementMap.set(node.span.start, {
-            tagName,
+            compKey: resolveComponentKey(node.name, resourcePath, localImports),
             attributes: node.attributes,
           });
         },
@@ -1898,38 +1904,18 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           const attrName = node.name.value;
 
           if (attrName !== styleProp) {
-            let parentTagName = '';
+            let compKey: string | null = null;
             for (const [, val] of jsxOpeningElementMap) {
               const found = val.attributes
                 .filter((a): a is JSXAttribute => a.type === 'JSXAttribute')
                 .find((a) => a.span.start === node.span.start);
               if (found) {
-                parentTagName = val.tagName;
+                compKey = val.compKey;
                 break;
               }
             }
 
-            if (
-              parentTagName &&
-              parentTagName[0] === parentTagName[0].toUpperCase()
-            ) {
-              let compKey: string;
-              const imported = localImports[parentTagName];
-              if (imported) {
-                // Resolve re-exports the same way the scanner does so the
-                // compKey matches componentPropsTable's keys.
-                compKey = `${imported.actualPath}-${imported.importedName}`;
-                const resolved = resolveExport(
-                  imported.actualPath,
-                  imported.importedName,
-                );
-                if (resolved) {
-                  compKey = `${resolved.filePath}-${resolved.localName}`;
-                }
-              } else {
-                compKey = `${resourcePath}-${parentTagName}`;
-              }
-
+            if (compKey) {
               const list =
                 scannedTables.componentPropsTable?.[compKey]?.[attrName];
               if (
