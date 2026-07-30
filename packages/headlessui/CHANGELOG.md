@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 18.1.0
+
+### Minor Changes
+
+- 29a90d8: Bump version to 18.1.0
+
 ## 18.0.1
 
 ### Patch Changes
