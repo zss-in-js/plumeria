@@ -287,6 +287,39 @@ describe('scanAll classStyle prop registration', () => {
     expect(propEntries(tables)).toHaveLength(1);
   });
 
+  it('registers a member-chain tag under the module its leaf is declared in', () => {
+    const ns = f('props/ns.tsx');
+    const user = f('props/member.tsx');
+    const { tables } = scanFiles({
+      [child]: childSource,
+      [ns]: 'import "@plumeria/core"; import { Child } from "./Child"; export const svg = { Child };',
+      [user]:
+        'import * as css from "@plumeria/core"; import { svg } from "./ns"; const s = css.create({ box: { color: "red" } }); export const U = () => <svg.Child classStyle={s.box} />;',
+    });
+
+    const table = tables.componentPropsTable || {};
+    // Same key a bare `<Child />` would produce -- the chain lands on the leaf.
+    expect(table[`${child}-Child`]?.classStyle).toHaveLength(1);
+  });
+
+  it('follows a member chain of any depth, including a namespace import', () => {
+    const mid = f('props/mid.tsx');
+    const top = f('props/top.tsx');
+    const user = f('props/deep.tsx');
+    const { tables } = scanFiles({
+      [child]: childSource,
+      [mid]:
+        'import "@plumeria/core"; export { Child } from "./Child"; import { Child } from "./Child"; export const Social = { Child };',
+      [top]:
+        'import "@plumeria/core"; export { Social } from "./mid"; import { Social } from "./mid"; export const Icons = { Social };',
+      [user]:
+        'import * as css from "@plumeria/core"; import * as ns from "./top"; const s = css.create({ a: { color: "red" }, b: { color: "blue" } }); export const U = () => <div><ns.Icons.Social.Child classStyle={s.a} /><ns.Social.Child classStyle={s.b} /></div>;',
+    });
+
+    const table = tables.componentPropsTable || {};
+    expect(table[`${child}-Child`]?.classStyle).toHaveLength(2);
+  });
+
   it('keeps entries from two files that share a span offset', () => {
     const a = f('props/same-a.tsx');
     const b = f('props/same-b.tsx');
