@@ -1,5 +1,18 @@
 # @plumeria/compiler
 
+## 18.1.0
+
+### Minor Changes
+
+- 29a90d8: Feat: accept a non-literal bracket key inside a condition, `enabled ? styles[variant] : styles.disabled` no longer fails to compile
+  Feat: fold an argument's mutually exclusive branches into one lookup, so nesting no longer doubles the generated table per level
+  Fix: emit CSS for a bracket group reached through a condition, `enabled && styles[variant]` produced no rules at all
+
+### Patch Changes
+
+- Updated dependencies [29a90d8]
+  - @plumeria/utils@18.1.0
+
 ## 18.0.1
 
 ### Patch Changes
