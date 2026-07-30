@@ -36,7 +36,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <SiteHeader
             title={baseOptions.nav?.title}
             links={baseOptions.links ?? []}
-            sidebarTrigger={<DocsSidebarTrigger />}
+            sidebarTrigger={DocsSidebarTrigger}
           />
         ),
       }}
