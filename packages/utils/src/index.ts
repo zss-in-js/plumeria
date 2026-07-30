@@ -19,6 +19,7 @@ export {
   scanAll,
   getFileDependencies,
   resolveExport,
+  resolveComponentKey,
 } from './parser';
 export type { StyleRecord } from './create';
 export { getStyleRecords } from './create';
