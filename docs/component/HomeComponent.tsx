@@ -2,7 +2,7 @@ import * as css from '@plumeria/core';
 import { breakpoints } from 'lib/mediaQuery';
 import { CodeBlock } from './CodeBlock';
 import { ButtonLink } from './ButtonLink';
-import { PlumeriaLogo, svg } from './svg';
+import { svg } from './svg';
 import { theme } from 'lib/theme';
 
 const typing1 = css.keyframes({
@@ -475,7 +475,7 @@ export const HomeComponent = () => {
       <main classStyle={styles.container}>
         <section classStyle={styles.heroSection}>
           <div classStyle={styles.imageSection}>
-            <PlumeriaLogo size={220} styleArray={styles.image} />
+            <svg.PlumeriaLogo size={220} styleArray={styles.image} />
           </div>
 
           <div classStyle={styles.heroContent}>
