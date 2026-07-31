@@ -1,5 +1,13 @@
 # @plumeria/inspector
 
+## 18.1.1
+
+### Patch Changes
+
+- 4c16d5b: Bump version to 18.1.1
+- Updated dependencies [4c16d5b]
+  - @plumeria/headlessui@18.1.1
+
 ## 18.1.0
 
 ### Minor Changes
