@@ -129,6 +129,38 @@ export const Button = ({ size }: { size: Size }) => {
   Function keys (dynamic styles) within the style object are ignored during bracket notation lookup table compilation.
 </Callout>
 
+### The last source wins
+
+An element takes a list, and a property set by more than one entry keeps the value from the one written last. That is what lets a variant override the base above.
+
+The rule holds whatever the entries are — a plain style, a condition, a bracket group. Swapping two of them swaps which one applies:
+
+```tsx
+const styles = css.create({
+  base: { color: 'white' },
+  muted: { color: 'slategray' },
+});
+
+const toneStyles = css.create({
+  brand: { color: 'royalblue' },
+  danger: { color: 'crimson' },
+});
+
+// muted wins — it is written last
+<button classStyle={[styles.base, toneStyles[tone], isMuted && styles.muted]} />
+
+// toneStyles wins — now it is
+<button classStyle={[styles.base, isMuted && styles.muted, toneStyles[tone]]} />
+```
+
+All three set `color` here. Entries that touch different properties never compete, so their order does not matter — `[styles.base, sizeStyles[size]]` above reads the same either way.
+
+Merging goes property by property, and that includes nested blocks. Overriding a `:hover` colour leaves the rest of the `:hover` block in place.
+
+<Callout title="After 18.1.1">
+  The order holds across every kind of entry. Earlier releases resolved entries of different kinds by a fixed precedence, so an entry written later could be dropped.
+</Callout>
+
 ### Conditional Expressions with Bracket Notation
 
 The condition can sit inside the brackets or around them. Both compile to a single lookup:
@@ -169,9 +201,8 @@ When both keys are literals, read the property directly. A condition between two
 (isLarge ? "xpdfgu2b xj7b4jff" : "xhrr6ses x1v10r0u")
 ```
 
-<Callout type="warn" title="Before 18.1">
-  A condition placed around the brackets was rejected at build time, and had to be
-  moved inside. Both forms compile now, so the workaround is no longer needed.
+<Callout title="After 18.1">
+  Both placements compile. Earlier releases rejected a condition placed around the brackets, so it had to be moved inside — that workaround is no longer needed.
 </Callout>
 
 
