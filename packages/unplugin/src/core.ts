@@ -87,6 +87,9 @@ interface StyleConditional {
   groupName?: string;
   valueName?: string;
   varName?: string;
+  // Position among the sources of one styling prop. Later sources win, so the
+  // conflict table has to merge them in this order and not by kind.
+  order?: number;
 }
 
 export const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx'];
@@ -1107,6 +1110,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
         const conditionals: StyleConditional[] = [];
         let groupIdCounter = 0;
+        // Every source of this styling prop gets a slot, in the order it was
+        // written, so the conflict table can merge them the way the author
+        // stacked them.
+        let sourceOrder = 0;
+        const baseChunks: Array<{ order: number; style: CSSObject }> = [];
         let baseStyle: CSSObject = {};
         let isOptimizable = true;
 
@@ -1250,6 +1258,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           if (staticStyle) {
             if (currentTestStrings.length === 0) {
               baseStyle = deepMerge(baseStyle, staticStyle);
+              baseChunks.push({ order: sourceOrder++, style: staticStyle });
             } else {
               conditionals.push({
                 test: node,
@@ -1257,6 +1266,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 truthy: staticStyle,
                 falsy: {},
                 varName: undefined,
+                order: sourceOrder++,
               });
             }
             return true;
@@ -1273,6 +1283,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                   truthy: trueStyle,
                   falsy: falseStyle,
                   varName: undefined,
+                  order: sourceOrder++,
                 });
                 return true;
               }
@@ -1333,6 +1344,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
             if (propPossibilities && propPossibilities.length > 0) {
               const currentGroupId = ++groupIdCounter;
+              const currentOrder = sourceOrder++;
 
               const uniqueEntries: any[] = [];
               propPossibilities.forEach((entry) => {
@@ -1349,6 +1361,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                   truthy: entry.styleObj,
                   falsy: {},
                   groupId: currentGroupId,
+                  order: currentOrder,
                   groupName: undefined,
                   valueName: entry.key,
                   varName,
@@ -1414,16 +1427,20 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                       const groupVariants = variantObj[groupName];
                       if (!groupVariants) continue;
                       const currentGroupId = ++groupIdCounter;
+                      const currentOrder = sourceOrder++;
                       const valSource = getSource(valExpr);
                       if (valExpr.type === 'StringLiteral') {
                         const groupVariantsAsObj = groupVariants as CSSObject;
-                        if (groupVariantsAsObj[valExpr.value as string])
-                          baseStyle = deepMerge(
-                            baseStyle,
-                            groupVariantsAsObj[
-                              valExpr.value as string
-                            ] as CSSObject,
-                          );
+                        const picked = groupVariantsAsObj[
+                          valExpr.value as string
+                        ] as CSSObject | undefined;
+                        if (picked) {
+                          baseStyle = deepMerge(baseStyle, picked);
+                          baseChunks.push({
+                            order: sourceOrder++,
+                            style: picked,
+                          });
+                        }
                         continue;
                       }
                       Object.entries(groupVariants as CSSObject).forEach(
@@ -1435,6 +1452,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                             truthy: style as CSSObject,
                             falsy: {},
                             groupId: currentGroupId,
+                            order: currentOrder,
                             groupName,
                             valueName: optionName,
                             varName,
@@ -1447,14 +1465,17 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 }
                 const argSource = getSource(arg);
                 if (t.isStringLiteral(arg)) {
-                  if (variantObj[arg.value as string])
-                    baseStyle = deepMerge(
-                      baseStyle,
-                      variantObj[arg.value as string] as CSSObject,
-                    );
+                  const picked = variantObj[arg.value as string] as
+                    | CSSObject
+                    | undefined;
+                  if (picked) {
+                    baseStyle = deepMerge(baseStyle, picked);
+                    baseChunks.push({ order: sourceOrder++, style: picked });
+                  }
                   continue;
                 }
                 const currentGroupId = ++groupIdCounter;
+                const currentOrder = sourceOrder++;
                 Object.entries(variantObj).forEach(([key, style]) => {
                   conditionals.push({
                     test: arg,
@@ -1463,6 +1484,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                     truthy: style as CSSObject,
                     falsy: {},
                     groupId: currentGroupId,
+                    order: currentOrder,
                     groupName: undefined,
                     valueName: key,
                     varName,
@@ -1490,6 +1512,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 ([groupName, groupVariants]) => {
                   if (!groupVariants) return;
                   const currentGroupId = ++groupIdCounter;
+                  const currentOrder = sourceOrder++;
                   Object.entries(groupVariants).forEach(
                     ([optionName, style]) => {
                       conditionals.push({
@@ -1499,6 +1522,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                         truthy: style as CSSObject,
                         falsy: {},
                         groupId: currentGroupId,
+                        order: currentOrder,
                         groupName,
                         valueName: optionName,
                         varName,
@@ -1522,6 +1546,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               const dynExpr = expr.property.expression;
               const dynSource = getSource(dynExpr);
               const currentGroupId = ++groupIdCounter;
+              const currentOrder = sourceOrder++;
               Object.entries(styleObj).forEach(([optionName, style]) => {
                 conditionals.push({
                   test: dynExpr,
@@ -1530,6 +1555,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                   truthy: style as CSSObject,
                   falsy: {},
                   groupId: currentGroupId,
+                  order: currentOrder,
                   groupName: undefined,
                   valueName: optionName,
                   varName,
@@ -1544,6 +1570,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           const decision = resolveDecision(expr);
           if (decision && (decision.hasGroup || decision.leaves > 2)) {
             const groupId = ++groupIdCounter;
+            const currentOrder = sourceOrder++;
             decision.options.forEach(({ value, style }) =>
               conditionals.push({
                 test: expr,
@@ -1552,6 +1579,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 truthy: style,
                 falsy: {},
                 groupId,
+                order: currentOrder,
                 groupName: undefined,
                 valueName: value,
                 varName: undefined,
@@ -1725,7 +1753,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           conflictConditionals.length > 0
         ) {
           interface Dimension {
-            type: 'std' | 'var';
+            type: 'std' | 'var' | 'const';
             options: Array<{
               value: number | string | undefined;
               style: CSSObject;
@@ -1733,18 +1761,43 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             }>;
             testExpr?: string;
           }
-          const dimensions: Dimension[] = [];
+          // Ordered by where each source was written, so `recurse` merges them
+          // the way the author stacked them rather than grouping by kind.
+          const ordered: Array<{ order: number; dimension: Dimension }> = [];
+
+          // An unconditional style is a source with a single outcome. Giving it
+          // a slot of its own is what lets a later one override an earlier
+          // condition; having one outcome, it never widens the table.
+          baseChunks.forEach(({ order, style }) => {
+            const conflicting: CSSObject = {};
+            Object.entries(style).forEach(([key, value]) => {
+              if (conflictingKeys.has(key)) conflicting[key] = value;
+            });
+            if (Object.keys(conflicting).length === 0) return;
+            ordered.push({
+              order,
+              dimension: {
+                type: 'const',
+                options: [
+                  { value: undefined, style: conflicting, label: 'base' },
+                ],
+              },
+            });
+          });
 
           conflictConditionals
             .filter((c) => c.groupId === undefined)
             .forEach((c) => {
-              dimensions.push({
-                type: 'std',
-                testExpr: c.testString ?? getSource(c.test),
-                options: [
-                  { value: 0, style: c.falsy, label: 'false' },
-                  { value: 1, style: c.truthy, label: 'true' },
-                ],
+              ordered.push({
+                order: c.order ?? 0,
+                dimension: {
+                  type: 'std',
+                  testExpr: c.testString ?? getSource(c.test),
+                  options: [
+                    { value: 0, style: c.falsy, label: 'false' },
+                    { value: 1, style: c.truthy, label: 'true' },
+                  ],
+                },
               });
             });
 
@@ -1769,19 +1822,25 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             if (off) opts.push({ ...off, truthy: {}, falsy: {} });
           });
           Object.entries(conflictVarGroups).forEach(([, opts]) => {
-            dimensions.push({
-              type: 'var',
-              testExpr:
-                opts[0].testLHS ??
-                opts[0].testString ??
-                getSource(opts[0].test),
-              options: opts.map((opt) => ({
-                value: opt.valueName,
-                style: opt.truthy,
-                label: opt.valueName || 'default',
-              })),
+            ordered.push({
+              order: opts[0].order ?? 0,
+              dimension: {
+                type: 'var',
+                testExpr:
+                  opts[0].testLHS ??
+                  opts[0].testString ??
+                  getSource(opts[0].test),
+                options: opts.map((opt) => ({
+                  value: opt.valueName,
+                  style: opt.truthy,
+                  label: opt.valueName || 'default',
+                })),
+              },
             });
           });
+
+          ordered.sort((a, b) => a.order - b.order);
+          const dimensions: Dimension[] = ordered.map((o) => o.dimension);
 
           const results: Record<string, string> = {};
           const recurse = (
@@ -1796,14 +1855,22 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               if (className) results[keyParts.join('__')] = className;
               return;
             }
-            dimensions[dimIndex].options.forEach((opt) =>
-              recurse(dimIndex + 1, deepMerge(currentStyle, opt.style), [
-                ...keyParts,
-                String(opt.value),
-              ]),
+            const dimension = dimensions[dimIndex];
+            dimension.options.forEach((opt) =>
+              recurse(
+                dimIndex + 1,
+                deepMerge(currentStyle, opt.style),
+                // A constant offers no runtime choice, so it claims no part of
+                // the key -- it only fixes where its style lands in the merge.
+                dimension.type === 'const'
+                  ? keyParts
+                  : [...keyParts, String(opt.value)],
+              ),
             );
           };
-          recurse(0, baseConflict, []);
+          // The constants are dimensions of their own now, so the merge starts
+          // from nothing and picks them up in written order.
+          recurse(0, {}, []);
 
           const baseConflictClass =
             Object.keys(baseConflict).length > 0
@@ -1812,6 +1879,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                   .join(' ')
               : '';
           const masterKeyExpr = dimensions
+            .filter((dim) => dim.type !== 'const')
             .map((dim) =>
               dim.type === 'std'
                 ? `(${dim.testExpr} ? "1" : "0")`
