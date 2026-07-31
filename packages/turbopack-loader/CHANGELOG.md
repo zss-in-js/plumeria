@@ -1,5 +1,15 @@
 # @plumeria/turbopack-loader
 
+## 18.1.1
+
+### Patch Changes
+
+- 4c16d5b: Fix: merge the sources of a styling prop in the order they are written, an unconditional style placed after a condition no longer loses to it
+  Fix: a condition placed after a bracket group is no longer overridden by that group
+- Updated dependencies [4c16d5b]
+  - @plumeria/compiler@18.1.1
+  - @plumeria/utils@18.1.1
+
 ## 18.1.0
 
 ### Minor Changes
