@@ -124,13 +124,29 @@ If you use `@plumeria/compiler` directly, this is the fix worth upgrading for.
 
 ## Migration
 
-None. This release only accepts more than it did before, and the output for code that already compiled is identical.
+None for 18.1.0. It only accepts more than it did before, and the output for code that already compiled is identical.
 
 If you moved a condition into the brackets to work around the old error, you can leave it exactly as it is — `styles[cond ? 'a' : 'b']` remains one lookup and is still the clearest form when both branches come from the same object.
+
+### 18.1.1 does change output
+
+A property set by more than one source used to be resolved by a fixed precedence — a plain style lost to a condition, and a condition lost to a bracket group — no matter which order they were written in. It now follows the order you wrote, the rule two plain styles have always followed:
+
+```tsx
+// The condition comes last, so it wins. Until 18.1.1 the group did.
+<div classStyle={[styles.base, sizeStyles[size], isMuted && styles.muted]} />
+```
+
+Only a list that mixes kinds *and* has two of them set the same property is affected. Where the order you wrote already agreed with the old precedence nothing changes; where it did not, the style written last now applies — usually the one that was being silently dropped.
 
 ---
 
 ## Release notes
+
+## 18.1.1 (Jul 31, 2026)
+- Fix: merge the sources of a styling prop in the order they are written, an unconditional style placed after a condition no longer loses to it
+- Fix: a condition placed after a bracket group is no longer overridden by that group
+
 
 ## 18.1.0 (Jul 30, 2026)
 - Feat: accept a non-literal bracket key inside a condition, `enabled ? styles[variant] : styles.disabled` no longer fails to compile
