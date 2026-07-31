@@ -1,5 +1,10 @@
 # Release Notes
 
+## 18.1.1 (Jul 31, 2026)
+
+- Fix: merge the sources of a styling prop in the order they are written, an unconditional style placed after a condition no longer loses to it
+- Fix: a condition placed after a bracket group is no longer overridden by that group
+
 ## 18.1.0 (Jul 30, 2026)
 
 - Feat: accept a non-literal bracket key inside a condition, `enabled ? styles[variant] : styles.disabled` no longer fails to compile
