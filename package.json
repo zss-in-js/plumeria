@@ -13,13 +13,17 @@
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
     "build": "turbo run build --filter=./packages/*",
-    "test": "jest --coverage && jest unplugin turbopack-loader",
+    "build:examples": "turbo run build --filter=./examples/*",
+    "typecheck": "tsc --noEmit --project tsconfig.test.json",
+    "test": "jest --coverage",
     "dev": "cd docs && npm run dev",
     "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
     "test:e2e": "playwright test",
-    "prettier": "prettier --write \"**/*.js\" \"**/*.ts\"",
-    "prettier:report": "prettier --check \"**/*.js\" \"**/*.ts\"",
-    "lint:report": "eslint --fix",
+    "test:e2e:prod": "E2E_TARGET=production playwright test",
+    "prettier": "prettier --write \"**/*.js\" \"**/*.ts\" \"**/*.tsx\"",
+    "prettier:report": "prettier --check \"**/*.js\" \"**/*.ts\" \"**/*.tsx\"",
+    "lint": "eslint --fix",
+    "lint:report": "eslint --max-warnings=0",
     "changeset:version": "node scripts/update-release-note.js"
   },
   "devDependencies": {
