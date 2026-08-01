@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('Variants are correctly staticized and applied', async ({ page }) => {
-  await page.goto('http://localhost:4000');
+  await page.goto('/');
   await page.waitForSelector('[data-testid="variant-div-1"]');
 
   const div1 = page.locator('[data-testid="variant-div-1"]');
