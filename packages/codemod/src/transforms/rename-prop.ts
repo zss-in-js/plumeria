@@ -21,10 +21,9 @@ function isStyleAnnotation(node: any): boolean {
   switch (node.type) {
     case 'TSTypeReference': {
       const name = node.typeName;
-      if (name?.type === 'Identifier') return name.name === 'Style';
       // Plumeria.Style
       if (name?.type === 'TSQualifiedName') return name.right?.name === 'Style';
-      return false;
+      return name?.name === 'Style';
     }
     case 'TSUnionType':
     case 'TSIntersectionType':
