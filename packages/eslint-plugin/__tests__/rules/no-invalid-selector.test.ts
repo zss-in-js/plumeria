@@ -113,6 +113,37 @@ ruleTester.run('no-invalid-selector', noInvalidSelector, {
         })
       `,
     },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+
+        css.keyframes({ ...base, from: { ...base, opacity: 0 } });
+        css.viewTransition({ ...base, old: { ...base, opacity: 0 } });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+
+        css.keyframes({ from: shared });
+        css.viewTransition({ old: shared });
+      `,
+    },
+    {
+      code: `
+        import { keyframes as kf, viewTransition as vt } from '@plumeria/core';
+
+        kf({ from: { opacity: 0 } });
+        vt({ old: { opacity: 0 } });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+
+        (function () { return css; })();
+      `,
+    },
   ],
   invalid: [
     {
