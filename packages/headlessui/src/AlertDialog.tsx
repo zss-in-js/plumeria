@@ -14,7 +14,9 @@ const AlertDialogTrigger = React.forwardRef<
 });
 AlertDialogTrigger.displayName = 'AlertDialogTrigger';
 
-const AlertDialogPortal = (props: AlertDialogPrimitive.AlertDialogPortalProps) => {
+const AlertDialogPortal = (
+  props: AlertDialogPrimitive.AlertDialogPortalProps,
+) => {
   return <AlertDialogPrimitive.Portal {...props} />;
 };
 AlertDialogPortal.displayName = 'AlertDialogPortal';
