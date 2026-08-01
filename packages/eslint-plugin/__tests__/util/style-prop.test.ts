@@ -2,6 +2,7 @@ import type { Rule } from 'eslint';
 import {
   DEFAULT_STYLE_PROP,
   resolveStyleProp,
+  stylePropSchema,
 } from '../../src/util/style-prop';
 
 const contextOf = (options: unknown[], settings: object = {}) =>
@@ -37,5 +38,17 @@ describe('resolveStyleProp', () => {
 
   it('falls back to the default when the context carries neither field', () => {
     expect(resolveStyleProp({} as Rule.RuleContext)).toBe(DEFAULT_STYLE_PROP);
+  });
+});
+
+describe('stylePropSchema', () => {
+  it('accepts styleProp and nothing else', () => {
+    expect(stylePropSchema).toEqual([
+      {
+        type: 'object',
+        properties: { styleProp: { type: 'string' } },
+        additionalProperties: false,
+      },
+    ]);
   });
 });
