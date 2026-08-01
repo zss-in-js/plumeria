@@ -3,6 +3,7 @@ import * as parser from '@typescript-eslint/parser';
 import {
   validatePseudos,
   splitChainedPseudos,
+  isValidPseudo,
 } from '../../src/rules/validate-pseudos';
 import path from 'path';
 
@@ -275,5 +276,26 @@ ruleTesterNoType.run('validate-pseudos', validatePseudos, {
 describe('helper functions', () => {
   test('splitChainedPseudos with empty string', () => {
     expect(splitChainedPseudos('')).toEqual([]);
+  });
+
+  test('isValidPseudo accepts a static pseudo', () => {
+    expect(isValidPseudo(':hover')).toBe(true);
+  });
+
+  test('isValidPseudo accepts a functional pseudo that carries content', () => {
+    expect(isValidPseudo(':nth-child(2n)')).toBe(true);
+  });
+
+  test('isValidPseudo rejects a functional pseudo with empty content', () => {
+    expect(isValidPseudo(':not()')).toBe(false);
+    expect(isValidPseudo(':not(   )')).toBe(false);
+  });
+
+  test('isValidPseudo rejects an unopened functional pseudo', () => {
+    expect(isValidPseudo(':nth-child(2n')).toBe(false);
+  });
+
+  test('isValidPseudo rejects an unknown selector', () => {
+    expect(isValidPseudo(':hovver')).toBe(false);
   });
 });
