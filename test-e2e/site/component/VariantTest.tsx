@@ -57,22 +57,13 @@ export function VariantTest() {
       >
         Large Secondary Variant
       </div>
-      <div
-        data-testid="bracket-div-1"
-        classStyle={s[v1]}
-      >
+      <div data-testid="bracket-div-1" classStyle={s[v1]}>
         Bracket p1
       </div>
-      <div
-        data-testid="bracket-div-2"
-        classStyle={s[v2]}
-      >
+      <div data-testid="bracket-div-2" classStyle={s[v2]}>
         Bracket p2
       </div>
-      <div
-        data-testid="bracket-div-3"
-        classStyle={myStyles}
-      >
+      <div data-testid="bracket-div-3" classStyle={myStyles}>
         Bracket p1 (indirect)
       </div>
     </div>
