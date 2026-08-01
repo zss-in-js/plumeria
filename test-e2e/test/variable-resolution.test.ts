@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('Variables and imported constants are resolved correctly', async ({
   page,
 }) => {
-  await page.goto('http://localhost:4000');
+  await page.goto('/');
   await page.waitForSelector('[data-testid="variable-div"]');
   const div = page.locator('[data-testid="variable-div"]');
 
