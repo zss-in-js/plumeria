@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as glob from '@rust-gear/glob';
 
 const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-'));
 const LEAF = path.join(DIR, 'logo.tsx');
@@ -10,7 +9,7 @@ const TOP = path.join(DIR, 'icons.tsx');
 const PARENT = path.join(DIR, 'Home.tsx');
 
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
-const mockedGlob = glob as jest.Mocked<typeof glob>;
+const mockedGlob = jest.requireMock<{ globSync: jest.Mock }>('@rust-gear/glob');
 
 import loader from '../src/index';
 
@@ -63,7 +62,7 @@ const run = (file: string): Promise<string> =>
 
 beforeAll(() => {
   for (const [p, src] of Object.entries(files)) fs.writeFileSync(p, src);
-  mockedGlob.globSync.mockReturnValue(Object.keys(files) as never);
+  mockedGlob.globSync.mockReturnValue(Object.keys(files));
 });
 
 afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
