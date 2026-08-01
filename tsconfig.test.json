@@ -7,5 +7,5 @@
     "rootDir": ".",
     "types": ["jest", "node"]
   },
-  "include": ["packages"]
+  "include": ["packages/*/__tests__"]
 }
