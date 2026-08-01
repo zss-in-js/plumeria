@@ -38,6 +38,24 @@ jobs:
           pnpm build
           pnpm lint:report
 
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+
+      - uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      - name: typecheck execute
+        run: |
+          pnpm build
+          pnpm typecheck
+
   unit-test:
     runs-on: ubuntu-latest
     steps:
@@ -67,6 +85,25 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
+
+  examples-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+
+      - uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Build examples
+        run: pnpm build:examples
 
   e2e-test:
     runs-on: ubuntu-latest
@@ -102,8 +139,13 @@ jobs:
         if: steps.pw-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
-      - name: Run Playwright tests
+      - name: Run Playwright tests (dev)
         run: pnpm exec playwright test
+
+      - name: Run Playwright tests (production)
+        run: pnpm exec playwright test
+        env:
+          E2E_TARGET: production
 
       - uses: actions/upload-artifact@v4
         if: always()
