@@ -2892,6 +2892,15 @@ ruleTester.run('validate-values', validateValues, {
         },
       ],
     },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { contain: ' strict' } });`,
+      errors: [
+        {
+          message:
+            "'contain' has an invalid value ' strict'. Valid values: none, strict, content, size, inline-size, layout, style, paint",
+        },
+      ],
+    },
 
     // TextSizeAdjust invalid
     {
