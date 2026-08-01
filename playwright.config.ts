@@ -1,11 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isProduction = process.env.E2E_TARGET === 'production';
+const port = isProduction ? 4001 : 4000;
+
 export default defineConfig({
   webServer: {
-    command: 'pnpm next dev --port 4000',
+    command: isProduction
+      ? `pnpm build && pnpm next start --port ${port}`
+      : `pnpm next dev --port ${port}`,
     cwd: './test-e2e/site',
-    reuseExistingServer: true,
-    port: 4000,
+    reuseExistingServer: !isProduction,
+    timeout: isProduction ? 180 * 1000 : 60 * 1000,
+    port,
   },
   testDir: './test-e2e',
   /* Maximum time one test can run for. */
@@ -22,10 +28,8 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 
-  /* Base URL to use in actions like `await page.goto('/')`. */
   /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
   use: {
-    baseURL: 'http://localhost:4000',
     trace: process.env.CI ? 'on-first-retry' : 'on',
   },
 
