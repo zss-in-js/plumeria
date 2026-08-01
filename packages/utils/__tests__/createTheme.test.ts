@@ -97,8 +97,8 @@ describe('createTheme', () => {
         theme: 'red',
       },
       fontSize: {
-        default: 16,
-        theme: 20,
+        default: '16px',
+        theme: '20px',
       },
     });
 
@@ -108,19 +108,19 @@ describe('createTheme', () => {
       8,
     );
     const fontHash = genBase36Hash(
-      { fontSize: { default: 16, theme: 20 } },
+      { fontSize: { default: '16px', theme: '20px' } },
       1,
       8,
     );
 
     expect((result as any)['.custom-theme']).toEqual({
       [`--${textHash}-text-color`]: 'red',
-      [`--${fontHash}-font-size`]: 20,
+      [`--${fontHash}-font-size`]: '20px',
     });
 
     expect(result[':where(:root)']).toEqual({
       [`--${textHash}-text-color`]: 'blue',
-      [`--${fontHash}-font-size`]: 16,
+      [`--${fontHash}-font-size`]: '16px',
     });
   });
 });
