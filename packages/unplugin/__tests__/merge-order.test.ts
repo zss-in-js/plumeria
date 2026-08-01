@@ -48,7 +48,6 @@ const compile = async (styleExpr: string) => {
 
 const evaluate = (expr: string, vars: Record<string, unknown>) => {
   const names = Object.keys(vars);
-  // eslint-disable-next-line no-new-func
   const fn = new Function(...names, `return (${expr});`);
   return (fn(...names.map((n) => vars[n])) as string)
     .trim()
