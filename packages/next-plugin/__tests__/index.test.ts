@@ -1,4 +1,15 @@
+jest.mock('fs', () => {
+  const actual = jest.requireActual('fs');
+  return {
+    ...actual,
+    writeFileSync: jest.fn(),
+    existsSync: jest.fn(),
+    rmdirSync: jest.fn(),
+  };
+});
+
 import webpack from 'webpack';
+import * as fs from 'fs';
 import { withPlumeria } from '../src';
 import type {
   NextConfig,
@@ -188,6 +199,9 @@ describe('withPlumeria', () => {
     afterEach(() => {
       jest.replaceProperty(process.env, 'NODE_ENV', originalEnv);
       delete (global as any).__PLUMERIA_RESET_DONE__;
+      jest.mocked(fs.existsSync).mockReset();
+      jest.mocked(fs.rmdirSync).mockReset();
+      jest.mocked(fs.writeFileSync).mockReset();
     });
 
     it('runs reset logic in development mode', () => {
@@ -200,35 +214,45 @@ describe('withPlumeria', () => {
     });
 
     it('removes lock directory if it exists and handles file write errors', () => {
-      const fs = require('fs');
       jest.replaceProperty(process.env, 'NODE_ENV', 'development');
       const VIRTUAL_FILE_PATH =
         require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
       const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
 
-      if (!fs.existsSync(LOCK_DIR_PATH)) {
-        fs.mkdirSync(LOCK_DIR_PATH);
-      }
+      jest.mocked(fs.existsSync).mockReturnValue(true);
 
       withPlumeria();
 
-      expect(fs.existsSync(LOCK_DIR_PATH)).toBe(false);
-
-      const backup = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf8');
-      fs.unlinkSync(VIRTUAL_FILE_PATH);
-      fs.mkdirSync(VIRTUAL_FILE_PATH);
+      expect(fs.rmdirSync).toHaveBeenCalledWith(LOCK_DIR_PATH);
+      expect(fs.writeFileSync).toHaveBeenCalledWith(
+        VIRTUAL_FILE_PATH,
+        '/** Placeholder file */\n',
+        'utf-8',
+      );
 
       const consoleErrorSpy = jest
         .spyOn(console, 'error')
         .mockImplementation(() => {});
+      jest.mocked(fs.writeFileSync).mockImplementationOnce(() => {
+        throw new Error('EACCES: permission denied');
+      });
 
       delete (global as any).__PLUMERIA_RESET_DONE__;
       expect(() => withPlumeria()).not.toThrow();
       expect(consoleErrorSpy).toHaveBeenCalled();
 
-      fs.rmdirSync(VIRTUAL_FILE_PATH);
-      fs.writeFileSync(VIRTUAL_FILE_PATH, backup, 'utf8');
       consoleErrorSpy.mockRestore();
+    });
+
+    it('ignores a lock directory that cannot be removed', () => {
+      jest.replaceProperty(process.env, 'NODE_ENV', 'development');
+      jest.mocked(fs.existsSync).mockReturnValue(true);
+      jest.mocked(fs.rmdirSync).mockImplementationOnce(() => {
+        throw new Error('ENOTEMPTY');
+      });
+
+      expect(() => withPlumeria()).not.toThrow();
+      expect(fs.writeFileSync).toHaveBeenCalled();
     });
   });
 
