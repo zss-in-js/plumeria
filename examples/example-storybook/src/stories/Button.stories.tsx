@@ -1,58 +1,58 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Button } from "./Button";
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from './Button';
 
 const meta = {
-  title: "Example/Button",
+  title: 'Example/Button',
   component: Button,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   args: {
-    children: "Button",
-    variant: "primary",
-    size: "medium",
+    children: 'Button',
+    variant: 'primary',
+    size: 'medium',
     disabled: false,
     loading: false,
   },
   argTypes: {
     variant: {
-      control: "select",
+      control: 'select',
       options: [
-        "primary",
-        "secondary",
-        "tertiary",
-        "danger",
-        "warning",
-        "info",
-        "light",
-        "dark",
-        "glass",
-        "neon",
-        "gradient",
-        "shimmer",
-        "metallic",
-        "aurora",
+        'primary',
+        'secondary',
+        'tertiary',
+        'danger',
+        'warning',
+        'info',
+        'light',
+        'dark',
+        'glass',
+        'neon',
+        'gradient',
+        'shimmer',
+        'metallic',
+        'aurora',
       ],
     },
     size: {
-      control: "select",
-      options: ["small", "medium", "large"],
+      control: 'select',
+      options: ['small', 'medium', 'large'],
     },
     disabled: {
-      control: "boolean",
+      control: 'boolean',
     },
     loading: {
-      control: "boolean",
+      control: 'boolean',
     },
     children: {
-      control: "text",
+      control: 'text',
     },
     name: {
-      control: "text",
+      control: 'text',
     },
-    "aria-label": {
-      control: "text",
+    'aria-label': {
+      control: 'text',
     },
   },
 } satisfies Meta<typeof Button>;
@@ -62,15 +62,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Interactive: Story = {
   args: {
-    children: "Button",
+    children: 'Button',
   },
 };
 
 export const Variants: Story = {
-  name: "Variants & States",
+  name: 'Variants & States',
   render: () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <Button variant="primary" name="primary">
           Primary
         </Button>
@@ -81,7 +81,7 @@ export const Variants: Story = {
           Tertiary
         </Button>
       </div>
-      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <Button variant="danger" name="danger">
           Danger
         </Button>
@@ -92,7 +92,7 @@ export const Variants: Story = {
           Info
         </Button>
       </div>
-      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <Button variant="light" name="light">
           Light
         </Button>
@@ -102,12 +102,12 @@ export const Variants: Story = {
       </div>
       <div
         style={{
-          display: "flex",
-          gap: "10px",
-          alignItems: "center",
-          padding: "20px",
-          background: "linear-gradient(45deg, #333, #666)",
-          borderRadius: "8px",
+          display: 'flex',
+          gap: '10px',
+          alignItems: 'center',
+          padding: '20px',
+          background: 'linear-gradient(45deg, #333, #666)',
+          borderRadius: '8px',
         }}
       >
         <Button variant="glass" name="glass">
@@ -116,19 +116,19 @@ export const Variants: Story = {
       </div>
       <div
         style={{
-          display: "flex",
-          gap: "10px",
-          alignItems: "center",
-          padding: "20px",
-          background: "#111",
-          borderRadius: "8px",
+          display: 'flex',
+          gap: '10px',
+          alignItems: 'center',
+          padding: '20px',
+          background: '#111',
+          borderRadius: '8px',
         }}
       >
         <Button variant="neon" name="neon">
           Neon
         </Button>
       </div>
-      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <Button variant="gradient" name="gradient">
           Gradient
         </Button>
@@ -142,7 +142,7 @@ export const Variants: Story = {
           Aurora
         </Button>
       </div>
-      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <Button variant="primary" name="primary-loading" loading>
           Primary
         </Button>
@@ -153,7 +153,7 @@ export const Variants: Story = {
           Tertiary
         </Button>
       </div>
-      <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <Button variant="primary" name="primary-disabled" disabled>
           Primary
         </Button>
@@ -170,7 +170,7 @@ export const Variants: Story = {
 
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
       <Button variant="primary" size="small" name="primary-small">
         Small
       </Button>
