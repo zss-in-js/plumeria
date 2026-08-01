@@ -1,6 +1,7 @@
 import webpack from 'webpack';
 import { withPlumeria } from '../src';
 import type {
+  NextConfig,
   WebpackConfigContext,
   TurbopackLoaderItem,
   TurbopackRuleConfigCollection,
