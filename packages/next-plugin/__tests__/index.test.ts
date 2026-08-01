@@ -263,4 +263,37 @@ describe('withPlumeria', () => {
       expect(loaderItem(withPlumeria()).options).toEqual({});
     });
   });
+
+  describe('turbopack rule conditions', () => {
+    const ruleFor = (config: NextConfig) =>
+      config.turbopack?.rules?.['*.tsx'] as { condition?: unknown };
+
+    it('applies a condition on next 16 and up', () => {
+      expect(ruleFor(withPlumeria()).condition).toEqual({
+        all: [{ not: 'foreign' }, { content: /@plumeria\/core/ }],
+      });
+    });
+
+    it('omits the condition when the next version is unreadable', () => {
+      jest.isolateModules(() => {
+        jest.doMock('next/package.json', () => {
+          throw new Error('unreadable');
+        });
+        const isolated = require('../src') as typeof import('../src');
+        expect(ruleFor(isolated.withPlumeria())).not.toHaveProperty(
+          'condition',
+        );
+      });
+    });
+
+    it('omits the condition on next 15', () => {
+      jest.isolateModules(() => {
+        jest.doMock('next/package.json', () => ({ version: '15.4.2' }));
+        const isolated = require('../src') as typeof import('../src');
+        expect(ruleFor(isolated.withPlumeria())).not.toHaveProperty(
+          'condition',
+        );
+      });
+    });
+  });
 });
