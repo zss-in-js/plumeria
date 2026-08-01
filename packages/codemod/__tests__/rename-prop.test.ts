@@ -37,6 +37,26 @@ jsxTester.run('rename-prop (jsx)', renameProp, {
       code: '<div sx={styles.text} />',
       options,
     },
+    {
+      code: '<svg><use xlink:styleName="#icon" /></svg>',
+      options,
+    },
+    {
+      code: "const Card = (props) => <div classStyle={props['styleName']} />;",
+      options,
+    },
+    {
+      code: 'class Card { #styleName; get style() { return this.#styleName; } }',
+      options,
+    },
+    {
+      code: 'const { [styleName]: value } = props;',
+      options,
+    },
+    {
+      code: "const { 'styleName': value } = props;",
+      options,
+    },
   ],
   invalid: [
     {
@@ -95,6 +115,10 @@ tsTester.run('rename-prop (types)', renameProp, {
     },
     {
       code: 'interface Props { classStyle?: Style }',
+      options,
+    },
+    {
+      code: 'interface Props { styleName }',
       options,
     },
   ],
