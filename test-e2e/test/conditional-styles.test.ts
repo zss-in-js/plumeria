@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('Conditional styles apply correctly through state changes', async ({
   page,
 }) => {
-  await page.goto('http://localhost:4000');
+  await page.goto('/');
   await page.waitForSelector('[data-testid="conditional-div"]');
   const div = page.locator('[data-testid="conditional-div"]');
 
