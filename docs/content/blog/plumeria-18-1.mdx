@@ -143,6 +143,10 @@ Only a list that mixes kinds *and* has two of them set the same property is affe
 
 ## Release notes
 
+## 18.1.4 (Aug 2, 2026)
+- Fix: keep the virtual css id relative so a bundler cannot print the author's directories into the stylesheet it ships
+- Fix: strip the annotation naming the virtual css from the emitted stylesheet on esbuild and Bun
+
 ## 18.1.2 (Aug 2, 2026)
 - Fix: tell two bracket groups apart when one condition folds both into a lookup, a key both objects carry no longer answers with the later group's style
 - Fix: number a bracket dimension's keys in a compound lookup, a key holding the `__` the compound key is joined with no longer blurs where one dimension ends
