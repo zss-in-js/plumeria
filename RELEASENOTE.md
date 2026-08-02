@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.1.3 (Aug 2, 2026)
+
+- Update dependencies
+
 ## 18.1.2 (Aug 2, 2026)
 
 - Fix: tell two bracket groups apart when one condition folds both into a lookup, a key both objects carry no longer answers with the later group's style

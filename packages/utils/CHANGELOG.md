@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 18.1.3
+
+### Patch Changes
+
+- 0325770: Update dependencies
+
 ## 18.1.2
 
 ### Patch Changes
