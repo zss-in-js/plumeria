@@ -1163,14 +1163,21 @@ export default async function loader(this: LoaderContext, source: string) {
         prefix: string,
         off: string,
         counter: { n: number },
+        scoped: boolean,
       ): Decision | null => {
         if (node.type === 'ParenthesisExpression') {
-          return buildDecision(node.expression, prefix, off, counter);
+          return buildDecision(node.expression, prefix, off, counter, scoped);
         }
         if (node.type === 'ConditionalExpression') {
-          const a = buildDecision(node.consequent, prefix, off, counter);
+          const a = buildDecision(
+            node.consequent,
+            prefix,
+            off,
+            counter,
+            scoped,
+          );
           if (!a) return null;
-          const b = buildDecision(node.alternate, prefix, off, counter);
+          const b = buildDecision(node.alternate, prefix, off, counter, scoped);
           if (!b) return null;
           return {
             keyExpr: `((${getSource(node.test)}) ? ${a.keyExpr} : ${b.keyExpr})`,
@@ -1180,7 +1187,7 @@ export default async function loader(this: LoaderContext, source: string) {
           };
         }
         if (node.type === 'BinaryExpression' && node.operator === '&&') {
-          const right = buildDecision(node.right, prefix, off, counter);
+          const right = buildDecision(node.right, prefix, off, counter, scoped);
           if (!right) return null;
           return {
             keyExpr: `((${getSource(node.left)}) ? ${right.keyExpr} : ${JSON.stringify(off)})`,
@@ -1191,10 +1198,14 @@ export default async function loader(this: LoaderContext, source: string) {
         }
         const group = resolveBracketGroup(node);
         if (group) {
+          const tag = scoped ? `${counter.n++}:` : '';
+          const keySource = getSource(group.keyExpr);
           return {
-            keyExpr: getSource(group.keyExpr),
+            keyExpr: tag
+              ? `(${JSON.stringify(tag)} + ${keySource})`
+              : keySource,
             options: Object.entries(group.obj).map(([value, style]) => ({
-              value,
+              value: `${tag}${value}`,
               style: style as CSSObject,
             })),
             leaves: 1,
@@ -1212,7 +1223,10 @@ export default async function loader(this: LoaderContext, source: string) {
         };
       };
 
-      const collectGroupKeys = (node: Expression, acc: Set<string>) => {
+      const collectGroupKeys = (
+        node: Expression,
+        acc: Map<string, Set<unknown>>,
+      ) => {
         if (node.type === 'ParenthesisExpression') {
           collectGroupKeys(node.expression, acc);
         } else if (node.type === 'ConditionalExpression') {
@@ -1222,19 +1236,28 @@ export default async function loader(this: LoaderContext, source: string) {
           collectGroupKeys(node.right, acc);
         } else {
           const group = resolveBracketGroup(node);
-          if (group) Object.keys(group.obj).forEach((k) => acc.add(k));
+          if (group)
+            Object.entries(group.obj).forEach(([key, style]) => {
+              let styles = acc.get(key);
+              if (!styles) acc.set(key, (styles = new Set()));
+              styles.add(style);
+            });
         }
       };
 
       const resolveDecision = (node: Expression): Decision | null => {
         // Branch names share the lookup with the groups' own keys, so pick a
         // prefix no key starts with and they can never be confused.
-        const groupKeys = new Set<string>();
+        const groupKeys = new Map<string, Set<unknown>>();
         collectGroupKeys(node, groupKeys);
         let prefix = '#';
-        while ([...groupKeys].some((k) => k.startsWith(prefix))) prefix += '#';
-        const off = groupKeys.has('') ? `${prefix}off` : '';
-        return buildDecision(node, prefix, off, { n: 0 });
+        while ([...groupKeys.keys()].some((k) => k.startsWith(prefix)))
+          prefix += '#';
+        const scoped = [...groupKeys.values()].some(
+          (styles) => styles.size > 1,
+        );
+        const off = !scoped && groupKeys.has('') ? `${prefix}off` : '';
+        return buildDecision(node, prefix, off, { n: 0 }, scoped);
       };
 
       const collectConditions = (
