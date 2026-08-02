@@ -81,7 +81,7 @@ Disallow destructuring APIs.
 
 ### no-inline-object
 
-Disallow passing inline object to `classStyle`, `css.use()` and `css.variants()`. Only compiled styles from `css.create()` are allowed.
+Disallow passing inline object to `classStyle` and `css.use()`. Only compiled styles from `css.create()` are allowed.
 
 ### no-inner-call
 
