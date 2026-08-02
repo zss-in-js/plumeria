@@ -134,11 +134,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       const [pathId, query] = id.split('?');
       if (pathId.endsWith('.zero.css')) {
         if (pathId.startsWith('/')) {
-          let absolutePath = cssFileLookup.get(pathId);
-          if (!absolutePath) {
-            absolutePath = path.join(viteRoot, pathId);
-          }
-          return query ? `${absolutePath}?${query}` : absolutePath;
+          return id;
         }
         if (importer && !path.isAbsolute(pathId)) {
           const resolved = path.resolve(path.dirname(importer), pathId);
@@ -156,7 +152,8 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
     load(id) {
       const [pathId] = id.split('?', 1);
-      return cssLookup.get(pathId) || '';
+      const resolved = cssFileLookup.get(pathId) ?? path.join(viteRoot, pathId);
+      return cssLookup.get(resolved) ?? cssLookup.get(pathId) ?? '';
     },
 
     transformInclude(id) {
