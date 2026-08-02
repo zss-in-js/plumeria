@@ -1,0 +1,135 @@
+---
+title: 'Component Library'
+description: 'Ship a library whose users need no Plumeria setup.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+A component library built with Plumeria ships already compiled. The class names sit
+in the JavaScript and the rules sit in a stylesheet, so the people installing it need
+no bundler plugin, no PostCSS step, and no dependency on Plumeria.
+
+Every bundler in this section produces that dist. [esbuild](/docs/integration/esbuild)
+is the fastest of them, so it is the one shown here.
+
+## What ends up in dist
+
+Given a component like this:
+
+```tsx title="src/index.tsx"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  card: { display: 'flex', padding: '16px', borderRadius: '8px' },
+  title: { fontSize: '18px', fontWeight: 'bold' },
+});
+
+export const Card = ({ title }: { title: string }) => (
+  <div classStyle={styles.card}>
+    <h2 classStyle={styles.title}>{title}</h2>
+  </div>
+);
+```
+
+the build emits this:
+
+```js title="dist/index.js"
+import './index.css';
+import { jsx } from 'react/jsx-runtime';
+var Card = ({ title }) =>
+  jsx('div', {
+    className: 'xxp6epoh xqqbxt1d xyqr9vb7',
+    children: jsx('h2', { className: 'xpdfgu2b xybc5i37', children: title }),
+  });
+export { Card };
+```
+
+```css title="dist/index.css"
+.xxp6epoh { display: flex; }
+.xqqbxt1d { padding: 16px; }
+.xyqr9vb7 { border-radius: 8px; }
+.xpdfgu2b:not(#\#) { font-size: 18px; }
+.xybc5i37:not(#\#) { font-weight: 700; }
+```
+
+The `css.create` call and the `@plumeria/core` import are gone. What is left is a
+string literal per element and a flat list of rules — nothing that merges objects or
+builds class names while your users render.
+
+## Build
+
+Extracting CSS means the bundler takes the import out of the JavaScript, which is
+right for an app — the HTML links the stylesheet — and wrong for a library, where
+there is no HTML. Point the built JavaScript back at its stylesheet and your users
+inherit it by importing the component.
+
+```js title="build.js"
+import esbuild from 'esbuild';
+import fs from 'node:fs';
+import plumeria from '@plumeria/unplugin';
+
+await esbuild.build({
+  entryPoints: ['src/index.tsx'],
+  bundle: true,
+  outfile: 'dist/index.js',
+  external: ['react', 'react/jsx-runtime'],
+  plugins: [plumeria.esbuild({ include: /\.[jt]sx?$/ })],
+  loader: { '.tsx': 'tsx', '.ts': 'ts' },
+  format: 'esm',
+  jsx: 'automatic',
+});
+
+fs.writeFileSync(
+  'dist/index.js',
+  `import './index.css';\n${fs.readFileSync('dist/index.js', 'utf-8')}`,
+);
+```
+
+<Callout title="Build tools and bundlers differ here">
+  **Build tools — esbuild, Bun, Rollup, Rolldown.** They emit the files you asked
+  for and stop. The stylesheet is extracted and left unattached, so the line above
+  is what connects it. This is the usual path for shipping a library.
+
+  **Bundlers — Vite, Webpack, Rspack, Farm.** They own the whole graph, so they
+  follow the import and wire the stylesheet in themselves — into the HTML they
+  emit, or into the JavaScript. Either way you write nothing. Point one at a
+  library, where there is no application to wire, and the line is needed again.
+</Callout>
+
+## Publish
+
+Plumeria belongs in `devDependencies`. It runs while you build and has nothing to do
+at your users' runtime.
+
+```json title="package.json"
+{
+  "name": "your-lib",
+  "type": "module",
+  "files": ["dist"],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@plumeria/core": "^18.1.2",
+    "@plumeria/unplugin": "^18.1.2"
+  }
+}
+```
+
+## What your users write
+
+```tsx title="app.tsx"
+import { Card } from 'your-lib';
+
+export const App = () => <Card title="Hello" />;
+```
+
+That is the whole integration. The component brings its own stylesheet, their
+bundler config is untouched, and their `package.json` never names `@plumeria/*`,
+whatever they build with.
+
+<Cards>
+  <Card title="See more about Installation unplugin" href="/docs/getting-started/installation" />
+</Cards>
