@@ -1,6 +1,7 @@
 const { execFileSync } = require('node:child_process');
 
 const REF = process.env.RELEASE_REF || 'origin/changeset-release/main';
+const BASE = process.env.RELEASE_BASE || 'origin/main';
 
 const git = (...args) =>
   execFileSync('git', args, {
@@ -8,9 +9,19 @@ const git = (...args) =>
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 
-const read = (path) => {
+const read = (path, ref = REF) => {
   try {
-    return git('show', `${REF}:${path}`);
+    return git('show', `${ref}:${path}`);
+  } catch {
+    return null;
+  }
+};
+
+const versionAt = (dir, ref) => {
+  const manifest = read(`${dir}/package.json`, ref);
+  if (!manifest) return null;
+  try {
+    return JSON.parse(manifest).version ?? null;
   } catch {
     return null;
   }
@@ -60,6 +71,8 @@ function main() {
     if (!manifest) continue;
     const { name, version, private: isPrivate } = JSON.parse(manifest);
     if (!name || isPrivate) continue;
+
+    if (versionAt(dir, BASE) === version) continue;
 
     const entry = latestEntry(read(`${dir}/CHANGELOG.md`));
     if (!entry || entry.version !== version) continue;
