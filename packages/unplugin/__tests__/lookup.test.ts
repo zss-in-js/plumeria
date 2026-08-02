@@ -26,6 +26,14 @@ const DEFS: Record<string, Record<string, Style>> = {
     brand: { color: 'royalblue' },
     danger: { color: 'crimson' },
   },
+  sepStyles: {
+    a: { color: 'darkred' },
+    a__b: { color: 'darkblue' },
+  },
+  altSepStyles: {
+    b__c: { color: 'darkgreen' },
+    c: { color: 'darkgoldenrod' },
+  },
   dualStyles: {
     small: { letterSpacing: '1px' },
     large: { letterSpacing: '4px' },
@@ -87,6 +95,8 @@ const VARS = [
   'bk',
   'fk',
   'uk',
+  'sk',
+  'ak',
   'a',
   'b',
   'c',
@@ -231,6 +241,8 @@ const SPACES: Record<string, unknown[]> = {
   bk: ['plain', 'fancy'],
   fk: ['solid', 'dyn'],
   uk: ['small', 'nope'],
+  sk: ['a', 'a__b'],
+  ak: ['b__c', 'c'],
   a: [true, false],
   b: [true, false],
   c: [true, false],
@@ -419,6 +431,30 @@ const CASES: Case[] = [
     `[styles.base, a && sizeStyles[uk]]`,
     [base, and('a', at('sizeStyles', 'uk'))],
     ['a', 'uk'],
+  ],
+  [
+    'key names holding the join separator',
+    `[sepStyles[sk], altSepStyles[ak]]`,
+    [at('sepStyles', 'sk'), at('altSepStyles', 'ak')],
+    ['sk', 'ak'],
+  ],
+  [
+    'the same, with a base under them',
+    `[styles.base, sepStyles[sk], altSepStyles[ak]]`,
+    [base, at('sepStyles', 'sk'), at('altSepStyles', 'ak')],
+    ['sk', 'ak'],
+  ],
+  [
+    'a separator key beside a disjoint axis',
+    `[styles.base, sepStyles[sk], sizeStyles[size]]`,
+    [base, at('sepStyles', 'sk'), at('sizeStyles', 'size')],
+    ['sk', 'size'],
+  ],
+  [
+    'separator keys in the branches of one condition',
+    `[styles.base, a ? sepStyles[sk] : altSepStyles[ak]]`,
+    [base, cond('a', at('sepStyles', 'sk'), at('altSepStyles', 'ak'))],
+    ['a', 'sk', 'ak'],
   ],
   [
     'branches sharing key names, both disjoint from the base',
