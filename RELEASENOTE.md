@@ -1,5 +1,10 @@
 # Release Notes
 
+## 18.1.2 (Aug 2, 2026)
+
+- Fix: tell two bracket groups apart when one condition folds both into a lookup, a key both objects carry no longer answers with the later group's style
+- Fix: number a bracket dimension's keys in a compound lookup, a key holding the `__` the compound key is joined with no longer blurs where one dimension ends
+
 ## 18.1.1 (Jul 31, 2026)
 
 - Fix: merge the sources of a styling prop in the order they are written, an unconditional style placed after a condition no longer loses to it

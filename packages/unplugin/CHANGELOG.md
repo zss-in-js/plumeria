@@ -1,5 +1,14 @@
 # @plumeria/unplugin
 
+## 18.1.2
+
+### Patch Changes
+
+- b8ee5f7: Fix: tell two bracket groups apart when one condition folds both into a lookup, a key both objects carry no longer answers with the later group's style
+  Fix: number a bracket dimension's keys in a compound lookup, a key holding the `__` the compound key is joined with no longer blurs where one dimension ends
+- Updated dependencies [b8ee5f7]
+  - @plumeria/utils@18.1.2
+
 ## 18.1.1
 
 ### Patch Changes
