@@ -1,5 +1,10 @@
 # Release Notes
 
+## 18.1.4 (Aug 2, 2026)
+
+- Fix: keep the virtual css id relative so a bundler cannot print the author's directories into the stylesheet it ships
+- Fix: strip the annotation naming the virtual css from the emitted stylesheet on esbuild and Bun
+
 ## 18.1.3 (Aug 2, 2026)
 
 - Update dependencies

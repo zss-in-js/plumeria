@@ -1,5 +1,14 @@
 # @plumeria/unplugin
 
+## 18.1.4
+
+### Patch Changes
+
+- 4464af6: Fix: keep the virtual css id relative so a bundler cannot print the author's directories into the stylesheet it ships
+  Fix: strip the annotation naming the virtual css from the emitted stylesheet on esbuild and Bun
+- Updated dependencies [4464af6]
+  - @plumeria/utils@18.1.4
+
 ## 18.1.3
 
 ### Patch Changes
