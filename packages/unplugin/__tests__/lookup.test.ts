@@ -1,3 +1,21 @@
+// Regression harness for bracket-notation lookup tables.
+//
+// The oracle is the specified behaviour, not a second reading of the compiler:
+//
+//   1. Entries apply in written order.
+//   2. Entries the compiler settles at build time fold into one style, and
+//      overrideLonghand runs over that fold, so a shorthand there deletes an
+//      earlier longhand of its family.
+//   3. An entry that depends on a runtime value cannot fold. It stays its own
+//      unit and keeps its own atoms.
+//   4. Across units only identical property names collide, the last winning.
+//      Shorthand against longhand is no collision: both atoms are emitted and
+//      the cascade settles it, the longhand carrying zss-engine's boost.
+//   5. Nested blocks and at-rules merge by their own key, property by property.
+//
+// Every case runs over its whole input space, keys outside the table included,
+// against two structural invariants: no style object survives into the output,
+// and every class the output can produce has a rule behind it.
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
 import { unpluginFactory } from '../src/core';
@@ -6,6 +24,7 @@ import { overrideLonghand } from 'zss-engine';
 
 type Style = Record<string, any>;
 
+// One definition, driving both the source and the oracle.
 const DEFS: Record<string, Record<string, Style>> = {
   styles: {
     base: {
@@ -17,15 +36,19 @@ const DEFS: Record<string, Record<string, Style>> = {
     muted: { color: 'slategray' },
     wide: { width: '100%' },
   },
+  // Touches nothing the base does -- an independent axis.
   sizeStyles: {
     small: { fontSize: '12px', padding: '4px 8px' },
     large: { fontSize: '18px', padding: '12px 24px' },
     huge: { fontSize: '24px', padding: '20px 40px' },
   },
+  // Collides with the base on `color`.
   toneStyles: {
     brand: { color: 'royalblue' },
     danger: { color: 'crimson' },
   },
+  // Key names holding the separator the compound key is joined with: unless
+  // the parts are told apart, (a, b__c) and (a__b, c) read alike.
   sepStyles: {
     a: { color: 'darkred' },
     a__b: { color: 'darkblue' },
@@ -34,6 +57,8 @@ const DEFS: Record<string, Record<string, Style>> = {
     b__c: { color: 'darkgreen' },
     c: { color: 'darkgoldenrod' },
   },
+  // Keys another object also has, to put two groups with overlapping keys in
+  // the branches of one condition.
   dualStyles: {
     small: { letterSpacing: '1px' },
     large: { letterSpacing: '4px' },
@@ -54,14 +79,17 @@ const DEFS: Record<string, Record<string, Style>> = {
     a: { '--gap': '2px' },
     b: { '--gap': '8px' },
   },
+  // Longhand of the shorthand sizeStyles sets.
   padStyles: {
     tight: { paddingTop: '1px' },
     loose: { paddingTop: '9px' },
   },
+  // Shorthand of the longhand the base sets.
   bgStyles: {
     plain: { background: 'red' },
     fancy: { background: 'green' },
   },
+  // `dyn` is a function key, which a lookup table leaves out.
   fnStyles: {
     solid: { letterSpacing: '1px' },
   },
@@ -140,6 +168,11 @@ const evaluate = (expr: string, vars: Record<string, unknown>) =>
       '',
   );
 
+// ---------------------------------------------------------------------------
+// Oracle
+// ---------------------------------------------------------------------------
+
+// The source expression as data the oracle can walk once per input.
 type Entry =
   | { kind: 'style'; obj: string; key: string }
   | { kind: 'lookup'; obj: string; keyVar: string }
@@ -179,6 +212,7 @@ const resolve = (entry: Entry, vars: Record<string, any>): Style | null => {
   }
 };
 
+// Foldable: applies unconditionally, and its style needs no runtime value.
 const isFoldable = (entry: Entry) => entry.kind === 'style';
 
 const expected = (entries: Entry[], vars: Record<string, any>) => {
@@ -192,6 +226,7 @@ const expected = (entries: Entry[], vars: Record<string, any>) => {
     else units.push({ order, style: overrideLonghand(style) });
   });
 
+  // Rule 2: one elimination pass over everything that folded together.
   const folded = folding.reduce<Style>(
     (acc, { style }) => deepMerge(acc, style),
     {},
@@ -206,6 +241,7 @@ const expected = (entries: Entry[], vars: Record<string, any>) => {
     }),
   );
 
+  // Rule 4: last writer of a given property name wins it.
   const winners: Style = {};
   units
     .sort((x, y) => x.order - y.order)
@@ -218,6 +254,7 @@ const expected = (entries: Entry[], vars: Record<string, any>) => {
       }
     });
 
+  // Rules 3 and 4: each surviving property stands as its own atom.
   return norm(
     Object.entries(winners)
       .flatMap(([key, value]) =>
@@ -226,6 +263,8 @@ const expected = (entries: Entry[], vars: Record<string, any>) => {
       .join(' '),
   );
 };
+
+// ---------------------------------------------------------------------------
 
 const SPACES: Record<string, unknown[]> = {
   size: ['small', 'large', 'huge'],
@@ -239,6 +278,7 @@ const SPACES: Record<string, unknown[]> = {
   vk: ['a', 'b'],
   pk: ['tight', 'loose'],
   bk: ['plain', 'fancy'],
+  // A function key and a key that is not in the object at all.
   fk: ['solid', 'dyn'],
   uk: ['small', 'nope'],
   sk: ['a', 'a__b'],
@@ -255,6 +295,7 @@ const wide = s('styles', 'wide');
 type Case = [label: string, source: string, entries: Entry[], vars: string[]];
 
 const CASES: Case[] = [
+  // -- one bracket beside the base, over every kind of property ------------
   [
     'disjoint axis',
     `[styles.base, sizeStyles[size]]`,
@@ -322,6 +363,7 @@ const CASES: Case[] = [
     [],
   ],
 
+  // -- where the base sits -------------------------------------------------
   [
     'base after a disjoint bracket',
     `[sizeStyles[size], styles.base]`,
@@ -359,6 +401,7 @@ const CASES: Case[] = [
     ['size'],
   ],
 
+  // -- conditions ----------------------------------------------------------
   [
     '&& over a disjoint bracket',
     `[styles.base, a && sizeStyles[size]]`,
@@ -432,6 +475,7 @@ const CASES: Case[] = [
     [base, and('a', at('sizeStyles', 'uk'))],
     ['a', 'uk'],
   ],
+  // Two dimensions whose key names hold the compound key's own separator.
   [
     'key names holding the join separator',
     `[sepStyles[sk], altSepStyles[ak]]`,
@@ -456,6 +500,8 @@ const CASES: Case[] = [
     [base, cond('a', at('sepStyles', 'sk'), at('altSepStyles', 'ak'))],
     ['a', 'sk', 'ak'],
   ],
+  // Only one branch ever applies, so a key the other branch would be read
+  // with must not reach its style.
   [
     'branches sharing key names, both disjoint from the base',
     `[styles.base, a ? sizeStyles[size] : dualStyles[dk]]`,
@@ -468,6 +514,7 @@ const CASES: Case[] = [
     [base, cond('a', at('toneStyles', 'tone'), at('altToneStyles', 't2'))],
     ['a', 'tone', 't2'],
   ],
+  // Same two objects, but as separate arguments rather than two branches.
   [
     'objects sharing key names as separate entries',
     `[styles.base, sizeStyles[size], dualStyles[dk]]`,
@@ -485,6 +532,7 @@ const CASES: Case[] = [
     ['a', 'b', 'size', 'dk'],
   ],
 
+  // -- the two orders create.mdx contrasts ---------------------------------
   [
     'bracket then a colliding condition',
     `[styles.base, toneStyles[tone], a && styles.muted]`,
@@ -498,6 +546,7 @@ const CASES: Case[] = [
     ['tone', 'a'],
   ],
 
+  // -- several axes at once ------------------------------------------------
   [
     'disjoint then colliding',
     `[styles.base, sizeStyles[size], toneStyles[tone]]`,
