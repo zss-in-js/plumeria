@@ -133,6 +133,7 @@ interface StyleConditional {
   groupName?: string;
   valueName?: string;
   varName?: string;
+  ownKeys?: boolean;
   // Position among the sources of one styling prop. Later sources win, so the
   // conflict table has to merge them in this order and not by kind.
   order?: number;
@@ -1562,6 +1563,7 @@ export default async function loader(this: LoaderContext, source: string) {
                 groupName: undefined,
                 valueName: optionName,
                 varName,
+                ownKeys: true,
               });
             });
             continue;
@@ -1586,6 +1588,7 @@ export default async function loader(this: LoaderContext, source: string) {
               groupName: undefined,
               valueName: value,
               varName: undefined,
+              ownKeys: true,
             }),
           );
           continue;
@@ -1759,6 +1762,7 @@ export default async function loader(this: LoaderContext, source: string) {
             label: string;
           }>;
           testExpr?: string;
+          ownKeys?: boolean;
         }
         // Ordered by where each source was written, so `recurse` merges them
         // the way the author stacked them rather than grouping by kind.
@@ -1834,12 +1838,25 @@ export default async function loader(this: LoaderContext, source: string) {
                 style: opt.truthy,
                 label: opt.valueName || 'default',
               })),
+              ownKeys: opts[0].ownKeys,
             },
           });
         });
 
         ordered.sort((a, b) => a.order - b.order);
         const dimensions: Dimension[] = ordered.map((o) => o.dimension);
+
+        const joined =
+          dimensions.filter((dim) => dim.type !== 'const').length > 1;
+        dimensions.forEach((dim) => {
+          if (!joined || dim.type !== 'var' || !dim.ownKeys) return;
+          const numbers: Record<string, string> = {};
+          dim.options.forEach((opt, index) => {
+            numbers[String(opt.value)] = String(index);
+            opt.value = String(index);
+          });
+          dim.testExpr = `(${JSON.stringify(numbers)}[${dim.testExpr}] || "")`;
+        });
 
         const results: Record<string, string> = {};
         const recurse = (
