@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.1.5 (Aug 3, 2026)
+
+- Update README.md
+
 ## 18.1.4 (Aug 2, 2026)
 
 - Fix: keep the virtual css id relative so a bundler cannot print the author's directories into the stylesheet it ships

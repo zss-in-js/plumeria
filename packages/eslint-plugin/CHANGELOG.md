@@ -1,3 +1,9 @@
+## 18.1.5
+
+### Patch Changes
+
+- 9f7072b: Bump version to 18.1.5
+
 ## 18.1.4
 
 ### Patch Changes
