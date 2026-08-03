@@ -112,6 +112,23 @@ Declaration merging is additive, so several names can coexist during a migration
 
 Explore the [documentation](https://plumeria.dev/) for the core principles, full API reference, and integrations.
 
+## API Stability
+
+Plumeria publishes frequently. To make that legible, every public API is rated for **future** change likelihood — not past churn. The rating is a commitment about what will happen next, not a description of what already has.
+
+| API                    | Stability |        |
+| ---------------------- | --------- | ------ |
+| `css.create`           | ★★★★★     | Frozen |
+| `css.createTheme`      | ★★★★★     | Frozen |
+| `css.createStatic`     | ★★★★★     | Frozen |
+| `css.keyframes`        | ★★★★★     | Frozen |
+| `css.viewTransition`   | ★★★★★     | Frozen |
+| `css.marker`           | ★★★★☆     | Stable |
+| `css.extended`         | ★★★★☆     | Stable |
+| `css.use`/`classStyle` | ★★★★★     | Frozen |
+
+> The **`classStyle`** property can be changed.
+
 ## License
 
 Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/LICENSE).
