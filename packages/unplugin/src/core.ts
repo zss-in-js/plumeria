@@ -502,6 +502,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         content: string;
       }> = [];
 
+      const dynamicFnCalls: CallExpression[] = [];
       const processedDecls = new Set<VariableDeclaration>();
       const idSpans = new Set<number>();
       const excludedSpans = new Set<number>();
@@ -2351,10 +2352,30 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                     if (argObj[p] !== undefined) tempStaticTable[p] = argObj[p];
                   });
                 } else {
+                  const dynamicParams: string[] = [];
                   callArgs.forEach((_callArg, i) => {
                     const p = func.params[i];
                     if (!p) return;
-                    const cssVar = `--${propKey}-${p}`;
+                    dynamicParams.push(p);
+                    tempStaticTable[p] = p;
+                  });
+
+                  const probe = objectExpressionToObject(
+                    func.body,
+                    tempStaticTable,
+                    mergedKeyframesTable,
+                    mergedViewTransitionTable,
+                    mergedCreateThemeHashTable,
+                    scannedTables.createThemeObjectTable,
+                    mergedCreateTable,
+                    mergedCreateStaticHashTable,
+                    scannedTables.createStaticObjectTable,
+                    mergedVariantsTable,
+                  );
+                  const hash = genBase36Hash(probe ?? {}, 1, 8);
+
+                  dynamicParams.forEach((p) => {
+                    const cssVar = `--${hash}-${p}`;
                     tempStaticTable[p] = `var(${cssVar})`;
                     cssVarInfo[p] = { cssVar, propKey: '' };
                   });
@@ -2477,6 +2498,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           ) {
             const objectName = callee.object.value;
             const propertyName = callee.property.value;
+            if (localCreateStyles[objectName]?.functions?.[propertyName]) {
+              dynamicFnCalls.push(node);
+            }
             const alias = plumeriaAliases[objectName];
             if (alias === 'NAMESPACE' && propertyName === 'use') {
               isUseCall = true;
@@ -2568,6 +2592,22 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             end: info.declSpan.end,
             content: '',
           });
+        }
+      });
+
+      dynamicFnCalls.forEach((call) => {
+        const start = call.span.start - baseByteOffset;
+        const end = call.span.end - baseByteOffset;
+        const isResolved = replacements.some(
+          (r) => r.start <= start && r.end >= end,
+        );
+        if (!isResolved) {
+          throwCompilationError(
+            `Plumeria: ${getSource(call)} is only supported in the ${styleProp} prop. ` +
+              `A dynamic style function resolves to a class name and a CSS variable on the element itself, ` +
+              `so it cannot be passed through another prop or read as a value.`,
+            call,
+          );
         }
       });
 
