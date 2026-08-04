@@ -5,6 +5,62 @@
 
 **Plumeria** is a **zero-cost abstraction layer** for styling React components. You write type-safe styles in TypeScript, and the compiler resolves them into atomic CSS at build time — leaving no runtime JavaScript behind. Its axioms are grounded in category theory, making styles self-evident, predictable, and composable by construction, while strict syntax and linting keep the cognitive overhead low.
 
+## Example
+
+Styles can be passed to the `classStyle` prop. That prop accepts static and dynamic styles as an array. At build time, the compiler resolves `classStyle` into a static `className`; dynamic values are passed as CSS variables through the `style` attribute — no runtime library is involved.
+
+```tsx
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  text: {
+    fontSize: 12
+  },
+  cond: {
+    background: 'navy'
+  },
+  scale: (value) => ({
+    scale: value
+  })
+});
+
+export default function App({ cond }) {
+  const scale = useScale(); // from your own hook
+  return (
+    <div
+      classStyle={[
+        styles.text,
+        cond && styles.cond,
+        styles.scale(scale)
+      ]}
+    />
+  );
+}
+```
+
+**Compiled:**
+
+```tsx
+<div
+  className={'xhrr6ses ' + (cond ? 'xj00ajs1' : '') + ' xnoo1byz'}
+  style={{ '--scale-value': scale }}
+/>
+```
+
+**Generated CSS:**
+
+```css
+.xhrr6ses:not(#\#) {
+  font-size: 12px;
+}
+.xj00ajs1 {
+  background: navy;
+}
+.xnoo1byz {
+  scale: var(--scale-value);
+}
+```
+
 ## API Stability
 
 Plumeria publishes frequently. To make that legible, every public API is rated for **future** change likelihood — not past churn. The rating is a commitment about what will happen next, not a description of what already has.
