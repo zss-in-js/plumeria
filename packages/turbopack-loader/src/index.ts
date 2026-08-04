@@ -111,6 +111,53 @@ const ensureProductionCss = (
   return productionCss;
 };
 
+// A named argument folds into the style only when its value is written out in
+// full. Anything the parser can only read in part -- a template literal with an
+// interpolation, an expression -- has to reach the element as a custom property
+// instead, or the missing piece is silently baked into the rule.
+const isStaticArgValue = (node: Expression): boolean =>
+  node.type === 'StringLiteral' ||
+  node.type === 'NumericLiteral' ||
+  node.type === 'BooleanLiteral' ||
+  (node.type === 'TemplateLiteral' && node.expressions.length === 0) ||
+  t.isIdentifier(node) ||
+  t.isMemberExpression(node);
+
+type NamedParam = { key: string; local: string };
+
+// A dynamic style function may name its parameters by destructuring them, in
+// which case the call passes one object and the key it uses is not necessarily
+// the name the body reads.
+const namedParamsOf = (params: unknown[]): NamedParam[] | undefined => {
+  if (params.length !== 1) return undefined;
+  const first = params[0] as { type?: string; pat?: { type?: string } };
+  const pattern = (first?.pat ?? first) as {
+    type?: string;
+    properties?: any[];
+  };
+  if (pattern?.type !== 'ObjectPattern') return undefined;
+
+  const named: NamedParam[] = [];
+  for (const prop of pattern.properties ?? []) {
+    if (
+      prop.type === 'AssignmentPatternProperty' &&
+      t.isIdentifier(prop.key) &&
+      !prop.value
+    ) {
+      named.push({ key: prop.key.value, local: prop.key.value });
+    } else if (
+      prop.type === 'KeyValuePatternProperty' &&
+      t.isIdentifier(prop.key) &&
+      t.isIdentifier(prop.value)
+    ) {
+      named.push({ key: prop.key.value, local: prop.value.value });
+    } else {
+      return undefined;
+    }
+  }
+  return named.length > 0 ? named : undefined;
+};
+
 type DynamicVar = {
   cssVar: string;
   valueExpr: string;
@@ -159,7 +206,10 @@ type CreateStyleValue = {
   isExported: boolean;
   initSpan: { start: number; end: number };
   declSpan: { start: number; end: number };
-  functions?: Record<string, { params: string[]; body: ObjectExpression }>;
+  functions?: Record<
+    string,
+    { params: string[]; named?: NamedParam[]; body: ObjectExpression }
+  >;
 };
 
 interface StyleConditional {
@@ -612,7 +662,11 @@ export default async function loader(this: LoaderContext, source: string) {
 
             const styleFunctions: Record<
               string,
-              { params: string[]; body: ObjectExpression }
+              {
+                params: string[];
+                named?: NamedParam[];
+                body: ObjectExpression;
+              }
             > = {};
 
             const objExpr = init.arguments[0].expression as ObjectExpression;
@@ -656,6 +710,7 @@ export default async function loader(this: LoaderContext, source: string) {
               if (actualBody && actualBody.type === 'ObjectExpression') {
                 styleFunctions[prop.key.value] = {
                   params,
+                  named: namedParamsOf(func.params),
                   body: actualBody as ObjectExpression,
                 };
               }
@@ -1144,14 +1199,11 @@ export default async function loader(this: LoaderContext, source: string) {
       if (callArgs.some((a) => a.spread) || callArgs.length === 0) return null;
 
       const tempStaticTable = { ...mergedStaticTable };
-      const cssVars: Record<string, string> = {};
+      const runtime: Array<{ param: string; source: Expression }> = [];
 
-      if (
-        callArgs.length === 1 &&
-        callArgs[0].expression.type === 'ObjectExpression'
-      ) {
-        const argObj = objectExpressionToObject(
-          callArgs[0].expression as ObjectExpression,
+      const resolveObjectArg = (argExpr: ObjectExpression) =>
+        objectExpressionToObject(
+          argExpr,
           mergedStaticTable,
           mergedKeyframesTable,
           mergedViewTransitionTable,
@@ -1162,17 +1214,63 @@ export default async function loader(this: LoaderContext, source: string) {
           scannedTables.createStaticObjectTable,
           mergedVariantsTable,
         );
+
+      if (func.named) {
+        const argExpr = callArgs[0].expression;
+        if (callArgs.length !== 1 || argExpr.type !== 'ObjectExpression') {
+          throwCompilationError(
+            `Plumeria: ${getSource(expr)} takes one object argument, because ${
+              callee.property.value
+            } destructures its parameter.`,
+            expr as HasSpan,
+          );
+        }
+        const given = new Map<string, Expression>();
+        (argExpr as ObjectExpression).properties.forEach((prop) => {
+          if (prop.type === 'Identifier') {
+            given.set(prop.value, prop);
+          } else if (
+            prop.type === 'KeyValueProperty' &&
+            (t.isIdentifier(prop.key) || t.isStringLiteral(prop.key))
+          ) {
+            given.set(String(prop.key.value), prop.value);
+          }
+        });
+
+        const argObj = resolveObjectArg(argExpr as ObjectExpression) ?? {};
+        func.named.forEach(({ key, local }) => {
+          const source = given.get(key);
+          if (!source) {
+            throwCompilationError(
+              `Plumeria: ${getSource(expr)} leaves "${key}" unset, and a dynamic style function has no value to fall back on.`,
+              expr as HasSpan,
+            );
+            return;
+          }
+          if (isStaticArgValue(source) && argObj[key] !== undefined)
+            tempStaticTable[local] = argObj[key];
+          else runtime.push({ param: local, source });
+        });
+      } else if (
+        callArgs.length === 1 &&
+        callArgs[0].expression.type === 'ObjectExpression'
+      ) {
+        const argObj =
+          resolveObjectArg(callArgs[0].expression as ObjectExpression) ?? {};
         func.params.forEach((p) => {
           if (argObj[p] !== undefined) tempStaticTable[p] = argObj[p];
         });
       } else {
-        const dynamicParams: string[] = [];
-        callArgs.forEach((_callArg, i) => {
+        callArgs.forEach((callArg, i) => {
           const p = func.params[i];
           if (!p) return;
-          dynamicParams.push(p);
-          tempStaticTable[p] = p;
+          runtime.push({ param: p, source: callArg.expression });
         });
+      }
+
+      const cssVars: Record<string, string> = {};
+      if (runtime.length > 0) {
+        runtime.forEach(({ param }) => (tempStaticTable[param] = param));
 
         const probe = objectExpressionToObject(
           func.body,
@@ -1188,10 +1286,10 @@ export default async function loader(this: LoaderContext, source: string) {
         );
         const hash = genBase36Hash(probe ?? {}, 1, 8);
 
-        dynamicParams.forEach((p) => {
-          const cssVar = `--${hash}-${p}`;
-          tempStaticTable[p] = `var(${cssVar})`;
-          cssVars[p] = cssVar;
+        runtime.forEach(({ param }) => {
+          const cssVar = `--${hash}-${param}`;
+          tempStaticTable[param] = `var(${cssVar})`;
+          cssVars[param] = cssVar;
         });
       }
 
@@ -1210,17 +1308,13 @@ export default async function loader(this: LoaderContext, source: string) {
       if (!style) return null;
 
       const vars: DynamicVar[] = [];
-      Object.entries(cssVars).forEach(([paramName, cssVar]) => {
-        const targetProp = findVarProp(style, cssVar);
+      runtime.forEach(({ param, source }) => {
+        const cssVar = cssVars[param];
+        const targetProp = cssVar ? findVarProp(style, cssVar) : undefined;
         if (!targetProp) return;
 
-        const paramIndex = func.params.indexOf(paramName);
-        const srcArg =
-          paramIndex >= 0 && callArgs[paramIndex]
-            ? callArgs[paramIndex].expression
-            : callArgs[0].expression;
-        const argStart = (srcArg as HasSpan).span.start - baseByteOffset;
-        const argEnd = (srcArg as HasSpan).span.end - baseByteOffset;
+        const argStart = (source as HasSpan).span.start - baseByteOffset;
+        const argEnd = (source as HasSpan).span.end - baseByteOffset;
         const argSource = sourceBuffer
           .subarray(argStart, argEnd)
           .toString('utf-8');
