@@ -8,6 +8,10 @@ import * as css from '@plumeria/core';
 const s = css.create({
   stat: { color: 'red' },
   palette: (color: string) => ({ color }),
+  link: (base: string, hovered: string) => ({
+    color: base,
+    ':hover': { color: hovered },
+  }),
 });
 
 ${body}
@@ -32,6 +36,14 @@ describe('turbopack-loader: dynamic function keys', () => {
     );
     expect(code).toContain('className={"xokp0532"}');
     expect(code).toContain('"--x80848wl-color"');
+  });
+
+  it('sets the variable for a parameter that only appears under nesting', async () => {
+    const code = await run(
+      'export const A = (p: any) => <a classStyle={s.link(p.b, p.h)} />;',
+    );
+    expect(code.match(/"--[^"]+"/g)).toHaveLength(2);
+    expect(code).toContain(`(p.h) + 'px' : (p.h)`);
   });
 
   it('rejects a call handed to a component prop', async () => {
