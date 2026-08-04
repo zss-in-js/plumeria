@@ -598,6 +598,86 @@ export function compileCSS(options: CompilerOptions) {
         );
       };
 
+      const resolveDynamicCall = (expr: Expression): CSSObject | null => {
+        if (!t.isCallExpression(expr) || !t.isMemberExpression(expr.callee))
+          return null;
+        const callee = expr.callee;
+        if (!t.isIdentifier(callee.object) || !t.isIdentifier(callee.property))
+          return null;
+
+        const styleInfo = ctx.localCreateStyles[callee.object.value];
+        const func = styleInfo?.functions?.[callee.property.value];
+        if (!func) return null;
+
+        const callArgs = expr.arguments;
+        if (callArgs.some((a) => a.spread) || callArgs.length === 0)
+          return null;
+
+        const tempStaticTable = { ...ctx.mergedStaticTable };
+
+        if (
+          callArgs.length === 1 &&
+          callArgs[0].expression.type === 'ObjectExpression'
+        ) {
+          const argObj = objectExpressionToObject(
+            callArgs[0].expression,
+            ctx.mergedStaticTable,
+            ctx.mergedKeyframesTable,
+            ctx.mergedViewTransitionTable,
+            ctx.mergedCreateThemeHashTable,
+            ctx.scannedTables.createThemeObjectTable,
+            ctx.mergedCreateTable,
+            ctx.mergedCreateStaticHashTable,
+            ctx.scannedTables.createStaticObjectTable,
+            ctx.mergedVariantsTable,
+          );
+          func.params.forEach((p) => {
+            if (argObj[p] !== undefined) tempStaticTable[p] = argObj[p];
+          });
+        } else {
+          const dynamicParams: string[] = [];
+          callArgs.forEach((_callArg: any, i: number) => {
+            const p = func.params[i];
+            if (!p) return;
+            dynamicParams.push(p);
+            tempStaticTable[p] = p;
+          });
+
+          const probe = objectExpressionToObject(
+            func.body,
+            tempStaticTable,
+            ctx.mergedKeyframesTable,
+            ctx.mergedViewTransitionTable,
+            ctx.mergedCreateThemeHashTable,
+            ctx.scannedTables.createThemeObjectTable,
+            ctx.mergedCreateTable,
+            ctx.mergedCreateStaticHashTable,
+            ctx.scannedTables.createStaticObjectTable,
+            ctx.mergedVariantsTable,
+          );
+          const hash = genBase36Hash(probe ?? {}, 1, 8);
+
+          dynamicParams.forEach((p) => {
+            tempStaticTable[p] = `var(--${hash}-${p})`;
+          });
+        }
+
+        return (
+          objectExpressionToObject(
+            func.body,
+            tempStaticTable,
+            ctx.mergedKeyframesTable,
+            ctx.mergedViewTransitionTable,
+            ctx.mergedCreateThemeHashTable,
+            ctx.scannedTables.createThemeObjectTable,
+            ctx.mergedCreateTable,
+            ctx.mergedCreateStaticHashTable,
+            ctx.scannedTables.createStaticObjectTable,
+            ctx.mergedVariantsTable,
+          ) ?? null
+        );
+      };
+
       const collectConditions = (
         node: Expression,
         currentTestStrings: string[] = [],
@@ -637,7 +717,8 @@ export function compileCSS(options: CompilerOptions) {
           return collectConditions(node.expression, currentTestStrings);
         }
 
-        const staticStyle = resolveStyleObject(node);
+        const staticStyle =
+          resolveStyleObject(node) ?? resolveDynamicCall(node);
         if (staticStyle) {
           if (currentTestStrings.length === 0) {
             baseStyle = deepMerge(baseStyle, staticStyle);
@@ -760,90 +841,10 @@ export function compileCSS(options: CompilerOptions) {
           }
         }
 
-        if (t.isCallExpression(expr)) {
-          if (t.isMemberExpression(expr.callee)) {
-            const callee = expr.callee;
-            if (
-              t.isIdentifier(callee.object) &&
-              t.isIdentifier(callee.property)
-            ) {
-              const varName = callee.object.value;
-              const propName = callee.property.value;
-              const styleInfo = ctx.localCreateStyles[varName];
-              if (styleInfo && styleInfo.functions?.[propName]) {
-                const func = styleInfo.functions[propName];
-                const callArgs = expr.arguments;
-                const hasSpread = callArgs.some((a) => a.spread);
-                if (!hasSpread && callArgs.length >= 1) {
-                  const tempStaticTable = { ...ctx.mergedStaticTable };
-
-                  if (
-                    callArgs.length === 1 &&
-                    callArgs[0].expression.type === 'ObjectExpression'
-                  ) {
-                    const argObj = objectExpressionToObject(
-                      callArgs[0].expression,
-                      ctx.mergedStaticTable,
-                      ctx.mergedKeyframesTable,
-                      ctx.mergedViewTransitionTable,
-                      ctx.mergedCreateThemeHashTable,
-                      ctx.scannedTables.createThemeObjectTable,
-                      ctx.mergedCreateTable,
-                      ctx.mergedCreateStaticHashTable,
-                      ctx.scannedTables.createStaticObjectTable,
-                      ctx.mergedVariantsTable,
-                    );
-                    func.params.forEach((p) => {
-                      if (argObj[p] !== undefined)
-                        tempStaticTable[p] = argObj[p];
-                    });
-                  } else {
-                    // Positional arguments: map each callArg to func.params[i]
-                    const dynamicParams: string[] = [];
-                    callArgs.forEach((_callArg: any, i: number) => {
-                      const p = func.params[i];
-                      if (!p) return;
-                      dynamicParams.push(p);
-                      tempStaticTable[p] = p;
-                    });
-
-                    const probe = objectExpressionToObject(
-                      func.body,
-                      tempStaticTable,
-                      ctx.mergedKeyframesTable,
-                      ctx.mergedViewTransitionTable,
-                      ctx.mergedCreateThemeHashTable,
-                      ctx.scannedTables.createThemeObjectTable,
-                      ctx.mergedCreateTable,
-                      ctx.mergedCreateStaticHashTable,
-                      ctx.scannedTables.createStaticObjectTable,
-                      ctx.mergedVariantsTable,
-                    );
-                    const hash = genBase36Hash(probe ?? {}, 1, 8);
-
-                    dynamicParams.forEach((p) => {
-                      tempStaticTable[p] = `var(--${hash}-${p})`;
-                    });
-                  }
-
-                  const resolved = objectExpressionToObject(
-                    func.body,
-                    tempStaticTable,
-                    ctx.mergedKeyframesTable,
-                    ctx.mergedViewTransitionTable,
-                    ctx.mergedCreateThemeHashTable,
-                    ctx.scannedTables.createThemeObjectTable,
-                    ctx.mergedCreateTable,
-                    ctx.mergedCreateStaticHashTable,
-                    ctx.scannedTables.createStaticObjectTable,
-                    ctx.mergedVariantsTable,
-                  );
-                  if (resolved) baseStyle = deepMerge(baseStyle, resolved);
-                  continue;
-                }
-              }
-            }
-          }
+        const dynamicStyle = resolveDynamicCall(expr);
+        if (dynamicStyle) {
+          baseStyle = deepMerge(baseStyle, dynamicStyle);
+          continue;
         }
 
         if (collectConditions(arg.expression)) continue;
