@@ -96,6 +96,34 @@ interface StyleConditional {
 export const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx'];
 export const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx)$/;
 
+type DynamicVar = {
+  cssVar: string;
+  valueExpr: string;
+  test?: string;
+  order?: number;
+};
+
+const foldDynamicVars = (vars: DynamicVar[]): string[] => {
+  const grouped = new Map<string, DynamicVar[]>();
+  [...vars]
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .forEach((entry) => {
+      const list = grouped.get(entry.cssVar);
+      if (list) list.push(entry);
+      else grouped.set(entry.cssVar, [entry]);
+    });
+
+  return [...grouped].map(([cssVar, entries]) => {
+    let value = 'undefined';
+    entries.forEach((entry) => {
+      value = entry.test
+        ? `((${entry.test}) ? ${entry.valueExpr} : ${value})`
+        : entry.valueExpr;
+    });
+    return `"${cssVar}": ${value}`;
+  });
+};
+
 const findVarProp = (style: CSSObject, cssVar: string): string | undefined => {
   for (const [prop, value] of Object.entries(style)) {
     if (typeof value === 'string' && value.includes(cssVar)) return prop;
@@ -1102,14 +1130,137 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         return null;
       };
 
+      const resolveDynamicCall = (
+        expr: Expression,
+      ): { style: CSSObject; vars: DynamicVar[] } | null => {
+        if (!t.isCallExpression(expr) || !t.isMemberExpression(expr.callee))
+          return null;
+        const callee = expr.callee;
+        if (!t.isIdentifier(callee.object) || !t.isIdentifier(callee.property))
+          return null;
+
+        const styleInfo = localCreateStyles[callee.object.value];
+        const func = styleInfo?.functions?.[callee.property.value];
+        if (!func) return null;
+
+        const callArgs = (expr as CallExpression).arguments;
+        if (callArgs.some((a) => a.spread) || callArgs.length === 0)
+          return null;
+
+        const tempStaticTable = { ...mergedStaticTable };
+        const cssVars: Record<string, string> = {};
+
+        if (
+          callArgs.length === 1 &&
+          callArgs[0].expression.type === 'ObjectExpression'
+        ) {
+          const argObj = objectExpressionToObject(
+            callArgs[0].expression as ObjectExpression,
+            mergedStaticTable,
+            mergedKeyframesTable,
+            mergedViewTransitionTable,
+            mergedCreateThemeHashTable,
+            scannedTables.createThemeObjectTable,
+            mergedCreateTable,
+            mergedCreateStaticHashTable,
+            scannedTables.createStaticObjectTable,
+            mergedVariantsTable,
+          );
+          func.params.forEach((p) => {
+            if (argObj[p] !== undefined) tempStaticTable[p] = argObj[p];
+          });
+        } else {
+          const dynamicParams: string[] = [];
+          callArgs.forEach((_callArg, i) => {
+            const p = func.params[i];
+            if (!p) return;
+            dynamicParams.push(p);
+            tempStaticTable[p] = p;
+          });
+
+          const probe = objectExpressionToObject(
+            func.body,
+            tempStaticTable,
+            mergedKeyframesTable,
+            mergedViewTransitionTable,
+            mergedCreateThemeHashTable,
+            scannedTables.createThemeObjectTable,
+            mergedCreateTable,
+            mergedCreateStaticHashTable,
+            scannedTables.createStaticObjectTable,
+            mergedVariantsTable,
+          );
+          const hash = genBase36Hash(probe ?? {}, 1, 8);
+
+          dynamicParams.forEach((p) => {
+            const cssVar = `--${hash}-${p}`;
+            tempStaticTable[p] = `var(${cssVar})`;
+            cssVars[p] = cssVar;
+          });
+        }
+
+        const style = objectExpressionToObject(
+          func.body,
+          tempStaticTable,
+          mergedKeyframesTable,
+          mergedViewTransitionTable,
+          mergedCreateThemeHashTable,
+          scannedTables.createThemeObjectTable,
+          mergedCreateTable,
+          mergedCreateStaticHashTable,
+          scannedTables.createStaticObjectTable,
+          mergedVariantsTable,
+        );
+        if (!style) return null;
+
+        const vars: DynamicVar[] = [];
+        Object.entries(cssVars).forEach(([paramName, cssVar]) => {
+          const targetProp = findVarProp(style, cssVar);
+          if (!targetProp) return;
+
+          const paramIndex = func.params.indexOf(paramName);
+          const srcArg =
+            paramIndex >= 0 && callArgs[paramIndex]
+              ? callArgs[paramIndex].expression
+              : callArgs[0].expression;
+          const argStart = (srcArg as HasSpan).span.start - baseByteOffset;
+          const argEnd = (srcArg as HasSpan).span.end - baseByteOffset;
+          const argSource = sourceBuffer
+            .subarray(argStart, argEnd)
+            .toString('utf-8');
+
+          let valueExpr: string;
+          const maybeNumber = Number(argSource);
+          if (!isNaN(maybeNumber) && argSource.trim() === String(maybeNumber)) {
+            valueExpr = JSON.stringify(applyCssValue(maybeNumber, targetProp));
+          } else if (
+            (argSource.startsWith('"') && argSource.endsWith('"')) ||
+            (argSource.startsWith("'") && argSource.endsWith("'"))
+          ) {
+            valueExpr = JSON.stringify(
+              applyCssValue(argSource.slice(1, -1), targetProp),
+            );
+          } else {
+            valueExpr = exceptionCamelCase.includes(targetProp)
+              ? argSource
+              : `(typeof (${argSource}) === 'number' ? (${argSource}) + 'px' : (${argSource}))`;
+          }
+          vars.push({ cssVar, valueExpr });
+        });
+
+        return { style, vars };
+      };
+
       const buildClassParts = (
-        args: Array<{ expression: Expression }>,
+        args: Array<{ expression: Expression; order?: number }>,
         dynamicClassParts: string[] = [],
         existingClass: string = '',
+        isStyleProp: boolean = false,
       ): {
         classParts: string[];
         isOptimizable: boolean;
         baseStyle: CSSObject;
+        dynamicVars: DynamicVar[];
       } => {
         args.forEach((arg) => {
           const expr = arg.expression;
@@ -1119,6 +1270,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         });
 
         const conditionals: StyleConditional[] = [];
+        const dynamicVars: DynamicVar[] = [];
         let groupIdCounter = 0;
         // Every source of this styling prop gets a slot, in the order it was
         // written, so the conflict table can merge them the way the author
@@ -1297,9 +1449,34 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         const collectConditions = (
           node: Expression,
           currentTestStrings: string[] = [],
+          argOrder?: number,
         ): boolean => {
-          const staticStyle = resolveStyleObject(node);
-          if (staticStyle) {
+          let branchStyle = resolveStyleObject(node);
+          if (!branchStyle) {
+            const dynamic = resolveDynamicCall(node);
+            if (dynamic) {
+              if (!isStyleProp) {
+                throwCompilationError(
+                  `Plumeria: css.use(${getSource(
+                    node,
+                  )}) does not support dynamic function keys.`,
+                  node as HasSpan,
+                );
+              }
+              branchStyle = dynamic.style;
+              dynamic.vars.forEach((v) =>
+                dynamicVars.push({
+                  ...v,
+                  test: currentTestStrings.length
+                    ? currentTestStrings.join(' && ')
+                    : undefined,
+                  order: argOrder,
+                }),
+              );
+            }
+          }
+          if (branchStyle) {
+            const staticStyle = branchStyle;
             if (currentTestStrings.length === 0) {
               baseStyle = deepMerge(baseStyle, staticStyle);
               baseChunks.push({ order: sourceOrder++, style: staticStyle });
@@ -1332,26 +1509,33 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 return true;
               }
             }
-            collectConditions(node.consequent, [
-              ...currentTestStrings,
-              `(${testSource})`,
-            ]);
-            collectConditions(node.alternate, [
-              ...currentTestStrings,
-              `!(${testSource})`,
-            ]);
+            collectConditions(
+              node.consequent,
+              [...currentTestStrings, `(${testSource})`],
+              argOrder,
+            );
+            collectConditions(
+              node.alternate,
+              [...currentTestStrings, `!(${testSource})`],
+              argOrder,
+            );
             return true;
           } else if (
             node.type === 'BinaryExpression' &&
             node.operator === '&&'
           ) {
-            collectConditions(node.right, [
-              ...currentTestStrings,
-              `(${getSource(node.left)})`,
-            ]);
+            collectConditions(
+              node.right,
+              [...currentTestStrings, `(${getSource(node.left)})`],
+              argOrder,
+            );
             return true;
           } else if (node.type === 'ParenthesisExpression') {
-            return collectConditions(node.expression, currentTestStrings);
+            return collectConditions(
+              node.expression,
+              currentTestStrings,
+              argOrder,
+            );
           }
 
           assertResolvable(node as HasSpan);
@@ -1634,7 +1818,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             continue;
           }
 
-          const handled = collectConditions(expr);
+          const handled = collectConditions(expr, [], arg.order);
           if (handled) continue;
 
           assertResolvable(expr as HasSpan);
@@ -1651,6 +1835,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             classParts: [...dynamicClassParts],
             isOptimizable,
             baseStyle,
+            dynamicVars,
           };
         }
 
@@ -1953,7 +2138,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         }
 
         classParts.push(...dynamicClassParts);
-        return { classParts, isOptimizable, baseStyle };
+        return { classParts, isOptimizable, baseStyle, dynamicVars };
       };
 
       // Pass 2: Confirm reference replacement
@@ -2234,7 +2419,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             return;
 
           const expr = node.value.expression;
-          let args: Array<{ expression: Expression }> =
+          const args: Array<{ expression: Expression; order?: number }> =
             expr.type === 'ArrayExpression'
               ? expr.elements
                   .filter((el) => el !== undefined)
@@ -2242,7 +2427,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               : [{ expression: expr }];
 
           const dynamicClassParts: string[] = [];
-          const dynamicStyleParts: string[] = [];
+          const existingStyleParts: string[] = [];
 
           let attributes: Array<JSXAttribute | SpreadElement> = [];
           for (const [, val] of jsxOpeningElementMap) {
@@ -2309,169 +2494,22 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
               if (innerExpr.type === 'ObjectExpression') {
                 const stripped = innerSource.slice(1, -1).trim();
-                if (stripped) dynamicStyleParts.push(stripped);
+                if (stripped) existingStyleParts.push(stripped);
               } else {
                 existingStyleExpr = `...(${innerSource})`;
               }
             }
           }
 
-          args = args.filter((arg) => {
-            const expr = arg.expression;
-            if (!t.isCallExpression(expr) || !t.isMemberExpression(expr.callee))
-              return true;
-            const callee = expr.callee;
-            if (
-              !t.isIdentifier(callee.object) ||
-              !t.isIdentifier(callee.property)
-            )
-              return true;
+          const { classParts, isOptimizable, baseStyle, dynamicVars } =
+            buildClassParts(args, dynamicClassParts, existingClassExpr, true);
 
-            const varName = callee.object.value;
-            const propKey = callee.property.value;
-            const styleInfo = localCreateStyles[varName];
-
-            if (styleInfo?.functions?.[propKey]) {
-              const func = styleInfo.functions[propKey];
-              const callArgs = (expr as CallExpression).arguments;
-              const hasSpread = callArgs.some((a) => a.spread);
-
-              if (!hasSpread && callArgs.length >= 1) {
-                const tempStaticTable = { ...mergedStaticTable };
-                const cssVarInfo: Record<
-                  string,
-                  { cssVar: string; propKey: string }
-                > = {};
-
-                if (
-                  callArgs.length === 1 &&
-                  callArgs[0].expression.type === 'ObjectExpression'
-                ) {
-                  const argObj = objectExpressionToObject(
-                    callArgs[0].expression as ObjectExpression,
-                    mergedStaticTable,
-                    mergedKeyframesTable,
-                    mergedViewTransitionTable,
-                    mergedCreateThemeHashTable,
-                    scannedTables.createThemeObjectTable,
-                    mergedCreateTable,
-                    mergedCreateStaticHashTable,
-                    scannedTables.createStaticObjectTable,
-                    mergedVariantsTable,
-                  );
-                  func.params.forEach((p) => {
-                    if (argObj[p] !== undefined) tempStaticTable[p] = argObj[p];
-                  });
-                } else {
-                  const dynamicParams: string[] = [];
-                  callArgs.forEach((_callArg, i) => {
-                    const p = func.params[i];
-                    if (!p) return;
-                    dynamicParams.push(p);
-                    tempStaticTable[p] = p;
-                  });
-
-                  const probe = objectExpressionToObject(
-                    func.body,
-                    tempStaticTable,
-                    mergedKeyframesTable,
-                    mergedViewTransitionTable,
-                    mergedCreateThemeHashTable,
-                    scannedTables.createThemeObjectTable,
-                    mergedCreateTable,
-                    mergedCreateStaticHashTable,
-                    scannedTables.createStaticObjectTable,
-                    mergedVariantsTable,
-                  );
-                  const hash = genBase36Hash(probe ?? {}, 1, 8);
-
-                  dynamicParams.forEach((p) => {
-                    const cssVar = `--${hash}-${p}`;
-                    tempStaticTable[p] = `var(${cssVar})`;
-                    cssVarInfo[p] = { cssVar, propKey: '' };
-                  });
-                }
-
-                const substituted = objectExpressionToObject(
-                  func.body,
-                  tempStaticTable,
-                  mergedKeyframesTable,
-                  mergedViewTransitionTable,
-                  mergedCreateThemeHashTable,
-                  scannedTables.createThemeObjectTable,
-                  mergedCreateTable,
-                  mergedCreateStaticHashTable,
-                  scannedTables.createStaticObjectTable,
-                  mergedVariantsTable,
-                );
-
-                if (substituted) {
-                  const records = processStyleRecords(substituted);
-                  const hashes = records.map((r) => r.hash).join(' ');
-                  if (hashes) dynamicClassParts.push(JSON.stringify(hashes));
-
-                  if (Object.keys(cssVarInfo).length > 0) {
-                    Object.entries(cssVarInfo).forEach(([paramName, info]) => {
-                      const targetProp = findVarProp(substituted, info.cssVar);
-                      if (targetProp) {
-                        const paramIndex = func.params.indexOf(paramName);
-                        const srcArg =
-                          paramIndex >= 0 && callArgs[paramIndex]
-                            ? callArgs[paramIndex].expression
-                            : callArgs[0].expression;
-                        const argStart =
-                          (srcArg as HasSpan).span.start - baseByteOffset;
-                        const argEnd =
-                          (srcArg as HasSpan).span.end - baseByteOffset;
-                        const argSource = sourceBuffer
-                          .subarray(argStart, argEnd)
-                          .toString('utf-8');
-
-                        let valueExpr: string;
-                        const maybeNumber = Number(argSource);
-                        if (
-                          !isNaN(maybeNumber) &&
-                          argSource.trim() === String(maybeNumber)
-                        ) {
-                          valueExpr = JSON.stringify(
-                            applyCssValue(maybeNumber, targetProp),
-                          );
-                        } else if (
-                          (argSource.startsWith('"') &&
-                            argSource.endsWith('"')) ||
-                          (argSource.startsWith("'") && argSource.endsWith("'"))
-                        ) {
-                          valueExpr = JSON.stringify(
-                            applyCssValue(argSource.slice(1, -1), targetProp),
-                          );
-                        } else {
-                          valueExpr = exceptionCamelCase.includes(targetProp)
-                            ? argSource
-                            : `(typeof (${argSource}) === 'number' ? (${argSource}) + 'px' : (${argSource}))`;
-                        }
-                        dynamicStyleParts.push(
-                          `"${info.cssVar}": ${valueExpr}`,
-                        );
-                      }
-                    });
-                  }
-                  return false;
-                }
-              }
-            }
-            return true;
-          });
-
+          const dynamicStyleParts = foldDynamicVars(dynamicVars);
+          const styleParts = [...existingStyleParts, ...dynamicStyleParts];
           const styleAttr =
-            dynamicStyleParts.length > 0 || existingStyleExpr
-              ? ` style={{ ${[existingStyleExpr, ...dynamicStyleParts].filter(Boolean).join(', ')} }}`
+            styleParts.length > 0 || existingStyleExpr
+              ? ` style={{ ${[existingStyleExpr, ...styleParts].filter(Boolean).join(', ')} }}`
               : '';
-
-          const { classParts, isOptimizable, baseStyle } = buildClassParts(
-            args,
-            dynamicClassParts,
-            existingClassExpr,
-          );
 
           if (
             isOptimizable &&
