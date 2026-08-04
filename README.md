@@ -42,8 +42,8 @@ export default function App({ cond }) {
 
 ```tsx
 <div
-  className={'xhrr6ses ' + (cond ? 'xj00ajs1' : '') + ' xnoo1byz'}
-  style={{ '--scale-value': scale }}
+  className={'xhrr6ses xhxthtyw' + ' ' + (cond ? 'xj00ajs1' : '')}
+  style={{ '--xfuma1qq-value': scale }}
 />
 ```
 
@@ -53,11 +53,11 @@ export default function App({ cond }) {
 .xhrr6ses:not(#\#) {
   font-size: 12px;
 }
+.xhxthtyw {
+  scale: var(--xfuma1qq-value);
+}
 .xj00ajs1 {
   background: navy;
-}
-.xnoo1byz {
-  scale: var(--scale-value);
 }
 ```
 
