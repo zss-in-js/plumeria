@@ -80,6 +80,34 @@ export const D = (p: any) => <div classStyle={styles.box(p.w)} />;`,
     expect(nameOf(one.code)).not.toBe(nameOf(two.code));
   });
 
+  it('sets the variable for a parameter that only appears under nesting', async () => {
+    // The rule is emitted whatever the nesting is, so an inline variable that
+    // only covers top-level declarations leaves the rule reading nothing.
+    const { code } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({
+  link: (base: string, hovered: string) => ({ color: base, ':hover': { color: hovered } }),
+  deep: (size: number) => ({ '@media (min-width: 600px)': { ':hover': { fontSize: size } } }),
+});
+export const E = (p: any) => (<div><a classStyle={s.link(p.b, p.h)} /><i classStyle={s.deep(p.s)} /></div>);`,
+      'nested.tsx',
+    );
+    const vars = code.match(/"--[^"]+"/g) ?? [];
+    expect(vars).toHaveLength(3);
+    expect(code).toContain(`(p.h) + 'px' : (p.h)`);
+    expect(code).toContain(`(p.s) + 'px' : (p.s)`);
+  });
+
+  it('keeps a unitless nested property free of the px fallback', async () => {
+    const { code } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ fade: (o: number) => ({ ':hover': { opacity: o } }) });
+export const F = (p: any) => <div classStyle={s.fade(p.o)} />;`,
+      'unitless.tsx',
+    );
+    expect(code).toMatch(/"--[^"]+": p\.o }}/);
+  });
+
   it('rejects a call handed to a component prop instead of emitting a broken lookup', async () => {
     // The create call becomes a plain object holding only the static keys, so
     // leaving the call in place would throw "palette is not a function".
