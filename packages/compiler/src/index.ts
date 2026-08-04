@@ -799,10 +799,30 @@ export function compileCSS(options: CompilerOptions) {
                     });
                   } else {
                     // Positional arguments: map each callArg to func.params[i]
+                    const dynamicParams: string[] = [];
                     callArgs.forEach((_callArg: any, i: number) => {
                       const p = func.params[i];
                       if (!p) return;
-                      tempStaticTable[p] = `var(--${propName}-${p})`;
+                      dynamicParams.push(p);
+                      tempStaticTable[p] = p;
+                    });
+
+                    const probe = objectExpressionToObject(
+                      func.body,
+                      tempStaticTable,
+                      ctx.mergedKeyframesTable,
+                      ctx.mergedViewTransitionTable,
+                      ctx.mergedCreateThemeHashTable,
+                      ctx.scannedTables.createThemeObjectTable,
+                      ctx.mergedCreateTable,
+                      ctx.mergedCreateStaticHashTable,
+                      ctx.scannedTables.createStaticObjectTable,
+                      ctx.mergedVariantsTable,
+                    );
+                    const hash = genBase36Hash(probe ?? {}, 1, 8);
+
+                    dynamicParams.forEach((p) => {
+                      tempStaticTable[p] = `var(--${hash}-${p})`;
                     });
                   }
 
