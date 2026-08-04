@@ -1,5 +1,14 @@
 # Release Notes
 
+## 18.1.6 (Aug 4, 2026)
+
+- Update README.md
+- Fix: name the css variable of a dynamic function key after the declaration it resolves to, so two keys that share a parameter name no longer overwrite each other on one element
+- Fix: set the variable for a parameter that only appears under a nested selector or an at-rule
+- Fix: resolve a dynamic function key written inside a condition, instead of dropping the branch it belongs to
+- Fix: read the named parameters of a destructured signature, and fold such an argument into the rule only when its value is written out in full
+- Fix: report a dynamic function key that cannot reach the element, instead of emitting a call that throws at runtime
+
 ## 18.1.5 (Aug 3, 2026)
 
 - Update README.md
