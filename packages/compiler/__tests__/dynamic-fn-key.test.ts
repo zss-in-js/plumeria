@@ -35,6 +35,19 @@ export const A = (p: any) => <div classStyle={s.palette(p.c)} />;
     expect(css).toContain('color: var(--x80848wl-color)');
   });
 
+  it('emits the rule for a call that only applies under a condition', () => {
+    // The class is chosen at runtime, so the rule behind it has to be in the
+    // sheet whichever way the condition goes.
+    const css = compile(`
+import * as css from '@plumeria/core';
+const s = css.create({ plain: { color: 'gray' }, palette: (color: string) => ({ color }) });
+export const A = (p: any) => <div classStyle={p.on ? s.palette(p.c) : s.plain} />;
+export const B = (p: any) => <div classStyle={p.on && s.palette(p.d)} />;
+`);
+    expect(css).toContain('.xokp0532 { color: var(--x80848wl-color); }');
+    expect(css).toContain('color: gray');
+  });
+
   it('keeps two creates that share a key name apart', () => {
     const css = compile(`
 import * as css from '@plumeria/core';
