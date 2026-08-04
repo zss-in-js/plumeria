@@ -48,6 +48,24 @@ export const B = (p: any) => <div classStyle={p.on && s.palette(p.d)} />;
     expect(css).toContain('color: gray');
   });
 
+  it('emits the same rule whether the parameter is named or positional', () => {
+    const css = compile(`
+import * as css from '@plumeria/core';
+const s = css.create({
+  positional: (tone: string) => ({ color: tone }),
+  named: ({ tone }: { tone: string }) => ({ color: tone }),
+});
+export const A = (p: any) => (<div>
+  <i classStyle={s.positional(p.t)} />
+  <b classStyle={s.named({ tone: p.t })} />
+</div>);
+`);
+    // One declaration, so one hash and one custom property, written twice.
+    expect(css.match(/color: var\(--[^)]+\)/g)).toEqual([
+      'color: var(--x1gfjogo-tone)',
+    ]);
+  });
+
   it('keeps two creates that share a key name apart', () => {
     const css = compile(`
 import * as css from '@plumeria/core';
