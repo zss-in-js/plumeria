@@ -121,6 +121,7 @@ const HEAD = [
   `  solid: ${JSON.stringify(DEFS.fnStyles.solid)},`,
   `  dyn: (outline: string) => ({ outlineColor: outline }),`,
   `  tint: (tone: string) => ({ color: tone }),`,
+  `  named: ({ tone }: { tone: string }) => ({ color: tone }),`,
   `});`,
   '',
 ].join('\n');
@@ -668,6 +669,14 @@ const CASES: Case[] = [
     `[styles.base, sizeStyles[size], a && fnStyles.dyn(sk), b && styles.muted]`,
     [base, at('sizeStyles', 'size'), and('a', fn('dyn')), and('b', muted)],
     ['size', 'a', 'b'],
+  ],
+  // Naming the parameter by destructuring it is the same declaration, so it
+  // lands on the same atom and the same custom property as `tint`.
+  [
+    'function key with named parameters',
+    `[styles.base, fnStyles.named({ tone: sk })]`,
+    [base, fn('tint')],
+    ['sk'],
   ],
   [
     'every axis at once',
