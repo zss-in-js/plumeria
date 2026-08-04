@@ -12,6 +12,7 @@ const s = css.create({
     color: base,
     ':hover': { color: hovered },
   }),
+  boxed: ({ tone: t }: { tone: string }) => ({ backgroundColor: t }),
 });
 
 ${body}
@@ -54,6 +55,15 @@ describe('turbopack-loader: dynamic function keys', () => {
     );
     expect(code).toContain(
       `"--x80848wl-color": ((!(p.on)) ? (typeof (p.b) === 'number' ? (p.b) + 'px' : (p.b)) : (((p.on)) ? (typeof (p.a) === 'number' ? (p.a) + 'px' : (p.a)) : undefined))`,
+    );
+  });
+
+  it('takes named parameters from a destructured signature', async () => {
+    const code = await run(
+      'export const A = (p: any) => <div classStyle={s.boxed({ tone: p.t })} />;',
+    );
+    expect(code).toContain(
+      `"--xs7d3nvt-t": (typeof (p.t) === 'number' ? (p.t) + 'px' : (p.t))`,
     );
   });
 
