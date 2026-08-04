@@ -111,6 +111,17 @@ const ensureProductionCss = (
   return productionCss;
 };
 
+const findVarProp = (style: CSSObject, cssVar: string): string | undefined => {
+  for (const [prop, value] of Object.entries(style)) {
+    if (typeof value === 'string' && value.includes(cssVar)) return prop;
+    if (value !== null && typeof value === 'object') {
+      const nested = findVarProp(value as CSSObject, cssVar);
+      if (nested) return nested;
+    }
+  }
+  return undefined;
+};
+
 type AtomicMap = Record<string, string>;
 type CreateStyleValue = {
   name: string;
@@ -2367,11 +2378,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
                 if (Object.keys(cssVarInfo).length > 0) {
                   Object.entries(cssVarInfo).forEach(([paramName, info]) => {
-                    const targetProp = Object.keys(substituted).find(
-                      (k) =>
-                        typeof substituted[k] === 'string' &&
-                        substituted[k].includes(info.cssVar),
-                    );
+                    const targetProp = findVarProp(substituted, info.cssVar);
                     if (targetProp) {
                       const paramIndex = func.params.indexOf(paramName);
                       const srcArg =
