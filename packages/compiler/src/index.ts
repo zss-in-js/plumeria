@@ -60,6 +60,53 @@ interface CompilerOptions {
 // Definition of recontext and extraction logic
 // ============================================
 
+// A named argument folds into the style only when its value is written out in
+// full. Anything the parser can only read in part -- a template literal with an
+// interpolation, an expression -- has to reach the element as a custom property
+// instead, or the missing piece is silently baked into the rule.
+const isStaticArgValue = (node: Expression): boolean =>
+  node.type === 'StringLiteral' ||
+  node.type === 'NumericLiteral' ||
+  node.type === 'BooleanLiteral' ||
+  (node.type === 'TemplateLiteral' && node.expressions.length === 0) ||
+  t.isIdentifier(node) ||
+  t.isMemberExpression(node);
+
+type NamedParam = { key: string; local: string };
+
+// A dynamic style function may name its parameters by destructuring them, in
+// which case the call passes one object and the key it uses is not necessarily
+// the name the body reads.
+const namedParamsOf = (params: unknown[]): NamedParam[] | undefined => {
+  if (params.length !== 1) return undefined;
+  const first = params[0] as { type?: string; pat?: { type?: string } };
+  const pattern = (first?.pat ?? first) as {
+    type?: string;
+    properties?: any[];
+  };
+  if (pattern?.type !== 'ObjectPattern') return undefined;
+
+  const named: NamedParam[] = [];
+  for (const prop of pattern.properties ?? []) {
+    if (
+      prop.type === 'AssignmentPatternProperty' &&
+      t.isIdentifier(prop.key) &&
+      !prop.value
+    ) {
+      named.push({ key: prop.key.value, local: prop.key.value });
+    } else if (
+      prop.type === 'KeyValuePatternProperty' &&
+      t.isIdentifier(prop.key) &&
+      t.isIdentifier(prop.value)
+    ) {
+      named.push({ key: prop.key.value, local: prop.value.value });
+    } else {
+      return undefined;
+    }
+  }
+  return named.length > 0 ? named : undefined;
+};
+
 interface TraversalContext {
   mergedStaticTable: StaticTable;
   mergedKeyframesTable: KeyframesHashTable;
@@ -74,7 +121,10 @@ interface TraversalContext {
     {
       type: 'create' | 'theme';
       obj: CSSObject;
-      functions?: Record<string, { params: string[]; body: ObjectExpression }>;
+      functions?: Record<
+        string,
+        { params: string[]; named?: NamedParam[]; body: ObjectExpression }
+      >;
     }
   >;
   sourceBuffer: Buffer;
@@ -614,8 +664,55 @@ export function compileCSS(options: CompilerOptions) {
           return null;
 
         const tempStaticTable = { ...ctx.mergedStaticTable };
+        const runtime: string[] = [];
 
-        if (
+        if (func.named) {
+          const argExpr = callArgs[0].expression;
+          if (callArgs.length !== 1 || argExpr.type !== 'ObjectExpression') {
+            throw new Error(
+              `[plumeria] ${getSource(expr)} takes one object argument, because ${
+                callee.property.value
+              } destructures its parameter.\n`,
+            );
+          }
+          const given = new Map<string, Expression>();
+          (argExpr as ObjectExpression).properties.forEach((prop) => {
+            if (prop.type === 'Identifier') {
+              given.set(prop.value, prop);
+            } else if (
+              prop.type === 'KeyValueProperty' &&
+              (t.isIdentifier(prop.key) || t.isStringLiteral(prop.key))
+            ) {
+              given.set(String(prop.key.value), prop.value);
+            }
+          });
+
+          const argObj =
+            objectExpressionToObject(
+              argExpr as ObjectExpression,
+              ctx.mergedStaticTable,
+              ctx.mergedKeyframesTable,
+              ctx.mergedViewTransitionTable,
+              ctx.mergedCreateThemeHashTable,
+              ctx.scannedTables.createThemeObjectTable,
+              ctx.mergedCreateTable,
+              ctx.mergedCreateStaticHashTable,
+              ctx.scannedTables.createStaticObjectTable,
+              ctx.mergedVariantsTable,
+            ) ?? {};
+
+          func.named.forEach(({ key, local }) => {
+            const source = given.get(key);
+            if (!source) {
+              throw new Error(
+                `[plumeria] ${getSource(expr)} leaves "${key}" unset, and a dynamic style function has no value to fall back on.\n`,
+              );
+            }
+            if (isStaticArgValue(source) && argObj[key] !== undefined)
+              tempStaticTable[local] = argObj[key];
+            else runtime.push(local);
+          });
+        } else if (
           callArgs.length === 1 &&
           callArgs[0].expression.type === 'ObjectExpression'
         ) {
@@ -635,13 +732,15 @@ export function compileCSS(options: CompilerOptions) {
             if (argObj[p] !== undefined) tempStaticTable[p] = argObj[p];
           });
         } else {
-          const dynamicParams: string[] = [];
           callArgs.forEach((_callArg: any, i: number) => {
             const p = func.params[i];
             if (!p) return;
-            dynamicParams.push(p);
-            tempStaticTable[p] = p;
+            runtime.push(p);
           });
+        }
+
+        if (runtime.length > 0) {
+          runtime.forEach((p) => (tempStaticTable[p] = p));
 
           const probe = objectExpressionToObject(
             func.body,
@@ -657,7 +756,7 @@ export function compileCSS(options: CompilerOptions) {
           );
           const hash = genBase36Hash(probe ?? {}, 1, 8);
 
-          dynamicParams.forEach((p) => {
+          runtime.forEach((p) => {
             tempStaticTable[p] = `var(--${hash}-${p})`;
           });
         }
@@ -1055,7 +1154,11 @@ export function compileCSS(options: CompilerOptions) {
                 if (obj) {
                   const styleFunctions: Record<
                     string,
-                    { params: string[]; body: ObjectExpression }
+                    {
+                      params: string[];
+                      named?: NamedParam[];
+                      body: ObjectExpression;
+                    }
                   > = {};
 
                   arg.properties.forEach((prop) => {
@@ -1098,6 +1201,7 @@ export function compileCSS(options: CompilerOptions) {
                     if (actualBody && actualBody.type === 'ObjectExpression') {
                       styleFunctions[prop.key.value] = {
                         params,
+                        named: namedParamsOf(func.params),
                         body: actualBody as ObjectExpression,
                       };
                     }
