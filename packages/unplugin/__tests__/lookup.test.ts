@@ -6,8 +6,10 @@
 //   2. Entries the compiler settles at build time fold into one style, and
 //      overrideLonghand runs over that fold, so a shorthand there deletes an
 //      earlier longhand of its family.
-//   3. An entry that depends on a runtime value cannot fold. It stays its own
-//      unit and keeps its own atoms.
+//   3. An entry whose style object is only known at runtime cannot fold. It
+//      stays its own unit and keeps its own atoms. A function key is not one of
+//      those: its declarations are fixed at build time and only their values
+//      come from a custom property, so it folds like any other written style.
 //   4. Across units only identical property names collide, the last winning.
 //      Shorthand against longhand is no collision: both atoms are emitted and
 //      the cascade settles it, the longhand carrying zss-engine's boost.
@@ -20,7 +22,7 @@ jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
 import { unpluginFactory } from '../src/core';
 import { getStyleRecords, deepMerge } from '@plumeria/utils';
-import { overrideLonghand } from 'zss-engine';
+import { overrideLonghand, genBase36Hash } from 'zss-engine';
 
 type Style = Record<string, any>;
 
@@ -95,6 +97,18 @@ const DEFS: Record<string, Record<string, Style>> = {
   },
 };
 
+// A function key resolves to its body with the parameter replaced by a custom
+// property, and the property is named after the hash of that body read against
+// the parameter names. `dyn` touches nothing else; `tint` collides on `color`.
+const FN_STYLES: Record<string, Style> = {
+  dyn: {
+    outlineColor: `var(--${genBase36Hash({ outlineColor: 'outline' }, 1, 8)}-outline)`,
+  },
+  tint: {
+    color: `var(--${genBase36Hash({ color: 'tone' }, 1, 8)}-tone)`,
+  },
+};
+
 const HEAD = [
   `import * as css from '@plumeria/core';`,
   ...Object.entries(DEFS)
@@ -105,6 +119,7 @@ const HEAD = [
   `const fnStyles = css.create({`,
   `  solid: ${JSON.stringify(DEFS.fnStyles.solid)},`,
   `  dyn: (outline: string) => ({ outlineColor: outline }),`,
+  `  tint: (tone: string) => ({ color: tone }),`,
   `});`,
   '',
 ].join('\n');
@@ -144,7 +159,8 @@ const compile = async (styleExpr: string) => {
   );
   const code = typeof result === 'string' ? result : (result?.code ?? '');
 
-  const dynamic = code.match(/className=\{([\s\S]*?)\} \/>/);
+  // A dynamic style function puts a `style` attribute after the class list.
+  const dynamic = code.match(/className=\{([\s\S]*?)\}(?= style=| \/>)/);
   const literal = code.match(/className="([^"]*)"/);
   if (!dynamic && !literal) throw new Error(`no className in:\n${code}`);
   const expr = dynamic ? dynamic[1] : JSON.stringify(literal![1]);
@@ -176,10 +192,12 @@ const evaluate = (expr: string, vars: Record<string, unknown>) =>
 type Entry =
   | { kind: 'style'; obj: string; key: string }
   | { kind: 'lookup'; obj: string; keyVar: string }
+  | { kind: 'fn'; key: string }
   | { kind: 'and'; test: string; entry: Entry }
   | { kind: 'cond'; test: string; yes: Entry; no: Entry };
 
 const s = (obj: string, key: string): Entry => ({ kind: 'style', obj, key });
+const fn = (key: string): Entry => ({ kind: 'fn', key });
 const at = (obj: string, keyVar: string): Entry => ({
   kind: 'lookup',
   obj,
@@ -203,6 +221,8 @@ const resolve = (entry: Entry, vars: Record<string, any>): Style | null => {
       return DEFS[entry.obj][entry.key] ?? null;
     case 'lookup':
       return DEFS[entry.obj][vars[entry.keyVar]] ?? null;
+    case 'fn':
+      return FN_STYLES[entry.key];
     case 'and':
       return vars[entry.test] ? resolve(entry.entry, vars) : null;
     case 'cond':
@@ -213,7 +233,8 @@ const resolve = (entry: Entry, vars: Record<string, any>): Style | null => {
 };
 
 // Foldable: applies unconditionally, and its style needs no runtime value.
-const isFoldable = (entry: Entry) => entry.kind === 'style';
+const isFoldable = (entry: Entry) =>
+  entry.kind === 'style' || entry.kind === 'fn';
 
 const expected = (entries: Entry[], vars: Record<string, any>) => {
   const folding: Array<{ order: number; style: Style }> = [];
@@ -617,6 +638,43 @@ const CASES: Case[] = [
     `[styles.base, sizeStyles[size], a && toneStyles[tone], styles.wide]`,
     [base, at('sizeStyles', 'size'), and('a', at('toneStyles', 'tone')), wide],
     ['size', 'a', 'tone'],
+  ],
+  // -- function keys, which carry a runtime value of their own -------------
+  [
+    'function key beside the base',
+    `[styles.base, fnStyles.dyn(sk)]`,
+    [base, fn('dyn')],
+    ['sk'],
+  ],
+  [
+    'function key colliding with the base',
+    `[styles.base, fnStyles.tint(sk)]`,
+    [base, fn('tint')],
+    ['sk'],
+  ],
+  [
+    'function key under a condition',
+    `[styles.base, a && fnStyles.tint(sk)]`,
+    [base, and('a', fn('tint'))],
+    ['a', 'sk'],
+  ],
+  [
+    'function key against a static in a ternary',
+    `[styles.base, a ? fnStyles.tint(sk) : styles.muted]`,
+    [base, cond('a', fn('tint'), muted)],
+    ['a', 'sk'],
+  ],
+  [
+    'function key in both branches of a ternary',
+    `[styles.base, a ? fnStyles.tint(sk) : fnStyles.dyn(ak)]`,
+    [base, cond('a', fn('tint'), fn('dyn'))],
+    ['a', 'sk', 'ak'],
+  ],
+  [
+    'function key beside a bracket and a condition',
+    `[styles.base, sizeStyles[size], a && fnStyles.dyn(sk), b && styles.muted]`,
+    [base, at('sizeStyles', 'size'), and('a', fn('dyn')), and('b', muted)],
+    ['size', 'a', 'b'],
   ],
   [
     'every axis at once',
