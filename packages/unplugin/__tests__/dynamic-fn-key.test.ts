@@ -108,6 +108,22 @@ export const F = (p: any) => <div classStyle={s.fade(p.o)} />;`,
     expect(code).toMatch(/"--[^"]+": p\.o }}/);
   });
 
+  it('gives the variable of a call under a condition the same reach as its class', async () => {
+    // lookup.test.ts pins the class list; what it cannot see is the value, and
+    // one variable name serves every branch that shares the declaration.
+    const { code } = await run(
+      header +
+        `export const G = (p: any) => (<div><i classStyle={p.on && s.palette(p.c)} /><b classStyle={p.on ? s.palette(p.a) : s.palette(p.b)} /></div>);`,
+      'conditional.tsx',
+    );
+    expect(code).toContain(
+      `"--x80848wl-color": (((p.on)) ? (typeof (p.c) === 'number' ? (p.c) + 'px' : (p.c)) : undefined)`,
+    );
+    expect(code).toContain(
+      `"--x80848wl-color": ((!(p.on)) ? (typeof (p.b) === 'number' ? (p.b) + 'px' : (p.b)) : (((p.on)) ? (typeof (p.a) === 'number' ? (p.a) + 'px' : (p.a)) : undefined))`,
+    );
+  });
+
   it('rejects a call handed to a component prop instead of emitting a broken lookup', async () => {
     // The create call becomes a plain object holding only the static keys, so
     // leaving the call in place would throw "palette is not a function".
