@@ -124,6 +124,72 @@ export const F = (p: any) => <div classStyle={s.fade(p.o)} />;`,
     );
   });
 
+  it('takes named parameters from a destructured signature', async () => {
+    // The call names the parameters, and a renamed binding is read under the
+    // name the body uses, not the one the caller wrote.
+    const { code } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({
+  named: ({ color, size }: { color: string; size: number }) => ({ color, fontSize: size }),
+  renamed: ({ tone: t }: { tone: string }) => ({ backgroundColor: t }),
+});
+export const H = (p: any) => (<div>
+  <i classStyle={s.named({ color: p.c, size: 12 })} />
+  <b classStyle={s.renamed({ tone: p.t })} />
+</div>);`,
+      'named.tsx',
+    );
+    expect(code).toContain(
+      `"--x4fa0uiv-color": (typeof (p.c) === 'number' ? (p.c) + 'px' : (p.c))`,
+    );
+    expect(code).toContain(
+      `"--xs7d3nvt-t": (typeof (p.t) === 'number' ? (p.t) + 'px' : (p.t))`,
+    );
+  });
+
+  it('folds a named value only when it is written out in full', async () => {
+    // A template literal reads only in part, so baking it into the rule would
+    // drop the interpolation.
+    const { code } = await run(
+      `import * as css from '@plumeria/core';
+const GAP = 'blue';
+const s = css.create({ tint: ({ color }: { color: string }) => ({ backgroundColor: color }) });
+export const K = (p: any) => (<div>
+  <i classStyle={s.tint({ color: "red" })} />
+  <b classStyle={s.tint({ color: GAP })} />
+  <u classStyle={s.tint({ color: \`rgb(\${p.r} 0 0)\` })} />
+</div>);`,
+      'folding.tsx',
+    );
+    expect(code).toContain('<i className={"xymr32dw"} />');
+    expect(code).toContain('<b className={"x2x7bpc1"} />');
+    expect(code).toContain(
+      '"--xav007xm-color": (typeof (`rgb(${p.r} 0 0)`) === \'number\'',
+    );
+  });
+
+  it('rejects a named call that leaves a parameter unset', async () => {
+    await expect(
+      run(
+        `import * as css from '@plumeria/core';
+const s = css.create({ named: ({ color, size }: { color: string; size: number }) => ({ color, fontSize: size }) });
+export const I = (p: any) => <div classStyle={s.named({ color: p.c })} />;`,
+        'unset.tsx',
+      ),
+    ).rejects.toThrow('leaves "size" unset');
+  });
+
+  it('rejects a positional call to a named signature', async () => {
+    await expect(
+      run(
+        `import * as css from '@plumeria/core';
+const s = css.create({ named: ({ color }: { color: string }) => ({ color }) });
+export const J = (p: any) => <div classStyle={s.named(p.c)} />;`,
+        'positional.tsx',
+      ),
+    ).rejects.toThrow('takes one object argument');
+  });
+
   it('rejects a call handed to a component prop instead of emitting a broken lookup', async () => {
     // The create call becomes a plain object holding only the static keys, so
     // leaving the call in place would throw "palette is not a function".
