@@ -1,3 +1,9 @@
+## 18.1.6
+
+### Patch Changes
+
+- 5d03b90: Bump version to 18.1.6
+
 ## 18.1.5
 
 ### Patch Changes
