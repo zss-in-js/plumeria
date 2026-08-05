@@ -84,7 +84,7 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 | `css.extended`       | ★★★★☆     | Stable |
 | `css.use`/`classStyle`| ★★★★★    | Frozen | 
 
-> The **`classStyle`** property can be changed.
+> The **`classStyle`** can be renamed via configuration
 
 ### Bundler Integrations
 
