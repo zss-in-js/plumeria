@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 18.1.8
+
+### Patch Changes
+
+- fa39906: Update dependencies (postcss 8.5.25, GHSA-r28c-9q8g-f849)
+- Updated dependencies [fa39906]
+  - @plumeria/compiler@18.1.8
+  - @plumeria/utils@18.1.8
+
 ## 18.1.7
 
 ### Patch Changes
