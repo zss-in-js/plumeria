@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 18.1.7
+
+### Patch Changes
+
+- f233fe1: Update: README.md
+
 ## 18.1.6
 
 ### Patch Changes
