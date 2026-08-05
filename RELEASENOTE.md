@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.1.8 (Aug 5, 2026)
+
+- Update dependencies (postcss 8.5.25, GHSA-r28c-9q8g-f849)
+
 ## 18.1.7 (Aug 5, 2026)
 
 - Update: README.md
