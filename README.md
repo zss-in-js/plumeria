@@ -3,7 +3,7 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/zss-in-js/plumeria/tests.yml?logo=github&logoColor=white&label=tests&color=10B981)](https://github.com/zss-in-js/plumeria/actions/workflows/tests.yml)
 ![Codecov](https://img.shields.io/codecov/c/github/zss-in-js/plumeria?logo=codecov&logoColor=white&color=6366F1)
 
-**Plumeria** is a **zero-cost abstraction layer** for styling React components. You write type-safe styles in TypeScript, and the compiler resolves them into atomic CSS at build time — leaving no runtime JavaScript behind. Its axioms are grounded in category theory, making styles self-evident, predictable, and composable by construction, while strict syntax and linting keep the cognitive overhead low.
+**Plumeria** is a **zero-cost abstraction layer** for styling React components. You write type-safe styles in TypeScript, and style composition is defined as a monoid whose operation is fully determined at compile time — what ships is a class string, not a style object and a merger. Grounded in category theory, styles become self-evident, predictable, and composable by construction, while strict syntax and linting keep the cognitive overhead low.
 
 ## Example
 
