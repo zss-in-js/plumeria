@@ -3,11 +3,16 @@ import path from 'node:path';
 import { ESLint } from 'eslint';
 import * as tsParser from '@typescript-eslint/parser';
 import { renameProp } from './transforms/rename-prop';
+import { adoptStyles } from './transforms/adopt-styles';
+import { plan, write, formatReports } from './migrate';
+import type { ModuleMap } from './transforms/adopt-styles';
 import type { Linter } from 'eslint';
 
 const { version } = require('../package.json') as { version: string };
 
-const TRANSFORMS = ['rename-prop'] as const;
+const TRANSFORMS = ['rename-prop', 'migrate'] as const;
+
+const SOURCES = ['css-modules'] as const;
 
 const SOURCE_FILES = '**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}';
 
@@ -28,16 +33,19 @@ const USAGE = `plumeria-codemod — codemods for migrating Plumeria APIs
 
 Usage
   npx @plumeria/codemod rename-prop <from> <to> [paths...]
+  npx @plumeria/codemod migrate --from css-modules [paths...]
 
 Options
   -d, --dry-run    report what would change without writing
-      --no-types   leave TypeScript declarations untouched
+      --no-types   leave TypeScript declarations untouched (rename-prop)
+      --from       what to migrate from (migrate)
   -h, --help       show this message
   -v, --version    show the version
 
 Examples
   npx @plumeria/codemod rename-prop classStyle sx
   npx @plumeria/codemod rename-prop classStyle sx src app --dry-run
+  npx @plumeria/codemod migrate --from css-modules
 
 Paths default to the current directory. After the rewrite, point the toolchain
 at the new name with \`styleProp\` on your bundler plugin, and with
@@ -45,13 +53,23 @@ at the new name with \`styleProp\` on your bundler plugin, and with
 
 class UsageError extends Error {}
 
-interface Options {
+interface RenameOptions {
+  transform: 'rename-prop';
   from: string;
   to: string;
   targets: string[];
   dryRun: boolean;
   includeTypes: boolean;
 }
+
+interface MigrateOptions {
+  transform: 'migrate';
+  source: (typeof SOURCES)[number];
+  targets: string[];
+  dryRun: boolean;
+}
+
+type Options = RenameOptions | MigrateOptions;
 
 function parseArgs(argv: string[]): Options | null {
   if (argv.length === 0 || argv.includes('-h') || argv.includes('--help')) {
@@ -66,8 +84,10 @@ function parseArgs(argv: string[]): Options | null {
   const positional: string[] = [];
   let dryRun = false;
   let includeTypes = true;
+  let source: string | undefined;
 
-  for (const arg of argv) {
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
     switch (arg) {
       case '-d':
       case '--dry-run':
@@ -76,7 +96,14 @@ function parseArgs(argv: string[]): Options | null {
       case '--no-types':
         includeTypes = false;
         break;
+      case '--from':
+        source = argv[++i];
+        break;
       default:
+        if (arg.startsWith('--from=')) {
+          source = arg.slice('--from='.length);
+          break;
+        }
         if (arg.startsWith('-'))
           throw new UsageError(`unknown option "${arg}"`);
         positional.push(arg);
@@ -89,6 +116,25 @@ function parseArgs(argv: string[]): Options | null {
     throw new UsageError(
       `unknown transform "${transform}". Available: ${TRANSFORMS.join(', ')}`,
     );
+  }
+
+  if (transform === 'migrate') {
+    if (!source) {
+      throw new UsageError(
+        `migrate needs --from. Available: ${SOURCES.join(', ')}`,
+      );
+    }
+    if (!SOURCES.includes(source as (typeof SOURCES)[number])) {
+      throw new UsageError(
+        `unknown source "${source}". Available: ${SOURCES.join(', ')}`,
+      );
+    }
+    return {
+      transform: 'migrate',
+      source: source as (typeof SOURCES)[number],
+      targets: positional.slice(1).length > 0 ? positional.slice(1) : ['.'],
+      dryRun,
+    };
   }
   if (!from || !to) {
     throw new UsageError('rename-prop needs both <from> and <to>');
@@ -104,6 +150,7 @@ function parseArgs(argv: string[]): Options | null {
   }
 
   return {
+    transform: 'rename-prop',
     from,
     to,
     targets: targets.length > 0 ? targets : ['.'],
@@ -112,7 +159,7 @@ function parseArgs(argv: string[]): Options | null {
   };
 }
 
-function buildConfig(options: Options): Linter.Config[] {
+function buildConfig(options: RenameOptions): Linter.Config[] {
   const { from, to, includeTypes } = options;
 
   return [
@@ -161,6 +208,8 @@ export async function main(argv: string[]): Promise<number> {
   }
 
   if (!options) return 0;
+
+  if (options.transform === 'migrate') return migrate(options);
 
   const { from, to, targets, dryRun } = options;
   const baseConfig = {
@@ -240,5 +289,73 @@ export async function main(argv: string[]): Promise<number> {
 function report(unparsed: string[]): number {
   console.error(`\n✖ ${unparsed.length} file(s) could not be parsed:`);
   for (const failure of unparsed) console.error(`  ${failure}`);
+  return 1;
+}
+
+function migrateConfig(modules: Record<string, ModuleMap>): Linter.Config[] {
+  return [
+    { ignores: IGNORES },
+    {
+      files: [SOURCE_FILES],
+      languageOptions: {
+        parser: tsParser as unknown as Linter.Parser,
+        parserOptions: {
+          sourceType: 'module',
+          ecmaFeatures: { jsx: true },
+        },
+      },
+      plugins: { codemod: { rules: { 'adopt-styles': adoptStyles } } },
+      rules: { 'codemod/adopt-styles': ['error', { modules }] },
+    },
+  ];
+}
+
+async function migrate(options: MigrateOptions): Promise<number> {
+  const { targets, dryRun } = options;
+  const cwd = process.cwd();
+  const relative = (filePath: string) => path.relative(cwd, filePath) || '.';
+
+  const { stylesheets, modules } = plan(targets);
+
+  if (stylesheets.length === 0) {
+    console.log('No *.module.css found.');
+    return 0;
+  }
+
+  for (const sheet of stylesheets) {
+    console.log(`  ${relative(sheet.source)}  ->  ${relative(sheet.target)}`);
+  }
+
+  const config = {
+    overrideConfigFile: true as const,
+    overrideConfig: migrateConfig(modules),
+    errorOnUnmatchedPattern: false,
+  };
+
+  if (dryRun) {
+    const results = await new ESLint(config).lintFiles(targets);
+    const touched = results.filter((r) => r.messages.length > 0);
+    console.log(
+      `\n${stylesheets.length} stylesheet(s) would be converted, ${touched.length} consumer(s) rewritten.`,
+    );
+    console.log('Run without --dry-run to apply.');
+  } else {
+    warnIfDirty();
+    write(targets);
+    const applied = await new ESLint({ ...config, fix: true }).lintFiles(
+      targets,
+    );
+    await ESLint.outputFixes(applied);
+    const touched = applied.filter((r) => r.output !== undefined);
+    console.log(
+      `\n✔ converted ${stylesheets.length} stylesheet(s) and rewrote ${touched.length} consumer(s).`,
+    );
+  }
+
+  const lines = formatReports(stylesheets, cwd);
+  if (lines.length === 0) return 0;
+
+  console.log('\nLeft in place — these rules were not converted:\n');
+  for (const line of lines) console.log(line);
   return 1;
 }
