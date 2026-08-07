@@ -900,10 +900,11 @@ describe('parser', () => {
         {},
       );
 
-      // Verify getMarkerVar logic (lines 54-55): pseudo ':hover' -> state 'hover', var is --id-hover
+      // The variable name carries a hash of the id and the pseudo, so a
+      // functional pseudo cannot break the name and two of them cannot collide.
       expect(result).toEqual({
         ':hover': {
-          '--id-hover': 1,
+          '--xnuxsqj2-id-hover': 1,
         },
       });
     });
@@ -927,9 +928,10 @@ describe('parser', () => {
         {},
       );
 
-      // Verify getMarkerVar logic (lines 54-55) used in extended
-      expect(result).toHaveProperty('@container style(--id-hover: 1)');
-      expect(result['@container style(--id-hover: 1)']).toEqual({ op: 1 });
+      expect(result).toHaveProperty('@container style(--xnuxsqj2-id-hover: 1)');
+      expect(result['@container style(--xnuxsqj2-id-hover: 1)']).toEqual({
+        op: 1,
+      });
     });
 
     it('should merge spread objects', () => {
