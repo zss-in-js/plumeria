@@ -820,6 +820,12 @@ importers:
       eslint:
         specifier: ^10.4.1
         version: 10.4.1(jiti@2.7.0)
+      postcss:
+        specifier: 'catalog:'
+        version: 8.5.25
+      postcss-selector-parser:
+        specifier: ^7.1.1
+        version: 7.1.1
 
   packages/compiler:
     dependencies:
