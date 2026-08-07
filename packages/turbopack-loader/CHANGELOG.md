@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 18.1.9
+
+### Patch Changes
+
+- 73fc784: Keep a literal argument to a dynamic function key off the px fallback on a unitless property
+- Updated dependencies [73fc784]
+  - @plumeria/compiler@18.1.9
+  - @plumeria/utils@18.1.9
+
 ## 18.1.8
 
 ### Patch Changes
