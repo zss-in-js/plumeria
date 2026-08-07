@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.2.1 (Aug 7, 2026)
+
+- Feat: migrate a CSS Modules stylesheet with `migrate --from css-modules`
+
 ## 18.2.0 (Aug 7, 2026)
 
 - Feat: accept functional pseudo-classes in `css.marker` / `css.extended`
