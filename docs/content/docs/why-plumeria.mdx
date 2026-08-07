@@ -66,6 +66,16 @@ Split, organize, and refactor styles across files without fear. Where traditiona
 
 Plumeria's compiler never executes your application code. It relies purely on fast static analysis (oxlint/ESLint) and direct AST rewrites, and the hand-written type definitions of `@plumeria/core` resolve without any evaluation. The build pipeline stays fast and lightweight — and it can never break on a runtime evaluation error, because there is no runtime evaluation.
 
+## Already on CSS Modules
+
+The migration is a command, not a rewrite:
+
+```sh
+npx @plumeria/codemod migrate --from css-modules
+```
+
+Each `*.module.css` becomes a `*.styles.ts` beside it and its consumers are pointed at it — including the descendant rules, which have no combinator to translate into and become a [marker and its extended styles](/docs/api-reference/javascript/marker) instead. What cannot be converted is listed by file and line rather than guessed at. See [`@plumeria/codemod`](/docs/api-reference/codemod).
+
 ---
 
 Plumeria is for those who say, "I never compromise." Ready to try it? Start with [Getting started](/docs/getting-started).
