@@ -52,6 +52,8 @@ Plumeria goes one step further than CSS Modules here. Where CSS Modules ship a c
 
 Note the two class names in that output: one per property. Every property–value pair compiles to a global atomic class shared across your entire project, so your CSS stops growing in proportion to your component count — it plateaus.
 
+Measured on identical Next.js apps, that is 1.83KB less client JavaScript than StyleX, which keeps its resolver — see the [side-by-side benchmark](https://github.com/refirst11/stylex-plumeria-benchmark).
+
 Plumeria's strength doesn't come from flashy, single-purpose features. It comes from the cumulative effect of a few understated pillars that prove their value as your application grows.
 
 ---
