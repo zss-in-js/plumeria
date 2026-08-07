@@ -1320,18 +1320,22 @@ export default async function loader(this: LoaderContext, source: string) {
           .toString('utf-8');
 
         let valueExpr: string;
+        const kebabProp = camelToKebabCase(targetProp);
+        const isUnitless =
+          exceptionCamelCase.includes(targetProp) ||
+          targetProp.startsWith('--');
         const maybeNumber = Number(argSource);
         if (!isNaN(maybeNumber) && argSource.trim() === String(maybeNumber)) {
-          valueExpr = JSON.stringify(applyCssValue(maybeNumber, targetProp));
+          valueExpr = JSON.stringify(applyCssValue(maybeNumber, kebabProp));
         } else if (
           (argSource.startsWith('"') && argSource.endsWith('"')) ||
           (argSource.startsWith("'") && argSource.endsWith("'"))
         ) {
           valueExpr = JSON.stringify(
-            applyCssValue(argSource.slice(1, -1), targetProp),
+            applyCssValue(argSource.slice(1, -1), kebabProp),
           );
         } else {
-          valueExpr = exceptionCamelCase.includes(targetProp)
+          valueExpr = isUnitless
             ? argSource
             : `(typeof (${argSource}) === 'number' ? (${argSource}) + 'px' : (${argSource}))`;
         }
