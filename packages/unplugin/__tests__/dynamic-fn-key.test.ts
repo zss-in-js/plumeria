@@ -108,6 +108,32 @@ export const F = (p: any) => <div classStyle={s.fade(p.o)} />;`,
     expect(code).toMatch(/"--[^"]+": p\.o }}/);
   });
 
+  it('keeps a multi-word unitless property free of the px fallback', async () => {
+    // The unitless list is kebab-case at the source, so a property that reads
+    // the same either way (opacity) hides the ones that do not.
+    const { code } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ grow: (n: number) => ({ flexGrow: n }), weight: (n: number) => ({ fontWeight: n }) });
+export const F2 = (p: any) => (<div><i classStyle={s.grow(1)} /><b classStyle={s.weight(p.w)} /></div>);`,
+      'unitless-multiword.tsx',
+    );
+    expect(code).toMatch(/"--[^"]+-n": "1"/);
+    expect(code).toMatch(/"--[^"]+-n": p\.w/);
+  });
+
+  it('leaves a custom property number alone whichever way it is written', async () => {
+    // A custom property carries no unit rule, and the literal and the runtime
+    // argument have to agree on that.
+    const { code } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ gap: (n: number) => ({ '--gap': n, gap: 'var(--gap)' }) });
+export const F3 = (p: any) => (<div><i classStyle={s.gap(4)} /><b classStyle={s.gap(p.n)} /></div>);`,
+      'custom-prop.tsx',
+    );
+    expect(code).toMatch(/"--[^"]+-n": "4"/);
+    expect(code).toMatch(/"--[^"]+-n": p\.n/);
+  });
+
   it('gives the variable of a call under a condition the same reach as its class', async () => {
     // lookup.test.ts pins the class list; what it cannot see is the value, and
     // one variable name serves every branch that shares the declaration.
