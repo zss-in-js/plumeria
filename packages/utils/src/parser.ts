@@ -60,9 +60,11 @@ import { getStyleRecords } from './create';
 import type { StyleRecord } from './create';
 import { resolveImportPath } from './resolver';
 
+const toIdent = (value: string): string => value.replace(/[^A-Za-z0-9-]/g, '');
+
 const getMarkerVar = (id: string, pseudo: string): string => {
-  const state = pseudo.replace(/:/g, '');
-  return `--${id}-${state}`;
+  const hash = genBase36Hash({ [id]: pseudo }, 1, 8);
+  return `--${hash}-${toIdent(id)}-${toIdent(pseudo.split('(')[0])}`;
 };
 
 export const getRootIdentifier = (node: Expression): string | null => {
