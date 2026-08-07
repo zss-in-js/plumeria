@@ -246,7 +246,7 @@ export const Card = () => {
 };
 ```
 
-At build time this compiles to an atomic container style query (`@container style(--card-hover: 1)`) — zero runtime overhead, zero dependency on DOM hierarchy.
+At build time this compiles to an atomic container style query (`@container style(--x1f9k2q1-card-hover: 1)`) — zero runtime overhead, zero dependency on DOM hierarchy.
 
 ### `css.createStatic()`
 
