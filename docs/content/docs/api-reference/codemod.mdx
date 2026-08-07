@@ -4,7 +4,12 @@ description: 'Learn more about @plumeria/codemod.'
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-[`@plumeria/codemod`](https://www.npmjs.com/package/@plumeria/codemod) rewrites Plumeria APIs across a codebase. It ships one transform today: `rename-prop`, which changes the styling prop everywhere it appears.
+[`@plumeria/codemod`](https://www.npmjs.com/package/@plumeria/codemod) rewrites Plumeria APIs across a codebase, and moves a codebase onto Plumeria in the first place.
+
+| Transform | What it does |
+| --- | --- |
+| `migrate --from css-modules` | turns a CSS Modules stylesheet into `css.create` and points its consumers at it |
+| `rename-prop` | changes the styling prop everywhere it appears |
 
 ## Installation
 
@@ -36,7 +41,64 @@ pnpm i --save-dev @plumeria/codemod
 
 The package depends on ESLint and its TypeScript parser, and on nothing from Plumeria. It runs the same on a codebase you have not upgraded yet.
 
-## Usage
+## Migrating from CSS Modules
+
+```sh title="Terminal"
+npx @plumeria/codemod migrate --from css-modules
+```
+
+Every `*.module.css` under the paths becomes a `*.styles.ts` beside it, and the files importing it are rewritten — the import, the `className` prop, the class names, and `composes`.
+
+```css title="Card.module.css"
+.base { font-size: 12px }
+.card { composes: base; padding: 16px }
+.card:hover { background: teal }
+.card .card-title { color: red }
+```
+
+```ts title="Card.styles.ts"
+import * as css from '@plumeria/core';
+
+export const styles = css.create({
+  base: { fontSize: 12 },
+  card: {
+    ...css.marker('card', ':defined'),
+    padding: 16,
+    ':hover': { background: 'teal' },
+  },
+  cardTitle: {
+    [css.extended('card', ':defined')]: { color: 'red' },
+  },
+});
+```
+
+```diff title="Card.tsx"
++ import '@plumeria/core';
+- import s from './Card.module.css';
++ import { styles as s } from './Card.styles';
+
+- <div className={s.card}>
+-   <span className={s['card-title']} />
++ <div classStyle={[s.base, s.card]}>
++   <span classStyle={s.cardTitle} />
+  </div>
+```
+
+A descendant rule has no combinator to translate into — `no-combinator` rejects one — so it becomes [`css.marker`](/docs/api-reference/javascript/marker) on the parent and `css.extended` on the child. Both class names sit in the same selector, so which is which is read from the stylesheet; no markup is inspected.
+
+Class names become camel-case keys, and a bare pixel length loses its unit, because `padding: 16` and `padding: '16px'` compile to the same rule.
+
+### What it reports instead of converting
+
+```
+src/Card.module.css
+  10:1  sibling-combinator  .item + .item
+        A marker carries no order. Write the relation as a selector key.
+```
+
+Sibling combinators, `:global`, and a `composes` reaching into another file are named rather than guessed at, and the original rule is left where it is. The exit code is 1 while anything remains, so the command composes with a script.
+
+## Renaming the styling prop
 
 ```sh title="Terminal"
 npx @plumeria/codemod rename-prop <from> <to> [paths...]
