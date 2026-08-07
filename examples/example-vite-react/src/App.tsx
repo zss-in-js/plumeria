@@ -3,6 +3,7 @@ import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
 import * as css from '@plumeria/core';
+import { Card } from './migrate-e2e/Card';
 
 const styles = css.create({
   color: {
@@ -26,6 +27,7 @@ function App() {
         </a>
       </div>
       <h1 classStyle={styles.color}>Vite + React</h1>
+      <Card />
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
