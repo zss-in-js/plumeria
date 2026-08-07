@@ -1,0 +1,31 @@
+.base {
+  font-size: 12px;
+}
+
+.card {
+  composes: base;
+  padding: 16px;
+  background: navy;
+}
+
+.card:hover {
+  background: teal;
+}
+
+.card-title {
+  color: gray;
+}
+
+.card .card-title {
+  color: red;
+}
+
+.card > .badge {
+  color: lime;
+}
+
+@media (min-width: 600px) {
+  .card {
+    padding: 24px;
+  }
+}
