@@ -13,6 +13,8 @@ const s = css.create({
     ':hover': { color: hovered },
   }),
   boxed: ({ tone: t }: { tone: string }) => ({ backgroundColor: t }),
+  layer: (z: number) => ({ zIndex: z }),
+  gapped: (n: number) => ({ '--gap': n, gap: 'var(--gap)' }),
 });
 
 ${body}
@@ -65,6 +67,26 @@ describe('turbopack-loader: dynamic function keys', () => {
     expect(code).toContain(
       `"--xs7d3nvt-t": (typeof (p.t) === 'number' ? (p.t) + 'px' : (p.t))`,
     );
+  });
+
+  it('keeps a multi-word unitless property free of the px fallback', async () => {
+    // The unitless list is kebab-case at the source, so a property that reads
+    // the same either way hides the ones that do not.
+    const code = await run(
+      'export const A = (p: any) => (<div><i classStyle={s.layer(2)} /><b classStyle={s.layer(p.z)} /></div>);',
+    );
+    expect(code).toMatch(/"--[^"]+-z": "2"/);
+    expect(code).toMatch(/"--[^"]+-z": p\.z/);
+  });
+
+  it('leaves a custom property number alone whichever way it is written', async () => {
+    // A custom property carries no unit rule, and the literal and the runtime
+    // argument have to agree on that.
+    const code = await run(
+      'export const A = (p: any) => (<div><i classStyle={s.gapped(4)} /><b classStyle={s.gapped(p.n)} /></div>);',
+    );
+    expect(code).toMatch(/"--[^"]+-n": "4"/);
+    expect(code).toMatch(/"--[^"]+-n": p\.n/);
   });
 
   it('rejects a call handed to a component prop', async () => {
