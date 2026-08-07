@@ -1,5 +1,12 @@
 # @plumeria/utils
 
+## 18.2.0
+
+### Minor Changes
+
+- 9becf0a: Feat: accept functional pseudo-classes in `css.marker` / `css.extended`
+  The generated marker variable now carries a hash, so its name changes
+
 ## 18.1.9
 
 ### Patch Changes

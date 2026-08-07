@@ -1,5 +1,10 @@
 # Release Notes
 
+## 18.2.0 (Aug 7, 2026)
+
+- Feat: accept functional pseudo-classes in `css.marker` / `css.extended`
+- The generated marker variable now carries a hash, so its name changes
+
 ## 18.1.9 (Aug 7, 2026)
 
 - Keep a literal argument to a dynamic function key off the px fallback on a unitless property
