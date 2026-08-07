@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.1.9 (Aug 7, 2026)
+
+- Keep a literal argument to a dynamic function key off the px fallback on a unitless property
+
 ## 18.1.8 (Aug 5, 2026)
 
 - Update dependencies (postcss 8.5.25, GHSA-r28c-9q8g-f849)
