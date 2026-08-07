@@ -1,0 +1,126 @@
+---
+title: 'Plumeria 18.2'
+description: 'Update: functional pseudo-classes reach marker and extended, and every combinator becomes expressible'
+date: '2026-08-07'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v18.2 lifts a small build error that turned out to be holding back a lot.
+
+`css.marker` and `css.extended` take a pseudo-class as their second argument. Until now, passing a functional one — `:has()`, `:is()`, `:not()`, `:nth-child()` — failed the build. The generated variable name carried the argument along with it, so `:nth-child(2n)` produced `--card-nth-child(2n)`, which is not a valid custom property. The parser stopped there, and the error it printed was a CSS syntax error with no trace of the API that caused it.
+
+The name is now derived from a hash of the id and the pseudo, so the argument never reaches it:
+
+```css
+/* before — invalid */
+--card-nth-child(2n): 1;
+
+/* 18.2 */
+--xzh6qdtt-card-nth-child: 1;
+```
+
+The hash also settles two things that were left to chance. An id holding a character that is not identifier-safe no longer breaks the name, and two markers that share an id and differ only inside the parentheses no longer collide.
+
+**Generated variable names change in this release.** The stylesheet is regenerated in full on every build, so nothing has to be updated on your side — but if you have been reading `--card-hover` in devtools, it now reads `--xxxxxxxx-card-hover`.
+
+---
+
+## What it opens up
+
+`:has()` is the interesting one. A marker normally travels downward: a state on an ancestor reaches its descendants. With `:has()` the state belongs to a descendant, the marker lands on the element containing it, and the styles land anywhere below that element.
+
+```tsx
+const styles = css.create({
+  wrap: {
+    ...css.marker('wrap', ':has(.trigger:hover)'),
+  },
+  sibling: {
+    color: 'gray',
+    [css.extended('wrap', ':has(.trigger:hover)')]: { color: 'red' },
+  },
+});
+
+export const Row = () => (
+  <div classStyle={styles.wrap}>
+    <button className="trigger">hover me</button>
+    <span classStyle={styles.sibling}>reacts</span>
+  </div>
+);
+```
+
+Hovering the button changes the span. In CSS you would write `.wrap:has(.trigger:hover) .sibling`, which spells out the path between the two elements. The marker spells out nothing: it is linked to `extended` by an id, so the styles reach every descendant at any depth, and nesting the span one level deeper does not break the pair.
+
+`:defined` is the quiet one. It matches every standard element, so the marker is permanently on, and what remains is the plain descendant relation with no state involved.
+
+---
+
+## Every combinator, expressed
+
+With functional pseudo-classes available in both places — as the marker's argument, and as a selector key wrapping a combinator — the relations combinators used to carry are all expressible.
+
+| CSS | Plumeria |
+| :-- | :------- |
+| `.a .b` — descendant, on a state | `css.marker(id, ':hover')` + `css.extended` |
+| `.a .b` — descendant, no state | `css.marker(id, ':defined')` + `css.extended` |
+| `.a > .b` — child | `css.marker(id, ':defined')` + `css.extended` on the child |
+| `.a + .b`, `.a ~ .b` — sibling | `css.marker(id, ':defined')` + `css.extended` on the sibling |
+| `.a:hover ~ .b` — sibling reacting to a state | `css.marker(id, ':has(.a:hover)')` + `css.extended` |
+| `.a:has(.b) .c` — a descendant's state, back up and down again | `css.marker(id, ':has(…)')` + `css.extended` |
+
+Every row on the left names a path. None of the marker rows do — the pair is linked by an id, so the scope is every descendant at any depth, and rearranging the tree between them changes nothing.
+
+---
+
+## Which one to write
+
+There is a second route the table does not show. A combinator is legal inside a functional pseudo-class — `no-combinator` permits it there — so a relation can also be written as a selector key, anchored on something you write yourself:
+
+```ts
+const styles = css.create({
+  cell: { ':is([data-row] > *)': { color: 'red' } },
+});
+```
+
+The two routes overlap almost entirely, so the question is which to reach for by default. We measured rather than guessed.
+
+**Stylesheet bytes**, from a production vite build of the same markup:
+
+| Targets under one relation | Selector key | `marker` / `extended` |
+| -------------------------: | -----------: | --------------------: |
+| 1 | 94 B | 147 B |
+| 5 | 281 B | **43 B** |
+
+One target, and the marker pair costs more — it emits the marker rule and the container query where a selector key emits one rule. Five, and it is a fifth of the size: every `extended` sharing an id lands in the same `@container` block, while a selector key repeats its selector for every declaration.
+
+**Style recalculation**, over a class toggle in headless Chromium, median of 30 runs:
+
+| Elements | Plain CSS | Selector key | `marker` / `extended` |
+| -------: | --------: | -----------: | --------------------: |
+| 500 | 0.009 ms | 0.006 ms | 0.012 ms |
+| 2,000 | 0.008 ms | 0.007 ms | 0.012 ms |
+| 8,000 | 0.005 ms | 0.005 ms | 0.012 ms |
+
+One element toggled per run, which is what a hover or a focus is. The marker column is flat across a sixteen-fold increase in page size, and the gap to plain CSS is 0.007 ms — four hundredths of one frame.
+
+The number that is not flat is the one nobody hits: toggling *every* anchor at once costs 26 ms at 8,000 elements against 7 ms for a selector key. Style queries are re-evaluated per container, so a broad invalidation pays per container. No interface toggles eight thousand components in the same frame, but that is where the difference lives.
+
+So: **reach for `marker` / `extended` first.** It is smaller from the second target onward, its recalculation cost does not grow with the page, and — the reason it exists — it names no path, so nesting the target one level deeper leaves it working. The selector key is the escape hatch, for markup you do not write and therefore cannot attach a style to.
+
+Neither route reintroduces a dependency on DOM shape into the style objects themselves, which is what the combinator ban was protecting in the first place.
+
+---
+
+## 18.2.0 (Aug 7, 2026)
+- Feat: accept functional pseudo-classes in `css.marker` / `css.extended`
+- The generated marker variable now carries a hash, so its name changes
+- Note: the marker's css variable is derived from a hash of the id and the pseudo, so the variable name changes in this release
+- Note: an `extended` style is keyed by the container query that wraps it, so its class name changes with the variable name
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
