@@ -115,6 +115,58 @@ Neither route reintroduces a dependency on DOM shape into the style objects them
 
 ---
 
+## Migrating from CSS Modules
+
+The relations above are what made a CSS Modules migration mechanical, so 18.2 ships one:
+
+```sh
+npx @plumeria/codemod migrate --from css-modules
+```
+
+It reads every `*.module.css`, writes a `*.styles.ts` beside it, and points the consumers at it — the import, the `className` prop, the class names, and `composes`, which becomes an array at the call site.
+
+```css
+/* Card.module.css */
+.base { font-size: 12px }
+.card { composes: base; padding: 16px }
+.card:hover { background: teal }
+.card .card-title { color: red }
+```
+
+```ts
+/* Card.styles.ts */
+import * as css from '@plumeria/core';
+
+export const styles = css.create({
+  base: { fontSize: 12 },
+  card: {
+    ...css.marker('card', ':defined'),
+    padding: 16,
+    ':hover': { background: 'teal' },
+  },
+  cardTitle: {
+    [css.extended('card', ':defined')]: { color: 'red' },
+  },
+});
+```
+
+The descendant rule is the part that could not be written before this release. `.card .card-title` has no combinator to translate into, so it becomes a marker on the parent and an `extended` key on the child — and because both class names appear in the same selector, the transform reads which is which from the stylesheet alone. No markup is inspected.
+
+What it will not convert, it leaves in place and names:
+
+```
+src/Card.module.css
+  10:1  sibling-combinator  .item + .item
+        A marker carries no order. Write the relation as a selector key.
+```
+
+Sibling combinators, `:global`, and a `composes` that reaches into another file are reported rather than guessed at. The exit code is 1 while anything remains, so the command composes with a script.
+
+---
+
+## 18.2.1 (Aug 7, 2026)
+- Feat: migrate a CSS Modules stylesheet with `npx @plumeria/codemod migrate --from css-modules`, which converts the stylesheet, rewrites its consumers, and reports the rules it did not convert
+
 ## 18.2.0 (Aug 7, 2026)
 - Feat: accept functional pseudo-classes in `css.marker` / `css.extended`
 - The generated marker variable now carries a hash, so its name changes
