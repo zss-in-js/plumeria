@@ -1,5 +1,11 @@
 # @plumeria/codemod
 
+## 18.2.1
+
+### Patch Changes
+
+- 9e8f603: Feat: migrate a CSS Modules stylesheet with `migrate --from css-modules`
+
 ## 18.2.0
 
 ### Minor Changes
