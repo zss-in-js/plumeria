@@ -126,14 +126,14 @@ The parameters must be linked (match) in both cases.
   <Tab>
     ```css title="Generated CSS"
     .xtkxh191:hover {
-      --grand-hover: 1;
+      --xl0a2l54-grand-hover: 1;
     }
 
     .xhcsnlrf:hover {
-      --parent-hover: 1;
+      --xmlppxj5-parent-hover: 1;
     }
 
-    @container style(--grand-hover: 1) {
+    @container style(--xl0a2l54-grand-hover: 1) {
       .x84muc4x:not(#\#) {
         color: #06c;
       }
@@ -143,7 +143,7 @@ The parameters must be linked (match) in both cases.
       }
     }
 
-    @container style(--parent-hover: 1) {
+    @container style(--xmlppxj5-parent-hover: 1) {
       .xr8ck8y9:not(#\#) {
         color: #fff;
       }
@@ -187,13 +187,13 @@ The parameters must be linked (match) in both cases.
 **`marker()`** generates a CSS variable when the pseudo-class is active:
    ```css
    .parent:hover {
-     --ul-hover: 1;
+     --xyuz5mma-ul-hover: 1;
    }
    ```
 
 **`extended()`** wraps child styles in a container query:
    ```css
-   @container style(--ul-hover: 1) {
+   @container style(--xyuz5mma-ul-hover: 1) {
      .child { /* styles */ }
    }
    ```
@@ -203,4 +203,112 @@ The CSS variable acts as a **signal** that propagates to descendants without DOM
 <Callout title="ESLint Rule">
   The `no-combinator` rule enforces this pattern by disallowing combinator syntax.
 </Callout>
+
+## Functional pseudo-classes
+
+Any pseudo-class is accepted, including the functional ones.
+
+```ts
+const styles = css.create({
+  wrap: {
+    ...css.marker('wrap', ':has(a:hover)'),
+  },
+  child: {
+    [css.extended('wrap', ':has(a:hover)')]: { color: 'red' },
+  },
+});
+```
+
+```css
+.xwpr9f08:has(a:hover) {
+  --xg204awn-wrap-has: 1;
+}
+
+@container style(--xg204awn-wrap-has: 1) {
+  .xof70rr5:not(#\#) {
+    color: red;
+  }
+}
+```
+
+`:has()` reverses the direction the marker travels: the state belongs to a
+descendant, the marker lands on the element that contains it, and the styles land
+on any descendant of that element. CSS spells the same relation as
+`.a:has(.b:hover) .c`, naming the path between all three; the marker names none
+of it.
+
+`:defined` matches every standard element, so it turns the marker into a
+permanent signal — the plain descendant relation, with no state involved.
+
+<Callout type="warn" title="The marker has to be above it">
+  An `extended` style applies to elements below the marked one, and to nothing
+  else. Render the same component outside that subtree and the style is simply
+  absent — no error, no warning, because the query has nothing to match. With a
+  state like `:hover` this reads as "the state never fired"; with `:defined`,
+  which is always on, it reads as the style having disappeared.
+</Callout>
+
+## Every combinator, expressed
+
+| CSS | Plumeria |
+| :-- | :------- |
+| `.a .b` — descendant, on a state | `css.marker(id, ':hover')` + `css.extended` |
+| `.a .b` — descendant, no state | `css.marker(id, ':defined')` + `css.extended` |
+| `.a > .b` — child | `css.marker(id, ':defined')` + `css.extended` on the child |
+| `.a + .b`, `.a ~ .b` — sibling | `css.marker(id, ':defined')` + `css.extended` on the sibling |
+| `.a:hover ~ .b` — sibling reacting to a state | `css.marker(id, ':has(a:hover)')` + `css.extended` |
+| `.a:has(.b) .c` — a descendant's state, back up and down again | `css.marker(id, ':has(input:focus)')` + `css.extended` |
+
+The marker goes on the element both sides share — for a child that is the parent,
+for a sibling their common parent. What separates a child from a sibling is not a
+selector but which element you hand `extended` to.
+
+The CSS column names a path; the Plumeria column does not. `marker` and
+`extended` are linked by an id, so the styles reach every descendant at any
+depth, and moving an element deeper does not invalidate the pair.
+
+**Reach for `marker` / `extended` first.** The alternative is a selector key —
+a combinator inside a functional pseudo-class, which `no-combinator` permits,
+anchored on something you write yourself:
+
+```ts
+const styles = css.create({
+  cell: { ':is([data-row] > *)': { color: 'red' } },
+});
+```
+
+That names the path, so moving the element breaks it, and it repeats the whole
+selector for every declaration. The marker pair names no path, and every
+`extended` sharing an id lands in one `@container` block.
+
+| Targets under one relation | Selector key | `marker` / `extended` |
+| -------------------------: | -----------: | --------------------: |
+| 1 | 94 B | 147 B |
+| 5 | 281 B | **43 B** |
+
+<sub>Bytes each route adds to the stylesheet, measured from a production vite
+build of the same markup.</sub>
+
+The selector key is the escape hatch, for when the target is markup you do not
+write and therefore cannot attach a style to.
+
+### What the container query costs
+
+`extended` compiles to a style query, which the engine re-evaluates per container
+when a state changes. Style recalculation, measured over a class toggle in
+headless Chromium, median of 30 runs:
+
+| Elements | Plain CSS | Selector key | `marker` / `extended` |
+| -------: | --------: | -----------: | --------------------: |
+| 500 | 0.009 ms | 0.006 ms | 0.012 ms |
+| 2,000 | 0.008 ms | 0.007 ms | 0.012 ms |
+| 8,000 | 0.005 ms | 0.005 ms | 0.012 ms |
+
+<sub>One element toggled per run — a hover, a focus. The figure is flat because
+only the containers on the path are re-evaluated, not the document.</sub>
+
+The cost does not grow with the page. Toggling **every** anchor at once is the
+case where it does: 8,000 simultaneous toggles cost 26 ms against 7 ms for a
+selector key. That is not a shape user interfaces take, but it is where the
+difference lives if you go looking for it.
 
