@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@astrojs/react": "^6.0.2",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "astro": "^7.1.6",
     "react": "catalog:",
     "react-dom": "catalog:"
