@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(js|ts)$' || true)
+
+[ -z "$staged" ] && exit 0
+
+if ! echo "$staged" | xargs pnpm exec prettier --check --ignore-unknown; then
+  cat <<'EOF'
+
+✖ Prettier check failed. 
+  Please run the following command before committing:
+
+      pnpm prettier && git add -u
+
+EOF
+  exit 1
+fi
