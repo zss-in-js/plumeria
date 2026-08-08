@@ -37,23 +37,23 @@ The hash also settles two things that were left to chance. An id holding a chara
 ```tsx
 const styles = css.create({
   wrap: {
-    ...css.marker('wrap', ':has(.trigger:hover)'),
+    ...css.marker('wrap', ':has(a:hover)'),
   },
   sibling: {
     color: 'gray',
-    [css.extended('wrap', ':has(.trigger:hover)')]: { color: 'red' },
+    [css.extended('wrap', ':has(a:hover)')]: { color: 'red' },
   },
 });
 
 export const Row = () => (
   <div classStyle={styles.wrap}>
-    <button className="trigger">hover me</button>
+    <a href="#">hover me</a>
     <span classStyle={styles.sibling}>reacts</span>
   </div>
 );
 ```
 
-Hovering the button changes the span. In CSS you would write `.wrap:has(.trigger:hover) .sibling`, which spells out the path between the two elements. The marker spells out nothing: it is linked to `extended` by an id, so the styles reach every descendant at any depth, and nesting the span one level deeper does not break the pair.
+Hovering the link changes the span. In CSS you would write `.wrap:has(a:hover) .sibling`, which spells out the path between the two elements. The marker spells out nothing: it is linked to `extended` by an id, so the styles reach every descendant at any depth, and nesting the span one level deeper does not break the pair.
 
 `:defined` is the quiet one. It matches every standard element, so the marker is permanently on, and what remains is the plain descendant relation with no state involved.
 
@@ -69,8 +69,8 @@ With functional pseudo-classes available in both places — as the marker's argu
 | `.a .b` — descendant, no state | `css.marker(id, ':defined')` + `css.extended` |
 | `.a > .b` — child | `css.marker(id, ':defined')` + `css.extended` on the child |
 | `.a + .b`, `.a ~ .b` — sibling | `css.marker(id, ':defined')` + `css.extended` on the sibling |
-| `.a:hover ~ .b` — sibling reacting to a state | `css.marker(id, ':has(.a:hover)')` + `css.extended` |
-| `.a:has(.b) .c` — a descendant's state, back up and down again | `css.marker(id, ':has(…)')` + `css.extended` |
+| `.a:hover ~ .b` — sibling reacting to a state | `css.marker(id, ':has(a:hover)')` + `css.extended` |
+| `.a:has(.b) .c` — a descendant's state, back up and down again | `css.marker(id, ':has(input:focus)')` + `css.extended` |
 
 Every row on the left names a path. None of the marker rows do — the pair is linked by an id, so the scope is every descendant at any depth, and rearranging the tree between them changes nothing.
 
@@ -114,6 +114,58 @@ So: **reach for `marker` / `extended` first.** It is smaller from the second tar
 Neither route reintroduces a dependency on DOM shape into the style objects themselves, which is what the combinator ban was protecting in the first place.
 
 ---
+
+## Migrating from CSS Modules
+
+The relations above are what made a CSS Modules migration mechanical, so 18.2 ships one:
+
+```sh
+npx @plumeria/codemod migrate --from css-modules
+```
+
+It reads every `*.module.css`, writes a `*.styles.ts` beside it, and points the consumers at it — the import, the `className` prop, the class names, and `composes`, which becomes an array at the call site.
+
+```css
+/* Card.module.css */
+.base { font-size: 12px }
+.card { composes: base; padding: 16px }
+.card:hover { background: teal }
+.card .card-title { color: red }
+```
+
+```ts
+/* Card.styles.ts */
+import * as css from '@plumeria/core';
+
+export const styles = css.create({
+  base: { fontSize: 12 },
+  card: {
+    ...css.marker('card', ':defined'),
+    padding: 16,
+    ':hover': { background: 'teal' },
+  },
+  cardTitle: {
+    [css.extended('card', ':defined')]: { color: 'red' },
+  },
+});
+```
+
+The descendant rule is the part that could not be written before this release. `.card .card-title` has no combinator to translate into, so it becomes a marker on the parent and an `extended` key on the child — and because both class names appear in the same selector, the transform reads which is which from the stylesheet alone. No markup is inspected.
+
+What it will not convert, it leaves in place and names:
+
+```
+src/Card.module.css
+  10:1  sibling-combinator  .item + .item
+        A marker carries no order. Write the relation as a selector key.
+```
+
+Sibling combinators, `:global`, and a `composes` that reaches into another file are reported rather than guessed at. The exit code is 1 while anything remains, so the command composes with a script.
+
+---
+
+## 18.2.1 (Aug 7, 2026)
+- Feat: migrate a CSS Modules stylesheet with `npx @plumeria/codemod migrate --from css-modules`, which converts the stylesheet, rewrites its consumers, and reports the rules it did not convert
 
 ## 18.2.0 (Aug 7, 2026)
 - Feat: accept functional pseudo-classes in `css.marker` / `css.extended`
