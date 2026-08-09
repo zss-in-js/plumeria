@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 18.2.2
+
+### Patch Changes
+
+- a2db725: Bump version to 18.2.2
+
 ## 18.2.1
 
 ### Patch Changes

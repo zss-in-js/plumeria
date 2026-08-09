@@ -1,5 +1,11 @@
 # @plumeria/codemod
 
+## 18.2.2
+
+### Patch Changes
+
+- a2db725: Update: README.md
+
 ## 18.2.1
 
 ### Patch Changes

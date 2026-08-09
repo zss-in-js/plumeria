@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 18.2.2
+
+### Patch Changes
+
+- a2db725: Bump version to 18.2.2
+- Updated dependencies [a2db725]
+  - @plumeria/compiler@18.2.2
+  - @plumeria/utils@18.2.2
+
 ## 18.2.1
 
 ### Patch Changes
