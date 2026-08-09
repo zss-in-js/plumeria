@@ -2,7 +2,7 @@
 
 ## 18.2.2 (Aug 9, 2026)
 
-- Update dependencies
+- Update: dependencies
 - Update: README.md
 
 ## 18.2.1 (Aug 7, 2026)
