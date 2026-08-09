@@ -1,10 +1,81 @@
 # @plumeria/codemod
 
-Codemods for migrating Plumeria APIs. No install needed — run it with `npx`.
+Codemods for moving a codebase onto Plumeria, and for migrating Plumeria APIs.
+No install needed — run it with `npx`.
 
 ```sh
+npx @plumeria/codemod migrate --from css-modules
 npx @plumeria/codemod rename-prop classStyle sx
 ```
+
+Commit before running, so the rewrite can be reverted with `git checkout`.
+
+## `migrate --from css-modules`
+
+Converts every `*.module.css` under the paths into a `*.styles.ts` beside it,
+and rewrites the files importing it — the import, the `className` prop, the
+class names, and `composes`:
+
+```sh
+npx @plumeria/codemod migrate --from css-modules [paths...]
+```
+
+```css
+/* Card.module.css */
+.base { font-size: 12px }
+.card { composes: base; padding: 16px }
+.card:hover { background: teal }
+.card .card-title { color: red }
+```
+
+```ts
+/* Card.styles.ts */
+import * as css from '@plumeria/core';
+
+export const styles = css.create({
+  base: { fontSize: 12 },
+  card: {
+    ...css.marker('card', ':defined'),
+    padding: 16,
+    ':hover': { background: 'teal' },
+  },
+  cardTitle: {
+    [css.extended('card', ':defined')]: { color: 'red' },
+  },
+});
+```
+
+```diff
+/* Card.tsx */
++ import '@plumeria/core';
+- import styles from './Card.module.css';
++ import { styles } from './Card.styles';
+
+- <div className={styles.card}>
+-   <span className={styles['card-title']} />
++ <div classStyle={[styles.base, styles.card]}>
++   <span classStyle={styles.cardTitle} />
+  </div>
+```
+
+A descendant rule has no combinator to translate into, so it becomes
+`css.marker` on the parent and `css.extended` on the child. Which class is which
+is read from the stylesheet; no markup is inspected. Class names become
+camel-case keys, and a bare pixel length loses its unit.
+
+### What it reports instead of converting
+
+```
+src/Card.module.css
+  10:1  sibling-combinator  .item + .item
+        A marker carries no order. Write the relation as a selector key.
+```
+
+Sibling combinators, `:global`, and a `composes` reaching into another file are
+named rather than guessed at, and the original rule is left in place. The exit
+code is 1 while anything remains, so the command composes with a script.
+
+Pass `-d, --dry-run` to see the stylesheets and consumer counts without writing.
 
 ## `rename-prop`
 
@@ -70,5 +141,3 @@ withPlumeria(nextConfig, { styleProp: 'sx' });
 // eslint.config.js
 settings: { plumeria: { styleProp: 'sx' } }
 ```
-
-Commit before running, so the rewrite can be reverted with `git checkout`.
