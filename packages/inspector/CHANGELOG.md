@@ -1,5 +1,13 @@
 # @plumeria/inspector
 
+## 18.2.2
+
+### Patch Changes
+
+- a2db725: Update dependencies
+- Updated dependencies [a2db725]
+  - @plumeria/headlessui@18.2.2
+
 ## 18.2.1
 
 ### Patch Changes
