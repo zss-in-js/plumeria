@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 18.2.2
+
+### Patch Changes
+
+- a2db725: Update dependencies
+
 ## 18.2.1
 
 ### Patch Changes
