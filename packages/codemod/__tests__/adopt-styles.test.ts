@@ -22,11 +22,19 @@ const options = [
 tester.run('adopt-styles', adoptStyles, {
   valid: [
     {
+      code: `const value = styles.card;\n<div id="card" className />;`,
+      options: [{}],
+    },
+    {
       code: `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={styles.card} />;`,
       options,
     },
     {
       code: `import s from './other.css';\n<div className={s.card} />;`,
+      options,
+    },
+    {
+      code: `import { card } from './Card.module.css';`,
       options,
     },
   ],
@@ -45,6 +53,26 @@ tester.run('adopt-styles', adoptStyles, {
       options,
       output: `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={[styles.base, styles.card]} />;`,
       errors: 4,
+    },
+    {
+      // A basename module-map entry also matches a nested import. When the
+      // generated export name is occupied, preserve the stylesheet binding.
+      code: `const styles = {};\nimport cardStyles from '../ui/Card.module.css';\n<div className={cardStyles.card} />;`,
+      options: [
+        {
+          modules: {
+            'Card.module.css': options[0].modules['./Card.module.css'],
+          },
+        },
+      ],
+      output: `const styles = {};\nimport '@plumeria/core';\nimport { styles as cardStyles } from './Card.styles';\n<div classStyle={[cardStyles.base, cardStyles.card]} />;`,
+      errors: 3,
+    },
+    {
+      code: `function styles() {}\nimport s from './Card.module.css';\n<div className={s.unknown} />;`,
+      options: [{ ...options[0], styleProp: 'sx' }],
+      output: `function styles() {}\nimport '@plumeria/core';\nimport { styles as s } from './Card.styles';\n<div sx={s.unknown} />;`,
+      errors: 2,
     },
   ],
 });
