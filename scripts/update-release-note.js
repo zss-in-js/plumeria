@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { normalizeReleaseNote } = require('./release-note-markdown');
 
 const changesetDir = path.join(__dirname, '../.changeset');
 const releaseNotePath = path.join(__dirname, '../RELEASENOTE.md');
@@ -21,20 +22,11 @@ function main() {
         const parts = content.split('---');
         if (parts.length >= 3) {
           const description = parts.slice(2).join('---').trim();
-          if (description) {
-            const lines = description.split('\n');
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed) continue;
-              const cleanLine = trimmed.replace(/^[-*\s]+/, '');
-              if (cleanLine.toLowerCase().includes('bump version to')) {
-                continue;
-              }
-              if (cleanLine) {
-                changes.push(cleanLine);
-              }
-            }
-          }
+          if (!description) continue;
+
+          const normalized = normalizeReleaseNote(description);
+          if (/^bump version to\b/i.test(normalized)) continue;
+          if (normalized) changes.push(normalized);
         }
       }
     }
@@ -80,7 +72,10 @@ function main() {
   const newEntryLines = [
     `## ${newVersion} (${dateStr})`,
     '',
-    ...uniqueChanges.map((change) => `- ${change}`),
+    ...uniqueChanges.flatMap((change, index) => [
+      ...(index === 0 ? [] : ['']),
+      change,
+    ]),
     '',
   ];
   const newEntry = newEntryLines.join('\n');
