@@ -1,4 +1,5 @@
 const { execFileSync } = require('node:child_process');
+const { normalizeReleaseNote } = require('./release-note-markdown');
 
 const REF = process.env.RELEASE_REF || 'origin/changeset-release/main';
 const BASE = process.env.RELEASE_BASE || 'origin/main';
@@ -39,23 +40,22 @@ const latestEntry = (changelog) => {
 };
 
 const changeLines = (body) => {
-  const lines = [];
-  let bullet = null;
+  const changes = [];
+  let entry = null;
 
   for (const raw of body.split('\n')) {
     if (/^- /.test(raw)) {
-      bullet = /^- Updated dependencies\b/.test(raw)
+      if (entry) changes.push(normalizeReleaseNote(entry.join('\n')));
+      entry = /^- Updated dependencies\b/.test(raw)
         ? null
-        : raw.replace(/^- (?:[0-9a-f]{7,40}: )?/, '');
-      if (bullet) lines.push(bullet);
+        : [raw.replace(/^- (?:[0-9a-f]{7,40}: )?/, '')];
       continue;
     }
-    if (bullet === null) continue;
-    const text = raw.trim();
-    if (text && !text.startsWith('###')) lines.push(text);
+    if (entry !== null && !raw.trim().startsWith('###')) entry.push(raw);
   }
 
-  return lines;
+  if (entry) changes.push(normalizeReleaseNote(entry.join('\n')));
+  return changes.filter(Boolean);
 };
 
 function main() {
@@ -82,7 +82,7 @@ function main() {
 
     if (!releases.has(version)) releases.set(version, new Map());
     const groups = releases.get(version);
-    const key = lines.join('\n');
+    const key = lines.join('\n\n');
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(name);
   }
@@ -99,9 +99,7 @@ function main() {
         .sort((a, b) => b[0].length - a[0].length)
         .map(
           ([key, packages]) =>
-            `${key.split('\n').join('\n\n')}\n\n${packages
-              .map((p) => `- ${p}`)
-              .join('\n')}`,
+            `${key}\n\n${packages.map((p) => `- ${p}`).join('\n')}`,
         );
       return `## @plumeria@${version}\n\n${blocks.join('\n\n')}`;
     });
