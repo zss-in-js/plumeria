@@ -1,7 +1,13 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { findStylesheets, plan, targetPath, write } from '../src/migrate';
+import {
+  findStylesheets,
+  formatReports,
+  plan,
+  targetPath,
+  write,
+} from '../src/migrate';
 
 const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-codemod-'));
 
@@ -24,6 +30,15 @@ describe('migrate', () => {
     const found = findStylesheets([DIR]);
     expect(found).toHaveLength(1);
     expect(found[0].endsWith('src/Card.module.css')).toBe(true);
+  });
+
+  it('accepts a stylesheet directly and ignores missing paths', () => {
+    expect(
+      findStylesheets([
+        path.join(DIR, 'missing'),
+        path.join(DIR, 'src', 'Card.module.css'),
+      ]),
+    ).toEqual([path.join(DIR, 'src', 'Card.module.css')]);
   });
 
   it('names the generated module beside the stylesheet', () => {
@@ -51,5 +66,38 @@ describe('migrate', () => {
     const code = fs.readFileSync(stylesheets[0].target, 'utf-8');
     expect(code).toContain("import * as css from '@plumeria/core';");
     expect(code).toContain("...css.marker('card', ':defined'),");
+  });
+
+  it('formats actionable reports and skips clean stylesheets', () => {
+    const source = path.join(DIR, 'src', 'Card.module.css');
+    expect(
+      formatReports(
+        [
+          {
+            source: path.join(DIR, 'clean.module.css'),
+            target: '',
+            reports: [],
+          },
+          {
+            source,
+            target: '',
+            reports: [
+              {
+                line: 3,
+                column: 1,
+                kind: 'sibling-combinator',
+                source: '.item + .item',
+                hint: 'Rewrite the relationship manually.',
+              },
+            ],
+          },
+        ],
+        DIR,
+      ),
+    ).toEqual([
+      'src/Card.module.css',
+      '  3:1  sibling-combinator  .item + .item',
+      '        Rewrite the relationship manually.',
+    ]);
   });
 });
