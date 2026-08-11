@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/codemod",
-  "version": "18.2.3",
+  "version": "18.2.4",
   "description": "Codemods for migrating Plumeria APIs",
   "author": "Refirst 11",
   "license": "MIT",
