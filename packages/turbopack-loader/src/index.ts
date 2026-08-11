@@ -391,7 +391,9 @@ export default async function loader(this: LoaderContext, source: string) {
           at.span.start >= c.node.span.start &&
           at.span.start <= c.node.span.end,
       );
-      appliedStyleProps.add(`${owner ? owner.name : '*'}:${name}`);
+      if (owner) {
+        appliedStyleProps.add(`${owner.name}:${name}`);
+      }
     };
 
     const extractedSheets: string[] = [];
@@ -2712,10 +2714,7 @@ export default async function loader(this: LoaderContext, source: string) {
       const props =
         scannedTables.componentPropsTable?.[`${resourcePath}-${name}`];
       for (const propName of Object.keys(props ?? {})) {
-        if (
-          appliedStyleProps.has(`${name}:${propName}`) ||
-          appliedStyleProps.has(`*:${propName}`)
-        ) {
+        if (appliedStyleProps.has(`${name}:${propName}`)) {
           continue;
         }
         throwCompilationError(
