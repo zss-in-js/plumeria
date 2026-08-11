@@ -1,4 +1,9 @@
-import { convertStylesheet } from '../src/transforms/css-modules';
+import postcss from 'postcss';
+import {
+  convertStylesheet,
+  toProperty,
+  toValue,
+} from '../src/transforms/css-modules';
 
 describe('convertStylesheet', () => {
   it('converts a flat class', () => {
@@ -20,6 +25,20 @@ describe('convertStylesheet', () => {
     expect(names).toEqual({ 'card-title': 'cardTitle' });
   });
 
+  it('normalises vendor, custom, numeric, and unit values', () => {
+    expect(toProperty('-webkit-line-clamp')).toBe('WebkitLineClamp');
+    expect(toProperty('--card-gap')).toBe('--card-gap');
+    expect(toValue('-1.5px')).toBe(-1.5);
+    expect(toValue('.5')).toBe(0.5);
+    expect(toValue('calc(1px + 2px)')).toBe('calc(1px + 2px)');
+
+    const { code } = convertStylesheet(
+      '.card { --card-gap: 2px; -webkit-line-clamp: 2 }',
+    );
+    expect(code).toContain("'--card-gap': 2,");
+    expect(code).toContain('WebkitLineClamp: 2,');
+  });
+
   it('nests a pseudo-class and an at-rule', () => {
     const { code } = convertStylesheet(`
 .card:hover { color: teal }
@@ -27,6 +46,14 @@ describe('convertStylesheet', () => {
 `);
     expect(code).toContain("':hover': {");
     expect(code).toContain("'@media (min-width: 600px)': {");
+  });
+
+  it('reuses a nested node for declarations split across rules', () => {
+    const { code } = convertStylesheet(
+      '.card:hover { color: teal } .card:hover { padding: 2px }',
+    );
+    expect(code.match(/':hover': \{/g)).toHaveLength(1);
+    expect(code).toContain('padding: 2,');
   });
 
   it('pairs a descendant selector into marker and extended', () => {
@@ -65,6 +92,29 @@ describe('convertStylesheet', () => {
     expect(reports[0].line).toBe(1);
   });
 
+  it.each([
+    ['.card.active', 'Two classes on one element'],
+    ['.card .body .title', 'Only one level of nesting'],
+    ['#card', 'Only a local class'],
+    [':hover', 'Only a local class'],
+  ])('reports unsupported selector %s', (selector, hint) => {
+    const { reports } = convertStylesheet(`${selector} { color: red }`);
+    expect(reports).toEqual([
+      expect.objectContaining({
+        kind: 'unsupported-selector',
+        source: selector,
+        hint: expect.stringContaining(hint),
+      }),
+    ]);
+  });
+
+  it('ignores non-declaration children in a local rule', () => {
+    const { code } = convertStylesheet(
+      '.card { color: red; @media (width > 1px) { color: blue } }',
+    );
+    expect(code).toContain("color: 'red',");
+  });
+
   it('reports :global and composes from another file', () => {
     const { reports } = convertStylesheet(`
 :global(.theme) .card { color: red }
@@ -81,5 +131,42 @@ describe('convertStylesheet', () => {
       '.card-title { color: red } .cardTitle { color: blue }',
     );
     expect(reports.some((r) => r.kind === 'key-collision')).toBe(true);
+  });
+
+  it('handles a parser AST without locations or regex class matches', () => {
+    const rule = (selector: string) => ({
+      type: 'rule',
+      selector,
+      selectors: [selector],
+      parent: undefined,
+      each: (visit: (child: unknown) => void) =>
+        visit({ type: 'decl', prop: 'color', value: 'red' }),
+    });
+    const rules = [rule('.card-title'), rule('.cardTitle'), rule('.orphan')];
+    const parse = jest.spyOn(postcss, 'parse').mockReturnValue({
+      walkRules: (visit: (item: unknown) => void) => rules.forEach(visit),
+    } as never);
+    const originalMatch = String.prototype.match;
+    const match = jest
+      .spyOn(String.prototype, 'match')
+      .mockImplementation(function (
+        this: string,
+        pattern: Parameters<string['match']>[0],
+      ) {
+        return this.toString() === '.orphan'
+          ? null
+          : originalMatch.call(this, pattern);
+      });
+
+    try {
+      const { code, reports } = convertStylesheet('ignored by the parser mock');
+      expect(code).toContain('orphan: {');
+      expect(reports[0]).toEqual(
+        expect.objectContaining({ line: 0, column: 0, kind: 'key-collision' }),
+      );
+    } finally {
+      match.mockRestore();
+      parse.mockRestore();
+    }
   });
 });
