@@ -1,0 +1,220 @@
+// A component may receive a style through a prop and apply it to the element it
+// renders, on its own or merged under a base. Passing that prop on to another
+// component is where it stops: the style would have to be resolved across an
+// arbitrary chain of wrappers, so it is rejected at build time instead.
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
+const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-'));
+const STYLES = path.join(DIR, 'styles.ts');
+const LEAF = path.join(DIR, 'Leaf.tsx');
+const MERGED = path.join(DIR, 'Merged.tsx');
+const RELAY = path.join(DIR, 'Relay.tsx');
+const RENAMED = path.join(DIR, 'Renamed.tsx');
+const PASSTHROUGH = path.join(DIR, 'Passthrough.tsx');
+const VIA_LOCAL = path.join(DIR, 'ViaLocal.tsx');
+const COHABIT = path.join(DIR, 'Cohabit.tsx');
+const RENAMED_BINDING = path.join(DIR, 'RenamedBinding.tsx');
+const PARENT = path.join(DIR, 'Parent.tsx');
+
+jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
+const mockedGlob = jest.requireMock<{ globSync: jest.Mock }>('@rust-gear/glob');
+
+import { unpluginFactory } from '../src/core';
+import { getStyleRecords, deepMerge } from '@plumeria/utils';
+
+const RED = { padding: 4, color: 'red' };
+const BLUE = { padding: 8, color: 'blue' };
+const BASE = { padding: 24, fontWeight: 700, color: 'green' };
+
+const files: Record<string, string> = {
+  [STYLES]: `
+import * as css from '@plumeria/core';
+export const styles = css.create(${JSON.stringify({
+    red: RED,
+    blue: BLUE,
+    base: BASE,
+  })});
+`,
+  [LEAF]: `
+import * as css from '@plumeria/core';
+export const Leaf = ({ styleArray }: { styleArray?: css.Style }) => (
+  <div classStyle={styleArray} />
+);
+`,
+  [MERGED]: `
+import * as css from '@plumeria/core';
+import { styles } from './styles';
+export const Merged = ({ styleArray }: { styleArray?: css.Style }) => (
+  <div classStyle={[styles.base, styleArray]} />
+);
+`,
+  [RELAY]: `
+import * as css from '@plumeria/core';
+import { Leaf } from './Leaf';
+export const Relay = ({ styleArray }: { styleArray?: css.Style }) => (
+  <Leaf styleArray={styleArray} />
+);
+`,
+  [RENAMED]: `
+import * as css from '@plumeria/core';
+import { Leaf } from './Leaf';
+export const Renamed = ({ styleArray }: { styleArray?: css.Style }) => (
+  <Leaf styleArray={[styleArray]} />
+);
+`,
+  [COHABIT]: `
+import * as css from '@plumeria/core';
+import { Leaf } from './Leaf';
+export const Applies = ({ styleArray }: { styleArray?: css.Style }) => (
+  <div classStyle={styleArray} />
+);
+export const Forwards = ({ styleArray }: { styleArray?: css.Style }) => (
+  <Leaf styleArray={styleArray} />
+);
+`,
+  [VIA_LOCAL]: `
+import * as css from '@plumeria/core';
+export const ViaLocal = ({ styleArray }: { styleArray?: css.Style }) => {
+  const applied = styleArray;
+  return <div classStyle={applied} />;
+};
+`,
+  [RENAMED_BINDING]: `
+import * as css from '@plumeria/core';
+import { Leaf } from './Leaf';
+export const RenamedBinding = ({ styleArray: s }: { styleArray?: css.Style }) => (
+  <Leaf styleArray={s} />
+);
+`,
+  [PASSTHROUGH]: `
+import '@plumeria/core';
+import { Leaf } from './Leaf';
+export const Passthrough = ({ label, onPress }: { label: string; onPress: () => void }) => (
+  <Leaf aria-label={label} onClick={onPress} />
+);
+`,
+  [PARENT]: `
+import '@plumeria/core';
+import { styles } from './styles';
+import { Leaf } from './Leaf';
+import { Merged } from './Merged';
+import { Relay } from './Relay';
+import { Renamed } from './Renamed';
+import { ViaLocal } from './ViaLocal';
+import { Applies, Forwards } from './Cohabit';
+import { RenamedBinding } from './RenamedBinding';
+
+export const Parent = () => (
+  <div>
+    <Leaf styleArray={styles.red} />
+    <Merged styleArray={styles.red} />
+    <Merged styleArray={styles.blue} />
+    <Relay styleArray={styles.blue} />
+    <Renamed styleArray={styles.blue} />
+    <ViaLocal styleArray={styles.blue} />
+    <Applies styleArray={styles.red} />
+    <Forwards styleArray={styles.blue} />
+    <RenamedBinding styleArray={styles.blue} />
+  </div>
+);
+`,
+};
+
+const run = async (file: string): Promise<string> => {
+  const plugin = unpluginFactory(undefined, {
+    framework: 'vite',
+  } as never) as any;
+  const result = await plugin.transform.call(
+    { addWatchFile: () => {} },
+    files[file],
+    file,
+  );
+  return result.code;
+};
+
+const classesOf = (style: Record<string, unknown>) =>
+  getStyleRecords(style as never)
+    .map((r) => r.hash)
+    .sort()
+    .join(' ');
+
+const norm = (value: string) => value.trim().split(/\s+/).sort().join(' ');
+
+beforeAll(() => {
+  for (const [p, src] of Object.entries(files)) fs.writeFileSync(p, src);
+  mockedGlob.globSync.mockReturnValue(Object.keys(files));
+});
+
+afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
+
+describe('unplugin: a style received through a prop', () => {
+  it('applies to the element that received it', async () => {
+    await run(PARENT);
+    const code = await run(LEAF);
+    const table: Record<string, string> = JSON.parse(
+      code.match(/\{("\w+":"[\w ]+",?)+\}/)![0],
+    );
+    expect(Object.values(table).map(norm)).toEqual([classesOf(RED)]);
+  });
+
+  it('merges under a base style on that same element', async () => {
+    const keys = [...(await run(PARENT)).matchAll(/styleArray={"(\w+)"}/g)].map(
+      (m) => m[1],
+    );
+    const code = await run(MERGED);
+    const expr = code.match(/className=\{([\s\S]*?)\}(?= \/>)/)![1];
+    const render = (styleArray: unknown) =>
+      norm(new Function('styleArray', `return (${expr});`)(styleArray));
+
+    // The parent passes red to Leaf and to Merged, so the keys repeat by
+    // content: [Leaf red, Merged red, Merged blue, ...].
+    expect(render(keys[1])).toBe(norm(classesOf(deepMerge(BASE, RED))));
+    expect(render(keys[2])).toBe(norm(classesOf(deepMerge(BASE, BLUE))));
+    expect(render(undefined)).toBe(norm(classesOf(BASE)));
+  });
+
+  it('is rejected when passed on to another component', async () => {
+    await run(PARENT);
+    await expect(run(RELAY)).rejects.toThrow(
+      /"styleArray" is a style received through a prop but is never applied/,
+    );
+  });
+
+  it('is rejected inside an array too', async () => {
+    await run(PARENT);
+    await expect(run(RENAMED)).rejects.toThrow(
+      /a style prop cannot be passed on to another component/,
+    );
+  });
+
+  it('reports where the relay is written', async () => {
+    await run(PARENT);
+    await expect(run(RELAY)).rejects.toThrow(/\(Relay\.tsx:\d+:\d+\)/);
+  });
+
+  it('is rejected when the binding was renamed by destructuring', async () => {
+    await run(PARENT);
+    await expect(run(RENAMED_BINDING)).rejects.toThrow(/is never applied/);
+  });
+
+  it('is rejected when routed through a local variable', async () => {
+    await run(PARENT);
+    await expect(run(VIA_LOCAL)).rejects.toThrow(
+      /Dynamic or unresolvable style object "applied"/,
+    );
+  });
+
+  it('is rejected even when a sibling component in the same file applies it', async () => {
+    await run(PARENT);
+    await expect(run(COHABIT)).rejects.toThrow(/is never applied/);
+    // Line 7 declares Forwards; Applies sits above it and must not be blamed.
+    await expect(run(COHABIT)).rejects.toThrow(/\(Cohabit\.tsx:7:\d+\)/);
+  });
+
+  it('leaves ordinary props alone', async () => {
+    await run(PARENT);
+    await expect(run(PASSTHROUGH)).resolves.toContain('aria-label={label}');
+  });
+});
