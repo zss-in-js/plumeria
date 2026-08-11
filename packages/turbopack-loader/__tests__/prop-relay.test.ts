@@ -15,6 +15,7 @@ const RENAMED = path.join(DIR, 'Renamed.tsx');
 const PASSTHROUGH = path.join(DIR, 'Passthrough.tsx');
 const VIA_LOCAL = path.join(DIR, 'ViaLocal.tsx');
 const COHABIT = path.join(DIR, 'Cohabit.tsx');
+const MASKED = path.join(DIR, 'Masked.tsx');
 const RENAMED_BINDING = path.join(DIR, 'RenamedBinding.tsx');
 const PARENT = path.join(DIR, 'Parent.tsx');
 
@@ -74,6 +75,17 @@ export const Forwards = ({ styleArray }: { styleArray?: css.Style }) => (
   <Leaf styleArray={styleArray} />
 );
 `,
+  [MASKED]: `
+import * as css from '@plumeria/core';
+import { Leaf } from './Leaf';
+const wrap = (component: unknown) => component;
+export const WrappedApplies = wrap(({ styleArray }: { styleArray?: css.Style }) => (
+  <div classStyle={styleArray} />
+));
+export const MaskedForwards = ({ styleArray }: { styleArray?: css.Style }) => (
+  <Leaf styleArray={styleArray} />
+);
+`,
   [VIA_LOCAL]: `
 import * as css from '@plumeria/core';
 export const ViaLocal = ({ styleArray }: { styleArray?: css.Style }) => {
@@ -104,6 +116,7 @@ import { Relay } from './Relay';
 import { Renamed } from './Renamed';
 import { ViaLocal } from './ViaLocal';
 import { Applies, Forwards } from './Cohabit';
+import { WrappedApplies, MaskedForwards } from './Masked';
 import { RenamedBinding } from './RenamedBinding';
 
 export const Parent = () => (
@@ -116,6 +129,8 @@ export const Parent = () => (
     <ViaLocal styleArray={styles.blue} />
     <Applies styleArray={styles.red} />
     <Forwards styleArray={styles.blue} />
+    <WrappedApplies styleArray={styles.red} />
+    <MaskedForwards styleArray={styles.blue} />
     <RenamedBinding styleArray={styles.blue} />
   </div>
 );
@@ -211,6 +226,11 @@ describe('turbopack-loader: a style received through a prop', () => {
     await expect(run(COHABIT)).rejects.toThrow(/is never applied/);
     // Line 7 declares Forwards; Applies sits above it and must not be blamed.
     await expect(run(COHABIT)).rejects.toThrow(/\(Cohabit\.tsx:7:\d+\)/);
+  });
+
+  it('is rejected even when a wrapper-invoked component applies the same prop name', async () => {
+    await run(PARENT);
+    await expect(run(MASKED)).rejects.toThrow(/is never applied/);
   });
 
   it('leaves ordinary props alone', async () => {
