@@ -164,6 +164,12 @@ Sibling combinators, `:global`, and a `composes` that reaches into another file 
 
 ---
 
+## 18.2.3 (Aug 11, 2026)
+- Fix: a style received through a prop but never applied to `classStyle` or `css.use()` now fails the build instead of silently dropping the style, which is what passing it on to another component did
+- A component may still receive a style through a prop and apply it to an element it renders, on its own or merged under a base style
+- Fix: `classStyle={[styles.base, cond && styleArray]}` and `classStyle={cond ? styleArray : styles.base}` now compile when `styleArray` arrives through a prop; a closed gate leaves the surrounding styles in place
+- Note: a relay that happened to work — because another call site had passed the same style directly to the inner component — now reports an error
+
 ## 18.2.2 (Aug 9, 2026)
 - Update: dependencies
 - Update: README.md
