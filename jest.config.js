@@ -6,6 +6,7 @@ module.exports = {
     '^(\\..+)\\.js$': '$1',
   },
   roots: [
+    '<rootDir>/scripts/__tests__',
     '<rootDir>/packages/codemod/__tests__',
     '<rootDir>/packages/eslint-plugin/__tests__',
     '<rootDir>/packages/next-plugin/__tests__',
