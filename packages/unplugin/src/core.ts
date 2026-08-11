@@ -1667,67 +1667,75 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             );
           }
 
+          if (pushPropPossibilities(node, currentTestStrings)) return true;
+
           assertResolvable(node as HasSpan);
           return false;
+        };
+
+        const pushPropPossibilities = (
+          expr: Expression,
+          gates: string[],
+        ): boolean => {
+          const isParamMember =
+            t.isMemberExpression(expr) &&
+            t.isIdentifier(expr.object) &&
+            componentParamNames.has(expr.object.value) &&
+            t.isIdentifier(expr.property);
+          if (!t.isIdentifier(expr) && !isParamMember) return false;
+
+          const varName = t.isIdentifier(expr)
+            ? expr.value
+            : ((expr as MemberExpression).property as Identifier).value;
+          const source = t.isIdentifier(expr) ? varName : getSource(expr);
+          markStylePropApplied(varName, expr as HasSpan);
+
+          let possibilities: any[] | undefined;
+          for (const key of Object.keys(
+            scannedTables.componentPropsTable || {},
+          )) {
+            if (!key.startsWith(`${resourcePath}-`)) continue;
+            if (scannedTables.componentPropsTable?.[key]?.[varName]) {
+              possibilities = scannedTables.componentPropsTable[key][varName];
+              break;
+            }
+          }
+          if (!possibilities || possibilities.length === 0) return false;
+
+          const testLHS = gates.length
+            ? `((${gates.join(' && ')}) ? ${source} : "")`
+            : source;
+          const currentGroupId = ++groupIdCounter;
+          const currentOrder = sourceOrder++;
+
+          const seen = new Set<string>();
+          const pushOption = (valueName: string, style: CSSObject) => {
+            conditionals.push({
+              test: expr,
+              testLHS,
+              testString: `${testLHS} === ${JSON.stringify(valueName)}`,
+              truthy: style,
+              falsy: {},
+              groupId: currentGroupId,
+              order: currentOrder,
+              groupName: undefined,
+              valueName,
+              varName,
+            });
+          };
+          possibilities.forEach((entry) => {
+            if (seen.has(entry.key)) return;
+            seen.add(entry.key);
+            pushOption(entry.key, entry.styleObj as CSSObject);
+          });
+          if (gates.length) pushOption('', {});
+          return true;
         };
 
         for (const arg of args) {
           const expr = arg.expression;
 
-          if (
-            t.isIdentifier(expr) ||
-            (t.isMemberExpression(expr) &&
-              t.isIdentifier(expr.object) &&
-              componentParamNames.has(expr.object.value) &&
-              t.isIdentifier(expr.property))
-          ) {
-            const varName = t.isIdentifier(expr)
-              ? expr.value
-              : (expr.property as Identifier).value;
-            const testLHS = t.isIdentifier(expr) ? varName : getSource(expr);
-            markStylePropApplied(varName, expr as HasSpan);
-
-            let propPossibilities: any[] | undefined;
-            for (const key of Object.keys(
-              scannedTables.componentPropsTable || {},
-            )) {
-              if (key.startsWith(`${resourcePath}-`)) {
-                if (scannedTables.componentPropsTable?.[key]?.[varName]) {
-                  propPossibilities =
-                    scannedTables.componentPropsTable?.[key]?.[varName];
-                  break;
-                }
-              }
-            }
-
-            if (propPossibilities && propPossibilities.length > 0) {
-              const currentGroupId = ++groupIdCounter;
-              const currentOrder = sourceOrder++;
-
-              const uniqueEntries: any[] = [];
-              propPossibilities.forEach((entry) => {
-                if (!uniqueEntries.some((x) => x.key === entry.key)) {
-                  uniqueEntries.push(entry);
-                }
-              });
-
-              uniqueEntries.forEach((entry) => {
-                conditionals.push({
-                  test: expr,
-                  testLHS,
-                  testString: `${testLHS} === ${JSON.stringify(entry.key)}`,
-                  truthy: entry.styleObj,
-                  falsy: {},
-                  groupId: currentGroupId,
-                  order: currentOrder,
-                  groupName: undefined,
-                  valueName: entry.key,
-                  varName,
-                });
-              });
-              continue;
-            }
-          }
+          if (pushPropPossibilities(expr, [])) continue;
 
           if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
             const varName = expr.callee.value;
