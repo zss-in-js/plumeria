@@ -364,6 +364,37 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         }
       }
 
+      const components: Array<{ name: string; node: HasSpan }> = [];
+      for (const node of ast.body) {
+        const statement = t.isExportDeclaration(node) ? node.declaration : node;
+        if (statement.type === 'FunctionDeclaration' && statement.identifier) {
+          components.push({
+            name: statement.identifier.value,
+            node: statement,
+          });
+        } else if (t.isVariableDeclaration(statement)) {
+          for (const decl of statement.declarations) {
+            if (
+              t.isIdentifier(decl.id) &&
+              (decl.init?.type === 'ArrowFunctionExpression' ||
+                decl.init?.type === 'FunctionExpression')
+            ) {
+              components.push({ name: decl.id.value, node: decl.init });
+            }
+          }
+        }
+      }
+
+      const appliedStyleProps = new Set<string>();
+      const markStylePropApplied = (name: string, at: HasSpan) => {
+        const owner = components.find(
+          (c) =>
+            at.span.start >= c.node.span.start &&
+            at.span.start <= c.node.span.end,
+        );
+        appliedStyleProps.add(`${owner ? owner.name : '*'}:${name}`);
+      };
+
       const extractedSheets: string[] = [];
       const addSheet = (sheet: string) => {
         if (!extractedSheets.includes(sheet)) {
@@ -1654,6 +1685,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               ? expr.value
               : (expr.property as Identifier).value;
             const testLHS = t.isIdentifier(expr) ? varName : getSource(expr);
+            markStylePropApplied(varName, expr as HasSpan);
 
             let propPossibilities: any[] | undefined;
             for (const key of Object.keys(
@@ -2700,6 +2732,25 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           }
         },
       });
+
+      for (const { name, node } of components) {
+        const props =
+          scannedTables.componentPropsTable?.[`${resourcePath}-${name}`];
+        for (const propName of Object.keys(props ?? {})) {
+          if (
+            appliedStyleProps.has(`${name}:${propName}`) ||
+            appliedStyleProps.has(`*:${propName}`)
+          ) {
+            continue;
+          }
+          throwCompilationError(
+            `Plumeria: "${propName}" is a style received through a prop but is never applied ` +
+              `to ${styleProp} or css.use() here. Apply it on an element this component renders; ` +
+              `a style prop cannot be passed on to another component.`,
+            node,
+          );
+        }
+      }
 
       const buildExportedInit = (info: CreateStyleValue): string => {
         const keys = Object.keys(info.obj);
