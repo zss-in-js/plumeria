@@ -27,6 +27,7 @@ The complete rule set, distilled. Each rule is explained with examples in the se
 - Nest a media/container query inside a pseudo-selector. The reverse (pseudo inside media) is allowed once. (→ Selector Rules)
 - Mix `className` and `classStyle` on the same element. (→ Forbidden Patterns)
 - Merge `css.use()` output with the inline `style` prop. (→ Dynamic Styling)
+- Pass a received `Style` prop on to another component. Apply it on the element the component renders. (→ Styling Custom Components)
 
 ## Mental Model
 
@@ -491,6 +492,54 @@ const styles = css.create({
 <Button styleArray={[styles.primary, styles.text]}>Click me</Button>;
 ```
 
+### Anti-pattern: relaying a `Style` prop
+
+A component that receives a `Style` prop MUST apply it — to `classStyle` or through `css.use()` — on an element it renders. A style prop that is never applied is a build error, which is what happens when it is handed to another component instead.
+
+What decides this is **where the style ends up**, not how many style props a component takes. Passing styles in is always fine:
+
+```tsx
+// ✅ VALID: every value is a style, so any number of style props is fine
+<Layout
+  headerStyle={styles.header}
+  bodyStyle={styles.body}
+  buttonStyle={styles.button}
+/>
+```
+
+Forwarding one onward instead of applying it is not:
+
+```tsx
+// ❌ INVALID: headerStyle reaches no element of this component
+export const Layout = ({ headerStyle }: { headerStyle?: css.Style }) => {
+  return <Header headerStyle={headerStyle} />;
+};
+```
+
+```
+Plumeria: "headerStyle" is a style received through a prop but is never applied
+to classStyle or css.use() here. Apply it on an element this component renders;
+a style prop cannot be passed on to another component.
+```
+
+Write one of these instead:
+
+```tsx
+// ✅ Apply it on an element this component renders
+export const Layout = ({ headerStyle }: { headerStyle?: css.Style }) => {
+  return <header classStyle={[styles.base, headerStyle]}>...</header>;
+};
+
+// ✅ Or drop the middle component and style the one that owns the element
+<Header headerStyle={[styles.base, styles.primary]} />;
+```
+
+Merging under a base style — `[styles.base, headerStyle]` — is the supported shape. What is rejected is the *relay*: a prop that is only forwarded, never applied.
+
+So the valid call site above stays valid only while `Layout` applies all three props itself. If it routes them onward to a grandchild, each unapplied prop is an error — which is the signal that the styles belong on the components that own those elements.
+
+Prop drilling is an anti-pattern in React on its own terms; here it is also unresolvable, because the compiler would have to trace a style across an arbitrary chain of wrappers to build the lookup table. Rejecting it keeps the boundary decidable and the generated CSS exact.
+
 ### Summary
 
 | Pattern | Compilation site | Component's role |
@@ -498,6 +547,8 @@ const styles = css.create({
 | 1. Direct `classStyle` | Inside the component | Self-contained styles |
 | 2. `Style` prop | Traced and compiled | Receives and applies `Style` |
 | 3. `className` bypass | Inside the component (`css.use`) | Resolves `Style` into `className` |
+
+In every pattern the component **applies** the style it receives. None of them forward it.
 
 ## Toolchain Notes
 
