@@ -1,4 +1,8 @@
-import { convertStylesheet } from '../src/transforms/css-modules';
+import {
+  convertStylesheet,
+  toProperty,
+  toValue,
+} from '../src/transforms/css-modules';
 
 describe('convertStylesheet', () => {
   it('converts a flat class', () => {
@@ -20,6 +24,20 @@ describe('convertStylesheet', () => {
     expect(names).toEqual({ 'card-title': 'cardTitle' });
   });
 
+  it('normalises vendor, custom, numeric, and unit values', () => {
+    expect(toProperty('-webkit-line-clamp')).toBe('WebkitLineClamp');
+    expect(toProperty('--card-gap')).toBe('--card-gap');
+    expect(toValue('-1.5px')).toBe(-1.5);
+    expect(toValue('.5')).toBe(0.5);
+    expect(toValue('calc(1px + 2px)')).toBe('calc(1px + 2px)');
+
+    const { code } = convertStylesheet(
+      '.card { --card-gap: 2px; -webkit-line-clamp: 2 }',
+    );
+    expect(code).toContain("'--card-gap': 2,");
+    expect(code).toContain('WebkitLineClamp: 2,');
+  });
+
   it('nests a pseudo-class and an at-rule', () => {
     const { code } = convertStylesheet(`
 .card:hover { color: teal }
@@ -27,6 +45,14 @@ describe('convertStylesheet', () => {
 `);
     expect(code).toContain("':hover': {");
     expect(code).toContain("'@media (min-width: 600px)': {");
+  });
+
+  it('reuses a nested node for declarations split across rules', () => {
+    const { code } = convertStylesheet(
+      '.card:hover { color: teal } .card:hover { padding: 2px }',
+    );
+    expect(code.match(/':hover': \{/g)).toHaveLength(1);
+    expect(code).toContain('padding: 2,');
   });
 
   it('pairs a descendant selector into marker and extended', () => {
@@ -63,6 +89,21 @@ describe('convertStylesheet', () => {
     expect(reports).toHaveLength(1);
     expect(reports[0].kind).toBe('sibling-combinator');
     expect(reports[0].line).toBe(1);
+  });
+
+  it.each([
+    ['.card.active', 'Two classes on one element'],
+    ['.card .body .title', 'Only one level of nesting'],
+    ['#card', 'Only a local class'],
+  ])('reports unsupported selector %s', (selector, hint) => {
+    const { reports } = convertStylesheet(`${selector} { color: red }`);
+    expect(reports).toEqual([
+      expect.objectContaining({
+        kind: 'unsupported-selector',
+        source: selector,
+        hint: expect.stringContaining(hint),
+      }),
+    ]);
   });
 
   it('reports :global and composes from another file', () => {
