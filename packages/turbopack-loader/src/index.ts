@@ -41,7 +41,6 @@ import {
   scanAll,
   resolveImportPath,
   optimizer,
-  orderMediaLast,
   getLeadingCommentLength,
   getFileDependencies,
   resolveExport,
@@ -2840,8 +2839,7 @@ export default async function loader(this: LoaderContext, source: string) {
         }
 
         if (hasNewRule) {
-          const nextCss =
-            orderMediaLast(Array.from(ruleSet)).join('\n\n') + '\n';
+          const nextCss = await optimizer(Array.from(ruleSet).join('\n\n'));
           fs.writeFileSync(VIRTUAL_FILE_PATH, nextCss, 'utf-8');
         }
       } catch (innerError) {
