@@ -3,7 +3,6 @@ import {
   splitAtomicAndNested,
   processAtomicProps,
   genBase36Hash,
-  overrideLonghand,
   transpileAtomic,
   isAtRule,
 } from 'zss-engine';
@@ -19,7 +18,7 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
   const nonFlat: CSSProperties = {};
   const notNormalize = ':not(#\\#)';
 
-  splitAtomicAndNested(overrideLonghand(styleRule), flat, nonFlat);
+  splitAtomicAndNested(styleRule, flat, nonFlat);
   const finalFlat = flat;
 
   const records: StyleRecord[] = [];
