@@ -1,4 +1,6 @@
+import { CascadeTest } from 'component/CascadeTest';
 import { ConditionalTest } from 'component/ConditionalTest';
+import { ContainerQueryTest } from 'component/ContainerQueryTest';
 import { MultiArgTest } from 'component/MultiArgTest';
 import { VariableTest } from 'component/VariableTest';
 import { VariantTest } from 'component/VariantTest';
@@ -17,6 +19,8 @@ export default function Home() {
       <h1>@plumeria/core E2E Test</h1>
       <h2 classStyle={styles.page}>server component</h2>
       <Link href="/server">Server Page</Link>
+      <CascadeTest />
+      <ContainerQueryTest />
       <ConditionalTest />
       <MultiArgTest />
       <VariableTest />
