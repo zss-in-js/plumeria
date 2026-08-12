@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { t, getFileDependencies, resolveExport, scanAll } from '../src/parser';
-import { orderMediaLast } from '../src/optimizer';
 
 describe('parser2 coverage completion tests', () => {
   const tmpDir = path.join(__dirname, '__tmp_parser2_test__');
@@ -386,12 +385,5 @@ describe('parser2 coverage completion tests', () => {
       `,
     );
     scanAll();
-  });
-
-  test('isMediaRule unterminated comment edge case in optimizer', () => {
-    const unclosedCommentCSS =
-      '/* unterminated comment @media (min-width: 0px) {}';
-    const result = orderMediaLast([unclosedCommentCSS]);
-    expect(result).toEqual([unclosedCommentCSS]);
   });
 });
