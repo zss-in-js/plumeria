@@ -876,7 +876,7 @@ type outlineWidth = borderWidth;
 type overflow = 'visible' | 'hidden' | 'clip' | 'scroll' | 'auto';
 type overflowAnchor = 'auto' | 'none';
 type overflowBlock = overflowY;
-type overflowBlockX = overflowX;
+type overflowInline = overflowX;
 type overflowClipMargin = number | StableString;
 type overflowWrap = 'normal' | 'break-word' | 'anywhere';
 type overflowX = overflow;
@@ -1611,7 +1611,7 @@ export type CSSTypes = Readonly<{
 
   overflow?: all | overflow;
   overflowBlock?: all | overflowBlock;
-  overflowBlockX?: all | overflowBlockX;
+  overflowInline?: all | overflowInline;
   overflowX?: all | overflowX;
   overflowY?: all | overflowY;
 
