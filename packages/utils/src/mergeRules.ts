@@ -1,4 +1,5 @@
 import type { Container, Plugin } from 'postcss';
+import { isAtRule } from 'zss-engine';
 
 function mergeContainer(container: Container): void {
   if (!container.nodes) return;
@@ -32,6 +33,12 @@ function mergeContainer(container: Container): void {
 
   for (const node of [...rules.values(), ...atRules.values()]) {
     mergeContainer(node);
+  }
+
+  for (const node of [...container.nodes]) {
+    if (node.type === 'atrule' && isAtRule(`@${node.name}`)) {
+      container.append(node);
+    }
   }
 }
 
