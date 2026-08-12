@@ -29,7 +29,6 @@
     "@swc/core": "catalog:",
     "lightningcss": "^1.32.0",
     "postcss": "catalog:",
-    "postcss-combine-media-query": "^2.1.0",
     "zss-engine": "catalog:"
   },
   "publishConfig": {
