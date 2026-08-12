@@ -140,19 +140,24 @@ xatom {
 Conditional rules such as `@media`, `@container`, and `@supports`, as well as
 nested selectors, receive one additional `:not(#\#)`. This lets a conditional
 or nested declaration override its base declaration without relying on where
-the generated rule appears in the stylesheet.
+the generated rule appears in the stylesheet. A nested selector inside a
+condition receives both.
 
 ```sh
-base shorthand:          property depth 0
-base longhand:           property depth
-shorthand in condition:  property depth 0 + condition depth 1
-longhand in condition:   property depth + condition depth 1
+base shorthand:                property depth 0
+base longhand:                 property depth
+shorthand in condition:        property depth 0 + condition depth 1
+longhand in condition:         property depth + condition depth 1
+nested selector:               property depth + nested depth 1
+nested selector in condition:  property depth + nested depth 1 + condition depth 1
 ```
 
+Custom properties are exempt. They never receive a nested or condition depth.
+
 The optimizer merges identical selectors and identical at-rules recursively to
-reduce bundle size. It does not move at-rules to the end or sort conditions, so
-the user's order is preserved. If two different conditions overlap and produce
-the same property at the same specificity, normal CSS source order still
-resolves that conflict.
+reduce bundle size. Supported conditional at-rules are moved after base rules
+so a conditional shorthand can override a base longhand when their specificity
+is equal. Conditions are not sorted; their relative order remains the order in
+which the user wrote them.
 </Step>
 </Steps>
