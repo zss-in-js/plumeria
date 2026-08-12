@@ -6,14 +6,16 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 <Steps>
 <Step>
-## For ordered priority
+## Property priority
 
-Plumeria adds `:not(#\#)` to longhand property atomic class, increasing priority.  
-To simplify things, we'll explain `hash(xxxxxxxx)` as `xatom`.
+Plumeria assigns specificity from the shorthand-to-longhand property graph.
+Each step toward a more specific property adds one `:not(#\#)` to its atomic
+class. To simplify the examples, `hash(xxxxxxxx)` is written as `xatom`.
 
 ### Override only that value
 
-This ensures longhand properties **always addtion to** shorthand properties, regardless of merge order:
+This ensures that longhand properties **add to** shorthand properties,
+regardless of the merge order:
 ```js
 const styles = css.create({
   base: { margin: 10 },
@@ -27,7 +29,8 @@ classStyle={styles.custom, styles.base}
 // Result: margin 10px on all sides, except top is 20px
 ```
 
-Normally, if a shorthand is below a longhand, it will override the all longhand, but if you raise its priority, the following CSS will return the same result:
+Normally, a later shorthand can reset an earlier longhand. The specificity
+hierarchy prevents that reset, so both of the following produce the same result:
 ```css
 xatom1 {
   padding: 20px;
@@ -49,31 +52,51 @@ xatom1 {
 }
 ```
 
-This slightly increases bundle size, but is necessary to maintain for strict behavior.  
+Logical intermediate properties use the intermediate depth. For example:
+
+```sh
+padding:             0 - :not(#\#) x 0
+padding-block:       1 - :not(#\#) x 1
+padding-block-start: 2 - :not(#\#) x 2
+```
+
+Only the property's graph depth is added. A shorthand does not receive extra
+specificity to simulate the CSS cascade.
 </Step>
 
 <Step>
-### Override all
-Also, if a shorthand is written after a longhand in the same key, the previous longhand will be filtered and overridden.
+### Declarations in the same style
+
+Shorthand and longhand declarations remain independent atoms even when they
+are written in the same style. A later shorthand does not filter out an earlier
+longhand:
 
 ```js
 const styles = css.create({
   base: {
-    paddingTop: '20px', // filtered out
-    padding: '10px' // override all padding-long-hand
+    paddingTop: '20px',
+    padding: '10px',
   },
 });
 ```
-As follows:
+
+The longhand's higher specificity keeps the top value while the shorthand sets
+the remaining sides:
+
 ```css
-xatom {
+xatom1:not(#\#) {
+  padding-top: 20px;
+}
+
+xatom2 {
   padding: 10px;
 }
 ```
 
 <Callout title="Enforcing with ESLint">
-These behaviors are complex even in normal CSS, so ESLint is effective for enforcing consistent behavior through rules.
- When the ESLint rule is enabled, in the key longhand properties will always after shorthand properties.
+These relationships are complex even in regular CSS. The ESLint rule enforces
+a consistent authoring order by placing longhand properties after their
+shorthands.
 </Callout>
 </Step>
 
@@ -112,24 +135,24 @@ xatom {
 </Step>
 
 <Step>
-## Why Plumeria is order-independent
+## Conditional and nested rules
 
-`Plumeria` maintains predictable styling regardless of the order. This behavior is achieved through a deliberate specificity hierarchy. 
+Conditional rules such as `@media`, `@container`, and `@supports`, as well as
+nested selectors, receive one additional `:not(#\#)`. This lets a conditional
+or nested declaration override its base declaration without relying on where
+the generated rule appears in the stylesheet.
 
-### Plugin Compiler (Complete order independence)
-
-The Plumeria optimizer automatically moves all @rule to the bottom of the CSS bundle. Since rules at the bottom of a CSS file naturally take precedence, a lower specificity level is sufficient to maintain low bundle size while keeping styles consistent.
-
-```sh title="Core-Compiler side"
-- shorthand:             0 - :not(#\#) ✖️ 0
-- longhand:              1 - :not(#\#) ✖️ 1
-- shorthand in query:    1 - :not(#\#) ✖️ 1
-- longhand in query:     2 - :not(#\#) ✖️ 2
+```sh
+base shorthand:          property depth 0
+base longhand:           property depth
+shorthand in condition:  property depth 0 + condition depth 1
+longhand in condition:   property depth + condition depth 1
 ```
 
-This design provides:
-- Consistent behavior between development and production.
-- Media query styles always take precedence over base styles.
-- Minimal specificity adjustments in production to keep bundle sizes small.
+The optimizer merges identical selectors and identical at-rules recursively to
+reduce bundle size. It does not move at-rules to the end or sort conditions, so
+the user's order is preserved. If two different conditions overlap and produce
+the same property at the same specificity, normal CSS source order still
+resolves that conflict.
 </Step>
 </Steps>
