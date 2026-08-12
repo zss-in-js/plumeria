@@ -12,7 +12,7 @@ describe('mergeRules', () => {
     expect(root.toString()).toBe('.a{color:red;display:block}.b{color:blue}');
   });
 
-  it('merges identical at-rules recursively', async () => {
+  it('merges identical at-rules recursively and moves them after base rules', async () => {
     const root = await merge(
       '@container (min-width:400px){.a{color:red}}' +
         '.base{color:black}' +
@@ -21,8 +21,35 @@ describe('mergeRules', () => {
 
     expect(root.nodes).toHaveLength(2);
     expect(root.toString()).toBe(
-      '@container (min-width:400px){.a{color:red;display:block}.b{color:blue}}' +
-        '.base{color:black}',
+      '.base{color:black}' +
+        '@container (min-width:400px){.a{color:red;display:block}.b{color:blue}}',
+    );
+  });
+
+  it.each(['media', 'container', 'supports', 'layer', 'scope'])(
+    'moves @%s after ordinary rules while preserving at-rule order',
+    async (name) => {
+      const root = await merge(
+        `@${name} first{.a{color:red}}` +
+          '.base{color:black}' +
+          `@${name} second{.b{color:blue}}`,
+      );
+
+      expect(root.toString()).toBe(
+        '.base{color:black}' +
+          `@${name} first{.a{color:red}}` +
+          `@${name} second{.b{color:blue}}`,
+      );
+    },
+  );
+
+  it('does not move unrelated at-rules', async () => {
+    const root = await merge(
+      '@font-face{font-family:test;src:url(test.woff2)}.base{color:black}',
+    );
+
+    expect(root.toString()).toBe(
+      '@font-face{font-family:test;src:url(test.woff2)}.base{color:black}',
     );
   });
 
