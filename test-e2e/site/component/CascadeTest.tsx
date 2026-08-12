@@ -1,7 +1,6 @@
 import '@plumeria/core';
 import { cascadeBase } from 'component/cascade-base.styles';
 import { cascadeCondition } from 'component/cascade-condition.styles';
-import '@Plumeria/core';
 
 export function CascadeTest() {
   return (
@@ -20,6 +19,12 @@ export function CascadeTest() {
         classStyle={[cascadeCondition.box, cascadeBase.box]}
       >
         condition then base
+      </div>
+      <div
+        data-testid="cascade-edge"
+        classStyle={[cascadeBase.edge, cascadeCondition.box]}
+      >
+        base longhand against a conditional shorthand
       </div>
       <span
         data-testid="cascade-text"
