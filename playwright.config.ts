@@ -4,10 +4,11 @@ const isProduction = process.env.E2E_TARGET === 'production';
 const port = isProduction ? 4001 : 4000;
 
 export default defineConfig({
+  globalSetup: './test-e2e/global.setup.ts',
   webServer: {
     command: isProduction
       ? `pnpm build && pnpm next start --port ${port}`
-      : `pnpm next dev --port ${port}`,
+      : `pnpm dev --port ${port}`,
     cwd: './test-e2e/site',
     reuseExistingServer: !isProduction,
     timeout: isProduction ? 180 * 1000 : 60 * 1000,
