@@ -19,7 +19,6 @@
     "dev": "cd docs && npm run dev",
     "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
     "test:e2e": "playwright test",
-    "test:e2e:prod": "E2E_TARGET=production playwright test",
     "prettier": "prettier --write \"**/*.js\" \"**/*.ts\" \"**/*.tsx\"",
     "prettier:report": "prettier --check \"**/*.js\" \"**/*.ts\" \"**/*.tsx\"",
     "lint": "eslint --fix",
