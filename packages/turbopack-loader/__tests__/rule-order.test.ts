@@ -1,17 +1,12 @@
 import { getStyleRecords } from '../../utils/src/create';
-import { optimizer, orderMediaLast } from '../../utils/src/optimizer';
+import { optimizer } from '../../utils/src/optimizer';
 import { splitCssRules } from '../src/split-css-rules';
 import type { CSSProperties } from 'zss-engine';
 
 /**
  * The dev loader accumulates rules from separate module compiles into one
- * shared file. Each module's own optimizer() pass only orders that module's
- * rules, so the shared file needs the same "@media last" order re-applied.
- *
- * "@media { padding }" and base "paddingTop" both carry one :not(#\#), so they
- * tie on specificity and whichever comes last in the file wins. Production runs
- * optimizer() once over the whole stylesheet and always ends up with @media
- * last; dev has to match that.
+ * shared file. The whole accumulated stylesheet is optimized after new rules
+ * are added so identical selectors and at-rules also merge across modules.
  */
 
 const MEDIA_STYLE: CSSProperties = {
@@ -41,11 +36,11 @@ const compileModule = async (currentCss: string, style: CSSProperties) => {
   }
 
   if (!hasNewRule) return currentCss;
-  return orderMediaLast(Array.from(ruleSet)).join('\n\n') + '\n';
+  return optimizer(Array.from(ruleSet).join('\n\n'));
 };
 
 describe('shared virtual CSS rule order', () => {
-  it('keeps base rules ahead of @media when an earlier module inserted the @media rule first', async () => {
+  it('preserves the first position of a merged at-rule', async () => {
     // module A uses only the @media style, so it lands in the file alone
     let css = await compileModule('', MEDIA_STYLE);
     // module B puts both atoms on one element; only the base rule is new
@@ -55,7 +50,7 @@ describe('shared virtual CSS rule order', () => {
     const media = css.indexOf('@media (min-width: 600px)');
 
     expect(base).toBeGreaterThanOrEqual(0);
-    expect(media).toBeGreaterThan(base);
+    expect(media).toBeLessThan(base);
   });
 
   it('does not duplicate rules when a module is recompiled', async () => {
@@ -73,26 +68,7 @@ describe('shared virtual CSS rule order', () => {
     expect(css.match(/padding: 40px/g)).toHaveLength(1);
   });
 
-  it('is a stable partition', () => {
-    const rules = [
-      '.a {}',
-      '@media (x) { .b {} }',
-      '.c {}',
-      '@media (y) { .d {} }',
-    ];
-
-    expect(orderMediaLast(rules)).toEqual([
-      '.a {}',
-      '.c {}',
-      '@media (x) { .b {} }',
-      '@media (y) { .d {} }',
-    ]);
-    expect(orderMediaLast(orderMediaLast(rules))).toEqual(
-      orderMediaLast(rules),
-    );
-  });
-
-  it('keeps a standalone comment out of the rule that follows it', () => {
+  it('keeps a standalone comment out of the rule that follows it', async () => {
     // next-plugin resets the shared file to a placeholder comment. A comment
     // glued onto the next rule would make that rule's text differ from the
     // freshly generated one, so @media ordering has to survive it too.
@@ -103,10 +79,10 @@ describe('shared virtual CSS rule order', () => {
     expect(rules[0]).toBe('/** Placeholder file */');
     expect(rules[1]).toContain('@media');
 
-    const ordered = orderMediaLast(rules);
+    const optimized = await optimizer(rules.join('\n\n'));
 
-    expect(ordered[ordered.length - 1]).toContain('@media');
-    expect(ordered.some((rule) => rule.includes('padding-top'))).toBe(true);
+    expect(optimized).toContain('@media');
+    expect(optimized).toContain('padding-top');
   });
 
   it('re-matches the rule after a comment instead of appending it twice', async () => {
@@ -119,13 +95,13 @@ describe('shared virtual CSS rule order', () => {
     for (let save = 0; save < 3; save++) {
       const ruleSet = new Set(splitCssRules(css));
       for (const rule of splitCssRules(moduleCss)) ruleSet.add(rule);
-      css = orderMediaLast(Array.from(ruleSet)).join('\n\n') + '\n';
+      css = await optimizer(Array.from(ruleSet).join('\n\n'));
     }
 
     expect(css.match(/padding-top: 4px/g)).toHaveLength(1);
   });
 
-  it('matches the order optimizer() produces', async () => {
+  it('keeps distinct at-rules in their original relative positions', async () => {
     const css = [
       '.a { color: red; }',
       '@supports (display: grid) { .s { color: green; } }',
@@ -134,14 +110,10 @@ describe('shared virtual CSS rule order', () => {
       '.z { color: gray; }',
     ].join('\n\n');
 
-    // optimizer() moves @media to the end and leaves every other at-rule alone,
-    // which is exactly what orderMediaLast reproduces. If that ever changes,
-    // this fails and orderMediaLast has to be updated with it.
     const optimized = splitCssRules(await optimizer(css));
     const firstMedia = optimized.findIndex((rule) => rule.startsWith('@media'));
 
-    expect(firstMedia).toBe(optimized.length - 1);
+    expect(firstMedia).toBe(3);
     expect(optimized[0].startsWith('@media')).toBe(false);
-    expect(orderMediaLast(optimized)).toEqual(optimized);
   });
 });
