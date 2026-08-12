@@ -160,4 +160,57 @@ so a conditional shorthand can override a base longhand when their specificity
 is equal. Conditions are not sorted; their relative order remains the order in
 which the user wrote them.
 </Step>
+
+<Step>
+## What source order still decides
+
+Every pair where one declaration contains the other is settled by specificity, so
+composing styles from different modules gives the same result no matter which
+module the bundler reached first. Three pairs are left to source order, and all
+three are pairs where no containment exists to rank.
+
+### The same property under two names
+
+`paddingTop` and `paddingBlockStart` are the same computed property in a
+horizontal writing mode, so they receive the same depth and neither can outrank
+the other. Plain CSS resolves this the same way.
+
+```js
+const styles = css.create({
+  physical: { paddingTop: 4 },
+  logical: { paddingBlockStart: 10 },
+});
+```
+
+### Two shorthands that cross
+
+`borderTop` sets three values on one edge. `borderBlockWidth` sets one value on
+two edges. They overlap on `border-top-width`, but neither contains the other, so
+there is nothing to rank them by.
+
+```js
+const styles = css.create({
+  edge: { borderTop: '1px solid red' },
+  axis: { borderBlockWidth: 5 },
+});
+```
+
+### Two conditions that overlap
+
+Two conditions that can match at the same time produce the same specificity. At a
+width of 1000px both queries below apply, and the later rule wins.
+
+```js
+const styles = css.create({
+  medium: { '@media (min-width: 600px)': { color: 'red' } },
+  wide: { '@media (min-width: 900px)': { color: 'blue' } },
+});
+```
+
+<Callout title="Keep these in one style">
+Source order is stable inside a single style object, and the ESLint rule keeps
+that order consistent. Splitting one of these pairs across two `css.create`
+calls is what makes the result depend on the bundler instead.
+</Callout>
+</Step>
 </Steps>
