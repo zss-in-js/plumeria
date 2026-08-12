@@ -34,8 +34,8 @@ catalogs:
       specifier: 5.107.2
       version: 5.107.2
     zss-engine:
-      specifier: 2.3.2
-      version: 2.3.2
+      specifier: 2.4.1
+      version: 2.4.1
 
 importers:
 
@@ -847,7 +847,7 @@ importers:
         version: 1.15.47(@swc/helpers@0.5.23)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.4.1
 
   packages/core: {}
 
@@ -998,7 +998,7 @@ importers:
         version: 1.15.47(@swc/helpers@0.5.23)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.4.1
 
   packages/unplugin:
     dependencies:
@@ -1020,7 +1020,7 @@ importers:
         version: 8.0.14(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.48.0)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.4.1
 
   packages/utils:
     dependencies:
@@ -1041,7 +1041,7 @@ importers:
         version: 2.1.0(postcss@8.5.25)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.3.2
+        version: 2.4.1
 
   test-e2e/site:
     dependencies:
@@ -11036,8 +11036,8 @@ packages:
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
-  zss-engine@2.3.2:
-    resolution: {integrity: sha512-UWuAI0nBEIxBSwUY0pLcmC82iC9Ks2Zh5bbXo2aRVezGrohhYQSRundRhxxX3eD8QX7PhCMXDmuunxFdrpMqrg==}
+  zss-engine@2.4.1:
+    resolution: {integrity: sha512-nHl4rUroOfMiwUydfDjPNsNdV5ookJHLFlDoUK4DF0OLkYOZQal9J/nIcTGN7SJJaYiNiWvD675MDHVnQ22Oew==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -22115,7 +22115,7 @@ snapshots:
 
   zod@4.4.3: {}
 
-  zss-engine@2.3.2:
+  zss-engine@2.4.1:
     dependencies:
       csstype: 3.2.3
 
