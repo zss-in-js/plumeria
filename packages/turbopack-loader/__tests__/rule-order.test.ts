@@ -40,7 +40,7 @@ const compileModule = async (currentCss: string, style: CSSProperties) => {
 };
 
 describe('shared virtual CSS rule order', () => {
-  it('preserves the first position of a merged at-rule', async () => {
+  it('moves a merged at-rule after base rules', async () => {
     // module A uses only the @media style, so it lands in the file alone
     let css = await compileModule('', MEDIA_STYLE);
     // module B puts both atoms on one element; only the base rule is new
@@ -50,7 +50,7 @@ describe('shared virtual CSS rule order', () => {
     const media = css.indexOf('@media (min-width: 600px)');
 
     expect(base).toBeGreaterThanOrEqual(0);
-    expect(media).toBeLessThan(base);
+    expect(media).toBeGreaterThan(base);
   });
 
   it('does not duplicate rules when a module is recompiled', async () => {
@@ -101,7 +101,7 @@ describe('shared virtual CSS rule order', () => {
     expect(css.match(/padding-top: 4px/g)).toHaveLength(1);
   });
 
-  it('keeps distinct at-rules in their original relative positions', async () => {
+  it('moves supported at-rules after base rules in their original order', async () => {
     const css = [
       '.a { color: red; }',
       '@supports (display: grid) { .s { color: green; } }',
@@ -111,9 +111,10 @@ describe('shared virtual CSS rule order', () => {
     ].join('\n\n');
 
     const optimized = splitCssRules(await optimizer(css));
-    const firstMedia = optimized.findIndex((rule) => rule.startsWith('@media'));
-
-    expect(firstMedia).toBe(3);
-    expect(optimized[0].startsWith('@media')).toBe(false);
+    expect(optimized[0]).toContain('.a');
+    expect(optimized[1]).toContain('.z');
+    expect(optimized[2]).toContain('@supports');
+    expect(optimized[3]).toContain('@container');
+    expect(optimized[4]).toContain('@media');
   });
 });
