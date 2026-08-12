@@ -126,6 +126,33 @@ describe('getStyleRecords', () => {
     expect(result[0].sheet).toContain('@container (min-width: 500px)');
   });
 
+  it('should stack condition depth onto nested selectors', () => {
+    const countNot = (sheet: string) =>
+      (sheet.match(/:not\(#\\#\)/g) || []).length;
+
+    const base = getStyleRecords({
+      ':hover': { color: 'red' },
+    } as any);
+    const inMedia = getStyleRecords({
+      '@media (min-width: 100px)': { ':hover': { color: 'red' } },
+    } as any);
+    const inContainer = getStyleRecords({
+      '@container (min-width: 100px)': { ':hover': { color: 'red' } },
+    } as any);
+
+    expect(countNot(base[0].sheet)).toBe(1);
+    expect(countNot(inMedia[0].sheet)).toBe(2);
+    expect(countNot(inContainer[0].sheet)).toBe(2);
+  });
+
+  it('should not add condition depth to custom properties', () => {
+    const result = getStyleRecords({
+      '@media (min-width: 100px)': { ':hover': { '--primary': 'green' } },
+    } as any);
+
+    expect(result[0].sheet).not.toContain(':not(#\\#)');
+  });
+
   it('should ignore non-atomic selectors', () => {
     const result = getStyleRecords({
       div: {
