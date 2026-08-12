@@ -97,7 +97,10 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
         }
 
         const hash = genBase36Hash(hashSource, 1, 8);
-        const notSuffix = prop.startsWith('--') ? '' : notNormalize;
+        const conditionDepth = 1 + (atRule ? 1 : 0);
+        const notSuffix = prop.startsWith('--')
+          ? ''
+          : notNormalize.repeat(conditionDepth);
 
         let sheet = transpileAtomic(
           prop,
