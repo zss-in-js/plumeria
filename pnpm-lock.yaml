@@ -1036,9 +1036,6 @@ importers:
       postcss:
         specifier: 'catalog:'
         version: 8.5.25
-      postcss-combine-media-query:
-        specifier: ^2.1.0
-        version: 2.1.0(postcss@8.5.25)
       zss-engine:
         specifier: 'catalog:'
         version: 2.4.1
@@ -9168,12 +9165,6 @@ packages:
     engines: {node: ^10 || ^12 || >=14.0}
     peerDependencies:
       postcss: ^8.2.15
-
-  postcss-combine-media-query@2.1.0:
-    resolution: {integrity: sha512-lQOI5S1k0t7ha7krWly/y+io5sO3K2SlUv/ERvD276krQAMGpctMA3jB2whtv/7+OUQ8xxNwdDsVfwE3wcQtaQ==}
-    engines: {node: '>=16.0.0'}
-    peerDependencies:
-      postcss: ^8.0.0
 
   postcss-convert-values@5.1.3:
     resolution: {integrity: sha512-82pC1xkJZtcJEfiLw6UXnXVXScgtBrjlO5CBmuDQc+dlb88ZYheFsjTn40+zBVi3DkfF7iezO0nJUPLcJK3pvA==}
@@ -19853,10 +19844,6 @@ snapshots:
       colord: 2.9.3
       postcss: 8.5.25
       postcss-value-parser: 4.2.0
-
-  postcss-combine-media-query@2.1.0(postcss@8.5.25):
-    dependencies:
-      postcss: 8.5.25
 
   postcss-convert-values@5.1.3(postcss@8.5.25):
     dependencies:
