@@ -3,17 +3,10 @@
 // The oracle is the specified behaviour, not a second reading of the compiler:
 //
 //   1. Entries apply in written order.
-//   2. Entries the compiler settles at build time fold into one style, and
-//      overrideLonghand runs over that fold, so a shorthand there deletes an
-//      earlier longhand of its family.
-//   3. An entry whose style object is only known at runtime cannot fold. It
-//      stays its own unit and keeps its own atoms. A function key is not one of
-//      those: its declarations are fixed at build time and only their values
-//      come from a custom property, so it folds like any other written style.
-//   4. Across units only identical property names collide, the last winning.
-//      Shorthand against longhand is no collision: both atoms are emitted and
-//      the cascade settles it, the longhand carrying zss-engine's boost.
-//   5. Nested blocks and at-rules merge by their own key, property by property.
+//   2. Only identical property names collide, with the last entry winning.
+//      Shorthands and their longhands are distinct properties, so both remain
+//      and zss-engine's specificity depth settles their partial overlap.
+//   3. Nested blocks and at-rules merge by their own key, property by property.
 //
 // Every case runs over its whole input space, keys outside the table included,
 // against two structural invariants: no style object survives into the output,
@@ -22,7 +15,7 @@ jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
 import { unpluginFactory } from '../src/core';
 import { getStyleRecords, deepMerge } from '@plumeria/utils';
-import { overrideLonghand, genBase36Hash } from 'zss-engine';
+import { genBase36Hash } from 'zss-engine';
 
 type Style = Record<string, any>;
 
@@ -233,37 +226,16 @@ const resolve = (entry: Entry, vars: Record<string, any>): Style | null => {
   }
 };
 
-// Foldable: applies unconditionally, and its style needs no runtime value.
-const isFoldable = (entry: Entry) =>
-  entry.kind === 'style' || entry.kind === 'fn';
-
 const expected = (entries: Entry[], vars: Record<string, any>) => {
-  const folding: Array<{ order: number; style: Style }> = [];
   const units: Array<{ order: number; style: Style }> = [];
 
   entries.forEach((entry, order) => {
     const style = resolve(entry, vars);
     if (!style) return;
-    if (isFoldable(entry)) folding.push({ order, style });
-    else units.push({ order, style: overrideLonghand(style) });
+    units.push({ order, style });
   });
 
-  // Rule 2: one elimination pass over everything that folded together.
-  const folded = folding.reduce<Style>(
-    (acc, { style }) => deepMerge(acc, style),
-    {},
-  );
-  const survives = new Set(Object.keys(overrideLonghand(folded)));
-  folding.forEach(({ order, style }) =>
-    units.push({
-      order,
-      style: Object.fromEntries(
-        Object.entries(style).filter(([key]) => survives.has(key)),
-      ),
-    }),
-  );
-
-  // Rule 4: last writer of a given property name wins it.
+  // Rule 2: last writer of a given property name wins it.
   const winners: Style = {};
   units
     .sort((x, y) => x.order - y.order)
@@ -276,7 +248,7 @@ const expected = (entries: Entry[], vars: Record<string, any>) => {
       }
     });
 
-  // Rules 3 and 4: each surviving property stands as its own atom.
+  // Each surviving property stands as its own atom.
   return norm(
     Object.entries(winners)
       .flatMap(([key, value]) =>
