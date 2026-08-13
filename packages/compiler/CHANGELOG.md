@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 18.2.11
+
+### Patch Changes
+
+- 79cf605: Bump version to 18.2.11
+- Updated dependencies [65e086a]
+  - @plumeria/utils@18.2.11
+
 ## 18.2.10
 
 ### Patch Changes
