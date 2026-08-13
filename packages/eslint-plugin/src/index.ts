@@ -1,4 +1,5 @@
 import { propsRequireImport } from './rules/props-require-import';
+import { expandBorderShorthands } from './rules/expand-border-shorthands';
 import { noCombinator } from './rules/no-combinator';
 import { noDestructure } from './rules/no-destructure';
 import { noInlineObject } from './rules/no-inline-object';
@@ -24,6 +25,7 @@ type Configs = {
 
 const rules: Rules = {
   'props-require-import': propsRequireImport,
+  'expand-border-shorthands': expandBorderShorthands,
   'no-combinator': noCombinator,
   'no-destructure': noDestructure,
   'no-inline-object': noInlineObject,
