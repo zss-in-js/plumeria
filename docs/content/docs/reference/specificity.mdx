@@ -193,7 +193,9 @@ const styles = css.create({
 
 `borderTop` sets three values on one edge. `borderBlockWidth` sets one value on
 two edges. They overlap on `border-top-width`, but neither contains the other, so
-there is nothing to rank them by.
+there is nothing to rank them by. Writing the three declarations `borderTop`
+stands for turns the pair into a shorthand and a longhand, which specificity
+does rank; `expand-border-shorthands` does that rewrite.
 
 ```js
 const styles = css.create({
