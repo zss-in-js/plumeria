@@ -117,6 +117,30 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
         });
       `,
     },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '@media (min-width: 600px)': { color: 'red' },
+            '@media (min-width: 900px)': { color: 'blue' },
+            '@media (max-width: 500px)': { padding: 4 },
+            '@media print': { color: 'black' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '@media (min-width: 900px)': { color: 'blue' },
+            '@media (min-width: 600px)': { padding: 4 }
+          }
+        });
+      `,
+    },
   ],
   invalid: [
     {
@@ -315,6 +339,45 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
         });
       `,
       errors: [{ messageId: 'crossing', suggestions: [] }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '@media (min-width: 900px)': { color: 'blue' },
+            '@media (min-width: 600px)': { color: 'red' }
+          }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'condition',
+          data: {
+            narrow: '@media (min-width: 900px)',
+            broad: '@media (min-width: 600px)',
+            property: 'color',
+          },
+          suggestions: [
+            {
+              messageId: 'swap',
+              data: {
+                narrow: '@media (min-width: 900px)',
+                broad: '@media (min-width: 600px)',
+              },
+              output: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '@media (min-width: 600px)': { color: 'red' },
+            '@media (min-width: 900px)': { color: 'blue' }
+          }
+        });
+      `,
+            },
+          ],
+        },
+      ],
     },
   ],
 });
