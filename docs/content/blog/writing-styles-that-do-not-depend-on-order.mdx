@@ -1,0 +1,144 @@
+---
+title: 'Writing styles that do not depend on order'
+description: 'What the specificity graph settles, what it cannot, and the two rules that take the rest away'
+date: '2026-08-13'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Two style objects land on one element. One sets `padding`, the other sets
+`paddingTop`. Which wins?
+
+In plain CSS the answer is whichever rule the browser reads last, which means it
+depends on the order your bundler happened to emit them in — a fact about your
+build, not about your styles. Plumeria answers it differently: `padding-top` sits
+one step below `padding` in the shorthand graph, so its atomic class carries one
+more `:not(#\#)` and wins wherever it lands.
+
+```css
+.xatom1        { padding: 20px; }
+.xatom2:not(#\#) { padding-top: 10px; }
+```
+
+That is the whole idea, and the releases from 18.2.5 through 18.2.9 were spent
+making it hold everywhere. Conditional rules earn their own depth, so a
+declaration inside `@media` beats the base declaration it shares a property with.
+The optimizer stopped reordering. The file list the compiler walks is sorted, so
+a fresh clone on CI produces the same stylesheet as your working copy.
+
+## What was left
+
+Ranking works when one property contains the other. It has nothing to say when
+neither does, and there turn out to be exactly two shapes of that.
+
+**The same property under two names.** `paddingTop` and `paddingBlockStart` are
+one computed property in a horizontal writing mode. Neither is more specific
+than the other, so both get the same depth, and the one written last wins.
+
+**Two shorthands that cross.** `borderTop` sets three values on one edge.
+`borderBlockWidth` sets one value on two edges. They meet on `border-top-width`,
+and neither contains the other.
+
+Counting every pair in the property graph: 462 are settled by containment, and
+86 are not. All 86 fall into those two shapes, and all 30 of the crossing ones
+are in the border family.
+
+## Reporting them
+
+18.2.8 added `no-order-dependent-overlap` to `recommended`, at `warn`. It reports
+exactly those 86 pairs when both sides meet in one style, and stays quiet about
+the 462 that specificity already handles.
+
+```
+'paddingTop' and 'paddingBlockStart' are the same property under two names,
+so neither outranks the other. The one written last wins.
+```
+
+That is the floor: you do not configure anything, and the ambiguity stops being
+invisible.
+
+## Removing them
+
+Reporting is not the same as removing. Two optional rules take the room away.
+
+`expand-border-shorthands` rewrites the eleven border shorthands that bundle a
+width, a style and a color:
+
+```js
+borderTop: '1px solid red'
+// →
+borderTopWidth: '1px',
+borderTopStyle: 'solid',
+borderTopColor: 'red'
+```
+
+`borderTopWidth` against `borderBlockWidth` is containment, which specificity
+settles. The crossing shape is gone, and it is gone for all thirty pairs, because
+every one of them contains one of those eleven.
+
+`no-physical-properties` keeps a project on the logical spelling, so a property
+can never appear under both names:
+
+```js
+paddingLeft: 16
+// suggests
+paddingInlineStart: 16
+```
+
+With both on, every pair the first rule knows about becomes impossible to write.
+
+## What we did not do
+
+Two things we tried and dropped are worth naming.
+
+**Folding the spellings at compile time.** Rewriting `paddingBlockStart` to
+`paddingTop` during the build removes the pair, and it is what StyleX does. It
+also assumes the whole application is horizontal — `writing-mode` is inherited
+and decided per element, so no build-time setting can answer it. Under HMR the
+assumption is worse than wrong: the fold changes the property name, which changes
+the class name, and the development stylesheet only ever appends.
+
+**Expanding every shorthand.** If expanding `borderTop` helps, why not `padding`?
+Because `padding` is already ranked. Expanding it turns a pair specificity had
+settled into two declarations of the same key, and the merge keeps the one on the
+right:
+
+```js
+const base = css.create({ box: { margin: 10 } });
+const delta = css.create({ box: { marginTop: 20 } });
+
+classStyle={[delta.box, base.box]}
+// kept:    margin-top: 20px wins on depth
+// expanded: margin-top: 10px — the delta is gone
+```
+
+The rule that survived both is short: **expand only what cannot be ranked.**
+
+## The configuration
+
+```js
+import plumeria from '@plumeria/eslint-plugin';
+
+export default [
+  plumeria.configs.recommended,
+  {
+    rules: {
+      '@plumeria/expand-border-shorthands': 'warn',
+      '@plumeria/no-physical-properties': 'warn',
+    },
+  },
+];
+```
+
+`recommended` alone already reports every unrankable pair. The two extra rules
+are for codebases large enough that "we will notice the warning" stops being a
+plan.
+
+One thing neither rule touches: two conditions that can match at the same time,
+`@media (min-width: 600px)` and `@media (min-width: 900px)`, still resolve by the
+order you wrote them. Conditions are never sorted against each other, and that is
+deliberate.
