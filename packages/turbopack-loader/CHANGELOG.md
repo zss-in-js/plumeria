@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 18.2.9
+
+### Patch Changes
+
+- cacc782: Bump version to 18.2.9
+- Updated dependencies [cacc782]
+  - @plumeria/compiler@18.2.9
+  - @plumeria/utils@18.2.9
+
 ## 18.2.8
 
 ### Patch Changes
