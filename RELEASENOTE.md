@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.2.10 (Aug 13, 2026)
+
+- Feat: `@plumeria/eslint-plugin` adds `expand-border-shorthands`, which rewrites a border shorthand that bundles a width, a style and a color into the three declarations it stands for. Every pair `no-order-dependent-overlap` cannot rank contains one of those eleven bundles, so expanding them turns the last unrankable overlaps into ordinary shorthand-to-longhand pairs that specificity settles: `borderTop` against `borderBlockWidth` is a crossing, `borderTopWidth` against `borderBlockWidth` is a containment. The rule is fixable, because writing the three components out is the same declaration set the shorthand already produced, and a shorthand resets what it omits so the expansion writes `medium`, `none` and `currentcolor` where the author left a component out. A value that cannot be split, such as `var(--edge)` or `inherit`, is reported without a fix rather than passed over, since the declarations expanded elsewhere would otherwise outrank it silently. Not part of `recommended`.
+
 ## 18.2.9 (Aug 13, 2026)
 
 - Fix: `@plumeria/compiler` to sort the file list it globs, so the stylesheet is emitted in a stable order rather than the order the filesystem happened to enumerate the directories in. A rule is recorded the first time it is reached, so a pair that no specificity can rank — one property written under both its logical and its physical name, or two shorthands that cross — was settled by whichever file the glob returned first. That order is not alphabetical, and a fresh clone lays a directory out differently from a working checkout, so the same source could produce a different stylesheet on CI than it did locally. The scan pass is sorted as well.
