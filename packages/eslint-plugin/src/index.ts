@@ -5,6 +5,7 @@ import { noInlineObject } from './rules/no-inline-object';
 import { noInnerCall } from './rules/no-inner-call';
 import { noInvalidSelector } from './rules/no-invalid-selector';
 import { noMixedStylingProps } from './rules/no-mixed-styling-props';
+import { noOrderDependentOverlap } from './rules/no-order-dependent-overlap';
 import { noUnknownCssProperties } from './rules/no-unknown-css-properties';
 import { noUnusedKeys } from './rules/no-unused-keys';
 import { sortProperties } from './rules/sort-properties';
@@ -27,6 +28,7 @@ const rules: Rules = {
   'no-inner-call': noInnerCall,
   'no-invalid-selector': noInvalidSelector,
   'no-mixed-styling-props': noMixedStylingProps,
+  'no-order-dependent-overlap': noOrderDependentOverlap,
   'no-unknown-css-properties': noUnknownCssProperties,
   'no-unused-keys': noUnusedKeys,
   'sort-properties': sortProperties,
@@ -50,6 +52,7 @@ const configs: Configs = {
       '@plumeria/no-inner-call': 'error',
       '@plumeria/no-invalid-selector': 'error',
       '@plumeria/no-mixed-styling-props': 'error',
+      '@plumeria/no-order-dependent-overlap': 'warn',
       '@plumeria/no-unknown-css-properties': 'error',
       '@plumeria/no-unused-keys': 'warn',
       '@plumeria/sort-properties': 'warn',
