@@ -1,6 +1,7 @@
 import { CascadeTest } from 'component/CascadeTest';
 import { ConditionalTest } from 'component/ConditionalTest';
 import { ContainerQueryTest } from 'component/ContainerQueryTest';
+import { QueryOrderTest } from 'component/QueryOrderTest';
 import { MultiArgTest } from 'component/MultiArgTest';
 import { VariableTest } from 'component/VariableTest';
 import { VariantTest } from 'component/VariantTest';
@@ -21,6 +22,7 @@ export default function Home() {
       <Link href="/server">Server Page</Link>
       <CascadeTest />
       <ContainerQueryTest />
+      <QueryOrderTest />
       <ConditionalTest />
       <MultiArgTest />
       <VariableTest />
