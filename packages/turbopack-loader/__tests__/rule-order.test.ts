@@ -118,3 +118,46 @@ describe('shared virtual CSS rule order', () => {
     expect(optimized[4]).toContain('@media');
   });
 });
+
+/**
+ * The narrower query has to end up last however the module compiles are
+ * interleaved, because the dev file is what the browser reads. A rule already
+ * written is not rewritten, so this only holds while the whole accumulated
+ * sheet is optimized after each module.
+ */
+describe('shared virtual CSS query order', () => {
+  const WIDE: CSSProperties = {
+    '@media (min-width: 900px)': { color: 'blue' },
+  } as CSSProperties;
+  const MEDIUM: CSSProperties = {
+    '@media (min-width: 600px)': { color: 'red' },
+  } as CSSProperties;
+
+  it('puts the narrower query last when the broader module compiles second', async () => {
+    let css = await compileModule('', WIDE);
+    css = await compileModule(css, MEDIUM);
+
+    expect(css.indexOf('min-width: 600px')).toBeLessThan(
+      css.indexOf('min-width: 900px'),
+    );
+  });
+
+  it('keeps that order when the modules compile the other way round', async () => {
+    let css = await compileModule('', MEDIUM);
+    css = await compileModule(css, WIDE);
+
+    expect(css.indexOf('min-width: 600px')).toBeLessThan(
+      css.indexOf('min-width: 900px'),
+    );
+  });
+
+  it('reaches the same file from either order', async () => {
+    const forwards = await compileModule(await compileModule('', WIDE), MEDIUM);
+    const backwards = await compileModule(
+      await compileModule('', MEDIUM),
+      WIDE,
+    );
+
+    expect(forwards).toBe(backwards);
+  });
+});
