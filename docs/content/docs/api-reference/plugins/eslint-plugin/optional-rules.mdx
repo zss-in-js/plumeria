@@ -1,0 +1,120 @@
+---
+title: 'Optional rules'
+description: 'Rules that make an order-dependent pair impossible to write'
+---
+
+`recommended` reports defects. These three do something else: they take away the
+room for one, at the cost of narrowing how you are allowed to write. None of
+them is on by default.
+
+## What they are for
+
+Specificity settles every pair where one property contains another — a shorthand
+and its longhand, an axis and an edge. What it cannot settle is a pair where
+neither side contains the other, and there are exactly two shapes of those:
+
+| | Example | Left to |
+| :-- | :-- | :-- |
+| One property under two names | `paddingTop` and `paddingBlockStart` | the order they are written |
+| Two shorthands that cross | `borderTop` and `borderBlockWidth` | the order they are written |
+
+`no-order-dependent-overlap`, which `recommended` turns on, warns when such a
+pair meets on one element. The rules below stop the pair from existing.
+
+## Recommended for a large codebase
+
+```js
+import plumeria from '@plumeria/eslint-plugin';
+
+export default [
+  plumeria.configs.recommended,
+  {
+    rules: {
+      '@plumeria/expand-border-shorthands': 'warn',
+      '@plumeria/no-physical-properties': 'warn',
+    },
+  },
+];
+```
+
+Both are fixable or offer a rename, so adopting them on an existing codebase is
+mostly a matter of running the fixer once and reading the leftovers.
+
+## expand-border-shorthands
+
+`border`, `borderBlock`, `borderInline` and the eight edge forms each set a
+width, a style and a color at once. Every pair that specificity cannot rank
+contains one of those eleven, so writing out the three declarations they stand
+for is what removes the shape.
+
+```js
+borderTop: '1px solid red'
+// fixes to
+borderTopWidth: '1px',
+borderTopStyle: 'solid',
+borderTopColor: 'red'
+```
+
+`borderTop` and `borderBlockWidth` cross: the first sets three values on one
+edge, the second sets one value on two edges, and they meet on
+`border-top-width` without either containing the other. `borderTopWidth` and
+`borderBlockWidth` do not cross — the first is contained by the second, and the
+depth of each decides the winner.
+
+A shorthand resets whatever it omits, so the expansion writes the initial value
+of every component you left out:
+
+```js
+borderBlock: 'solid'
+// fixes to
+borderBlockWidth: 'medium',
+borderBlockStyle: 'solid',
+borderBlockColor: 'currentcolor'
+```
+
+A value the rule cannot split — `var(--edge)`, `inherit`, a reference — is
+reported without a fix. Write the three declarations yourself, or the ones the
+fixer expanded elsewhere will outrank it.
+
+## no-physical-properties / no-logical-properties
+
+A property that carries both a logical and a physical name can be written twice
+under two spellings. Pick one spelling and the pair cannot occur.
+
+```js
+'@plumeria/no-physical-properties': 'warn'
+// paddingLeft → rename to paddingInlineStart
+
+'@plumeria/no-logical-properties': 'warn'
+// paddingInlineStart → rename to paddingLeft
+```
+
+Turning both on is contradictory. `no-physical-properties` is the direction that
+keeps a document working in another writing mode or another direction, which is
+what the logical names exist for.
+
+Each accepts `{ sizes }`, `false` by default:
+
+```js
+'@plumeria/no-physical-properties': ['warn', { sizes: true }]
+```
+
+Off, the rule covers the edges — `paddingLeft`, `marginTop`, `top`,
+`borderTopColor`. On, it also covers `width`, `height`, their `min` and `max`
+forms, and `overflow-x` and `overflow-y`. An edge is what a direction reverses;
+a size is the same box either way, so renaming it buys less and touches far
+more code.
+
+Renaming is offered as a suggestion rather than a fix. In a vertical writing
+mode the two spellings are two different edges, so the rewrite is a change of
+meaning that you should apply deliberately.
+
+## What is left
+
+A shorthand with no single counterpart, such as `borderBlockWidth`, belongs to
+neither spelling and is never renamed. With `expand-border-shorthands` on, it no
+longer has anything to cross with.
+
+Two conditions that can match at the same time — `@media (min-width: 600px)` and
+`@media (min-width: 900px)` — still resolve by the order they are written. That
+is deliberate, and no rule reports it.
