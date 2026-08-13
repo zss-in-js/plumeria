@@ -14,6 +14,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/no-inner-call`: **error**
 - `@plumeria/no-invalid-selector`: **error**
 - `@plumeria/no-mixed-styling-props`: **error**
+- `@plumeria/no-order-dependent-overlap`: **warn**
 - `@plumeria/no-unknown-css-properties`: **error**
 - `@plumeria/no-unused-keys`: **warn**
 - `@plumeria/sort-properties`: **warn**
@@ -97,6 +98,14 @@ Disallow invalid selector inside `css.create()` and `css.keyframes()` and `css.v
 Disallow mixing the styling prop with `className` or `style`. `classStyle` can handle both `className` and `style`.
 
 Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-styling-prop).
+
+### no-order-dependent-overlap
+
+Warns when two properties in one style overlap but neither outranks the other,
+so the one written last wins. It covers one property under its logical and its
+physical name, and two shorthands that cross without either containing the
+other. A shorthand and its longhand are ranked by specificity and never
+reported.
 
 ### no-unknown-css-properties
 
