@@ -27,8 +27,9 @@ more `:not(#\#)` and wins wherever it lands.
 That is the whole idea, and the releases from 18.2.5 through 18.2.9 were spent
 making it hold everywhere. Conditional rules earn their own depth, so a
 declaration inside `@media` beats the base declaration it shares a property with.
-The optimizer stopped reordering. The file list the compiler walks is sorted, so
-a fresh clone on CI produces the same stylesheet as your working copy.
+The optimizer stopped reordering rules it cannot rank. The file list the compiler
+walks is sorted, so a fresh clone on CI produces the same stylesheet as your
+working copy.
 
 ## What was left
 
@@ -138,7 +139,8 @@ export default [
 are for codebases large enough that "we will notice the warning" stops being a
 plan.
 
-One thing neither rule touches: two conditions that can match at the same time,
-`@media (min-width: 600px)` and `@media (min-width: 900px)`, still resolve by the
-order you wrote them. Conditions are never sorted against each other, and that is
-deliberate.
+One thing neither rule touches: two conditions that can match at the same time.
+Where one matches a subset of the other the optimizer settles it, placing the
+narrower query last. Where they overlap without either containing the other —
+`600px` to `900px` against `700px` to `1000px` — nothing can rank them, and
+source order decides.
