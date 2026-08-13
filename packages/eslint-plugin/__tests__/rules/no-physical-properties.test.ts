@@ -12,6 +12,21 @@ ruleTester.run('no-physical-properties', noPhysicalProperties, {
   valid: [
     {
       code: `
+        import css from '@plumeria/core';
+        const dynamic = 'paddingLeft';
+        css.unknown({ main: { paddingLeft: 1 } });
+        css['create']({ main: { paddingLeft: 1 } });
+        css.create(null, { main: 1 }, { ...other });
+        localFunction();
+        (function () {})();
+        css.create({
+          ...other,
+          main: { ...other, [dynamic]: 1, 0: 'ignored', color: 'red' }
+        });
+      `,
+    },
+    {
+      code: `
         import * as css from '@plumeria/core';
         const styles = css.create({
           main: {
@@ -65,6 +80,24 @@ ruleTester.run('no-physical-properties', noPhysicalProperties, {
     },
   ],
   invalid: [
+    {
+      code: `
+        import css from '@plumeria/core';
+        css.viewTransition({ old: { ['right']: 0 } });
+        css.keyframes({ from: { bottom: 0 } });
+      `,
+      errors: [
+        { messageId: 'rejected', suggestions: 1 },
+        { messageId: 'rejected', suggestions: 1 },
+      ],
+    },
+    {
+      code: `
+        import { 'viewTransition' as transition } from '@plumeria/core';
+        transition({ old: { borderLeftColor: 'red' } });
+      `,
+      errors: [{ messageId: 'rejected', suggestions: 1 }],
+    },
     {
       code: `
         import * as css from '@plumeria/core';
