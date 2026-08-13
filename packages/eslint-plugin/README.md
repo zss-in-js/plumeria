@@ -107,6 +107,11 @@ physical name, and two shorthands that cross without either containing the
 other. A shorthand and its longhand are ranked by specificity and never
 reported.
 
+It also reports two media queries in one style where one provably matches a
+subset of the other — `(min-width: 900px)` inside `(min-width: 600px)` — and the
+narrower one is written first, so the broader one wins wherever they meet. The
+swap is offered as a suggestion, since applying it changes which query wins.
+
 A pair of spellings is one property in a horizontal writing mode and two
 properties in a vertical one, which is per element and cannot be read from the
 source. The rule reads them as one property; disable the line where an element
