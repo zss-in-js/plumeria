@@ -253,6 +253,7 @@ export function compileCSS(options: CompilerOptions) {
   const files = rs.globSync(include, {
     cwd,
     exclude: exclude,
+    sort: true,
   });
 
   const scannedTables = scanAll();
