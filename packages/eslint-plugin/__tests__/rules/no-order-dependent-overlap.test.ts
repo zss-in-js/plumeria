@@ -141,6 +141,19 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
         });
       `,
     },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '@container card (min-width: 800px)': { color: 'blue' },
+            '@container sidebar (min-width: 400px)': { color: 'red' },
+            '@media (min-width: 900px)': { padding: 4 },
+            '@container (min-width: 400px)': { margin: 2 }
+          }
+        });
+      `,
+    },
   ],
   invalid: [
     {
@@ -378,6 +391,40 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
           ],
         },
       ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '@container card (min-width: 800px)': { color: 'blue' },
+            '@container card (min-width: 400px)': { color: 'red' }
+          }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'condition',
+          data: {
+            narrow: '@container card (min-width: 800px)',
+            broad: '@container card (min-width: 400px)',
+            property: 'color',
+          },
+          suggestions: 1,
+        },
+      ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '@media (min-width: 700px) and (max-width: 900px)': { color: 'blue' },
+            '@media (min-width: 600px) and (max-width: 1000px)': { color: 'red' }
+          }
+        });
+      `,
+      errors: [{ messageId: 'condition', suggestions: 1 }],
     },
   ],
 });
