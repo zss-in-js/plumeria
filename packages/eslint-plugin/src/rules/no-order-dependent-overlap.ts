@@ -2,9 +2,8 @@
  * @fileoverview Disallow two properties that overlap without either one outranking the other
  */
 
-import { DIRECT_LONGHANDS } from 'zss-engine';
+import { DIRECT_LONGHANDS, impliesCondition } from 'zss-engine';
 import { canonicalProperty, toKebabCase } from '../util/logicalPhysical';
-import { impliesCondition } from '../util/mediaRange';
 import type { ObjectExpression, Property, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
 
@@ -75,7 +74,7 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
       crossing:
         "'{{ first }}' and '{{ second }}' overlap, but neither property outranks the other. The result depends on the order they are written.",
       condition:
-        "'{{ narrow }}' matches only where '{{ broad }}' also matches, so it is the more specific of the two, and both set '{{ property }}'. It is written first, so the broader one wins wherever they meet.",
+        "'{{ narrow }}' matches only where '{{ broad }}' also matches, so it is the more specific of the two, and both set '{{ property }}'. Written first, it reads as though the broader one wins, which is the opposite of what the stylesheet does.",
       keep: "Keep '{{ keep }}'",
       swap: "Write '{{ narrow }}' after '{{ broad }}'",
     },
@@ -211,7 +210,10 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
 
         if (prop.value.type === 'ObjectExpression') {
           const condition = keyNameOf(prop);
-          if (condition.startsWith('@media')) {
+          if (
+            condition.startsWith('@media') ||
+            condition.startsWith('@container')
+          ) {
             conditions.push({
               prop,
               name: condition,
