@@ -112,6 +112,27 @@ properties in a vertical one, which is per element and cannot be read from the
 source. The rule reads them as one property; disable the line where an element
 is known to be vertical.
 
+### expand-border-shorthands
+
+Expands a border shorthand that bundles a width, a style and a color —
+`border`, `borderBlock`, `borderInline`, and the eight edge forms — into the
+three declarations it stands for. Those bundles are the only properties left
+that cross an axis shorthand without either containing the other, so expanding
+them turns the last unrankable pairs into ordinary shorthand-to-longhand ones.
+
+Fixable. A value it cannot split, such as `var(--edge)` or `inherit`, is
+reported without a fix: leaving it silent would let the expanded declarations
+elsewhere outrank it. Not part of `recommended`.
+
+```js
+borderTop: '1px solid red'
+// becomes
+borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'red'
+```
+
+A shorthand resets what it omits, so `borderBlock: 'solid'` expands with
+`medium` and `currentcolor` written out.
+
 ### no-physical-properties / no-logical-properties
 
 Disallow one of the two names a property can carry, so a project writes edges
