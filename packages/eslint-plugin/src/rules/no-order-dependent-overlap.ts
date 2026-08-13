@@ -4,6 +4,7 @@
 
 import { DIRECT_LONGHANDS } from 'zss-engine';
 import { canonicalProperty, toKebabCase } from '../util/logicalPhysical';
+import { impliesCondition } from '../util/mediaRange';
 import type { ObjectExpression, Property, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
 
@@ -73,7 +74,10 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
         "'{{ first }}' and '{{ second }}' are the same property under two names, so neither outranks the other. The one written last wins.",
       crossing:
         "'{{ first }}' and '{{ second }}' overlap, but neither property outranks the other. The result depends on the order they are written.",
+      condition:
+        "'{{ narrow }}' matches only where '{{ broad }}' also matches, so it is the more specific of the two, and both set '{{ property }}'. It is written first, so the broader one wins wherever they meet.",
       keep: "Keep '{{ keep }}'",
+      swap: "Write '{{ narrow }}' after '{{ broad }}'",
     },
     schema: [],
   },
@@ -149,6 +153,39 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
       },
     };
 
+    function keyNameOf(prop: Property): string {
+      if (!prop.computed) {
+        return prop.key.type === 'Identifier'
+          ? prop.key.name
+          : String((prop.key as { value: unknown }).value);
+      }
+      return prop.key.type === 'Literal' && typeof prop.key.value === 'string'
+        ? prop.key.value
+        : '';
+    }
+
+    function declaredNames(node: ObjectExpression): Set<string> {
+      const names = new Set<string>();
+      node.properties.forEach((prop) => {
+        if (prop.type !== 'Property' || prop.value.type === 'ObjectExpression')
+          return;
+        const name = keyNameOf(prop);
+        if (name && !name.startsWith('--')) names.add(name);
+      });
+      return names;
+    }
+
+    function swapProperties(
+      fixer: Rule.RuleFixer,
+      first: Property,
+      second: Property,
+    ) {
+      return [
+        fixer.replaceText(first, sourceCode.getText(second)),
+        fixer.replaceText(second, sourceCode.getText(first)),
+      ];
+    }
+
     function removeProperty(fixer: Rule.RuleFixer, prop: Property) {
       const after = sourceCode.getTokenAfter(prop);
       if (after && after.value === ',') {
@@ -166,27 +203,26 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
     function checkStyleObject(node: ObjectExpression) {
       const declarations: { prop: Property; name: string; kebab: string }[] =
         [];
+      const conditions: { prop: Property; name: string; sets: Set<string> }[] =
+        [];
 
       node.properties.forEach((prop) => {
         if (prop.type !== 'Property') return;
 
         if (prop.value.type === 'ObjectExpression') {
+          const condition = keyNameOf(prop);
+          if (condition.startsWith('@media')) {
+            conditions.push({
+              prop,
+              name: condition,
+              sets: declaredNames(prop.value),
+            });
+          }
           checkStyleObject(prop.value);
           return;
         }
 
-        let name = '';
-        if (!prop.computed) {
-          name =
-            prop.key.type === 'Identifier'
-              ? prop.key.name
-              : String((prop.key as { value: unknown }).value);
-        } else if (
-          prop.key.type === 'Literal' &&
-          typeof prop.key.value === 'string'
-        ) {
-          name = prop.key.value;
-        }
+        const name = keyNameOf(prop);
 
         if (
           !name ||
@@ -200,6 +236,36 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
 
         declarations.push({ prop, name, kebab: toKebabCase(name) });
       });
+
+      for (let i = 0; i < conditions.length; i++) {
+        for (let j = i + 1; j < conditions.length; j++) {
+          const first = conditions[i];
+          const second = conditions[j];
+          if (!impliesCondition(first.name, second.name)) continue;
+
+          const shared = [...first.sets].filter((name) =>
+            second.sets.has(name),
+          );
+          if (shared.length === 0) continue;
+
+          context.report({
+            node: first.prop.key,
+            messageId: 'condition',
+            data: {
+              narrow: first.name,
+              broad: second.name,
+              property: shared[0],
+            },
+            suggest: [
+              {
+                messageId: 'swap',
+                data: { narrow: first.name, broad: second.name },
+                fix: (fixer) => swapProperties(fixer, first.prop, second.prop),
+              },
+            ],
+          });
+        }
+      }
 
       for (let i = 0; i < declarations.length; i++) {
         for (let j = i + 1; j < declarations.length; j++) {
