@@ -1,5 +1,13 @@
 # @plumeria/inspector
 
+## 18.2.9
+
+### Patch Changes
+
+- cacc782: Bump version to 18.2.9
+- Updated dependencies [cacc782]
+  - @plumeria/headlessui@18.2.9
+
 ## 18.2.8
 
 ### Patch Changes
