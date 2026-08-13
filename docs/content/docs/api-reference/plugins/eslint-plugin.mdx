@@ -92,6 +92,21 @@ a logical and a physical name, which makes the pairs
 adds `width`, `height`, their `min` and `max` forms, and `overflow-x` and
 `overflow-y`.
 
+`expand-border-shorthands` is the other half. It rewrites `borderTop` and its
+ten siblings into the width, style and color they set, which is what the pairs
+a spelling cannot reach are made of:
+
+```js
+{
+  rules: {
+    '@plumeria/expand-border-shorthands': 'warn',
+  },
+}
+```
+
+With one spelling rule and this one on, every pair `no-order-dependent-overlap`
+knows about becomes impossible to write.
+
 ## Configuring the styling prop
 
 `props-require-import`, `no-inline-object` and `no-mixed-styling-props` need to know which JSX prop carries styles. It is `classStyle` unless you changed it, so most projects configure nothing.
