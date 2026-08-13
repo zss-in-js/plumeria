@@ -3,63 +3,9 @@
  */
 
 import { DIRECT_LONGHANDS } from 'zss-engine';
+import { canonicalProperty, toKebabCase } from '../util/logicalPhysical';
 import type { ObjectExpression, Property, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
-
-const BOX_FAMILIES = ['margin', 'padding', 'scroll-margin', 'scroll-padding'];
-const LOGICAL_PHYSICAL_EDGES: [string, string][] = [
-  ['block-start', 'top'],
-  ['block-end', 'bottom'],
-  ['inline-start', 'left'],
-  ['inline-end', 'right'],
-];
-const BORDER_VALUES = ['width', 'style', 'color'];
-const CORNERS: [string, string][] = [
-  ['start-start', 'top-left'],
-  ['start-end', 'top-right'],
-  ['end-start', 'bottom-left'],
-  ['end-end', 'bottom-right'],
-];
-const SIZES = ['', 'min-', 'max-'];
-
-const LOGICAL_PHYSICAL_PAIRS: [string, string][] = [
-  ...BOX_FAMILIES.flatMap((family): [string, string][] =>
-    LOGICAL_PHYSICAL_EDGES.map(([logical, physical]) => [
-      `${family}-${logical}`,
-      `${family}-${physical}`,
-    ]),
-  ),
-  ...LOGICAL_PHYSICAL_EDGES.map(([logical, physical]): [string, string] => [
-    `inset-${logical}`,
-    physical,
-  ]),
-  ...LOGICAL_PHYSICAL_EDGES.flatMap(
-    ([logical, physical]): [string, string][] => [
-      [`border-${logical}`, `border-${physical}`],
-      ...BORDER_VALUES.map((value): [string, string] => [
-        `border-${logical}-${value}`,
-        `border-${physical}-${value}`,
-      ]),
-    ],
-  ),
-  ...CORNERS.flatMap(([logical, physical]): [string, string][] => [
-    [`border-${logical}-radius`, `border-${physical}-radius`],
-    [`corner-${logical}-shape`, `corner-${physical}-shape`],
-  ]),
-  ...SIZES.flatMap((size): [string, string][] => [
-    [`${size}block-size`, `${size}height`],
-    [`${size}inline-size`, `${size}width`],
-  ]),
-  ['overflow-block', 'overflow-y'],
-  ['overflow-inline', 'overflow-x'],
-  ['overscroll-behavior-block', 'overscroll-behavior-y'],
-  ['overscroll-behavior-inline', 'overscroll-behavior-x'],
-  ['contain-intrinsic-block-size', 'contain-intrinsic-height'],
-  ['contain-intrinsic-inline-size', 'contain-intrinsic-width'],
-];
-
-const alias = new Map(LOGICAL_PHYSICAL_PAIRS);
-const canonical = (property: string): string => alias.get(property) ?? property;
 
 const DIRECT_SHORTHANDS: Record<string, string[]> = {};
 for (const [shorthand, longhands] of Object.entries(DIRECT_LONGHANDS)) {
@@ -92,26 +38,16 @@ const coverageOf = (property: string): Set<string> => {
   const longhands = DIRECT_LONGHANDS[property];
   const coverage = longhands
     ? new Set(longhands.flatMap((longhand) => [...coverageOf(longhand)]))
-    : new Set([canonical(property)]);
+    : new Set([canonicalProperty(property)]);
 
   coverages.set(property, coverage);
   return coverage;
 };
 
-const kebabCache = new Map<string, string>();
-const toKebabCase = (name: string): string => {
-  const cached = kebabCache.get(name);
-  if (cached !== undefined) return cached;
-
-  const kebab = name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
-  kebabCache.set(name, kebab);
-  return kebab;
-};
-
 type Overlap = 'alias' | 'crossing' | null;
 
 const overlapOf = (first: string, second: string): Overlap => {
-  if (canonical(first) === canonical(second)) return 'alias';
+  if (canonicalProperty(first) === canonicalProperty(second)) return 'alias';
 
   const left = coverageOf(first);
   const right = coverageOf(second);
