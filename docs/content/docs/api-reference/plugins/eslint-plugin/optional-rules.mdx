@@ -115,9 +115,10 @@ A shorthand with no single counterpart, such as `borderBlockWidth`, belongs to
 neither spelling and is never renamed. With `expand-border-shorthands` on, it no
 longer has anything to cross with.
 
-Two conditions that can match at the same time — `@media (min-width: 600px)` and
-`@media (min-width: 900px)` — still resolve by the order they are written. That
-is deliberate: no depth can rank them, because whether one condition implies
-another is not decidable in general. `no-order-dependent-overlap` covers the
-part that is: where one query provably matches a subset of the other and the
-narrower one is written first, it says so and offers the swap.
+Two conditions that can match at the same time are settled by the optimizer
+where one provably matches a subset of the other: the narrower one is placed
+last. No depth can rank them, because whether one condition implies another is
+not decidable in general, so a pair that overlaps without either containing the
+other is left to source order. `no-order-dependent-overlap` reports a nested
+pair written in the losing order, which the stylesheet corrects but the source
+still reads the wrong way round.
