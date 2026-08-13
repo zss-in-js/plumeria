@@ -175,6 +175,13 @@ three are pairs where no containment exists to rank.
 horizontal writing mode, so they receive the same depth and neither can outrank
 the other. Plain CSS resolves this the same way.
 
+In a vertical writing mode they are two different edges and no longer compete.
+Which one an element renders under is decided at runtime and inherited, so no
+build-time setting can answer it; `no-order-dependent-overlap` reads the pair as
+one property, which is right for a horizontal or a mixed document and wrong only
+where an element is known to be vertical. Writing one spelling and not the other
+removes the question, and `no-physical-properties` enforces that.
+
 ```js
 const styles = css.create({
   physical: { paddingTop: 4 },
