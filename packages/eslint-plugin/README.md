@@ -107,6 +107,27 @@ physical name, and two shorthands that cross without either containing the
 other. A shorthand and its longhand are ranked by specificity and never
 reported.
 
+A pair of spellings is one property in a horizontal writing mode and two
+properties in a vertical one, which is per element and cannot be read from the
+source. The rule reads them as one property; disable the line where an element
+is known to be vertical.
+
+### no-physical-properties / no-logical-properties
+
+Disallow one of the two names a property can carry, so a project writes edges
+under one spelling only. `no-physical-properties` reports `paddingLeft` and
+suggests `paddingInlineStart`; `no-logical-properties` reports the reverse.
+Accepts `{ sizes }`, which adds `width`, `height`, their `min`/`max` forms,
+`overflow-x` and `overflow-y` to the properties covered. It is `false` by
+default: a size is one property under either spelling, while an edge is what a
+direction reverses.
+
+Neither is part of `recommended`, and turning both on is contradictory. Reach
+for one when you want the pairs `no-order-dependent-overlap` reports to be
+impossible to write: a property that appears under one spelling only can never
+meet its other spelling on an element. A shorthand with no single counterpart,
+such as `borderBlockWidth`, is outside either rule and stays reported.
+
 ### no-unknown-css-properties
 
 Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, and `css.viewTransition`.
