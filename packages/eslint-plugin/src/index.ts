@@ -4,7 +4,9 @@ import { noDestructure } from './rules/no-destructure';
 import { noInlineObject } from './rules/no-inline-object';
 import { noInnerCall } from './rules/no-inner-call';
 import { noInvalidSelector } from './rules/no-invalid-selector';
+import { noLogicalProperties } from './rules/no-logical-properties';
 import { noMixedStylingProps } from './rules/no-mixed-styling-props';
+import { noPhysicalProperties } from './rules/no-physical-properties';
 import { noOrderDependentOverlap } from './rules/no-order-dependent-overlap';
 import { noUnknownCssProperties } from './rules/no-unknown-css-properties';
 import { noUnusedKeys } from './rules/no-unused-keys';
@@ -27,7 +29,9 @@ const rules: Rules = {
   'no-inline-object': noInlineObject,
   'no-inner-call': noInnerCall,
   'no-invalid-selector': noInvalidSelector,
+  'no-logical-properties': noLogicalProperties,
   'no-mixed-styling-props': noMixedStylingProps,
+  'no-physical-properties': noPhysicalProperties,
   'no-order-dependent-overlap': noOrderDependentOverlap,
   'no-unknown-css-properties': noUnknownCssProperties,
   'no-unused-keys': noUnusedKeys,
