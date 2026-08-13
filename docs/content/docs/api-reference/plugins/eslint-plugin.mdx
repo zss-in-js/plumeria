@@ -75,6 +75,23 @@ Literal selectors are still checked without this, so the rules work either way â
 
 When using `recommended`, all rules are turned on.
 
+`no-physical-properties` and `no-logical-properties` are not among them. Turn
+one on to keep a project on a single spelling of the properties that carry both
+a logical and a physical name, which makes the pairs
+`no-order-dependent-overlap` reports impossible to write:
+
+```js
+{
+  rules: {
+    '@plumeria/no-physical-properties': ['warn', { sizes: false }],
+  },
+}
+```
+
+`sizes` is `false` by default and covers the edges only. Setting it to `true`
+adds `width`, `height`, their `min` and `max` forms, and `overflow-x` and
+`overflow-y`.
+
 ## Configuring the styling prop
 
 `props-require-import`, `no-inline-object` and `no-mixed-styling-props` need to know which JSX prop carries styles. It is `classStyle` unless you changed it, so most projects configure nothing.
