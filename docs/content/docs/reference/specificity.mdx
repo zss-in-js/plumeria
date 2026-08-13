@@ -157,8 +157,13 @@ Custom properties are exempt. They never receive a nested or condition depth.
 The optimizer merges identical selectors and identical at-rules recursively to
 reduce bundle size. Supported conditional at-rules are moved after base rules
 so a conditional shorthand can override a base longhand when their specificity
-is equal. Conditions are not sorted; their relative order remains the order in
-which the user wrote them.
+is equal. A condition that matches a subset of another is then placed after it,
+so the narrower one wins everywhere both of them reach. Whether one condition
+implies another is not decidable in general, so only the comparable shapes are
+read — a `min-`, `max-` or range comparison on `width`, `height`, `inline-size`
+or `block-size`, joined with `and`, against the same media type or the same
+container. Anything else keeps the order it was written in, unless a comparable
+pair leaves no arrangement that also holds it still.
 </Step>
 
 <Step>
@@ -206,14 +211,10 @@ const styles = css.create({
 
 ### Two conditions that overlap
 
-Two conditions that can match at the same time produce the same specificity. At a
-width of 1000px both queries below apply, and the later rule wins. Written in this
-order the narrower query wins, which is what you meant by writing it. Reversed,
-the broader one wins, and `no-order-dependent-overlap` says so. Composed from
-two modules, later means the order the atoms were emitted in: the order of the
-`classStyle` array, unless one of the two is also used somewhere the compiler
-reaches first, which pins it. The file list is sorted, so the result is the same
-on every machine, but it is not always the order you composed them in.
+Two conditions that can match at the same time produce the same specificity.
+Where one of them matches a subset of the other, the optimizer settles the pair
+by placing the narrower one last, so the result no longer depends on where the
+two declarations were written or which module the compiler reached first.
 
 ```js
 const styles = css.create({
@@ -221,6 +222,14 @@ const styles = css.create({
   wide: { '@media (min-width: 900px)': { color: 'blue' } },
 });
 ```
+
+At a width of 1000px both queries apply and `blue` wins, written in either
+order. `no-order-dependent-overlap` still reports the reversed spelling, because
+the source then reads as though `red` would win.
+
+Two conditions that overlap without either containing the other — `600px` to
+`900px` against `700px` to `1000px` — are left to source order, and so is any
+pair the optimizer cannot compare.
 
 <Callout title="Keep these in one style">
 Source order is stable inside a single style object, and the ESLint rule keeps
