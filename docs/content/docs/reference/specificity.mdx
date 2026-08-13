@@ -211,6 +211,8 @@ const styles = css.create({
 Source order is stable inside a single style object, and the ESLint rule keeps
 that order consistent. Splitting one of these pairs across two `css.create`
 calls is what makes the result depend on the bundler instead.
+`no-order-dependent-overlap` reports the first two pairs when they meet in one
+style.
 </Callout>
 </Step>
 </Steps>
