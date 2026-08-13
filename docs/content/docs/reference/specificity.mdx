@@ -207,7 +207,11 @@ const styles = css.create({
 ### Two conditions that overlap
 
 Two conditions that can match at the same time produce the same specificity. At a
-width of 1000px both queries below apply, and the later rule wins.
+width of 1000px both queries below apply, and the later rule wins. Composed from
+two modules, later means the order the atoms were emitted in: the order of the
+`classStyle` array, unless one of the two is also used somewhere the compiler
+reaches first, which pins it. The file list is sorted, so the result is the same
+on every machine, but it is not always the order you composed them in.
 
 ```js
 const styles = css.create({
