@@ -223,5 +223,30 @@ calls is what makes the result depend on the bundler instead.
 `no-order-dependent-overlap` reports the first two pairs when they meet in one
 style.
 </Callout>
+
+### Removing the first two entirely
+
+Two optional rules take the room away instead of reporting it. Expanding a
+border shorthand into the three declarations it stands for turns a crossing pair
+into a shorthand and a longhand, and writing one spelling of a property and not
+the other means the same property can never appear twice:
+
+```js
+import plumeria from '@plumeria/eslint-plugin';
+
+export default [
+  plumeria.configs.recommended,
+  {
+    rules: {
+      '@plumeria/expand-border-shorthands': 'warn',
+      '@plumeria/no-physical-properties': 'warn',
+    },
+  },
+];
+```
+
+With both on, every pair on this page except the overlapping conditions becomes
+impossible to write. See
+[Optional rules](/docs/api-reference/plugins/eslint-plugin/optional-rules).
 </Step>
 </Steps>
