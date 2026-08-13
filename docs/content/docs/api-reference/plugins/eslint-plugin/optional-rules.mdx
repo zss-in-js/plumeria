@@ -117,4 +117,7 @@ longer has anything to cross with.
 
 Two conditions that can match at the same time — `@media (min-width: 600px)` and
 `@media (min-width: 900px)` — still resolve by the order they are written. That
-is deliberate, and no rule reports it.
+is deliberate: no depth can rank them, because whether one condition implies
+another is not decidable in general. `no-order-dependent-overlap` covers the
+part that is: where one query provably matches a subset of the other and the
+narrower one is written first, it says so and offers the swap.
