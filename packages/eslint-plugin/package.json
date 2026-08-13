@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@typescript-eslint/utils": "^8.60.0",
-    "known-css-properties": "^0.37.0"
+    "known-css-properties": "^0.37.0",
+    "zss-engine": "catalog:"
   }
 }
