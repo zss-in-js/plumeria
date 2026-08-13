@@ -75,37 +75,9 @@ Literal selectors are still checked without this, so the rules work either way â
 
 When using `recommended`, all rules are turned on.
 
-`no-physical-properties` and `no-logical-properties` are not among them. Turn
-one on to keep a project on a single spelling of the properties that carry both
-a logical and a physical name, which makes the pairs
-`no-order-dependent-overlap` reports impossible to write:
-
-```js
-{
-  rules: {
-    '@plumeria/no-physical-properties': ['warn', { sizes: false }],
-  },
-}
-```
-
-`sizes` is `false` by default and covers the edges only. Setting it to `true`
-adds `width`, `height`, their `min` and `max` forms, and `overflow-x` and
-`overflow-y`.
-
-`expand-border-shorthands` is the other half. It rewrites `borderTop` and its
-ten siblings into the width, style and color they set, which is what the pairs
-a spelling cannot reach are made of:
-
-```js
-{
-  rules: {
-    '@plumeria/expand-border-shorthands': 'warn',
-  },
-}
-```
-
-With one spelling rule and this one on, every pair `no-order-dependent-overlap`
-knows about becomes impossible to write.
+Three more rules ship with the plugin and stay off until you ask for them. They
+do not report a defect; they remove the room for one. See
+[Optional rules](/docs/api-reference/plugins/eslint-plugin/optional-rules).
 
 ## Configuring the styling prop
 
