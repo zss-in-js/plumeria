@@ -20,6 +20,25 @@ ${body}
 ruleTester.run('expand-border-shorthands', expandBorderShorthands, {
   valid: [
     {
+      code: `
+        import css from '@plumeria/core';
+        const dynamic = 'borderTop';
+        css.unknown({ box: { borderTop: '1px solid red' } });
+        css['create']({ box: { borderTop: '1px solid red' } });
+        css.create(null, { box: 1 }, { ...other });
+        (function () {})();
+        localFunction();
+        css.create({
+          ...other,
+          box: {
+            ...other,
+            [dynamic]: '1px solid red',
+            borderTopWidth: '1px'
+          }
+        });
+      `,
+    },
+    {
       code: wrap(
         `    borderTopWidth: '1px',
     borderTopStyle: 'solid',
@@ -36,8 +55,61 @@ ruleTester.run('expand-border-shorthands', expandBorderShorthands, {
         css.create({ box: { borderTop: '1px solid red' } });
       `,
     },
+    {
+      code: `
+        import { create, keyframes as frames, viewTransition } from '@plumeria/core';
+        create({ box: { borderWidth: 1 } });
+        frames({ from: { borderStyle: 'solid' } });
+        viewTransition({ old: { borderColor: 'red' } });
+      `,
+    },
   ],
   invalid: [
+    {
+      code: `
+        import { create as make } from '@plumeria/core';
+        make({ box: { 'borderRight': "thin dotted blue" } });
+      `,
+      output: `
+        import { create as make } from '@plumeria/core';
+        make({ box: { borderRightWidth: "thin",
+                      borderRightStyle: "dotted",
+                      borderRightColor: "blue" } });
+      `,
+      errors: [{ messageId: 'expand', data: { name: 'borderRight' } }],
+    },
+    {
+      code: `
+        import { 'viewTransition' as transition } from '@plumeria/core';
+        transition({ old: { ['borderInlineEnd']: value } });
+      `,
+      errors: [{ messageId: 'opaque', data: { name: 'borderInlineEnd' } }],
+    },
+    {
+      code: `
+        import css from '@plumeria/core';
+        css.keyframes({
+          from: {
+            '@media (forced-colors: active)': {
+              borderBlockStart: 'medium solid CanvasText'
+            }
+          }
+        });
+      `,
+      output: `
+        import css from '@plumeria/core';
+        css.keyframes({
+          from: {
+            '@media (forced-colors: active)': {
+              borderBlockStartWidth: 'medium',
+              borderBlockStartStyle: 'solid',
+              borderBlockStartColor: 'CanvasText'
+            }
+          }
+        });
+      `,
+      errors: [{ messageId: 'expand', data: { name: 'borderBlockStart' } }],
+    },
     {
       code: wrap(`    borderTop: '1px solid red'`),
       output: wrap(
