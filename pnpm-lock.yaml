@@ -34,8 +34,8 @@ catalogs:
       specifier: 5.107.2
       version: 5.107.2
     zss-engine:
-      specifier: 2.4.2
-      version: 2.4.2
+      specifier: 2.4.3
+      version: 2.4.3
 
 importers:
 
@@ -847,7 +847,7 @@ importers:
         version: 1.15.47(@swc/helpers@0.5.23)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.4.2
+        version: 2.4.3
 
   packages/core: {}
 
@@ -859,6 +859,9 @@ importers:
       known-css-properties:
         specifier: ^0.37.0
         version: 0.37.0
+      zss-engine:
+        specifier: 'catalog:'
+        version: 2.4.3
     devDependencies:
       '@types/eslint':
         specifier: ^9.6.1
@@ -998,7 +1001,7 @@ importers:
         version: 1.15.47(@swc/helpers@0.5.23)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.4.2
+        version: 2.4.3
 
   packages/unplugin:
     dependencies:
@@ -1020,7 +1023,7 @@ importers:
         version: 8.0.14(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.48.0)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.4.2
+        version: 2.4.3
 
   packages/utils:
     dependencies:
@@ -1038,7 +1041,7 @@ importers:
         version: 8.5.25
       zss-engine:
         specifier: 'catalog:'
-        version: 2.4.2
+        version: 2.4.3
 
   test-e2e/site:
     dependencies:
@@ -10932,8 +10935,8 @@ packages:
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
-  zss-engine@2.4.2:
-    resolution: {integrity: sha512-mwjuIN1ipY9YUmFMjrF7fnnF3lYJcUQWZOkgUakmlwv2jYcR+1vY3MU2ZhVB35caq1f5h9XmlYgs7jdsM6TLIQ==}
+  zss-engine@2.4.3:
+    resolution: {integrity: sha512-TKjNNzEprFnG3NEWeLR3owPwUjF3XY91rF87FBZL4yWk5vjfsl9jRUdUScDjCGt/3GAixznXSfcTLwg8pEVcgA==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -16492,7 +16495,7 @@ snapshots:
       eslint: 10.4.1(jiti@2.7.0)
       eslint-import-resolver-node: 0.3.10
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1)(eslint@10.4.1(jiti@2.7.0))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@10.4.1(jiti@2.7.0))
       eslint-plugin-react: 7.37.5(eslint@10.4.1(jiti@2.7.0))
       eslint-plugin-react-hooks: 7.1.1(eslint@10.4.1(jiti@2.7.0))
@@ -16525,7 +16528,7 @@ snapshots:
       tinyglobby: 0.2.17
       unrs-resolver: 1.12.2
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1)(eslint@10.4.1(jiti@2.7.0))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0))
     transitivePeerDependencies:
       - supports-color
 
@@ -16540,7 +16543,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1)(eslint@10.4.1(jiti@2.7.0)):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0)))(eslint@10.4.1(jiti@2.7.0)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -21913,7 +21916,7 @@ snapshots:
 
   zod@4.4.3: {}
 
-  zss-engine@2.4.2:
+  zss-engine@2.4.3:
     dependencies:
       csstype: 3.2.3
 
