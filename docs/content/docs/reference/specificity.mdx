@@ -207,7 +207,9 @@ const styles = css.create({
 ### Two conditions that overlap
 
 Two conditions that can match at the same time produce the same specificity. At a
-width of 1000px both queries below apply, and the later rule wins. Composed from
+width of 1000px both queries below apply, and the later rule wins. Written in this
+order the narrower query wins, which is what you meant by writing it. Reversed,
+the broader one wins, and `no-order-dependent-overlap` says so. Composed from
 two modules, later means the order the atoms were emitted in: the order of the
 `classStyle` array, unless one of the two is also used somewhere the compiler
 reaches first, which pins it. The file list is sorted, so the result is the same
@@ -224,8 +226,8 @@ const styles = css.create({
 Source order is stable inside a single style object, and the ESLint rule keeps
 that order consistent. Splitting one of these pairs across two `css.create`
 calls is what makes the result depend on the bundler instead.
-`no-order-dependent-overlap` reports the first two pairs when they meet in one
-style.
+`no-order-dependent-overlap` reports all three when they meet in one style, the
+conditions only where one provably matches a subset of the other.
 </Callout>
 
 ### Removing the first two entirely
