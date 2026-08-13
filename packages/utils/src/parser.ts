@@ -233,6 +233,7 @@ const PATTERN_PATH = path.join(PROJECT_ROOT, '**/*.{js,jsx,ts,tsx}');
 const GLOB_OPTIONS = {
   exclude: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**'],
   cwd: PROJECT_ROOT,
+  sort: true,
 };
 
 /*
