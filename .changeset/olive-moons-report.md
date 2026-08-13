@@ -1,0 +1,10 @@
+---
+'@plumeria/compiler': patch
+'@plumeria/eslint-plugin': patch
+'@plumeria/utils': patch
+---
+
+- Fix: `@plumeria/compiler` to sort the file list it globs, so the stylesheet is emitted in a stable order rather than the order the filesystem happened to enumerate the directories in. A rule is recorded the first time it is reached, so a pair that no specificity can rank — one property written under both its logical and its physical name, or two shorthands that cross — was settled by whichever file the glob returned first. That order is not alphabetical, and a fresh clone lays a directory out differently from a working checkout, so the same source could produce a different stylesheet on CI than it did locally. The scan pass is sorted as well.
+
+- Feat: `@plumeria/eslint-plugin` adds `no-physical-properties` and `no-logical-properties`, which keep a project on one spelling of the properties that carry both a logical and a physical name. `no-order-dependent-overlap` reports a pair once both spellings meet on an element; writing one spelling and not the other makes that pair impossible to write in the first place. Either direction removes the pairs that name one property twice, which is the half a project actually meets; what neither can reach is a border shorthand that has no single counterpart, such as `borderBlockWidth` against `borderTop`, so `no-order-dependent-overlap` keeps reporting those. Both take `{ sizes }`, which is `false` by default and adds `width`, `height`, their `min` and `max` forms, `overflow-x` and `overflow-y` when set: an edge is what a direction reverses, a size is one property under either spelling. Neither is part of `recommended`.
+Note: sorting does not rank a pair that specificity leaves tied; it only makes the outcome the same on every machine. A pair of spellings is also one property in a horizontal writing mode and two properties in a vertical one, and which one an element renders under is inherited at runtime, so `no-order-dependent-overlap` reads such a pair as one property and a line that is known to be vertical should disable it.
