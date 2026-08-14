@@ -38,38 +38,29 @@ Note: these depths decide how many `:not(#\#)` selectors an atomic class receive
 
 ## 18.2.6 (Aug 12, 2026)
 
-- Fix: `@plumeria/utils` to give a nested selector inside a conditional rule both the nested depth and the condition depth. Previously a nested selector received a single `:not(#\#)` whether or not it sat inside `@media`, `@container`, or `@supports`, so a declaration such as `@media { ':hover': ... }` tied with a bare `':hover'` on specificity and the winner depended on the order the rules happened to be emitted. The condition now contributes its own depth, so the conditional declaration wins regardless of where it appears in the stylesheet. Custom properties stay exempt and receive no depth.
+- Fix: `@plumeria/utils` gives a nested selector inside a conditional rule both the nested and the condition depth, so `@media { ':hover': ... }` outranks a bare `':hover'` regardless of stylesheet order. Custom properties stay exempt and receive no depth.
 
-- Fix: `@plumeria/utils` to move conditional at-rules after base rules while optimizing. A base longhand and a conditional shorthand can still land on the same specificity, because property depth and condition depth share one scale, and until now the stylesheet order decided that pair. `@media`, `@container`, `@supports`, `@layer`, and `@scope` are now hoisted as a stable partition, so the conditional declaration wins and the same style object produces the same result no matter which order its keys were written in. Conditions are never sorted against each other, so overlapping conditions keep resolving by source order, and at-rules that carry no condition depth such as `@keyframes` are left where they are.
+- Fix: `@plumeria/utils` moves conditional at-rules (`@media`, `@container`, `@supports`, `@layer`, `@scope`) after base rules while optimizing, so a conditional declaration wins over a base declaration of equal specificity. `@keyframes` is left where it is.
 
 ## 18.2.5 (Aug 12, 2026)
 
-- Fix: `@plumeria/utils` to preserve shorthand and longhand declarations as independent atoms, and merge identical selectors and at-rules without reordering them during optimization.
+- Fix: `@plumeria/utils` preserves shorthand and longhand declarations as independent atoms, and merges identical selectors and at-rules without reordering them during optimization.
 
-- Fix: `@plumeria/turbopack-loader` to optimize its accumulated development virtual stylesheet so duplicate selectors and at-rules are merged consistently.
+- Fix: `@plumeria/turbopack-loader` optimizes its accumulated development virtual stylesheet, so duplicate selectors and at-rules are merged consistently.
 
-- Fix: `zss-engine@2.4.1` The override longhand behavior has been removed. The behavior within styles that crushed longhand when shorthand was written below it has been abolished, and it has been standardized so that longhand is added regardless of the order in which it is written. This is because JavaScript objects do not need to reproduce CSS cascading, and Plumeria determines everything simply by satisfying the merge rules. If you are using ESLint's recommended rules, this change will not affect you, so it will be treated as a patch update.
+- Fix: `zss-engine@2.4.1` removes the override-longhand behavior: a longhand written above a shorthand is no longer crushed by it, and declarations merge the same way regardless of order. No effect under the ESLint `recommended` rules.
 
-- Fix: Logical longhand properties now receive specificity based on their depth in the shorthand graph. For example, `padding-block-start` receives two `:not(#\#)` selectors in base styles and three inside conditional rules.
+- Fix: logical longhand properties receive specificity from their depth in the shorthand graph — `padding-block-start` gets two `:not(#\#)` selectors in base styles and three inside conditional rules.
 
-- Update: Generated base and conditional styles no longer depend on moving media queries to the end of the stylesheet. Their priority is controlled by specificity, so development and production preserve the same behavior while optimization can merge duplicate rules without sorting conditions.
+- Update: base and conditional priority is controlled by specificity instead of moving media queries to the end of the stylesheet, so development and production behave the same.
 
 ## 18.2.4 (Aug 11, 2026)
 
-- Fix: drop the asterisk wildcard from style prop attribution
-A style application that could not be attributed to a component — one defined inside a wrapper call such as `memo(...)` — was recorded under an asterisk wildcard that matched by prop name across the whole file. A sibling component that only forwarded a prop of the same name slipped past the never-applied check. The wildcard is gone; a prop now counts as applied only inside the component that received it, so those relays fail the build like any other.
+- Fix: drop the asterisk wildcard from style prop attribution. A prop now counts as applied only inside the component that received it, so a component that merely forwards a same-named prop fails the never-applied check instead of slipping past it.
 
 ## 18.2.3 (Aug 11, 2026)
 
-- Fix: Reject a style prop that is never applied, and resolve one applied under a condition
-A component may receive a style through a prop and apply it to an element it
-renders, on its own or merged under a base style. A style prop that is never
-applied now fails the build instead of silently dropping the style, which is
-what passing it on to another component did.
-`classStyle={[styles.base, cond && styleArray]}` and
-`classStyle={cond ? styleArray : styles.base}` now compile as well. The styles
-a prop's call sites pass are carried through the condition, and a closed gate
-leaves the surrounding styles in place.
+- Fix: a style prop that is never applied fails the build instead of silently dropping the style. `classStyle={[styles.base, cond && styleArray]}` and `classStyle={cond ? styleArray : styles.base}` now compile: the styles a prop's call sites pass are carried through the condition, and a closed gate leaves the surrounding styles in place.
 
 ## 18.2.2 (Aug 9, 2026)
 
