@@ -36,7 +36,9 @@ const styles = css.create({
     cursor: 'pointer',
     userSelect: 'none',
     backgroundColor: 'rgba(17, 24, 39, 0.85)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderStyle: 'solid',
+    borderWidth: '1px',
     borderRadius: '9999px',
     boxShadow: '0 4px 15px rgba(0, 0, 0, 0.25)',
     backdropFilter: 'blur(12px)',
@@ -121,7 +123,9 @@ const styles = css.create({
     paddingTop: '8px',
     marginTop: '6px',
     overflowY: 'auto',
-    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopStyle: 'solid',
+    borderTopWidth: '1px',
   },
   ruleBlock: {
     marginBottom: '8px',
@@ -159,7 +163,9 @@ const styles = css.create({
     fontStyle: 'italic',
     color: '#9ca3af',
     textAlign: 'center',
-    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopStyle: 'solid',
+    borderTopWidth: '1px',
   },
 });
 
