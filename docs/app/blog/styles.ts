@@ -13,7 +13,9 @@ export const styles = css.create({
   header: {
     paddingBottom: '32px',
     textAlign: 'center',
-    borderBottom: '1px solid rgba(156,163,175,0.2)',
+    borderBottomColor: 'rgba(156,163,175,0.2)',
+    borderBottomStyle: 'solid',
+    borderBottomWidth: '1px',
   },
   title: {
     marginBottom: '16px',
