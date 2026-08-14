@@ -16,7 +16,9 @@ export const navStyles = css.create({
     color: theme.iconColor,
     cursor: 'pointer',
     background: 'transparent',
-    border: 'none',
+    borderColor: 'currentColor',
+    borderStyle: 'none',
+    borderWidth: 'medium',
     borderRadius: 8,
     transition: 'background-color 0.15s ease, color 0.15s ease',
     ':hover': {
