@@ -46,31 +46,23 @@
 
 ### Patch Changes
 
-- 055e0a1: Fix: `@plumeria/utils` to give a nested selector inside a conditional rule both the nested depth and the condition depth. Previously a nested selector received a single `:not(#\#)` whether or not it sat inside `@media`, `@container`, or `@supports`, so a declaration such as `@media { ':hover': ... }` tied with a bare `':hover'` on specificity and the winner depended on the order the rules happened to be emitted. The condition now contributes its own depth, so the conditional declaration wins regardless of where it appears in the stylesheet. Custom properties stay exempt and receive no depth.
+- 055e0a1: Fix: `@plumeria/utils` gives a nested selector inside a conditional rule both the nested and the condition depth, so `@media { ':hover': ... }` outranks a bare `':hover'` regardless of stylesheet order. Custom properties stay exempt and receive no depth.
 
-  Fix: `@plumeria/utils` to move conditional at-rules after base rules while optimizing. A base longhand and a conditional shorthand can still land on the same specificity, because property depth and condition depth share one scale, and until now the stylesheet order decided that pair. `@media`, `@container`, `@supports`, `@layer`, and `@scope` are now hoisted as a stable partition, so the conditional declaration wins and the same style object produces the same result no matter which order its keys were written in. Conditions are never sorted against each other, so overlapping conditions keep resolving by source order, and at-rules that carry no condition depth such as `@keyframes` are left where they are.
+  Fix: `@plumeria/utils` moves conditional at-rules (`@media`, `@container`, `@supports`, `@layer`, `@scope`) after base rules while optimizing, so a conditional declaration wins over a base declaration of equal specificity. `@keyframes` is left where it is.
 
 ## 18.2.5
 
 ### Patch Changes
 
-- fa97e3e: Fix: `@plumeria/utils` to preserve shorthand and longhand declarations as
-  independent atoms, and merge identical selectors and at-rules without
-  reordering them during optimization.
+- fa97e3e: Fix: `@plumeria/utils` preserves shorthand and longhand declarations as independent atoms, and merges identical selectors and at-rules without reordering them during optimization.
 
-  Fix: `@plumeria/turbopack-loader` to optimize its accumulated development
-  virtual stylesheet so duplicate selectors and at-rules are merged consistently.
+  Fix: `@plumeria/turbopack-loader` optimizes its accumulated development virtual stylesheet, so duplicate selectors and at-rules are merged consistently.
 
-  Fix: `zss-engine@2.4.1` The override longhand behavior has been removed. The behavior within styles that crushed longhand when shorthand was written below it has been abolished, and it has been standardized so that longhand is added regardless of the order in which it is written. This is because JavaScript objects do not need to reproduce CSS cascading, and Plumeria determines everything simply by satisfying the merge rules. If you are using ESLint's recommended rules, this change will not affect you, so it will be treated as a patch update.
+  Fix: `zss-engine@2.4.1` removes the override-longhand behavior: a longhand written above a shorthand is no longer crushed by it, and declarations merge the same way regardless of order. No effect under the ESLint `recommended` rules.
 
-  Fix: Logical longhand properties now receive specificity based on their depth
-  in the shorthand graph. For example, `padding-block-start` receives two
-  `:not(#\#)` selectors in base styles and three inside conditional rules.
+  Fix: logical longhand properties receive specificity from their depth in the shorthand graph — `padding-block-start` gets two `:not(#\#)` selectors in base styles and three inside conditional rules.
 
-  Update: Generated base and conditional styles no longer depend on moving media queries
-  to the end of the stylesheet. Their priority is controlled by specificity, so
-  development and production preserve the same behavior while optimization can
-  merge duplicate rules without sorting conditions.
+  Update: base and conditional priority is controlled by specificity instead of moving media queries to the end of the stylesheet, so development and production behave the same.
 
 ## 18.2.4
 
