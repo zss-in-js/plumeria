@@ -128,7 +128,7 @@ ruleTester.run('expand-border-shorthands', expandBorderShorthands, {
       output: wrap(
         `    borderBlockWidth: 'medium',
     borderBlockStyle: 'solid',
-    borderBlockColor: 'currentcolor'`,
+    borderBlockColor: 'currentColor'`,
       ),
       errors: [{ messageId: 'expand', data: { name: 'borderBlock' } }],
     },
@@ -157,6 +157,37 @@ ruleTester.run('expand-border-shorthands', expandBorderShorthands, {
     {
       code: wrap(`    borderBottom: 'inherit'`),
       errors: [{ messageId: 'opaque', data: { name: 'borderBottom' } }],
+    },
+    {
+      code: wrap(`    borderLeft: '1px solid var(--edge-color)'`),
+      output: wrap(
+        `    borderLeftWidth: '1px',
+    borderLeftStyle: 'solid',
+    borderLeftColor: 'var(--edge-color)'`,
+      ),
+      errors: [{ messageId: 'expand', data: { name: 'borderLeft' } }],
+    },
+    {
+      code: wrap('    borderLeft: `1px solid ${colors.edge}`'),
+      output: wrap(
+        `    borderLeftWidth: '1px',
+    borderLeftStyle: 'solid',
+    borderLeftColor: colors.edge`,
+      ),
+      errors: [{ messageId: 'expand', data: { name: 'borderLeft' } }],
+    },
+    {
+      code: wrap('    borderRight: `${width}px solid red`'),
+      output: wrap(
+        `    borderRightWidth: \`\${width}px\`,
+    borderRightStyle: 'solid',
+    borderRightColor: 'red'`,
+      ),
+      errors: [{ messageId: 'expand', data: { name: 'borderRight' } }],
+    },
+    {
+      code: wrap('    borderTop: `solid ${color}`'),
+      errors: [{ messageId: 'opaque', data: { name: 'borderTop' } }],
     },
     {
       code: `
