@@ -350,7 +350,7 @@ const validData: { [key: string]: readonly string[] } = {
   columnRuleColor: [], // 133
 
   // borderColor
-  borderColor: [], // 4 value, // 134
+  borderColor: ['currentColor'], // 4 value, // 134
 
   // AB is done. next Alphabet C continue
   captionSide: ['top', 'bottom'], // 135
