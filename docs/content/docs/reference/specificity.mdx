@@ -185,7 +185,8 @@ Which one an element renders under is decided at runtime and inherited, so no
 build-time setting can answer it; `no-order-dependent-overlap` reads the pair as
 one property, which is right for a horizontal or a mixed document and wrong only
 where an element is known to be vertical. Writing one spelling and not the other
-removes the question, and `no-physical-properties` enforces that.
+removes the question, and `no-logical-properties` or `no-physical-properties`
+enforces that.
 
 ```js
 const styles = css.create({
@@ -254,7 +255,7 @@ export default [
   {
     rules: {
       '@plumeria/expand-border-shorthands': 'warn',
-      '@plumeria/no-physical-properties': 'warn',
+      '@plumeria/no-logical-properties': 'warn',
     },
   },
 ];
