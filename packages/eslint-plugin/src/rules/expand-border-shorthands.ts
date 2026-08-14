@@ -2,7 +2,11 @@
  * @fileoverview Expand a border shorthand that bundles width, style and color into the three declarations it sets
  */
 
-import { BORDER_BUNDLES, splitBorderValue } from '../util/borderShorthand';
+import {
+  BORDER_BUNDLES,
+  EXPRESSION_MARKER,
+  splitBorderValue,
+} from '../util/borderShorthand';
 import { toCamelCase, toKebabCase } from '../util/logicalPhysical';
 import type { ObjectExpression, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
@@ -122,10 +126,29 @@ export const expandBorderShorthands: Rule.RuleModule = {
         const kebab = toKebabCase(name);
         if (!BUNDLES.has(kebab)) return;
 
-        const literal =
-          prop.value.type === 'Literal' && typeof prop.value.value === 'string'
-            ? prop.value.value
-            : null;
+        let literal: string | null = null;
+        let expressions: string[] = [];
+        if (
+          prop.value.type === 'Literal' &&
+          typeof prop.value.value === 'string'
+        ) {
+          literal = prop.value.value;
+        } else if (prop.value.type === 'TemplateLiteral') {
+          const template = prop.value;
+          expressions = template.expressions.map((expression) =>
+            sourceCode.getText(expression),
+          );
+          literal = template.quasis
+            .map((quasi, index) =>
+              index < expressions.length
+                ? quasi.value.raw +
+                  EXPRESSION_MARKER +
+                  index +
+                  EXPRESSION_MARKER
+                : quasi.value.raw,
+            )
+            .join('');
+        }
         const parts = literal === null ? null : splitBorderValue(literal);
 
         if (!parts) {
@@ -140,11 +163,28 @@ export const expandBorderShorthands: Rule.RuleModule = {
         const quote = sourceCode.getText(prop.value).trim().startsWith('"')
           ? '"'
           : "'";
+        const marker = new RegExp(
+          `${EXPRESSION_MARKER}(\\d+)${EXPRESSION_MARKER}`,
+          'g',
+        );
+        const render = (value: string): string => {
+          if (!value.includes(EXPRESSION_MARKER)) {
+            return `${quote}${value}${quote}`;
+          }
+          const restored = value.replace(
+            marker,
+            (_, index) => `\${${expressions[Number(index)]}}`,
+          );
+          const alone = /^\$\{([\s\S]*)\}$/.exec(restored);
+          return alone && !alone[1].includes('${')
+            ? alone[1]
+            : `\`${restored}\``;
+        };
         const indent = ' '.repeat(prop.loc!.start.column);
         const declarations = (['width', 'style', 'color'] as const)
           .map(
             (part) =>
-              `${toCamelCase(`${kebab}-${part}`)}: ${quote}${parts[part]}${quote}`,
+              `${toCamelCase(`${kebab}-${part}`)}: ${render(parts[part])}`,
           )
           .join(`,\n${indent}`);
 
