@@ -31,14 +31,19 @@ export default [
   {
     rules: {
       '@plumeria/expand-border-shorthands': 'warn',
-      '@plumeria/no-physical-properties': 'warn',
+      '@plumeria/no-logical-properties': 'warn',
     },
   },
 ];
 ```
 
-Both are fixable or offer a rename, so adopting them on an existing codebase is
-mostly a matter of running the fixer once and reading the leftovers.
+Eighty-six pairs exist that nothing ranks: 30 are crossings, every one
+containing a border bundle, and 56 are the same property under two names.
+`expand-border-shorthands` removes the 30, a spelling rule — either direction —
+removes the 56 (the twelve axis pairs with `{ sizes: true }`), so running both
+leaves zero. Both are fixable or offer a rename, so adopting them on an
+existing codebase is mostly a matter of running the fixer once and reading the
+leftovers.
 
 ## expand-border-shorthands
 
@@ -100,9 +105,11 @@ under two spellings. Pick one spelling and the pair cannot occur.
 // paddingInlineStart → rename to paddingLeft
 ```
 
-Turning both on is contradictory. `no-physical-properties` is the direction that
-keeps a document working in another writing mode or another direction, which is
-what the logical names exist for.
+Turning both on is contradictory — pick one direction. Either one removes the
+pair. `no-logical-properties` fits a codebase written in the physical names;
+`no-physical-properties` is the direction that keeps a document working in
+another writing mode or another direction, which is what the logical names
+exist for.
 
 Each accepts `{ sizes }`, `false` by default:
 
