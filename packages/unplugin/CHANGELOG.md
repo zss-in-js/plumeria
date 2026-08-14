@@ -60,9 +60,7 @@
 
 ### Patch Changes
 
-- a259fce: Fix: drop the asterisk wildcard from style prop attribution
-
-  A style application that could not be attributed to a component — one defined inside a wrapper call such as `memo(...)` — was recorded under an asterisk wildcard that matched by prop name across the whole file. A sibling component that only forwarded a prop of the same name slipped past the never-applied check. The wildcard is gone; a prop now counts as applied only inside the component that received it, so those relays fail the build like any other.
+- a259fce: Fix: drop the asterisk wildcard from style prop attribution. A prop now counts as applied only inside the component that received it, so a component that merely forwards a same-named prop fails the never-applied check instead of slipping past it.
 
 - Updated dependencies [a259fce]
   - @plumeria/utils@18.2.4
@@ -71,17 +69,7 @@
 
 ### Patch Changes
 
-- 7641416: Fix: Reject a style prop that is never applied, and resolve one applied under a condition
-
-  A component may receive a style through a prop and apply it to an element it
-  renders, on its own or merged under a base style. A style prop that is never
-  applied now fails the build instead of silently dropping the style, which is
-  what passing it on to another component did.
-
-  `classStyle={[styles.base, cond && styleArray]}` and
-  `classStyle={cond ? styleArray : styles.base}` now compile as well. The styles
-  a prop's call sites pass are carried through the condition, and a closed gate
-  leaves the surrounding styles in place.
+- 7641416: Fix: a style prop that is never applied fails the build instead of silently dropping the style. `classStyle={[styles.base, cond && styleArray]}` and `classStyle={cond ? styleArray : styles.base}` now compile: the styles a prop's call sites pass are carried through the condition, and a closed gate leaves the surrounding styles in place.
 
 - Updated dependencies [7641416]
   - @plumeria/utils@18.2.3
