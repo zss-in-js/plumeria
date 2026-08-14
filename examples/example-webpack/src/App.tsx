@@ -11,7 +11,9 @@ const styles = css.create({
   card: {
     padding: '2em',
     marginTop: '1em',
-    border: '1px solid #ccc',
+    borderColor: '#ccc',
+    borderStyle: 'solid',
+    borderWidth: '1px',
     borderRadius: '8px',
   },
 });
