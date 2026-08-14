@@ -6,7 +6,9 @@ import * as css from '@plumeria/core';
 const styles = css.create({
   base: {
     padding: '10px',
-    border: '1px solid black',
+    borderColor: 'black',
+    borderStyle: 'solid',
+    borderWidth: '1px',
   },
   active: {
     color: 'white',
