@@ -27,7 +27,9 @@ const styles = css.create({
     letterSpacing: '1px',
     cursor: 'pointer',
     background: 'var(--bg-gradient)',
-    border: 'none',
+    borderColor: 'currentColor',
+    borderStyle: 'none',
+    borderWidth: 'medium',
     borderRadius: 'var(--border-radius)',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.2s ease-in-out',
@@ -66,8 +68,12 @@ const styles = css.create({
   spinner: {
     width: '1.2em',
     height: '1.2em',
-    border: '2px solid rgba(255, 255, 255, 0.3)',
-    borderTop: '2px solid white',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderStyle: 'solid',
+    borderWidth: '2px',
+    borderTopColor: 'white',
+    borderTopStyle: 'solid',
+    borderTopWidth: '2px',
     borderRadius: '50%',
     animationName: spin,
     animationDuration: '0.8s',
@@ -105,7 +111,9 @@ const variantStyles = css.create({
   glass: {
     color: '#ddddddff',
     background: 'rgba(255, 255, 255, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderStyle: 'solid',
+    borderWidth: '1px',
     boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
     backdropFilter: 'blur(10px)',
     ':hover': {
@@ -116,7 +124,9 @@ const variantStyles = css.create({
     color: '#0ff',
     textShadow: '0 0 5px #0ff',
     background: '#000',
-    border: '2px solid #0ff',
+    borderColor: '#0ff',
+    borderStyle: 'solid',
+    borderWidth: '2px',
     boxShadow: '0 0 5px #0ff, 0 0 10px #0ff',
     ':hover': {
       background: '#000',
@@ -146,7 +156,9 @@ const variantStyles = css.create({
     background:
       'linear-gradient(145deg, #d4d4d8, #a1a1aa, #71717a, #a1a1aa, #d4d4d8)',
     backgroundSize: '200% 200%',
-    border: '1px solid rgba(0,0,0,0.2)',
+    borderColor: 'rgba(0,0,0,0.2)',
+    borderStyle: 'solid',
+    borderWidth: '1px',
     boxShadow:
       'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.2)',
     ':hover': {
