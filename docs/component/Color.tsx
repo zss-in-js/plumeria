@@ -9,7 +9,9 @@ const styles = css.create({
     width: 18,
     height: 18,
     cursor: 'pointer',
-    border: 'solid 0.4px rgba(0,0,0,0.2)',
+    borderColor: 'rgba(0,0,0,0.2)',
+    borderStyle: 'solid',
+    borderWidth: '0.4px',
     transition: '0.2s',
     [pseudos.hover]: {
       scale: 1.75,
