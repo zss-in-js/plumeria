@@ -1,3 +1,5 @@
 {
+  "defaultOpen": false,
+  "title": "References",
   "pages": ["specificity", "color", "pseudo"]
 }
