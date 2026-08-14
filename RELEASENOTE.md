@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.2.12 (Aug 14, 2026)
+
+- Fix: `expand-border-shorthands` expands a `var()` or a template-literal expression that stands as one token, assigning it to the component the other tokens leave open; such a value was reported as unsplittable.
+
+- Fix: the expansion writes `currentColor` for an omitted color instead of `currentcolor`, which `validate-values` rejected, and `validate-values` now lists `currentColor` as a `borderColor` keyword.
+
 ## 18.2.11 (Aug 13, 2026)
 
 - Fix: `no-order-dependent-overlap` also reports two conditions in one style where one provably matches a subset of the other and the narrower one is written first. Only a single numeric `min-` or `max-` range on one axis is compared; the swap is offered as a suggestion.
