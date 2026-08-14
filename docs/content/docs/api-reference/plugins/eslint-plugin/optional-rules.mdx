@@ -69,12 +69,23 @@ borderBlock: 'solid'
 // fixes to
 borderBlockWidth: 'medium',
 borderBlockStyle: 'solid',
-borderBlockColor: 'currentcolor'
+borderBlockColor: 'currentColor'
 ```
 
-A value the rule cannot split — `var(--edge)`, `inherit`, a reference — is
-reported without a fix. Write the three declarations yourself, or the ones the
-fixer expanded elsewhere will outrank it.
+A `var()` or an interpolated variable that stands as one token takes the single
+component the other tokens leave open:
+
+```js
+borderLeft: `1px solid ${edge}`
+// fixes to
+borderLeftWidth: '1px',
+borderLeftStyle: 'solid',
+borderLeftColor: edge
+```
+
+A value the rule cannot split — `var(--edge)` on its own, `inherit`, a
+reference — is reported without a fix. Write the three declarations yourself,
+or the ones the fixer expanded elsewhere will outrank it.
 
 ## no-physical-properties / no-logical-properties
 
