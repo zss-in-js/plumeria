@@ -1485,7 +1485,7 @@ ruleTester.run('validate-values', validateValues, {
       errors: [
         {
           message:
-            "'borderColor' has an invalid value 'red green white blue orange'. Valid values: ",
+            "'borderColor' has an invalid value 'red green white blue orange'. Valid values: currentColor",
         },
       ],
     },
