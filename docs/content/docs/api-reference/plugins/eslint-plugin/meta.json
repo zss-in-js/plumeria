@@ -1,4 +1,4 @@
 {
-  "title": "ESLint Plugin",
+  "title": "@plumeria/eslint-plugin",
   "pages": ["index", "optional-rules"]
 }
