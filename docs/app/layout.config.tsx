@@ -112,6 +112,21 @@ export const baseOptions: BaseLayoutProps = {
       type: 'custom',
       children: (
         <NavDropdown
+          title={'References'}
+          url={'/docs/reference'}
+          items={[
+            { text: 'Specificity', url: '/docs/reference/specificity' },
+            { text: 'Color', url: '/docs/reference/color' },
+            { text: 'Pseudo', url: '/docs/reference/pseudo' },
+          ]}
+        />
+      ),
+      on: 'all',
+    },
+    {
+      type: 'custom',
+      children: (
+        <NavDropdown
           title={'Blog'}
           url={'/blog'}
           items={[...latestReleasePosts, { text: 'Eating up the libraries', url: '/blog/eating-up-the-libraries' }]}
