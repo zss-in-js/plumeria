@@ -16,6 +16,8 @@ export default defineConfig(
       parserOptions: { projectService: true },
     },
     rules: {
+      '@plumeria/expand-border-shorthands': 'warn',
+      '@plumeria/no-logical-properties': 'warn',
       '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-extraneous-class': 'off',
