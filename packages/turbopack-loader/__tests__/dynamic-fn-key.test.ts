@@ -151,6 +151,14 @@ ${usage}`,
       expect(imported).toBe(inline);
     });
 
+    it('resolves a const the parameter shares an expression with', async () => {
+      const [imported, inline] = await compare(
+        '{ tone: (value: string) => ({ padding: `${value} ${gap}` }) }',
+        "const gap = '4px';\n",
+      );
+      expect(imported).toBe(inline);
+    });
+
     it('resolves a defining-file const behind a named parameter', async () => {
       const [imported, inline] = await compare(
         `{ tone: ({ color }: { color: string }) => ({ color, fontWeight: weight }) }`,
