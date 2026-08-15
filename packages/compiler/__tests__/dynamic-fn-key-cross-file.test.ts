@@ -117,6 +117,29 @@ export const A = (p: any) => <div classStyle={importedStyles.tone(p.c)} />;
     expect(css).toMatch(/color: var\(--\w+-color\)/);
   });
 
+  it('resolves a const the parameter shares an expression with', () => {
+    // A parameter and a const in one value cannot be settled separately by
+    // whole properties, and the const half still belongs to the declaring file.
+    write(
+      'imported.styles.ts',
+      `import * as css from '@plumeria/core';
+const gap = '4px';
+export const importedStyles = css.create({
+  tone: (value: string) => ({ padding: \`\${value} \${gap}\` }),
+});
+`,
+    );
+    write(
+      'consumer.tsx',
+      `import '@plumeria/core';
+import { importedStyles } from './imported.styles';
+export const A = (p: any) => <div classStyle={importedStyles.tone(p.v)} />;
+`,
+    );
+
+    expect(compile()).toMatch(/padding: var\(--\w+-value\) 4px/);
+  });
+
   it('resolves createStatic and createTheme the defining file imports', () => {
     write(
       'tokens.ts',
