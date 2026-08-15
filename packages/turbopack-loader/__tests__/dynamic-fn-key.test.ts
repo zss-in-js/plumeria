@@ -1,6 +1,14 @@
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
 import loader from '../src/index';
+
+const mockGlobSync = (
+  jest.requireMock('@rust-gear/glob') as { globSync: jest.Mock }
+).globSync;
 
 const wrap = (body: string) => `
 import * as css from '@plumeria/core';
@@ -33,6 +41,43 @@ const run = (body: string): Promise<string> =>
   });
 
 describe('turbopack-loader: dynamic function keys', () => {
+  it('resolves an imported function key', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-loader-'));
+    const stylesFile = path.join(dir, 'imported.styles.ts');
+    const consumerFile = path.join(dir, 'consumer.tsx');
+    const source = `import '@plumeria/core';
+import { importedStyles } from './imported.styles';
+export const Imported = (p: any) => <p classStyle={importedStyles.tone(p.color)} />;`;
+    fs.writeFileSync(
+      stylesFile,
+      `import * as css from '@plumeria/core';
+export const importedStyles = css.create({
+  tone: (color: string) => ({ color, fontWeight: 700 }),
+});`,
+    );
+    fs.writeFileSync(consumerFile, source);
+    mockGlobSync.mockReturnValue([stylesFile, consumerFile]);
+
+    try {
+      const code = await new Promise<string>((resolve, reject) => {
+        const ctx = {
+          resourcePath: consumerFile,
+          async: () => (err: Error | null, content?: string) =>
+            err ? reject(err) : resolve(content as string),
+          addDependency: () => {},
+          clearDependencies: () => {},
+        };
+        (loader as any).call(ctx, source);
+      });
+      expect(code).toContain('className={');
+      expect(code).toContain('p.color');
+      expect(code).toMatch(/"--[^"}]+-color"/);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+      mockGlobSync.mockReturnValue([]);
+    }
+  });
+
   it('resolves a prop argument into a class name and a CSS variable', async () => {
     const code = await run(
       'export const A = (p: any) => <div classStyle={s.palette(p.c)} />;',
