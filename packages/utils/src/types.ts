@@ -1,4 +1,5 @@
 import { CSSProperties } from 'zss-engine';
+import type { ObjectExpression } from '@swc/core';
 
 // Basic primitives (types handled by the implementation)
 type CSSPrimitive = string | number | boolean;
@@ -18,6 +19,7 @@ export type ViewTransitionObjectTable = Record<string, CSSObject>; // hashKey: {
 export type CreateThemeObjectTable = Record<string, CSSObject>; // { string: { varName: { varName: value }, ... } }
 export type CreateHashTable = Record<string, string>; // varName -> hash
 export type CreateObjectTable = Record<string, CSSObject>; // hash -> { classStyle: { prop: value }, ... }
+export type CreateFunctionTable = Record<string, ObjectExpression>; // varName -> create argument holding function keys
 export type VariantsHashTable = Record<string, string>; // varName -> hash
 export type VariantsObjectTable = Record<string, CSSObject>; // hash -> Variant object
 export type CreateAtomicMapTable = Record<
@@ -48,6 +50,7 @@ export interface Tables {
   createThemeObjectTable: CreateThemeObjectTable;
   createHashTable: CreateHashTable;
   createObjectTable: CreateObjectTable;
+  createFunctionTable: CreateFunctionTable;
   createAtomicMapTable: CreateAtomicMapTable;
   createStaticHashTable: CreateStaticHashTable;
   createStaticObjectTable: CreateStaticObjectTable;
