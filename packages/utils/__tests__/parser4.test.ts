@@ -143,6 +143,48 @@ describe('getFileDependencies', () => {
 });
 
 describe('scanAll import and export shapes', () => {
+  it('inlines defining-file values across supported function-key shapes', () => {
+    const file = f('functions/shapes.ts');
+    const { tables } = scanFiles({
+      [file]: `
+        import * as css from '@plumeria/core';
+        const color = 'red';
+        const weight = 700;
+        const enabled = true;
+        const hover = { color: 'blue', opacity: 0.8 };
+        const spread = { display: 'block', visibility: 'visible' };
+        const suffix = 'px';
+        const prefix = 'size';
+        export const styles = css.create({
+          object: ({ color: dynamic, fallback = 'black', ...rest }) => ({
+            color: dynamic,
+            backgroundColor: color,
+            variables: hover,
+            ':hover': { ...hover, fontWeight: weight },
+          }),
+          array: ([value]) => ({ opacity: value, ...spread }),
+          defaulted: (value = 1) => ({ zIndex: value, enabled }),
+          rested: (...values) => ({ order: values[0], label: prefix + '-' + values[0] }),
+          computed: (name) => ({ color: hover[name], width: name + suffix }),
+          template: (value) => ({ content: \`${'${prefix}'}-${'${value}'}\` }),
+          parenthesized: (value) => (({ color, opacity: value, width: (value + weight) })),
+          blocked: function (value) { return { color, opacity: value }; },
+          empty: function () {},
+          scalar: () => color,
+          unresolved: () => ({ color: unknown }),
+          method: () => ({ custom() {} }),
+        });
+      `,
+    });
+
+    const ast = tables.createFunctionTable[`${file}-styles`];
+    expect(ast).toBeDefined();
+    expect(JSON.stringify(ast)).toContain('backgroundColor');
+    expect(JSON.stringify(ast)).toContain('StringLiteral');
+    expect(JSON.stringify(ast)).toContain('BooleanLiteral');
+    expect(JSON.stringify(ast)).toContain('NumericLiteral');
+  });
+
   it('handles a namespace import from a non-core module', () => {
     const styles = f('ns/styles.ts');
     const user = f('ns/user.ts');
