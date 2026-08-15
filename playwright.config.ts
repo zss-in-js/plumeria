@@ -44,6 +44,7 @@ export default defineConfig({
     },
     {
       name: 'Mobile Chrome',
+      testIgnore: /hmr-rule-order\.test\.ts/,
       use: {
         ...devices['Pixel 5'],
       },
