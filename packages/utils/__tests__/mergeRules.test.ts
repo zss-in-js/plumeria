@@ -1,10 +1,30 @@
 import postcss from 'postcss';
+import type { Root } from 'postcss';
+import * as zssEngine from 'zss-engine';
 import { mergeRules } from '../src/mergeRules';
 
 const merge = async (css: string) =>
   (await postcss([mergeRules()]).process(css, { from: undefined })).root;
 
 describe('mergeRules', () => {
+  it('accepts a container without child nodes', () => {
+    const plugin = mergeRules();
+
+    expect(() =>
+      plugin.OnceExit!({ nodes: undefined } as unknown as Root, {} as never),
+    ).not.toThrow();
+  });
+
+  it('keeps the original order when implication constraints form a cycle', async () => {
+    const implies = jest
+      .spyOn(zssEngine, 'impliesCondition')
+      .mockReturnValue(true);
+    const css = '@media one{.a{color:red}}@media two{.b{color:blue}}';
+
+    await expect(merge(css)).resolves.toHaveProperty('nodes.length', 2);
+    implies.mockRestore();
+  });
+
   it('merges identical selectors at their first position', async () => {
     const root = await merge('.a{color:red}.b{color:blue}.a{display:block}');
 
