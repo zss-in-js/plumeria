@@ -7,6 +7,7 @@ import {
 import type { PropertySpelling } from './logicalPhysical';
 import type { ObjectExpression, Property, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
+import { styleObjectFromValue } from './styleObject';
 
 const DESCRIPTIONS: Record<PropertySpelling, string> = {
   physical:
@@ -102,12 +103,9 @@ export const createSpellingRule = (
           node.arguments.forEach((arg) => {
             if (arg.type === 'ObjectExpression') {
               arg.properties.forEach((prop) => {
-                if (
-                  prop.type === 'Property' &&
-                  prop.value.type === 'ObjectExpression'
-                ) {
-                  checkStyleObject(prop.value);
-                }
+                if (prop.type !== 'Property') return;
+                const style = styleObjectFromValue(prop.value);
+                if (style) checkStyleObject(style);
               });
             }
           });
