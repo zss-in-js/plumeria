@@ -61,7 +61,9 @@ export const noUnusedKeys: Rule.RuleModule = {
               if (
                 prop.type === 'Property' &&
                 prop.key.type === 'Identifier' &&
-                prop.value.type === 'ObjectExpression'
+                (prop.value.type === 'ObjectExpression' ||
+                  prop.value.type === 'ArrowFunctionExpression' ||
+                  prop.value.type === 'FunctionExpression')
               ) {
                 keyMap.set(prop.key.name, prop.key);
               }
