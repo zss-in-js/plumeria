@@ -5,15 +5,17 @@ import * as css from '@plumeria/core';
 
 const styles = css.create({
   box: (width: number, height: number, color: string) => ({
-    width,
-    height,
-    backgroundColor: color,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    width,
+    height,
     color: 'white',
+    backgroundColor: color,
+    borderColor: 'black',
+    borderStyle: 'solid',
+    borderWidth: '2px',
     transition: 'all 0.3s ease',
-    border: '2px solid black',
   }),
 });
 
