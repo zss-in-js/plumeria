@@ -4,6 +4,7 @@
 
 import { TSESTree } from '@typescript-eslint/utils';
 import { Rule } from 'eslint';
+import { styleObjectFromValue } from '../util/styleObject';
 
 const VALID_STATIC_PSEUDOS = new Set([
   // Pseudo-Classes
@@ -272,12 +273,9 @@ export const validatePseudos: Rule.RuleModule = {
         ) {
           const styleObj = node.arguments[0];
           styleObj.properties.forEach((prop) => {
-            if (
-              prop.type === TSESTree.AST_NODE_TYPES.Property &&
-              prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression
-            ) {
-              checkProperties(prop.value as TSESTree.ObjectExpression);
-            }
+            if (prop.type !== TSESTree.AST_NODE_TYPES.Property) return;
+            const style = styleObjectFromValue(prop.value);
+            if (style) checkProperties(style as TSESTree.ObjectExpression);
           });
         }
       },
