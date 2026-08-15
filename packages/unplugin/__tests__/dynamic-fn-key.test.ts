@@ -4,15 +4,28 @@ import * as path from 'path';
 
 const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-'));
 const LEAF = path.join(DIR, 'box.tsx');
+const IMPORTED_STYLES = path.join(DIR, 'imported.styles.ts');
 
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
 import { unpluginFactory } from '../src/core';
 
+const mockGlobSync = (
+  jest.requireMock('@rust-gear/glob') as { globSync: jest.Mock }
+).globSync;
+
 fs.writeFileSync(
   LEAF,
   `import * as css from '@plumeria/core';
 export const Box = ({ styleArray }: { styleArray?: css.Style }) => <div classStyle={styleArray} />;
+`,
+);
+fs.writeFileSync(
+  IMPORTED_STYLES,
+  `import * as css from '@plumeria/core';
+export const importedStyles = css.create({
+  tone: (color: string) => ({ color, fontWeight: 700 }),
+});
 `,
 );
 
@@ -33,6 +46,29 @@ const s = css.create({ stat: { color: 'red' }, palette: (color: string) => ({ co
 afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
 
 describe('dynamic function keys', () => {
+  it('resolves an imported function key', async () => {
+    const file = path.join(DIR, 'imported-consumer.tsx');
+    const source = `import '@plumeria/core';
+import { importedStyles } from './imported.styles';
+export const Imported = (p: any) => <p classStyle={importedStyles.tone(p.color)} />;`;
+    fs.writeFileSync(file, source);
+    mockGlobSync.mockReturnValue([IMPORTED_STYLES, file]);
+
+    const plugin = unpluginFactory(undefined, {
+      framework: 'vite',
+    } as never) as any;
+    const { code } = await plugin.transform.call(
+      { addWatchFile: () => {} },
+      source,
+      file,
+    );
+
+    expect(code).toContain('className={');
+    expect(code).toContain('p.color');
+    expect(code).toMatch(/"--[^"}]+-color"/);
+    mockGlobSync.mockReturnValue([]);
+  });
+
   it('resolves a prop argument into a class name and a CSS variable', async () => {
     const { code } = await run(
       header +
