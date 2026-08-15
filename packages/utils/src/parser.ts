@@ -594,7 +594,11 @@ function inlineOuterScope(
     } else if (prop.type !== 'SpreadElement' && !t.isIdentifier(prop)) {
       return prop;
     }
-    if (readsParams(prop, params)) return prop;
+    if (readsParams(prop, params)) {
+      if (prop.type !== 'KeyValueProperty') return prop;
+      const value = rewriteExpression(prop.value, params);
+      return value === prop.value ? prop : { ...prop, value };
+    }
 
     const entries = Object.entries(resolveProperty(prop));
     if (entries.length === 0) return prop;
@@ -616,6 +620,46 @@ function inlineOuterScope(
       });
     }
     return properties;
+  };
+
+  // One value can hold a parameter and a name from the declaring file at once,
+  // so the halves are settled apart from each other.
+  const rewriteExpression = (node: any, params: Set<string>): any => {
+    if (!node || typeof node !== 'object') return node;
+    if (!readsParams(node, params)) {
+      const entries = Object.entries(
+        resolveProperty({
+          type: 'KeyValueProperty',
+          key: { type: 'Identifier', span: node.span, value: 'value' },
+          value: node,
+        }),
+      );
+      if (entries.length !== 1) return node;
+      return literalFromValue(entries[0][1], node.span) ?? node;
+    }
+
+    if (node.type === 'ObjectExpression') return rewriteObject(node, params);
+    if (node.type === 'ParenthesisExpression') {
+      const inner = rewriteExpression(node.expression, params);
+      return inner === node.expression ? node : { ...node, expression: inner };
+    }
+    if (node.type === 'TemplateLiteral') {
+      let changed = false;
+      const expressions = node.expressions.map((expr: any) => {
+        const rewritten = rewriteExpression(expr, params);
+        if (rewritten !== expr) changed = true;
+        return rewritten;
+      });
+      return changed ? { ...node, expressions } : node;
+    }
+    if (node.type === 'BinaryExpression') {
+      const left = rewriteExpression(node.left, params);
+      const right = rewriteExpression(node.right, params);
+      return left === node.left && right === node.right
+        ? node
+        : { ...node, left, right };
+    }
+    return node;
   };
 
   const rewriteObject = (
