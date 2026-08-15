@@ -6,6 +6,7 @@ import { DIRECT_LONGHANDS, impliesCondition } from 'zss-engine';
 import { canonicalProperty, toKebabCase } from '../util/logicalPhysical';
 import type { ObjectExpression, Property, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
+import { styleObjectFromValue } from '../util/styleObject';
 
 const DIRECT_SHORTHANDS: Record<string, string[]> = {};
 for (const [shorthand, longhands] of Object.entries(DIRECT_LONGHANDS)) {
@@ -139,12 +140,9 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
           node.arguments.forEach((arg) => {
             if (arg.type === 'ObjectExpression') {
               arg.properties.forEach((prop) => {
-                if (
-                  prop.type === 'Property' &&
-                  prop.value.type === 'ObjectExpression'
-                ) {
-                  checkStyleObject(prop.value);
-                }
+                if (prop.type !== 'Property') return;
+                const style = styleObjectFromValue(prop.value);
+                if (style) checkStyleObject(style);
               });
             }
           });
