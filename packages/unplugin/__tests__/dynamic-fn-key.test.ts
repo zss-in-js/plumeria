@@ -126,6 +126,14 @@ export const A = (p: any) => <div classStyle={scoped.tone(p.c)} />;`,
       expect(imported).toBe(inline);
     });
 
+    it('resolves a const the parameter shares an expression with', async () => {
+      const [imported, inline] = await compare(
+        '{ tone: (value: string) => ({ padding: `${value} ${gap}` }) }',
+        "const gap = '4px';\n",
+      );
+      expect(imported).toBe(inline);
+    });
+
     it('resolves a defining-file const behind a named parameter', async () => {
       const stylesFile = path.join(DIR, 'named.styles.ts');
       fs.writeFileSync(
