@@ -20,7 +20,9 @@ const styles = css.create({
       opacity: 1,
     },
   },
-  variant: (size: number) => ({ width: `${size}px` }),
+  variant: (size: number) => ({
+    width: `${size}px`,
+  }),
 });
 
 export const atomic: string = styles.text.color;
