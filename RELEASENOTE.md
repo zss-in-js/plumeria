@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.2.13 (Aug 15, 2026)
+
+- Fix: a function key on a style imported from another file is compiled instead of silently dropped, in the transform and in the generated CSS alike.
+
+- Fix: an imported style resolves the constants, `createStatic` and `createTheme` values of the file that declares it; both function keys and static keys lost those declarations before.
+
 ## 18.2.12 (Aug 14, 2026)
 
 - Fix: `expand-border-shorthands` expands a `var()` or a template-literal expression that stands as one token, assigning it to the component the other tokens leave open; such a value was reported as unsplittable.
