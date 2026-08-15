@@ -4,6 +4,7 @@
 
 import { TSESTree } from '@typescript-eslint/utils';
 import { Rule } from 'eslint';
+import { styleObjectFromValue } from '../util/styleObject';
 
 type SelectorType =
   | 'QUERY'
@@ -263,12 +264,10 @@ export const noInvalidSelector: Rule.RuleModule = {
                 });
               }
             }
-            if (
-              prop.type === TSESTree.AST_NODE_TYPES.Property &&
-              prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression
-            ) {
-              checkNesting(prop.value as TSESTree.ObjectExpression, 'CLASS');
-            }
+            if (prop.type !== TSESTree.AST_NODE_TYPES.Property) return;
+            const style = styleObjectFromValue(prop.value);
+            if (style)
+              checkNesting(style as TSESTree.ObjectExpression, 'CLASS');
           });
         }
 
