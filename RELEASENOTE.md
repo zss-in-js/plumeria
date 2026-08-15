@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.2.14 (Aug 15, 2026)
+
+- Fix: ESLint rules now check properties inside function style keys, including unused keys, validation, sorting, formatting, and shorthand expansion.
+
 ## 18.2.13 (Aug 15, 2026)
 
 - Fix: a function key on a style imported from another file is compiled instead of silently dropped, in the transform and in the generated CSS alike.

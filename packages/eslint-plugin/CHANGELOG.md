@@ -1,3 +1,9 @@
+## 18.2.14
+
+### Patch Changes
+
+- 6ee1a20: - Fix: ESLint rules now check properties inside function style keys, including unused keys, validation, sorting, formatting, and shorthand expansion.
+
 ## 18.2.13
 
 ### Patch Changes
