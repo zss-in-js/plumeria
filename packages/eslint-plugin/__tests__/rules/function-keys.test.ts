@@ -23,7 +23,10 @@ const rejects = (
   output?: string,
 ) =>
   tester.run(`function keys: ${name}`, rule, {
-    valid: [],
+    valid: [
+      wrap('null'),
+      `import * as css from '@plumeria/core'; css.create({ ...styles });`,
+    ],
     invalid: [
       {
         code: wrap(code),
