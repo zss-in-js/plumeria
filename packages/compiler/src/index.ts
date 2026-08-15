@@ -116,6 +116,7 @@ interface TraversalContext {
   mergedCreateTable: CreateHashTable;
   mergedVariantsTable: VariantsHashTable;
   scannedTables: ReturnType<typeof scanAll>;
+  createFunctionImportMap: Record<string, StyleFunctions>;
   localCreateStyles: Record<
     string,
     {
@@ -131,6 +132,56 @@ interface TraversalContext {
   baseByteOffset: number;
   localStyleAliases?: Record<string, Expression>;
 }
+
+type StyleFunctions = NonNullable<
+  TraversalContext['localCreateStyles'][string]['functions']
+>;
+
+const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
+  const styleFunctions: StyleFunctions = {};
+
+  objExpr.properties.forEach((prop) => {
+    if (prop.type !== 'KeyValueProperty' || prop.key.type !== 'Identifier')
+      return;
+    const func = prop.value;
+    if (
+      func.type !== 'ArrowFunctionExpression' &&
+      func.type !== 'FunctionExpression'
+    )
+      return;
+
+    const params: string[] = func.params.map((p) => {
+      if (t.isIdentifier(p)) return p.value;
+      if (
+        typeof p === 'object' &&
+        p !== null &&
+        'pat' in p &&
+        t.isIdentifier(p.pat)
+      )
+        return p.pat.value;
+      return 'arg';
+    });
+
+    let actualBody: Expression | Statement | undefined = func.body;
+    if (actualBody?.type === 'ParenthesisExpression')
+      actualBody = actualBody.expression;
+    if (actualBody?.type === 'BlockStatement') {
+      const first = actualBody.stmts?.[0];
+      if (first?.type === 'ReturnStatement') actualBody = first.argument;
+      if (actualBody?.type === 'ParenthesisExpression')
+        actualBody = actualBody.expression;
+    }
+
+    if (actualBody && actualBody.type === 'ObjectExpression') {
+      styleFunctions[prop.key.value] = {
+        params,
+        named: namedParamsOf(func.params),
+        body: actualBody as ObjectExpression,
+      };
+    }
+  });
+  return styleFunctions;
+};
 
 function extractStylesFromExpression(
   expression: Expression,
@@ -282,6 +333,7 @@ export function compileCSS(options: CompilerOptions) {
     const keyframesImportMap: KeyframesHashTable = {};
     const viewTransitionImportMap: ViewTransitionHashTable = {};
     const createImportMap: CreateHashTable = {};
+    const createFunctionImportMap: Record<string, StyleFunctions> = {};
     const variantsImportMap: VariantsHashTable = {};
     const createThemeImportMap: CreateThemeHashTable = {};
     const createStaticImportMap: CreateStaticHashTable = {};
@@ -345,6 +397,10 @@ export function compileCSS(options: CompilerOptions) {
               if (scannedTables.createHashTable[uniqueKey])
                 createImportMap[localName] =
                   scannedTables.createHashTable[uniqueKey];
+              if (scannedTables.createFunctionTable[uniqueKey])
+                createFunctionImportMap[localName] = styleFunctionsOf(
+                  scannedTables.createFunctionTable[uniqueKey],
+                );
               if (scannedTables.variantsHashTable[uniqueKey])
                 variantsImportMap[localName] =
                   scannedTables.variantsHashTable[uniqueKey];
@@ -457,6 +513,7 @@ export function compileCSS(options: CompilerOptions) {
       mergedCreateTable,
       mergedVariantsTable,
       scannedTables,
+      createFunctionImportMap,
       localCreateStyles: {},
       sourceBuffer,
       baseByteOffset,
@@ -657,7 +714,11 @@ export function compileCSS(options: CompilerOptions) {
           return null;
 
         const styleInfo = ctx.localCreateStyles[callee.object.value];
-        const func = styleInfo?.functions?.[callee.property.value];
+        const func =
+          styleInfo?.functions?.[callee.property.value] ??
+          ctx.createFunctionImportMap[callee.object.value]?.[
+            callee.property.value
+          ];
         if (!func) return null;
 
         const callArgs = expr.arguments;
@@ -1153,60 +1214,7 @@ export function compileCSS(options: CompilerOptions) {
                 );
 
                 if (obj) {
-                  const styleFunctions: Record<
-                    string,
-                    {
-                      params: string[];
-                      named?: NamedParam[];
-                      body: ObjectExpression;
-                    }
-                  > = {};
-
-                  arg.properties.forEach((prop) => {
-                    if (
-                      prop.type !== 'KeyValueProperty' ||
-                      prop.key.type !== 'Identifier'
-                    )
-                      return;
-                    const func = prop.value;
-                    if (
-                      func.type !== 'ArrowFunctionExpression' &&
-                      func.type !== 'FunctionExpression'
-                    )
-                      return;
-
-                    const params: string[] = func.params.map((p) => {
-                      if (t.isIdentifier(p)) return p.value;
-                      if (
-                        typeof p === 'object' &&
-                        p !== null &&
-                        'pat' in p &&
-                        t.isIdentifier(p.pat)
-                      )
-                        return p.pat.value;
-                      return 'arg';
-                    });
-
-                    let actualBody: Expression | Statement | undefined =
-                      func.body;
-                    if (actualBody?.type === 'ParenthesisExpression')
-                      actualBody = actualBody.expression;
-                    if (actualBody?.type === 'BlockStatement') {
-                      const first = actualBody.stmts?.[0];
-                      if (first?.type === 'ReturnStatement')
-                        actualBody = first.argument;
-                      if (actualBody?.type === 'ParenthesisExpression')
-                        actualBody = actualBody.expression;
-                    }
-
-                    if (actualBody && actualBody.type === 'ObjectExpression') {
-                      styleFunctions[prop.key.value] = {
-                        params,
-                        named: namedParamsOf(func.params),
-                        body: actualBody as ObjectExpression,
-                      };
-                    }
-                  });
+                  const styleFunctions = styleFunctionsOf(arg);
 
                   ctx.localCreateStyles[node.id.value] = {
                     type: 'create',
