@@ -1171,6 +1171,7 @@ const globalAgregatedTables: Tables = {
   createThemeSelectorTable: {},
   createHashTable: {},
   createObjectTable: {},
+  createFunctionTable: {},
   createAtomicMapTable: {},
   variantsHashTable: {},
   variantsObjectTable: {},
@@ -1244,6 +1245,7 @@ function stripFileContributions(filePath: string, cached: CachedData) {
   }
   for (const key of Object.keys(cached.createHashTable)) {
     delete localTables.createHashTable[`${filePath}-${key}`];
+    delete localTables.createFunctionTable[`${filePath}-${key}`];
   }
   for (const key of Object.keys(cached.variantsHashTable)) {
     delete localTables.variantsHashTable[`${filePath}-${key}`];
@@ -1781,6 +1783,15 @@ export function scanAll(): Tables {
                   localTables.createObjectTable[hash] = obj;
                   localCreateObjectTable[hash] = obj;
                   registerObjectOwner('createObjectTable', hash, filePath);
+
+                  const hasFunctionKey = objExpression.properties.some(
+                    (prop) =>
+                      prop.type === 'KeyValueProperty' &&
+                      (prop.value.type === 'ArrowFunctionExpression' ||
+                        prop.value.type === 'FunctionExpression'),
+                  );
+                  if (hasFunctionKey)
+                    localTables.createFunctionTable[uniqueKey] = objExpression;
 
                   const hashMap: Record<string, Record<string, string>> = {};
 
