@@ -69,6 +69,104 @@ export const Imported = (p: any) => <p classStyle={importedStyles.tone(p.color)}
     mockGlobSync.mockReturnValue([]);
   });
 
+  describe('a function key resolves its names where it was written', () => {
+    // An imported call has to land on the same classes the identical
+    // declaration produces inline, or the scope the body reads is the
+    // consumer's rather than the one it was written in.
+    const classesOf = (code: string) =>
+      code.match(/className=\{"([^"]*)"\}/)?.[1];
+
+    const compare = async (declaration: string, leadIn = '') => {
+      const stylesFile = path.join(DIR, 'scoped.styles.ts');
+      fs.writeFileSync(
+        stylesFile,
+        `import * as css from '@plumeria/core';
+${leadIn}export const scoped = css.create(${declaration});
+`,
+      );
+      const consumerFile = path.join(DIR, 'scoped-consumer.tsx');
+      const consumer = `import '@plumeria/core';
+import { scoped } from './scoped.styles';
+export const A = (p: any) => <div classStyle={scoped.tone(p.c)} />;`;
+      fs.writeFileSync(consumerFile, consumer);
+      mockGlobSync.mockReturnValue([stylesFile, consumerFile]);
+      const plugin = unpluginFactory(undefined, {
+        framework: 'vite',
+      } as never) as any;
+      const imported = await plugin.transform.call(
+        { addWatchFile: () => {} },
+        consumer,
+        consumerFile,
+      );
+      mockGlobSync.mockReturnValue([]);
+
+      const inline = await run(
+        `import * as css from '@plumeria/core';
+${leadIn}const scoped = css.create(${declaration});
+export const A = (p: any) => <div classStyle={scoped.tone(p.c)} />;`,
+        'scoped-inline.tsx',
+      );
+
+      return [classesOf(imported.code), classesOf(inline.code)];
+    };
+
+    it('resolves a const declared in the defining file', async () => {
+      const [imported, inline] = await compare(
+        `{ tone: (color: string) => ({ color, fontWeight: weight }) }`,
+        'const weight = 700;\n',
+      );
+      expect(imported).toBe(inline);
+    });
+
+    it('resolves a spread of a const declared in the defining file', async () => {
+      const [imported, inline] = await compare(
+        `{ tone: (color: string) => ({ color, ...base }) }`,
+        'const base = { fontWeight: 700 };\n',
+      );
+      expect(imported).toBe(inline);
+    });
+
+    it('resolves a defining-file const behind a named parameter', async () => {
+      const stylesFile = path.join(DIR, 'named.styles.ts');
+      fs.writeFileSync(
+        stylesFile,
+        `import * as css from '@plumeria/core';
+const weight = 700;
+export const named = css.create({
+  tone: ({ color }: { color: string }) => ({ color, fontWeight: weight }),
+});
+`,
+      );
+      const consumerFile = path.join(DIR, 'named-consumer.tsx');
+      const consumer = `import '@plumeria/core';
+import { named } from './named.styles';
+export const A = (p: any) => <div classStyle={named.tone({ color: p.c })} />;`;
+      fs.writeFileSync(consumerFile, consumer);
+      mockGlobSync.mockReturnValue([stylesFile, consumerFile]);
+      const plugin = unpluginFactory(undefined, {
+        framework: 'vite',
+      } as never) as any;
+      const { code } = await plugin.transform.call(
+        { addWatchFile: () => {} },
+        consumer,
+        consumerFile,
+      );
+      mockGlobSync.mockReturnValue([]);
+
+      const inline = await run(
+        `import * as css from '@plumeria/core';
+const weight = 700;
+const named = css.create({
+  tone: ({ color }: { color: string }) => ({ color, fontWeight: weight }),
+});
+export const A = (p: any) => <div classStyle={named.tone({ color: p.c })} />;`,
+        'named-inline.tsx',
+      );
+
+      expect(classesOf(code)).toBe(classesOf(inline.code));
+    });
+  });
+
   it('resolves a prop argument into a class name and a CSS variable', async () => {
     const { code } = await run(
       header +
