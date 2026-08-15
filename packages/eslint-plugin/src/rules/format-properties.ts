@@ -4,6 +4,7 @@
 
 import type { Property, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
+import { styleObjectFromValue } from '../util/styleObject';
 
 export const formatProperties: Rule.RuleModule = {
   meta: {
@@ -224,12 +225,9 @@ export const formatProperties: Rule.RuleModule = {
           node.arguments.forEach((arg) => {
             if (arg.type === 'ObjectExpression') {
               arg.properties.forEach((prop) => {
-                if (
-                  prop.type === 'Property' &&
-                  prop.value.type === 'ObjectExpression'
-                ) {
-                  checkStyleObject(prop.value as Rule.Node);
-                }
+                if (prop.type !== 'Property') return;
+                const style = styleObjectFromValue(prop.value);
+                if (style) checkStyleObject(style as Rule.Node);
               });
             }
           });
