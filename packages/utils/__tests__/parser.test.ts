@@ -1367,6 +1367,30 @@ describe('parser', () => {
       expect(result.createObjectTable).toBeDefined();
     });
 
+    it('should retain create function keys for cross-file consumers', () => {
+      mockedRs.globSync.mockReturnValue(['/test/create-function.ts'] as any);
+      mockedFs.readFileSync.mockReturnValue(
+        `import * as css from "@plumeria/core";
+         export const styles = css.create({
+           tone: (color: string) => ({ color, fontWeight: 700 })
+         });`,
+      );
+
+      const result = scanAll();
+      const key = Object.keys(result.createFunctionTable).find((entry) =>
+        entry.endsWith('-styles'),
+      );
+      expect(key).toBeDefined();
+      const objExpression = result.createFunctionTable[key!];
+      expect(objExpression.type).toBe('ObjectExpression');
+      expect(
+        objExpression.properties.map((prop: any) => [
+          prop.key.value,
+          prop.value.type,
+        ]),
+      ).toEqual([['tone', 'ArrowFunctionExpression']]);
+    });
+
     it('should scan for variants', () => {
       mockedRs.globSync.mockReturnValue(['/test/variants.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
