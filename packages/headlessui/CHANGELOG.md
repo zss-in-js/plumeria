@@ -1,5 +1,12 @@
 # @plumeria/headlessui
 
+## 18.2.13
+
+### Patch Changes
+
+- d2f5a82: Bump version to 18.2.13
+- 13d5fd7: Bump version to 18.2.13
+
 ## 18.2.12
 
 ### Patch Changes
