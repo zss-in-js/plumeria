@@ -9,6 +9,7 @@ import type {
   ImportSpecifier,
 } from 'estree';
 import type { Rule } from 'eslint';
+import { styleObjectFromValue } from '../util/styleObject';
 
 import { propertyGroups } from '../util/propertyGroups';
 
@@ -274,12 +275,9 @@ export const sortProperties: Rule.RuleModule = {
           node.arguments.forEach((arg) => {
             if (arg.type === 'ObjectExpression') {
               arg.properties.forEach((prop) => {
-                if (
-                  prop.type === 'Property' &&
-                  prop.value.type === 'ObjectExpression'
-                ) {
-                  checkStyleObject(prop.value as ObjectExpression);
-                }
+                if (prop.type !== 'Property') return;
+                const style = styleObjectFromValue(prop.value);
+                if (style) checkStyleObject(style);
               });
             }
           });
