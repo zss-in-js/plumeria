@@ -171,8 +171,8 @@ pair leaves no arrangement that also holds it still.
 
 Every pair where one declaration contains the other is settled by specificity, so
 composing styles from different modules gives the same result no matter which
-module the bundler reached first. Three pairs are left to source order, and all
-three are pairs where no containment exists to rank.
+module the bundler reached first. Four pairs are left to source order, and all
+four are pairs where no containment exists to rank.
 
 ### The same property under two names
 
@@ -232,12 +232,36 @@ Two conditions that overlap without either containing the other — `600px` to
 `900px` against `700px` to `1000px` — are left to source order, and so is any
 pair the optimizer cannot compare.
 
+### Two states that match at once
+
+Every nested selector receives the same depth, so `:hover` and `:focus` are
+ranked equally and an element that is both takes whichever was written last. A
+pseudo-element is not part of this: `::before` addresses a generated box, so it
+never competes with a state for the same declaration.
+
+```js
+const styles = css.create({
+  hovered: { ':hover': { color: 'red' } },
+  focused: { ':focus': { color: 'blue' } },
+});
+```
+
+Nothing ranks the pair because nothing can. The property graph ranks by
+containment, and no such relation holds between two states — `:hover` is not a
+more specific description of an element than `:focus`. Any order imposed here
+would be an opinion, and an unreachable one: the author could no longer state
+the other intent, because reordering the source would stop deciding it.
+
+Plain CSS already answers this, and the answer is the interface rather than a
+fallback. Writing the state that should win last is how the intent is said,
+which is why nothing reports the pair either — there is nothing to correct.
+
 <Callout title="Keep these in one style">
 Source order is stable inside a single style object, and the ESLint rule keeps
 that order consistent. Splitting one of these pairs across two `css.create`
 calls is what makes the result depend on the bundler instead.
-`no-order-dependent-overlap` reports all three when they meet in one style, the
-conditions only where one provably matches a subset of the other.
+`no-order-dependent-overlap` reports the first three when they meet in one style,
+the conditions only where one provably matches a subset of the other.
 </Callout>
 
 ### Removing the first two entirely
