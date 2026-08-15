@@ -4,6 +4,7 @@
 
 import type { Rule } from 'eslint';
 import type { Node, Identifier } from 'estree';
+import { styleObjectFromValue } from '../util/styleObject';
 
 function getRootObject(node: Node): Identifier | undefined {
   if (node.type === 'Identifier') {
@@ -61,9 +62,7 @@ export const noUnusedKeys: Rule.RuleModule = {
               if (
                 prop.type === 'Property' &&
                 prop.key.type === 'Identifier' &&
-                (prop.value.type === 'ObjectExpression' ||
-                  prop.value.type === 'ArrowFunctionExpression' ||
-                  prop.value.type === 'FunctionExpression')
+                styleObjectFromValue(prop.value)
               ) {
                 keyMap.set(prop.key.name, prop.key);
               }
