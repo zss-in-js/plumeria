@@ -146,6 +146,55 @@ const namedParamsOf = (params: unknown[]): NamedParam[] | undefined => {
   return named.length > 0 ? named : undefined;
 };
 
+type StyleFunctions = NonNullable<CreateStyleValue['functions']>;
+
+const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
+  const styleFunctions: StyleFunctions = {};
+
+  objExpr.properties.forEach((prop) => {
+    if (prop.type !== 'KeyValueProperty' || prop.key.type !== 'Identifier')
+      return;
+
+    const func = prop.value;
+    if (
+      func.type !== 'ArrowFunctionExpression' &&
+      func.type !== 'FunctionExpression'
+    )
+      return;
+
+    const params: string[] = func.params.map((p: any) => {
+      if (t.isIdentifier(p)) return p.value;
+      if (
+        typeof p === 'object' &&
+        p !== null &&
+        'pat' in p &&
+        t.isIdentifier(p.pat)
+      )
+        return p.pat.value;
+      return 'arg';
+    });
+
+    let actualBody: Expression | Statement | undefined = func.body;
+    if (actualBody?.type === 'ParenthesisExpression')
+      actualBody = actualBody.expression;
+    if (actualBody?.type === 'BlockStatement') {
+      const first = actualBody.stmts?.[0];
+      if (first?.type === 'ReturnStatement') actualBody = first.argument;
+      if (actualBody?.type === 'ParenthesisExpression')
+        actualBody = actualBody.expression;
+    }
+
+    if (actualBody && actualBody.type === 'ObjectExpression') {
+      styleFunctions[prop.key.value] = {
+        params,
+        named: namedParamsOf(func.params),
+        body: actualBody as ObjectExpression,
+      };
+    }
+  });
+  return styleFunctions;
+};
+
 type DynamicVar = {
   cssVar: string;
   valueExpr: string;
@@ -419,6 +468,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       const keyframesImportMap: KeyframesHashTable = {};
       const viewTransitionImportMap: ViewTransitionHashTable = {};
       const createImportMap: CreateHashTable = {};
+      const createFunctionImportMap: Record<string, StyleFunctions> = {};
       const variantsImportMap: VariantsHashTable = {};
       const createThemeImportMap: Record<string, any> = {};
       const createStaticImportMap: Record<string, any> = {};
@@ -493,6 +543,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 if (scannedTables.createHashTable[uniqueKey]) {
                   createImportMap[localName] =
                     scannedTables.createHashTable[uniqueKey];
+                }
+                if (scannedTables.createFunctionTable[uniqueKey]) {
+                  createFunctionImportMap[localName] = styleFunctionsOf(
+                    scannedTables.createFunctionTable[uniqueKey],
+                  );
                 }
                 if (scannedTables.variantsHashTable[uniqueKey]) {
                   variantsImportMap[localName] =
@@ -694,61 +749,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 hashMap[key] = atomMap;
               });
 
-              const styleFunctions: Record<
-                string,
-                {
-                  params: string[];
-                  named?: NamedParam[];
-                  body: ObjectExpression;
-                }
-              > = {};
-
-              const objExpr = init.arguments[0].expression as ObjectExpression;
-              objExpr.properties.forEach((prop) => {
-                if (
-                  prop.type !== 'KeyValueProperty' ||
-                  prop.key.type !== 'Identifier'
-                )
-                  return;
-
-                const func = prop.value;
-                if (
-                  func.type !== 'ArrowFunctionExpression' &&
-                  func.type !== 'FunctionExpression'
-                )
-                  return;
-
-                const params: string[] = func.params.map((p: any) => {
-                  if (t.isIdentifier(p)) return p.value;
-                  if (
-                    typeof p === 'object' &&
-                    p !== null &&
-                    'pat' in p &&
-                    t.isIdentifier(p.pat)
-                  )
-                    return p.pat.value;
-                  return 'arg';
-                });
-
-                let actualBody: Expression | Statement | undefined = func.body;
-                if (actualBody?.type === 'ParenthesisExpression')
-                  actualBody = actualBody.expression;
-                if (actualBody?.type === 'BlockStatement') {
-                  const first = actualBody.stmts?.[0];
-                  if (first?.type === 'ReturnStatement')
-                    actualBody = first.argument;
-                  if (actualBody?.type === 'ParenthesisExpression')
-                    actualBody = actualBody.expression;
-                }
-
-                if (actualBody && actualBody.type === 'ObjectExpression') {
-                  styleFunctions[prop.key.value] = {
-                    params,
-                    named: namedParamsOf(func.params),
-                    body: actualBody as ObjectExpression,
-                  };
-                }
-              });
+              const styleFunctions = styleFunctionsOf(
+                init.arguments[0].expression as ObjectExpression,
+              );
 
               if (t.isIdentifier(node.id)) {
                 idSpans.add(node.id.span.start);
@@ -1228,7 +1231,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           return null;
 
         const styleInfo = localCreateStyles[callee.object.value];
-        const func = styleInfo?.functions?.[callee.property.value];
+        const func =
+          styleInfo?.functions?.[callee.property.value] ??
+          createFunctionImportMap[callee.object.value]?.[callee.property.value];
         if (!func) return null;
 
         const callArgs = (expr as CallExpression).arguments;
@@ -2683,7 +2688,10 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           ) {
             const objectName = callee.object.value;
             const propertyName = callee.property.value;
-            if (localCreateStyles[objectName]?.functions?.[propertyName]) {
+            if (
+              localCreateStyles[objectName]?.functions?.[propertyName] ||
+              createFunctionImportMap[objectName]?.[propertyName]
+            ) {
               dynamicFnCalls.push(node);
             }
             const alias = plumeriaAliases[objectName];
