@@ -122,7 +122,11 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
         import * as css from '@plumeria/core';
         css.create({
           main: {
-            '@media (min-width: 600px)': { color: 'red' },
+            '@media (min-width: 600px)': {
+              ...shared,
+              '--custom-property': 1,
+              color: 'red'
+            },
             '@media (min-width: 900px)': { color: 'blue' },
             '@media (max-width: 500px)': { padding: 4 },
             '@media print': { color: 'black' }
