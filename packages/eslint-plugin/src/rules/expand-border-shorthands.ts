@@ -10,6 +10,7 @@ import {
 import { toCamelCase, toKebabCase } from '../util/logicalPhysical';
 import type { ObjectExpression, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
+import { styleObjectFromValue } from '../util/styleObject';
 
 const BUNDLES = new Set(BORDER_BUNDLES);
 
@@ -88,12 +89,9 @@ export const expandBorderShorthands: Rule.RuleModule = {
           node.arguments.forEach((arg) => {
             if (arg.type === 'ObjectExpression') {
               arg.properties.forEach((prop) => {
-                if (
-                  prop.type === 'Property' &&
-                  prop.value.type === 'ObjectExpression'
-                ) {
-                  checkStyleObject(prop.value);
-                }
+                if (prop.type !== 'Property') return;
+                const style = styleObjectFromValue(prop.value);
+                if (style) checkStyleObject(style);
               });
             }
           });
