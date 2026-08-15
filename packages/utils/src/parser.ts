@@ -509,6 +509,166 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
   return localConsts;
 }
 
+function paramNames(func: ArrowFunctionExpression | FunctionExpression) {
+  const names = new Set<string>();
+  const add = (pattern: any) => {
+    if (!pattern) return;
+    if (t.isIdentifier(pattern)) {
+      names.add(pattern.value);
+    } else if (pattern.type === 'ObjectPattern') {
+      for (const item of pattern.properties ?? []) {
+        if (item.type === 'AssignmentPatternProperty') add(item.key);
+        else if (item.type === 'KeyValuePatternProperty') add(item.value);
+        else if (item.type === 'RestElement') add(item.argument);
+      }
+    } else if (pattern.type === 'ArrayPattern') {
+      (pattern.elements ?? []).forEach(add);
+    } else if (pattern.type === 'AssignmentPattern') {
+      add(pattern.left);
+    } else if (pattern.type === 'RestElement') {
+      add(pattern.argument);
+    }
+  };
+  func.params.forEach((param: any) => add(param?.pat ?? param));
+  return names;
+}
+
+// True when the subtree reads one of the function's own parameters, which is
+// the one thing the defining file cannot resolve on the consumer's behalf.
+function readsParams(node: any, params: Set<string>): boolean {
+  if (Array.isArray(node))
+    return node.some((item) => readsParams(item, params));
+  if (!node || typeof node !== 'object') return false;
+  if (node.type === 'Identifier') return params.has(node.value);
+  if (node.type === 'KeyValueProperty') return readsParams(node.value, params);
+  if (node.type === 'MemberExpression')
+    return (
+      readsParams(node.object, params) ||
+      (node.property?.type === 'Computed' && readsParams(node.property, params))
+    );
+  return Object.entries(node).some(
+    ([key, child]) => key !== 'span' && readsParams(child, params),
+  );
+}
+
+function literalFromValue(value: CSSValue, span: any): any {
+  if (typeof value === 'string') return { type: 'StringLiteral', span, value };
+  if (typeof value === 'number') return { type: 'NumericLiteral', span, value };
+  if (typeof value === 'boolean')
+    return { type: 'BooleanLiteral', span, value };
+  if (typeof value !== 'object' || value === null) return undefined;
+
+  const properties = [];
+  for (const [key, entry] of Object.entries(value)) {
+    const node = literalFromValue(entry, span);
+    if (!node) return undefined;
+    properties.push({
+      type: 'KeyValueProperty',
+      key: { type: 'StringLiteral', span, value: key },
+      value: node,
+    });
+  }
+  return { type: 'ObjectExpression', span, properties };
+}
+
+// A function key is stored as source and evaluated again where it is called,
+// so every name it reads other than its own parameters is resolved here, in
+// the file that declares it, and written back into the stored AST as a value.
+function inlineOuterScope(
+  objExpression: ObjectExpression,
+  resolveProperty: (property: any) => CSSObject,
+): ObjectExpression {
+  const rewriteProperty = (prop: any, params: Set<string>): any => {
+    if (prop.type === 'KeyValueProperty') {
+      const val = prop.value;
+      if (val.type === 'ObjectExpression') {
+        const rewritten = rewriteObject(val, params);
+        return rewritten === val ? prop : { ...prop, value: rewritten };
+      }
+      if (
+        t.isStringLiteral(val) ||
+        t.isNumericLiteral(val) ||
+        t.isBooleanLiteral(val)
+      )
+        return prop;
+    } else if (prop.type !== 'SpreadElement' && !t.isIdentifier(prop)) {
+      return prop;
+    }
+    if (readsParams(prop, params)) return prop;
+
+    const entries = Object.entries(resolveProperty(prop));
+    if (entries.length === 0) return prop;
+
+    const span = (prop.value ?? prop).span;
+    if (prop.type === 'KeyValueProperty') {
+      const value = literalFromValue(entries[0][1], span);
+      return value ? { ...prop, value } : prop;
+    }
+
+    const properties = [];
+    for (const [key, entry] of entries) {
+      const value = literalFromValue(entry, span);
+      if (!value) return prop;
+      properties.push({
+        type: 'KeyValueProperty',
+        key: { type: 'StringLiteral', span, value: key },
+        value,
+      });
+    }
+    return properties;
+  };
+
+  const rewriteObject = (
+    node: ObjectExpression,
+    params: Set<string>,
+  ): ObjectExpression => {
+    let changed = false;
+    const properties: any[] = [];
+    for (const prop of node.properties) {
+      const rewritten = rewriteProperty(prop, params);
+      if (rewritten !== prop) changed = true;
+      if (Array.isArray(rewritten)) properties.push(...rewritten);
+      else properties.push(rewritten);
+    }
+    return changed ? { ...node, properties } : node;
+  };
+
+  const rewriteBody = (node: any, params: Set<string>): any => {
+    if (node?.type === 'ParenthesisExpression') {
+      const inner = rewriteBody(node.expression, params);
+      return inner === node.expression ? node : { ...node, expression: inner };
+    }
+    if (node?.type === 'BlockStatement') {
+      const first = node.stmts?.[0];
+      if (first?.type !== 'ReturnStatement' || !first.argument) return node;
+      const inner = rewriteBody(first.argument, params);
+      if (inner === first.argument) return node;
+      const stmts = [{ ...first, argument: inner }, ...node.stmts.slice(1)];
+      return { ...node, stmts };
+    }
+    if (node?.type === 'ObjectExpression') return rewriteObject(node, params);
+    return node;
+  };
+
+  let changed = false;
+  const properties = objExpression.properties.map((prop: any) => {
+    if (
+      prop.type !== 'KeyValueProperty' ||
+      (prop.value.type !== 'ArrowFunctionExpression' &&
+        prop.value.type !== 'FunctionExpression')
+    )
+      return prop;
+
+    const func = prop.value;
+    const body = rewriteBody(func.body, paramNames(func));
+    if (body === func.body) return prop;
+    changed = true;
+    return { ...prop, value: { ...func, body } };
+  });
+
+  return changed ? { ...objExpression, properties } : objExpression;
+}
+
 /* istanbul ignore next */
 function getPropertyKey(
   node: any,
@@ -1489,6 +1649,7 @@ export function scanAll(): Tables {
 
     for (const { filePath, ast, mtimeMs } of parsedFiles) {
       try {
+        let localConsts: Record<string, any> | undefined;
         const localDependencies = new Set<string>();
         const localStaticTable: StaticTable = {};
         const localKeyframesHashTable: KeyframesHashTable = {};
@@ -1685,6 +1846,14 @@ export function scanAll(): Tables {
                   return undefined;
                 };
 
+                // Names the file declares for itself are part of what a style
+                // reads, and they have to be resolved here: a consumer that
+                // imports the style has no sight of them.
+                const scopedStaticTable = {
+                  ...(localConsts ??= collectLocalConsts(ast)),
+                  ...localStaticTable,
+                };
+
                 // Two-pass scanning:
                 // Pass 1: Collect all createStatic, createTheme, keyframes, and viewTransition definitions for global resolution
                 // Pass 2: Process css.create and variants (with all global definitions available)
@@ -1701,7 +1870,7 @@ export function scanAll(): Tables {
 
                 const obj = objectExpressionToObject(
                   objExpression,
-                  localStaticTable,
+                  scopedStaticTable,
                   localKeyframesHashTable,
                   localViewTransitionHashTable,
                   localCreateThemeHashTable,
@@ -1791,7 +1960,25 @@ export function scanAll(): Tables {
                         prop.value.type === 'FunctionExpression'),
                   );
                   if (hasFunctionKey)
-                    localTables.createFunctionTable[uniqueKey] = objExpression;
+                    localTables.createFunctionTable[uniqueKey] =
+                      inlineOuterScope(objExpression, (property) =>
+                        objectExpressionToObject(
+                          {
+                            ...objExpression,
+                            properties: [property],
+                          } as ObjectExpression,
+                          scopedStaticTable,
+                          localKeyframesHashTable,
+                          localViewTransitionHashTable,
+                          localCreateThemeHashTable,
+                          localCreateThemeObjectTable,
+                          localCreateHashTable,
+                          localCreateStaticHashTable,
+                          localCreateStaticObjectTable,
+                          localVariantsHashTable,
+                          resolveVariable,
+                        ),
+                      );
 
                   const hashMap: Record<string, Record<string, string>> = {};
 
