@@ -78,6 +78,89 @@ export const importedStyles = css.create({
     }
   });
 
+  describe('a function key resolves its names where it was written', () => {
+    // An imported call has to land on the same classes the identical
+    // declaration produces inline, or the scope the body reads is the
+    // consumer's rather than the one it was written in.
+    const classesOf = (code: string) =>
+      code.match(/className=\{"([^"]*)"\}/)?.[1];
+
+    const transform = (source: string, resourcePath: string) =>
+      new Promise<string>((resolve, reject) => {
+        const ctx = {
+          resourcePath,
+          async: () => (err: Error | null, content?: string) =>
+            err ? reject(err) : resolve(content as string),
+          addDependency: () => {},
+          clearDependencies: () => {},
+        };
+        (loader as any).call(ctx, source);
+      });
+
+    const compare = async (
+      declaration: string,
+      leadIn: string,
+      call = 'scoped.tone(p.c)',
+    ) => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-loader-'));
+      const stylesFile = path.join(dir, 'scoped.styles.ts');
+      const consumerFile = path.join(dir, 'consumer.tsx');
+      const inlineFile = path.join(dir, 'inline.tsx');
+      const usage = `export const A = (p: any) => <div classStyle={${call}} />;`;
+      fs.writeFileSync(
+        stylesFile,
+        `import * as css from '@plumeria/core';
+${leadIn}export const scoped = css.create(${declaration});
+`,
+      );
+      const consumer = `import '@plumeria/core';
+import { scoped } from './scoped.styles';
+${usage}`;
+      fs.writeFileSync(consumerFile, consumer);
+      mockGlobSync.mockReturnValue([stylesFile, consumerFile]);
+
+      try {
+        const imported = await transform(consumer, consumerFile);
+        mockGlobSync.mockReturnValue([]);
+        const inline = await transform(
+          `import * as css from '@plumeria/core';
+${leadIn}const scoped = css.create(${declaration});
+${usage}`,
+          inlineFile,
+        );
+        return [classesOf(imported), classesOf(inline)];
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+        mockGlobSync.mockReturnValue([]);
+      }
+    };
+
+    it('resolves a const declared in the defining file', async () => {
+      const [imported, inline] = await compare(
+        `{ tone: (color: string) => ({ color, fontWeight: weight }) }`,
+        'const weight = 700;\n',
+      );
+      expect(imported).toBe(inline);
+    });
+
+    it('resolves a spread of a const declared in the defining file', async () => {
+      const [imported, inline] = await compare(
+        `{ tone: (color: string) => ({ color, ...base }) }`,
+        'const base = { fontWeight: 700 };\n',
+      );
+      expect(imported).toBe(inline);
+    });
+
+    it('resolves a defining-file const behind a named parameter', async () => {
+      const [imported, inline] = await compare(
+        `{ tone: ({ color }: { color: string }) => ({ color, fontWeight: weight }) }`,
+        'const weight = 700;\n',
+        'scoped.tone({ color: p.c })',
+      );
+      expect(imported).toBe(inline);
+    });
+  });
+
   it('resolves a prop argument into a class name and a CSS variable', async () => {
     const code = await run(
       'export const A = (p: any) => <div classStyle={s.palette(p.c)} />;',
