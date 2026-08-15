@@ -4,6 +4,7 @@
 
 import type { Rule } from 'eslint';
 import type { ObjectExpression, Node, ImportSpecifier } from 'estree';
+import { styleObjectFromValue } from '../util/styleObject';
 
 export const noCombinator: Rule.RuleModule = {
   meta: {
@@ -214,9 +215,8 @@ export const noCombinator: Rule.RuleModule = {
             checkAndReport(keyName, prop.key);
           }
 
-          if (prop.value.type === 'ObjectExpression') {
-            checkForCombinatorsRecursively(prop.value);
-          }
+          const style = styleObjectFromValue(prop.value);
+          if (style) checkForCombinatorsRecursively(style);
         }
       }
     }
