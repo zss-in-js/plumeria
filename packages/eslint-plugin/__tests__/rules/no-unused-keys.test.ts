@@ -41,6 +41,15 @@ ruleTester.run('no-unused-keys', noUnusedKeys, {
     },
     {
       code: `
+        const styles = css.create({ dynamic: (color) => ({ color }) });
+        const x = styles.dynamic('red');
+      `,
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
         const styles = css.create({ unused: {} });
         const ref = styles.unused;
       `,
@@ -123,6 +132,49 @@ ruleTester.run('no-unused-keys', noUnusedKeys, {
       errors: [
         {
           message: "The key 'key' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
+        const styles = css.create({ dynamic: (color) => ({ color }) });
+      `,
+      errors: [
+        {
+          message:
+            "The key 'dynamic' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
+        const styles = css.create({ dynamic: function (color) { return { color }; } });
+      `,
+      errors: [
+        {
+          message:
+            "The key 'dynamic' is defined but never referenced anywhere.",
+        },
+      ],
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: `
+        const styles = css.create({ used: {}, dynamic: (color) => ({ color }) });
+        styles.used;
+      `,
+      errors: [
+        {
+          message:
+            "The key 'dynamic' is defined but never referenced anywhere.",
         },
       ],
       settings: {
