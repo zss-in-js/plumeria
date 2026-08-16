@@ -88,6 +88,23 @@ A descendant rule has no combinator to translate into — `no-combinator` reject
 
 Class names become camel-case keys, and a bare pixel length loses its unit, because `padding: 16` and `padding: '16px'` compile to the same rule.
 
+### Previewing the migration
+
+Start with `-d` or `--dry-run` to inspect the complete migration without creating any `*.styles.ts` files or rewriting their consumers:
+
+```sh title="Terminal"
+npx @plumeria/codemod migrate --from css-modules --dry-run
+```
+
+```
+  src/Card.module.css  ->  src/Card.styles.ts
+
+1 stylesheet(s) would be converted, 1 consumer(s) rewritten.
+Run without --dry-run to apply.
+```
+
+Paths can follow the flag as usual. Rules that cannot be converted are reported in the same run, and the exit code remains 1 while any such rules are present. Remove `--dry-run` to generate the modules and rewrite their consumers.
+
 ### What it reports instead of converting
 
 ```
