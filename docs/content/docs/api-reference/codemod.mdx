@@ -9,6 +9,7 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 | Transform | What it does |
 | --- | --- |
 | `migrate --from css-modules` | turns a CSS Modules stylesheet into `css.create` and points its consumers at it |
+| `migrate --from plumeria` | exports `css.create` styles into CSS Modules, writes global styles, and updates JSX to use `className` |
 | `rename-prop` | changes the styling prop everywhere it appears |
 
 ## Installation
@@ -114,6 +115,136 @@ src/Card.module.css
 ```
 
 Sibling combinators, `:global`, and a `composes` reaching into another file are named rather than guessed at, and the original rule is left where it is. The exit code is 1 while anything remains, so the command composes with a script.
+
+## Migrating from Plumeria
+
+```sh title="Terminal"
+npx @plumeria/codemod migrate --from plumeria
+```
+
+Exports styles written with `css.create` to CSS Modules, moves theme tokens and animation definitions into global CSS, and updates component files to use `className`.
+
+```tsx title="Card.tsx"
+import * as css from '@plumeria/core';
+
+export const styles = css.create({
+  base: { fontSize: 12 },
+  card: {
+    padding: 16,
+    ':hover': { background: 'teal' },
+  },
+  size: (width: number) => ({ width }),
+});
+
+export function Card({ width }: { width: number }) {
+  return <div classStyle={[styles.base, styles.card, styles.size(width)]} />;
+}
+```
+
+```css title="Card.module.css"
+.base {
+  font-size: 12px;
+}
+
+.card {
+  padding: 16px;
+}
+
+.card:hover {
+  background: teal;
+}
+
+.size {
+  width: var(--styles-size-width);
+}
+```
+
+```diff title="Card.tsx"
+- import * as css from '@plumeria/core';
++ import styles from './Card.module.css';
+
+- export const styles = css.create({
+-   base: { fontSize: 12 },
+-   card: {
+-     padding: 16,
+-     ':hover': { background: 'teal' },
+-   },
+-   size: (width: number) => ({ width }),
+- });
++ export { styles };
+
+  export function Card({ width }: { width: number }) {
+-   return <div classStyle={[styles.base, styles.card, styles.size(width)]} />;
++   return (
++     <div
++       className={`${styles.base} ${styles.card} ${styles.size}`}
++       style={{ '--styles-size-width': width }}
++     />
++   );
+  }
+```
+
+### Global styles: themes and animations
+
+Definitions created with `css.createTheme`, `css.keyframes`, and `css.viewTransition` are extracted and appended to `src/styles/global.css` (or `styles/global.css`):
+
+- **`css.createTheme`**: Emits root CSS variables (`:where(:root)`) and selector/at-rule scoped variables (e.g. `.dark`, `@media (prefers-color-scheme: dark)`). References across modules become `var(--hash-tokenName)`.
+- **`css.keyframes`**: Emits `@keyframes kf-xxxx` in global CSS. References in styles are replaced by the generated keyframe identifier.
+- **`css.viewTransition`**: Emits `::view-transition-*` pseudo-element rules in global CSS and assigns `view-transition-name: vt-xxxx`.
+- **`css.createStatic`**: Constant values are statically evaluated and inlined directly into generated CSS rules.
+
+### Dynamic function styles
+
+Function styles such as `(width) => ({ width })` are converted into CSS custom properties (e.g. `--<binding>-<key>-<param>`). In JSX, the codemod passes argument values through the inline `style` prop:
+
+```diff
+- <div classStyle={styles.size(width, color)} />
++ <div className={styles.size} style={{ '--styles-size-width': width, '--styles-size-color': color }} />
+```
+
+If an existing `style` prop is present, the CSS variables are merged into it.
+
+### Style composition
+
+Array expressions on styling props are combined into template literals or `.filter(Boolean).join(' ')` when conditional expressions are present:
+
+```diff
+- <div classStyle={[styles.base, active && styles.active]} />
++ <div className={[styles.base, active && styles.active].filter(Boolean).join(' ')} />
+```
+
+### Previewing the migration
+
+Start with `-d` or `--dry-run` to inspect the exported style modules and rewritten sources without writing files:
+
+```sh title="Terminal"
+npx @plumeria/codemod migrate --from plumeria --dry-run
+```
+
+```
+  src/Card.tsx  ->  src/Card.module.css
+  global styles  ->  src/styles/global.css
+
+1 style module(s) would be exported, 1 source file(s) rewritten.
+Run without --dry-run to apply.
+```
+
+### What it reports instead of converting
+
+Constructs that cannot be statically resolved or exported without changing runtime behavior are reported, and the original Plumeria definitions are left in place:
+
+```
+src/Card.tsx
+  8:5  dynamic-value
+        The value of `color` cannot be represented statically.
+  12:3  spread-create
+        Top-level spreads cannot name a CSS Module class.
+```
+
+- Dynamic values, computed properties, or runtime function calls in style objects
+- Object spreads in top-level `css.create` or style definitions
+- Multiple `css.create` calls within a single file (move each to its own module first)
+- Existing `*.module.css` target files are reported as `target-exists` and will not be overwritten
 
 ## Renaming the styling prop
 
