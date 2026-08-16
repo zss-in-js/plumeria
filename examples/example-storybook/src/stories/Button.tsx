@@ -48,6 +48,11 @@ const styles = css.create({
       filter: 'brightness(0.9)',
       transform: 'translateY(-1px) scale(0.98)',
     },
+    ':hover:active': {
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+      filter: 'brightness(0.9)',
+      transform: 'translateY(-1px) scale(0.98)',
+    },
     ':focus': {
       outline: 'none',
     },
