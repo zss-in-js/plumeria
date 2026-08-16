@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.2.15 (Aug 16, 2026)
+
+- Feat: two states that can hold at once, such as `:hover` and `:focus`, now settle their intersection by composition order. The atom from the style written further right in `classStyle` receives one more `:not(#\#)` and becomes a class of its own, so reversing the array reverses the winner and the module the bundler reached first no longer decides. Only a pair that is otherwise indistinguishable is weighted; a differing at-rule, shorthand depth or selector specificity is left alone, and an explicit compound such as `:hover:focus` stays above the weighting.
+
+- Feat: `no-order-dependent-overlap` also reports two states written in one style that can match at the same time and set the same property, including two states on one pseudo-element such as `:hover::before` and `:focus::before`. Mutually exclusive states, differing pseudo-elements and pairs already ranked by specificity are left alone. Report only, no suggestion.
+
 ## 18.2.14 (Aug 15, 2026)
 
 - Fix: ESLint rules now check properties inside function style keys, including unused keys, validation, sorting, formatting, and shorthand expansion.
