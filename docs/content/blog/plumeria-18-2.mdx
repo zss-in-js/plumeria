@@ -162,7 +162,45 @@ src/Card.module.css
 
 Sibling combinators, `:global`, and a `composes` that reaches into another file are reported rather than guessed at. The exit code is 1 while anything remains, so the command composes with a script.
 
+### Moving back: exporting to CSS Modules
+
+Adopting a styling engine should not be a one-way door. The codemod runs in reverse just as mechanically:
+
+```sh
+npx @plumeria/codemod migrate --from plumeria
+```
+
+It exports `css.create` definitions to standard `*.module.css` files, points consumers at `className`, and handles function style keys by passing them through CSS variables:
+
+```diff
+/* Card.tsx */
+- import * as css from '@plumeria/core';
++ import styles from './Card.module.css';
+
+- export const styles = css.create({
+-   card: { padding: 16 },
+-   size: (width: number) => ({ width }),
+- });
++ export { styles };
+
+  export const Card = ({ width }: { width: number }) => (
+-   <div classStyle={[styles.card, styles.size(width)]} />
++   <div
++     className={`${styles.card} ${styles.size}`}
++     style={{ '--styles-size-width': width }}
++   />
+  );
+```
+
+Global constructs like `css.createTheme`, `css.keyframes`, and `css.viewTransition` are extracted and appended to `src/styles/global.css` (or `styles/global.css`) as CSS custom properties and standard `@keyframes` rules.
+
+Like the forward migration, start with `--dry-run` to inspect what would change. Anything with dynamic semantics that cannot be cleanly converted is reported and left untouched.
+
 ---
+
+## 18.2.18 (Aug 16, 2026)
+
+- Feat: `npx @plumeria/codemod migrate --from plumeria` exports `css.create` definitions to CSS Modules, writes global styles (`createTheme`, `keyframes`, `viewTransition`) to `src/styles/global.css`, and rewrites consumers to use `className`.
 
 ## 18.2.17 (Aug 16, 2026)
 
