@@ -75,7 +75,23 @@ Sibling combinators, `:global`, and a `composes` reaching into another file are
 named rather than guessed at, and the original rule is left in place. The exit
 code is 1 while anything remains, so the command composes with a script.
 
-Pass `-d, --dry-run` to see the stylesheets and consumer counts without writing.
+Start with `-d, --dry-run` to inspect the migration without creating any
+`*.styles.ts` files or rewriting their consumers:
+
+```sh
+npx @plumeria/codemod migrate --from css-modules --dry-run [paths...]
+```
+
+```
+  src/Card.module.css  ->  src/Card.styles.ts
+
+1 stylesheet(s) would be converted, 1 consumer(s) rewritten.
+Run without --dry-run to apply.
+```
+
+Any rules that cannot be converted are reported in the same run, and the exit
+code remains 1 while such rules are present. Remove `--dry-run` to write the
+generated modules and consumer changes.
 
 ## `rename-prop`
 
