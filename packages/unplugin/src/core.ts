@@ -32,6 +32,7 @@ import {
   traverse,
   collectReferenceIdentifiers,
   getStyleRecords,
+  getStateWeights,
   collectLocalConsts,
   objectExpressionToObject,
   t,
@@ -49,6 +50,7 @@ import {
 } from '@plumeria/utils';
 import type {
   StyleRecord,
+  StyleSource,
   StaticTable,
   KeyframesHashTable,
   ViewTransitionHashTable,
@@ -453,8 +455,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         }
       };
 
-      const processStyleRecords = (style: CSSObject) => {
-        const records = getStyleRecords(style as CSSProperties);
+      const processStyleRecords = (
+        style: CSSObject,
+        weights?: Record<string, number>,
+      ) => {
+        const records = getStyleRecords(style as CSSProperties, weights);
         extractOndemandStyles(style, extractedSheets, scannedTables);
         records.forEach((r: StyleRecord) => {
           addSheet(r.sheet);
@@ -1984,6 +1989,16 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           };
         }
 
+        const stateSources: StyleSource[] = baseChunks.map(
+          ({ order, style }) => ({ order, style: style as CSSProperties }),
+        );
+        conditionals.forEach((c) => {
+          const order = c.order ?? 0;
+          stateSources.push({ order, style: c.truthy as CSSProperties });
+          stateSources.push({ order, style: c.falsy as CSSProperties });
+        });
+        const stateWeights = getStateWeights(stateSources);
+
         const participation: Record<string, Set<string>> = {};
         const registerParticipation = (style: CSSObject, sourceId: string) => {
           Object.keys(style).forEach((key) => {
@@ -2071,7 +2086,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         if (existingClass) classParts.push(existingClass);
 
         if (Object.keys(baseIndependent).length > 0) {
-          const className = processStyleRecords(baseIndependent)
+          const className = processStyleRecords(baseIndependent, stateWeights)
             .map((r) => r.hash)
             .join(' ');
           if (className) classParts.push(JSON.stringify(className));
@@ -2083,7 +2098,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             const processBranch = (style: CSSObject) => {
               if (Object.keys(style).length === 0) return '""';
               return JSON.stringify(
-                processStyleRecords(style)
+                processStyleRecords(style, stateWeights)
                   .map((r) => r.hash)
                   .join(' '),
               );
@@ -2110,7 +2125,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           options.forEach((opt) => {
             // `''` is the off slot of a gated group, a real key -- not absence.
             if (opt.valueName !== undefined && opt.truthy) {
-              const className = processStyleRecords(opt.truthy)
+              const className = processStyleRecords(opt.truthy, stateWeights)
                 .map((r) => r.hash)
                 .join(' ');
               if (className) lookupMap[opt.valueName] = className;
@@ -2239,7 +2254,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             keyParts: string[],
           ) => {
             if (dimIndex >= dimensions.length) {
-              const className = processStyleRecords(currentStyle)
+              const className = processStyleRecords(currentStyle, stateWeights)
                 .map((r) => r.hash)
                 .join(' ');
               if (className) results[keyParts.join('__')] = className;
@@ -2264,7 +2279,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
           const baseConflictClass =
             Object.keys(baseConflict).length > 0
-              ? processStyleRecords(baseConflict)
+              ? processStyleRecords(baseConflict, stateWeights)
                   .map((r) => r.hash)
                   .join(' ')
               : '';
