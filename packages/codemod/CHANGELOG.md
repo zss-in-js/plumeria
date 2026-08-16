@@ -1,5 +1,11 @@
 # @plumeria/codemod
 
+## 18.2.15
+
+### Patch Changes
+
+- 050be48: Bump version to 18.2.15
+
 ## 18.2.14
 
 ### Patch Changes
