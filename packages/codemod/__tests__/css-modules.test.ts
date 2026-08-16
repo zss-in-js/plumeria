@@ -1,11 +1,15 @@
 import postcss from 'postcss';
 import {
   convertStylesheet,
+  toKey,
   toProperty,
   toValue,
 } from '../src/transforms/css-modules';
 
 describe('convertStylesheet', () => {
+  it('converts a CSS class name to its style key', () => {
+    expect(toKey('card-title')).toBe('cardTitle');
+  });
   it('converts a flat class', () => {
     const { code, names } = convertStylesheet(
       '.card { padding: 16px; color: red }',
