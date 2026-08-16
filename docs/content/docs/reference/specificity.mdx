@@ -171,8 +171,9 @@ pair leaves no arrangement that also holds it still.
 
 Every pair where one declaration contains the other is settled by specificity, so
 composing styles from different modules gives the same result no matter which
-module the bundler reached first. Four pairs are left to source order, and all
-four are pairs where no containment exists to rank.
+module the bundler reached first. Four pairs have no containment to rank them by.
+Three of them are left to source order; the fourth is settled by the order the
+styles are composed in.
 
 ### The same property under two names
 
@@ -235,9 +236,12 @@ pair the optimizer cannot compare.
 ### Two states that match at once
 
 Every nested selector receives the same depth, so `:hover` and `:focus` are
-ranked equally and an element that is both takes whichever was written last. A
-pseudo-element is not part of this: `::before` addresses a generated box, so it
-never competes with a state for the same declaration.
+ranked equally and an element that is both has nothing to settle the
+intersection. Two states on one pseudo-element are the same shape, because
+`:hover::before` and `:focus::before` address the same generated box. A state and
+a bare `::before` never compete, and neither do two different pseudo-elements,
+including two arguments of the same one such as `::part(icon)` and
+`::part(label)`.
 
 ```js
 const styles = css.create({
@@ -246,21 +250,50 @@ const styles = css.create({
 });
 ```
 
-Nothing ranks the pair because nothing can. The property graph ranks by
+Nothing in the pair ranks it, and nothing can. The property graph ranks by
 containment, and no such relation holds between two states — `:hover` is not a
-more specific description of an element than `:focus`. Any order imposed here
-would be an opinion, and an unreachable one: the author could no longer state
-the other intent, because reordering the source would stop deciding it.
+more specific description of an element than `:focus`. Composing the two styles
+is what says which one wins:
 
-Plain CSS already answers this, and the answer is the interface rather than a
-fallback. Writing the state that should win last is how the intent is said,
-which is why nothing reports the pair either — there is nothing to correct.
+```js
+classStyle={[styles.hovered, styles.focused]} // blue where both hold
+classStyle={[styles.focused, styles.hovered]} // red where both hold
+```
+
+The atom from the source written further right receives one more `:not(#\#)`, so
+it wins where both states hold and changes nothing where only one does. That
+weighted atom is a class of its own, which is what lets both arrangements exist
+in one application without reaching each other. Reversing the array reverses the
+winner, and the module the bundler reached first no longer decides anything.
+
+Only a pair that is otherwise indistinguishable is weighted: the same condition,
+the same pseudo-element, the same property and the same selector specificity.
+Every axis that already decides is left alone — a differing `@media`, `@layer` or
+`@scope`, a longhand against its shorthand, `:host(.active)` against `:hover` —
+and so is an explicit `:hover:focus`, which stays above the weighting.
+
+Written in one style there is no composition to read, and the intersection falls
+back to source order:
+
+```js
+const styles = css.create({
+  button: {
+    ':hover': { color: 'red' },
+    ':focus': { color: 'blue' },
+  },
+});
+```
+
+`no-order-dependent-overlap` reports that pair. Declare `:hover:focus` if the
+intersection has a value of its own, or split the two into separate styles and
+compose them in the order that should win.
 
 <Callout title="Keep these in one style">
 Source order is stable inside a single style object, and the ESLint rule keeps
-that order consistent. Splitting one of these pairs across two `css.create`
-calls is what makes the result depend on the bundler instead.
-`no-order-dependent-overlap` reports the first three when they meet in one style,
+that order consistent. Splitting one of the first three across two `css.create`
+calls is what makes the result depend on the bundler instead. Two states are the
+exception: splitting them is how the intent is stated.
+`no-order-dependent-overlap` reports all four when they meet in one style,
 the conditions only where one provably matches a subset of the other.
 </Callout>
 
@@ -285,8 +318,8 @@ export default [
 ];
 ```
 
-With both on, every pair on this page except the overlapping conditions becomes
-impossible to write. See
+With both on, every pair on this page except the overlapping conditions and the
+two states becomes impossible to write. See
 [Optional rules](/docs/api-reference/plugins/eslint-plugin/optional-rules).
 </Step>
 </Steps>
