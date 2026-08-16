@@ -64,7 +64,10 @@ A single rule can override that if you need it to:
 The name must match whatever the loader or unplugin was given. If they disagree,
 the lint rules report against a prop the compiler never transforms.
 
-## Rules
+## Recommended rules
+
+The following rules are enabled by `plumeria.configs.recommended` with the
+severity shown in [Recommended configuration](#recommended-configuration).
 
 ### props-require-import
 
@@ -118,43 +121,6 @@ properties in a vertical one, which is per element and cannot be read from the
 source. The rule reads them as one property; disable the line where an element
 is known to be vertical.
 
-### expand-border-shorthands
-
-Expands a border shorthand that bundles a width, a style and a color —
-`border`, `borderBlock`, `borderInline`, and the eight edge forms — into the
-three declarations it stands for. Those bundles are the only properties left
-that cross an axis shorthand without either containing the other, so expanding
-them turns the last unrankable pairs into ordinary shorthand-to-longhand ones.
-
-Fixable. A value it cannot split, such as `var(--edge)` or `inherit`, is
-reported without a fix: leaving it silent would let the expanded declarations
-elsewhere outrank it. Not part of `recommended`.
-
-```js
-borderTop: '1px solid red'
-// becomes
-borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'red'
-```
-
-A shorthand resets what it omits, so `borderBlock: 'solid'` expands with
-`medium` and `currentcolor` written out.
-
-### no-physical-properties / no-logical-properties
-
-Disallow one of the two names a property can carry, so a project writes edges
-under one spelling only. `no-physical-properties` reports `paddingLeft` and
-suggests `paddingInlineStart`; `no-logical-properties` reports the reverse.
-Accepts `{ sizes }`, which adds `width`, `height`, their `min`/`max` forms,
-`overflow-x` and `overflow-y` to the properties covered. It is `false` by
-default: a size is one property under either spelling, while an edge is what a
-direction reverses.
-
-Neither is part of `recommended`, and turning both on is contradictory. Reach
-for one when you want the pairs `no-order-dependent-overlap` reports to be
-impossible to write: a property that appears under one spelling only can never
-meet its other spelling on an element. A shorthand with no single counterpart,
-such as `borderBlockWidth`, is outside either rule and stays reported.
-
 ### no-unknown-css-properties
 
 Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, and `css.viewTransition`.
@@ -181,6 +147,60 @@ Validates CSS property values for correctness. Only standard CSS properties are 
 ### validate-pseudos
 
 Validates CSS pseudo-classes and pseudo-elements inside `css.create()`. It checks for typos and structural correctness and supports validation of computed keys when TypeScript is available.
+
+## Optional rules
+
+These rules are not enabled by `plumeria.configs.recommended`. Enable only the
+policy or transformation that fits the project:
+
+```js
+export default [
+  plumeria.configs.recommended,
+  {
+    rules: {
+      '@plumeria/no-physical-properties': 'warn',
+      '@plumeria/expand-border-shorthands': 'warn',
+    },
+  },
+];
+```
+
+### expand-border-shorthands
+
+Expands a border shorthand that bundles a width, a style and a color —
+`border`, `borderBlock`, `borderInline`, and the eight edge forms — into the
+three declarations it stands for. Those bundles are the only properties left
+that cross an axis shorthand without either containing the other, so expanding
+them turns the last unrankable pairs into ordinary shorthand-to-longhand ones.
+
+Fixable. A value it cannot split, such as `var(--edge)` or `inherit`, is
+reported without a fix: leaving it silent would let the expanded declarations
+elsewhere outrank it.
+
+```js
+borderTop: '1px solid red'
+// becomes
+borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'red'
+```
+
+A shorthand resets what it omits, so `borderBlock: 'solid'` expands with
+`medium` and `currentcolor` written out.
+
+### no-physical-properties / no-logical-properties
+
+Disallow one of the two names a property can carry, so a project writes edges
+under one spelling only. `no-physical-properties` reports `paddingLeft` and
+suggests `paddingInlineStart`; `no-logical-properties` reports the reverse.
+Accepts `{ sizes }`, which adds `width`, `height`, their `min`/`max` forms,
+`overflow-x` and `overflow-y` to the properties covered. It is `false` by
+default: a size is one property under either spelling, while an edge is what a
+direction reverses.
+
+Turning both rules on is contradictory. Reach for one when you want the pairs
+`no-order-dependent-overlap` reports to be impossible to write: a property that
+appears under one spelling only can never meet its other spelling on an element.
+A shorthand with no single counterpart, such as `borderBlockWidth`, is outside
+either rule and stays reported.
 
 ## CLI (plumerialint)
 
