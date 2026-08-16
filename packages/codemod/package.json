@@ -39,7 +39,8 @@
     "@typescript-eslint/parser": "^8.60.0",
     "eslint": "^10.4.1",
     "postcss": "catalog:",
-    "postcss-selector-parser": "^7.1.1"
+    "postcss-selector-parser": "^7.1.1",
+    "zss-engine": "catalog:"
   },
   "publishConfig": {
     "access": "public",
