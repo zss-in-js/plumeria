@@ -158,6 +158,89 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
         });
       `,
     },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover': { color: 'blue' },
+            ':focus': { color: 'red' },
+            ':hover:focus': { color: 'blue' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':link': { color: 'blue' },
+            ':visited': { color: 'red' },
+            ':hover::before': { color: 'blue' },
+            ':focus::after': { color: 'red' },
+            ':is(#promo)': { background: 'blue' },
+            ':active': { background: 'red' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover': { background: 'blue', fontSize: 12 },
+            ':focus': { backgroundColor: 'red', color: 'teal' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const dynamic = 'color';
+        css.create({
+          main: {
+            ':hover': { [dynamic]: 'blue' },
+            ':focus': { color: 'red' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':host(.active)': { color: 'red' },
+            ':hover': { color: 'blue' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover': { color: 'red' },
+            ':not(:hover)': { color: 'blue' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover::part(icon)': { color: 'red' },
+            ':focus::part(label)': { color: 'blue' }
+          }
+        });
+      `,
+    },
   ],
   invalid: [
     {
@@ -429,6 +512,161 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
         });
       `,
       errors: [{ messageId: 'condition', suggestions: 1 }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover': { color: 'blue' },
+            ':focus': { color: 'red' }
+          }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'state',
+          data: {
+            first: ':hover',
+            second: ':focus',
+            property: 'color',
+            compound: ':hover:focus',
+          },
+          suggestions: [],
+        },
+      ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover': { color: 'blue', background: 'navy', fontSize: 12 },
+            ':focus': { color: 'red', background: 'maroon' }
+          }
+        });
+      `,
+      errors: [{ messageId: 'state', suggestions: [] }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover::before': { color: 'blue' },
+            ':focus::before': { color: 'red' }
+          }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'state',
+          data: {
+            first: ':hover::before',
+            second: ':focus::before',
+            property: 'color',
+            compound: ':hover:focus::before',
+          },
+          suggestions: [],
+        },
+      ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '@media (min-width: 700px)': {
+              ':hover': { color: 'blue' },
+              ':focus': { color: 'red' }
+            }
+          }
+        });
+      `,
+      errors: [{ messageId: 'state', suggestions: [] }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover': { borderTop: '1px solid red' },
+            ':focus': { borderBlockWidth: 5 }
+          }
+        });
+      `,
+      errors: [{ messageId: 'state', suggestions: [] }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover': { color: 'blue' },
+            ':focus': { color: 'red' },
+            ':hover:focus': { background: 'white' }
+          }
+        });
+      `,
+      errors: [{ messageId: 'state', suggestions: [] }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover': { '--color': 'red' },
+            ':focus': { '--color': 'blue' }
+          }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'state',
+          data: {
+            first: ':hover',
+            second: ':focus',
+            property: '--color',
+            compound: ':hover:focus',
+          },
+          suggestions: [],
+        },
+      ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':checked': { color: 'red' },
+            ':indeterminate': { color: 'blue' }
+          }
+        });
+      `,
+      errors: [{ messageId: 'state', suggestions: [] }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':hover::part(icon)': { color: 'red' },
+            ':focus::part(icon)': { color: 'blue' }
+          }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'state',
+          data: {
+            first: ':hover::part(icon)',
+            second: ':focus::part(icon)',
+            property: 'color',
+            compound: ':hover:focus::part(icon)',
+          },
+          suggestions: [],
+        },
+      ],
     },
   ],
 });
