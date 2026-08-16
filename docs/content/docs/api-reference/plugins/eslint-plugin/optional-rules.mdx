@@ -21,6 +21,15 @@ neither side contains the other, and there are exactly two shapes of those:
 `no-order-dependent-overlap`, which `recommended` turns on, warns when such a
 pair meets on one element. The rules below stop the pair from existing.
 
+It also warns on two states that can match at once and set the same property —
+`:hover` against `:focus`, or `:hover::before` against `:focus::before` on one
+pseudo-element. That pair has no property shape to take away, so the rules below
+do not reach it. Composing the two styles settles it instead: the atom from the
+source written further right receives one more `:not(#\#)`, so the right one wins
+where both states hold, in either module order. The warning is for the case where
+both are written in one style, where there is no composition to read. See
+[Specificity](/docs/reference/specificity).
+
 ## Recommended for a large codebase
 
 ```js
