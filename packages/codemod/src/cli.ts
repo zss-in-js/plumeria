@@ -4,15 +4,18 @@ import { ESLint } from 'eslint';
 import * as tsParser from '@typescript-eslint/parser';
 import { renameProp } from './transforms/rename-prop';
 import { adoptStyles } from './transforms/adopt-styles';
+import { releaseStyles } from './transforms/release-styles';
 import { plan, write, formatReports } from './migrate';
+import { formatReleaseReports, planRelease, writeRelease } from './release';
 import type { ModuleMap } from './transforms/adopt-styles';
+import type { ReleaseModule } from './transforms/release-styles';
 import type { Linter } from 'eslint';
 
 const { version } = require('../package.json') as { version: string };
 
 const TRANSFORMS = ['rename-prop', 'migrate'] as const;
 
-const SOURCES = ['css-modules'] as const;
+const SOURCES = ['css-modules', 'plumeria'] as const;
 
 const SOURCE_FILES = '**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}';
 
@@ -34,6 +37,7 @@ const USAGE = `plumeria-codemod — codemods for migrating Plumeria APIs
 Usage
   npx @plumeria/codemod rename-prop <from> <to> [paths...]
   npx @plumeria/codemod migrate --from css-modules [paths...]
+  npx @plumeria/codemod migrate --from plumeria [paths...]
 
 Options
   -d, --dry-run    report what would change without writing
@@ -46,6 +50,7 @@ Examples
   npx @plumeria/codemod rename-prop classStyle sx
   npx @plumeria/codemod rename-prop classStyle sx src app --dry-run
   npx @plumeria/codemod migrate --from css-modules
+  npx @plumeria/codemod migrate --from plumeria --dry-run
 
 Paths default to the current directory. After the rewrite, point the toolchain
 at the new name with \`styleProp\` on your bundler plugin, and with
@@ -209,7 +214,11 @@ export async function main(argv: string[]): Promise<number> {
 
   if (!options) return 0;
 
-  if (options.transform === 'migrate') return migrate(options);
+  if (options.transform === 'migrate') {
+    return options.source === 'plumeria'
+      ? migrateFromPlumeria(options)
+      : migrateFromCssModules(options);
+  }
 
   const { from, to, targets, dryRun } = options;
   const baseConfig = {
@@ -310,7 +319,7 @@ function migrateConfig(modules: Record<string, ModuleMap>): Linter.Config[] {
   ];
 }
 
-async function migrate(options: MigrateOptions): Promise<number> {
+async function migrateFromCssModules(options: MigrateOptions): Promise<number> {
   const { targets, dryRun } = options;
   const cwd = process.cwd();
   const relative = (filePath: string) => path.relative(cwd, filePath) || '.';
@@ -356,6 +365,90 @@ async function migrate(options: MigrateOptions): Promise<number> {
   if (lines.length === 0) return 0;
 
   console.log('\nLeft in place — these rules were not converted:\n');
+  for (const line of lines) console.log(line);
+  return 1;
+}
+
+function releaseConfig(
+  modules: Record<string, ReleaseModule>,
+  themes: Record<string, string[]>,
+  animations: Record<string, string[]>,
+): Linter.Config[] {
+  return [
+    { ignores: IGNORES },
+    {
+      files: [SOURCE_FILES],
+      languageOptions: {
+        parser: tsParser as unknown as Linter.Parser,
+        parserOptions: {
+          sourceType: 'module',
+          ecmaFeatures: { jsx: true },
+        },
+      },
+      plugins: { codemod: { rules: { 'release-styles': releaseStyles } } },
+      rules: {
+        'codemod/release-styles': ['error', { modules, themes, animations }],
+      },
+    },
+  ];
+}
+
+async function migrateFromPlumeria(options: MigrateOptions): Promise<number> {
+  const { targets, dryRun } = options;
+  const cwd = process.cwd();
+  const relative = (filePath: string) => path.relative(cwd, filePath) || '.';
+  const planned = planRelease(targets);
+
+  if (
+    planned.stylesheets.length === 0 &&
+    Object.keys(planned.themes).length === 0 &&
+    Object.keys(planned.animations).length === 0
+  ) {
+    console.log('No Plumeria styles found.');
+    return 0;
+  }
+
+  for (const sheet of planned.stylesheets) {
+    console.log(`  ${relative(sheet.source)}  ->  ${relative(sheet.target)}`);
+  }
+  if (planned.global) {
+    console.log(`  global styles  ->  ${relative(planned.global.target)}`);
+  }
+
+  const config = {
+    overrideConfigFile: true as const,
+    overrideConfig: releaseConfig(
+      planned.modules,
+      planned.themes,
+      planned.animations,
+    ),
+    errorOnUnmatchedPattern: false,
+  };
+  const preview = await new ESLint(config).lintFiles(targets);
+  const touched = preview.filter((result) =>
+    result.messages.some((message) => message.fix),
+  );
+
+  if (dryRun) {
+    console.log(
+      `\n${Object.keys(planned.modules).length} style module(s) would be exported, ${touched.length} source file(s) rewritten.`,
+    );
+    console.log('Run without --dry-run to apply.');
+  } else {
+    warnIfDirty();
+    writeRelease(planned);
+    const applied = await new ESLint({ ...config, fix: true }).lintFiles(
+      targets,
+    );
+    await ESLint.outputFixes(applied);
+    console.log(
+      `\n✔ exported ${Object.keys(planned.modules).length} style module(s) and rewrote ${touched.length} source file(s).`,
+    );
+  }
+
+  const lines = formatReleaseReports(planned.stylesheets, cwd);
+  if (lines.length === 0) return 0;
+  console.log('\nLeft in Plumeria — these styles were not exported:\n');
   for (const line of lines) console.log(line);
   return 1;
 }
