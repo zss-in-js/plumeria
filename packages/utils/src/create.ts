@@ -13,7 +13,10 @@ export interface StyleRecord {
   sheet: string;
 }
 
-export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
+export function getStyleRecords(
+  styleRule: CSSProperties,
+  weights?: Record<string, number>,
+): StyleRecord[] {
   const flat: CSSProperties = {};
   const nonFlat: CSSProperties = {};
   const notNormalize = ':not(#\\#)';
@@ -96,11 +99,19 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
           hashSource = { [selector]: hashSource };
         }
 
-        const hash = genBase36Hash(hashSource, 1, 8);
+        const key = atRule
+          ? `${atRule}:${selector}:${prop}`
+          : `${selector}:${prop}`;
+        const weight = weights?.[key] ?? 0;
+
+        const hash = genBase36Hash(
+          weight > 0 ? [hashSource, weight] : hashSource,
+          1,
+          8,
+        );
         const conditionDepth = 1 + (atRule ? 1 : 0);
-        const notSuffix = prop.startsWith('--')
-          ? ''
-          : notNormalize.repeat(conditionDepth);
+        const stateDepth = prop.startsWith('--') ? 0 : conditionDepth;
+        const notSuffix = notNormalize.repeat(stateDepth + weight);
 
         let sheet = transpileAtomic(
           prop,
@@ -116,7 +127,7 @@ export function getStyleRecords(styleRule: CSSProperties): StyleRecord[] {
         }
 
         records.push({
-          key: atRule ? `${atRule}:${selector}:${prop}` : `${selector}:${prop}`,
+          key,
           hash,
           sheet: sheet + '\n',
         });
