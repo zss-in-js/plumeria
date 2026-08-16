@@ -24,6 +24,10 @@ export {
 } from './parser';
 export type { StyleRecord } from './create';
 export { getStyleRecords } from './create';
+export type { Specificity } from 'zss-engine';
+export { getSpecificity, getPseudoElement } from 'zss-engine';
+export type { StyleSource } from './escalation';
+export { getStateWeights } from './escalation';
 export { createTheme } from './createTheme';
 export { resolveImportPath } from './resolver';
 export { optimizer } from './optimizer';
