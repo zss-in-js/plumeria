@@ -1,3 +1,9 @@
+## 18.2.18
+
+### Patch Changes
+
+- e2018e9: Bump version to 18.2.18
+
 ## 18.2.17
 
 ### Patch Changes
