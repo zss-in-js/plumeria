@@ -2,8 +2,19 @@
  * @fileoverview Disallow two properties that overlap without either one outranking the other
  */
 
-import { DIRECT_LONGHANDS, impliesCondition } from 'zss-engine';
+import {
+  DIRECT_LONGHANDS,
+  impliesCondition,
+  getPseudoElement,
+  getSpecificity,
+} from 'zss-engine';
 import { canonicalProperty, toKebabCase } from '../util/logicalPhysical';
+import {
+  areExclusive,
+  compoundOf,
+  covers,
+  isStateSelector,
+} from '../util/selector';
 import type { ObjectExpression, Property, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
@@ -76,6 +87,8 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
         "'{{ first }}' and '{{ second }}' overlap, but neither property outranks the other. The result depends on the order they are written.",
       condition:
         "'{{ narrow }}' matches only where '{{ broad }}' also matches, so it is the more specific of the two, and both set '{{ property }}'. Written first, it reads as though the broader one wins, which is the opposite of what the stylesheet does.",
+      state:
+        "'{{ first }}' and '{{ second }}' can match at the same time and both set '{{ property }}', but neither outranks the other, so the result depends on the order they are written. Declare '{{ compound }}' if the intersection has a value of its own, or split them into separate styles and compose them in the order that should win.",
       keep: "Keep '{{ keep }}'",
       swap: "Write '{{ narrow }}' after '{{ broad }}'",
     },
@@ -161,15 +174,34 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
         : '';
     }
 
-    function declaredNames(node: ObjectExpression): Set<string> {
+    function declaredNames(
+      node: ObjectExpression,
+      withCustomProperties = false,
+    ): Set<string> {
       const names = new Set<string>();
       node.properties.forEach((prop) => {
         if (prop.type !== 'Property' || prop.value.type === 'ObjectExpression')
           return;
         const name = keyNameOf(prop);
-        if (name && !name.startsWith('--')) names.add(name);
+        if (!name) return;
+        if (name.startsWith('--')) {
+          if (withCustomProperties) names.add(name);
+          return;
+        }
+        names.add(name);
       });
       return names;
+    }
+
+    function overlapsProperty(first: string, second: string): boolean {
+      if (first.startsWith('--') || second.startsWith('--')) {
+        return first === second;
+      }
+      return (
+        canonicalProperty(toKebabCase(first)) ===
+          canonicalProperty(toKebabCase(second)) ||
+        overlapOf(toKebabCase(first), toKebabCase(second)) === 'crossing'
+      );
     }
 
     function swapProperties(
@@ -202,6 +234,7 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
         [];
       const conditions: { prop: Property; name: string; sets: Set<string> }[] =
         [];
+      const states: { prop: Property; name: string; sets: Set<string> }[] = [];
 
       node.properties.forEach((prop) => {
         if (prop.type !== 'Property') return;
@@ -216,6 +249,12 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
               prop,
               name: condition,
               sets: declaredNames(prop.value),
+            });
+          } else if (isStateSelector(condition)) {
+            states.push({
+              prop,
+              name: condition,
+              sets: declaredNames(prop.value, true),
             });
           }
           checkStyleObject(prop.value);
@@ -263,6 +302,52 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
                 fix: (fixer) => swapProperties(fixer, first.prop, second.prop),
               },
             ],
+          });
+        }
+      }
+
+      for (let i = 0; i < states.length; i++) {
+        for (let j = i + 1; j < states.length; j++) {
+          const first = states[i];
+          const second = states[j];
+
+          if (getPseudoElement(first.name) !== getPseudoElement(second.name)) {
+            continue;
+          }
+          if (
+            getSpecificity(first.name).join() !==
+            getSpecificity(second.name).join()
+          ) {
+            continue;
+          }
+          if (areExclusive(first.name, second.name)) continue;
+
+          const shared = [...first.sets].find((name) =>
+            [...second.sets].some((other) => overlapsProperty(name, other)),
+          );
+          if (!shared) continue;
+
+          if (
+            states.some(
+              (state) =>
+                state !== first &&
+                state !== second &&
+                covers(state.name, first.name, second.name) &&
+                [...state.sets].some((name) => overlapsProperty(name, shared)),
+            )
+          ) {
+            continue;
+          }
+
+          context.report({
+            node: second.prop.key,
+            messageId: 'state',
+            data: {
+              first: first.name,
+              second: second.name,
+              property: shared,
+              compound: compoundOf(first.name, second.name),
+            },
           });
         }
       }
