@@ -1,3 +1,9 @@
+## 18.2.16
+
+### Patch Changes
+
+- 172eeaa: - Update: README.md separates the rules enabled by the recommended config from optional property-policy and border-expansion rules.
+
 ## 18.2.15
 
 ### Patch Changes
