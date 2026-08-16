@@ -1,5 +1,11 @@
 # @plumeria/codemod
 
+## 18.2.17
+
+### Patch Changes
+
+- e8950f2: - Update: README.md and documentation describe using `--dry-run` to preview a CSS Modules migration without writing files.
+
 ## 18.2.16
 
 ### Patch Changes
