@@ -15,6 +15,7 @@ The complete rule set, distilled. Each rule is explained with examples in the se
 - Bind styles with the `classStyle` prop, not `className`. (→ Mental Model)
 - Import `@plumeria/core` in every file that uses Plumeria styles, including files that only consume imported styles. (→ Core Usage)
 - Start nested selector keys with `:` (pseudo) or `[` (attribute). (→ Selector Rules)
+- Explicitly declare a compound selector when simultaneous pseudo-class states set the same property. (→ Selector Rules)
 - Compose with arrays; the right side always wins. (→ Core Usage)
 
 **NEVER:**
@@ -64,7 +65,7 @@ export const MyComponent = ({ isActive }) => {
 };
 ```
 
-**Right-wins composition.** `classStyle` accepts arrays, ternaries, and conditional expressions. The right-most style always takes precedence: above, `styles.active` overrides `styles.container` when `isActive` is true. `css.use()` follows the same rule. Specificity is always 1 — there are no specificity collisions, and "right side wins" is the only rule you need.
+**Right-wins composition.** `classStyle` accepts arrays, ternaries, and conditional expressions. The right-most style always takes precedence: above, `styles.active` overrides `styles.container` when `isActive` is true. `css.use()` follows the same rule. Within a single style, do not rely on source order to resolve overlapping pseudo-class states; declare their compound selector explicitly (see Selector Rules).
 
 **Cross-file imports.** Styles can be imported across files, but the consuming component file MUST contain `import "@plumeria/core";` — the import is how the compiler finds the file.
 
@@ -105,6 +106,7 @@ Plumeria supports nesting for pseudo-classes, pseudo-elements, and attribute sel
 - **Nested keys MUST start with `:` or `[`.** Pseudo-classes/elements start with `:`; attribute selectors start with `[`.
 - **NO `:has()`, `:is()`, `:where()`.** These are strictly forbidden. Use the paired `css.marker()` / `css.extended()` APIs (see Advanced APIs) for context-aware, parent-state, or descendant styling — they cover every use case of these pseudo-classes without breaking CSS atomicity.
 - **NO child selectors.** Keys like `.title` or `> div` are not supported. Apply Plumeria styles directly to child elements instead.
+- **Declare overlapping states explicitly.** Pseudo-classes such as `:hover`, `:focus`, and `:active` can match simultaneously. When two states set the same property, declare their compound selector with the value the intersection should take. If they set different properties, no compound selector is needed.
 - **Media/container query nesting is one-directional.** A pseudo-selector may be nested inside a media/container query exactly once. The reverse — a media/container query inside a pseudo-selector — is forbidden and causes compiler/type errors.
 
 ```tsx
@@ -116,6 +118,13 @@ const styles = css.create({
     // ✅ Pseudo-classes and elements (starts with :)
     ':hover': {
       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    },
+    ':active': {
+      boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+    },
+    // ✅ :hover and :active can match together; the intersection gets its own value
+    ':hover:active': {
+      boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
     },
     '::before': {
       content: '""',
