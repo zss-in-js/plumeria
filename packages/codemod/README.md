@@ -5,6 +5,7 @@ No install needed — run it with `npx`.
 
 ```sh
 npx @plumeria/codemod migrate --from css-modules
+npx @plumeria/codemod migrate --from plumeria
 npx @plumeria/codemod rename-prop classStyle sx
 ```
 
@@ -92,6 +93,127 @@ Run without --dry-run to apply.
 Any rules that cannot be converted are reported in the same run, and the exit
 code remains 1 while such rules are present. Remove `--dry-run` to write the
 generated modules and consumer changes.
+
+## `migrate --from plumeria`
+
+The reverse of the forward migration. Every `css.create` definition under the
+paths becomes a `*.module.css` beside it, and the files that use it are rewritten
+— the import, the `classStyle` prop, and the style composition:
+
+```sh
+npx @plumeria/codemod migrate --from plumeria [paths...]
+```
+
+```tsx
+/* Card.tsx — before */
+import * as css from '@plumeria/core';
+
+export const styles = css.create({
+  base: { fontSize: 12 },
+  card: {
+    padding: 16,
+    ':hover': { background: 'teal' },
+  },
+  size: (width: number) => ({ width }),
+});
+
+export function Card({ width }: { width: number }) {
+  return <div classStyle={[styles.base, styles.card, styles.size(width)]} />;
+}
+```
+
+```css
+/* Card.module.css — generated */
+.base { font-size: 12px }
+.card { padding: 16px }
+.card:hover { background: teal }
+.size { width: var(--styles-size-width) }
+```
+
+```diff
+/* Card.tsx — after */
+- import * as css from '@plumeria/core';
++ import styles from './Card.module.css';
+
+- export const styles = css.create({
+-   base: { fontSize: 12 },
+-   card: {
+-     padding: 16,
+-     ':hover': { background: 'teal' },
+-   },
+-   size: (width: number) => ({ width }),
+- });
++ export { styles };
+
+  export function Card({ width }: { width: number }) {
+-   return <div classStyle={[styles.base, styles.card, styles.size(width)]} />;
++   return (
++     <div
++       className={`${styles.base} ${styles.card} ${styles.size}`}
++       style={{ '--styles-size-width': width }}
++     />
++   );
+  }
+```
+
+A function style key such as `(width) => ({ width })` has no CSS Modules
+equivalent, so each parameter becomes a CSS custom property named
+`--<binding>-<key>-<param>`. The class name stays in `className`; the argument
+values move to the inline `style` prop. If a `style` prop already exists, the
+custom properties are merged into it.
+
+An array on the styling prop is joined into a template literal. When the array
+contains a conditional expression, it uses `.filter(Boolean).join(' ')` instead,
+so the falsy branch drops out at runtime:
+
+```diff
+- <div classStyle={[styles.base, active && styles.active]} />
++ <div className={[styles.base, active && styles.active].filter(Boolean).join(' ')} />
+```
+
+### Global styles
+
+`css.createTheme`, `css.keyframes`, and `css.viewTransition` produce rules that
+belong in a global stylesheet, not in a CSS Module. The codemod extracts them and
+appends them to `src/styles/global.css` (or `styles/global.css` when `src` does
+not exist). Theme tokens become CSS custom properties under `:where(:root)` and
+the theme selector; keyframes become `@keyframes kf-<hash>`; view transitions
+become `::view-transition-*` pseudo-element rules. References in style objects
+are replaced by their generated names.
+
+`css.createStatic` values are statically evaluated and inlined directly into the
+generated CSS rules — no separate output file is needed.
+
+### What it reports instead of converting
+
+```
+src/Card.tsx
+  8:5  dynamic-value
+        The value of `color` cannot be represented statically.
+  12:3  spread-create
+        Top-level spreads cannot name a CSS Module class.
+```
+
+Constructs that cannot be resolved statically — dynamic values, computed keys,
+runtime function calls, object spreads, and multiple `css.create` calls in one
+file — are reported and left in place. A target `*.module.css` that already
+exists is reported as `target-exists` and will not be overwritten.
+
+The exit code is 1 while anything remains, so the command composes with a script.
+
+Start with `-d, --dry-run` to preview the export without writing files:
+
+```sh
+npx @plumeria/codemod migrate --from plumeria --dry-run [paths...]
+```
+
+```
+  src/Card.tsx  ->  src/Card.module.css
+  global styles  ->  src/styles/global.css
+
+1 style module(s) would be exported, 1 source file(s) rewritten.
+Run without --dry-run to apply.
+```
 
 ## `rename-prop`
 
