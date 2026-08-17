@@ -28,11 +28,33 @@ describe('Plumeria release planning', () => {
     expect(plan.stylesheets).toHaveLength(1);
     expect(plan.modules[source]).toEqual({
       source: './Card.module.css',
+      target: releasedPath(source),
       binding: 'styles',
+      definitionOnly: true,
     });
     writeRelease(plan);
     expect(fs.readFileSync(releasedPath(source), 'utf8')).toContain(
       'padding: 8px',
+    );
+  });
+
+  it('drops the .styles segment when naming the CSS Module', () => {
+    expect(releasedPath('/app/Card.styles.ts')).toBe('/app/Card.module.css');
+    expect(releasedPath('/app/Card.tsx')).toBe('/app/Card.module.css');
+    expect(releasedPath('/app/Card.theme.ts')).toBe(
+      '/app/Card.theme.module.css',
+    );
+  });
+
+  it('marks a file that uses its own styles as more than a definition', () => {
+    const source = path.join(dir, 'Inline.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ box: { color: 'red' } });\nexport const Box = () => <div classStyle={styles.box} />;`,
+    );
+
+    expect(planRelease([dir]).modules[source]).not.toHaveProperty(
+      'definitionOnly',
     );
   });
 
