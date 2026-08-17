@@ -124,6 +124,8 @@ npx @plumeria/codemod migrate --from plumeria
 
 Exports styles written with `css.create` to CSS Modules, moves theme tokens and animation definitions into global CSS, and updates component files to use `className`.
 
+Run `eslint --fix` with the recommended config before exporting, so shorthand and property-overlap rules have settled the styles first.
+
 ```tsx title="Card.tsx"
 import * as css from '@plumeria/core';
 
@@ -193,6 +195,55 @@ Definitions created with `css.createTheme`, `css.keyframes`, and `css.viewTransi
 - **`css.viewTransition`**: Emits `::view-transition-*` pseudo-element rules in global CSS and assigns `view-transition-name: vt-xxxx`.
 - **`css.createStatic`**: Constant values are statically evaluated and inlined directly into generated CSS rules.
 
+### Where definitions may live
+
+Definitions do not have to sit in the file that uses them. Import specifiers are resolved through `tsconfig.json` `paths`, directory `index` files, and filenames that carry a dot, so a `css.createTheme`, `css.keyframes`, or `css.createStatic` reached under an alias is inlined rather than reported as dynamic.
+
+An import that only existed to feed the styles is removed once nothing else in the file reads it. A binding still used outside the exported styles — `window.matchMedia(breakpoints.lg)`, for instance — keeps its import.
+
+A file that only defines styles and never uses them is left exactly as it is, the way `--from css-modules` leaves the original stylesheet in place. Its consumers are pointed at the generated `*.module.css` instead:
+
+```diff title="Card.tsx"
+- import { styles } from './Card.styles';
++ import styles from './Card.module.css';
+
+  export const Card = () => (
+-   <div classStyle={styles.card} />
++   <div className={styles.card} />
+  );
+```
+
+### Markers and extended styles
+
+`css.marker` and `css.extended` are expanded into the custom property and the `@container style()` rule they compile to, using the same variable name the compiler generates:
+
+```css title="MarkerExtended.module.css"
+.grand:hover {
+  --xl0a2l54-grand-hover: 1;
+}
+
+@container style(--xl0a2l54-grand-hover: 1) {
+  .child {
+    color: #0066cc;
+  }
+}
+```
+
+### Several `css.create` calls in one file
+
+Every `css.create` in a file is written to the same stylesheet, and the later bindings are read from the shared module. A key an earlier call already claimed is renamed to `<binding>-<key>`:
+
+```diff title="Button.tsx"
+- const styles = css.create({ base: { color: 'red' } });
+- const hoverStyles = css.create({ base: { color: 'blue' } });
++ import styles from './Button.module.css';
+
+  export const Button = () => (
+-   <a classStyle={[styles.base, hoverStyles.base]} />
++   <a className={`${styles.base} ${styles['hoverStyles-base']}`} />
+  );
+```
+
 ### Dynamic function styles
 
 Function styles such as `(width) => ({ width })` are converted into CSS custom properties (e.g. `--<binding>-<key>-<param>`). In JSX, the codemod passes argument values through the inline `style` prop:
@@ -242,9 +293,17 @@ src/Card.tsx
 ```
 
 - Dynamic values, computed properties, or runtime function calls in style objects
-- Object spreads in top-level `css.create` or style definitions
-- Multiple `css.create` calls within a single file (move each to its own module first)
+- Object spreads in top-level `css.create` or style definitions, other than `css.marker`
 - Existing `*.module.css` target files are reported as `target-exists` and will not be overwritten
+
+### Cascade after the export
+
+Plumeria merges composed styles by property name at build time and emits one declaration per property. The export writes one class per `css.create` key instead, so the cascade decides. Three cases change:
+
+- **Composition order.** `classStyle={[styles.b, styles.a]}` resolves `color` to `styles.a`, because the rightmost style wins the merge. Exported, `.a` and `.b` both land on the element and the rule written later in the stylesheet wins — that is, the later `css.create` key.
+- **A conditional against a base declaration.** `color` and `@media (…): color` are separate entries that never merge, so the conditional carries `:not(#\#)` and wins regardless of order. Exported, both are ordinary rules and source order decides.
+
+Nothing is dropped — every declaration is exported — but a project relying on either should order the affected pairs itself.
 
 ## Renaming the styling prop
 
