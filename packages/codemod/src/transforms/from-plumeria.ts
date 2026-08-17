@@ -23,12 +23,19 @@ export interface PlumeriaModule {
   globalCss: string;
   keys: string[];
   functions: Record<string, { params: string[]; variables: string[] }>;
+  aliases: Record<string, Record<string, string>>;
+  definitionOnly: boolean;
   reports: PlumeriaReport[];
 }
 
 export interface ThemeExtraction {
   bindings: Record<string, Record<string, string>>;
   globalCss: string;
+  reports: PlumeriaReport[];
+}
+
+export interface StaticExtraction {
+  bindings: Record<string, Record<string, unknown>>;
   reports: PlumeriaReport[];
 }
 
@@ -41,6 +48,13 @@ export interface AnimationExtraction {
 }
 
 type StaticValue = string | number | boolean | null;
+
+const toIdent = (value: string): string => value.replace(/[^A-Za-z0-9-]/g, '');
+
+const markerVariable = (id: string, pseudo: string): string => {
+  const hash = genBase36Hash({ [id]: pseudo }, 1, 8);
+  return `--${hash}-${toIdent(id)}-${toIdent(pseudo.split('(')[0])}`;
+};
 
 const propertyKey = (node: any): string | undefined => {
   if (!node) return undefined;
@@ -69,8 +83,29 @@ const lookup = (path: string[], values: Map<string, unknown>): unknown => {
   return value;
 };
 
+const markerArguments = (
+  node: any,
+  method: string,
+  values: Map<string, unknown>,
+): { id: string; pseudo: string } | undefined => {
+  if (node?.type !== 'CallExpression') return undefined;
+  const path = memberPath(node.callee);
+  if (path?.length !== 2 || path[1] !== method) return undefined;
+  const id = evaluate(node.arguments[0], values);
+  const pseudo = evaluate(node.arguments[1], values);
+  return typeof id === 'string' && typeof pseudo === 'string'
+    ? { id, pseudo }
+    : undefined;
+};
+
 const evaluate = (node: any, values: Map<string, unknown>): unknown => {
   if (!node) return undefined;
+  if (node.type === 'CallExpression') {
+    const extended = markerArguments(node, 'extended', values);
+    return extended
+      ? `@container style(${markerVariable(extended.id, extended.pseudo)}: 1)`
+      : undefined;
+  }
   if (node.type === 'Literal') return node.value as StaticValue;
   if (node.type === 'Identifier') return values.get(node.name);
   if (node.type === 'MemberExpression') {
@@ -107,7 +142,28 @@ const evaluate = (node: any, values: Map<string, unknown>): unknown => {
   return undefined;
 };
 
-export const __private = { propertyKey, memberPath, evaluate };
+const bindsElsewhere = (ast: any, name: string, declared: any): boolean => {
+  const skipped = new Set(['loc', 'range', 'parent']);
+  const visit = (node: any, parent: any): boolean => {
+    if (!node || typeof node !== 'object' || node === declared) return false;
+    if (Array.isArray(node)) return node.some((child) => visit(child, parent));
+    if (typeof node.type !== 'string') return false;
+    if (node.type === 'Identifier' && node.name === name) {
+      if (parent?.type === 'ExportSpecifier') return false;
+      if (parent?.type === 'MemberExpression' && parent.property === node)
+        return !!parent.computed;
+      if (parent?.type === 'Property' && parent.key === node)
+        return !!parent.computed;
+      return true;
+    }
+    return Object.keys(node).some(
+      (key) => !skipped.has(key) && visit(node[key], node),
+    );
+  };
+  return visit(ast, undefined);
+};
+
+export const __private = { propertyKey, memberPath, evaluate, bindsElsewhere };
 
 const isCall = (node: any, method: string): boolean => {
   if (node?.type !== 'CallExpression') return false;
@@ -246,6 +302,47 @@ const emitGlobalObject = (
   return `${selector} {\n${content}\n}`;
 };
 
+export function extractPlumeriaStatics(
+  source: string,
+  externalValues: Record<string, unknown> = {},
+): StaticExtraction {
+  const ast = parse(source, {
+    sourceType: 'module',
+    ecmaFeatures: { jsx: true },
+    loc: true,
+    range: true,
+  }) as any;
+  const values = new Map<string, unknown>(Object.entries(externalValues));
+  const bindings: Record<string, Record<string, unknown>> = {};
+  const reports: PlumeriaReport[] = [];
+
+  for (const raw of ast.body) {
+    const statement = declarationOf(raw);
+    if (statement?.type !== 'VariableDeclaration') continue;
+    for (const declaration of statement.declarations) {
+      if (
+        declaration.id.type !== 'Identifier' ||
+        !isCall(declaration.init, 'createStatic')
+      )
+        continue;
+      const value = evaluate(declaration.init.arguments[0], values);
+      if (value && typeof value === 'object') {
+        values.set(declaration.id.name, value);
+        bindings[declaration.id.name] = value as Record<string, unknown>;
+      } else {
+        reports.push({
+          line: declaration.init.loc.start.line,
+          column: declaration.init.loc.start.column + 1,
+          kind: 'dynamic-create-static',
+          hint: '`createStatic` must contain values that can be written into CSS.',
+        });
+      }
+    }
+  }
+
+  return { bindings, reports };
+}
+
 export function extractPlumeriaAnimations(
   source: string,
   externalValues: Record<string, unknown> = {},
@@ -366,7 +463,7 @@ export function convertPlumeriaModule(
     ...Object.entries(animations.bindings),
   ]);
   const reports: PlumeriaReport[] = [...themes.reports, ...animations.reports];
-  const creates: { binding: string; object: any }[] = [];
+  const creates: { binding: string; object: any; declaration: any }[] = [];
 
   const report = (node: any, kind: string, hint: string) => {
     reports.push({
@@ -397,7 +494,7 @@ export function convertPlumeriaModule(
       if (isCall(declaration.init, 'create')) {
         const object = declaration.init.arguments[0];
         if (object?.type === 'ObjectExpression') {
-          creates.push({ binding: declaration.id.name, object });
+          creates.push({ binding: declaration.id.name, object, declaration });
         } else {
           report(
             declaration.init,
@@ -410,19 +507,23 @@ export function convertPlumeriaModule(
   }
 
   if (creates.length === 0) return null;
-  if (creates.length > 1) {
-    report(
-      creates[1].object,
-      'multiple-create',
-      'Move each `css.create` call to its own module before exporting to CSS Modules.',
-    );
-  }
 
-  const { binding, object } = creates[0];
+  const { binding } = creates[0];
   const rules: string[] = [];
   const keys: string[] = [];
+  const aliases: Record<string, Record<string, string>> = {};
+  const taken = new Set<string>();
   const functions: Record<string, { params: string[]; variables: string[] }> =
     {};
+
+  const classNameFor = (owner: string, key: string): string => {
+    if (!taken.has(key)) return key;
+    const namespaced = `${owner}-${key}`;
+    let candidate = namespaced;
+    let suffix = 2;
+    while (taken.has(candidate)) candidate = `${namespaced}-${suffix++}`;
+    return candidate;
+  };
 
   const emit = (
     style: any,
@@ -437,7 +538,18 @@ export function convertPlumeriaModule(
 
     const declarations: string[] = [];
     const nested: { key: string; value: any }[] = [];
+    const markers: { pseudo: string; variable: string }[] = [];
     for (const property of style.properties) {
+      if (property.type === 'SpreadElement') {
+        const marker = markerArguments(property.argument, 'marker', scope);
+        if (marker) {
+          markers.push({
+            pseudo: marker.pseudo,
+            variable: markerVariable(marker.id, marker.pseudo),
+          });
+          continue;
+        }
+      }
       if (property.type !== 'Property' || property.kind !== 'init') {
         report(
           property,
@@ -480,8 +592,9 @@ export function convertPlumeriaModule(
       );
     }
 
-    if (declarations.length > 0) {
-      let rule = `${selector} {\n${declarations.join('\n')}\n}`;
+    const pushRule = (target: string, lines: string[]) => {
+      if (lines.length === 0) return;
+      let rule = `${target} {\n${lines.join('\n')}\n}`;
       for (const wrapper of [...wrappers].reverse()) {
         rule = `${wrapper} {\n${rule
           .split('\n')
@@ -489,6 +602,12 @@ export function convertPlumeriaModule(
           .join('\n')}\n}`;
       }
       rules.push(rule);
+    };
+
+    pushRule(selector, declarations);
+
+    for (const marker of markers) {
+      pushRule(`${selector}${marker.pseudo}`, [`  ${marker.variable}: 1;`]);
     }
 
     for (const child of nested) {
@@ -500,69 +619,80 @@ export function convertPlumeriaModule(
     }
   };
 
-  for (const property of object.properties) {
-    if (property.type !== 'Property' || property.kind !== 'init') {
-      report(
-        property,
-        'spread-create',
-        'Top-level spreads cannot name a CSS Module class.',
-      );
-      continue;
-    }
-    const key = property.computed
-      ? evaluate(property.key, values)
-      : propertyKey(property.key);
-    if (typeof key !== 'string') {
-      report(
-        property.key,
-        'dynamic-style-key',
-        'Style names must be statically known.',
-      );
-      continue;
-    }
-    if (
-      property.value.type === 'ArrowFunctionExpression' ||
-      property.value.type === 'FunctionExpression'
-    ) {
-      const params: string[] = [];
-      let valid = true;
-      for (const parameter of property.value.params) {
-        if (parameter.type !== 'Identifier') {
-          valid = false;
-          break;
-        }
-        params.push(parameter.name);
-      }
-      let body = property.value.body;
-      if (body.type === 'BlockStatement') {
-        const returned = body.body.find(
-          (statement: any) => statement.type === 'ReturnStatement',
-        );
-        body = returned?.argument;
-      }
-      if (!valid || body?.type !== 'ObjectExpression') {
+  for (const create of creates) {
+    const owner = create.binding;
+    const alias: Record<string, string> = {};
+
+    for (const property of create.object.properties) {
+      if (property.type !== 'Property' || property.kind !== 'init') {
         report(
-          property.value,
-          'function-style',
-          'Function style keys need identifier parameters and an object return value.',
+          property,
+          'spread-create',
+          'Top-level spreads cannot name a CSS Module class.',
         );
         continue;
       }
-      const variables = params.map(
-        (parameter) =>
-          `--${camelToKebabCase(binding)}-${camelToKebabCase(key)}-${camelToKebabCase(parameter)}`,
-      );
-      const scope = new Map(values);
-      params.forEach((parameter, index) => {
-        scope.set(parameter, `var(${variables[index]})`);
-      });
-      functions[key] = { params, variables };
-      keys.push(key);
-      emit(body, `.${key}`, [], scope);
-      continue;
+      const key = property.computed
+        ? evaluate(property.key, values)
+        : propertyKey(property.key);
+      if (typeof key !== 'string') {
+        report(
+          property.key,
+          'dynamic-style-key',
+          'Style names must be statically known.',
+        );
+        continue;
+      }
+      const className = classNameFor(owner, key);
+      taken.add(className);
+      if (owner !== binding) alias[key] = className;
+
+      if (
+        property.value.type === 'ArrowFunctionExpression' ||
+        property.value.type === 'FunctionExpression'
+      ) {
+        const params: string[] = [];
+        let valid = true;
+        for (const parameter of property.value.params) {
+          if (parameter.type !== 'Identifier') {
+            valid = false;
+            break;
+          }
+          params.push(parameter.name);
+        }
+        let body = property.value.body;
+        if (body.type === 'BlockStatement') {
+          const returned = body.body.find(
+            (statement: any) => statement.type === 'ReturnStatement',
+          );
+          body = returned?.argument;
+        }
+        if (!valid || body?.type !== 'ObjectExpression') {
+          report(
+            property.value,
+            'function-style',
+            'Function style keys need identifier parameters and an object return value.',
+          );
+          continue;
+        }
+        const variables = params.map(
+          (parameter) =>
+            `--${camelToKebabCase(owner)}-${camelToKebabCase(key)}-${camelToKebabCase(parameter)}`,
+        );
+        const scope = new Map(values);
+        params.forEach((parameter, index) => {
+          scope.set(parameter, `var(${variables[index]})`);
+        });
+        functions[className] = { params, variables };
+        keys.push(className);
+        emit(body, `.${className}`, [], scope);
+        continue;
+      }
+      keys.push(className);
+      emit(property.value, `.${className}`);
     }
-    keys.push(key);
-    emit(property.value, `.${key}`);
+
+    if (owner !== binding) aliases[owner] = alias;
   }
 
   return {
@@ -571,6 +701,10 @@ export function convertPlumeriaModule(
     globalCss: `${themes.globalCss}${animations.globalCss}`,
     keys,
     functions,
+    aliases,
+    definitionOnly: creates.every(
+      (create) => !bindsElsewhere(ast, create.binding, create.declaration.id),
+    ),
     reports,
   };
 }
