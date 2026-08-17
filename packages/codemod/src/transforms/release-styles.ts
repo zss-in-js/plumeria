@@ -2,12 +2,16 @@
  * @fileoverview Replace Plumeria definitions and classStyle with CSS Modules
  */
 
-import type { Rule } from 'eslint';
 import * as path from 'node:path';
+import type { Rule } from 'eslint';
+import { resolveSourcePath } from '../resolve';
 
 export interface ReleaseModule {
   source: string;
+  target?: string;
   binding: string;
+  definitionOnly?: boolean;
+  aliases?: Record<string, Record<string, string>>;
   functions?: Record<string, { params: string[]; variables: string[] }>;
 }
 
@@ -15,6 +19,7 @@ export interface ReleaseStylesOptions {
   modules: Record<string, ReleaseModule>;
   themes?: Record<string, string[]>;
   animations?: Record<string, string[]>;
+  statics?: Record<string, string[]>;
   styleProp?: string;
   active?: boolean;
 }
@@ -36,6 +41,8 @@ const isCreate = (node: any): boolean => {
   const path = memberPath(node.callee);
   return path?.length === 2 && path[1] === 'create';
 };
+
+const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
 
 const needsFilter = (node: any): boolean =>
   node.type === 'LogicalExpression' ||
@@ -61,6 +68,10 @@ export const releaseStyles: Rule.RuleModule = {
       animation: '`keyframes` or `viewTransition` was written globally.',
       animationImport:
         'Remove the animation import after replacing it with its generated name.',
+      staticImport:
+        'Remove the createStatic import after inlining its values into the CSS.',
+      alias:
+        'Read this style from the CSS Module the whole file was exported to.',
       core: 'Remove the Plumeria import after exporting the styles.',
       prop: 'Use className after exporting this style to CSS Modules.',
       composition: 'Join the composed CSS Module class names.',
@@ -76,6 +87,7 @@ export const releaseStyles: Rule.RuleModule = {
           modules: { type: 'object' },
           themes: { type: 'object' },
           animations: { type: 'object' },
+          statics: { type: 'object' },
           styleProp: { type: 'string' },
           active: { type: 'boolean' },
         },
@@ -86,7 +98,8 @@ export const releaseStyles: Rule.RuleModule = {
 
   create(context) {
     const raw = (context.options[0] ?? {}) as Partial<ReleaseStylesOptions>;
-    const entry = raw.modules?.[context.filename];
+    const declared = raw.modules?.[context.filename];
+    const entry = declared?.definitionOnly ? undefined : declared;
     const themeBindings = raw.themes?.[context.filename] ?? [];
     const animationBindings = raw.animations?.[context.filename] ?? [];
     const styleProp = raw.styleProp ?? 'classStyle';
@@ -94,49 +107,101 @@ export const releaseStyles: Rule.RuleModule = {
     let active = Boolean(entry || raw.active);
     let activeModule = entry;
 
-    const importedReleasedModule = (
-      specifier: string,
-    ): ReleaseModule | undefined => {
-      if (!specifier.startsWith('.')) return undefined;
-      const resolved = path.resolve(path.dirname(context.filename), specifier);
-      const withoutExtension = resolved.replace(/\.[^.]+$/, '');
-      const source = Object.keys(raw.modules ?? {}).find(
-        (candidate) => candidate.replace(/\.[^.]+$/, '') === withoutExtension,
-      );
-      return source ? raw.modules?.[source] : undefined;
+    const specifierFor = (module: ReleaseModule): string => {
+      if (!module.target) return module.source;
+      const relative = path
+        .relative(path.dirname(context.filename), module.target)
+        .split(path.sep)
+        .join('/');
+      return relative.startsWith('.') ? relative : `./${relative}`;
     };
 
-    const importedThemeBindings = (specifier: string): string[] | undefined => {
-      if (!specifier.startsWith('.')) return undefined;
-      const resolved = path.resolve(path.dirname(context.filename), specifier);
-      const withoutExtension = resolved.replace(/\.[^.]+$/, '');
-      const source = Object.keys(raw.themes ?? {}).find(
-        (candidate) => candidate.replace(/\.[^.]+$/, '') === withoutExtension,
+    const importOf = (specifiers: any[], source: any): string => {
+      const defaultImport = specifiers.find(
+        (specifier: any) => specifier.type === 'ImportDefaultSpecifier',
       );
-      return source ? raw.themes?.[source] : undefined;
+      const namedImports = specifiers.filter(
+        (specifier: any) => specifier.type === 'ImportSpecifier',
+      );
+      const clauses: string[] = [];
+      if (defaultImport) clauses.push(sourceCode.getText(defaultImport));
+      if (namedImports.length > 0) {
+        clauses.push(
+          `{ ${namedImports
+            .map((specifier: any) => sourceCode.getText(specifier))
+            .join(', ')} }`,
+        );
+      }
+      return `import ${clauses.join(', ')} from ${sourceCode.getText(source)};`;
     };
 
-    const importedAnimationBindings = (
+    const importedFrom = <T>(
       specifier: string,
-    ): string[] | undefined => {
-      if (!specifier.startsWith('.')) return undefined;
-      const resolved = path.resolve(path.dirname(context.filename), specifier);
-      const withoutExtension = resolved.replace(/\.[^.]+$/, '');
-      const source = Object.keys(raw.animations ?? {}).find(
-        (candidate) => candidate.replace(/\.[^.]+$/, '') === withoutExtension,
+      table: Record<string, T> | undefined,
+    ): T | undefined => {
+      const resolved = resolveSourcePath(specifier, context.filename);
+      return resolved ? table?.[resolved] : undefined;
+    };
+
+    const importedReleasedModule = (specifier: string) =>
+      importedFrom(specifier, raw.modules);
+
+    const importedThemeBindings = (specifier: string) =>
+      importedFrom(specifier, raw.themes);
+
+    const importedAnimationBindings = (specifier: string) =>
+      importedFrom(specifier, raw.animations);
+
+    const importedStaticBindings = (specifier: string) =>
+      importedFrom(specifier, raw.statics);
+
+    const releasedRange = (): [number, number] | undefined => {
+      if (!entry) return undefined;
+      for (const statement of sourceCode.ast.body as any[]) {
+        const declaration =
+          statement.type === 'ExportNamedDeclaration'
+            ? statement.declaration
+            : statement;
+        if (declaration?.type !== 'VariableDeclaration') continue;
+        for (const candidate of declaration.declarations) {
+          if (
+            candidate.id.type === 'Identifier' &&
+            candidate.id.name === entry.binding &&
+            isCreate(candidate.init)
+          )
+            return statement.range;
+        }
+      }
+      return undefined;
+    };
+
+    const onlyUsedByReleasedStyles = (local: string): boolean => {
+      const range = releasedRange();
+      if (!range) return false;
+      const scope = sourceCode.getScope(sourceCode.ast);
+      const moduleScope =
+        scope.type === 'global' ? (scope.childScopes[0] ?? scope) : scope;
+      const variable = moduleScope.variables.find(
+        (candidate) => candidate.name === local,
       );
-      return source ? raw.animations?.[source] : undefined;
+      if (!variable || variable.references.length === 0) return false;
+      return variable.references.every(
+        (reference) =>
+          reference.identifier.range![0] >= range[0] &&
+          reference.identifier.range![1] <= range[1],
+      );
     };
 
     const removeImportedBindings = (
       node: any,
       bindings: string[],
-      messageId: 'themeImport' | 'animationImport',
+      messageId: 'themeImport' | 'animationImport' | 'staticImport',
+      dead?: (specifier: any) => boolean,
     ): boolean => {
       const removed = node.specifiers.filter((specifier: any) => {
         if (specifier.type !== 'ImportSpecifier') return false;
         const name = specifier.imported.name ?? specifier.imported.value;
-        return bindings.includes(name);
+        return bindings.includes(name) && (!dead || dead(specifier));
       });
       if (removed.length === 0) return false;
       const retained = node.specifiers.filter(
@@ -145,28 +210,10 @@ export const releaseStyles: Rule.RuleModule = {
       context.report({
         node,
         messageId,
-        fix: (fixer) => {
-          if (retained.length === 0) return fixer.remove(node);
-          const defaultImport = retained.find(
-            (specifier: any) => specifier.type === 'ImportDefaultSpecifier',
-          );
-          const namedImports = retained.filter(
-            (specifier: any) => specifier.type === 'ImportSpecifier',
-          );
-          const clauses: string[] = [];
-          if (defaultImport) clauses.push(sourceCode.getText(defaultImport));
-          if (namedImports.length > 0) {
-            clauses.push(
-              `{ ${namedImports
-                .map((specifier: any) => sourceCode.getText(specifier))
-                .join(', ')} }`,
-            );
-          }
-          return fixer.replaceText(
-            node,
-            `import ${clauses.join(', ')} from ${sourceCode.getText(node.source)};`,
-          );
-        },
+        fix: (fixer) =>
+          retained.length === 0
+            ? fixer.remove(node)
+            : fixer.replaceText(node, importOf(retained, node.source)),
       });
       return true;
     };
@@ -198,6 +245,21 @@ export const releaseStyles: Rule.RuleModule = {
           if (removeImportedBindings(node, importedThemes, 'themeImport'))
             return;
         }
+        const importedStatics = importedStaticBindings(
+          String(node.source.value),
+        );
+        if (importedStatics) {
+          if (
+            removeImportedBindings(
+              node,
+              importedStatics,
+              'staticImport',
+              (specifier: any) =>
+                onlyUsedByReleasedStyles(specifier.local.name),
+            )
+          )
+            return;
+        }
         const importedModule = importedReleasedModule(
           String(node.source.value),
         );
@@ -209,10 +271,25 @@ export const releaseStyles: Rule.RuleModule = {
               (specifier.imported.name ?? specifier.imported.value) ===
                 importedModule.binding,
           );
-          activeModule = {
-            ...importedModule,
-            binding: importedBinding?.local.name ?? importedModule.binding,
-          };
+          const local = importedBinding?.local.name ?? importedModule.binding;
+          activeModule = { ...importedModule, binding: local };
+          if (importedModule.definitionOnly && importedBinding) {
+            const retained = node.specifiers.filter(
+              (specifier: any) => specifier !== importedBinding,
+            );
+            const released = `import ${local} from '${specifierFor(importedModule)}';`;
+            context.report({
+              node,
+              messageId: 'definition',
+              fix: (fixer) =>
+                fixer.replaceText(
+                  node,
+                  retained.length === 0
+                    ? released
+                    : `${released}\n${importOf(retained, node.source)}`,
+                ),
+            });
+          }
         }
       },
 
@@ -247,11 +324,18 @@ export const releaseStyles: Rule.RuleModule = {
           return;
         }
         if (!entry) return;
-        if (
-          declaration.id.name !== entry.binding ||
-          !isCreate(declaration.init)
-        )
+        if (!isCreate(declaration.init)) return;
+        if (entry.aliases?.[declaration.id.name]) {
+          const aliased =
+            node.parent?.type === 'ExportNamedDeclaration' ? node.parent : node;
+          context.report({
+            node: aliased,
+            messageId: 'definition',
+            fix: (fixer) => fixer.remove(aliased),
+          });
           return;
+        }
+        if (declaration.id.name !== entry.binding) return;
 
         const exported = node.parent?.type === 'ExportNamedDeclaration';
         const target = exported ? node.parent : node;
@@ -266,6 +350,27 @@ export const releaseStyles: Rule.RuleModule = {
         });
       },
 
+      MemberExpression(node: any) {
+        if (!entry?.aliases || node.object.type !== 'Identifier') return;
+        const alias = entry.aliases[node.object.name];
+        if (!alias) return;
+        const key = node.computed
+          ? node.property.type === 'Literal'
+            ? String(node.property.value)
+            : undefined
+          : node.property.name;
+        const className = key ? alias[key] : undefined;
+        if (!className) return;
+        const access = IDENTIFIER.test(className)
+          ? `.${className}`
+          : `['${className}']`;
+        context.report({
+          node,
+          messageId: 'alias',
+          fix: (fixer) => fixer.replaceText(node, `${entry.binding}${access}`),
+        });
+      },
+
       JSXAttribute(node: any) {
         if (!active) return;
         if (node.name.type !== 'JSXIdentifier' || node.name.name !== styleProp)
@@ -275,25 +380,34 @@ export const releaseStyles: Rule.RuleModule = {
             ? node.value.expression
             : undefined;
         const moduleInfo = activeModule;
-        const functionStyle = (value: any) => {
-          if (
-            !moduleInfo ||
-            value?.type !== 'CallExpression' ||
-            value.callee.type !== 'MemberExpression' ||
-            value.callee.object.type !== 'Identifier' ||
-            value.callee.object.name !== moduleInfo.binding
-          )
-            return undefined;
-          const key = value.callee.computed
-            ? value.callee.property.type === 'Literal'
-              ? String(value.callee.property.value)
+        const readsModule = (callee: any): boolean =>
+          Boolean(
+            moduleInfo &&
+            callee?.type === 'MemberExpression' &&
+            callee.object.type === 'Identifier' &&
+            (callee.object.name === moduleInfo.binding ||
+              moduleInfo.aliases?.[callee.object.name]),
+          );
+        const styleKey = (callee: any): string | undefined => {
+          if (!readsModule(callee)) return undefined;
+          const raw = callee.computed
+            ? callee.property.type === 'Literal'
+              ? String(callee.property.value)
               : undefined
-            : value.callee.property.name;
+            : callee.property.name;
+          if (raw === undefined) return undefined;
+          const alias = moduleInfo!.aliases?.[callee.object.name];
+          return alias ? alias[raw] : raw;
+        };
+        const functionStyle = (value: any) => {
+          if (!moduleInfo || value?.type !== 'CallExpression') return undefined;
+          const key = styleKey(value.callee);
           const func = key ? moduleInfo.functions?.[key] : undefined;
           if (!key || !func || func.variables.length !== value.arguments.length)
             return undefined;
+          const access = IDENTIFIER.test(key) ? `.${key}` : `['${key}']`;
           return {
-            className: `${moduleInfo.binding}.${key}`,
+            className: `${moduleInfo.binding}${access}`,
             declarations: func.variables.map((variable, index) => {
               const argument = sourceCode.getText(value.arguments[index]);
               return `'${variable}': ${argument}`;
@@ -352,9 +466,7 @@ export const releaseStyles: Rule.RuleModule = {
         }
         if (
           expression?.type === 'CallExpression' &&
-          expression.callee.type === 'MemberExpression' &&
-          expression.callee.object.type === 'Identifier' &&
-          expression.callee.object.name === moduleInfo?.binding
+          readsModule(expression.callee)
         ) {
           context.report({
             node,
