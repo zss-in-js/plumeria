@@ -158,7 +158,7 @@ export default [
   plumeria.configs.recommended,
   {
     rules: {
-      '@plumeria/no-physical-properties': 'warn',
+      '@plumeria/no-logical-properties': 'warn',
       '@plumeria/expand-border-shorthands': 'warn',
     },
   },
