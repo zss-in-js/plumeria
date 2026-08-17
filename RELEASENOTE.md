@@ -2,7 +2,8 @@
 
 ## 18.2.18 (Aug 16, 2026)
 
-- Feat: `npx @plumeria/codemod migrate --from plumeria` exports `css.create` definitions to CSS Modules, writes global styles (`createTheme`, `keyframes`, `viewTransition`) to `src/styles/global.css`, and rewrites consumers to use `className`.
+- Update: groundwork for `npx @plumeria/codemod migrate --from plumeria`.
+Note: the command is usable from 18.2.19.
 
 ## 18.2.17 (Aug 16, 2026)
 
