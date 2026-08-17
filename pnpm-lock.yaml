@@ -826,6 +826,9 @@ importers:
       eslint:
         specifier: ^10.4.1
         version: 10.4.1(jiti@2.7.0)
+      get-tsconfig:
+        specifier: ^4.14.2
+        version: 4.14.2
       postcss:
         specifier: 'catalog:'
         version: 8.5.25
@@ -7265,6 +7268,9 @@ packages:
 
   get-tsconfig@4.14.0:
     resolution: {integrity: sha512-yTb+8DXzDREzgvYmh6s9vHsSVCHeC0G3PI5bEXNBHtmshPnO+S5O7qgLEOn0I5QvMy6kpZN8K1NKGyilLb93wA==}
+
+  get-tsconfig@4.14.2:
+    resolution: {integrity: sha512-XpwZALwwl/BaKTAyC6+c5T8y6kCg2jk+XGqOVrKIQmW49pNypYLMRjCUXqa28tQgJlhS2RlzP7sc+Rx7W6qsfw==}
 
   get-tsconfig@5.0.0-beta.4:
     resolution: {integrity: sha512-7nF7C9fIPFEMHgEMEfgIlO9wDdZ8CyHw27rWciFZfHvHDReIiPhsYuzPRXsfvBCqFy1l8RRyyWV7QLM+ZhUJsQ==}
@@ -17269,6 +17275,10 @@ snapshots:
       get-intrinsic: 1.3.0
 
   get-tsconfig@4.14.0:
+    dependencies:
+      resolve-pkg-maps: 1.0.0
+
+  get-tsconfig@4.14.2:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
