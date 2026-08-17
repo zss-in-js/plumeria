@@ -194,13 +194,27 @@ It exports `css.create` definitions to standard `*.module.css` files, points con
 
 Global constructs like `css.createTheme`, `css.keyframes`, and `css.viewTransition` are extracted and appended to `src/styles/global.css` (or `styles/global.css`) as CSS custom properties and standard `@keyframes` rules.
 
+Definitions do not have to sit in the file that uses them. Imports are followed through `tsconfig.json` `paths`, directory `index` files, and filenames carrying a dot, so `css.createStatic` values reached under an alias are inlined into the CSS rather than reported as dynamic. A file that only defines styles is left where it is, exactly as the forward migration leaves the original stylesheet in place, and its consumers are pointed at the generated module instead.
+
+`css.marker` and `css.extended` come across as the custom property and the `@container style()` rule they compile to, and a file holding several `css.create` calls is written to one stylesheet.
+
 Like the forward migration, start with `--dry-run` to inspect what would change. Anything with dynamic semantics that cannot be cleanly converted is reported and left untouched.
 
 ---
 
-## 18.2.18 (Aug 16, 2026)
+## 18.2.19 (Aug 17, 2026)
 
 - Feat: `npx @plumeria/codemod migrate --from plumeria` exports `css.create` definitions to CSS Modules, writes global styles (`createTheme`, `keyframes`, `viewTransition`) to `src/styles/global.css`, and rewrites consumers to use `className`.
+- Fix: import specifiers are resolved through `tsconfig.json` `paths`, directory `index` files, and filenames that carry a dot, so a definition reached under an alias is found instead of reported as dynamic.
+- Feat: `css.createStatic` values imported from another file are inlined into the generated CSS, and the import is removed only when nothing outside the exported styles still reads it.
+- Feat: `css.marker` and `css.extended` are expanded into the custom property and the `@container style()` rule they compile to.
+- Feat: several `css.create` calls in one file are written to one stylesheet, renaming a key an earlier call already claimed and repointing its usages.
+- Feat: a file that only defines styles is left untouched and its consumers are pointed at the generated `*.module.css`, matching how `--from css-modules` leaves the original stylesheet in place.
+
+## 18.2.18 (Aug 16, 2026)
+
+- Update: groundwork for `npx @plumeria/codemod migrate --from plumeria`.
+Note: the command is usable from 18.2.19.
 
 ## 18.2.17 (Aug 16, 2026)
 
