@@ -38,6 +38,7 @@
   "dependencies": {
     "@typescript-eslint/parser": "^8.60.0",
     "eslint": "^10.4.1",
+    "get-tsconfig": "^4.14.2",
     "postcss": "catalog:",
     "postcss-selector-parser": "^7.1.1",
     "zss-engine": "catalog:"
