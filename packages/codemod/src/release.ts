@@ -5,9 +5,11 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { parse } from '@typescript-eslint/parser';
+import { resolveSourcePath } from './resolve';
 import {
   convertPlumeriaModule,
   extractPlumeriaAnimations,
+  extractPlumeriaStatics,
   extractPlumeriaThemes,
 } from './transforms/from-plumeria';
 import type { PlumeriaReport } from './transforms/from-plumeria';
@@ -25,6 +27,7 @@ export interface ReleasePlan {
   modules: Record<string, ReleaseModule>;
   themes: Record<string, string[]>;
   animations: Record<string, string[]>;
+  statics: Record<string, string[]>;
   global?: { target: string; css: string };
 }
 
@@ -62,7 +65,7 @@ const findSources = (targets: string[]): string[] => {
 };
 
 export const releasedPath = (source: string): string =>
-  source.replace(/\.[^.]+$/, '.module.css');
+  source.replace(/(?:\.styles)?\.[^.]+$/, '.module.css');
 
 const globalPath = (targets: string[]): string => {
   const first = path.resolve(targets[0]);
@@ -85,6 +88,7 @@ export function planRelease(targets: string[]): ReleasePlan {
   const modules: Record<string, ReleaseModule> = {};
   const themes: Record<string, string[]> = {};
   const animations: Record<string, string[]> = {};
+  const statics: Record<string, string[]> = {};
   const globalRules: string[] = [];
   const sources = findSources(targets);
   const sourceText = new Map(
@@ -92,6 +96,22 @@ export function planRelease(targets: string[]): ReleasePlan {
   );
   const themeValues = new Map<string, Record<string, Record<string, string>>>();
   const animationValues = new Map<string, Record<string, string>>();
+  const staticValues = new Map<
+    string,
+    Record<string, Record<string, unknown>>
+  >();
+
+  for (const source of sources) {
+    try {
+      const extracted = extractPlumeriaStatics(
+        sourceText.get(source) as string,
+      );
+      if (Object.keys(extracted.bindings).length > 0)
+        staticValues.set(source, extracted.bindings);
+    } catch {
+      // A later pass reports definitions that cannot be resolved.
+    }
+  }
 
   for (const source of sources) {
     try {
@@ -120,18 +140,6 @@ export function planRelease(targets: string[]): ReleasePlan {
     }
   }
 
-  const sourceForImport = (
-    owner: string,
-    specifier: string,
-    candidates: Iterable<string>,
-  ) => {
-    const resolved = path.resolve(path.dirname(owner), specifier);
-    const stem = resolved.replace(/\.[^.]+$/, '');
-    return [...candidates].find(
-      (candidate) => candidate.replace(/\.[^.]+$/, '') === stem,
-    );
-  };
-
   const importedValues = (
     source: string,
     availableBySource: Map<string, Record<string, any>>,
@@ -144,17 +152,13 @@ export function planRelease(targets: string[]): ReleasePlan {
     for (const node of ast.body) {
       if (
         node.type !== 'ImportDeclaration' ||
-        typeof node.source.value !== 'string' ||
-        !node.source.value.startsWith('.')
+        typeof node.source.value !== 'string'
       )
         continue;
-      const target = sourceForImport(
-        source,
-        node.source.value,
-        availableBySource.keys(),
-      );
+      const target = resolveSourcePath(node.source.value, source);
       if (!target) continue;
-      const available = availableBySource.get(target) as Record<string, any>;
+      const available = availableBySource.get(target);
+      if (!available) continue;
       for (const specifier of node.specifiers) {
         if (specifier.type === 'ImportSpecifier') {
           const imported = specifier.imported.name ?? specifier.imported.value;
@@ -168,24 +172,38 @@ export function planRelease(targets: string[]): ReleasePlan {
     return result;
   };
 
-  const importedThemes = (source: string) =>
-    importedValues(source, themeValues);
-  const importedAnimations = (source: string) =>
-    importedValues(source, animationValues);
   const importedPlumeriaValues = (source: string): Record<string, unknown> => {
-    const merged: Record<string, unknown> = { ...importedThemes(source) };
-    for (const [key, value] of Object.entries(importedAnimations(source))) {
-      const previous = merged[key];
-      merged[key] =
-        previous &&
-        typeof previous === 'object' &&
-        value &&
-        typeof value === 'object'
-          ? { ...previous, ...value }
-          : value;
+    const merged: Record<string, unknown> = {};
+    for (const table of [staticValues, themeValues, animationValues]) {
+      for (const [key, value] of Object.entries(
+        importedValues(source, table),
+      )) {
+        const previous = merged[key];
+        merged[key] =
+          previous &&
+          typeof previous === 'object' &&
+          value &&
+          typeof value === 'object'
+            ? { ...previous, ...value }
+            : value;
+      }
     }
     return merged;
   };
+
+  for (const source of sources) {
+    try {
+      const extracted = extractPlumeriaStatics(
+        sourceText.get(source) as string,
+        importedPlumeriaValues(source),
+      );
+      if (Object.keys(extracted.bindings).length === 0) continue;
+      staticValues.set(source, extracted.bindings);
+      statics[source] = Object.keys(extracted.bindings);
+    } catch {
+      // The converter reports parse failures through the source rewrite pass.
+    }
+  }
 
   for (const source of sources) {
     try {
@@ -239,7 +257,12 @@ export function planRelease(targets: string[]): ReleasePlan {
     if (reports.length === 0) {
       modules[source] = {
         source: specifier,
+        target,
         binding: converted.binding,
+        ...(converted.definitionOnly ? { definitionOnly: true } : {}),
+        ...(Object.keys(converted.aliases).length > 0
+          ? { aliases: converted.aliases }
+          : {}),
         ...(Object.keys(converted.functions).length > 0
           ? { functions: converted.functions }
           : {}),
@@ -252,6 +275,7 @@ export function planRelease(targets: string[]): ReleasePlan {
     modules,
     themes,
     animations,
+    statics,
     global:
       globalRules.length > 0
         ? {
