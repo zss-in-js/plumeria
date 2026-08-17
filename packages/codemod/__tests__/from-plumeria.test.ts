@@ -268,12 +268,13 @@ describe('convertPlumeriaModule', () => {
     expect(result?.reports.map((report) => report.kind)).toEqual([
       'dynamic-create-static',
       'dynamic-create',
-      'multiple-create',
       'dynamic-style-key',
       'dynamic-style',
       'dynamic-key',
       'dynamic-value',
     ]);
+    expect(result?.aliases).toEqual({ third: { other: 'other' } });
+    expect(result?.css).toContain('.other {\n  color: blue;\n}');
   });
 
   it('rejects computed objects, booleans, templates, and unresolved paths', () => {
