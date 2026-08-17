@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { RuleTester } from 'eslint';
 import * as tsParser from '@typescript-eslint/parser';
 import { __private, releaseStyles } from '../src/transforms/release-styles';
@@ -57,7 +60,22 @@ const tester = new RuleTester({
   },
 });
 
-const filename = '/project/Card.tsx';
+const PROJECT = fs.realpathSync(
+  fs.mkdtempSync(path.join(os.tmpdir(), 'release-styles-')),
+);
+const sourceFile = (name: string): string => {
+  const file = path.join(PROJECT, name);
+  fs.writeFileSync(file, '', 'utf8');
+  return file;
+};
+
+const filename = sourceFile('Card.tsx');
+const OTHER = sourceFile('Other.tsx');
+const CONSUMER = sourceFile('Consumer.tsx');
+const THEME = sourceFile('theme.ts');
+const ANIMATION = sourceFile('animation.ts');
+
+afterAll(() => fs.rmSync(PROJECT, { recursive: true, force: true }));
 const options = [
   {
     modules: {
@@ -73,7 +91,7 @@ tester.run('release-styles', releaseStyles, {
     { code: `import value from './local';`, options: [{ modules: {} }] },
     { filename, code: `<div className={styles.card} />;`, options },
     {
-      filename: '/project/Other.tsx',
+      filename: OTHER,
       code: `<div classStyle={styles.card} />;`,
       options,
     },
@@ -144,7 +162,7 @@ const { card } = styles;
           modules: {
             [filename]: { source: './Card.module.css', binding: 'styles' },
           },
-          themes: { '/project/theme.ts': ['theme'] },
+          themes: { [THEME]: ['theme'] },
         },
       ],
       output: `import { helper } from './theme';\n<div className={styles.card} data-value={helper} />;`,
@@ -158,7 +176,7 @@ const { card } = styles;
           modules: {
             [filename]: { source: './Card.module.css', binding: 'styles' },
           },
-          themes: { '/project/theme.ts': ['theme-token'] },
+          themes: { [THEME]: ['theme-token'] },
         },
       ],
       output: `\n<div className={styles.card} />;`,
@@ -172,7 +190,7 @@ const { card } = styles;
           modules: {
             [filename]: { source: './Card.module.css', binding: 'styles' },
           },
-          animations: { '/project/animation.ts': ['fade'] },
+          animations: { [ANIMATION]: ['fade'] },
         },
       ],
       output: `import { duration } from './animation';\n<div className={styles.card} data-value={duration} />;`,
@@ -186,34 +204,34 @@ const { card } = styles;
       errors: 2,
     },
     {
-      filename: '/project/Consumer.tsx',
+      filename: CONSUMER,
       code: `import { styles as cardStyles } from './Card';\n<div classStyle={cardStyles.card} />;`,
       options,
       output: `import { styles as cardStyles } from './Card';\n<div className={cardStyles.card} />;`,
       errors: 1,
     },
     {
-      filename: '/project/Consumer.tsx',
+      filename: CONSUMER,
       code: `import { 'styles' as cardStyles } from './Card';\n<div classStyle={cardStyles.card} />;`,
       options,
       output: `import { 'styles' as cardStyles } from './Card';\n<div className={cardStyles.card} />;`,
       errors: 1,
     },
     {
-      filename: '/project/Consumer.tsx',
+      filename: CONSUMER,
       code: `import cardStyles from './Card';\n<div classStyle={styles.card} />;`,
       options,
       output: `import cardStyles from './Card';\n<div className={styles.card} />;`,
       errors: 1,
     },
     {
-      filename: '/project/animation.ts',
+      filename: ANIMATION,
       code: `import * as css from '@plumeria/core';\nexport const fade = css.keyframes({ from: { opacity: 0 } });\nexport const transition = css.viewTransition({ old: { animationName: fade } });`,
       options: [
         {
           modules: {},
           animations: {
-            '/project/animation.ts': ['fade', 'transition'],
+            [ANIMATION]: ['fade', 'transition'],
           },
         },
       ],
@@ -221,12 +239,12 @@ const { card } = styles;
       errors: 3,
     },
     {
-      filename: '/project/animation.ts',
+      filename: ANIMATION,
       code: `import * as css from '@plumeria/core';\nconst fade = css.keyframes({ from: { opacity: 0 } });`,
       options: [
         {
           modules: {},
-          animations: { '/project/animation.ts': ['fade'] },
+          animations: { [ANIMATION]: ['fade'] },
         },
       ],
       output: `\n`,
@@ -240,7 +258,7 @@ const { card } = styles;
           modules: {
             [filename]: { source: './Card.module.css', binding: 'styles' },
           },
-          animations: { '/project/animation.ts': ['fade'] },
+          animations: { [ANIMATION]: ['fade'] },
         },
       ],
       output: `\n<div className={styles.card} />;`,
@@ -254,7 +272,7 @@ const { card } = styles;
           modules: {
             [filename]: { source: './Card.module.css', binding: 'styles' },
           },
-          animations: { '/project/animation.ts': ['fade'] },
+          animations: { [ANIMATION]: ['fade'] },
         },
       ],
       output: `import defaults, { duration as ms } from './animation';\n<div className={styles.card} data-duration={ms} />;`,
@@ -268,7 +286,7 @@ const { card } = styles;
           modules: {
             [filename]: { source: './Card.module.css', binding: 'styles' },
           },
-          animations: { '/project/animation.ts': ['fade'] },
+          animations: { [ANIMATION]: ['fade'] },
         },
       ],
       output: `import defaults from './animation';\n<div className={styles.card} data-default={defaults} />;`,
@@ -282,19 +300,19 @@ const { card } = styles;
           modules: {
             [filename]: { source: './Card.module.css', binding: 'styles' },
           },
-          themes: { '/project/theme.ts': ['theme'] },
+          themes: { [THEME]: ['theme'] },
         },
       ],
       output: `import { helper } from './theme';\n<div className={styles.card} data-value={helper} />;`,
       errors: 2,
     },
     {
-      filename: '/project/theme.ts',
+      filename: THEME,
       code: `import * as css from '@plumeria/core';\nexport const theme = css.createTheme('.dark', { text: { default: 'black', theme: 'white' } });`,
       options: [
         {
           modules: {},
-          themes: { '/project/theme.ts': ['theme'] },
+          themes: { [THEME]: ['theme'] },
         },
       ],
       output: `\n`,
@@ -308,7 +326,7 @@ const { card } = styles;
           modules: {
             [filename]: { source: './Card.module.css', binding: 'styles' },
           },
-          themes: { '/project/theme.ts': ['theme'] },
+          themes: { [THEME]: ['theme'] },
         },
       ],
       output: `\n<div className={styles.card} />;`,
