@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 18.2.19
+
+### Patch Changes
+
+- 69b7897: Bump version to 18.2.19
+- Updated dependencies [69b7897]
+  - @plumeria/utils@18.2.19
+
 ## 18.2.18
 
 ### Patch Changes
