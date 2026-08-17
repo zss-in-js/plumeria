@@ -164,7 +164,7 @@ Sibling combinators, `:global`, and a `composes` that reaches into another file 
 
 ### Moving back: exporting to CSS Modules
 
-Adopting a styling engine should not be a one-way door. The codemod runs in reverse just as mechanically:
+Adopting a styling engine should not be a one-way door. The codemod runs in reverse just as mechanically. On this documentation site — 25 files using themes, keyframes, `marker` / `extended`, aliased imports and several `css.create` calls per file — it exports 15 stylesheets and reports nothing.
 
 ```sh
 npx @plumeria/codemod migrate --from plumeria
@@ -198,7 +198,11 @@ Definitions do not have to sit in the file that uses them. Imports are followed 
 
 `css.marker` and `css.extended` come across as the custom property and the `@container style()` rule they compile to, and a file holding several `css.create` calls is written to one stylesheet.
 
-Like the forward migration, start with `--dry-run` to inspect what would change. Anything with dynamic semantics that cannot be cleanly converted is reported and left untouched.
+Run `eslint --fix` with the recommended config first, then start with `--dry-run` to inspect what would change. Anything with dynamic semantics that cannot be cleanly converted is reported and left untouched.
+
+Plumeria merges composed styles by property name before it emits anything. `classStyle={[styles.a, styles.b]}` resolves `color` once — rightmost wins — and a single declaration reaches the element. A conditional is keyed separately: `color` and `@media (…):color` are two entries that never merge, so the conditional carries `:not(#\#)` and outranks the base declaration whatever order they land in.
+
+The export writes one class per `css.create` key, so the cascade decides instead. Two composed styles setting the same property both reach the element, and the rule written later in the stylesheet wins rather than the one written further right in the array. A conditional against a base declaration falls back to source order for the same reason. Every declaration is exported; the order they were merged in is not, because a stylesheet has no syntax for it.
 
 ---
 
