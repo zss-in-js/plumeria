@@ -24,6 +24,7 @@ export interface ReleaseStylesOptions {
   statics?: Record<string, string[]>;
   values?: Record<string, Record<string, unknown>>;
   complete?: boolean;
+  constants?: Record<string, Record<string, string>>;
   styleProp?: string;
   active?: boolean;
 }
@@ -47,6 +48,20 @@ const isCreate = (node: any): boolean => {
 };
 
 const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
+
+const walk = (node: any, visit: (node: any) => void) => {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const child of node) walk(child, visit);
+    return;
+  }
+  if (typeof node.type !== 'string') return;
+  visit(node);
+  for (const key of Object.keys(node)) {
+    if (key === 'parent' || key === 'loc' || key === 'range') continue;
+    walk(node[key], visit);
+  }
+};
 
 const needsFilter = (node: any): boolean =>
   node.type === 'LogicalExpression' ||
@@ -82,6 +97,7 @@ export const releaseStyles: Rule.RuleModule = {
       use: 'Read the class name straight from the CSS Module.',
       token: 'Inline the value this token resolved to.',
       styleType: 'A released style is a class name.',
+      folded: 'This only named a style key, which the export has resolved.',
       functionStyle:
         'Use the CSS Module class and pass function arguments as custom properties.',
       unsupportedFunctionStyle:
@@ -97,6 +113,7 @@ export const releaseStyles: Rule.RuleModule = {
           statics: { type: 'object' },
           values: { type: 'object' },
           complete: { type: 'boolean' },
+          constants: { type: 'object' },
           styleProp: { type: 'string' },
           active: { type: 'boolean' },
         },
@@ -122,6 +139,9 @@ export const releaseStyles: Rule.RuleModule = {
     const styleProp = raw.styleProp ?? 'classStyle';
     const sourceCode = context.sourceCode;
     const moduleByLocal = new Map<string, ReleaseModule>();
+    // `const myStyles = styles.card` — the local holds a class name once the
+    // module is released, so a call site reading it resolves too.
+    const styleLocals = new Set<string>();
     let active = Boolean(entry || raw.active || raw.complete);
     let coreImport: any;
     let coreLocal: string | undefined;
@@ -187,12 +207,20 @@ export const releaseStyles: Rule.RuleModule = {
     // only safe up to the next statement this pass keeps: ESLint drops fixes
     // whose ranges touch, so two neighbours cannot both claim the break.
     const removeStatement = (fixer: any, node: any) => {
-      const body = sourceCode.ast.body as any[];
+      // Siblings come from whatever block holds the statement, not always the
+      // program: a folded constant sits inside the component that read it.
+      const body = (
+        Array.isArray(node.parent?.body)
+          ? node.parent.body
+          : sourceCode.ast.body
+      ) as any[];
       const next = body.find(
         (statement: any) => statement.range[0] >= node.range[1],
       );
       if (!next)
-        return fixer.removeRange([node.range[0], sourceCode.text.length]);
+        return body === sourceCode.ast.body
+          ? fixer.removeRange([node.range[0], sourceCode.text.length])
+          : fixer.remove(node);
       if (removesStatement(next)) return fixer.remove(node);
       const anchor = importAnchor();
       if (node.range[1] <= anchor && next.range[0] >= anchor)
@@ -355,6 +383,8 @@ export const releaseStyles: Rule.RuleModule = {
         ? moduleByLocal.get(node.object.name)
         : undefined;
 
+    const constants = raw.constants?.[context.filename] ?? {};
+
     const styleKey = (
       node: any,
     ): { module: ReleaseModule; key: string } | undefined => {
@@ -363,7 +393,9 @@ export const releaseStyles: Rule.RuleModule = {
       const written = node.computed
         ? node.property.type === 'Literal'
           ? String(node.property.value)
-          : undefined
+          : node.property.type === 'Identifier'
+            ? constants[node.property.name]
+            : undefined
         : node.property.name;
       if (written === undefined) return undefined;
       const alias = module.aliases?.[node.object.name];
@@ -471,6 +503,8 @@ export const releaseStyles: Rule.RuleModule = {
       }
       if (value.type === 'Literal' && !value.value)
         return sourceCode.getText(value);
+      if (value.type === 'Identifier' && styleLocals.has(value.name))
+        return sourceCode.getText(value);
       return classText(value);
     };
     const declarationsOf = (value: any): string[] => {
@@ -535,6 +569,16 @@ export const releaseStyles: Rule.RuleModule = {
           moduleByLocal.set(local, { ...module, binding: local });
           active = true;
         }
+        walk(program.body, (node: any) => {
+          if (
+            node.type !== 'VariableDeclarator' ||
+            node.id.type !== 'Identifier' ||
+            !styleKey(node.init)
+          )
+            return;
+          styleLocals.add(node.id.name);
+        });
+
         const migrating =
           active || themeBindings.length > 0 || animationBindings.length > 0;
         coreNeeded = keptDefinition || !migrating || survivesCore(program);
@@ -714,6 +758,40 @@ export const releaseStyles: Rule.RuleModule = {
         });
       },
 
+      VariableDeclarator(node: any) {
+        if (
+          !active ||
+          keptDefinition ||
+          node.id.type !== 'Identifier' ||
+          node.init?.type !== 'Literal' ||
+          constants[node.id.name] !== node.init.value ||
+          node.parent.declarations.length !== 1
+        )
+          return;
+        const scope = sourceCode.getScope(node);
+        const variable = scope.variables.find(
+          (candidate) => candidate.name === node.id.name,
+        );
+        if (!variable || variable.references.length === 0) return;
+        const onlyNamesKeys = variable.references.every((reference) => {
+          if (reference.init) return true;
+          const parent = (reference.identifier as any).parent;
+          return (
+            parent?.type === 'MemberExpression' &&
+            parent.computed &&
+            parent.property === reference.identifier &&
+            Boolean(moduleOf(parent))
+          );
+        });
+        if (!onlyNamesKeys) return;
+        const target = node.parent;
+        context.report({
+          node: target,
+          messageId: 'folded',
+          fix: (fixer) => removeStatement(fixer, target),
+        });
+      },
+
       TSTypeReference(node: any) {
         if (!complete || keptDefinition) return;
         const name =
@@ -757,7 +835,9 @@ export const releaseStyles: Rule.RuleModule = {
         const key = node.computed
           ? node.property.type === 'Literal'
             ? String(node.property.value)
-            : undefined
+            : node.property.type === 'Identifier'
+              ? constants[node.property.name]
+              : undefined
           : node.property.name;
         const className = key ? alias[key] : undefined;
         if (!className) return;
