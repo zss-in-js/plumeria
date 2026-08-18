@@ -1,20 +1,27 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const isProduction = process.env.E2E_TARGET === 'production';
-const port = isProduction ? 4001 : 4000;
+// The same site after `migrate --from plumeria`, so the browser can be asked
+// whether the exported CSS still answers the way Plumeria did.
+const isExported = process.env.E2E_TARGET === 'exported';
+const port = isExported ? 4002 : isProduction ? 4001 : 4000;
+const built = isProduction || isExported;
 
 export default defineConfig({
   globalSetup: './test-e2e/global.setup.ts',
   webServer: {
-    command: isProduction
+    command: built
       ? `pnpm build && pnpm next start --port ${port}`
       : `pnpm dev --port ${port}`,
-    cwd: './test-e2e/site',
-    reuseExistingServer: !isProduction,
-    timeout: isProduction ? 180 * 1000 : 60 * 1000,
+    cwd: isExported ? './test-e2e/.migrated' : './test-e2e/site',
+    reuseExistingServer: !built,
+    timeout: built ? 180 * 1000 : 60 * 1000,
     port,
   },
   testDir: './test-e2e',
+  // Only the assertions that read a composed result survive the export: the
+  // rest name Plumeria's own hashes or its dev-server behaviour.
+  ...(isExported ? { testMatch: /composition-order\.test\.ts/ } : {}),
   /* Maximum time one test can run for. */
   timeout: 10 * 1000,
   /* Run tests in files in parallel */
