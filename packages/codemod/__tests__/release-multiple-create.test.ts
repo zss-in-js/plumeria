@@ -73,7 +73,7 @@ describe('several css.create calls in one file', () => {
     const output = rewrite(source, planRelease([dir]));
     expect(output).toContain("import styles from './Button.module.css';");
     expect(output).not.toContain('sizeStyles');
-    expect(output).toContain('className={`${styles.button} ${styles.medium}`}');
+    expect(output).toContain('className={styles.buttonMedium}');
   });
 
   it('renames a key the earlier create already claimed', () => {
@@ -92,9 +92,7 @@ describe('several css.create calls in one file', () => {
     });
 
     const output = rewrite(source, plan);
-    expect(output).toContain(
-      "className={`${styles.base} ${styles['hoverStyles-base']}`}",
-    );
+    expect(output).toContain('className={styles.baseHoverStylesBase}');
   });
 
   it('keeps a function style declared by the second create', () => {
@@ -111,7 +109,9 @@ describe('several css.create calls in one file', () => {
 
     const output = rewrite(source, plan);
     expect(output).toContain('className={styles.size}');
-    expect(output).toContain("style={{ '--size-styles-size-width': width }}");
+    expect(output).toContain(
+      "style={{ ['--size-styles-size-width' as string]: width }}",
+    );
   });
 
   it('treats the file as definition-only when no create is used locally', () => {
