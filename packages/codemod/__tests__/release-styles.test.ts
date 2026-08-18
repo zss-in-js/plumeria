@@ -219,9 +219,9 @@ const { card } = styles;
     },
     {
       filename: CONSUMER,
-      code: `import cardStyles from './Card';\n<div classStyle={styles.card} />;`,
+      code: `import { styles } from './Card';\n<div classStyle={styles.card} />;`,
       options,
-      output: `import cardStyles from './Card';\n<div className={styles.card} />;`,
+      output: `import { styles } from './Card';\n<div className={styles.card} />;`,
       errors: 1,
     },
     {
@@ -336,14 +336,14 @@ const { card } = styles;
       filename,
       code: `import * as css from '@plumeria/core';\nconst unrelated = 1;\nexport const styles = css.create({ card: { color: 'red' } });\n<div classStyle={styles.card} />;`,
       options,
-      output: `\nconst unrelated = 1;\nimport styles from './Card.module.css';\nexport { styles };\n<div className={styles.card} />;`,
+      output: `\nimport styles from './Card.module.css';\nexport { styles };\nconst unrelated = 1;\n<div className={styles.card} />;`,
       errors: 3,
     },
     {
       filename,
       code: `import * as css from '@plumeria/core';\nexport const breakpoints = css.createStatic({ tablet: '(width > 1px)' });\nconst styles = css.create({ card: { [\`@media \${breakpoints.tablet}\`]: { color: 'red' } } });`,
       options,
-      output: `\n\nimport styles from './Card.module.css';`,
+      output: `\n\nconst styles = css.create({ card: { [\`@media \${breakpoints.tablet}\`]: { color: 'red' } } });`,
       errors: 3,
     },
     {
@@ -379,7 +379,7 @@ const { card } = styles;
           },
         },
       ],
-      output: `<div className={styles.size} style={{ '--styles-size-width': width, '--styles-size-color': color }} />;`,
+      output: `<div className={styles.size} style={{ ['--styles-size-width' as string]: width, ['--styles-size-color' as string]: color }} />;`,
       errors: 1,
     },
     {
@@ -401,7 +401,7 @@ const { card } = styles;
           },
         },
       ],
-      output: `<div className={styles.size} style={{ '--styles-size-width': width, '--styles-size-color': color }} />;`,
+      output: `<div className={styles.size} style={{ ['--styles-size-width' as string]: width, ['--styles-size-color' as string]: color }} />;`,
       errors: 1,
     },
     {
@@ -423,7 +423,7 @@ const { card } = styles;
           },
         },
       ],
-      output: `<div className={styles.size} style={{ ...{ display: 'block' }, '--styles-size-width': width, '--styles-size-color': color }} />;`,
+      output: `<div className={styles.size} style={{ ...{ display: 'block' }, ['--styles-size-width' as string]: width, ['--styles-size-color' as string]: color }} />;`,
       errors: 1,
     },
     {
@@ -445,7 +445,7 @@ const { card } = styles;
           },
         },
       ],
-      output: `<div className={\`\${styles.base} \${styles.size}\`} style={{ ...(style), '--styles-size-width': width, '--styles-size-color': color }} />;`,
+      output: `<div className={\`\${styles.base} \${styles.size}\`} style={{ ...(style), ['--styles-size-width' as string]: width, ['--styles-size-color' as string]: color }} />;`,
       errors: 1,
     },
     {
