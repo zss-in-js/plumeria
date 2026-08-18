@@ -194,8 +194,10 @@ under the same condition as the style that has to win:
 ```
 
 Order is only forced where the two classes actually disagree, measured per
-at-rule and per selector. Anything left unsettled is reported as
-`composition-order`.
+at-rule and per selector. Where one property covers another — `padding` against
+`padding-top` — Plumeria settles it by specificity rather than order, so the
+shorthand is written first and the array has no say. Anything left unsettled is
+reported as `composition-order`.
 
 A variant picked with a bracket is resolved to the class its key names, whether
 the constant is declared in the same file or imported, and a constant left
