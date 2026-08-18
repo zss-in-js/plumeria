@@ -72,6 +72,17 @@ describe('import resolution', () => {
       expect(resolveSourcePath('@/theme', importer)).toBe(target);
     });
 
+    it('reads a .js specifier as the TypeScript file beside it', () => {
+      const importer = add(dir, 'src/Card.tsx', '');
+      const target = add(dir, 'src/theme.ts', '');
+      expect(resolveSourcePath('./theme.js', importer)).toBe(target);
+    });
+
+    it('returns nothing when a rewritten extension names no file either', () => {
+      const importer = add(dir, 'src/Card.tsx', '');
+      expect(resolveSourcePath('./missing.js', importer)).toBeNull();
+    });
+
     it('returns nothing when an alias names no file', () => {
       add(dir, 'tsconfig.json', ALIASED);
       const importer = add(dir, 'src/Card.tsx', '');
