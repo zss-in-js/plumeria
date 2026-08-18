@@ -339,6 +339,8 @@ src/Card.tsx
 
 A constraint is only recorded where the two classes actually disagree, measured per at-rule and per selector. `.wide { width }` and `.narrow { @media (…) { width } }` name the same property but never contend — an at-rule declaration already outranks a base one — so they impose no order.
 
+Not every disagreement is the array's to settle. Where one property covers another — `padding` against `padding-top` — Plumeria gives the longhand more specificity, so it wins wherever the two meet and the call site order never enters into it. The export writes the shorthand first instead, inside a rule and between rules alike, which reaches the same answer without the array. Only a partial overlap, `borderColor` against `borderTop`, is left for the call site to decide.
+
 **A composed class.** When two call sites compose the same pair in opposite orders, no declaration order satisfies both. If either call site has no condition in it, it collapses into a class of its own and stops asking.
 
 **An override class.** What is left is a call site whose members are decided at runtime. It carries an extra class holding only the disputed declarations, applied under the same condition as the style that has to win:
