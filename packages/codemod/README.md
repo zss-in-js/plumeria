@@ -134,6 +134,7 @@ export function Card({ width }: { width: number }) {
 /* Card.tsx — after */
 - import * as css from '@plumeria/core';
 + import styles from './Card.module.css';
++ export { styles };
 
 - export const styles = css.create({
 -   base: { fontSize: 12 },
@@ -143,14 +144,13 @@ export function Card({ width }: { width: number }) {
 -   },
 -   size: (width: number) => ({ width }),
 - });
-+ export { styles };
 
   export function Card({ width }: { width: number }) {
 -   return <div classStyle={[styles.base, styles.card, styles.size(width)]} />;
 +   return (
 +     <div
-+       className={`${styles.base} ${styles.card} ${styles.size}`}
-+       style={{ '--styles-size-width': width }}
++       className={[styles.base, styles.card, styles.size].join(' ')}
++       style={{ ['--styles-size-width' as string]: width }}
 +     />
 +   );
   }
@@ -162,14 +162,40 @@ equivalent, so each parameter becomes a CSS custom property named
 values move to the inline `style` prop. If a `style` prop already exists, the
 custom properties are merged into it.
 
-An array on the styling prop is joined into a template literal. When the array
-contains a conditional expression, it uses `.filter(Boolean).join(' ')` instead,
-so the falsy branch drops out at runtime:
+An array with no condition in it collapses into one class that `composes` its
+members, so nothing is duplicated:
 
 ```diff
+- <div classStyle={[styles.base, styles.card]} />
++ <div className={styles.baseCard} />
+```
+
+Otherwise the array is joined as it stands. `filter` is added only when a
+condition can make a member falsy, so that branch drops out at runtime:
+
+```diff
+- <div classStyle={[styles.base, styles.card, styles.size(width)]} />
++ <div className={[styles.base, styles.card, styles.size].join(' ')} style={{ … }} />
+
 - <div classStyle={[styles.base, active && styles.active]} />
 + <div className={[styles.base, active && styles.active].filter(Boolean).join(' ')} />
 ```
+
+`classStyle={[b, a]}` gives `a` the last word, while a stylesheet gives it to
+whichever rule is written later. The export reproduces the array order by
+emitting the classes in an order that satisfies every call site at once. Where
+two call sites compose the same pair in opposite orders, the one that cannot be
+satisfied carries an extra class holding only the disputed declarations, applied
+under the same condition as the style that has to win:
+
+```diff
+- <div classStyle={[styles.raised, flat && styles.surface]} />
++ <div className={[styles.raised, flat && styles.surface, flat && styles.surfaceOverRaised].filter(Boolean).join(' ')} />
+```
+
+Order is only forced where the two classes actually disagree, measured per
+at-rule and per selector. Anything left unsettled is reported as
+`composition-order`.
 
 ### Global styles
 
@@ -195,11 +221,24 @@ src/Card.tsx
 ```
 
 Constructs that cannot be resolved statically — dynamic values, computed keys,
-runtime function calls, object spreads, and multiple `css.create` calls in one
-file — are reported and left in place. A target `*.module.css` that already
-exists is reported as `target-exists` and will not be overwritten.
+runtime function calls, and object spreads — are reported and left in place,
+together with every file whose definitions they still need. A target
+`*.module.css` that already exists is reported as `target-exists` and will not be
+overwritten.
+
+Several `css.create` calls in one file are not reported: they are written to the
+same stylesheet, and a key an earlier call claimed is renamed.
 
 The exit code is 1 while anything remains, so the command composes with a script.
+
+The migration is idempotent — the first run converts, every run after it is a
+fixed point:
+
+```
+f(f(x)) = f(x)
+```
+
+Clear a report and run again, and only the newly resolvable files move.
 
 Start with `-d, --dry-run` to preview the export without writing files:
 
