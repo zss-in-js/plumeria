@@ -258,6 +258,7 @@ export const styles = css.create({ size: (width) => ({ width }) });`,
       size: {
         params: ['width'],
         variables: ['--styles-size-width'],
+        lengths: [true],
       },
     });
   });
