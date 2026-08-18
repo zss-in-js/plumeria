@@ -123,7 +123,7 @@ const danglingClasses = (dir) => {
         literal.includes('${') ? literal : '',
       );
     for (const [, local, specifier] of whole.matchAll(
-      /import\s+(\w+)\s+from\s+'([^']+\.module\.css)'/g,
+      /import\s+(\w+)\s+from\s+['"]([^'"]+\.module\.css)['"]/g,
     )) {
       const sheet = path.resolve(path.dirname(source), specifier);
       const names = fs.existsSync(sheet)
@@ -227,7 +227,9 @@ try {
   // reported and nothing new fails to compile.
   const imported = new Set();
   for (const [name, content] of adopted)
-    for (const [, specifier] of content.matchAll(/'([^']+\.module\.css)'/g))
+    for (const [, specifier] of content.matchAll(
+      /['"`]([^'"`]+\.module\.css)['"`]/g,
+    ))
       imported.add(path.join(path.dirname(name), specifier));
   for (const name of adopted.keys())
     if (name.endsWith('.module.css') && !imported.has(name))
