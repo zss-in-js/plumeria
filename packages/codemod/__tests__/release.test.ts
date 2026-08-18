@@ -429,6 +429,159 @@ const styles = css.create({ card: { color: theme.color } });`,
     expect(planRelease([dir]).modules[source].binding).toBe('styles');
   });
 
+  it('reads past a computed key, an unowned member, and a regex literal', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';
+const styles = css.create({ card: { color: 'red' }, badge: { color: 'blue' } });
+const slug = (name: string) => name.replace(/[^a-z]/g, '');
+const held = data[slug('x')];
+export const Card = () => (
+  <div classStyle={[styles[slug('card')], styles.badge]}>
+    <span classStyle={[styles.card, other.badge]} />
+  </div>
+);`,
+    );
+
+    // A key the call site computes names no class, a member whose object is
+    // not a style binding owns nothing, and a regex literal carries a node the
+    // walk has to step over.
+    const plan = planRelease([dir]);
+    expect(plan.stylesheets[0].reports.map((report) => report.kind)).toContain(
+      'dynamic-style-access',
+    );
+  });
+
+  it('carries a branch into a composition slot', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';
+const styles = css.create({ base: { color: 'red' }, card: { color: 'blue' } });
+export const Card = ({ on }: { on: boolean }) => (
+  <div classStyle={[on && styles.base, styles.card]} />
+);`,
+    );
+
+    expect(planRelease([dir]).stylesheets[0].reports).toEqual([]);
+  });
+
+  it('steps over a default import beside the named constants it reads', () => {
+    fs.writeFileSync(
+      path.join(dir, 'tokens.ts'),
+      `const tokens = { size: 'card' };
+export const size = 'card';
+export default tokens;`,
+    );
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';
+import tokens, { size } from './tokens';
+const styles = css.create({ card: { color: 'red' } });
+export const Card = () => <div classStyle={styles[size]} data-all={tokens} />;`,
+    );
+
+    expect(planRelease([dir]).stylesheets[0].reports).toEqual([]);
+  });
+
+  it('steps over a default import beside the styles it reads', () => {
+    fs.writeFileSync(
+      path.join(dir, 'Card.styles.ts'),
+      `import * as css from '@plumeria/core';
+const all = {};
+export const styles = css.create({ card: { color: 'red' } });
+export default all;`,
+    );
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import all, { styles } from './Card.styles';
+export const Card = () => <div classStyle={styles.card} data-all={all} />;`,
+    );
+
+    expect(planRelease([dir]).stylesheets[0].reports).toEqual([]);
+  });
+
+  it('reads a string-named import of a constant and of a style binding', () => {
+    fs.writeFileSync(
+      path.join(dir, 'keys.ts'),
+      `export const wide = 'card';\n`,
+    );
+    fs.writeFileSync(
+      path.join(dir, 'Card.styles.ts'),
+      `import * as css from '@plumeria/core';\nexport const styles = css.create({ card: { padding: 8 } });`,
+    );
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import { 'wide' as wide } from './keys';
+import { 'styles' as styles } from './Card.styles';
+export const Card = () => <div classStyle={styles[wide]} />;`,
+    );
+
+    // The imported name is a string literal, so it is read from the literal
+    // rather than from an identifier.
+    expect(planRelease([dir]).stylesheets[0].reports).toEqual([]);
+  });
+
+  it('leaves a composition across modules alone when a branch holds a slot', () => {
+    fs.writeFileSync(
+      path.join(dir, 'left.styles.ts'),
+      `import * as css from '@plumeria/core';\nexport const left = css.create({ base: { color: 'red' } });`,
+    );
+    fs.writeFileSync(
+      path.join(dir, 'right.styles.ts'),
+      `import * as css from '@plumeria/core';\nexport const right = css.create({ card: { color: 'blue' } });`,
+    );
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import { left } from './left.styles';
+import { right } from './right.styles';
+export const Card = ({ on }: { on: boolean }) => (
+  <div classStyle={[left.base, on && right.card]} />
+);`,
+    );
+
+    // Folding the pair into one class needs both slots to be plain members.
+    const plan = planRelease([dir]);
+    expect(plan.stylesheets.map((sheet) => sheet.reports)).toEqual([[], []]);
+  });
+
+  it('carries an override into the module a cycle cannot rank', () => {
+    const styles = path.join(dir, 'Card.styles.ts');
+    fs.writeFileSync(
+      styles,
+      `import * as css from '@plumeria/core';
+export const styles = css.create({
+  surface: { padding: 8, color: 'black' },
+  raised: { padding: 16, color: 'white' },
+});`,
+    );
+    fs.writeFileSync(
+      path.join(dir, 'First.tsx'),
+      `import { styles } from './Card.styles';
+export const First = ({ on }: { on: boolean }) => (
+  <div classStyle={[styles.surface, on && styles.raised]} />
+);`,
+    );
+    fs.writeFileSync(
+      path.join(dir, 'Second.tsx'),
+      `import { styles } from './Card.styles';
+export const Second = ({ on }: { on: boolean }) => (
+  <div classStyle={[styles.raised, on && styles.surface]} />
+);`,
+    );
+
+    // Neither order satisfies both call sites, so the module carries the class
+    // that settles the pair locally.
+    expect(
+      Object.values(planRelease([dir]).modules[styles].overrides ?? {}),
+    ).toEqual([{ 1: 'surfaceOverRaised' }]);
+  });
+
   it('formats an absolute source when it equals the reporting cwd', () => {
     const source = path.join(dir, 'Card.ts');
     fs.writeFileSync(
