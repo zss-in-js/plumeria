@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 18.2.21
+
+### Patch Changes
+
+- ad35eaa: Bump version to 18.2.21
+
 ## 18.2.20
 
 ### Patch Changes

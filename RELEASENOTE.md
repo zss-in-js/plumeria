@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.2.21 (Aug 18, 2026)
+
+- Feat: a style read with a key named by a constant — `styles[size]` where `size` is a `const` holding a string, in the same file or imported from another — is resolved to the class it names instead of being reported, and a constant left naming nothing is removed with it.
+
+- Fix: `migrate --from css-modules` writes a restored read with the name the import carries, so a composed array, a `css.use` call, and a local holding a style survive a file whose module was renamed on the way back.
+
 ## 18.2.20 (Aug 18, 2026)
 
 - Fix: `migrate --from plumeria` reproduces the order a `classStyle` array composes in, by ordering the generated rules to satisfy every call site, collapsing an unconditional array into one class that `composes` its members, and giving a call site that still disagrees an override class carrying only the disputed declarations.
