@@ -370,7 +370,12 @@ export function planRelease(targets: string[]): ReleasePlan {
     const held = new Map<string, string>();
     const exported = new Map<string, string>();
     const duplicated = new Set<string>();
+    const seen = new Set<any>();
     const read = (statement: any, isExport: boolean) => {
+      // The walk reaches an exported declaration twice, once through the export
+      // and once on its own, and reading it again would look like a redeclare.
+      if (seen.has(statement)) return;
+      seen.add(statement);
       if (
         statement?.type !== 'VariableDeclaration' ||
         statement.kind !== 'const'
