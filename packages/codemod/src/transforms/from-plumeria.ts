@@ -24,9 +24,28 @@ export interface PlumeriaModule {
   keys: string[];
   functions: Record<string, { params: string[]; variables: string[] }>;
   aliases: Record<string, Record<string, string>>;
+  merges: Record<string, string>;
+  /** Per call-site shape, the class each slot needs to win where it should. */
+  overrides: Record<string, Record<number, string>>;
   definitionOnly: boolean;
   reports: PlumeriaReport[];
 }
+
+/** One `classStyle={[...]}` call site, resolved to keys of a single module. */
+export interface PlumeriaComposition {
+  /** Every element resolves to a plain style, so the call site can collapse. */
+  parts: { binding: string; key: string }[];
+  /** What each element can evaluate to, in array order. */
+  slots: { binding: string; key: string }[][];
+  file: string;
+  line: number;
+  column: number;
+}
+
+/** Compositions are keyed by the class names they compose, so a consumer can
+ * look one up from the same members it already resolved. */
+export const compositionSignature = (classNames: string[]): string =>
+  classNames.join('|');
 
 export interface ThemeExtraction {
   bindings: Record<string, Record<string, string>>;
@@ -50,6 +69,21 @@ export interface AnimationExtraction {
 type StaticValue = string | number | boolean | null;
 
 const toIdent = (value: string): string => value.replace(/[^A-Za-z0-9-]/g, '');
+
+const capitalize = (value: string): string =>
+  `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
+
+// `card` + `base` reads as `styles.cardBase`, not `styles['card-base']`.
+const camelJoin = (names: string[]): string =>
+  names
+    .map((name, index) => {
+      const camel = name
+        .split('-')
+        .map((part, position) => (position === 0 ? part : capitalize(part)))
+        .join('');
+      return index === 0 ? camel : capitalize(camel);
+    })
+    .join('');
 
 const markerVariable = (id: string, pseudo: string): string => {
   const hash = genBase36Hash({ [id]: pseudo }, 1, 8);
@@ -107,6 +141,12 @@ const evaluate = (node: any, values: Map<string, unknown>): unknown => {
       : undefined;
   }
   if (node.type === 'Literal') return node.value as StaticValue;
+  if (node.type === 'UnaryExpression') {
+    if (node.operator !== '-' && node.operator !== '+') return undefined;
+    const operand = evaluate(node.argument, values);
+    if (typeof operand !== 'number') return undefined;
+    return node.operator === '-' ? -operand : operand;
+  }
   if (node.type === 'Identifier') return values.get(node.name);
   if (node.type === 'MemberExpression') {
     const path = memberPath(node);
@@ -445,6 +485,7 @@ export function extractPlumeriaAnimations(
 export function convertPlumeriaModule(
   source: string,
   externalValues: Record<string, unknown> = {},
+  compositions: PlumeriaComposition[] = [],
 ): PlumeriaModule | null {
   const ast = parse(source, {
     sourceType: 'module',
@@ -509,9 +550,33 @@ export function convertPlumeriaModule(
   if (creates.length === 0) return null;
 
   const { binding } = creates[0];
-  const rules: string[] = [];
+  const groups: { name: string; rules: string[] }[] = [];
+  let rules: string[] = [];
+  const openGroup = (name: string) => {
+    rules = [];
+    groups.push({ name, rules });
+  };
   const keys: string[] = [];
   const aliases: Record<string, Record<string, string>> = {};
+  const merges: Record<string, string> = {};
+  const members = new Map<string, { className: string; value: any }>();
+  const footprints = new Map<string, Map<string, Set<string>>>();
+  const track = (className: string) => {
+    const map = new Map<string, Set<string>>();
+    footprints.set(className, map);
+    return { root: `.${className}`, map };
+  };
+  const conflicts = (first: string, second: string): boolean => {
+    const left = footprints.get(first);
+    const right = footprints.get(second);
+    if (!left || !right) return true;
+    for (const [bucket, properties] of left) {
+      const other = right.get(bucket);
+      if (!other) continue;
+      for (const property of properties) if (other.has(property)) return true;
+    }
+    return false;
+  };
   const taken = new Set<string>();
   const functions: Record<string, { params: string[]; variables: string[] }> =
     {};
@@ -525,17 +590,34 @@ export function convertPlumeriaModule(
     return candidate;
   };
 
+  // Where a declaration lands, not just which property it names: Plumeria gives
+  // an at-rule atom a higher specificity than a base one, so two classes only
+  // disagree when they write the same property into the same bucket.
+  const bucketOf = (wrappers: string[], suffix: string): string =>
+    `${wrappers.join('\u0000')}\u0001${suffix}`;
+
+  // The class part of a selector, so a restricted emit measures the same
+  // buckets the footprint recorded even though its class name differs.
+  const selectorRoot = (selector: string): number => {
+    const match = /^\.[A-Za-z0-9_-]+(?::not\(#\\#\))?/.exec(selector);
+    return match ? match[0].length : 0;
+  };
+
   const emit = (
     style: any,
     selector: string,
     wrappers: string[] = [],
     scope: Map<string, unknown> = values,
+    phase: 'both' | 'declarations' | 'nested' = 'both',
+    footprint?: { root: string; map: Map<string, Set<string>> },
+    restrict?: Map<string, Set<string>>,
   ) => {
     if (style?.type !== 'ObjectExpression') {
       report(style, 'dynamic-style', 'Only static style objects are exported.');
       return;
     }
 
+    const restrictRoot = restrict ? selectorRoot(selector) : 0;
     const declarations: string[] = [];
     const nested: { key: string; value: any }[] = [];
     const markers: { pseudo: string; variable: string }[] = [];
@@ -587,6 +669,22 @@ export function convertPlumeriaModule(
         continue;
       }
       const cssProperty = camelToKebabCase(rawKey);
+      if (
+        restrict &&
+        !restrict
+          .get(bucketOf(wrappers, selector.slice(restrictRoot)))
+          ?.has(cssProperty)
+      )
+        continue;
+      if (footprint) {
+        const bucket = bucketOf(
+          wrappers,
+          selector.slice(footprint.root.length),
+        );
+        const held = footprint.map.get(bucket) ?? new Set<string>();
+        held.add(cssProperty);
+        footprint.map.set(bucket, held);
+      }
       declarations.push(
         `  ${cssProperty}: ${applyCssValue(value, cssProperty)};`,
       );
@@ -604,7 +702,8 @@ export function convertPlumeriaModule(
       rules.push(rule);
     };
 
-    pushRule(selector, declarations);
+    if (phase !== 'nested') pushRule(selector, declarations);
+    if (phase === 'declarations') return;
 
     for (const marker of markers) {
       pushRule(`${selector}${marker.pseudo}`, [`  ${marker.variable}: 1;`]);
@@ -612,9 +711,25 @@ export function convertPlumeriaModule(
 
     for (const child of nested) {
       if (child.key.startsWith('@')) {
-        emit(child.value, selector, [...wrappers, child.key], scope);
+        emit(
+          child.value,
+          selector,
+          [...wrappers, child.key],
+          scope,
+          'both',
+          footprint,
+          restrict,
+        );
       } else {
-        emit(child.value, `${selector}${child.key}`, wrappers, scope);
+        emit(
+          child.value,
+          `${selector}${child.key}`,
+          wrappers,
+          scope,
+          'both',
+          footprint,
+          restrict,
+        );
       }
     }
   };
@@ -646,6 +761,7 @@ export function convertPlumeriaModule(
       const className = classNameFor(owner, key);
       taken.add(className);
       if (owner !== binding) alias[key] = className;
+      members.set(`${owner}.${key}`, { className, value: property.value });
 
       if (
         property.value.type === 'ArrowFunctionExpression' ||
@@ -685,23 +801,275 @@ export function convertPlumeriaModule(
         });
         functions[className] = { params, variables };
         keys.push(className);
-        emit(body, `.${className}`, [], scope);
+        openGroup(className);
+        emit(body, `.${className}`, [], scope, 'both', track(className));
         continue;
       }
       keys.push(className);
-      emit(property.value, `.${className}`);
+      openGroup(className);
+      emit(
+        property.value,
+        `.${className}`,
+        [],
+        values,
+        'both',
+        track(className),
+      );
     }
 
     if (owner !== binding) aliases[owner] = alias;
   }
 
+  const resolved = compositions.map((composition) => ({
+    composition,
+    parts: composition.parts.flatMap((part) => {
+      const member = members.get(`${part.binding}.${part.key}`);
+      return member && !functions[member.className] ? [member] : [];
+    }),
+    slots: composition.slots.map((slot) =>
+      slot.flatMap((part) => {
+        const member = members.get(`${part.binding}.${part.key}`);
+        return member ? [member.className] : [];
+      }),
+    ),
+  }));
+  const collapsible = new Set(
+    resolved.filter(
+      (entry) =>
+        entry.composition.parts.length > 1 &&
+        entry.parts.length === entry.composition.parts.length,
+    ),
+  );
+
+  // A call site wins by array order, a stylesheet by declaration order. Where
+  // the two merely disagree the rules can be resorted; only a cycle — two call
+  // sites composing the same pair in opposite orders — has no declaration order
+  // that satisfies both.
+  const position = new Map(groups.map((group, index) => [group.name, index]));
+  const inlined = new Set<(typeof resolved)[number]>();
+
+  const sort = () => {
+    const edges = new Map<string, Set<string>>();
+    const blame = new Map<string, PlumeriaComposition>();
+    for (const entry of resolved) {
+      if (inlined.has(entry)) continue;
+      for (let first = 0; first < entry.slots.length; first++) {
+        for (let second = first + 1; second < entry.slots.length; second++) {
+          for (const before of entry.slots[first]) {
+            for (const after of entry.slots[second]) {
+              if (before === after || !conflicts(before, after)) continue;
+              edges.set(before, (edges.get(before) ?? new Set()).add(after));
+              blame.set(`${before}|${after}`, entry.composition);
+            }
+          }
+        }
+      }
+    }
+    const incoming = new Map(groups.map((group) => [group.name, 0]));
+    for (const [, targets] of edges)
+      for (const target of targets)
+        if (incoming.has(target))
+          incoming.set(target, (incoming.get(target) as number) + 1);
+    const ready = groups
+      .filter((group) => incoming.get(group.name) === 0)
+      .map((group) => group.name);
+    const ordered: string[] = [];
+    while (ready.length > 0) {
+      ready.sort(
+        (a, b) => (position.get(a) as number) - (position.get(b) as number),
+      );
+      const name = ready.shift() as string;
+      ordered.push(name);
+      for (const target of edges.get(name) ?? []) {
+        if (!incoming.has(target)) continue;
+        const remaining = (incoming.get(target) as number) - 1;
+        incoming.set(target, remaining);
+        if (remaining === 0) ready.push(target);
+      }
+    }
+    const stuck = new Set(
+      groups
+        .map((group) => group.name)
+        .filter((name) => !ordered.includes(name)),
+    );
+    return { ordered, stuck, edges, blame };
+  };
+
+  // Inlining a composition drops the order it demanded, so a cycle can be
+  // broken by copying the declarations into the merged class instead.
+  let sorted = sort();
+  while (sorted.stuck.size > 0) {
+    const offender = [...collapsible].find(
+      (entry) =>
+        !inlined.has(entry) &&
+        entry.parts.filter((part) => sorted.stuck.has(part.className)).length >
+          1,
+    );
+    if (!offender) break;
+    inlined.add(offender);
+    sorted = sort();
+  }
+  const order = new Map(
+    [...sorted.ordered, ...sorted.stuck].map((name, index) => [name, index]),
+  );
+  const overrides: Record<string, Record<number, string>> = {};
+  const pending: {
+    signature: string;
+    slot: number;
+    winner: string;
+    losers: string[];
+  }[] = [];
+  for (const entry of resolved) {
+    if (inlined.has(entry)) continue;
+    if (entry.slots.some((slot) => slot.length !== 1)) continue;
+    const names = entry.slots.map((slot) => slot[0]);
+    const signature = compositionSignature(names);
+    if (overrides[signature]) continue;
+    const perSlot: Record<number, string> = {};
+    for (let slot = 1; slot < names.length; slot++) {
+      const losers = names
+        .slice(0, slot)
+        .filter(
+          (earlier) =>
+            earlier !== names[slot] &&
+            conflicts(earlier, names[slot]) &&
+            (order.get(earlier) as number) > (order.get(names[slot]) as number),
+        );
+      if (losers.length === 0) continue;
+      pending.push({ signature, slot, winner: names[slot], losers });
+      perSlot[slot] = '';
+    }
+    if (Object.keys(perSlot).length > 0) overrides[signature] = perSlot;
+  }
+
+  // The call site is generated code, so the pair that cannot agree globally is
+  // settled locally: a class carrying only the disputed declarations, boosted
+  // past both and applied under the same condition as the style that must win.
+  for (const request of pending) {
+    const winner = members.get(
+      [...members.keys()].find(
+        (key) => members.get(key)?.className === request.winner,
+      ) as string,
+    );
+    if (!winner) continue;
+    const disputed = new Map<string, Set<string>>();
+    const mine = footprints.get(request.winner);
+    for (const loser of request.losers) {
+      const theirs = footprints.get(loser);
+      if (!mine || !theirs) continue;
+      for (const [bucket, properties] of mine) {
+        const other = theirs.get(bucket);
+        if (!other) continue;
+        for (const property of properties) {
+          if (!other.has(property)) continue;
+          const held = disputed.get(bucket) ?? new Set<string>();
+          held.add(property);
+          disputed.set(bucket, held);
+        }
+      }
+    }
+    if (disputed.size === 0) continue;
+    const name = classNameFor(
+      binding,
+      camelJoin([request.winner, `over-${request.losers.join('-')}`]),
+    );
+    taken.add(name);
+    openGroup(name);
+    emit(
+      winner.value,
+      `.${name}:not(#\\#)`,
+      [],
+      values,
+      'both',
+      undefined,
+      disputed,
+    );
+    keys.push(name);
+    overrides[request.signature][request.slot] = name;
+  }
+
+  // Whatever the sort and the overrides between them could not settle is
+  // reported rather than emitted wrong.
+  for (const entry of resolved) {
+    if (inlined.has(entry)) continue;
+    const signature =
+      entry.slots.every((slot) => slot.length === 1) &&
+      compositionSignature(entry.slots.map((slot) => slot[0]));
+    let unresolved: [string, string] | undefined;
+    for (let first = 0; first < entry.slots.length && !unresolved; first++) {
+      for (let second = first + 1; second < entry.slots.length; second++) {
+        if (signature && overrides[signature]?.[second]) continue;
+        for (const before of entry.slots[first]) {
+          for (const after of entry.slots[second]) {
+            if (before === after || !conflicts(before, after)) continue;
+            if ((order.get(before) as number) < (order.get(after) as number))
+              continue;
+            unresolved = [before, after];
+          }
+        }
+      }
+    }
+    if (!unresolved) continue;
+    reports.push({
+      line: entry.composition.line,
+      column: entry.composition.column,
+      kind: 'composition-order',
+      hint: `\`${unresolved[1]}\` has to win over \`${unresolved[0]}\` here and lose elsewhere, and this call site cannot carry an override.`,
+    });
+  }
+
+  for (const entry of collapsible) {
+    const signature = compositionSignature(
+      entry.parts.map((part) => part.className),
+    );
+    if (merges[signature]) continue;
+    const merged = classNameFor(
+      binding,
+      camelJoin(entry.parts.map((part) => part.className)),
+    );
+    taken.add(merged);
+    openGroup(merged);
+    if (inlined.has(entry)) {
+      // Declarations first, at-rule blocks after: an at-rule atom outranks a
+      // base atom in Plumeria, and only this order reproduces that in plain CSS.
+      for (const part of entry.parts)
+        emit(part.value, `.${merged}`, [], values, 'declarations');
+      for (const part of entry.parts)
+        emit(part.value, `.${merged}`, [], values, 'nested');
+    } else {
+      // `composes` carries no cascade of its own; the declaration order above
+      // is what decides, and it now agrees with the call site.
+      rules.push(
+        `.${merged} {\n  composes: ${entry.parts
+          .map((part) => part.className)
+          .join(' ')};\n}`,
+      );
+    }
+    keys.push(merged);
+    merges[signature] = merged;
+  }
+
+  const emitted = [
+    ...sorted.ordered,
+    ...[...sorted.stuck],
+    ...groups.slice(position.size).map((group) => group.name),
+  ];
+  const seen = new Set<string>();
+  const css = emitted.flatMap((name) => {
+    if (seen.has(name)) return [];
+    seen.add(name);
+    return groups.find((group) => group.name === name)?.rules ?? [];
+  });
+
   return {
     binding,
-    css: rules.length > 0 ? `${rules.join('\n\n')}\n` : '',
+    css: css.length > 0 ? `${css.join('\n\n')}\n` : '',
     globalCss: `${themes.globalCss}${animations.globalCss}`,
     keys,
     functions,
     aliases,
+    merges,
+    overrides,
     definitionOnly: creates.every(
       (create) => !bindsElsewhere(ast, create.binding, create.declaration.id),
     ),
