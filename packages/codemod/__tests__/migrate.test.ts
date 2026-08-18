@@ -120,3 +120,47 @@ describe('migrate', () => {
     ).toBe(source);
   });
 });
+
+describe('a target that already exists', () => {
+  const OWN = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-codemod-own-'));
+  const HAND_WRITTEN = "export const kept = 'do not lose me';\n";
+
+  beforeAll(() => {
+    fs.writeFileSync(
+      path.join(OWN, 'Card.module.css'),
+      '.card { color: red }\n',
+    );
+    fs.writeFileSync(path.join(OWN, 'Card.styles.ts'), HAND_WRITTEN);
+  });
+
+  afterAll(() => fs.rmSync(OWN, { recursive: true, force: true }));
+
+  it('is reported rather than overwritten', () => {
+    const { stylesheets } = plan([OWN]);
+    expect(stylesheets[0].reports.map((r) => r.kind)).toEqual([
+      'target-exists',
+    ]);
+    expect(stylesheets[0].reports[0].hint).toBe(
+      'Card.styles.ts already exists and was not overwritten.',
+    );
+  });
+
+  it('keeps the stylesheet out of the module map, so no consumer is pointed at it', () => {
+    expect(plan([OWN]).modules).toEqual({});
+  });
+
+  it('leaves the file it would have written alone', () => {
+    write([OWN]);
+    expect(fs.readFileSync(path.join(OWN, 'Card.styles.ts'), 'utf-8')).toBe(
+      HAND_WRITTEN,
+    );
+  });
+
+  it('formats the report without a source of its own', () => {
+    expect(formatReports(plan([OWN]).stylesheets, OWN)).toEqual([
+      'Card.module.css',
+      '  0:0  target-exists',
+      '        Card.styles.ts already exists and was not overwritten.',
+    ]);
+  });
+});
