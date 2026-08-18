@@ -244,6 +244,217 @@ describe('convertPlumeriaModule', () => {
     );
   });
 
+  const CYCLE = `
+      import * as css from '@plumeria/core';
+      const styles = css.create({
+        surface: { padding: 8, color: 'black' },
+        raised: { padding: 16, color: 'white' },
+      });
+    `;
+  const at = (parts: { binding: string; key: string }[], line: number) => ({
+    parts,
+    slots: parts.map((part) => [part]),
+    file: 'C.tsx',
+    line,
+    column: 1,
+  });
+  const conditional = (
+    parts: { binding: string; key: string }[],
+    line: number,
+  ) => ({ ...at(parts, line), parts: [] });
+  const pair = (first: string, second: string) => [
+    { binding: 'styles', key: first },
+    { binding: 'styles', key: second },
+  ];
+
+  it('gives a conditional call site an override where the order inverts', () => {
+    const result = convertPlumeriaModule(CYCLE, {}, [
+      conditional(pair('surface', 'raised'), 1),
+      conditional(pair('raised', 'surface'), 2),
+    ]);
+
+    // No declaration order satisfies both, so the one that loses carries the
+    // disputed declarations at a specificity nothing else reaches.
+    expect(result?.css).toContain('.surfaceOverRaised:not(#\\#)');
+    expect(result?.reports).toEqual([]);
+    expect(Object.values(result?.overrides ?? {})).toEqual([
+      { 1: 'surfaceOverRaised' },
+    ]);
+  });
+
+  it('inlines a composition with no condition to break the same cycle', () => {
+    const result = convertPlumeriaModule(CYCLE, {}, [
+      at(pair('surface', 'raised'), 1),
+      at(pair('raised', 'surface'), 2),
+    ]);
+
+    // A call site that collapses stops asking for an order at all, which is
+    // cheaper than an override.
+    expect(result?.css).not.toContain(':not(#\\#)');
+    expect(Object.values(result?.merges ?? {}).sort()).toEqual([
+      'raisedSurface',
+      'surfaceRaised',
+    ]);
+    expect(result?.reports).toEqual([]);
+  });
+
+  it('reports a cycle no call site can carry an override for', () => {
+    const key = (name: string) => ({ binding: 'styles', key: name });
+    const branch = (first: string, second: string, line: number) => ({
+      parts: [],
+      // A slot deciding between two styles has no single class to boost, so
+      // neither call site can carry the order the other one denies it.
+      slots: [[key(first)], [key(second), key('sunken')]],
+      file: 'C.tsx',
+      line,
+      column: 1,
+    });
+    const result = convertPlumeriaModule(
+      `
+      import * as css from '@plumeria/core';
+      const styles = css.create({
+        surface: { padding: 8, color: 'black' },
+        raised: { padding: 16, color: 'white' },
+        sunken: { padding: 2, color: 'gray' },
+      });
+    `,
+      {},
+      [branch('surface', 'raised', 1), branch('raised', 'surface', 2)],
+    );
+
+    expect(result?.reports.map((report) => report.kind)).toContain(
+      'composition-order',
+    );
+  });
+
+  it('reads a signed number and leaves an operator it cannot fold', () => {
+    const result = convertPlumeriaModule(`
+      import * as css from '@plumeria/core';
+      const styles = css.create({
+        card: { marginTop: -8, zIndex: +1 },
+        edge: { marginLeft: !flag },
+      });
+    `);
+
+    expect(result?.css).toContain('margin-top: -8px');
+    expect(result?.css).toContain('z-index: 1');
+    expect(result?.reports.map((report) => report.kind)).toEqual([
+      'dynamic-value',
+    ]);
+  });
+
+  it('leaves a folding alone when the module it reads does not answer', () => {
+    const folding = (source: string, key: string) => ({
+      signature: `/app/A.module.css#edge|/app/B.module.css#${key}`,
+      parts: [
+        { binding: 'styles', key: 'edge' },
+        { binding: 'other', key, source },
+      ],
+    });
+    const result = convertPlumeriaModule(
+      `
+      import * as css from '@plumeria/core';
+      const styles = css.create({ edge: { paddingTop: 4 } });
+    `,
+      {},
+      [],
+      {
+        target: '/app/A.module.css',
+        foldings: [
+          folding('/app/B.ts', 'box'),
+          folding('/app/missing.ts', 'gone'),
+          folding('/app/C.ts', 'broken'),
+        ],
+        foreign: {
+          // one names a key the module does not hold, one cannot be parsed
+          '/app/B.ts': {
+            text: `
+              import * as css from '@plumeria/core';
+              export const other = css.create({ elsewhere: { color: 'red' } });
+            `,
+            values: {},
+          },
+          '/app/C.ts': { text: 'const broken = (', values: {} },
+        },
+      },
+    );
+
+    expect(result?.merges).toEqual({});
+    expect(result?.css).not.toContain('.edgeBox');
+  });
+
+  it('keeps a definition whose binding is only exported by name', () => {
+    const result = convertPlumeriaModule(`
+      import * as css from '@plumeria/core';
+      const styles = css.create({ card: { color: 'red' } });
+      const key = { styles: 1 };
+      export { styles };
+    `);
+
+    // An export specifier and a property key both name the binding without
+    // reading it, so the file is still nothing but a definition.
+    expect(result?.definitionOnly).toBe(true);
+  });
+
+  it('skips a folding whose module names a binding it does not create', () => {
+    const result = convertPlumeriaModule(
+      `
+      import * as css from '@plumeria/core';
+      const styles = css.create({ edge: { paddingTop: 4 } });
+    `,
+      {},
+      [],
+      {
+        target: '/app/A.module.css',
+        foldings: [
+          {
+            signature: '/app/A.module.css#edge|/app/B.module.css#box',
+            parts: [
+              { binding: 'styles', key: 'edge' },
+              { binding: 'absent', key: 'box', source: '/app/B.ts' },
+            ],
+          },
+        ],
+        foreign: {
+          '/app/B.ts': {
+            text: `
+              import * as css from '@plumeria/core';
+              export const other = css.create({ box: { padding: 40 } });
+              export const absent = 1;
+            `,
+            values: {},
+          },
+        },
+      },
+    );
+
+    expect(result?.merges).toEqual({});
+  });
+
+  it('reads a binding named as a plain property as no use at all', () => {
+    const result = convertPlumeriaModule(`
+      import * as css from '@plumeria/core';
+      const styles = css.create({ card: { color: 'red' } });
+      const held = { styles: 1 };
+      const read = held.styles;
+    `);
+
+    // Neither the key nor the property names the binding itself.
+    expect(result?.definitionOnly).toBe(true);
+  });
+
+  it('leaves an object it cannot read whole as dynamic', () => {
+    const result = convertPlumeriaModule(`
+      import * as css from '@plumeria/core';
+      const size = css.createStatic({ gap: dynamic });
+      const styles = css.create({ card: { color: 'red' } });
+    `);
+
+    expect(result?.reports.map((report) => report.kind)).toEqual([
+      'dynamic-create-static',
+    ]);
+  });
+
   it('turns function style parameters into custom properties', () => {
     const result = convertPlumeriaModule(`
       import * as css from '@plumeria/core';
