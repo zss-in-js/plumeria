@@ -773,7 +773,9 @@ export const releaseStyles: Rule.RuleModule = {
           node.id.type !== 'Identifier' ||
           node.init?.type !== 'Literal' ||
           constants[node.id.name] !== node.init.value ||
-          node.parent.declarations.length !== 1
+          node.parent.declarations.length !== 1 ||
+          // An exported constant is read by files this pass cannot see.
+          node.parent.parent?.type === 'ExportNamedDeclaration'
         )
           return;
         const scope = sourceCode.getScope(node);
