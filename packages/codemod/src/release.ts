@@ -381,6 +381,28 @@ export function planRelease(targets: string[]): ReleasePlan {
           });
       }
     }
+    // A key the call site computes has no class name to resolve to, so the
+    // binding it reads cannot be exported without breaking that read.
+    walk(ast.body, (node: any) => {
+      if (
+        node.type !== 'MemberExpression' ||
+        !node.computed ||
+        node.property.type === 'Literal' ||
+        node.object.type !== 'Identifier'
+      )
+        return;
+      const owner = owners.get(node.object.name);
+      if (!owner) return;
+      note(owner.source, [
+        {
+          line: node.loc.start.line,
+          column: node.loc.start.column + 1,
+          kind: 'dynamic-style-access',
+          hint: `\`${node.object.name}\` is read with a computed key, which has no class name until it runs.`,
+        },
+      ]);
+    });
+
     walk(ast.body, (node: any) => {
       if (
         node.type !== 'JSXAttribute' ||
