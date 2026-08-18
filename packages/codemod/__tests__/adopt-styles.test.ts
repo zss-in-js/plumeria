@@ -177,21 +177,41 @@ describe('rewrites that settle on a later pass', () => {
     );
   });
 
-  it('keeps a conditional that only looks like the pixel guard', () => {
-    expect(
-      settle(
-        `import s from './Card.module.css';\n<div className={s.size} style={{ ['--styles-size-width']: typeof width === 'number' ? \`\${height}px\` : width }} />;`,
-        {
-          './Card.module.css': {
-            source: './Card.styles',
-            names: { size: 'size' },
-            composes: {},
-            functions: { size: ['--styles-size-width'] },
+  it.each([
+    ['a condition of its own', 'wide ? big : width'],
+    ['a loose comparison', "typeof width == 'number' ? `${width}px` : width"],
+    ['no typeof at all', "width === 'number' ? `${width}px` : width"],
+    ['another unary operator', "!width === 'number' ? `${width}px` : width"],
+    ['a computed right side', 'typeof width === kind ? `${width}px` : width'],
+    ['another type name', "typeof width === 'string' ? `${width}px` : width"],
+    ['a plain consequent', "typeof width === 'number' ? '0px' : width"],
+    [
+      'two interpolations',
+      "typeof width === 'number' ? `${width}${unit}` : width",
+    ],
+    ['another unit', "typeof width === 'number' ? `${width}rem` : width"],
+    [
+      'a different variable',
+      "typeof height === 'number' ? `${width}px` : width",
+    ],
+  ])(
+    'keeps a conditional that only looks like the pixel guard: %s',
+    (_, argument) => {
+      expect(
+        settle(
+          `import s from './Card.module.css';\n<div className={s.size} style={{ ['--styles-size-width']: ${argument} }} />;`,
+          {
+            './Card.module.css': {
+              source: './Card.styles',
+              names: { size: 'size' },
+              composes: {},
+              functions: { size: ['--styles-size-width'] },
+            },
           },
-        },
-      ),
-    ).toBe(
-      `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={styles.size(typeof width === 'number' ? \`\${height}px\` : width)} />;`,
-    );
-  });
+        ),
+      ).toBe(
+        `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={styles.size(${argument})} />;`,
+      );
+    },
+  );
 });
