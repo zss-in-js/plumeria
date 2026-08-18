@@ -176,18 +176,18 @@ It exports `css.create` definitions to standard `*.module.css` files, points con
 /* Card.tsx */
 - import * as css from '@plumeria/core';
 + import styles from './Card.module.css';
++ export { styles };
 
 - export const styles = css.create({
 -   card: { padding: 16 },
 -   size: (width: number) => ({ width }),
 - });
-+ export { styles };
 
   export const Card = ({ width }: { width: number }) => (
 -   <div classStyle={[styles.card, styles.size(width)]} />
 +   <div
-+     className={`${styles.card} ${styles.size}`}
-+     style={{ '--styles-size-width': width }}
++     className={[styles.card, styles.size].join(' ')}
++     style={{ ['--styles-size-width' as string]: typeof width === 'number' ? `${width}px` : width }}
 +   />
   );
 ```
@@ -200,9 +200,11 @@ Definitions do not have to sit in the file that uses them. Imports are followed 
 
 Run `eslint --fix` with the recommended config first, then start with `--dry-run` to inspect what would change. Anything with dynamic semantics that cannot be cleanly converted is reported and left untouched.
 
-Plumeria merges composed styles by property name before it emits anything. `classStyle={[styles.a, styles.b]}` resolves `color` once — rightmost wins — and a single declaration reaches the element. A conditional is keyed separately: `color` and `@media (…):color` are two entries that never merge, so the conditional carries `:not(#\#)` and outranks the base declaration whatever order they land in.
+Plumeria merges composed styles by property name before it emits anything. `classStyle={[styles.a, styles.b]}` resolves `color` once — rightmost wins — and a single declaration reaches the element. Not every pair is the array's to settle: where one property covers another, or sits under a condition, rank decides instead. A longhand carries one step more than the shorthand covering it, a declaration under an at-rule one more again, and the array never enters into it.
 
-The export writes one class per `css.create` key, so the cascade decides instead. Two composed styles setting the same property both reach the element, and the rule written later in the stylesheet wins rather than the one written further right in the array. A conditional against a base declaration falls back to source order for the same reason. Every declaration is exported; the order they were merged in is not, because a stylesheet has no syntax for it.
+The export writes one class per `css.create` key, so a stylesheet has to reach those same answers with the two things it has. It orders the rules so that every call site's array order holds at once, writes a shorthand before the longhand narrowing it, and puts a narrower condition after the one it implies. Where two call sites compose the same pair in opposite orders, no order satisfies both: the one left over carries an extra class holding only the disputed declarations. A composition whose members come from separate modules is folded into a single class, because no declaration order reaches across two stylesheets.
+
+Which is a lot of claiming for something a reader cannot see. So CI exports this site and the end-to-end app, exports them a second time and requires nothing to move, adopts them back, and then opens both the Plumeria build and the exported one in a browser to compare what the two pages actually paint.
 
 ---
 
