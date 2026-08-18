@@ -374,6 +374,8 @@ function releaseConfig(
   themes: Record<string, string[]>,
   animations: Record<string, string[]>,
   statics: Record<string, string[]>,
+  values: Record<string, Record<string, unknown>>,
+  complete: boolean,
 ): Linter.Config[] {
   return [
     { ignores: IGNORES },
@@ -390,7 +392,7 @@ function releaseConfig(
       rules: {
         'codemod/release-styles': [
           'error',
-          { modules, themes, animations, statics },
+          { modules, themes, animations, statics, values, complete },
         ],
       },
     },
@@ -413,6 +415,7 @@ async function migrateFromPlumeria(options: MigrateOptions): Promise<number> {
   }
 
   for (const sheet of planned.stylesheets) {
+    if (sheet.reports.length > 0) continue;
     console.log(`  ${relative(sheet.source)}  ->  ${relative(sheet.target)}`);
   }
   if (planned.global) {
@@ -426,6 +429,8 @@ async function migrateFromPlumeria(options: MigrateOptions): Promise<number> {
       planned.themes,
       planned.animations,
       planned.statics,
+      planned.values,
+      planned.complete,
     ),
     errorOnUnmatchedPattern: false,
   };
