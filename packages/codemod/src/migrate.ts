@@ -65,6 +65,24 @@ export function plan(targets: string[]): Plan {
     const converted = convertStylesheet(fs.readFileSync(source, 'utf-8'));
     const target = targetPath(source);
 
+    if (fs.existsSync(target)) {
+      stylesheets.push({
+        source,
+        target,
+        reports: [
+          ...converted.reports,
+          {
+            line: 0,
+            column: 0,
+            kind: 'target-exists',
+            source: '',
+            hint: `${path.basename(target)} already exists and was not overwritten.`,
+          },
+        ],
+      });
+      continue;
+    }
+
     stylesheets.push({ source, target, reports: converted.reports });
     modules[source] = {
       source: `./${path.basename(target, '.ts')}`,
@@ -81,6 +99,7 @@ export function plan(targets: string[]): Plan {
 export function write(targets: string[]): Plan {
   const result = plan(targets);
   for (const sheet of result.stylesheets) {
+    if (!result.modules[sheet.source]) continue;
     const converted = convertStylesheet(fs.readFileSync(sheet.source, 'utf-8'));
     fs.writeFileSync(sheet.target, converted.code, 'utf-8');
   }
@@ -94,7 +113,9 @@ export function formatReports(sheets: Stylesheet[], cwd: string): string[] {
     lines.push(path.relative(cwd, sheet.source) || sheet.source);
     for (const report of sheet.reports) {
       lines.push(
-        `  ${report.line}:${report.column}  ${report.kind}  ${report.source}`,
+        `  ${report.line}:${report.column}  ${report.kind}${
+          report.source ? `  ${report.source}` : ''
+        }`,
       );
       lines.push(`        ${report.hint}`);
     }
