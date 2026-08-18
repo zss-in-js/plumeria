@@ -15,3 +15,4 @@ playwright-report
 AGENTS.md
 CLAUDE.md
 test-e2e/.migrated
+test-e2e/test/exported-parity.test.ts-snapshots
