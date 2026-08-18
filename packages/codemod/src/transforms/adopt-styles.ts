@@ -42,6 +42,7 @@ export const adoptStyles: Rule.RuleModule = {
         'Import the generated styles from "{{source}}" instead of the stylesheet.',
       core: `Add \`import '${CORE}';\` — the compiler collects a file only when it imports the package.`,
       key: 'The generated key for "{{from}}" is "{{to}}".',
+      binding: 'The stylesheet import is now "{{local}}".',
       prop: 'Styles are carried by the "{{prop}}" prop.',
       composes: '"{{key}}" composed other classes; pass them as an array.',
       value: 'A style read as a value goes back through `css.use`.',
@@ -148,8 +149,13 @@ export const adoptStyles: Rule.RuleModule = {
           : !read.computed && read.property.type === 'Identifier'
             ? read.property.name
             : undefined;
-      if (written === undefined) return context.sourceCode.getText(element);
-      const access = `${binding.local}.${binding.entry.names[written] ?? written}`;
+      const access =
+        written === undefined
+          ? `${binding.local}${context.sourceCode.text.slice(
+              read.object.range[1],
+              read.range[1],
+            )}`
+          : `${binding.local}.${binding.entry.names[written] ?? written}`;
       return element.type === 'LogicalExpression'
         ? `${context.sourceCode.getText(element.left)} ${element.operator} ${access}`
         : access;
@@ -360,16 +366,28 @@ export const adoptStyles: Rule.RuleModule = {
             : undefined;
         if (!binding) return;
 
+        const local = binding.local;
         const written =
           node.computed && node.property.type === 'Literal'
             ? String(node.property.value)
             : !node.computed && node.property.type === 'Identifier'
               ? node.property.name
               : null;
-        if (written === null) return;
+        // The key is only known at run time, but the object holding it is the
+        // import this pass renamed, and a read left spelling the old name has
+        // nothing to resolve to.
+        if (written === null) {
+          if (local !== node.object.name)
+            context.report({
+              node: node.object,
+              messageId: 'binding',
+              data: { local },
+              fix: (fixer) => fixer.replaceText(node.object, local),
+            });
+          return;
+        }
 
         const key = binding.entry.names[written] ?? written;
-        const local = binding.local;
 
         // Outside the styling prop the value has to be a class name again, and
         // it has to be spelled with the name the import now carries.
