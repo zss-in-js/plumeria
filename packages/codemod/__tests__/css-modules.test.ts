@@ -129,6 +129,17 @@ describe('convertStylesheet', () => {
     expect(code).toContain('color: tone,');
   });
 
+  it('names one parameter once when two properties read it', () => {
+    const { code, functions } = convertStylesheet(
+      `.size {\n  width: var(--styles-size-span);\n}\n@media (min-width: 600px) {\n  .size {\n    height: var(--styles-size-span);\n  }\n}\n`,
+    );
+
+    expect(functions).toEqual({ size: ['--styles-size-span'] });
+    expect(code).toContain('size: (span: string | number) => ({');
+    expect(code).toContain('width: span,');
+    expect(code).toContain('height: span,');
+  });
+
   it('leaves a var() the sheet declares or a hash names as a value', () => {
     const { code, functions } = convertStylesheet(
       `.root {\n  --styles-root-gap: 4px;\n}\n.size {\n  gap: var(--styles-root-gap);\n  color: var(--x5w827vw-size-tone);\n}\n`,
