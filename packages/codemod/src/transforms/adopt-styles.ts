@@ -121,6 +121,28 @@ export const adoptStyles: Rule.RuleModule = {
       return name?.type === 'JSXIdentifier' && /^[a-z]/.test(String(name.name));
     };
 
+    // The import may already carry a different name than the source text does,
+    // so an element is rebuilt from the binding rather than copied verbatim.
+    const renamedText = (element: any): string => {
+      const read = styleRead(element);
+      const binding =
+        read?.object?.type === 'Identifier'
+          ? bindings.get(read.object.name)
+          : undefined;
+      if (!binding) return context.sourceCode.getText(element);
+      const written =
+        read.computed && read.property.type === 'Literal'
+          ? String(read.property.value)
+          : !read.computed && read.property.type === 'Identifier'
+            ? read.property.name
+            : undefined;
+      if (written === undefined) return context.sourceCode.getText(element);
+      const access = `${binding.local}.${binding.entry.names[written] ?? written}`;
+      return element.type === 'LogicalExpression'
+        ? `${context.sourceCode.getText(element.left)} ${element.operator} ${access}`
+        : access;
+    };
+
     const styleRead = (node: any): any =>
       node?.type === 'LogicalExpression'
         ? styleRead(node.right)
@@ -311,20 +333,6 @@ export const adoptStyles: Rule.RuleModule = {
             : undefined;
         if (!binding) return;
 
-        // Outside the styling prop the value has to be a class name again.
-        if (coreLocal && !stylingPosition(node) && !insideUse(node)) {
-          context.report({
-            node,
-            messageId: 'value',
-            fix: (fixer) =>
-              fixer.replaceText(
-                node,
-                `${coreLocal}.use(${context.sourceCode.getText(node)})`,
-              ),
-          });
-          return;
-        }
-
         const written =
           node.computed && node.property.type === 'Literal'
             ? String(node.property.value)
@@ -335,6 +343,19 @@ export const adoptStyles: Rule.RuleModule = {
 
         const key = binding.entry.names[written] ?? written;
         const local = binding.local;
+
+        // Outside the styling prop the value has to be a class name again, and
+        // it has to be spelled with the name the import now carries.
+        if (coreLocal && !stylingPosition(node) && !insideUse(node)) {
+          context.report({
+            node,
+            messageId: 'value',
+            fix: (fixer) =>
+              fixer.replaceText(node, `${coreLocal}.use(${local}.${key})`),
+          });
+          return;
+        }
+
         if (key === written && local === node.object.name) return;
 
         context.report({
@@ -453,9 +474,7 @@ export const adoptStyles: Rule.RuleModule = {
             )
           )
             return;
-          const list = joined
-            .map((element: any) => context.sourceCode.getText(element))
-            .join(', ');
+          const list = joined.map(renamedText).join(', ');
           // A joined list on a component may have come from `css.use` rather
           // than the styling prop. `className` takes the string either way,
           // while `classStyle` is only carried by an element.
