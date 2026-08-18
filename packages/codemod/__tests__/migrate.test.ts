@@ -45,10 +45,11 @@ describe('migrate', () => {
     expect(targetPath('/a/Card.module.css')).toBe('/a/Card.styles.ts');
   });
 
-  it('builds a module map keyed by the stylesheet file name', () => {
+  it('builds a module map keyed by the stylesheet path', () => {
     const { modules } = plan([DIR]);
-    expect(modules['Card.module.css'].source).toBe('./Card.styles');
-    expect(modules['Card.module.css'].names).toEqual({
+    const key = path.join(DIR, 'src', 'Card.module.css');
+    expect(modules[key].source).toBe('./Card.styles');
+    expect(modules[key].names).toEqual({
       card: 'card',
       title: 'title',
     });
