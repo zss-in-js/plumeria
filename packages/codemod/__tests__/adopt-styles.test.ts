@@ -158,4 +158,40 @@ describe('rewrites that settle on a later pass', () => {
       `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={styles.size(width)} />;`,
     );
   });
+
+  it('drops the pixel guard the export put around a length argument', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<div className={s.size} style={{ ['--styles-size-width']: typeof width === 'number' ? \`\${width}px\` : width }} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { size: 'size' },
+            composes: {},
+            functions: { size: ['--styles-size-width'] },
+          },
+        },
+      ),
+    ).toBe(
+      `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={styles.size(width)} />;`,
+    );
+  });
+
+  it('keeps a conditional that only looks like the pixel guard', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<div className={s.size} style={{ ['--styles-size-width']: typeof width === 'number' ? \`\${height}px\` : width }} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { size: 'size' },
+            composes: {},
+            functions: { size: ['--styles-size-width'] },
+          },
+        },
+      ),
+    ).toBe(
+      `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={styles.size(typeof width === 'number' ? \`\${height}px\` : width)} />;`,
+    );
+  });
 });
