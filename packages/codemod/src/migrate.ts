@@ -66,10 +66,12 @@ export function plan(targets: string[]): Plan {
     const target = targetPath(source);
 
     stylesheets.push({ source, target, reports: converted.reports });
-    modules[path.basename(source)] = {
+    modules[source] = {
       source: `./${path.basename(target, '.ts')}`,
+      target,
       names: converted.names,
       composes: converted.composes,
+      functions: converted.functions,
     };
   }
 
