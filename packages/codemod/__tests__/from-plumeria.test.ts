@@ -264,6 +264,7 @@ describe('convertPlumeriaModule', () => {
     expect(result?.functions.size).toEqual({
       params: ['width'],
       variables: ['--first-size-width'],
+      lengths: [true],
     });
     expect(result?.reports.map((report) => report.kind)).toEqual([
       'dynamic-create-static',
