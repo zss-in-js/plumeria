@@ -23,7 +23,8 @@
     "prettier:report": "prettier --check \"**/*.js\" \"**/*.ts\" \"**/*.tsx\"",
     "lint": "eslint --fix",
     "lint:report": "eslint --max-warnings=0",
-    "changeset:version": "node scripts/update-release-note.js"
+    "changeset:version": "node scripts/update-release-note.js",
+    "codemod:idempotence": "node scripts/codemod-idempotence.js"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
