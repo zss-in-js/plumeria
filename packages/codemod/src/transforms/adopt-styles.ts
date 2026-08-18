@@ -162,6 +162,31 @@ export const adoptStyles: Rule.RuleModule = {
           ? node
           : undefined;
 
+    // The export wraps a length argument in `typeof x === 'number' ? `${x}px` :
+    // x`, which the unit-carrying custom property no longer needs. Left in, the
+    // next export would wrap the guard in another guard.
+    const unguarded = (node: any): any => {
+      if (node?.type !== 'ConditionalExpression') return node;
+      const { test, consequent, alternate } = node;
+      if (
+        test.type !== 'BinaryExpression' ||
+        test.operator !== '===' ||
+        test.left.type !== 'UnaryExpression' ||
+        test.left.operator !== 'typeof' ||
+        test.right.type !== 'Literal' ||
+        test.right.value !== 'number' ||
+        consequent.type !== 'TemplateLiteral' ||
+        consequent.expressions.length !== 1 ||
+        consequent.quasis.at(-1)?.value.raw !== 'px'
+      )
+        return node;
+      const written = context.sourceCode.getText(alternate);
+      return context.sourceCode.getText(test.left.argument) === written &&
+        context.sourceCode.getText(consequent.expressions[0]) === written
+        ? alternate
+        : node;
+    };
+
     // `css.use(a, cond && b)` already carries `b`; a condition in between does
     // not put it back outside the call.
     const insideUse = (node: any): boolean => {
@@ -414,7 +439,7 @@ export const adoptStyles: Rule.RuleModule = {
           for (const variable of variables) consumed.add(named.get(variable));
           return `${binding.local}.${key}(${variables
             .map((variable) =>
-              context.sourceCode.getText(named.get(variable).value),
+              context.sourceCode.getText(unguarded(named.get(variable).value)),
             )
             .join(', ')})`;
         };
