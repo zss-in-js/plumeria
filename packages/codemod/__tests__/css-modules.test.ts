@@ -112,6 +112,33 @@ describe('convertStylesheet', () => {
     ]);
   });
 
+  it('reads a custom property nothing declares back as a function style', () => {
+    const { code, functions } = convertStylesheet(
+      `.size {\n  width: var(--styles-size-width);\n  color: var(--styles-size-tone);\n}\n`,
+    );
+
+    // The variable names the key and the parameter, and the shorthand form is
+    // used where the property and the parameter agree.
+    expect(functions).toEqual({
+      size: ['--styles-size-width', '--styles-size-tone'],
+    });
+    expect(code).toContain(
+      'size: (width: string | number, tone: string | number) => ({',
+    );
+    expect(code).toContain('width,');
+    expect(code).toContain('color: tone,');
+  });
+
+  it('leaves a var() the sheet declares or a hash names as a value', () => {
+    const { code, functions } = convertStylesheet(
+      `.root {\n  --styles-root-gap: 4px;\n}\n.size {\n  gap: var(--styles-root-gap);\n  color: var(--x5w827vw-size-tone);\n}\n`,
+    );
+
+    expect(functions).toEqual({});
+    expect(code).toContain("gap: 'var(--styles-root-gap)'");
+    expect(code).toContain("color: 'var(--x5w827vw-size-tone)'");
+  });
+
   it('ignores non-declaration children in a local rule', () => {
     const { code } = convertStylesheet(
       '.card { color: red; @media (width > 1px) { color: blue } }',
