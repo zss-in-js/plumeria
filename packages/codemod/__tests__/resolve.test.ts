@@ -72,6 +72,12 @@ describe('import resolution', () => {
       expect(resolveSourcePath('@/theme', importer)).toBe(target);
     });
 
+    it('returns nothing when an alias names no file', () => {
+      add(dir, 'tsconfig.json', ALIASED);
+      const importer = add(dir, 'src/Card.tsx', '');
+      expect(resolveSourcePath('@/missing', importer)).toBeNull();
+    });
+
     it('reads a tsconfig that carries comments', () => {
       add(
         dir,
