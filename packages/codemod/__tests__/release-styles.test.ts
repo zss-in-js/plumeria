@@ -348,6 +348,137 @@ const { card } = styles;
     },
     {
       filename,
+      // a branch resolves when both of its sides name a released style
+      code: `<div classStyle={[styles.base, on ? styles.card : styles.badge]} />;`,
+      options,
+      output: `<div className={[styles.base, on ? styles.card : styles.badge].filter(Boolean).join(' ')} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // a local holding a released style is a class name at the call site
+      code: `const held = styles.card;\n<div classStyle={held} />;`,
+      options,
+      output: `const held = styles.card;\n<div className={held} />;`,
+      errors: 1,
+    },
+    {
+      filename,
+      // an existing className keeps its own value and takes the styles beside it
+      code: `<div className={outer} classStyle={styles.card} />;`,
+      options,
+      output: `<div className={[outer, styles.card].filter(Boolean).join(' ')} />;`,
+      errors: 1,
+    },
+    {
+      filename,
+      // a token read after its definition is gone becomes the value it had
+      code: `import { theme } from './theme';\n<div classStyle={styles.card} title={theme.text} />;`,
+      options: [
+        { ...options[0], values: { [THEME]: { theme: { text: 'var(--x)' } } } },
+      ],
+      output: `import { theme } from './theme';\n<div className={styles.card} title={'var(--x)'} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // an animation name is a plain string once it is written globally
+      code: `import { fade } from './animation';\n<div classStyle={styles.card} data-name={fade} />;`,
+      options: [{ ...options[0], values: { [ANIMATION]: { fade: 'kf-abc' } } }],
+      output: `import { fade } from './animation';\n<div className={styles.card} data-name={'kf-abc'} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // a slot the stylesheet cannot rank carries its override alongside it
+      code: `<div classStyle={[styles.base, on && styles.card]} />;`,
+      options: [
+        {
+          modules: {
+            [filename]: {
+              source: './Card.module.css',
+              binding: 'styles',
+              target: path.join(PROJECT, 'Card.module.css'),
+              overrides: { 'base|card': { 1: 'cardOverBase' } },
+            },
+          },
+        },
+      ],
+      output: `<div className={[styles.base, on && styles.card, on && styles.cardOverBase].filter(Boolean).join(' ')} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // a composition the plan folded reads as the one class it became
+      code: `<div classStyle={[styles.base, styles.card]} />;`,
+      options: [
+        {
+          modules: {
+            [filename]: {
+              source: './Card.module.css',
+              binding: 'styles',
+              target: path.join(PROJECT, 'Card.module.css'),
+              merges: {
+                [`${path.join(PROJECT, 'Card.module.css')}#base|${path.join(PROJECT, 'Card.module.css')}#card`]:
+                  'baseCard',
+              },
+            },
+          },
+        },
+      ],
+      output: `<div className={styles.baseCard} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // a folded composition beside a className of its own keeps both
+      code: `<div className={outer} classStyle={[styles.base, styles.card]} />;`,
+      options: [
+        {
+          modules: {
+            [filename]: {
+              source: './Card.module.css',
+              binding: 'styles',
+              target: path.join(PROJECT, 'Card.module.css'),
+              merges: {
+                [`${path.join(PROJECT, 'Card.module.css')}#base|${path.join(PROJECT, 'Card.module.css')}#card`]:
+                  'baseCard',
+              },
+            },
+          },
+        },
+      ],
+      output: `<div className={[outer, styles.baseCard].filter(Boolean).join(' ')} />;`,
+      errors: 1,
+    },
+    {
+      filename,
+      // `css.use` names a class, and after the export it is that class
+      code: `import * as css from '@plumeria/core';\n<Link name={css.use(styles.card)} />;`,
+      options,
+      output: `\n<Link name={styles.card} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // several arguments join, and a condition adds the filter. The import
+      // outlives this pass: a conditional argument reads as a use `css` still
+      // has work for, and the next pass finds the call already rewritten.
+      code: `import * as css from '@plumeria/core';\n<Link name={css.use(styles.base, on && styles.card)} />;`,
+      options,
+      output: `import * as css from '@plumeria/core';\n<Link name={[styles.base, on && styles.card].filter(Boolean).join(' ')} />;`,
+      errors: 1,
+    },
+    {
+      filename,
+      // a constant that only ever named a style key has nothing left to name
+      code: `const size = 'card';\n<div classStyle={[styles.base, styles[size]]} />;`,
+      options: [{ ...options[0], constants: { [filename]: { size: 'card' } } }],
+      output: `<div className={[styles.base, styles.card].join(' ')} />;`,
+      errors: 3,
+    },
+    {
+      filename,
       code: `<div classStyle={[styles.base, styles.card]} />;`,
       options,
       output: "<div className={[styles.base, styles.card].join(' ')} />;",
