@@ -104,13 +104,17 @@ describe('several css.create calls in one file', () => {
     const plan = planRelease([dir]);
     expect(plan.stylesheets[0].reports).toEqual([]);
     expect(plan.modules[source].functions).toEqual({
-      size: { params: ['width'], variables: ['--size-styles-size-width'] },
+      size: {
+        params: ['width'],
+        variables: ['--size-styles-size-width'],
+        lengths: [true],
+      },
     });
 
     const output = rewrite(source, plan);
     expect(output).toContain('className={styles.size}');
     expect(output).toContain(
-      "style={{ ['--size-styles-size-width' as string]: width }}",
+      "style={{ ['--size-styles-size-width' as string]: typeof width === 'number' ? `${width}px` : width }}",
     );
   });
 
