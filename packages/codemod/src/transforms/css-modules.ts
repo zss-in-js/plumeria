@@ -300,7 +300,12 @@ export function convertStylesheet(css: string): Converted {
           );
           return;
         }
-        node.decls.push([toProperty(child.prop), toValue(child.value)]);
+        // A merged class arrives as consecutive rules for one selector, so the
+        // later declaration wins rather than being written a second time.
+        const property = toProperty(child.prop);
+        const held = node.decls.findIndex(([name]) => name === property);
+        if (held !== -1) node.decls.splice(held, 1);
+        node.decls.push([property, toValue(child.value)]);
       });
     }
   });
@@ -346,7 +351,8 @@ export function convertStylesheet(css: string): Converted {
       if (!variables) return `  ${key}: {\n${serialise(node, '    ')}\n  },`;
       const params = variables
         .map(
-          (variable) => `${toKey(variable.split('-').pop() as string)}: string`,
+          (variable) =>
+            `${toKey(variable.split('-').pop() as string)}: string | number`,
         )
         .join(', ');
       return `  ${key}: (${params}) => ({\n${serialise(node, '    ')}\n  }),`;
