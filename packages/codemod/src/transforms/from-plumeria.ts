@@ -649,10 +649,8 @@ export function convertPlumeriaModule(
     return { covered, crossing };
   };
 
-  const conflicts = (first: string, second: string): boolean => {
-    const { covered, crossing } = relate(first, second);
-    return crossing || covered !== undefined;
-  };
+  const crosses = (first: string, second: string): boolean =>
+    relate(first, second).crossing;
   const taken = new Set<string>();
   const functions: Record<string, { params: string[]; variables: string[] }> =
     {};
@@ -940,10 +938,7 @@ export function convertPlumeriaModule(
               const { covered, crossing } = relate(before, after);
               // Rank has already decided a containment, so the call site order
               // says nothing about it — following it would invert the winner.
-              if (covered) {
-                link(covered[0], covered[1]);
-                continue;
-              }
+              if (covered) link(covered[0], covered[1]);
               if (!crossing) continue;
               link(before, after);
               blame.set(`${before}|${after}`, entry.composition);
@@ -1014,12 +1009,14 @@ export function convertPlumeriaModule(
     if (overrides[signature]) continue;
     const perSlot: Record<number, string> = {};
     for (let slot = 1; slot < names.length; slot++) {
+      // Only a crossing can be left unsatisfied: rank answers a containment,
+      // and an override carrying it would undo that answer.
       const losers = names
         .slice(0, slot)
         .filter(
           (earlier) =>
             earlier !== names[slot] &&
-            conflicts(earlier, names[slot]) &&
+            crosses(earlier, names[slot]) &&
             (order.get(earlier) as number) > (order.get(names[slot]) as number),
         );
       if (losers.length === 0) continue;
@@ -1048,7 +1045,13 @@ export function convertPlumeriaModule(
         const other = theirs.get(bucket);
         if (!other) continue;
         for (const property of properties) {
-          if (!other.has(property)) continue;
+          const crossed = [...other].some(
+            (candidate) =>
+              overlaps(property, candidate) &&
+              !covers(property, candidate) &&
+              !covers(candidate, property),
+          );
+          if (!crossed) continue;
           const held = disputed.get(bucket) ?? new Set<string>();
           held.add(property);
           disputed.set(bucket, held);
