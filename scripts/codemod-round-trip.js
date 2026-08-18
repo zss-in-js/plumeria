@@ -43,13 +43,15 @@ const snapshot = (dir) => {
 
 const migrate = (dir, from) => {
   try {
-    execFileSync(process.execPath, [cli, 'migrate', '--from', from, '.'], {
-      cwd: dir,
-      stdio: 'pipe',
-    });
+    return `${execFileSync(
+      process.execPath,
+      [cli, 'migrate', '--from', from, '.'],
+      { cwd: dir, encoding: 'utf8', stdio: 'pipe' },
+    )}`;
   } catch (error) {
     // A run that leaves styles behind exits 1 and still has to be stable.
     if (typeof error.status !== 'number') throw error;
+    return `${error.stdout ?? ''}`;
   }
 };
 
@@ -143,6 +145,17 @@ const danglingClasses = (dir) => {
   return dangling;
 };
 
+// `  12:5  dynamic-value` — the kind a report was filed under.
+const reportKinds = (said) => {
+  const counted = new Map();
+  for (const [, kind] of said.matchAll(/^\s+\d+:\d+\s+([a-z-]+)$/gm))
+    // The stylesheet the first export wrote is still there on a later run, and
+    // leaving it alone is the point rather than a failure.
+    if (kind !== 'target-exists')
+      counted.set(kind, (counted.get(kind) ?? 0) + 1);
+  return counted;
+};
+
 const regressions = (before, after) => {
   const grown = [];
   for (const [error, count] of after)
@@ -167,7 +180,7 @@ try {
   const baseline = typeErrors(work);
 
   // Exported once, the project still has to compile.
-  migrate(work, 'plumeria');
+  const told = reportKinds(migrate(work, 'plumeria'));
   const first = snapshot(work);
   const exported = regressions(baseline, typeErrors(work));
   if (exported.length > 0) fail('the export left errors behind', exported);
@@ -175,26 +188,61 @@ try {
   if (dangling.length > 0)
     fail('the export named classes it did not write', dangling);
 
-  // Exported twice, nothing moves: f(f(x)) = f(x).
+  const drift = (before, after) => {
+    const moved = [];
+    for (const [name, content] of after) {
+      if (!before.has(name)) moved.push(`added: ${name}`);
+      else if (before.get(name) !== content) moved.push(`changed: ${name}`);
+    }
+    for (const name of before.keys())
+      if (!after.has(name)) moved.push(`removed: ${name}`);
+    return moved;
+  };
+
+  // Exported twice, nothing moves. Little is left to export by then, so what
+  // this really asks is that a re-run leaves the first run's output alone.
   migrate(work, 'plumeria');
-  const second = snapshot(work);
-  const drifted = [];
-  for (const [name, content] of second) {
-    if (!first.has(name)) drifted.push(`added: ${name}`);
-    else if (first.get(name) !== content) drifted.push(`changed: ${name}`);
-  }
-  for (const name of first.keys())
-    if (!second.has(name)) drifted.push(`removed: ${name}`);
+  const drifted = drift(first, snapshot(work));
   if (drifted.length > 0) fail('the second migration was not a no-op', drifted);
 
   // Adopted back, it still compiles. The reverse is not asked to reproduce the
   // original source, only to leave a project that builds.
   migrate(work, 'css-modules');
-  const adopted = regressions(baseline, typeErrors(work));
-  if (adopted.length > 0) fail('the round trip left errors behind', adopted);
+  const adopted = snapshot(work);
+  const broken = regressions(baseline, typeErrors(work));
+  if (broken.length > 0) fail('the round trip left errors behind', broken);
+
+  // Adopted twice, nothing moves either. This is the fixed point with something
+  // in it: the pass before it rewrote every call site in the project.
+  migrate(work, 'css-modules');
+  const readopted = drift(adopted, snapshot(work));
+  if (readopted.length > 0)
+    fail('the second adoption was not a no-op', readopted);
+
+  // And what came back can still leave again. The stylesheets the first export
+  // wrote are what someone moving back would delete, and leaving them in place
+  // would only report that they exist. Byte equality with the first export is
+  // not the claim either — a round trip folds constants and names merged
+  // classes, and exporting that reaches further — only that nothing new is
+  // reported and nothing new fails to compile.
+  const imported = new Set();
+  for (const [name, content] of adopted)
+    for (const [, specifier] of content.matchAll(/'([^']+\.module\.css)'/g))
+      imported.add(path.join(path.dirname(name), specifier));
+  for (const name of adopted.keys())
+    if (name.endsWith('.module.css') && !imported.has(name))
+      fs.rmSync(path.join(work, name), { force: true });
+  const unexportable = regressions(
+    told,
+    reportKinds(migrate(work, 'plumeria')),
+  );
+  if (unexportable.length > 0)
+    fail('the adopted project could not be exported again', unexportable);
+  const again = regressions(baseline, typeErrors(work));
+  if (again.length > 0) fail('exporting it again left errors behind', again);
 
   console.log(
-    `\u2714 ${project}: exported, re-exported unchanged, and adopted back across ${first.size} files.`,
+    `\u2714 ${project}: exported, adopted back, and exported again across ${first.size} files.`,
   );
 } finally {
   fs.rmSync(work, { recursive: true, force: true });
