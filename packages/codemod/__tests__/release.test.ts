@@ -416,6 +416,19 @@ const styles = css.create({ card: { color: theme.color } });`,
     expect(planRelease([dir]).stylesheets[0].reports).toEqual([]);
   });
 
+  it('reads a slot that a branch decides between two styles', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ card: { color: 'red' }, badge: { color: 'blue' }, base: { padding: 8 } });\nexport const Card = ({ on }) => (<><div classStyle={[styles.base, on ? styles.card : styles.badge]} /><div classStyle={[styles.base, 'plain']} /></>);`,
+    );
+
+    // Both sides of the branch are members the order has to account for, and
+    // an element that names no style at all resolves to nothing.
+    expect(planRelease([dir]).stylesheets[0].reports).toEqual([]);
+    expect(planRelease([dir]).modules[source].binding).toBe('styles');
+  });
+
   it('formats an absolute source when it equals the reporting cwd', () => {
     const source = path.join(dir, 'Card.ts');
     fs.writeFileSync(
