@@ -65,6 +65,12 @@ const nest = (node: StyleNode, key: string): StyleNode => {
   return child;
 };
 
+// `:not(#\#)` carries no match, only weight — the forward pass adds it so a
+// rule outranks the classes it has to beat. Reading it back as a selector key
+// would turn the boost into a nested rule that matches nothing.
+const isSpecificityBoost = (node: { type: string; toString(): string }) =>
+  node.type === 'pseudo' && /^:not\(#[\\_].*\)$/.test(node.toString());
+
 const atRuleKeys = (rule: Rule): string[] => {
   const keys: string[] = [];
   let parent: Container | undefined = rule.parent as Container | undefined;
@@ -91,7 +97,9 @@ const readSelector = (
   };
 
   selectorParser((root) => {
-    const nodes = root.first.nodes.filter((n) => n.type !== 'string');
+    const nodes = root.first.nodes.filter(
+      (n) => n.type !== 'string' && !isSpecificityBoost(n),
+    );
     const parts: { className?: string; pseudos: string[] }[] = [
       { pseudos: [] },
     ];
