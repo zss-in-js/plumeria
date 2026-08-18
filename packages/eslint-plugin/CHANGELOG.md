@@ -1,3 +1,9 @@
+## 18.2.20
+
+### Patch Changes
+
+- a1c9e4b: Bump version to 18.2.20
+
 ## 18.2.19
 
 ### Patch Changes
