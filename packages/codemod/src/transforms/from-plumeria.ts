@@ -6,6 +6,7 @@ import { parse } from '@typescript-eslint/parser';
 import {
   applyCssValue,
   camelToKebabCase,
+  DIRECT_LONGHANDS,
   genBase36Hash,
   isAtRule,
 } from 'zss-engine';
@@ -67,6 +68,61 @@ export interface AnimationExtraction {
 }
 
 type StaticValue = string | number | boolean | null;
+
+// Plumeria ranks a longhand above the shorthand that covers it by giving its
+// atom more specificity, so which of the two wins never depends on order. A
+// stylesheet has no such rank, and the export has to put it back.
+const DIRECT_SHORTHANDS: Record<string, string[]> = {};
+for (const [shorthand, longhands] of Object.entries(DIRECT_LONGHANDS)) {
+  for (const longhand of longhands as string[]) {
+    if (!DIRECT_SHORTHANDS[longhand]) DIRECT_SHORTHANDS[longhand] = [];
+    DIRECT_SHORTHANDS[longhand].push(shorthand);
+  }
+}
+
+const coverages = new Map<string, Set<string>>();
+const coverageOf = (property: string): Set<string> => {
+  const cached = coverages.get(property);
+  if (cached) return cached;
+  const longhands = (DIRECT_LONGHANDS as Record<string, string[]>)[property];
+  const coverage = longhands
+    ? new Set(longhands.flatMap((longhand) => [...coverageOf(longhand)]))
+    : new Set([property]);
+  coverages.set(property, coverage);
+  return coverage;
+};
+
+const covers = (outer: string, inner: string): boolean => {
+  if (outer === inner) return false;
+  const wide = coverageOf(outer);
+  const narrow = coverageOf(inner);
+  return wide.size > narrow.size && [...narrow].every((leaf) => wide.has(leaf));
+};
+
+const overlaps = (first: string, second: string): boolean => {
+  const left = coverageOf(first);
+  return [...coverageOf(second)].some((leaf) => left.has(leaf));
+};
+
+// Within one rule the same rank applies: the shorthand is written first so the
+// longhand that narrows it still wins.
+const byContainment = (
+  declared: { property: string; text: string }[],
+): string[] => {
+  const ordered: { property: string; text: string }[] = [];
+  const pending = [...declared];
+  while (pending.length > 0) {
+    const index = pending.findIndex(
+      (candidate, position) =>
+        !pending.some(
+          (other, held) =>
+            held !== position && covers(other.property, candidate.property),
+        ),
+    );
+    ordered.push(...pending.splice(index === -1 ? 0 : index, 1));
+  }
+  return ordered.map((entry) => entry.text);
+};
 
 const toIdent = (value: string): string => value.replace(/[^A-Za-z0-9-]/g, '');
 
@@ -566,16 +622,36 @@ export function convertPlumeriaModule(
     footprints.set(className, map);
     return { root: `.${className}`, map };
   };
-  const conflicts = (first: string, second: string): boolean => {
+  // Two classes disagree over a property only inside the same bucket. A
+  // containment is settled by rank whatever the call site says; a crossing is
+  // settled by the order the call site composes them in.
+  const relate = (
+    first: string,
+    second: string,
+  ): { covered?: [string, string]; crossing: boolean } => {
     const left = footprints.get(first);
     const right = footprints.get(second);
-    if (!left || !right) return true;
+    if (!left || !right) return { crossing: true };
+    let covered: [string, string] | undefined;
+    let crossing = false;
     for (const [bucket, properties] of left) {
       const other = right.get(bucket);
       if (!other) continue;
-      for (const property of properties) if (other.has(property)) return true;
+      for (const property of properties) {
+        for (const candidate of other) {
+          if (!overlaps(property, candidate)) continue;
+          if (covers(property, candidate)) covered ??= [first, second];
+          else if (covers(candidate, property)) covered ??= [second, first];
+          else crossing = true;
+        }
+      }
     }
-    return false;
+    return { covered, crossing };
+  };
+
+  const conflicts = (first: string, second: string): boolean => {
+    const { covered, crossing } = relate(first, second);
+    return crossing || covered !== undefined;
   };
   const taken = new Set<string>();
   const functions: Record<string, { params: string[]; variables: string[] }> =
@@ -618,7 +694,7 @@ export function convertPlumeriaModule(
     }
 
     const restrictRoot = restrict ? selectorRoot(selector) : 0;
-    const declarations: string[] = [];
+    const declared: { property: string; text: string }[] = [];
     const nested: { key: string; value: any }[] = [];
     const markers: { pseudo: string; variable: string }[] = [];
     for (const property of style.properties) {
@@ -685,9 +761,10 @@ export function convertPlumeriaModule(
         held.add(cssProperty);
         footprint.map.set(bucket, held);
       }
-      declarations.push(
-        `  ${cssProperty}: ${applyCssValue(value, cssProperty)};`,
-      );
+      declared.push({
+        property: cssProperty,
+        text: `  ${cssProperty}: ${applyCssValue(value, cssProperty)};`,
+      });
     }
 
     const pushRule = (target: string, lines: string[]) => {
@@ -702,7 +779,7 @@ export function convertPlumeriaModule(
       rules.push(rule);
     };
 
-    if (phase !== 'nested') pushRule(selector, declarations);
+    if (phase !== 'nested') pushRule(selector, byContainment(declared));
     if (phase === 'declarations') return;
 
     for (const marker of markers) {
@@ -851,14 +928,24 @@ export function convertPlumeriaModule(
   const sort = () => {
     const edges = new Map<string, Set<string>>();
     const blame = new Map<string, PlumeriaComposition>();
+    const link = (before: string, after: string) =>
+      edges.set(before, (edges.get(before) ?? new Set()).add(after));
     for (const entry of resolved) {
       if (inlined.has(entry)) continue;
       for (let first = 0; first < entry.slots.length; first++) {
         for (let second = first + 1; second < entry.slots.length; second++) {
           for (const before of entry.slots[first]) {
             for (const after of entry.slots[second]) {
-              if (before === after || !conflicts(before, after)) continue;
-              edges.set(before, (edges.get(before) ?? new Set()).add(after));
+              if (before === after) continue;
+              const { covered, crossing } = relate(before, after);
+              // Rank has already decided a containment, so the call site order
+              // says nothing about it — following it would invert the winner.
+              if (covered) {
+                link(covered[0], covered[1]);
+                continue;
+              }
+              if (!crossing) continue;
+              link(before, after);
               blame.set(`${before}|${after}`, entry.composition);
             }
           }
@@ -1001,7 +1088,11 @@ export function convertPlumeriaModule(
         if (signature && overrides[signature]?.[second]) continue;
         for (const before of entry.slots[first]) {
           for (const after of entry.slots[second]) {
-            if (before === after || !conflicts(before, after)) continue;
+            if (before === after) continue;
+            // A containment is answered by rank, so the call site order has no
+            // claim on it and nothing here can be unsatisfied.
+            const { covered, crossing } = relate(before, after);
+            if (covered || !crossing) continue;
             if ((order.get(before) as number) < (order.get(after) as number))
               continue;
             unresolved = [before, after];
