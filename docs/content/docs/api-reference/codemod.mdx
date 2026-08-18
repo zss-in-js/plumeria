@@ -244,6 +244,20 @@ Every `css.create` in a file is written to the same stylesheet, and the later bi
   );
 ```
 
+### A style read by a named key
+
+A variant is often picked with a bracket, not a dot. The key is resolved to the class it names, in the same file or through an import, and a constant left naming nothing is removed with it:
+
+```diff title="Variant.tsx"
+- const size = 'small';
+- const color = 'primary';
+
+- <div classStyle={[styles[size], styles[color]]} />
++ <div className={[styles.small, styles.primary].join(' ')} />
+```
+
+Only a `const` initialised with a string literal is followed, and a name declared twice in one file is left alone rather than guessed at. A key the call site computes at runtime has no class to name, so it is reported as `dynamic-style-access` and its definitions stay in Plumeria.
+
 ### Dynamic function styles
 
 Function styles such as `(width) => ({ width })` are converted into CSS custom properties (e.g. `--<binding>-<key>-<param>`). In JSX, the codemod passes argument values through the inline `style` prop:
