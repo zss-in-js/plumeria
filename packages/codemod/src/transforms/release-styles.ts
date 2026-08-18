@@ -12,7 +12,10 @@ export interface ReleaseModule {
   binding: string;
   definitionOnly?: boolean;
   aliases?: Record<string, Record<string, string>>;
-  functions?: Record<string, { params: string[]; variables: string[] }>;
+  functions?: Record<
+    string,
+    { params: string[]; variables: string[]; lengths?: boolean[] }
+  >;
   merges?: Record<string, string>;
   overrides?: Record<string, Record<number, string>>;
 }
@@ -476,9 +479,14 @@ export const releaseStyles: Rule.RuleModule = {
         className: accessOf(resolved.module, resolved.key),
         // React's CSSProperties has no room for a custom property, and a
         // computed key widens the literal to an index signature.
+        // A bare number has to carry the unit Plumeria would have added to it;
+        // a string is already a length or a keyword and passes through.
         declarations: func.variables.map((variable, index) => {
           const argument = sourceCode.getText(value.arguments[index]);
-          return `['${variable}' as string]: ${argument}`;
+          const written = func.lengths?.[index]
+            ? `typeof ${argument} === 'number' ? \`\${${argument}}px\` : ${argument}`
+            : argument;
+          return `['${variable}' as string]: ${written}`;
         }),
       };
     };
@@ -928,16 +936,18 @@ export const releaseStyles: Rule.RuleModule = {
           });
         };
         // A composition the plan already collapsed reads as one class.
+        // Members may come from several modules; the one that folded them is
+        // the first, and the key names where each of them landed.
         const mergedClass = (elements: any[]): string | undefined => {
           if (elements.length < 2) return undefined;
           const resolved = elements.map(styleKey);
-          if (resolved.some((part) => !part)) return undefined;
-          const module = resolved[0]!.module;
-          if (resolved.some((part) => part!.module !== module))
-            return undefined;
-          const name =
-            module.merges?.[resolved.map((part) => part!.key).join('|')];
-          return name ? accessOf(module, name) : undefined;
+          if (resolved.some((part) => !part?.module.target)) return undefined;
+          const host = resolved[0]!.module;
+          const signature = resolved
+            .map((part) => `${part!.module.target}#${part!.key}`)
+            .join('|');
+          const name = host.merges?.[signature];
+          return name ? accessOf(host, name) : undefined;
         };
         const replaceWithFunctionStyle = (
           className: string,
