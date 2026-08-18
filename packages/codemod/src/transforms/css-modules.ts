@@ -18,10 +18,17 @@ export interface Converted {
   code: string;
   names: Record<string, string>;
   composes: Record<string, string[]>;
+  /** Keys that read custom properties nothing declares — a function style. */
+  functions: Record<string, string[]>;
   reports: Report[];
 }
 
-type Value = string | number;
+/** A parameter reference, written without quotes. */
+interface Raw {
+  raw: string;
+}
+
+type Value = string | number | Raw;
 
 interface StyleNode {
   decls: [string, Value][];
@@ -190,9 +197,17 @@ const serialise = (node: StyleNode, indent: string): string => {
   for (const marker of node.markers) lines.push(`${indent}...${marker},`);
   for (const [prop, value] of node.decls) {
     const key = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(prop) ? prop : `'${prop}'`;
-    lines.push(
-      `${indent}${key}: ${typeof value === 'number' ? value : `'${value}'`},`,
-    );
+    if (typeof value === 'object' && value.raw === prop) {
+      lines.push(`${indent}${prop},`);
+      continue;
+    }
+    const written =
+      typeof value === 'number'
+        ? value
+        : typeof value === 'object'
+          ? value.raw
+          : `'${value}'`;
+    lines.push(`${indent}${key}: ${written},`);
   }
   for (const [key, child] of node.nested) {
     const written = key.startsWith('css.extended(') ? `[${key}]` : `'${key}'`;
@@ -290,8 +305,52 @@ export function convertStylesheet(css: string): Converted {
     }
   });
 
+  // A `var()` nothing in the sheet declares came from a function style key,
+  // where the argument arrives through the inline `style` prop.
+  const declared = new Set<string>();
+  root.walkDecls((decl) => {
+    if (decl.prop.startsWith('--')) declared.add(decl.prop);
+  });
+
+  const functions: Record<string, string[]> = {};
+  const VARIABLE = /^var\((--[A-Za-z0-9_-]+)\)$/;
+  // A generated hash leads every theme, marker, and animation variable. Those
+  // are declared in the global stylesheet, so their absence here means nothing.
+  const HASHED = /^x[0-9a-z]{7}$/;
+  const kebab = (name: string): string =>
+    name.replace(/([A-Z])/g, '-$1').toLowerCase();
+  const parameterise = (node: StyleNode, key: string, variables: string[]) => {
+    const owned = new RegExp(`^--[A-Za-z0-9_-]+-${kebab(key)}-([a-z0-9-]+)$`);
+    node.decls = node.decls.map(([prop, value]) => {
+      const match =
+        typeof value === 'string' ? VARIABLE.exec(value.trim()) : null;
+      const variable = match?.[1];
+      if (!variable || declared.has(variable)) return [prop, value];
+      const parameter = owned.exec(variable)?.[1];
+      if (!parameter || HASHED.test(variable.slice(2).split('-')[0]))
+        return [prop, value];
+      if (!variables.includes(variable)) variables.push(variable);
+      return [prop, { raw: toKey(parameter) }];
+    });
+    for (const [, child] of node.nested) parameterise(child, key, variables);
+  };
+  for (const [key, node] of keys) {
+    const variables: string[] = [];
+    parameterise(node, key, variables);
+    if (variables.length > 0) functions[key] = variables;
+  }
+
   const body = [...keys.entries()]
-    .map(([key, node]) => `  ${key}: {\n${serialise(node, '    ')}\n  },`)
+    .map(([key, node]) => {
+      const variables = functions[key];
+      if (!variables) return `  ${key}: {\n${serialise(node, '    ')}\n  },`;
+      const params = variables
+        .map(
+          (variable) => `${toKey(variable.split('-').pop() as string)}: string`,
+        )
+        .join(', ');
+      return `  ${key}: (${params}) => ({\n${serialise(node, '    ')}\n  }),`;
+    })
     .join('\n');
 
   const code = `import * as css from '@plumeria/core';
@@ -301,5 +360,5 @@ ${body}
 });
 `;
 
-  return { code, names, composes, reports };
+  return { code, names, composes, functions, reports };
 }
