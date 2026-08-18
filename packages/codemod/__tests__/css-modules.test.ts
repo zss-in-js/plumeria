@@ -149,6 +149,7 @@ describe('convertStylesheet', () => {
     const rules = [rule('.card-title'), rule('.cardTitle'), rule('.orphan')];
     const parse = jest.spyOn(postcss, 'parse').mockReturnValue({
       walkRules: (visit: (item: unknown) => void) => rules.forEach(visit),
+      walkDecls: () => undefined,
     } as never);
     const originalMatch = String.prototype.match;
     const match = jest
