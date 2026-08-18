@@ -310,6 +310,112 @@ const styles = css.create({ card: { color: theme.color } });`,
     expect(planRelease([dir]).stylesheets[0].reports).toEqual([]);
   });
 
+  it('resolves a style key named by a constant, imported or not', () => {
+    fs.writeFileSync(
+      path.join(dir, 'keys.ts'),
+      `export const wide = 'card';\n`,
+    );
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nimport { wide } from './keys';\nconst styles = css.create({ card: { padding: 8 }, badge: { color: 'red' } });\nconst near = 'badge';\nexport const Card = () => (<><div classStyle={styles[wide]} /><div classStyle={styles[near]} /></>);`,
+    );
+
+    const plan = planRelease([dir]);
+    expect(plan.constants[source]).toEqual({ wide: 'card', near: 'badge' });
+    expect(plan.stylesheets[0].reports).toEqual([]);
+  });
+
+  it('reports a style key the call site only knows at runtime', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ card: { padding: 8 } });\nexport const Card = ({ key }) => <div classStyle={styles[key]} />;`,
+    );
+
+    expect(
+      planRelease([dir]).stylesheets[0].reports.map((report) => report.kind),
+    ).toEqual(['dynamic-style-access']);
+  });
+
+  it('folds a composition whose members come from separate modules', () => {
+    const other = path.join(dir, 'Other.tsx');
+    fs.writeFileSync(
+      other,
+      `import * as css from '@plumeria/core';\nexport const other = css.create({ box: { padding: 40 } });`,
+    );
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nimport { other } from './Other';\nconst styles = css.create({ edge: { paddingTop: 4 } });\nexport const Card = () => <div classStyle={[styles.edge, other.box]} />;`,
+    );
+
+    const plan = planRelease([dir]);
+    expect(plan.modules[source].merges).toEqual({
+      [`${releasedPath(source)}#edge|${releasedPath(other)}#box`]: 'edgeBox',
+    });
+    expect(
+      plan.stylesheets.find((sheet) => sheet.source === source)?.css,
+    ).toContain('.edgeBox');
+  });
+
+  it('keeps a definition behind with the file that still needs it', () => {
+    fs.writeFileSync(
+      path.join(dir, 'tokens.ts'),
+      `import * as css from '@plumeria/core';\nexport const tokens = css.createStatic({ gap: '@media (width > 1px)' });`,
+    );
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nimport { tokens } from './tokens';\nconst styles = css.create({ card: { [tokens.gap]: { color: dynamic } } });`,
+    );
+
+    const kinds = planRelease([dir])
+      .stylesheets.flatMap((sheet) => sheet.reports)
+      .map((report) => report.kind);
+    expect(kinds).toContain('dynamic-value');
+    expect(kinds).toContain('blocked-dependency');
+  });
+
+  it('replaces the generated block instead of appending it again', () => {
+    fs.mkdirSync(path.join(dir, 'src', 'styles'), { recursive: true });
+    const source = path.join(dir, 'src', 'theme.ts');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nexport const theme = css.createTheme('.dark', { text: { default: 'black', theme: 'white' } });`,
+    );
+
+    writeRelease(planRelease([dir]));
+    writeRelease(planRelease([dir]));
+    const global = fs.readFileSync(
+      path.join(dir, 'src', 'styles', 'global.css'),
+      'utf8',
+    );
+    expect(global.match(/Generated from css.createTheme/g)).toHaveLength(1);
+  });
+
+  it('leaves a key alone when the name it reads is declared twice', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ card: { padding: 8 } });\nconst pick = 'card';\nexport const Card = () => {\n  const pick = 'badge';\n  return <div classStyle={styles[pick]} />;\n};`,
+    );
+
+    // Two declarations of one name have no single value to fold, so the read
+    // is reported rather than guessed at.
+    expect(planRelease([dir]).constants[source]).toBeUndefined();
+  });
+
+  it('reads a composition written with a branch and a literal key', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ card: { color: 'red' }, badge: { color: 'blue' }, base: { padding: 8 } });\nexport const Card = ({ on }) => <div classStyle={[styles['base'], on ? styles.card : styles.badge]} />;`,
+    );
+
+    expect(planRelease([dir]).stylesheets[0].reports).toEqual([]);
+  });
+
   it('formats an absolute source when it equals the reporting cwd', () => {
     const source = path.join(dir, 'Card.ts');
     fs.writeFileSync(
