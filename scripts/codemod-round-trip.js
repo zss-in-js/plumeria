@@ -145,6 +145,47 @@ const danglingClasses = (dir) => {
   return dangling;
 };
 
+// A report is filed under the stylesheet named on the line above it, so the
+// refusals are read as a pair rather than by counting.
+const refusedSheets = (said) => {
+  const refused = new Set();
+  let sheet;
+  for (const line of said.split('\n')) {
+    if (/^\S/.test(line) && line.endsWith('.module.css')) sheet = line.trim();
+    else if (sheet && /^\s+\d+:\d+\s+target-exists$/.test(line))
+      refused.add(sheet);
+  }
+  return refused;
+};
+
+const strandedConsumers = (dir, refused) => {
+  const stranded = [];
+  const walk = (current) => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      if (SKIP.has(entry.name)) continue;
+      const full = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (!/\.[jt]sx?$/.test(entry.name)) continue;
+      const text = fs.readFileSync(full, 'utf8');
+      for (const [, specifier] of text.matchAll(
+        /import\s+\w+\s+from\s+['"]([^'"]+\.module\.css)['"]/g,
+      )) {
+        const sheet = path.relative(
+          dir,
+          path.resolve(path.dirname(full), specifier),
+        );
+        if (!refused.has(sheet))
+          stranded.push(`${path.relative(dir, full)}: ${specifier}`);
+      }
+    }
+  };
+  walk(dir);
+  return stranded;
+};
+
 // `  12:5  dynamic-value` — the kind a report was filed under.
 const reportKinds = (said) => {
   const counted = new Map();
@@ -207,10 +248,18 @@ try {
 
   // Adopted back, it still compiles. The reverse is not asked to reproduce the
   // original source, only to leave a project that builds.
-  migrate(work, 'css-modules');
+  const back = migrate(work, 'css-modules');
   const adopted = snapshot(work);
   const broken = regressions(baseline, typeErrors(work));
   if (broken.length > 0) fail('the round trip left errors behind', broken);
+
+  // Compiling is not the same as having come back. A consumer still reading a
+  // `*.module.css` has only travelled one way, and the one reason for that the
+  // round trip accepts is a stylesheet the adoption refused to overwrite —
+  // which is what the export leaves behind for a definition-only module.
+  const stranded = strandedConsumers(work, refusedSheets(back));
+  if (stranded.length > 0)
+    fail('the adoption left consumers on CSS Modules', stranded);
 
   // Adopted twice, nothing moves either. This is the fixed point with something
   // in it: the pass before it rewrote every call site in the project.
