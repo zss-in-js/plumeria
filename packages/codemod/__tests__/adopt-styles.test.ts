@@ -1,4 +1,4 @@
-import { RuleTester } from 'eslint';
+import { Linter, RuleTester } from 'eslint';
 import { adoptStyles } from '../src/transforms/adopt-styles';
 
 const tester = new RuleTester({
@@ -45,7 +45,9 @@ tester.run('adopt-styles', adoptStyles, {
     {
       code: `import s from './Card.module.css';\nconst dynamic = s[key];\nconst nested = s.card.value;\n<div x:className={s.card} />;\n<div className={s[key]} />;`,
       options,
-      output: `import '@plumeria/core';\nimport { styles } from './Card.styles';\nconst dynamic = s[key];\nconst nested = styles.card.value;\n<div x:className={styles.card} />;\n<div classStyle={s[key]} />;`,
+      // reading a style outside the styling prop asks for the class name it
+      // used to be, which is what `css.use` returns
+      output: `import * as css from '@plumeria/core';\nimport { styles } from './Card.styles';\nconst dynamic = s[key];\nconst nested = css.use(styles.card).value;\n<div x:className={css.use(styles.card)} />;\n<div classStyle={s[key]} />;`,
       errors: 4,
     },
     {
@@ -83,5 +85,77 @@ tester.run('adopt-styles', adoptStyles, {
       output: `function styles() {}\nimport '@plumeria/core';\nimport { styles as s } from './Card.styles';\n<div sx={s.unknown} />;`,
       errors: 2,
     },
+    {
+      // a joined class list is the array the styling prop takes
+      code: `import s from './Card.module.css';\n<div className={[s.base, s['card-title']].join(' ')} />;`,
+      options,
+      output: `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={[styles.base, styles.cardTitle]} />;`,
+      errors: 5,
+    },
+    {
+      // a condition keeps its place inside the array it is joined from
+      code: `import s from './Card.module.css';\n<div className={[s.base, on && s['card-title']].filter(Boolean).join(' ')} />;`,
+      options,
+      output: `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={[styles.base, on && styles.cardTitle]} />;`,
+      errors: 5,
+    },
+    {
+      // an element carrying a class name of its own keeps it on className
+      code: `import s from './Card.module.css';\n<div className={[props.className, s.base].filter(Boolean).join(' ')} />;`,
+      options,
+      output: `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div className={[props.className].filter(Boolean).join(' ')} classStyle={[styles.base]} />;`,
+      errors: 3,
+    },
+    {
+      // a joined list on a component may have come from `css.use`, and
+      // `className` takes the string it returns either way
+      code: `import s from './Card.module.css';\n<Chevron className={[s.base, s['card-title']].join(' ')} />;`,
+      options,
+      output: `import * as css from '@plumeria/core';\nimport { styles } from './Card.styles';\n<Chevron className={css.use(styles.base, styles.cardTitle)} />;`,
+      errors: 4,
+    },
   ],
+});
+
+// Two rewrites reach their answer on a later pass than the one RuleTester
+// applies: the import has to become the Plumeria form before the call site can
+// be read against it.
+describe('rewrites that settle on a later pass', () => {
+  const settle = (code: string, modules: Record<string, unknown>) =>
+    new Linter().verifyAndFix(code, {
+      languageOptions: {
+        parserOptions: { ecmaFeatures: { jsx: true }, sourceType: 'module' },
+      },
+      plugins: { codemod: { rules: { 'adopt-styles': adoptStyles } } },
+      rules: { 'codemod/adopt-styles': ['error', { modules }] },
+    }).output;
+
+  it('reads a style used as a value back through css.use', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<Link viewTransitionName={s.base} />;`,
+        options[0].modules,
+      ),
+    ).toBe(
+      `import * as css from '@plumeria/core';\nimport { styles } from './Card.styles';\n<Link viewTransitionName={css.use(styles.base)} />;`,
+    );
+  });
+
+  it('reads the custom properties back as function style arguments', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<div className={s.size} style={{ ['--styles-size-width']: width }} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { size: 'size' },
+            composes: {},
+            functions: { size: ['--styles-size-width'] },
+          },
+        },
+      ),
+    ).toBe(
+      `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={styles.size(width)} />;`,
+    );
+  });
 });
