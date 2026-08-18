@@ -1,3 +1,9 @@
+## 18.2.24
+
+### Patch Changes
+
+- e8067fc: Bump version to 18.2.24
+
 ## 18.2.23
 
 ### Patch Changes
