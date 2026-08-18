@@ -47,8 +47,8 @@ tester.run('adopt-styles', adoptStyles, {
       options,
       // reading a style outside the styling prop asks for the class name it
       // used to be, which is what `css.use` returns
-      output: `import * as css from '@plumeria/core';\nimport { styles } from './Card.styles';\nconst dynamic = s[key];\nconst nested = css.use(styles.card).value;\n<div x:className={css.use(styles.card)} />;\n<div classStyle={s[key]} />;`,
-      errors: 4,
+      output: `import * as css from '@plumeria/core';\nimport { styles } from './Card.styles';\nconst dynamic = styles[key];\nconst nested = css.use(styles.card).value;\n<div x:className={css.use(styles.card)} />;\n<div classStyle={styles[key]} />;`,
+      errors: 6,
     },
     {
       // the stylesheet import becomes the generated module, and the core import
@@ -105,6 +105,27 @@ tester.run('adopt-styles', adoptStyles, {
       options,
       output: `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div className={[props.className].filter(Boolean).join(' ')} classStyle={[styles.base]} />;`,
       errors: 3,
+    },
+    {
+      // a template literal is the other shape a composition arrives in
+      code: `import s from './Card.module.css';\n<div className={\`\${s.base} \${s['card-title']}\`} />;`,
+      options,
+      output: `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={[styles.base, styles.cardTitle]} />;`,
+      errors: 5,
+    },
+    {
+      // a key the call site computes has no name in the stylesheet to spell
+      code: `import s from './Card.module.css';\n<div className={[s.base, s[key]].join(' ')} />;`,
+      options,
+      output: `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={[styles.base, styles[key]]} />;`,
+      errors: 5,
+    },
+    {
+      // a name the stylesheet never declared keeps the spelling it was given
+      code: `import s from './Card.module.css';\n<div className={[s.base, s.unknown].join(' ')} />;`,
+      options,
+      output: `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={[styles.base, styles.unknown]} />;`,
+      errors: 5,
     },
     {
       // a joined list on a component may have come from `css.use`, and
