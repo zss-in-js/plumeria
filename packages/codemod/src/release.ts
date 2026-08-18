@@ -35,6 +35,8 @@ export interface ReleasePlan {
   values: Record<string, Record<string, unknown>>;
   /** No file was left behind, so every Plumeria type has become a class name. */
   complete: boolean;
+  /** String constants each file can reach, for a style read with a named key. */
+  constants: Record<string, Record<string, string>>;
   global?: { target: string; css: string };
 }
 
@@ -350,6 +352,54 @@ export function planRelease(targets: string[]): ReleasePlan {
     }
   }
 
+  // `const size = 'small'` reached through `styles[size]`. A name declared more
+  // than once in a file is left alone rather than guessed at.
+  const stringConstants = new Map<string, Map<string, string>>();
+  const exportedConstants = new Map<string, Map<string, string>>();
+  for (const source of sources) {
+    let ast;
+    try {
+      ast = parse(sourceText.get(source) as string, {
+        sourceType: 'module',
+        ecmaFeatures: { jsx: true },
+      }) as any;
+    } catch {
+      continue;
+    }
+    const held = new Map<string, string>();
+    const exported = new Map<string, string>();
+    const duplicated = new Set<string>();
+    const read = (statement: any, isExport: boolean) => {
+      if (
+        statement?.type !== 'VariableDeclaration' ||
+        statement.kind !== 'const'
+      )
+        return;
+      for (const declaration of statement.declarations) {
+        if (
+          declaration.id.type !== 'Identifier' ||
+          declaration.init?.type !== 'Literal' ||
+          typeof declaration.init.value !== 'string'
+        )
+          continue;
+        if (held.has(declaration.id.name)) duplicated.add(declaration.id.name);
+        held.set(declaration.id.name, declaration.init.value);
+        if (isExport) exported.set(declaration.id.name, declaration.init.value);
+      }
+    };
+    walk(ast.body, (node: any) => {
+      if (node.type === 'ExportNamedDeclaration') read(node.declaration, true);
+      else read(node, false);
+    });
+    for (const name of duplicated) {
+      held.delete(name);
+      exported.delete(name);
+    }
+    if (held.size > 0) stringConstants.set(source, held);
+    if (exported.size > 0) exportedConstants.set(source, exported);
+  }
+
+  const resolvedConstants = new Map<string, Map<string, string>>();
   const compositions = new Map<string, PlumeriaComposition[]>();
   for (const source of sources) {
     let ast;
@@ -363,6 +413,21 @@ export function planRelease(targets: string[]): ReleasePlan {
     } catch {
       continue;
     }
+    const constants = new Map(stringConstants.get(source) ?? []);
+    for (const node of ast.body) {
+      if (node.type !== 'ImportDeclaration') continue;
+      const target = resolveSourcePath(String(node.source.value), source);
+      const available = target ? exportedConstants.get(target) : undefined;
+      if (!available) continue;
+      for (const specifier of node.specifiers) {
+        if (specifier.type !== 'ImportSpecifier') continue;
+        const imported = specifier.imported.name ?? specifier.imported.value;
+        const value = available.get(imported);
+        if (value !== undefined) constants.set(specifier.local.name, value);
+      }
+    }
+    if (constants.size > 0) resolvedConstants.set(source, constants);
+
     const owners = new Map<string, { source: string; binding: string }>();
     for (const binding of createBindings.get(source) ?? [])
       owners.set(binding, { source, binding });
@@ -393,6 +458,11 @@ export function planRelease(targets: string[]): ReleasePlan {
         return;
       const owner = owners.get(node.object.name);
       if (!owner) return;
+      if (
+        node.property.type === 'Identifier' &&
+        constants.has(node.property.name)
+      )
+        return;
       note(owner.source, [
         {
           line: node.loc.start.line,
@@ -554,6 +624,12 @@ export function planRelease(targets: string[]): ReleasePlan {
     statics,
     values,
     complete: stylesheets.every((sheet) => sheet.reports.length === 0),
+    constants: Object.fromEntries(
+      [...resolvedConstants].map(([source, held]) => [
+        source,
+        Object.fromEntries(held),
+      ]),
+    ),
     global:
       globalRules.length > 0
         ? {
