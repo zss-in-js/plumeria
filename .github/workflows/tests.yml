@@ -86,6 +86,27 @@ jobs:
           name: coverage-report
           path: coverage/
 
+  codemod-idempotence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+
+      - uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Second migration must be a no-op
+        run: |
+          pnpm codemod:idempotence docs
+          pnpm codemod:idempotence examples/example-vite-react
+
   examples-build:
     runs-on: ubuntu-latest
     steps:
