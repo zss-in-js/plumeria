@@ -3,7 +3,7 @@
  */
 
 import * as path from 'node:path';
-import type { Rule } from 'eslint';
+import type { Rule, Scope } from 'eslint';
 import { resolveSourcePath } from '../resolve';
 
 export interface ReleaseModule {
@@ -101,6 +101,7 @@ export const releaseStyles: Rule.RuleModule = {
       token: 'Inline the value this token resolved to.',
       styleType: 'A released style is a class name.',
       folded: 'This only named a style key, which the export has resolved.',
+      read: 'Read this style by the name the export gave it.',
       functionStyle:
         'Use the CSS Module class and pass function arguments as custom properties.',
       unsupportedFunctionStyle:
@@ -338,15 +339,19 @@ export const releaseStyles: Rule.RuleModule = {
       return undefined;
     };
 
-    const onlyUsedByReleasedStyles = (local: string): boolean => {
-      const range = releasedRange();
-      if (!range) return false;
+    const moduleVariable = (local: string) => {
       const scope = sourceCode.getScope(sourceCode.ast);
       const moduleScope =
         scope.type === 'global' ? (scope.childScopes[0] ?? scope) : scope;
-      const variable = moduleScope.variables.find(
+      return moduleScope.variables.find(
         (candidate) => candidate.name === local,
       );
+    };
+
+    const onlyUsedByReleasedStyles = (local: string): boolean => {
+      const range = releasedRange();
+      if (!range) return false;
+      const variable = moduleVariable(local);
       if (!variable || variable.references.length === 0) return false;
       return variable.references.every(
         (reference) =>
@@ -358,7 +363,7 @@ export const releaseStyles: Rule.RuleModule = {
     const removeImportedBindings = (
       node: any,
       bindings: string[],
-      messageId: 'themeImport' | 'animationImport' | 'staticImport',
+      messageId: 'themeImport' | 'animationImport' | 'staticImport' | 'folded',
       dead?: (specifier: any) => boolean,
     ): boolean => {
       const removed = node.specifiers.filter((specifier: any) => {
@@ -370,13 +375,28 @@ export const releaseStyles: Rule.RuleModule = {
       const retained = node.specifiers.filter(
         (specifier: any) => !removed.includes(specifier),
       );
+      // A fix that spans the whole statement touches the character the
+      // statement before it was removed up to, and ESLint drops one of the two.
+      const named = node.specifiers.every(
+        (specifier: any) => specifier.type === 'ImportSpecifier',
+      );
       context.report({
         node,
         messageId,
         fix: (fixer) =>
           retained.length === 0
             ? removeStatement(fixer, node)
-            : fixer.replaceText(node, importOf(retained, node.source)),
+            : named
+              ? fixer.replaceTextRange(
+                  [
+                    node.specifiers[0].range[0],
+                    node.specifiers[node.specifiers.length - 1].range[1],
+                  ],
+                  retained
+                    .map((specifier: any) => sourceCode.getText(specifier))
+                    .join(', '),
+                )
+              : fixer.replaceText(node, importOf(retained, node.source)),
       });
       return true;
     };
@@ -404,6 +424,22 @@ export const releaseStyles: Rule.RuleModule = {
       const alias = module.aliases?.[node.object.name];
       const key = alias ? alias[written] : written;
       return key === undefined ? undefined : { module, key };
+    };
+
+    const onlyNamesStyleKeys = (
+      variable: Scope.Variable | undefined,
+    ): boolean => {
+      if (!variable || variable.references.length === 0) return false;
+      return variable.references.every((reference) => {
+        if (reference.init) return true;
+        const parent = (reference.identifier as any).parent;
+        return (
+          parent?.type === 'MemberExpression' &&
+          parent.computed &&
+          parent.property === reference.identifier &&
+          Boolean(moduleOf(parent))
+        );
+      });
     };
 
     const accessOf = (module: ReleaseModule, key: string): string =>
@@ -647,6 +683,36 @@ export const releaseStyles: Rule.RuleModule = {
           )
             return;
         }
+        const foldedKeys = node.specifiers
+          .filter(
+            (specifier: any) =>
+              specifier.type === 'ImportSpecifier' &&
+              constants[specifier.local.name] !== undefined,
+          )
+          .map(
+            (specifier: any) =>
+              specifier.imported.name ?? specifier.imported.value,
+          );
+        if (active && foldedKeys.length > 0) {
+          if (
+            removeImportedBindings(
+              node,
+              foldedKeys,
+              'folded',
+              (specifier: any) => {
+                const variable = moduleVariable(specifier.local.name);
+                // The fold can land a pass before this one, and a key that no
+                // longer names anything reads the same either way.
+                return Boolean(
+                  variable &&
+                  (variable.references.length === 0 ||
+                    onlyNamesStyleKeys(variable)),
+                );
+              },
+            )
+          )
+            return;
+        }
         const importedModule = importedReleasedModule(
           String(node.source.value),
         );
@@ -779,21 +845,14 @@ export const releaseStyles: Rule.RuleModule = {
         )
           return;
         const scope = sourceCode.getScope(node);
-        const variable = scope.variables.find(
-          (candidate) => candidate.name === node.id.name,
-        );
-        if (!variable || variable.references.length === 0) return;
-        const onlyNamesKeys = variable.references.every((reference) => {
-          if (reference.init) return true;
-          const parent = (reference.identifier as any).parent;
-          return (
-            parent?.type === 'MemberExpression' &&
-            parent.computed &&
-            parent.property === reference.identifier &&
-            Boolean(moduleOf(parent))
-          );
-        });
-        if (!onlyNamesKeys) return;
+        if (
+          !onlyNamesStyleKeys(
+            scope.variables.find(
+              (candidate) => candidate.name === node.id.name,
+            ),
+          )
+        )
+          return;
         const target = node.parent;
         context.report({
           node: target,
@@ -1086,8 +1145,31 @@ export const releaseStyles: Rule.RuleModule = {
           takeProp();
           return;
         }
-        if (!complete && expression && resolveText(expression) === undefined)
-          return;
+        const text = expression ? resolveText(expression) : undefined;
+        if (!complete && expression && text === undefined) return;
+        // A key named by a constant resolves to the class the export wrote.
+        // Every other lone value already reads as itself, and leaving this one
+        // alone spells a binding the pass has retired.
+        const foldsKey =
+          expression?.type === 'MemberExpression' &&
+          expression.computed &&
+          expression.property.type === 'Identifier' &&
+          constants[expression.property.name] !== undefined;
+        if (
+          foldsKey &&
+          text !== undefined &&
+          text !== sourceCode.getText(expression)
+        ) {
+          if (carried) {
+            takeProp(text);
+            return;
+          }
+          context.report({
+            node: expression,
+            messageId: 'read',
+            fix: (fixer) => fixer.replaceText(expression, text),
+          });
+        }
         takeProp();
       },
     };
