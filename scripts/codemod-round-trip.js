@@ -83,6 +83,66 @@ const typeErrors = (dir) => {
   return counted;
 };
 
+// A `*.module.css` import is typed loosely, so a class name that does not exist
+// reaches the browser rather than the compiler.
+const danglingClasses = (dir) => {
+  const sheets = new Map();
+  const sources = [];
+  const walk = (current) => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      if (SKIP.has(entry.name)) continue;
+      const full = path.join(current, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith('.module.css'))
+        sheets.set(
+          fs.realpathSync(full),
+          // Anywhere, not just at the start of a line: a class nested in an
+          // at-rule is indented, and over-collecting only weakens the check.
+          new Set(
+            [
+              ...fs.readFileSync(full, 'utf8').matchAll(/\.([A-Za-z_][\w-]*)/g),
+            ].map((match) => match[1]),
+          ),
+        );
+      else if (/\.[jt]sx?$/.test(entry.name)) sources.push(full);
+    }
+  };
+  walk(dir);
+
+  const dangling = [];
+  for (const source of sources) {
+    // Import paths carry dots of their own, so they are read for the binding
+    // and then kept out of the reference scan.
+    const whole = fs.readFileSync(source, 'utf8');
+    // A template with nothing interpolated into it is a code sample, not code.
+    const text = whole
+      .replace(/^\s*import .*$/gm, '')
+      .replace(/`[^`]*`/g, (literal) =>
+        literal.includes('${') ? literal : '',
+      );
+    for (const [, local, specifier] of whole.matchAll(
+      /import\s+(\w+)\s+from\s+'([^']+\.module\.css)'/g,
+    )) {
+      const sheet = path.resolve(path.dirname(source), specifier);
+      const names = fs.existsSync(sheet)
+        ? sheets.get(fs.realpathSync(sheet))
+        : undefined;
+      if (!names) {
+        dangling.push(`${path.relative(dir, source)}: ${specifier} is missing`);
+        continue;
+      }
+      for (const [, key] of text.matchAll(
+        new RegExp(`\\b${local}\\.([A-Za-z_$][\\w$]*)`, 'g'),
+      ))
+        if (!names.has(key))
+          dangling.push(
+            `${path.relative(dir, source)}: ${local}.${key} is not in ${specifier}`,
+          );
+    }
+  }
+  return dangling;
+};
+
 const regressions = (before, after) => {
   const grown = [];
   for (const [error, count] of after)
@@ -111,6 +171,9 @@ try {
   const first = snapshot(work);
   const exported = regressions(baseline, typeErrors(work));
   if (exported.length > 0) fail('the export left errors behind', exported);
+  const dangling = danglingClasses(work);
+  if (dangling.length > 0)
+    fail('the export named classes it did not write', dangling);
 
   // Exported twice, nothing moves: f(f(x)) = f(x).
   migrate(work, 'plumeria');
