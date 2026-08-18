@@ -208,6 +208,11 @@ Which is a lot of claiming for something a reader cannot see. So CI exports this
 
 ---
 
+## 18.2.23 (Aug 18, 2026)
+
+- Fix: `migrate --from css-modules` drops the pixel guard the export put around a function style argument, so `styles.box(width)` comes back as it was written rather than carrying a `typeof` test the custom property no longer needs. Left in, it was wrapped in another guard the next time the project was exported and the file stopped compiling, so a project with a function style in it could be adopted back but never exported again.
+- The round trip closes: a project exports, adopts back, and exports again, with each direction reaching a fixed point on its second pass.
+
 ## 18.2.22 (Aug 18, 2026)
 
 - Fix: a declaration keeps the win it has in Plumeria, where the rank it is given — one step per shorthand covering the property, one more under an at-rule — settles the pair rather than the order it was written in. The export reproduces that rank by ordering the rules and the declarations inside them, so a base longhand still outranks a shorthand set under a media query.
