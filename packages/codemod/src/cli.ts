@@ -332,9 +332,11 @@ async function migrateFromCssModules(options: MigrateOptions): Promise<number> {
   }
 
   for (const sheet of stylesheets) {
+    if (!modules[sheet.source]) continue;
     console.log(`  ${relative(sheet.source)}  ->  ${relative(sheet.target)}`);
   }
 
+  const converting = Object.keys(modules).length;
   const config = {
     overrideConfigFile: true as const,
     overrideConfig: migrateConfig(modules),
@@ -345,7 +347,7 @@ async function migrateFromCssModules(options: MigrateOptions): Promise<number> {
     const results = await new ESLint(config).lintFiles(targets);
     const touched = results.filter((r) => r.messages.length > 0);
     console.log(
-      `\n${stylesheets.length} stylesheet(s) would be converted, ${touched.length} consumer(s) rewritten.`,
+      `\n${converting} stylesheet(s) would be converted, ${touched.length} consumer(s) rewritten.`,
     );
     console.log('Run without --dry-run to apply.');
   } else {
@@ -357,7 +359,7 @@ async function migrateFromCssModules(options: MigrateOptions): Promise<number> {
     await ESLint.outputFixes(applied);
     const touched = applied.filter((r) => r.output !== undefined);
     console.log(
-      `\n✔ converted ${stylesheets.length} stylesheet(s) and rewrote ${touched.length} consumer(s).`,
+      `\n✔ converted ${converting} stylesheet(s) and rewrote ${touched.length} consumer(s).`,
     );
   }
 
