@@ -215,26 +215,26 @@ Which is a lot of claiming for something a reader cannot see. So CI exports this
 
 ## 18.2.22 (Aug 18, 2026)
 
-- Fix: a declaration keeps the win it has in Plumeria, where the rank it is given — one step per shorthand covering the property, one more under an at-rule — settles the pair rather than the order it was written in. The export reproduces that rank by ordering the rules and the declarations inside them, so a base longhand still outranks a shorthand set under a media query.
-- Fix: two properties that only partly overlap — `borderColor` against `borderTop` — are recognised as sharing ground, so the order the call site composes them in is carried into the stylesheet instead of being read as unrelated. A pair that both covers and partly overlaps keeps both answers, through a class that carries only the crossing declarations.
-- Fix: a narrower condition is written after the one it implies, so a `@media (min-width: 900px)` rule still wins where a `@media (min-width: 600px)` rule also matches.
-- Fix: a composition whose members come from separate modules is folded into a single class in the first of them. Two stylesheets have no order that reaches both, and a fold puts the members back under one that does.
-- Fix: an argument reaching a function style through a custom property carries the unit Plumeria would have added, so `styles.box(100)` is still `100px` after the export.
+- Fix: `migrate --from plumeria` reproduces the rank a declaration is given in Plumeria — one step per shorthand covering the property, one more under an at-rule — which settles the pair rather than the order it was written in. It orders the rules and the declarations inside them, so a base longhand still outranks a shorthand set under a media query.
+- Fix: `migrate --from plumeria` recognises two properties that only partly overlap — `borderColor` against `borderTop` — as sharing ground, so the order the call site composes them in is carried into the stylesheet instead of being read as unrelated. A pair that both covers and partly overlaps keeps both answers, through a class that carries only the crossing declarations.
+- Fix: `migrate --from plumeria` writes a narrower condition after the one it implies, so a `@media (min-width: 900px)` rule still wins where a `@media (min-width: 600px)` rule also matches.
+- Fix: `migrate --from plumeria` folds a composition whose members come from separate modules into a single class in the first of them. Two stylesheets have no order that reaches both, and a fold puts the members back under one that does.
+- Fix: `migrate --from plumeria` carries the unit Plumeria would have added into an argument reaching a function style through a custom property, so `styles.box(100)` is still `100px` after the export.
 - Fix: `migrate --from css-modules` finds a module the same way wherever it looks, so a style read as a value and a function style call are both restored in a file whose stylesheet sits beside it.
 
 ## 18.2.21 (Aug 18, 2026)
 
-- Feat: a style read with a key named by a constant — `styles[size]` where `size` is a `const` holding a string, in the same file or imported from another — is resolved to the class it names instead of being reported, and a constant left naming nothing is removed with it.
+- Feat: `migrate --from plumeria` resolves a style read with a key named by a constant — `styles[size]` where `size` is a `const` holding a string, in the same file or imported from another — to the class it names instead of reporting it, and removes a constant left naming nothing with it.
 - Fix: `migrate --from css-modules` writes a restored read with the name the import carries, so a composed array, a `css.use` call, and a local holding a style survive a file whose module was renamed on the way back.
 
 ## 18.2.20 (Aug 18, 2026)
 
 - Fix: `migrate --from plumeria` reproduces the order a `classStyle` array composes in, by ordering the generated rules to satisfy every call site, collapsing an unconditional array into one class that `composes` its members, and giving a call site that still disagrees an override class carrying only the disputed declarations.
-- Fix: a file the plan cannot export is left in Plumeria together with every file it reads definitions from, so a partial migration no longer leaves source that does not compile.
-- Fix: negative values, `css.use`, a token read outside a style, a style arriving through a prop, and a `classStyle` on an element that already carries `className` are all converted instead of being reported or rewritten by halves.
-- Fix: the generated import is written with the other imports rather than where the `css.create` stood, and the block appended to `global.css` is replaced on a re-run instead of appended again.
+- Fix: `migrate --from plumeria` leaves a file the plan cannot export in Plumeria together with every file it reads definitions from, so a partial migration no longer leaves source that does not compile.
+- Fix: `migrate --from plumeria` converts negative values, `css.use`, a token read outside a style, a style arriving through a prop, and a `classStyle` on an element that already carries `className`, instead of reporting them or rewriting them by halves.
+- Fix: `migrate --from plumeria` writes the generated import with the other imports rather than where the `css.create` stood, and replaces the block appended to `global.css` on a re-run instead of appending it again.
 - Fix: `migrate --from css-modules` points a consumer at where the module actually landed, restores a composed array, a `css.use` call, and a function style call, and keeps one name per module when a file reads several.
-- Fix: a style read with a computed key is reported rather than exported, because the class it names is not known until it runs.
+- Fix: `migrate --from plumeria` reports a style read with a computed key rather than exporting it, because the class it names is not known until it runs.
 
 ## 18.2.19 (Aug 17, 2026)
 
