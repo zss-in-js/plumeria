@@ -102,7 +102,7 @@ jobs:
       - name: Build packages
         run: pnpm build
 
-      - name: Second migration must be a no-op
+      - name: Export, re-export, and adopt back
         run: |
           pnpm codemod:idempotence docs
           pnpm codemod:idempotence examples/example-vite-react
