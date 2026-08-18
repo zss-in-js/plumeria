@@ -14,6 +14,7 @@ import {
 } from './transforms/from-plumeria';
 import type {
   PlumeriaComposition,
+  PlumeriaFolding,
   PlumeriaReport,
 } from './transforms/from-plumeria';
 import type { ReleaseModule } from './transforms/release-styles';
@@ -401,6 +402,8 @@ export function planRelease(targets: string[]): ReleasePlan {
 
   const resolvedConstants = new Map<string, Map<string, string>>();
   const compositions = new Map<string, PlumeriaComposition[]>();
+  const foldings = new Map<string, PlumeriaFolding[]>();
+  const reached = new Map<string, Set<string>>();
   for (const source of sources) {
     let ast;
     try {
@@ -491,7 +494,6 @@ export function planRelease(targets: string[]): ReleasePlan {
       const owners_ = slots.flat().map((part: any) => owners.get(part.object));
       if (owners_.some((candidate: any) => !candidate)) return;
       const owner = owners_[0]!.source;
-      if (owners_.some((candidate: any) => candidate!.source !== owner)) return;
       const named = slots.map((slot: { object: string; key: string }[]) =>
         slot.map((part) => ({
           binding: owners.get(part.object)!.binding,
@@ -501,6 +503,43 @@ export function planRelease(targets: string[]): ReleasePlan {
       const collapsible =
         expression.elements.every((element: any) => memberOf(element)) &&
         named.every((slot: unknown[]) => slot.length === 1);
+
+      // Members split across modules land in separate stylesheets, where no
+      // declaration order reaches both. Folded into one class in the first of
+      // them, they are back under an order that does.
+      if (owners_.some((candidate: any) => candidate!.source !== owner)) {
+        if (!collapsible) return;
+        const parts = slots.map((slot: any[], index: number) => {
+          const held = owners.get(slot[0].object)!;
+          return {
+            binding: held.binding,
+            key: slot[0].key,
+            ...(held.source === owner ? {} : { source: held.source }),
+            target: releasedPath(held.source),
+            at: index,
+          };
+        });
+        foldings.set(owner, [
+          ...(foldings.get(owner) ?? []),
+          {
+            signature: parts
+              .map((part: any) => `${part.target}#${part.key}`)
+              .join('|'),
+            parts: parts.map(({ binding, key, source }: any) => ({
+              binding,
+              key,
+              ...(source ? { source } : {}),
+            })),
+          },
+        ]);
+        for (const part of parts)
+          if (part.source)
+            reached.set(
+              owner,
+              (reached.get(owner) ?? new Set()).add(part.source),
+            );
+        return;
+      }
       compositions.set(owner, [
         ...(compositions.get(owner) ?? []),
         {
@@ -522,6 +561,24 @@ export function planRelease(targets: string[]): ReleasePlan {
         sourceText.get(source) as string,
         importedPlumeriaValues(source),
         compositions.get(source) ?? [],
+        {
+          target: releasedPath(source),
+          foldings: foldings.get(source) ?? [],
+          foreign: Object.fromEntries(
+            [...(reached.get(source) ?? [])].map((other) => [
+              other,
+              {
+                text: sourceText.get(other) as string,
+                values: {
+                  ...importedPlumeriaValues(other),
+                  ...(staticValues.get(other) ?? {}),
+                  ...(themeValues.get(other) ?? {}),
+                  ...(animationValues.get(other) ?? {}),
+                },
+              },
+            ]),
+          ),
+        },
       );
     } catch {
       continue;
