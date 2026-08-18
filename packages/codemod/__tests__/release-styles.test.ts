@@ -350,7 +350,7 @@ const { card } = styles;
       filename,
       code: `<div classStyle={[styles.base, styles.card]} />;`,
       options,
-      output: '<div className={`${styles.base} ${styles.card}`} />;',
+      output: "<div className={[styles.base, styles.card].join(' ')} />;",
       errors: 2,
     },
     {
@@ -445,7 +445,7 @@ const { card } = styles;
           },
         },
       ],
-      output: `<div className={\`\${styles.base} \${styles.size}\`} style={{ ...(style), ['--styles-size-width' as string]: width, ['--styles-size-color' as string]: color }} />;`,
+      output: `<div className={[styles.base, styles.size].join(' ')} style={{ ...(style), ['--styles-size-width' as string]: width, ['--styles-size-color' as string]: color }} />;`,
       errors: 1,
     },
     {
