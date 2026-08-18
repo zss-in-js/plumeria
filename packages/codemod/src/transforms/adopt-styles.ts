@@ -69,6 +69,18 @@ export const adoptStyles: Rule.RuleModule = {
     let readsValue = false;
     let several = false;
 
+    // One way to find the module a specifier names, so every reader of the map
+    // agrees: the resolved path when there is one, and the file name otherwise.
+    const moduleFor = (specifier: string): ModuleMap | undefined => {
+      const resolved = resolveSourcePath(specifier, context.filename);
+      if (resolved && modules[resolved]) return modules[resolved];
+      const named = Object.entries(modules).filter(
+        ([key]) =>
+          key === specifier || path.basename(key) === path.basename(specifier),
+      );
+      return named.length === 1 ? named[0][1] : undefined;
+    };
+
     const stylingPosition = (node: any): boolean => {
       let current = node;
       while (
@@ -191,11 +203,7 @@ export const adoptStyles: Rule.RuleModule = {
                 coreLocal = specifier.local.name;
             continue;
           }
-          const target = resolveSourcePath(
-            String(statement.source.value),
-            context.filename,
-          );
-          if (!target || !modules[target]) continue;
+          if (!moduleFor(String(statement.source.value))) continue;
           for (const specifier of statement.specifiers)
             if (specifier.type === 'ImportDefaultSpecifier') {
               locals.add(specifier.local.name);
@@ -255,21 +263,15 @@ export const adoptStyles: Rule.RuleModule = {
 
       ImportDeclaration(node: any) {
         const specifier = String(node.source.value);
-        const resolved = resolveSourcePath(specifier, context.filename);
-        const named = Object.entries(modules).filter(
-          ([key]) =>
-            key === specifier ||
-            path.basename(key) === path.basename(specifier),
-        );
-        const entry =
-          (resolved ? modules[resolved] : undefined) ??
-          (named.length === 1 ? named[0][1] : undefined);
+        const entry = moduleFor(specifier);
         if (!entry) {
-          const adopted =
-            resolved &&
-            Object.values(modules).find(
-              (candidate) => candidate.target === resolved,
-            );
+          const resolved = resolveSourcePath(specifier, context.filename);
+          const adopted = Object.values(modules).find(
+            (candidate) =>
+              candidate.target === resolved ||
+              candidate.source === specifier ||
+              path.basename(candidate.source) === path.basename(specifier),
+          );
           if (!adopted) return;
           const already = node.specifiers.find(
             (specifier: any) =>
