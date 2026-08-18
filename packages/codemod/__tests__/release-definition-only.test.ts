@@ -117,7 +117,7 @@ describe('a styles file kept out of the rewrite', () => {
     const { modules } = planRelease([dir]);
     expect(modules[inline].definitionOnly).toBeUndefined();
     expect(rewrite(inline, modules)).toBe(
-      `\n\nimport styles from './Inline.module.css';\n\nexport const Inline = () => <div className={styles.box} />;\n`,
+      `\nimport styles from './Inline.module.css';\n\nexport const Inline = () => <div className={styles.box} />;\n`,
     );
   });
 });
