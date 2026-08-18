@@ -135,6 +135,115 @@ describe('convertPlumeriaModule', () => {
     ]);
   });
 
+  it('writes a shorthand before the longhand that narrows it', () => {
+    const result = convertPlumeriaModule(`
+      import * as css from '@plumeria/core';
+      const styles = css.create({
+        inner: { paddingTop: 2, padding: 1 },
+      });
+    `);
+
+    // Plumeria ranks the longhand above the shorthand by specificity, which a
+    // stylesheet can only answer with the order it writes them in.
+    expect(result?.css.indexOf('padding: 1px')).toBeLessThan(
+      result?.css.indexOf('padding-top: 2px') as number,
+    );
+  });
+
+  it('writes a base longhand after the shorthand an at-rule sets', () => {
+    const result = convertPlumeriaModule(
+      `
+      import * as css from '@plumeria/core';
+      const styles = css.create({
+        edge: { paddingTop: 4 },
+        box: { '@media (min-width: 600px)': { padding: 40 } },
+      });
+    `,
+      {},
+      [
+        {
+          parts: [
+            { binding: 'styles', key: 'edge' },
+            { binding: 'styles', key: 'box' },
+          ],
+          slots: [
+            [{ binding: 'styles', key: 'edge' }],
+            [{ binding: 'styles', key: 'box' }],
+          ],
+          file: 'C.tsx',
+          line: 1,
+          column: 1,
+        },
+      ],
+    );
+
+    // `padding-top` carries one rank step more than the at-rule `padding`, so
+    // it has to be written last however the call site composes the two.
+    expect(result?.css.indexOf('padding: 40px')).toBeLessThan(
+      result?.css.indexOf('padding-top: 4px') as number,
+    );
+  });
+
+  it('writes a narrower condition after the one it implies', () => {
+    const result = convertPlumeriaModule(`
+      import * as css from '@plumeria/core';
+      const styles = css.create({
+        box: {
+          '@media (min-width: 900px)': { color: 'red' },
+          '@media (min-width: 600px)': { color: 'blue' },
+        },
+      });
+    `);
+
+    expect(result?.css.indexOf('min-width: 600px')).toBeLessThan(
+      result?.css.indexOf('min-width: 900px') as number,
+    );
+  });
+
+  it('folds a composition reaching into another module into one class', () => {
+    const result = convertPlumeriaModule(
+      `
+      import * as css from '@plumeria/core';
+      const styles = css.create({ edge: { paddingTop: 4 } });
+    `,
+      {},
+      [],
+      {
+        target: '/app/A.module.css',
+        foldings: [
+          {
+            signature: '/app/A.module.css#edge|/app/B.module.css#box',
+            parts: [
+              { binding: 'styles', key: 'edge' },
+              { binding: 'other', key: 'box', source: '/app/B.ts' },
+            ],
+          },
+        ],
+        foreign: {
+          '/app/B.ts': {
+            text: `
+              import * as css from '@plumeria/core';
+              export const other = css.create({
+                box: { '@media (min-width: 600px)': { padding: 40 } },
+              });
+            `,
+            values: {},
+          },
+        },
+      },
+    );
+
+    // Two stylesheets have no order that reaches both, so the members are
+    // written into one class where the same rank applies again.
+    expect(result?.merges).toEqual({
+      '/app/A.module.css#edge|/app/B.module.css#box': 'edgeBox',
+    });
+    expect(result?.css).toContain('.edgeBox');
+    expect(result?.css.indexOf('padding: 40px')).toBeLessThan(
+      result?.css.lastIndexOf('padding-top: 4px') as number,
+    );
+  });
+
   it('turns function style parameters into custom properties', () => {
     const result = convertPlumeriaModule(`
       import * as css from '@plumeria/core';
