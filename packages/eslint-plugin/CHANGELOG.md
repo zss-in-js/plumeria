@@ -1,3 +1,9 @@
+## 18.2.22
+
+### Patch Changes
+
+- 1da7747: Bump version to 18.2.22
+
 ## 18.2.21
 
 ### Patch Changes
