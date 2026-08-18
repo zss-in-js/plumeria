@@ -791,7 +791,7 @@ export const releaseStyles: Rule.RuleModule = {
             ? (texts[0] as string)
             : node.arguments.some(needsFilter)
               ? `[${texts.join(', ')}].filter(Boolean).join(' ')`
-              : `\`${texts.map((text: string) => `\${${text}}`).join(' ')}\``;
+              : `[${texts.join(', ')}].join(' ')`;
         context.report({
           node,
           messageId: 'use',
@@ -972,9 +972,12 @@ export const releaseStyles: Rule.RuleModule = {
             }
           }
           const declarations = elements.flatMap(declarationsOf);
+          // One shape for every composition: the array the call site already
+          // wrote, joined. `filter` only earns its place when a member can
+          // turn out falsy.
           const replacement = elements.some(needsFilter)
             ? `[${texts.join(', ')}].filter(Boolean).join(' ')`
-            : `\`${texts.map((text: string) => `\${${text}}`).join(' ')}\``;
+            : `[${texts.join(', ')}].join(' ')`;
           if (declarations.length > 0) {
             replaceWithFunctionStyle(replacement, declarations);
             return;
