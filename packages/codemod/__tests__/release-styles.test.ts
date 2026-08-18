@@ -479,6 +479,54 @@ const { card } = styles;
     },
     {
       filename,
+      // a constant read for something else as well outlives the fold
+      code: `const size = 'card';\n<div classStyle={[styles.base, styles[size]]} data-size={size} />;`,
+      options: [{ ...options[0], constants: { [filename]: { size: 'card' } } }],
+      output: `const size = 'card';\n<div className={[styles.base, styles.card].join(' ')} data-size={size} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // a lone key named by a constant folds the same as one inside an array.
+      // Retiring the import without folding it leaves the key unbound.
+      code: `import { size } from './tokens';\n<div classStyle={styles[size]} />;`,
+      options: [{ ...options[0], constants: { [filename]: { size: 'card' } } }],
+      output: `\n<div className={styles.card} />;`,
+      errors: 3,
+    },
+    {
+      filename,
+      // the same fold, carried into the className the element already had
+      code: `import { size } from './tokens';\n<div className={cn} classStyle={styles[size]} />;`,
+      options: [{ ...options[0], constants: { [filename]: { size: 'card' } } }],
+      output: `\n<div className={[cn, styles.card].filter(Boolean).join(' ')} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // an imported constant that only ever named a key goes with the fold,
+      // and the one still doing work beside it stays
+      code: `import { size, gap } from './tokens';\n<div classStyle={[styles.base, styles[size]]} data-gap={gap} />;`,
+      options: [
+        {
+          ...options[0],
+          constants: { [filename]: { size: 'card', gap: 'lg' } },
+        },
+      ],
+      output: `import { gap } from './tokens';\n<div className={[styles.base, styles.card].join(' ')} data-gap={gap} />;`,
+      errors: 3,
+    },
+    {
+      filename,
+      // nothing is left to import once the only binding it carried is folded,
+      // and the import beside it is not disturbed
+      code: `import { size } from './tokens';\nimport { useState } from 'react';\n<div classStyle={[styles.base, styles[size]]} onClick={useState} />;`,
+      options: [{ ...options[0], constants: { [filename]: { size: 'card' } } }],
+      output: `import { useState } from 'react';\n<div className={[styles.base, styles.card].join(' ')} onClick={useState} />;`,
+      errors: 3,
+    },
+    {
+      filename,
       // a complete plan turns the type that described a style into a string
       code: `const Logo = ({ art }: { art: css.Style }) => <div classStyle={art} />;`,
       options: [{ ...options[0], complete: true }],
