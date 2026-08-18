@@ -1,7 +1,9 @@
 import { chromium } from '@playwright/test';
 
 export default async function globalSetup() {
-  if (process.env.E2E_TARGET === 'production') return;
+  // Only the dev server injects its CSS after the page loads; a built target
+  // has it in the bundle before the first request.
+  if (process.env.E2E_TARGET) return;
 
   const browser = await chromium.launch();
   const page = await browser.newPage();
