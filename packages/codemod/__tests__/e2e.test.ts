@@ -3,6 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { Linter } from 'eslint';
 import { plan, write } from '../src/migrate';
+import type { Report } from '../src/transforms/css-modules';
 import { adoptStyles } from '../src/transforms/adopt-styles';
 
 // The migrated files live in an example app, so `pnpm build:examples` builds
@@ -34,6 +35,7 @@ const read = (dir: string, name: string) =>
 describe('css-modules migration, end to end', () => {
   let dir: string;
   let rewritten: string;
+  let reports: Report[];
 
   beforeAll(() => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-e2e-'));
@@ -42,7 +44,8 @@ describe('css-modules migration, end to end', () => {
       path.join(dir, 'Card.module.css'),
     );
 
-    const { modules } = plan([dir]);
+    const { modules, stylesheets } = plan([dir]);
+    reports = stylesheets[0].reports;
     write([dir]);
 
     const linter = new Linter();
@@ -72,6 +75,6 @@ describe('css-modules migration, end to end', () => {
   });
 
   it('converts every rule the stylesheet holds', () => {
-    expect(plan([dir]).stylesheets[0].reports).toEqual([]);
+    expect(reports).toEqual([]);
   });
 });
