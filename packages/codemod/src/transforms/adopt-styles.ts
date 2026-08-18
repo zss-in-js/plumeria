@@ -474,7 +474,31 @@ export const adoptStyles: Rule.RuleModule = {
             )
           )
             return;
-          const list = joined.map(renamedText).join(', ');
+          // An element that names no style was carried here from a `className`
+          // of its own and goes back to one; `classStyle` only takes styles.
+          const styles_ = joined.filter((element: any) =>
+            bindings.has(styleRead(element)?.object?.name),
+          );
+          const carried = joined.filter(
+            (element: any) => !styles_.includes(element),
+          );
+          const list = styles_.map(renamedText).join(', ');
+          if (carried.length > 0) {
+            const kept = carried
+              .map((element: any) => context.sourceCode.getText(element))
+              .join(', ');
+            context.report({
+              node,
+              messageId: 'prop',
+              data: { prop: styleProp as string },
+              fix: (fixer) =>
+                fixer.replaceText(
+                  node,
+                  `className={[${kept}].filter(Boolean).join(' ')} ${styleProp}={[${list}]}`,
+                ),
+            });
+            return;
+          }
           // A joined list on a component may have come from `css.use` rather
           // than the styling prop. `className` takes the string either way,
           // while `classStyle` is only carried by an element.
