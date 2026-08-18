@@ -67,6 +67,7 @@ export const adoptStyles: Rule.RuleModule = {
     let stylesTaken = false;
     let coreLocal: string | undefined;
     let readsValue = false;
+    let several = false;
 
     const stylingPosition = (node: any): boolean => {
       let current = node;
@@ -154,6 +155,7 @@ export const adoptStyles: Rule.RuleModule = {
         // A style read outside the styling prop is a class name today and a
         // style object again after the rewrite, so it needs `css.use` back.
         const locals = new Set<string>();
+        let seen = 0;
         for (const statement of program.body) {
           if (statement.type !== 'ImportDeclaration') continue;
           if (statement.source.value === CORE) {
@@ -173,9 +175,12 @@ export const adoptStyles: Rule.RuleModule = {
           );
           if (!target || !modules[target]) continue;
           for (const specifier of statement.specifiers)
-            if (specifier.type === 'ImportDefaultSpecifier')
+            if (specifier.type === 'ImportDefaultSpecifier') {
               locals.add(specifier.local.name);
+              seen += 1;
+            }
         }
+        several = seen > 1;
         const visit = (node: any, styling: boolean) => {
           if (!node || typeof node !== 'object') return;
           if (Array.isArray(node)) {
@@ -277,7 +282,8 @@ export const adoptStyles: Rule.RuleModule = {
         if (!local) return;
 
         const name = local.local.name;
-        const renamed = stylesTaken && name !== 'styles' ? name : 'styles';
+        const renamed =
+          several || (stylesTaken && name !== 'styles') ? name : 'styles';
         bindings.set(name, { entry, local: renamed });
 
         const imported =
