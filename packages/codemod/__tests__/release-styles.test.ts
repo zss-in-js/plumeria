@@ -479,6 +479,105 @@ const { card } = styles;
     },
     {
       filename,
+      // a complete plan turns the type that described a style into a string
+      code: `const Logo = ({ art }: { art: css.Style }) => <div classStyle={art} />;`,
+      options: [{ ...options[0], complete: true }],
+      output: `const Logo = ({ art }: { art: string }) => <div className={art} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // a joined composition beside a className of its own keeps both
+      code: `<div className={outer} classStyle={[styles.base, on && styles.card]} />;`,
+      options,
+      output: `<div className={[outer, [styles.base, on && styles.card].filter(Boolean).join(' ')].filter(Boolean).join(' ')} />;`,
+      errors: 1,
+    },
+    {
+      filename,
+      // a file with only theme work still retires the import that fed it
+      code: `import * as css from '@plumeria/core';\nexport const theme = css.createTheme('.dark', { text: { default: 'black', theme: 'white' } });`,
+      options: [
+        { modules: {}, themes: { [filename]: ['theme'] }, active: true },
+      ],
+      output: `\n`,
+      errors: 2,
+    },
+    {
+      filename: CONSUMER,
+      // a core import a released module leaves nothing for is retired
+      code: `import '@plumeria/core';\nimport { styles } from './Other';\n<div classStyle={styles.card} />;`,
+      options: [
+        {
+          modules: {
+            [OTHER]: { source: './Card.module.css', binding: 'styles' },
+          },
+        },
+      ],
+      output: `import { styles } from './Other';\n<div className={styles.card} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // a call that is not a definition leaves the file alone
+      code: `import * as css from '@plumeria/core';\nconst held = css.use(styles.card);\n<div classStyle={styles.card} />;`,
+      options,
+      output: `\nconst held = styles.card;\n<div className={styles.card} />;`,
+      errors: 3,
+    },
+    {
+      filename,
+      // a call on something other than the core namespace is left alone
+      code: `import * as css from '@plumeria/core';\n<div classStyle={styles.card} title={other.use(styles.base)} />;`,
+      options,
+      output: `\n<div className={styles.card} title={other.use(styles.base)} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      // `css.use` on something that names no released style stays put
+      code: `import * as css from '@plumeria/core';\n<div classStyle={styles.card} title={css.use(unknown)} />;`,
+      options,
+      output: `import * as css from '@plumeria/core';\n<div className={styles.card} title={css.use(unknown)} />;`,
+      errors: 1,
+    },
+    {
+      filename,
+      // a second create folded into the same module leaves nothing behind
+      code: `import * as css from '@plumeria/core';\nconst styles = css.create({ card: { color: 'red' } });\nconst extra = css.create({ badge: { color: 'blue' } });\n<div classStyle={extra.badge} />;`,
+      options: [
+        {
+          modules: {
+            [filename]: {
+              source: './Card.module.css',
+              binding: 'styles',
+              aliases: { extra: { badge: 'badge' } },
+            },
+          },
+        },
+      ],
+      output: `\nimport styles from './Card.module.css';\n<div className={styles.badge} />;`,
+      errors: 5,
+    },
+    {
+      filename,
+      // a falsy literal stands in for a style that is simply absent
+      code: `<div classStyle={[styles.base, false]} />;`,
+      options,
+      output: "<div className={[styles.base, false].join(' ')} />;",
+      errors: 2,
+    },
+    {
+      filename,
+      // the core import goes once nothing but a released style still reads it
+      code: `import * as css from '@plumeria/core';\n<div classStyle={css.use(styles.card)} />;`,
+      options: [{ active: true, ...options[0] }],
+      // the prop follows on the next pass, once the call has become the class
+      output: `\n<div classStyle={styles.card} />;`,
+      errors: 2,
+    },
+    {
+      filename,
       code: `<div classStyle={[styles.base, styles.card]} />;`,
       options,
       output: "<div className={[styles.base, styles.card].join(' ')} />;",
