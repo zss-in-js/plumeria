@@ -376,6 +376,7 @@ function releaseConfig(
   statics: Record<string, string[]>,
   values: Record<string, Record<string, unknown>>,
   complete: boolean,
+  constants: Record<string, Record<string, string>>,
 ): Linter.Config[] {
   return [
     { ignores: IGNORES },
@@ -392,7 +393,15 @@ function releaseConfig(
       rules: {
         'codemod/release-styles': [
           'error',
-          { modules, themes, animations, statics, values, complete },
+          {
+            modules,
+            themes,
+            animations,
+            statics,
+            values,
+            complete,
+            constants,
+          },
         ],
       },
     },
@@ -431,6 +440,7 @@ async function migrateFromPlumeria(options: MigrateOptions): Promise<number> {
       planned.statics,
       planned.values,
       planned.complete,
+      planned.constants,
     ),
     errorOnUnmatchedPattern: false,
   };
