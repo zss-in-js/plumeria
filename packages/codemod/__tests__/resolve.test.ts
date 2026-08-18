@@ -53,6 +53,12 @@ describe('import resolution', () => {
       expect(resolveSourcePath('@plumeria/core', importer)).toBeNull();
     });
 
+    it('takes a specifier that already names the file', () => {
+      const importer = add(dir, 'src/Card.tsx', '');
+      const target = add(dir, 'src/theme.ts', '');
+      expect(resolveSourcePath('./theme.ts', importer)).toBe(target);
+    });
+
     it('keeps a dot in the filename out of the extension', () => {
       const importer = add(dir, 'src/Card.tsx', '');
       const target = add(dir, 'src/Card.theme.ts', '');
