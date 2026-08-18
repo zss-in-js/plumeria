@@ -164,6 +164,7 @@ export function Card({ width }: { width: number }) {
 ```diff title="Card.tsx"
 - import * as css from '@plumeria/core';
 + import styles from './Card.module.css';
++ export { styles };
 
 - export const styles = css.create({
 -   base: { fontSize: 12 },
@@ -173,14 +174,13 @@ export function Card({ width }: { width: number }) {
 -   },
 -   size: (width: number) => ({ width }),
 - });
-+ export { styles };
 
   export function Card({ width }: { width: number }) {
 -   return <div classStyle={[styles.base, styles.card, styles.size(width)]} />;
 +   return (
 +     <div
-+       className={`${styles.base} ${styles.card} ${styles.size}`}
-+       style={{ '--styles-size-width': width }}
++       className={[styles.base, styles.card, styles.size].join(' ')}
++       style={{ ['--styles-size-width' as string]: width }}
 +     />
 +   );
   }
@@ -199,7 +199,7 @@ Definitions created with `css.createTheme`, `css.keyframes`, and `css.viewTransi
 
 Definitions do not have to sit in the file that uses them. Import specifiers are resolved through `tsconfig.json` `paths`, directory `index` files, and filenames that carry a dot, so a `css.createTheme`, `css.keyframes`, or `css.createStatic` reached under an alias is inlined rather than reported as dynamic.
 
-An import that only existed to feed the styles is removed once nothing else in the file reads it. A binding still used outside the exported styles — `window.matchMedia(breakpoints.lg)`, for instance — keeps its import.
+An import that only existed to feed the styles is removed. A binding read outside the exported styles — `window.matchMedia(breakpoints.lg)`, for instance — is replaced by the value it resolved to, because a theme token, a static, and a keyframe name are all plain strings once the migration is done.
 
 A file that only defines styles and never uses them is left exactly as it is, the way `--from css-modules` leaves the original stylesheet in place. Its consumers are pointed at the generated `*.module.css` instead:
 
@@ -240,7 +240,7 @@ Every `css.create` in a file is written to the same stylesheet, and the later bi
 
   export const Button = () => (
 -   <a classStyle={[styles.base, hoverStyles.base]} />
-+   <a className={`${styles.base} ${styles['hoverStyles-base']}`} />
++   <a className={styles.baseHoverStylesBase} />
   );
 ```
 
@@ -250,16 +250,37 @@ Function styles such as `(width) => ({ width })` are converted into CSS custom p
 
 ```diff
 - <div classStyle={styles.size(width, color)} />
-+ <div className={styles.size} style={{ '--styles-size-width': width, '--styles-size-color': color }} />
++ <div className={styles.size} style={{ ['--styles-size-width' as string]: width, ['--styles-size-color' as string]: color }} />
 ```
+
+The key is written as a computed string because React's `CSSProperties` has no room for a custom property.
 
 If an existing `style` prop is present, the CSS variables are merged into it.
 
 ### Style composition
 
-Array expressions on styling props are combined into template literals or `.filter(Boolean).join(' ')` when conditional expressions are present:
+An array with no condition in it collapses into a single class that `composes` its members, so the call site reads as one name:
 
 ```diff
+- <div classStyle={[styles.button, styles.base, sizeStyles.medium]} />
++ <div className={styles.buttonBaseMedium} />
+```
+
+```css title="ButtonLink.module.css"
+.buttonBaseMedium {
+  composes: button base medium;
+}
+```
+
+`composes` copies nothing, so the stylesheet does not grow, and the reverse migration reads it straight back into an array.
+
+Any other array is joined as it stands. `filter` is added only where a condition
+can make a member falsy, so that branch drops out at runtime:
+
+```diff
+- <div classStyle={[styles.base, styles.card, styles.size(width)]} />
++ <div className={[styles.base, styles.card, styles.size].join(' ')} style={{ … }} />
+
 - <div classStyle={[styles.base, active && styles.active]} />
 + <div className={[styles.base, active && styles.active].filter(Boolean).join(' ')} />
 ```
@@ -296,14 +317,45 @@ src/Card.tsx
 - Object spreads in top-level `css.create` or style definitions, other than `css.marker`
 - Existing `*.module.css` target files are reported as `target-exists` and will not be overwritten
 
-### Cascade after the export
+### Composition order after the export
 
-Plumeria merges composed styles by property name at build time and emits one declaration per property. The export writes one class per `css.create` key instead, so the cascade decides. Three cases change:
+`classStyle={[styles.b, styles.a]}` resolves `color` to `styles.a`: the rightmost style wins the merge. A stylesheet has no array to read — both classes land on the element and the cascade decides — so the export reproduces the array order by three means, in order of cost.
 
-- **Composition order.** `classStyle={[styles.b, styles.a]}` resolves `color` to `styles.a`, because the rightmost style wins the merge. Exported, `.a` and `.b` both land on the element and the rule written later in the stylesheet wins — that is, the later `css.create` key.
-- **A conditional against a base declaration.** `color` and `@media (…): color` are separate entries that never merge, so the conditional carries `:not(#\#)` and wins regardless of order. Exported, both are ordinary rules and source order decides.
+**Declaration order.** Every composition in the project is read as a constraint, and the classes are emitted in an order that satisfies all of them at once. Most projects need nothing else, and nothing is duplicated.
 
-Nothing is dropped — every declaration is exported — but a project relying on either should order the affected pairs itself.
+A constraint is only recorded where the two classes actually disagree, measured per at-rule and per selector. `.wide { width }` and `.narrow { @media (…) { width } }` name the same property but never contend — an at-rule declaration already outranks a base one — so they impose no order.
+
+**A composed class.** When two call sites compose the same pair in opposite orders, no declaration order satisfies both. If either call site has no condition in it, it collapses into a class of its own and stops asking.
+
+**An override class.** What is left is a call site whose members are decided at runtime. It carries an extra class holding only the disputed declarations, applied under the same condition as the style that has to win:
+
+```diff title="Panel.tsx"
+- <div classStyle={[styles.raised, flat && styles.surface]} />
++ <div className={[styles.raised, flat && styles.surface, flat && styles.surfaceOverRaised].filter(Boolean).join(' ')} />
+```
+
+```css title="Panel.module.css"
+.surfaceOverRaised:not(#\#) {
+  padding: 8px;
+  color: black;
+}
+```
+
+`:not(#\#)` matches no element and adds an id to the specificity, so the override outranks both classes wherever it lands. It is named after the call site that needs it, so two call sites never fight over one.
+
+Anything none of the three settles is reported as `composition-order` and left in Plumeria.
+
+### Running it twice
+
+The migration is idempotent. The first run converts; every run after it is a fixed point:
+
+```
+f(f(x)) = f(x)
+```
+
+A second run finds no `css.create` to export, reports `target-exists` for the definition files it deliberately left behind, and writes nothing. The generated block in `global.css` is fenced by a marker comment and replaced rather than appended, so it does not grow. This holds even when the first run left styles behind: clear a report, run again, and only the newly resolvable files move.
+
+Plumeria's own documentation site is migrated and re-migrated on every CI run, and the second migration has to change nothing for the build to pass.
 
 ## Renaming the styling prop
 
