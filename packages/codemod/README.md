@@ -197,6 +197,19 @@ Order is only forced where the two classes actually disagree, measured per
 at-rule and per selector. Anything left unsettled is reported as
 `composition-order`.
 
+A variant picked with a bracket is resolved to the class its key names, whether
+the constant is declared in the same file or imported, and a constant left
+naming nothing is removed with it:
+
+```diff
+- const size = 'small';
+- <div classStyle={styles[size]} />
++ <div className={styles.small} />
+```
+
+Only a `const` holding a string literal is followed. A key computed at runtime is
+reported as `dynamic-style-access` and its definitions stay in Plumeria.
+
 ### Global styles
 
 `css.createTheme`, `css.keyframes`, and `css.viewTransition` produce rules that
