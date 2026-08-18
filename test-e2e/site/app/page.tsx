@@ -1,4 +1,5 @@
 import { CascadeTest } from 'component/CascadeTest';
+import { CompositionOrderTest } from 'component/CompositionOrderTest';
 import { ConditionalTest } from 'component/ConditionalTest';
 import { ContainerQueryTest } from 'component/ContainerQueryTest';
 import { QueryOrderTest } from 'component/QueryOrderTest';
@@ -21,6 +22,7 @@ export default function Home() {
       <h2 classStyle={styles.page}>server component</h2>
       <Link href="/server">Server Page</Link>
       <CascadeTest />
+      <CompositionOrderTest />
       <ContainerQueryTest />
       <QueryOrderTest />
       <ConditionalTest />
