@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.2.25 (Aug 19, 2026)
+
+Update dependencies
+
 ## 18.2.24 (Aug 18, 2026)
 
 - Fix: `migrate --from css-modules` overwrote a `*.styles.ts` that was already there without reporting it. A stylesheet whose target exists is now reported as `target-exists` and left alone, the way the export already treats an existing `*.module.css`, and its consumers keep the import they had rather than being pointed at a file that was never written.
