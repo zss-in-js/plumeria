@@ -371,7 +371,9 @@ f(f(x)) = f(x)
 
 A second run finds no `css.create` to export, reports `target-exists` for the definition files it deliberately left behind, and writes nothing. The generated block in `global.css` is fenced by a marker comment and replaced rather than appended, so it does not grow. This holds even when the first run left styles behind: clear a report, run again, and only the newly resolvable files move.
 
-Plumeria's own documentation site is migrated and re-migrated on every CI run, and the second migration has to change nothing for the build to pass.
+Plumeria's own documentation site and end-to-end site go through the whole cycle on every CI run — exported, exported again, adopted back, adopted back again, and exported once more. Each pass has something to prove: the export must not leave a type error behind or name a class it never wrote, the second export must move nothing, the adoption must not leave a consumer reading a `*.module.css`, the second adoption must move nothing, and the project that came back must export again without a new report or a new type error.
+
+Byte equality with the first export is not the claim. A round trip folds a constant that only named a style key and gives a merged class a name, and exporting that reaches further than the first export did — the point is that nothing breaks and nothing new is refused. The exported site is also served and compared against the Plumeria one screenshot by screenshot, so the cycle is measured on the rendered page and not only in the source.
 
 ## Renaming the styling prop
 
