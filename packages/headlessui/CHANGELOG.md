@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 18.2.25
+
+### Patch Changes
+
+- 0b45a2d: Update dependencies
+
 ## 18.2.24
 
 ### Patch Changes

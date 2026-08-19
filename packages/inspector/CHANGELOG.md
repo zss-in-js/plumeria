@@ -1,5 +1,13 @@
 # @plumeria/inspector
 
+## 18.2.25
+
+### Patch Changes
+
+- 0b45a2d: Update dependencies
+- Updated dependencies [0b45a2d]
+  - @plumeria/headlessui@18.2.25
+
 ## 18.2.24
 
 ### Patch Changes

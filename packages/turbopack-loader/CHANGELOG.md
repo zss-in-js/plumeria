@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 18.2.25
+
+### Patch Changes
+
+- 0b45a2d: Update dependencies
+- Updated dependencies [0b45a2d]
+  - @plumeria/compiler@18.2.25
+  - @plumeria/utils@18.2.25
+
 ## 18.2.24
 
 ### Patch Changes
