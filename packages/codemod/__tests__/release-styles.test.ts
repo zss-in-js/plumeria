@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { RuleTester } from 'eslint';
+import { Linter, RuleTester } from 'eslint';
 import * as tsParser from '@typescript-eslint/parser';
 import { __private, releaseStyles } from '../src/transforms/release-styles';
 
@@ -734,4 +734,436 @@ const { card } = styles;
       errors: 1,
     },
   ],
+});
+
+describe('release-styles boundary rewrites', () => {
+  const boundaryFilename = path.join(
+    process.cwd(),
+    'packages/codemod/__tests__/Boundary.tsx',
+  );
+  const boundaryValues = path.join(
+    process.cwd(),
+    'packages/codemod/__tests__/Boundary.values.ts',
+  );
+  const boundaryStyles = path.join(
+    process.cwd(),
+    'packages/codemod/__tests__/Boundary.styles.ts',
+  );
+  const boundaryCss = path.join(
+    process.cwd(),
+    'packages/codemod/__tests__/Boundary.module.css',
+  );
+  beforeAll(() => {
+    fs.writeFileSync(boundaryValues, '');
+    fs.writeFileSync(boundaryStyles, '');
+    fs.writeFileSync(boundaryCss, '');
+  });
+  afterAll(() => {
+    fs.rmSync(boundaryValues, { force: true });
+    fs.rmSync(boundaryStyles, { force: true });
+    fs.rmSync(boundaryCss, { force: true });
+  });
+  const settle = (code: string, extra: Record<string, unknown> = {}) =>
+    new Linter().verifyAndFix(
+      code,
+      {
+        files: ['**/*.tsx'],
+        languageOptions: {
+          parser: tsParser,
+          parserOptions: { ecmaFeatures: { jsx: true }, sourceType: 'module' },
+        },
+        plugins: { codemod: { rules: { 'release-styles': releaseStyles } } },
+        rules: {
+          'codemod/release-styles': [
+            'error',
+            {
+              modules: {
+                [boundaryFilename]: {
+                  source: './Card.module.css',
+                  binding: 'styles',
+                  aliases: { other: { card: 'other-card' } },
+                  functions: {
+                    size: {
+                      params: ['width'],
+                      variables: ['--size'],
+                      lengths: [true],
+                    },
+                  },
+                  merges: {},
+                  overrides: {},
+                },
+              },
+              ...extra,
+            },
+          ],
+        },
+      },
+      { filename: boundaryFilename },
+    ).output;
+
+  it.each([
+    `import css from '@plumeria/core';\nconst styles = css.create({ card: {} });`,
+    `import { 'css' as core } from '@plumeria/core';\nconst styles = core['create']({ card: {} });`,
+    `const styles = create({ card: {} });`,
+    `const styles = css.create({ card: {} }), other = 1;`,
+    `export const styles = css.create({ card: {} });`,
+    `const key = 'card';\n<div classStyle={styles[key]} />;`,
+    `const key = 'card';\n<div className="kept" classStyle={styles[key]} />;`,
+    `const key = 'card';\n<div className={kept} classStyle />;`,
+    `const key = 'card';\n<div className classStyle={styles.card} />;`,
+    `<div classStyle={css.use()} />;`,
+    `<div classStyle={css.use(styles.card, on && styles.size(2))} />;`,
+    `<div classStyle={[styles.card, on ? styles.size(2) : styles.card]} style={{ color: 'red' }} />;`,
+    `<div classStyle={[]} />;`,
+    `<div ns:classStyle={styles.card} />;`,
+    `type Value = css.Style;\nconst value: Value = styles.card;`,
+    `type StyleValue = Style;\ntype OtherValue = Other;`,
+    `const value = other[key];\nconst literal = other['card'];`,
+    `const value = other[1];\nconst missing = other['missing'];`,
+    `<div classStyle={on && unknown} />;`,
+    `<div classStyle={on ? styles.card : unknown} />;`,
+    `<div classStyle={css.use(styles.card, styles.size)} />;`,
+    `<div classStyle={[styles.card, unknown]} />;`,
+  ])('handles an ESTree boundary without crashing: %s', (code) => {
+    expect(() => settle(code)).not.toThrow();
+  });
+
+  it('covers complete-mode type and inactive module boundaries', () => {
+    expect(() =>
+      settle(
+        `import * as css from '@plumeria/core';\ntype A = Style;\ntype B = css.Style;\ntype C = Other;`,
+        { modules: {}, complete: true },
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(`import * as css from '@plumeria/core';\nconst value = 1;`, {
+        modules: {},
+      }),
+    ).not.toThrow();
+  });
+
+  it('covers absent and conditional composition overrides', () => {
+    const target = path.join(
+      process.cwd(),
+      'packages/codemod/__tests__/Boundary.module.css',
+    );
+    expect(() =>
+      settle(`<div classStyle={[styles.card, styles.size]} />;`, {
+        modules: {
+          [boundaryFilename]: {
+            source: './Boundary.module.css',
+            target,
+            binding: 'styles',
+            functions: {},
+            merges: {},
+            overrides: {},
+          },
+        },
+      }),
+    ).not.toThrow();
+    expect(() =>
+      settle(`<div classStyle={[styles.card, on && styles.size]} />;`, {
+        modules: {
+          [boundaryFilename]: {
+            source: './Boundary.module.css',
+            target,
+            binding: 'styles',
+            functions: {},
+            merges: {},
+            overrides: {
+              'card|size': { 1: 'sizeOverride' },
+            },
+          },
+        },
+      }),
+    ).not.toThrow();
+    expect(() =>
+      settle(`<div classStyle={[styles.card, styles.size]} />;`, {
+        modules: {
+          [boundaryFilename]: {
+            source: './Boundary.module.css',
+            target,
+            binding: 'styles',
+            functions: {},
+            merges: {},
+            overrides: {
+              'card|size': { 1: 'sizeOverride' },
+            },
+          },
+        },
+      }),
+    ).not.toThrow();
+  });
+
+  it('inlines string, number, object, and missing imported values', () => {
+    const values = {
+      [boundaryValues]: {
+        text: "a'b\\c",
+        count: 2,
+        nested: { card: 'token' },
+      },
+    };
+    expect(() =>
+      settle(
+        `import { text, count, nested, absent } from './Boundary.values';
+         export { count };
+         const a = text;
+         const b = count;
+         const c = absent;
+         const d = nested.card;
+         const e = nested[key];
+         const f = nested['missing'];
+         const g = { text };
+         const h = { [text]: true };`,
+        { values },
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `import { text } from './Boundary.values';
+         const object = {};
+         const a = object.text;
+         const b = { text: 1 };
+         const c = { [text]: 1 };`,
+        { values },
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `import value, { text } from './Boundary.values';\nconst a = text;`,
+        {
+          values,
+        },
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `import { 'text' as text, missing } from './Boundary.values';\nconst a = text;`,
+        { values },
+      ),
+    ).not.toThrow();
+  });
+
+  it('covers definition-only imports with and without generated targets', () => {
+    expect(() =>
+      settle(
+        `import { styles, value } from './Boundary.styles';\n<div classStyle={styles.card}>{value}</div>;`,
+        {
+          modules: {
+            [boundaryStyles]: {
+              source: './Boundary.module.css',
+              binding: 'styles',
+              definitionOnly: true,
+            },
+          },
+        },
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `import { styles } from './Boundary.styles';\n<div classStyle={styles.card} />;`,
+        {
+          modules: {
+            [boundaryStyles]: {
+              source: './Boundary.module.css',
+              target: path.join(path.dirname(boundaryStyles), 'Generated.ts'),
+              binding: 'styles',
+              definitionOnly: true,
+            },
+          },
+        },
+      ),
+    ).not.toThrow();
+  });
+
+  it('covers kept definitions and unsupported core reads', () => {
+    expect(() =>
+      settle(
+        `import * as css from '@plumeria/core';
+         const { card } = css.create({ card: {} });
+         const other = css.create({ other: {} });
+         css['unknown']();
+         css[key]();`,
+        {
+          modules: {
+            [boundaryFilename]: {
+              source: './Boundary.module.css',
+              binding: 'styles',
+              definitionOnly: true,
+            },
+          },
+        },
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `import * as css from '@plumeria/core';
+         css.unknown();
+         css[key]();
+         const first = css.createStatic({ key: 'card' });
+         const { card } = css.create({ card: {} });
+         const other = css.create({ other: {} });`,
+      ),
+    ).not.toThrow();
+  });
+
+  it('covers aliases, folded constants, and default CSS imports', () => {
+    expect(settle(`const value = other.card;`)).toContain(
+      "styles['other-card']",
+    );
+    expect(() =>
+      settle(
+        `export const other = css.create({ card: {} });
+         const unrelated = css.create({ card: {} });`,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `const value = styles[{}];
+         const key = 'card';`,
+        { constants: { [boundaryFilename]: { key: 'card' } } },
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `import { 'key' as key } from './Boundary.values';
+         const value = other[key];`,
+        {
+          values: { [boundaryValues]: { key: 'card' } },
+          constants: { [boundaryFilename]: { key: 'card' } },
+        },
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `import styles from './Boundary.module.css';\n<div classStyle={styles.card} />;`,
+        {
+          modules: {
+            [boundaryStyles]: {
+              source: './Boundary.module.css',
+              target: boundaryCss,
+              binding: 'styles',
+            },
+          },
+        },
+      ),
+    ).not.toThrow();
+  });
+
+  it('covers removal adjacency and nested final statements', () => {
+    expect(() =>
+      settle(
+        `import * as css from '@plumeria/core';
+         const styles = css.create({ card: {} });
+         const { card } = css.create({ card: {} });`,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `import * as css from '@plumeria/core';
+         const styles = css.create({ card: {} });
+         const other = css.create({ card: {} });`,
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(`function read() { styles[key]; const key = 'card'; }`, {
+        constants: { [boundaryFilename]: { key: 'card' } },
+      }),
+    ).not.toThrow();
+  });
+
+  it('covers className without a value and verifies both override shapes', () => {
+    expect(() =>
+      settle(`<div className classStyle={styles.card} />;`),
+    ).not.toThrow();
+    const target = path.join(
+      process.cwd(),
+      'packages/codemod/__tests__/Boundary.module.css',
+    );
+    const modules = {
+      [boundaryFilename]: {
+        source: './Boundary.module.css',
+        target,
+        binding: 'styles',
+        functions: {},
+        merges: {},
+        overrides: {
+          'card|size': { 1: 'sizeOverride' },
+        },
+      },
+    };
+    expect(
+      settle(`<div classStyle={[styles.card, styles.size]} />;`, { modules }),
+    ).toContain('styles.sizeOverride');
+    expect(
+      settle(`<div classStyle={[styles.card, on && styles.size]} />;`, {
+        modules,
+      }),
+    ).toContain('on && styles.sizeOverride');
+    expect(
+      settle(`<div className="kept" classStyle={styles.card} />;`),
+    ).toContain('kept');
+    expect(settle(`<div classStyle={styles['bad-key']} />;`)).toContain(
+      "styles['bad-key']",
+    );
+  });
+
+  it('covers removable import adjacency and static liveness', () => {
+    const themes = { [boundaryValues]: ['theme'] };
+    expect(() =>
+      settle(
+        `import { theme } from './Boundary.values';
+         import * as css from '@plumeria/core';
+         const value = 1;`,
+        { themes },
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `import { theme } from './Boundary.values';
+         import { 'theme' as otherTheme } from './Boundary.values';
+         const value = 1;`,
+        { themes },
+      ),
+    ).not.toThrow();
+    expect(() =>
+      settle(`import { theme } from './Boundary.values';\nconst value = 1;`, {
+        themes,
+        modules: {
+          [boundaryFilename]: {
+            source: './Boundary.module.css',
+            binding: 'styles',
+            definitionOnly: true,
+          },
+        },
+      }),
+    ).not.toThrow();
+    expect(() =>
+      settle(`import { key } from './Boundary.values';\nconst value = 1;`, {
+        modules: {},
+        active: true,
+        statics: { [boundaryValues]: ['key'] },
+      }),
+    ).not.toThrow();
+    expect(() =>
+      settle(
+        `import { key } from './Boundary.values';
+         import * as css from '@plumeria/core';
+         const styles = css.create({ card: { color: 'red' } });`,
+        { statics: { [boundaryValues]: ['key'] } },
+      ),
+    ).not.toThrow();
+  });
+
+  it('covers independent dynamic core and alias keys', () => {
+    expect(() =>
+      settle(`import * as css from '@plumeria/core';\ncss[key]();`),
+    ).not.toThrow();
+    expect(() =>
+      settle(`const key = 'card';\nconst value = other[key];`, {
+        constants: { [boundaryFilename]: { key: 'card' } },
+      }),
+    ).not.toThrow();
+    expect(() => settle(`const value = other[{}];`)).not.toThrow();
+  });
 });
