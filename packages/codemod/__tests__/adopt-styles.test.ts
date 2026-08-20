@@ -1,4 +1,7 @@
 import { Linter, RuleTester } from 'eslint';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as tsParser from '@typescript-eslint/parser';
 import { adoptStyles } from '../src/transforms/adopt-styles';
 
 const tester = new RuleTester({
@@ -178,6 +181,239 @@ describe('rewrites that settle on a later pass', () => {
     ).toBe(
       `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={styles.size(width)} />;`,
     );
+  });
+
+  it('rewrites several stylesheet bindings without reusing styles', () => {
+    expect(
+      settle(
+        `import first from './First.module.css';\nimport second from './Second.module.css';\n<div className={[first.base, second.base].join(' ')} />;`,
+        {
+          './First.module.css': {
+            source: './First.styles',
+            names: { base: 'base' },
+          },
+          './Second.module.css': {
+            source: './Second.styles',
+            names: { base: 'base' },
+          },
+        },
+      ),
+    ).toBe(
+      `import '@plumeria/core';\nimport { styles as first } from './First.styles';\nimport { styles as second } from './Second.styles';\n<div classStyle={[first.base, second.base]} />;`,
+    );
+  });
+
+  it('uses the generated target relative to an absolute consumer', () => {
+    const filename = path.join(process.cwd(), 'packages/codemod/pages/Card.js');
+    const modules = {
+      '../styles/Card.module.css': {
+        source: './Card.styles',
+        target: path.join(process.cwd(), 'packages/codemod/generated/Card.ts'),
+        names: { base: 'base' },
+      },
+    };
+    const output = new Linter().verifyAndFix(
+      `import card from '../styles/Card.module.css';\n<div className={card.base} />;`,
+      {
+        files: ['**/*.js'],
+        languageOptions: {
+          parserOptions: { ecmaFeatures: { jsx: true }, sourceType: 'module' },
+        },
+        plugins: { codemod: { rules: { 'adopt-styles': adoptStyles } } },
+        rules: { 'codemod/adopt-styles': ['error', { modules }] },
+      },
+      { filename },
+    ).output;
+
+    expect(output).toBe(
+      `import '@plumeria/core';\nimport { styles } from '../generated/Card';\n<div classStyle={styles.base} />;`,
+    );
+  });
+
+  it('prefers a resolved stylesheet and prefixes a sibling target', () => {
+    const directory = fs.mkdtempSync(
+      path.join(process.cwd(), '.adopt-styles-'),
+    );
+    const filename = path.join(directory, 'Consumer.js');
+    const stylesheet = path.join(directory, 'Card.module.css');
+    const target = path.join(directory, 'Card.styles.ts');
+    fs.writeFileSync(stylesheet, '');
+    try {
+      const output = new Linter().verifyAndFix(
+        `import card from './Card.module.css';\n<div className={card.base} />;`,
+        {
+          files: ['**/*.js'],
+          languageOptions: {
+            parserOptions: {
+              ecmaFeatures: { jsx: true },
+              sourceType: 'module',
+            },
+          },
+          plugins: { codemod: { rules: { 'adopt-styles': adoptStyles } } },
+          rules: {
+            'codemod/adopt-styles': [
+              'error',
+              {
+                modules: {
+                  [stylesheet]: {
+                    source: './ignored',
+                    target,
+                    names: { base: 'base' },
+                  },
+                },
+              },
+            ],
+          },
+        },
+        { filename },
+      ).output;
+      expect(output).toContain("from './Card.styles'");
+    } finally {
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('reads TypeScript string imports and asserted custom-property keys', () => {
+    const code = `import { 'css' as core } from '@plumeria/core';\nimport { 'styles' as card } from './Card.styles';\n<div classStyle={card.size} style={{ ['--size' as string]: width }} />;`;
+    const output = new Linter().verifyAndFix(code, {
+      languageOptions: {
+        parser: tsParser,
+        parserOptions: { ecmaFeatures: { jsx: true }, sourceType: 'module' },
+      },
+      plugins: { codemod: { rules: { 'adopt-styles': adoptStyles } } },
+      rules: {
+        'codemod/adopt-styles': [
+          'error',
+          {
+            modules: {
+              './Card.module.css': {
+                source: './Card.styles',
+                names: { size: 'size' },
+                functions: { size: ['--size'] },
+              },
+            },
+          },
+        ],
+      },
+    }).output;
+    expect(output).toContain('width');
+  });
+
+  it('keeps unused custom properties and rewrites every callable array item', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<div className={[on && s.size, s.missing, other].filter(Boolean).join(' ')} style={{ ['--size']: width, ['--kept']: color }} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { size: 'size', missing: 'missing' },
+            functions: { size: ['--size'], missing: ['--absent'] },
+          },
+        },
+      ),
+    ).toBe(
+      `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div className={[other].filter(Boolean).join(' ')} classStyle={[on && styles.size(width), styles.missing]} style={{ ['--kept']: color }} />;`,
+    );
+  });
+
+  it('keeps non-string computed properties beside a function argument', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<div className={s.size} style={{ ['--size']: width, [1]: other }} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { size: 'size' },
+            functions: { size: ['--size'] },
+          },
+        },
+      ),
+    ).toBe(
+      `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={styles.size(width)} style={{ [1]: other }} />;`,
+    );
+  });
+
+  it('turns a computed adopted style into a function call', () => {
+    expect(
+      settle(
+        `import { styles } from './Card.styles';\n<div classStyle={styles['size']} style={{ ['--size']: width }} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { size: 'size' },
+            functions: { size: ['--size'] },
+          },
+        },
+      ),
+    ).toBe(
+      `import { styles } from './Card.styles';\n<div classStyle={styles.size(width)} />;`,
+    );
+  });
+
+  it('leaves dynamic and undeclared reads beside a callable style', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<div className={[s[key], s.unknown, s.size].filter(Boolean).join(' ')} style={{ ['--size']: width }} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { size: 'size' },
+            functions: { size: ['--size'] },
+          },
+        },
+      ),
+    ).toBe(
+      `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={[styles[key], styles.unknown, styles.size(width)]} />;`,
+    );
+  });
+
+  it('recognizes an already adopted named styles import', () => {
+    expect(
+      settle(
+        `import { styles as card } from './Card.styles';\n<div className={card.base} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { base: 'base' },
+          },
+        },
+      ),
+    ).toBe(
+      `import { styles as card } from './Card.styles';\n<div classStyle={card.base} />;`,
+    );
+  });
+
+  it.each([
+    `import { css as core } from '@plumeria/core';\nimport s from './Card.module.css';\ncore.use(s.card);`,
+    "import s from './Card.module.css';\n<div className={`${s.base}-${s.card}`} />;",
+    `import s from './Card.module.css';\n<div className={[s.base, null, s.card].join(' ')} />;`,
+    `import s from './Card.module.css';\n<div className={[s.base, s.card].filter(Boolean).join(',')} />;`,
+    `import s from './Card.module.css';\n<div className={[s.base, get().card].join(' ')} />;`,
+    `import s from './Card.module.css';\n<div className={values.join(' ')} />;`,
+    `import defaultCore from '@plumeria/core';\nimport s from './Card.module.css';\n<div className={s.card} />;`,
+    `import { value } from './Card.styles';\n<div className={value} />;`,
+    `class styles {}\nimport s from './Card.module.css';\n<div className={s.card} />;`,
+    `import s from './Card.module.css';\n<div classStyle="card" style={{ plain: value, ...rest }} />;`,
+    `import s from './Card.module.css';\n<div className={s.size} style={{ ['--size']: width, plain: value, ...rest }} />;`,
+    `import s from './Card.module.css';\n<div className={[s.size, on && other.value]} style={{ ['--size']: width }} />;`,
+    `import s from './Card.module.css';\n<div className={s['size']} style={{ ['--size']: width }} />;`,
+    `import s from './Card.module.css';\n<div className={s[key]} style={{ ['--size']: width }} />;`,
+    `import s from './Card.module.css';\n<div className={[s[key], s.size]} style={{ ['--size']: width, [key]: value, [1]: other }} />;`,
+    `import s from './Card.module.css';\n<div className />;`,
+    `import s from './Card.module.css';\n<div className="card" />;`,
+    `import s from './Card.module.css';\n<div ns:className={s.card} />;`,
+    `import s from './Card.module.css';\n<div className={other.card} />;`,
+  ])('handles a boundary consumer without crashing: %s', (code) => {
+    expect(() =>
+      settle(code, {
+        './Card.module.css': {
+          source: './Card.styles',
+          names: { base: 'base', card: 'card', size: 'size' },
+          composes: { card: [], size: ['base'] },
+          functions: { size: ['--size'] },
+        },
+      }),
+    ).not.toThrow();
   });
 
   it('drops the pixel guard the export put around a length argument', () => {
