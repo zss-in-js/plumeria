@@ -33,6 +33,7 @@ describe('convertPlumeriaModule', () => {
       }),
     ).toBeUndefined();
     expect(__private.evaluate(undefined, values)).toBeUndefined();
+    expect(__private.evaluate({ type: 'Unknown' }, values)).toBeUndefined();
     expect(
       __private.evaluate(
         {
@@ -247,7 +248,7 @@ describe('convertPlumeriaModule', () => {
   const CYCLE = `
       import * as css from '@plumeria/core';
       const styles = css.create({
-        surface: { padding: 8, color: 'black' },
+        surface: { padding: 8, marginTop: 4, color: 'black' },
         raised: { padding: 16, color: 'white' },
       });
     `;
@@ -271,6 +272,7 @@ describe('convertPlumeriaModule', () => {
     const result = convertPlumeriaModule(CYCLE, {}, [
       conditional(pair('surface', 'raised'), 1),
       conditional(pair('raised', 'surface'), 2),
+      conditional(pair('raised', 'surface'), 3),
     ]);
 
     // No declaration order satisfies both, so the one that loses carries the
@@ -341,6 +343,123 @@ describe('convertPlumeriaModule', () => {
     expect(result?.reports.map((report) => report.kind)).toEqual([
       'dynamic-value',
     ]);
+  });
+
+  it('covers composition ordering and folding boundary cases', () => {
+    expect(
+      __private.evaluate(
+        {
+          type: 'UnaryExpression',
+          operator: '-',
+          argument: { type: 'Literal', value: 'not-a-number' },
+        },
+        new Map(),
+      ),
+    ).toBeUndefined();
+
+    const key = (name: string) => ({ binding: 'styles', key: name });
+    const composition = (slots: ReturnType<typeof key>[][], line: number) => ({
+      parts: slots.length > 1 ? slots.map((slot) => slot[0]) : [],
+      slots,
+      file: 'Boundary.tsx',
+      line,
+      column: 1,
+    });
+    const result = convertPlumeriaModule(
+      `
+      import * as css from '@plumeria/core';
+      const styles = css.create({
+        same: { color: 'red', color: 'blue' },
+        base: { color: 'red' },
+        blue: { color: 'blue' },
+        green: { color: 'green' },
+        hover: { ':hover': { color: 'blue' } },
+        background: { backgroundColor: 'black' },
+        wide: { padding: 8 },
+        narrow: { paddingTop: 4 },
+        dynamic: ({ color }) => ({ color }),
+      });
+    `,
+      {},
+      [
+        composition([[key('base')], [key('base')]], 1),
+        composition([[key('base')], [key('hover')]], 2),
+        composition([[key('base')], [key('background')]], 3),
+        composition([[key('wide')], [key('narrow')]], 4),
+        composition([[key('narrow')], [key('wide')]], 5),
+        composition([[key('base')], [key('hover')], [key('wide')]], 6),
+        composition([[key('base')], [key('blue')], [key('green')]], 7),
+        composition([[key('dynamic')], [key('missing')]], 8),
+        composition([[key('base')], [key('hover')]], 9),
+      ],
+    );
+
+    expect(result?.reports.map((report) => report.kind)).toContain(
+      'function-style',
+    );
+  });
+
+  it('covers missing, cached, spread, computed, and duplicate foldings', () => {
+    const source = '/app/Foreign.ts';
+    const duplicate = '/app/A.module.css#base|/app/Foreign.module.css#box';
+    const result = convertPlumeriaModule(
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ base: { color: 'red' } });`,
+      {},
+      [],
+      {
+        target: '/app/A.module.css',
+        foreign: {
+          [source]: {
+            text: `import * as css from '@plumeria/core';
+              const other = css.create({
+                ...spread,
+                ['computed']: { color: 'pink' },
+                box: { color: 'blue' },
+                edge: { padding: 2 },
+              });
+              const empty = css.create();`,
+            values: {},
+          },
+        },
+        foldings: [
+          {
+            signature: 'missing-local',
+            parts: [{ binding: 'styles', key: 'missing' }],
+          },
+          {
+            signature: 'missing-foreign',
+            parts: [
+              { binding: 'other', key: 'missing', source: '/app/Missing.ts' },
+            ],
+          },
+          {
+            signature: 'empty-call',
+            parts: [{ binding: 'empty', key: 'box', source }],
+          },
+          {
+            signature: 'spread-and-computed',
+            parts: [{ binding: 'other', key: 'missing', source }],
+          },
+          {
+            signature: duplicate,
+            parts: [
+              { binding: 'styles', key: 'base' },
+              { binding: 'other', key: 'box', source },
+              { binding: 'other', key: 'edge', source },
+            ],
+          },
+          {
+            signature: duplicate,
+            parts: [
+              { binding: 'styles', key: 'base' },
+              { binding: 'other', key: 'box', source },
+            ],
+          },
+        ],
+      },
+    );
+
+    expect(result?.merges[duplicate]).toBeDefined();
   });
 
   it('leaves a folding alone when the module it reads does not answer', () => {
