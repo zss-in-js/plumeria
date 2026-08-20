@@ -100,6 +100,19 @@ export const styles = css.create({ card: { color: theme.text } });`,
     );
   });
 
+  it('does not create a global stylesheet for an empty view transition', () => {
+    const source = path.join(dir, 'transition.ts');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nexport const transition = css.viewTransition({});`,
+    );
+
+    const plan = planRelease([dir]);
+
+    expect(plan.animations[source]).toEqual(['transition']);
+    expect(plan.global).toBeUndefined();
+  });
+
   it('resolves a createTheme imported from another file', () => {
     const sourceDir = path.join(dir, 'src');
     fs.mkdirSync(sourceDir);
