@@ -218,11 +218,22 @@ try {
   const installed = path.join(source, 'node_modules');
   if (fs.existsSync(installed))
     fs.symlinkSync(installed, path.join(work, 'node_modules'), 'dir');
+  const before = snapshot(work);
   const baseline = typeErrors(work);
 
   // Exported once, the project still has to compile.
   const told = reportKinds(migrate(work, 'plumeria'));
   const first = snapshot(work);
+  const written = [...first.keys()].filter(
+    (name) => name.endsWith('.module.css') && !before.has(name),
+  );
+  if (written.length === 0)
+    fail(
+      'the export wrote no stylesheets',
+      told.size > 0
+        ? [...told].map(([kind, count]) => `${kind}: ${count}`)
+        : ['nothing was reported either'],
+    );
   const exported = regressions(baseline, typeErrors(work));
   if (exported.length > 0) fail('the export left errors behind', exported);
   const dangling = danglingClasses(work);
