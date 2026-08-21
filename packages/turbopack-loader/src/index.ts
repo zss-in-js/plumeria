@@ -2170,7 +2170,7 @@ export default async function loader(this: LoaderContext, source: string) {
         });
         if (Object.keys(lookupMap).length > 0) {
           const entries = Object.entries(lookupMap)
-            .map(([k, v]) => `"${k}":"${v}"`)
+            .map(([k, v]) => `${JSON.stringify(k)}:${JSON.stringify(v)}`)
             .join(',');
           classParts.push(`({${entries}}[${commonTestExpr}] || "")`);
         }
