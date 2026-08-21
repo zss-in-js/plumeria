@@ -26,6 +26,35 @@ beforeEach(() => {
 afterAll(() => fs.rmSync(FIXTURE_DIR, { recursive: true, force: true }));
 
 describe('compiler: styles imported from another file', () => {
+  // Two components in one file take the same prop name. Reading only the first
+  // one's entries left the other's rule out of the sheet.
+  it('emits the rule for every component in a file that shares a prop name', () => {
+    write(
+      'twins.tsx',
+      `import * as css from '@plumeria/core';
+export const TwinA = ({ deco }: any) => <div classStyle={deco} />;
+export const TwinB = ({ deco }: any) => <span classStyle={deco} />;
+`,
+    );
+    write(
+      'parent.tsx',
+      `import * as css from '@plumeria/core';
+import { TwinA, TwinB } from './twins';
+const twin = css.create({ red: { color: 'red' }, blue: { color: 'blue' } });
+export const P = () => (
+  <div>
+    <TwinA deco={twin.red} />
+    <TwinB deco={twin.blue} />
+  </div>
+);
+`,
+    );
+
+    const css = compile();
+    expect(css).toContain('color: red');
+    expect(css).toContain('color: blue');
+  });
+
   it('emits the rule for a function key imported from another file', () => {
     // The declaration lives in another module, so the only record of its
     // function keys is the one the scanner leaves behind.
