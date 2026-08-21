@@ -23,6 +23,47 @@ const compile = (body: string) => {
 afterAll(() => fs.rmSync(FIXTURE_DIR, { recursive: true, force: true }));
 
 describe('compiler: dynamic function keys', () => {
+  it('emits a parameter default as the variable fallback', () => {
+    // One class serves both call sites: the default lives in the sheet and an
+    // argument overrides it through the variable.
+    const css = compile(`
+import * as css from '@plumeria/core';
+const s = css.create({ tinted: (c = 'teal') => ({ color: c }) });
+export const A = () => <div classStyle={s.tinted()} />;
+export const B = (p: any) => <div classStyle={s.tinted(p.c)} />;
+`);
+    expect(css).toContain('color: var(--xefxcruu-c, teal)');
+    expect(css.match(/color: var\(/g)).toHaveLength(1);
+  });
+
+  it('gives a numeric default its unit', () => {
+    const css = compile(`
+import * as css from '@plumeria/core';
+const s = css.create({ spaced: (n = 4) => ({ padding: n }) });
+export const A = () => <div classStyle={s.spaced()} />;
+`);
+    expect(css).toContain('padding: var(--x4zkwd45-n, 4px)');
+  });
+
+  it('emits a destructured default as the variable fallback', () => {
+    const css = compile(`
+import * as css from '@plumeria/core';
+const s = css.create({ toned: ({ tone = 'navy' }) => ({ backgroundColor: tone }) });
+export const A = () => <div classStyle={s.toned({})} />;
+`);
+    expect(css).toMatch(/background-color: var\(--[a-z0-9]+-tone, navy\)/);
+  });
+
+  it('emits a plain rule for a style function that takes no parameter', () => {
+    const css = compile(`
+import * as css from '@plumeria/core';
+const s = css.create({ plain: () => ({ color: 'olive' }) });
+export const A = () => <div classStyle={s.plain()} />;
+`);
+    expect(css).toContain('color: olive');
+    expect(css).not.toContain('var(');
+  });
+
   it('emits the variable under the same class the transform writes', () => {
     // The class hash is derived from the declaration text, so the variable
     // name here has to match the one the bundler plugin puts in `style`.
