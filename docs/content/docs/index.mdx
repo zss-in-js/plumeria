@@ -73,6 +73,8 @@ And when two styles set the same property, the losing atom on the left is filter
 
 $$parse(A_{color} \oplus B_{color}) \to \text{"classB"}$$
 
+A shorthand against a longhand is the exception: the longhand wins wherever the two meet, in either order. See [Specificity](/docs/reference/specificity).
+
 ## Types all the way down
 
 Styling shouldn't require a runtime. Plumeria treats styles as **type schemas** rather than runtime objects — in fact, the package's only entry point is a `.d.ts` file. There is no JavaScript to import:
