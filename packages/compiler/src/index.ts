@@ -17,6 +17,7 @@ import {
   type CSSProperties,
   genBase36Hash,
   camelToKebabCase,
+  applyCssValue,
 } from 'zss-engine';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -77,7 +78,10 @@ type NamedParam = { key: string; local: string };
 // A dynamic style function may name its parameters by destructuring them, in
 // which case the call passes one object and the key it uses is not necessarily
 // the name the body reads.
-const namedParamsOf = (params: unknown[]): NamedParam[] | undefined => {
+const namedParamsOf = (
+  params: unknown[],
+  defaults: Record<string, Expression>,
+): NamedParam[] | undefined => {
   if (params.length !== 1) return undefined;
   const first = params[0] as { type?: string; pat?: { type?: string } };
   const pattern = (first?.pat ?? first) as {
@@ -88,18 +92,23 @@ const namedParamsOf = (params: unknown[]): NamedParam[] | undefined => {
 
   const named: NamedParam[] = [];
   for (const prop of pattern.properties ?? []) {
-    if (
-      prop.type === 'AssignmentPatternProperty' &&
-      t.isIdentifier(prop.key) &&
-      !prop.value
-    ) {
+    if (prop.type === 'AssignmentPatternProperty' && t.isIdentifier(prop.key)) {
       named.push({ key: prop.key.value, local: prop.key.value });
+      if (prop.value) defaults[prop.key.value] = prop.value as Expression;
     } else if (
       prop.type === 'KeyValuePatternProperty' &&
       t.isIdentifier(prop.key) &&
       t.isIdentifier(prop.value)
     ) {
       named.push({ key: prop.key.value, local: prop.value.value });
+    } else if (
+      prop.type === 'KeyValuePatternProperty' &&
+      t.isIdentifier(prop.key) &&
+      prop.value?.type === 'AssignmentPattern' &&
+      t.isIdentifier(prop.value.left)
+    ) {
+      named.push({ key: String(prop.key.value), local: prop.value.left.value });
+      defaults[prop.value.left.value] = prop.value.right;
     } else {
       return undefined;
     }
@@ -124,7 +133,12 @@ interface TraversalContext {
       obj: CSSObject;
       functions?: Record<
         string,
-        { params: string[]; named?: NamedParam[]; body: ObjectExpression }
+        {
+          params: string[];
+          named?: NamedParam[];
+          defaults?: Record<string, Expression>;
+          body: ObjectExpression;
+        }
       >;
     }
   >;
@@ -136,6 +150,24 @@ interface TraversalContext {
 type StyleFunctions = NonNullable<
   TraversalContext['localCreateStyles'][string]['functions']
 >;
+
+const applyVarFallback = (
+  style: CSSObject,
+  cssVar: string,
+  literal: string | number,
+): boolean => {
+  for (const [prop, value] of Object.entries(style)) {
+    if (typeof value === 'string' && value.includes(cssVar)) {
+      (style as Record<string, unknown>)[prop] =
+        `var(${cssVar}, ${applyCssValue(literal, camelToKebabCase(prop))})`;
+      return true;
+    }
+    if (value !== null && typeof value === 'object') {
+      if (applyVarFallback(value as CSSObject, cssVar, literal)) return true;
+    }
+  }
+  return false;
+};
 
 const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
   const styleFunctions: StyleFunctions = {};
@@ -150,15 +182,19 @@ const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
     )
       return;
 
+    const defaults: Record<string, Expression> = {};
     const params: string[] = func.params.map((p) => {
-      if (t.isIdentifier(p)) return p.value;
+      const pattern = (
+        typeof p === 'object' && p !== null && 'pat' in p ? p.pat : p
+      ) as { type?: string; left?: Identifier; right?: Expression };
+      if (t.isIdentifier(pattern)) return pattern.value;
       if (
-        typeof p === 'object' &&
-        p !== null &&
-        'pat' in p &&
-        t.isIdentifier(p.pat)
-      )
-        return p.pat.value;
+        pattern?.type === 'AssignmentPattern' &&
+        t.isIdentifier(pattern.left)
+      ) {
+        defaults[pattern.left.value] = pattern.right as Expression;
+        return pattern.left.value;
+      }
       return 'arg';
     });
 
@@ -175,7 +211,8 @@ const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
     if (actualBody && actualBody.type === 'ObjectExpression') {
       styleFunctions[prop.key.value] = {
         params,
-        named: namedParamsOf(func.params),
+        named: namedParamsOf(func.params, defaults),
+        defaults,
         body: actualBody as ObjectExpression,
       };
     }
@@ -722,15 +759,17 @@ export function compileCSS(options: CompilerOptions) {
         if (!func) return null;
 
         const callArgs = expr.arguments;
-        if (callArgs.some((a) => a.spread) || callArgs.length === 0)
-          return null;
+        if (callArgs.some((a) => a.spread)) return null;
 
         const tempStaticTable = { ...ctx.mergedStaticTable };
         const runtime: string[] = [];
 
         if (func.named) {
-          const argExpr = callArgs[0].expression;
-          if (callArgs.length !== 1 || argExpr.type !== 'ObjectExpression') {
+          const argExpr = callArgs[0]?.expression;
+          if (
+            callArgs.length > 1 ||
+            (argExpr && argExpr.type !== 'ObjectExpression')
+          ) {
             throw new Error(
               `[plumeria] ${getSource(expr)} takes one object argument, because ${
                 callee.property.value
@@ -738,7 +777,7 @@ export function compileCSS(options: CompilerOptions) {
             );
           }
           const given = new Map<string, Expression>();
-          (argExpr as ObjectExpression).properties.forEach((prop) => {
+          ((argExpr as ObjectExpression)?.properties ?? []).forEach((prop) => {
             if (prop.type === 'Identifier') {
               given.set(prop.value, prop);
             } else if (
@@ -749,23 +788,25 @@ export function compileCSS(options: CompilerOptions) {
             }
           });
 
-          const argObj =
-            objectExpressionToObject(
-              argExpr as ObjectExpression,
-              ctx.mergedStaticTable,
-              ctx.mergedKeyframesTable,
-              ctx.mergedViewTransitionTable,
-              ctx.mergedCreateThemeHashTable,
-              ctx.scannedTables.createThemeObjectTable,
-              ctx.mergedCreateTable,
-              ctx.mergedCreateStaticHashTable,
-              ctx.scannedTables.createStaticObjectTable,
-              ctx.mergedVariantsTable,
-            ) ?? {};
+          const argObj = !argExpr
+            ? {}
+            : (objectExpressionToObject(
+                argExpr as ObjectExpression,
+                ctx.mergedStaticTable,
+                ctx.mergedKeyframesTable,
+                ctx.mergedViewTransitionTable,
+                ctx.mergedCreateThemeHashTable,
+                ctx.scannedTables.createThemeObjectTable,
+                ctx.mergedCreateTable,
+                ctx.mergedCreateStaticHashTable,
+                ctx.scannedTables.createStaticObjectTable,
+                ctx.mergedVariantsTable,
+              ) ?? {});
 
           func.named.forEach(({ key, local }) => {
             const source = given.get(key);
             if (!source) {
+              if (func.defaults?.[local]) return;
               throw new Error(
                 `[plumeria] ${getSource(expr)} leaves "${key}" unset, and a dynamic style function has no value to fall back on.\n`,
               );
@@ -801,8 +842,16 @@ export function compileCSS(options: CompilerOptions) {
           });
         }
 
-        if (runtime.length > 0) {
-          runtime.forEach((p) => (tempStaticTable[p] = p));
+        const withDefault = Object.entries(func.defaults ?? {}).filter(
+          ([param]) => tempStaticTable[param] === undefined,
+        );
+        const cssVars: Record<string, string> = {};
+        const varParams = Array.from(
+          new Set([...runtime, ...withDefault.map(([param]) => param)]),
+        );
+
+        if (varParams.length > 0) {
+          varParams.forEach((p) => (tempStaticTable[p] = p));
 
           const probe = objectExpressionToObject(
             func.body,
@@ -818,25 +867,39 @@ export function compileCSS(options: CompilerOptions) {
           );
           const hash = genBase36Hash(probe ?? {}, 1, 8);
 
-          runtime.forEach((p) => {
-            tempStaticTable[p] = `var(--${hash}-${p})`;
+          varParams.forEach((p) => {
+            const cssVar = `--${hash}-${p}`;
+            tempStaticTable[p] = `var(${cssVar})`;
+            cssVars[p] = cssVar;
           });
         }
 
-        return (
-          objectExpressionToObject(
-            func.body,
-            tempStaticTable,
-            ctx.mergedKeyframesTable,
-            ctx.mergedViewTransitionTable,
-            ctx.mergedCreateThemeHashTable,
-            ctx.scannedTables.createThemeObjectTable,
-            ctx.mergedCreateTable,
-            ctx.mergedCreateStaticHashTable,
-            ctx.scannedTables.createStaticObjectTable,
-            ctx.mergedVariantsTable,
-          ) ?? null
+        const style = objectExpressionToObject(
+          func.body,
+          tempStaticTable,
+          ctx.mergedKeyframesTable,
+          ctx.mergedViewTransitionTable,
+          ctx.mergedCreateThemeHashTable,
+          ctx.scannedTables.createThemeObjectTable,
+          ctx.mergedCreateTable,
+          ctx.mergedCreateStaticHashTable,
+          ctx.scannedTables.createStaticObjectTable,
+          ctx.mergedVariantsTable,
         );
+        if (!style) return null;
+
+        withDefault.forEach(([param, expr]) => {
+          const cssVar = cssVars[param];
+          if (!cssVar) return;
+          const literal =
+            expr.type === 'StringLiteral' || expr.type === 'NumericLiteral'
+              ? expr.value
+              : undefined;
+          if (literal === undefined) return;
+          applyVarFallback(style, cssVar, literal);
+        });
+
+        return style;
       };
 
       const collectConditions = (
