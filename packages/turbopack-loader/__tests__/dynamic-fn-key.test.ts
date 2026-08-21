@@ -23,6 +23,9 @@ const s = css.create({
   boxed: ({ tone: t }: { tone: string }) => ({ backgroundColor: t }),
   layer: (z: number) => ({ zIndex: z }),
   gapped: (n: number) => ({ '--gap': n, gap: 'var(--gap)' }),
+  tinted: (c = 'teal') => ({ color: c }),
+  plain: () => ({ color: 'olive' }),
+  toned: ({ tone = 'navy' }) => ({ backgroundColor: tone }),
 });
 
 ${body}
@@ -41,6 +44,46 @@ const run = (body: string): Promise<string> =>
   });
 
 describe('turbopack-loader: dynamic function keys', () => {
+  const classOf = (out: string) => out.match(/className=\{"([^"]+)"/)?.[1];
+
+  it('applies a parameter default without an inline style', async () => {
+    const out = await run(
+      'export const A = () => <div classStyle={s.tinted()} />;',
+    );
+    expect(out).toMatch(/className=\{"[a-z0-9]+"\}/);
+    expect(out).not.toContain('style={{');
+  });
+
+  // The default lives in the sheet, so overriding it must reuse the class and
+  // only add the variable.
+  it('keeps the same class when a defaulted parameter is given a value', async () => {
+    const omitted = await run(
+      'export const A = () => <div classStyle={s.tinted()} />;',
+    );
+    const given = await run(
+      "export const A = () => <div classStyle={s.tinted('blue')} />;",
+    );
+    expect(classOf(given)).toBe(classOf(omitted));
+    expect(given).toContain('style={{');
+    expect(given).toContain('"blue"');
+  });
+
+  it('applies a destructured default when the key is omitted', async () => {
+    const out = await run(
+      'export const A = () => <div classStyle={s.toned({})} />;',
+    );
+    expect(out).toMatch(/className=\{"[a-z0-9]+"\}/);
+    expect(out).not.toContain('style={{');
+  });
+
+  it('resolves a call on a style function that takes no parameter', async () => {
+    const out = await run(
+      'export const A = () => <div classStyle={s.plain()} />;',
+    );
+    expect(out).toMatch(/className=\{"[a-z0-9]+"\}/);
+    expect(out).not.toContain('style={{');
+  });
+
   it('resolves an imported function key', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-loader-'));
     const stylesFile = path.join(dir, 'imported.styles.ts');
