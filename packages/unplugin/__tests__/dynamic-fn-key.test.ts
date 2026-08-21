@@ -46,6 +46,59 @@ const s = css.create({ stat: { color: 'red' }, palette: (color: string) => ({ co
 afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
 
 describe('dynamic function keys', () => {
+  const defaults = `import * as css from '@plumeria/core';
+const d = css.create({
+  tinted: (c = 'teal') => ({ color: c }),
+  plain: () => ({ color: 'olive' }),
+  toned: ({ tone = 'navy' }) => ({ backgroundColor: tone }),
+});
+`;
+  const classOf = (code: string) => code.match(/className=\{"([^"]+)"/)?.[1];
+
+  it('applies a parameter default without an inline style', async () => {
+    const { code } = await run(
+      defaults + 'export const A = () => <div classStyle={d.tinted()} />;',
+      'default-omitted.tsx',
+    );
+    expect(code).toMatch(/className=\{"[a-z0-9]+"\}/);
+    expect(code).not.toContain('style={{');
+  });
+
+  // The default lives in the sheet, so overriding it must reuse the class and
+  // only add the variable.
+  it('keeps the same class when a defaulted parameter is given a value', async () => {
+    const omitted = await run(
+      defaults + 'export const A = () => <div classStyle={d.tinted()} />;',
+      'default-a.tsx',
+    );
+    const given = await run(
+      defaults +
+        "export const A = () => <div classStyle={d.tinted('blue')} />;",
+      'default-b.tsx',
+    );
+    expect(classOf(given.code)).toBe(classOf(omitted.code));
+    expect(given.code).toContain('style={{');
+    expect(given.code).toContain('"blue"');
+  });
+
+  it('applies a destructured default when the key is omitted', async () => {
+    const { code } = await run(
+      defaults + 'export const A = () => <div classStyle={d.toned({})} />;',
+      'default-named.tsx',
+    );
+    expect(code).toMatch(/className=\{"[a-z0-9]+"\}/);
+    expect(code).not.toContain('style={{');
+  });
+
+  it('resolves a call on a style function that takes no parameter', async () => {
+    const { code } = await run(
+      defaults + 'export const A = () => <div classStyle={d.plain()} />;',
+      'default-none.tsx',
+    );
+    expect(code).toMatch(/className=\{"[a-z0-9]+"\}/);
+    expect(code).not.toContain('style={{');
+  });
+
   it('resolves an imported function key', async () => {
     const file = path.join(DIR, 'imported-consumer.tsx');
     const source = `import '@plumeria/core';
