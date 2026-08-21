@@ -129,7 +129,10 @@ type NamedParam = { key: string; local: string };
 // A dynamic style function may name its parameters by destructuring them, in
 // which case the call passes one object and the key it uses is not necessarily
 // the name the body reads.
-const namedParamsOf = (params: unknown[]): NamedParam[] | undefined => {
+const namedParamsOf = (
+  params: unknown[],
+  defaults: Record<string, Expression>,
+): NamedParam[] | undefined => {
   if (params.length !== 1) return undefined;
   const first = params[0] as { type?: string; pat?: { type?: string } };
   const pattern = (first?.pat ?? first) as {
@@ -140,18 +143,27 @@ const namedParamsOf = (params: unknown[]): NamedParam[] | undefined => {
 
   const named: NamedParam[] = [];
   for (const prop of pattern.properties ?? []) {
-    if (
-      prop.type === 'AssignmentPatternProperty' &&
-      t.isIdentifier(prop.key) &&
-      !prop.value
-    ) {
+    if (prop.type === 'AssignmentPatternProperty' && t.isIdentifier(prop.key)) {
       named.push({ key: prop.key.value, local: prop.key.value });
+      if (prop.value) defaults[prop.key.value] = prop.value as Expression;
     } else if (
       prop.type === 'KeyValuePatternProperty' &&
       t.isIdentifier(prop.key) &&
       t.isIdentifier(prop.value)
     ) {
       named.push({ key: prop.key.value, local: prop.value.value });
+    } else if (
+      prop.type === 'KeyValuePatternProperty' &&
+      t.isIdentifier(prop.key) &&
+      (prop.value as { type?: string })?.type === 'AssignmentPattern' &&
+      t.isIdentifier((prop.value as { left: Expression }).left)
+    ) {
+      const pattern = prop.value as unknown as {
+        left: Identifier;
+        right: Expression;
+      };
+      named.push({ key: String(prop.key.value), local: pattern.left.value });
+      defaults[pattern.left.value] = pattern.right;
     } else {
       return undefined;
     }
@@ -175,15 +187,18 @@ const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
     )
       return;
 
+    const defaults: Record<string, Expression> = {};
     const params: string[] = func.params.map((p: any) => {
-      if (t.isIdentifier(p)) return p.value;
+      const pattern =
+        typeof p === 'object' && p !== null && 'pat' in p ? p.pat : p;
+      if (t.isIdentifier(pattern)) return pattern.value;
       if (
-        typeof p === 'object' &&
-        p !== null &&
-        'pat' in p &&
-        t.isIdentifier(p.pat)
-      )
-        return p.pat.value;
+        pattern?.type === 'AssignmentPattern' &&
+        t.isIdentifier(pattern.left)
+      ) {
+        defaults[pattern.left.value] = pattern.right;
+        return pattern.left.value;
+      }
       return 'arg';
     });
 
@@ -200,7 +215,8 @@ const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
     if (actualBody && actualBody.type === 'ObjectExpression') {
       styleFunctions[prop.key.value] = {
         params,
-        named: namedParamsOf(func.params),
+        named: namedParamsOf(func.params, defaults),
+        defaults,
         body: actualBody as ObjectExpression,
       };
     }
@@ -247,6 +263,23 @@ const findVarProp = (style: CSSObject, cssVar: string): string | undefined => {
   return undefined;
 };
 
+const replaceVarValue = (
+  style: CSSObject,
+  cssVar: string,
+  next: string,
+): boolean => {
+  for (const [prop, value] of Object.entries(style)) {
+    if (typeof value === 'string' && value.includes(cssVar)) {
+      (style as Record<string, unknown>)[prop] = next;
+      return true;
+    }
+    if (value !== null && typeof value === 'object') {
+      if (replaceVarValue(value as CSSObject, cssVar, next)) return true;
+    }
+  }
+  return false;
+};
+
 type AtomicMap = Record<string, string>;
 type CreateStyleValue = {
   name: string;
@@ -258,7 +291,12 @@ type CreateStyleValue = {
   declSpan: { start: number; end: number };
   functions?: Record<
     string,
-    { params: string[]; named?: NamedParam[]; body: ObjectExpression }
+    {
+      params: string[];
+      named?: NamedParam[];
+      defaults?: Record<string, Expression>;
+      body: ObjectExpression;
+    }
   >;
 };
 
@@ -1235,7 +1273,7 @@ export default async function loader(this: LoaderContext, source: string) {
       if (!func) return null;
 
       const callArgs = (expr as CallExpression).arguments;
-      if (callArgs.some((a) => a.spread) || callArgs.length === 0) return null;
+      if (callArgs.some((a) => a.spread)) return null;
 
       const tempStaticTable = { ...mergedStaticTable };
       const runtime: Array<{ param: string; source: Expression }> = [];
@@ -1255,8 +1293,11 @@ export default async function loader(this: LoaderContext, source: string) {
         );
 
       if (func.named) {
-        const argExpr = callArgs[0].expression;
-        if (callArgs.length !== 1 || argExpr.type !== 'ObjectExpression') {
+        const argExpr = callArgs[0]?.expression;
+        if (
+          callArgs.length > 1 ||
+          (argExpr && argExpr.type !== 'ObjectExpression')
+        ) {
           throwCompilationError(
             `Plumeria: ${getSource(expr)} takes one object argument, because ${
               callee.property.value
@@ -1265,7 +1306,7 @@ export default async function loader(this: LoaderContext, source: string) {
           );
         }
         const given = new Map<string, Expression>();
-        (argExpr as ObjectExpression).properties.forEach((prop) => {
+        ((argExpr as ObjectExpression)?.properties ?? []).forEach((prop) => {
           if (prop.type === 'Identifier') {
             given.set(prop.value, prop);
           } else if (
@@ -1276,10 +1317,13 @@ export default async function loader(this: LoaderContext, source: string) {
           }
         });
 
-        const argObj = resolveObjectArg(argExpr as ObjectExpression) ?? {};
+        const argObj = argExpr
+          ? (resolveObjectArg(argExpr as ObjectExpression) ?? {})
+          : {};
         func.named.forEach(({ key, local }) => {
           const source = given.get(key);
           if (!source) {
+            if (func.defaults?.[local]) return;
             throwCompilationError(
               `Plumeria: ${getSource(expr)} leaves "${key}" unset, and a dynamic style function has no value to fall back on.`,
               expr as HasSpan,
@@ -1307,9 +1351,19 @@ export default async function loader(this: LoaderContext, source: string) {
         });
       }
 
+      const withDefault = Object.entries(func.defaults ?? {}).filter(
+        ([param]) => tempStaticTable[param] === undefined,
+      );
+
       const cssVars: Record<string, string> = {};
-      if (runtime.length > 0) {
-        runtime.forEach(({ param }) => (tempStaticTable[param] = param));
+      const varParams = Array.from(
+        new Set([
+          ...runtime.map(({ param }) => param),
+          ...withDefault.map(([param]) => param),
+        ]),
+      );
+      if (varParams.length > 0) {
+        varParams.forEach((param) => (tempStaticTable[param] = param));
 
         const probe = objectExpressionToObject(
           func.body,
@@ -1325,7 +1379,7 @@ export default async function loader(this: LoaderContext, source: string) {
         );
         const hash = genBase36Hash(probe ?? {}, 1, 8);
 
-        runtime.forEach(({ param }) => {
+        varParams.forEach((param) => {
           const cssVar = `--${hash}-${param}`;
           tempStaticTable[param] = `var(${cssVar})`;
           cssVars[param] = cssVar;
@@ -1345,6 +1399,22 @@ export default async function loader(this: LoaderContext, source: string) {
         mergedVariantsTable,
       );
       if (!style) return null;
+
+      withDefault.forEach(([param, expr]) => {
+        const cssVar = cssVars[param];
+        const targetProp = cssVar ? findVarProp(style, cssVar) : undefined;
+        if (!targetProp) return;
+        const literal =
+          expr.type === 'StringLiteral' || expr.type === 'NumericLiteral'
+            ? expr.value
+            : undefined;
+        if (literal === undefined) return;
+        replaceVarValue(
+          style,
+          cssVar,
+          `var(${cssVar}, ${applyCssValue(literal, camelToKebabCase(targetProp))})`,
+        );
+      });
 
       const vars: DynamicVar[] = [];
       runtime.forEach(({ param, source }) => {
