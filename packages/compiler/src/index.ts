@@ -1035,20 +1035,17 @@ export function compileCSS(options: CompilerOptions) {
             ? expr.value
             : (expr.property as Identifier).value;
 
-          let propPossibilities: any[] | undefined;
+          const propPossibilities: any[] = [];
           for (const key of Object.keys(
             ctx.scannedTables.componentPropsTable || {},
           )) {
-            if (key.startsWith(`${resourcePath}-`)) {
-              if (ctx.scannedTables.componentPropsTable?.[key]?.[varName]) {
-                propPossibilities =
-                  ctx.scannedTables.componentPropsTable?.[key]?.[varName];
-                break;
-              }
-            }
+            if (!key.startsWith(`${resourcePath}-`)) continue;
+            const entries =
+              ctx.scannedTables.componentPropsTable?.[key]?.[varName];
+            if (entries) propPossibilities.push(...entries);
           }
 
-          if (propPossibilities && propPossibilities.length > 0) {
+          if (propPossibilities.length > 0) {
             const uniqueEntries: any[] = [];
             propPossibilities.forEach((entry) => {
               if (!uniqueEntries.some((x) => x.key === entry.key)) {
