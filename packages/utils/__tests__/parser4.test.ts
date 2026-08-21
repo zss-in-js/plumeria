@@ -87,6 +87,28 @@ describe('objectExpressionToObject fallbacks', () => {
       opts.resolveVariable,
     );
 
+  // A key that is only digits cannot name a style. @plumeria/no-invalid-selector
+  // already rejects it, so the compiler has to say so instead of dropping it.
+  it('rejects a numeric key', () => {
+    expect(() => call('{ 1: { color: "red" } }')).toThrow(
+      /The style key 1 is a number/,
+    );
+  });
+
+  it('rejects a numeric key nested in a style object', () => {
+    expect(() => call('{ box: { 1: "red" } }')).toThrow(/is a number/);
+  });
+
+  it('keeps a quoted numeric key', () => {
+    expect(call('{ "1": { color: "red" } }')).toEqual({ 1: { color: 'red' } });
+  });
+
+  it('keeps a name that contains digits', () => {
+    expect(call('{ key3: { color: "red" } }')).toEqual({
+      key3: { color: 'red' },
+    });
+  });
+
   it('drops a shorthand property when no resolver and no static entry exist', () => {
     expect(call('{ width }')).toEqual({});
   });
