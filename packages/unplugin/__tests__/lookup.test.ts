@@ -710,3 +710,47 @@ describe.each(CASES)('%s', (_label, source, entries, varNames) => {
     expect({ leaked, unbacked }).toEqual({ leaked: [], unbacked: [] });
   });
 });
+
+// A create key is free input, so the lookup table has to survive a key that
+// carries a quote or a backslash. Raw interpolation emitted invalid JavaScript.
+describe('a key that needs escaping', () => {
+  const compileKeys = async (decl: string): Promise<string> => {
+    const source = `import * as css from '@plumeria/core';
+const escaped = css.create(${decl});
+export const B = ({ k }: any) => <div classStyle={escaped[k]} />;
+`;
+    const plugin = unpluginFactory(undefined, {
+      framework: 'vite',
+    } as never) as any;
+    const result = await plugin.transform.call(
+      { addWatchFile: () => {} },
+      source,
+      `${__dirname}/fixture-escape-${fixtureCount++}.tsx`,
+    );
+    const code = typeof result === 'string' ? result : (result?.code ?? '');
+    const dynamic = code.match(/className=\{([\s\S]*?)\}(?= style=| \/>)/);
+    if (!dynamic) throw new Error(`no className in:\n${code}`);
+    return dynamic[1];
+  };
+
+  it.each([
+    [
+      'a double quote',
+      String.raw`{ 'a"b': { color: 'red' }, plain: { color: 'blue' } }`,
+      'a"b',
+    ],
+    [
+      'a backslash',
+      String.raw`{ 'a\\b': { color: 'red' }, plain: { color: 'blue' } }`,
+      String.raw`a\b`,
+    ],
+  ])('keeps %s in the lookup table', async (_label, decl, key) => {
+    const expr = await compileKeys(decl);
+    const lookup = new Function('k', `return (${expr});`) as (
+      k: string,
+    ) => string;
+    expect(lookup(key)).toMatch(/^x[a-z0-9]+$/);
+    expect(lookup('plain')).toMatch(/^x[a-z0-9]+$/);
+    expect(lookup(key)).not.toBe(lookup('plain'));
+  });
+});
