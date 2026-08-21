@@ -473,14 +473,16 @@ export default async function loader(this: LoaderContext, source: string) {
     }
 
     const appliedStyleProps = new Set<string>();
-    const markStylePropApplied = (name: string, at: HasSpan) => {
-      const owner = components.find(
+    const ownerComponentOf = (at: HasSpan) =>
+      components.find(
         (c) =>
           at.span.start >= c.node.span.start &&
           at.span.start <= c.node.span.end,
-      );
+      )?.name;
+    const markStylePropApplied = (name: string, at: HasSpan) => {
+      const owner = ownerComponentOf(at);
       if (owner) {
-        appliedStyleProps.add(`${owner.name}:${name}`);
+        appliedStyleProps.add(`${owner}:${name}`);
       }
     };
 
@@ -1743,14 +1745,21 @@ export default async function loader(this: LoaderContext, source: string) {
         const source = t.isIdentifier(expr) ? varName : getSource(expr);
         markStylePropApplied(varName, expr as HasSpan);
 
-        let possibilities: any[] | undefined;
-        for (const key of Object.keys(
-          scannedTables.componentPropsTable || {},
-        )) {
-          if (!key.startsWith(`${resourcePath}-`)) continue;
-          if (scannedTables.componentPropsTable?.[key]?.[varName]) {
-            possibilities = scannedTables.componentPropsTable[key][varName];
-            break;
+        const owner = ownerComponentOf(expr as HasSpan);
+        let possibilities: any[] | undefined = owner
+          ? scannedTables.componentPropsTable?.[`${resourcePath}-${owner}`]?.[
+              varName
+            ]
+          : undefined;
+        if (!possibilities) {
+          for (const key of Object.keys(
+            scannedTables.componentPropsTable || {},
+          )) {
+            if (!key.startsWith(`${resourcePath}-`)) continue;
+            if (scannedTables.componentPropsTable?.[key]?.[varName]) {
+              possibilities = scannedTables.componentPropsTable[key][varName];
+              break;
+            }
           }
         }
         if (!possibilities || possibilities.length === 0) return false;
