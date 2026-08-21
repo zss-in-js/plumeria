@@ -592,6 +592,30 @@ export function compileCSS(options: CompilerOptions) {
       }
     }
 
+    const components: Array<{ name: string; node: HasSpan }> = [];
+    for (const node of ast.body) {
+      const statement = t.isExportDeclaration(node) ? node.declaration : node;
+      if (statement.type === 'FunctionDeclaration' && statement.identifier) {
+        components.push({ name: statement.identifier.value, node: statement });
+      } else if (t.isVariableDeclaration(statement)) {
+        for (const decl of statement.declarations) {
+          if (
+            t.isIdentifier(decl.id) &&
+            (decl.init?.type === 'ArrowFunctionExpression' ||
+              decl.init?.type === 'FunctionExpression')
+          ) {
+            components.push({ name: decl.id.value, node: decl.init });
+          }
+        }
+      }
+    }
+    const ownerComponentOf = (at: HasSpan) =>
+      components.find(
+        (c) =>
+          at.span.start >= c.node.span.start &&
+          at.span.start <= c.node.span.end,
+      )?.name;
+
     const processStyle = (style: CSSObject) => {
       extractOndemandStyles(style, extractedSheets, scannedTables);
       const records = getStyleRecords(style as CSSProperties);
@@ -1035,14 +1059,24 @@ export function compileCSS(options: CompilerOptions) {
             ? expr.value
             : (expr.property as Identifier).value;
 
+          const owner = ownerComponentOf(expr as HasSpan);
           const propPossibilities: any[] = [];
-          for (const key of Object.keys(
-            ctx.scannedTables.componentPropsTable || {},
-          )) {
-            if (!key.startsWith(`${resourcePath}-`)) continue;
+          if (owner) {
             const entries =
-              ctx.scannedTables.componentPropsTable?.[key]?.[varName];
+              ctx.scannedTables.componentPropsTable?.[
+                `${resourcePath}-${owner}`
+              ]?.[varName];
             if (entries) propPossibilities.push(...entries);
+          } else {
+            const filePrefix = `${resourcePath}-`;
+            for (const key of Object.keys(
+              ctx.scannedTables.componentPropsTable || {},
+            )) {
+              if (!key.startsWith(filePrefix)) continue;
+              const entries =
+                ctx.scannedTables.componentPropsTable?.[key]?.[varName];
+              if (entries) propPossibilities.push(...entries);
+            }
           }
 
           if (propPossibilities.length > 0) {
