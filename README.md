@@ -100,6 +100,7 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 | --------------------------| --------- | --------- |
 | `@plumeria/codemod`       | ★★★☆☆     | Candidate |
 | `@plumeria/eslint-plugin` | ★★★★☆     | Stable    |
+| `@plumeria/headlessui`    | ★★★★☆     | Stable    |
 | `@plumeria/inspector`     | ★★★☆☆     | Candidate |
 
 ### Internal
