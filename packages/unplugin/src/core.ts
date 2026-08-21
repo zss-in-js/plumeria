@@ -992,7 +992,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           if (propName) {
             const args = node.arguments;
 
-            if (propName === 'keyframes') {
+            if (propName === 'keyframes' && args.length > 0) {
               const expr = args[0].expression;
               if (t.isObjectExpression(expr)) {
                 const obj = objectExpressionToObject(
