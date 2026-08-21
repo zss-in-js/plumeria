@@ -157,6 +157,8 @@ All three set `color` here. Entries that touch different properties never compet
 
 Merging goes property by property, and that includes nested blocks. Overriding a `:hover` colour leaves the rest of the `:hover` block in place.
 
+One pair the list does not settle is a shorthand and a longhand of the same property — `margin` against `marginTop`. The longhand wins wherever the two meet, whichever is written last. See [Specificity](/docs/reference/specificity).
+
 <Callout title="After 18.1.1">
   The order holds across every kind of entry. Earlier releases resolved entries of different kinds by a fixed precedence, so an entry written later could be dropped.
 </Callout>
