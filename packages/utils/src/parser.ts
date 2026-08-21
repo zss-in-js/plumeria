@@ -730,6 +730,11 @@ function getPropertyKey(
   if (t.isStringLiteral(node)) {
     return node.value;
   }
+  if (node?.type === 'NumericLiteral') {
+    throw new Error(
+      `[plumeria] The style key ${node.value} is a number. Style keys have to be names — quote it as '${node.value}' or rename it.`,
+    );
+  }
   if (node.type === 'Computed') {
     const expr = node.expression;
     if (t.isStringLiteral(expr)) {
