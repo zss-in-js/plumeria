@@ -2748,13 +2748,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             }
           }
 
-          const { classParts, isOptimizable, baseStyle } =
-            buildClassParts(args);
+          const { classParts, isOptimizable } = buildClassParts(args);
 
-          if (
-            isOptimizable &&
-            (args.length > 0 || Object.keys(baseStyle).length > 0)
-          ) {
+          if (isOptimizable) {
             const replacement =
               classParts.length > 0 ? classParts.join(' + " " + ') : '""';
             replacements.push({
@@ -2762,6 +2758,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               end: node.span.end - baseByteOffset,
               content: replacement,
             });
+          } else {
+            throwCompilationError(
+              `Plumeria: Dynamic or unresolvable style object "${getSource(node)}" is not supported.`,
+              node,
+            );
           }
         },
       });
