@@ -17,6 +17,7 @@ const VIA_LOCAL = path.join(DIR, 'ViaLocal.tsx');
 const COHABIT = path.join(DIR, 'Cohabit.tsx');
 const MASKED = path.join(DIR, 'Masked.tsx');
 const RENAMED_BINDING = path.join(DIR, 'RenamedBinding.tsx');
+const TWINS = path.join(DIR, 'Twins.tsx');
 const PARENT = path.join(DIR, 'Parent.tsx');
 
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
@@ -107,6 +108,15 @@ export const Passthrough = ({ label, onPress }: { label: string; onPress: () => 
   <Leaf aria-label={label} onClick={onPress} />
 );
 `,
+  [TWINS]: `
+import * as css from '@plumeria/core';
+export const TwinA = ({ styleArray }: { styleArray?: css.Style }) => (
+  <div classStyle={styleArray} />
+);
+export const TwinB = ({ styleArray }: { styleArray?: css.Style }) => (
+  <span classStyle={styleArray} />
+);
+`,
   [PARENT]: `
 import '@plumeria/core';
 import { styles } from './styles';
@@ -118,6 +128,7 @@ import { ViaLocal } from './ViaLocal';
 import { Applies, Forwards } from './Cohabit';
 import { WrappedApplies, MaskedForwards } from './Masked';
 import { RenamedBinding } from './RenamedBinding';
+import { TwinA, TwinB } from './Twins';
 
 export const Parent = () => (
   <div>
@@ -132,6 +143,8 @@ export const Parent = () => (
     <WrappedApplies styleArray={styles.red} />
     <MaskedForwards styleArray={styles.blue} />
     <RenamedBinding styleArray={styles.blue} />
+    <TwinA styleArray={styles.red} />
+    <TwinB styleArray={styles.blue} />
   </div>
 );
 `,
@@ -188,6 +201,23 @@ describe('unplugin: a style received through a prop', () => {
     expect(render(keys[1])).toBe(norm(classesOf(deepMerge(BASE, RED))));
     expect(render(keys[2])).toBe(norm(classesOf(deepMerge(BASE, BLUE))));
     expect(render(undefined)).toBe(norm(classesOf(BASE)));
+  });
+
+  // Two components in one file that take the same prop name must not share one
+  // lookup table: the second would render with the first one's keys.
+  it('keeps two components declared in one file apart', async () => {
+    const keys = [...(await run(PARENT)).matchAll(/styleArray={"(\w+)"}/g)].map(
+      (m) => m[1],
+    );
+    const code = await run(TWINS);
+    const exprs = [...code.matchAll(/className=\{([\s\S]*?)\}(?= \/>)/g)].map(
+      (m) => m[1],
+    );
+    const render = (expr: string, styleArray: unknown) =>
+      norm(new Function('styleArray', `return (${expr});`)(styleArray));
+
+    expect(render(exprs[0], keys[keys.length - 2])).toBe(norm(classesOf(RED)));
+    expect(render(exprs[1], keys[keys.length - 1])).toBe(norm(classesOf(BLUE)));
   });
 
   it('is rejected when passed on to another component', async () => {
