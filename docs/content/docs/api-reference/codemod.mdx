@@ -144,7 +144,14 @@ A `composes` reaching into another file, a sibling combinator, and a selector na
 
 ### The order the array is written in
 
-A class list carries no order. `className={`${styles.b} ${styles.a}`}` and `className={`${styles.a} ${styles.b}`}` render the same page, because where two classes of equal specificity set one property the stylesheet decides, not the element. The styling prop is the other way round: the merge reads the array, and the entry written last wins.
+A class list carries no order. These two render the same page:
+
+```tsx
+<div className={`${styles.b} ${styles.a}`} />
+<div className={`${styles.a} ${styles.b}`} />
+```
+
+Where two classes of equal specificity set one property, the stylesheet decides and not the element. The styling prop is the other way round: the merge reads the array, and the entry written last wins.
 
 So the array is written in stylesheet order rather than in the order the class list happened to carry:
 
@@ -180,7 +187,7 @@ Only an element carrying both classes is affected by it, which is a fact about t
 
 Nothing is reported for that on its own, and both classes convert. An element carrying the two together is what cannot be answered, and there the stylesheet is held for its consumers.
 
-A class that does it to itself needs no call site to show it — one key holds both declarations and has no array to settle them with — so `@media print { .a { color } }` followed by `.a { color }` is reported when the stylesheet is read. Writing the plain rule first, or writing it under an at-rule too, settles either shape.
+A class that does it to itself needs no call site to show it — one key holds both declarations and has no array to settle them with — so `@media print { .a { color } }` followed by `.a { color }`, or `padding-top` followed by `padding` inside one rule, is reported as `rank-order` when the stylesheet is read. Both are the same shape, and writing the higher-ranked declaration last settles either.
 
 The at-rule is one of two things Plumeria ranks by. The other is the shorthand graph: a longhand [outranks the shorthand that writes it](/docs/reference/specificity), so `.a { padding-top }` followed by `.b { padding }` reads the same way — CSS lets the later shorthand reset the longhand, and Plumeria does not. Both are the one rank, counted in steps: one for being written, one more under an at-rule, one per step down the graph. Two declarations Plumeria ranks alike are level, and there the array carries their order.
 
