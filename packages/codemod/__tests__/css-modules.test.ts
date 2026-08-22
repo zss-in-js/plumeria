@@ -89,16 +89,75 @@ describe('convertStylesheet', () => {
     expect(code).not.toContain('composes');
   });
 
-  it('reports a sibling combinator', () => {
-    const { reports } = convertStylesheet('.item + .item { margin: 1px }');
-    expect(reports).toHaveLength(1);
-    expect(reports[0].kind).toBe('sibling-combinator');
-    expect(reports[0].line).toBe(1);
+  // An ordinal counts children of the parent; the combinator reads the one
+  // element before. They only agree where every sibling carries the class,
+  // which is a fact about the markup and not about the stylesheet.
+  it.each(['.item + .item', '.item ~ .item', '.icon + .label', '.card + h2'])(
+    'reports the sibling combinator in %s',
+    (selector) => {
+      const { reports } = convertStylesheet(`${selector} { margin: 1px }`);
+      expect(reports).toHaveLength(1);
+      expect(reports[0].kind).toBe('sibling-combinator');
+      expect(reports[0].line).toBe(1);
+    },
+  );
+
+  it('gates each marker of a chain by the marker above it', () => {
+    const { code, reports } = convertStylesheet(
+      '.card .body .note { color: red }',
+    );
+    expect(reports).toHaveLength(0);
+    // `body` only signals inside a `card`, so a `.note` under a bare `.body`
+    // stays untouched.
+    expect(code).toContain("...css.marker('card', ':defined'),");
+    expect(code).toContain("[css.extended('card', ':defined')]: {");
+    expect(code).toContain("...css.marker('body', ':defined'),");
+    expect(code).toContain("[css.extended('body', ':defined')]: {");
+  });
+
+  it('gives a bare tag a key of its own under the class that reached it', () => {
+    const { code, tags, reports } = convertStylesheet(
+      '.card { padding: 1px } .card h2 { font-size: 20px }',
+    );
+    expect(reports).toHaveLength(0);
+    expect(tags).toEqual([{ key: 'cardH2', tag: 'h2', under: 'card' }]);
+    expect(code).toContain('cardH2: {');
+    expect(code).toContain("[css.extended('card', ':defined')]: {");
+  });
+
+  it('leaves a tag with no class above it alone', () => {
+    const { reports, tags } = convertStylesheet('h2 { font-size: 20px }');
+    expect(tags).toEqual([]);
+    expect(reports[0].kind).toBe('unsupported-selector');
+  });
+
+  it('wraps an attribute selector into a selector key', () => {
+    const { code, reports } = convertStylesheet(
+      ".card[data-open='true'] { display: block }",
+    );
+    expect(reports).toHaveLength(0);
+    expect(code).toContain('\':is([data-open="true"])\': {');
+  });
+
+  it('keeps a global ancestor as a selector key on the target', () => {
+    const { code, reports } = convertStylesheet(
+      ':global(.dark) .card { background: black }',
+    );
+    expect(reports).toHaveLength(0);
+    expect(code).toContain("':is(.dark *)': {");
+  });
+
+  it('rides a compound class on the one written last', () => {
+    const { code, reports } = convertStylesheet(
+      '.card { padding: 1px } .card.active { color: red }',
+    );
+    expect(reports).toHaveLength(0);
+    // The call site already writes both, so `active` carries the pair.
+    expect(code).toContain('active: {');
+    expect(code).toContain("color: 'red',");
   });
 
   it.each([
-    ['.card.active', 'Two classes on one element'],
-    ['.card .body .title', 'Only one level of nesting'],
     ['#card', 'Only a local class'],
     [':hover', 'Only a local class'],
   ])('reports unsupported selector %s', (selector, hint) => {
@@ -162,10 +221,7 @@ describe('convertStylesheet', () => {
 :global(.theme) .card { color: red }
 .card { composes: base from './shared.css' }
 `);
-    expect(reports.map((r) => r.kind).sort()).toEqual([
-      'composes-external',
-      'global',
-    ]);
+    expect(reports.map((r) => r.kind).sort()).toEqual(['composes-external']);
   });
 
   it('reports a key collision', () => {
