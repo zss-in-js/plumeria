@@ -73,7 +73,7 @@ export interface Held {
 }
 
 /**
- * Whether the two hold a pair of declarations no array can order.
+ * The first pair of declarations the two hold that no array can order.
  *
  * Where two declarations reach one property on one element, CSS gives it to
  * the one written later and Plumeria to the one it ranks higher. They agree
@@ -84,14 +84,18 @@ export interface Held {
  * Passing one list twice asks the question of a single key, which holds both
  * declarations and has no array to settle them with.
  */
-export const unrepresentable = (left: Held[], right: Held[]): boolean =>
-  left.some((mine) =>
-    right.some((theirs) => {
-      if (mine.suffix !== theirs.suffix) return false;
-      if (mine.place === theirs.place) return false;
-      if (!overlaps(mine.property, theirs.property)) return false;
+export const unrepresentable = (
+  left: Held[],
+  right: Held[],
+): { earlier: Held; later: Held } | undefined => {
+  for (const mine of left)
+    for (const theirs of right) {
+      if (mine.suffix !== theirs.suffix) continue;
+      if (mine.place === theirs.place) continue;
+      if (!overlaps(mine.property, theirs.property)) continue;
       const [earlier, later] =
         mine.place < theirs.place ? [mine, theirs] : [theirs, mine];
-      return earlier.rank > later.rank;
-    }),
-  );
+      if (earlier.rank > later.rank) return { earlier, later };
+    }
+  return undefined;
+};
