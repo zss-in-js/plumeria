@@ -37,6 +37,8 @@ export interface Tags {
   under: string;
   /** `.a > h2` reaches one level; `.a h2` reaches any. */
   direct: boolean;
+  /** Where the rule sat in the stylesheet, so the merge can keep that order. */
+  order: number;
 }
 
 /** A parameter reference, written without quotes. */
@@ -219,10 +221,13 @@ const readSelector = (
       parts.slice(0, -1).every((p) => p.classNames.length)
     ) {
       const above = parts.slice(0, -1);
+      // `.a h2` and `.a > h2` reach different elements, so they cannot share a
+      // key: one of the two relations would decide for both.
+      const relation = tagged.after === '>' ? 'child-' : '';
       result = {
         target: {
           key: toKey(
-            `${last(above[above.length - 1].classNames)}-${tagged.tag}`,
+            `${last(above[above.length - 1].classNames)}-${relation}${tagged.tag}`,
           ),
           pseudo: tagged.pseudos.join(''),
           tag: tagged.tag,
@@ -346,12 +351,20 @@ export function convertStylesheet(css: string): Converted {
 
       if (target.tag && target.ancestors) {
         const under = target.ancestors[target.ancestors.length - 1].key;
-        if (!tags.some((t) => t.key === target.key && t.tag === target.tag))
+        if (
+          !tags.some(
+            (t) =>
+              t.key === target.key &&
+              t.tag === target.tag &&
+              t.direct === (target.direct === true),
+          )
+        )
           tags.push({
             key: target.key,
             tag: target.tag,
             under,
             direct: target.direct === true,
+            order: tags.length,
           });
       }
 
