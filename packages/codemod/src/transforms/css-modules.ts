@@ -23,6 +23,11 @@ export interface Converted {
   /** Bare tags a rule reached through a class, for the consumer to carry. */
   tags: Tags[];
   /**
+   * Where each key's last rule sat in the stylesheet. A class list carries no
+   * order in CSS — the stylesheet does — so the merge has to be given it.
+   */
+  order: Record<string, number>;
+  /**
    * Class names a rule was refused for. The generated module says nothing
    * about these, so a consumer reading one has to stay where it is.
    */
@@ -301,6 +306,11 @@ export function convertStylesheet(css: string): Converted {
   const markerPseudos = new Map<string, Set<string>>();
   const tags: Tags[] = [];
   const unconvertible = new Set<string>();
+  const order: Record<string, number> = {};
+  let seen = 0;
+  // One rule per key, in the order the stylesheet wrote them, so a class split
+  // across the sheet can be told apart from one written once.
+  const written: { key: string; place: number; props: Set<string> }[] = [];
 
   const keyOf = (name: string): StyleNode => {
     if (!keys.has(name)) keys.set(name, emptyNode());
@@ -386,6 +396,14 @@ export function convertStylesheet(css: string): Converted {
         node = nest(node, gate!);
       }
 
+      // The last rule is the one that answers for the merged key, so a class
+      // written again later moves with it.
+      const place = seen++;
+      order[target.key] = place;
+      const props = new Set<string>();
+      const where = `${atRuleKeys(rule).join('|')}::${target.pseudo}`;
+      written.push({ key: target.key, place, props });
+
       for (const key of atRuleKeys(rule)) node = nest(node, key);
       if (target.pseudo) node = nest(node, target.pseudo);
 
@@ -409,6 +427,7 @@ export function convertStylesheet(css: string): Converted {
         // A merged class arrives as consecutive rules for one selector, so the
         // later declaration wins rather than being written a second time.
         const property = toProperty(child.prop);
+        props.add(`${where}::${property}`);
         const held = node.decls.findIndex(([name]) => name === property);
         if (held !== -1) node.decls.splice(held, 1);
         node.decls.push([property, toValue(child.value)]);
@@ -472,6 +491,39 @@ ${body}
 });
 `;
 
+  // A class written on both sides of another one cannot be answered by a single
+  // place in the array: the merge would give every one of its declarations the
+  // later position, including the ones the other class outranks.
+  for (const entry of written) {
+    const earlier = written.filter(
+      (other) => other.key === entry.key && other.place < entry.place,
+    );
+    if (earlier.length === 0) continue;
+    for (const between of written) {
+      if (between.key === entry.key) continue;
+      if (between.place > entry.place) continue;
+      // Only what this key wrote before the other one can be outranked by it.
+      const above = new Set(
+        earlier
+          .filter((other) => other.place < between.place)
+          .flatMap((other) => [...other.props]),
+      );
+      const shared = [...between.props].filter((prop) => above.has(prop));
+      if (shared.length === 0) continue;
+      reports.push({
+        line: 0,
+        column: 0,
+        kind: 'split-order',
+        source: '',
+        hint: `\`${entry.key}\` is written on both sides of \`${between.key}\` and they share a property, so one place in the array cannot say which wins. Write the class once.`,
+      });
+      // `unconvertible` is read against what a consumer writes, which is the
+      // class name rather than the key it became.
+      for (const [bare, key] of Object.entries(candidates))
+        if (key === entry.key || key === between.key) unconvertible.add(bare);
+    }
+  }
+
   // A synthetic tag key is not a class name, so it never met the collision
   // check the class names run through. `.card-h2` and `.card h2` both reach
   // `cardH2`, and merging them would put one rule on the other's element.
@@ -498,6 +550,7 @@ ${body}
   return {
     code,
     names,
+    order,
     composes,
     functions,
     tags,
