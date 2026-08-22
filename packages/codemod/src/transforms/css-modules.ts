@@ -512,13 +512,18 @@ ${body}
   // at-rule carries no specificity. Inside one key there is no array to settle
   // it with, so a plain rule written after a conditional one is already lost.
   for (const [key, declarations] of Object.entries(held)) {
-    if (unrepresentable(declarations, declarations)) {
+    const beaten = unrepresentable(declarations, declarations);
+    if (beaten) {
       reports.push({
         line: 0,
         column: 0,
-        kind: 'condition-order',
+        kind: 'rank-order',
         source: '',
-        hint: `\`${key}\` sets a property after setting it under an at-rule. CSS gives it to the plain rule; Plumeria ranks the conditional one above it, and one key has no order to settle that with. Write the plain rule first, or write it under an at-rule too.`,
+        hint: `${
+          beaten.earlier.property === beaten.later.property
+            ? `\`${key}\` sets \`${beaten.later.property}\` after setting it where Plumeria ranks it higher — an at-rule is one step up.`
+            : `\`${key}\` sets \`${beaten.later.property}\` after \`${beaten.earlier.property}\`, which Plumeria ranks above it.`
+        } CSS gives the property to the later declaration and Plumeria cannot, and one key has no order to settle that with. Write the higher-ranked declaration last.`,
       });
       for (const [name, candidate] of Object.entries(candidates))
         if (candidate === key) unconvertible.add(name);
