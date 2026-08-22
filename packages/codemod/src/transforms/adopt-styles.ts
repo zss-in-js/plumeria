@@ -5,6 +5,7 @@
 import * as path from 'node:path';
 import type { Rule } from 'eslint';
 import { resolveSourcePath } from '../resolve';
+import { relate } from '../cascade';
 
 export interface ModuleMap {
   source: string;
@@ -12,6 +13,8 @@ export interface ModuleMap {
   names: Record<string, string>;
   /** Where each key's last rule sat in the stylesheet. */
   order?: Record<string, number>;
+  /** What each key writes and where, so two of them can be settled here. */
+  held?: Record<string, import('../cascade').Held[]>;
   composes?: Record<string, string[]>;
   functions?: Record<string, string[]>;
   tags?: {
@@ -65,6 +68,8 @@ export const adoptStyles: Rule.RuleModule = {
       // Read back by the CLI to decide what to hold back, so the two halves
       // and the separator are the contract; the sentence is written there.
       missing: '{{stylesheet}} :: {{name}}',
+      // Read back the same way `missing` is; the CLI decides what to hold.
+      cascade: '{{stylesheet}} :: {{name}}',
     },
     schema: [
       {
@@ -229,31 +234,36 @@ export const adoptStyles: Rule.RuleModule = {
       );
     };
 
+    const at = (element: any) => {
+      const read = styleRead(element);
+      const binding = bindings.get(read?.object?.name);
+      if (!binding) return null;
+      const written =
+        read.computed && read.property.type === 'Literal'
+          ? String(read.property.value)
+          : !read.computed && read.property.type === 'Identifier'
+            ? read.property.name
+            : null;
+      if (written === null) return null;
+      const key = binding.entry.names[written] ?? written;
+      const place = binding.entry.order?.[key];
+      // The map itself identifies the stylesheet; two of them in different
+      // directories can share a basename, and so a `source`.
+      return place === undefined
+        ? null
+        : {
+            module: binding.entry as object,
+            place,
+            key,
+            entry: binding.entry,
+          };
+    };
+
     // A class list carries no order in CSS; the stylesheet does. The array
     // the merge reads has to be given that order, so the reads of one module
     // are sorted among themselves and left in the slots they occupied — two
     // stylesheets have no order between them that a file can be sure of.
     const inStylesheetOrder = (elements: any[]): any[] => {
-      const at = (element: any) => {
-        const read = styleRead(element);
-        const binding = bindings.get(read?.object?.name);
-        if (!binding) return null;
-        const written =
-          read.computed && read.property.type === 'Literal'
-            ? String(read.property.value)
-            : !read.computed && read.property.type === 'Identifier'
-              ? read.property.name
-              : null;
-        if (written === null) return null;
-        const key = binding.entry.names[written] ?? written;
-        const place = binding.entry.order?.[key];
-        // The map itself identifies the stylesheet; two of them in different
-        // directories can share a basename, and so a `source`.
-        return place === undefined
-          ? null
-          : { module: binding.entry as object, place };
-      };
-
       const sorted = [...elements];
       const groups = new Map<object, number[]>();
       elements.forEach((element, index) => {
@@ -271,6 +281,34 @@ export const adoptStyles: Rule.RuleModule = {
       }
       return sorted;
     };
+
+    // Two classes only settle anything where one element carries both. CSS
+    // lets a plain rule written later beat a conditional one; Plumeria ranks
+    // the conditional one above it whatever the array says, so that pair is
+    // the one the migration cannot carry across.
+    const unsettled = (elements: any[]): { entry: ModuleMap; key: string }[] =>
+      elements.flatMap((element, index) =>
+        elements.slice(index + 1).flatMap((other) => {
+          const mine = at(element);
+          const theirs = at(other);
+          if (!mine || !theirs || mine.entry !== theirs.entry) return [];
+          const left = mine.entry.held?.[mine.key];
+          const right = theirs.entry.held?.[theirs.key];
+          if (!left || !right) return [];
+          const { ranked } = relate(left, right);
+          if (!ranked) return [];
+          // The plain one is the loser Plumeria picked; CSS gives it the win
+          // when it was written later.
+          const plain = ranked === 'left' ? theirs : mine;
+          const conditional = ranked === 'left' ? mine : theirs;
+          return plain.place > conditional.place
+            ? [
+                { entry: plain.entry, key: plain.key },
+                { entry: conditional.entry, key: conditional.key },
+              ]
+            : [];
+        }),
+      );
 
     return {
       Program(program: any) {
@@ -762,6 +800,19 @@ export const adoptStyles: Rule.RuleModule = {
           const carried = joined.filter(
             (element: any) => !styles_.includes(element),
           );
+          // Where the array cannot carry the answer, nothing is rewritten and
+          // the CLI is told which stylesheet to hold.
+          const beyond = unsettled(styles_);
+          if (beyond.length > 0) {
+            for (const { entry, key } of beyond)
+              if (entry.stylesheet)
+                context.report({
+                  node,
+                  messageId: 'cascade',
+                  data: { stylesheet: entry.stylesheet, name: key },
+                });
+            return;
+          }
           const list = inStylesheetOrder(styles_).map(renamedText).join(', ');
           if (carried.length > 0) {
             const kept = carried
