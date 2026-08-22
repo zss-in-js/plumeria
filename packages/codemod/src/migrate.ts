@@ -87,20 +87,25 @@ export function plan(targets: string[]): Plan {
     modules[source] = {
       source: `./${path.basename(target, '.ts')}`,
       target,
+      stylesheet: source,
       names: converted.names,
       composes: converted.composes,
       functions: converted.functions,
       tags: converted.tags,
+      unconvertible: converted.unconvertible,
     };
   }
 
   return { stylesheets, modules };
 }
 
-export function write(targets: string[]): Plan {
+export function write(targets: string[], skip?: Set<string>): Plan {
   const result = plan(targets);
   for (const sheet of result.stylesheets) {
     if (!result.modules[sheet.source]) continue;
+    // A stylesheet held back has to leave no `*.styles.ts` behind: the next
+    // run would report it as `target-exists` and never pick it up again.
+    if (skip?.has(sheet.source)) continue;
     const converted = convertStylesheet(fs.readFileSync(sheet.source, 'utf-8'));
     fs.writeFileSync(sheet.target, converted.code, 'utf-8');
   }
