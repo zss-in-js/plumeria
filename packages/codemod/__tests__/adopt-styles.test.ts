@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as tsParser from '@typescript-eslint/parser';
 import { adoptStyles } from '../src/transforms/adopt-styles';
+import { rankOf } from '../src/cascade';
 
 const tester = new RuleTester({
   languageOptions: {
@@ -408,10 +409,20 @@ describe('rewrites that settle on a later pass', () => {
       order: { printText: 0, screenText: 1 },
       held: {
         printText: [
-          { property: 'color', suffix: '', conditional: true, place: 0 },
+          {
+            property: 'color',
+            suffix: '',
+            rank: rankOf('color', true),
+            place: 0,
+          },
         ],
         screenText: [
-          { property: 'color', suffix: '', conditional: false, place: 1 },
+          {
+            property: 'color',
+            suffix: '',
+            rank: rankOf('color', false),
+            place: 1,
+          },
         ],
       },
     },
@@ -459,10 +470,20 @@ describe('rewrites that settle on a later pass', () => {
             order: { screenText: 0, printText: 1 },
             held: {
               screenText: [
-                { property: 'color', suffix: '', conditional: false, place: 0 },
+                {
+                  property: 'color',
+                  suffix: '',
+                  rank: rankOf('color', false),
+                  place: 0,
+                },
               ],
               printText: [
-                { property: 'color', suffix: '', conditional: true, place: 1 },
+                {
+                  property: 'color',
+                  suffix: '',
+                  rank: rankOf('color', true),
+                  place: 1,
+                },
               ],
             },
           },
@@ -482,11 +503,26 @@ describe('rewrites that settle on a later pass', () => {
           order: { screenText: 1, printText: 2 },
           held: {
             printText: [
-              { property: 'color', suffix: '', conditional: true, place: 0 },
-              { property: 'margin', suffix: '', conditional: false, place: 2 },
+              {
+                property: 'color',
+                suffix: '',
+                rank: rankOf('color', true),
+                place: 0,
+              },
+              {
+                property: 'margin',
+                suffix: '',
+                rank: rankOf('margin', false),
+                place: 2,
+              },
             ],
             screenText: [
-              { property: 'color', suffix: '', conditional: false, place: 1 },
+              {
+                property: 'color',
+                suffix: '',
+                rank: rankOf('color', false),
+                place: 1,
+              },
             ],
           },
         },
@@ -509,10 +545,20 @@ describe('rewrites that settle on a later pass', () => {
           order: { base: 0, card: 1 },
           held: {
             base: [
-              { property: 'color', suffix: '', conditional: true, place: 0 },
+              {
+                property: 'color',
+                suffix: '',
+                rank: rankOf('color', true),
+                place: 0,
+              },
             ],
             card: [
-              { property: 'color', suffix: '', conditional: false, place: 1 },
+              {
+                property: 'color',
+                suffix: '',
+                rank: rankOf('color', false),
+                place: 1,
+              },
             ],
           },
         },
