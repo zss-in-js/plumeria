@@ -343,7 +343,8 @@ async function migrateFromCssModules(options: MigrateOptions): Promise<number> {
   }).lintFiles(targets);
   for (const result of detected)
     for (const message of result.messages) {
-      if (message.messageId !== 'missing') continue;
+      if (message.messageId !== 'missing' && message.messageId !== 'cascade')
+        continue;
       const [sheet, rest] = message.message.split(' :: ');
       if (!modules[sheet]) continue;
       const named = held.get(sheet) ?? new Set<string>();
@@ -361,7 +362,7 @@ async function migrateFromCssModules(options: MigrateOptions): Promise<number> {
         column: 0,
         kind: 'held-for-consumer',
         source: '',
-        hint: `${listed} ${named.size === 1 ? 'is' : 'are'} read by a consumer, so nothing was written and no consumer was moved. Settle the rules above and run again.`,
+        hint: `${listed} ${named.size === 1 ? 'is' : 'are'} read by a consumer the migration cannot answer for, so nothing was written and no consumer was moved. Settle the rules above and run again.`,
       });
   }
 
