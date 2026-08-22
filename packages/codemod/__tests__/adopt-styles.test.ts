@@ -165,6 +165,52 @@ describe('rewrites that settle on a later pass', () => {
     );
   });
 
+  it('carries a tag rule onto the markup it can see', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<div className={s.card}><h2>t</h2></div>;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { card: 'card' },
+            tags: [{ key: 'cardH2', tag: 'h2', under: 'card' }],
+          },
+        },
+      ),
+    ).toContain('<h2 classStyle={styles.cardH2}>');
+  });
+
+  it('merges a tag rule to the left of the class already there', () => {
+    // `.list > li` is the weaker of the two in CSS, so the class has to win.
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<ul className={s.list}><li className={s.item}>a</li></ul>;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { list: 'list', item: 'item' },
+            tags: [{ key: 'listLi', tag: 'li', under: 'list' }],
+          },
+        },
+      ),
+    ).toContain('<li classStyle={[styles.listLi, styles.item]}>');
+  });
+
+  it('leaves a tag it cannot see in this file alone', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<div className={s.card}>{children}</div>;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { card: 'card' },
+            tags: [{ key: 'cardH2', tag: 'h2', under: 'card' }],
+          },
+        },
+      ),
+    ).not.toContain('cardH2');
+  });
+
   it('reads the custom properties back as function style arguments', () => {
     expect(
       settle(
