@@ -15,7 +15,7 @@ beforeAll(() => {
   fs.mkdirSync(path.join(DIR, 'src', 'node_modules'), { recursive: true });
   fs.writeFileSync(
     path.join(DIR, 'src', 'Card.module.css'),
-    '.card { padding: 16px }\n.card .title { color: red }\n.item + .item { margin: 1px }\n',
+    '.card { padding: 16px }\n.card .title { color: red }\n.icon + .label { margin: 1px }\n',
   );
   fs.writeFileSync(
     path.join(DIR, 'src', 'node_modules', 'Skip.module.css'),
