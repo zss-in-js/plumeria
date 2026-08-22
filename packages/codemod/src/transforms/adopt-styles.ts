@@ -614,10 +614,16 @@ export const adoptStyles: Rule.RuleModule = {
             );
             // Everything the prop already carries, so a second tag rule on the
             // same element neither re-adds its own key nor displaces the first.
+            // A sparse array carries a hole as a null element, which has no
+            // text to read and nothing to sit against.
+            const written: any[] =
+              already?.value.expression.type === 'ArrayExpression'
+                ? already.value.expression.elements.filter(Boolean)
+                : [];
             const carried = new Set<string>(
               already
                 ? already.value.expression.type === 'ArrayExpression'
-                  ? already.value.expression.elements.map((element: any) =>
+                  ? written.map((element: any) =>
                       context.sourceCode.getText(element),
                     )
                   : [context.sourceCode.getText(already.value.expression)]
@@ -640,9 +646,8 @@ export const adoptStyles: Rule.RuleModule = {
               for (const { entry, local } of bindings.values())
                 for (const other of entry.tags ?? [])
                   reads.set(`${local}.${other.key}`, other.order ?? 0);
-              const placed = (already?.value.expression.elements ?? []).filter(
-                (element: any) =>
-                  reads.has(context.sourceCode.getText(element)),
+              const placed = written.filter((element: any) =>
+                reads.has(context.sourceCode.getText(element)),
               );
               const before = placed.find(
                 (element: any) =>
@@ -673,14 +678,11 @@ export const adoptStyles: Rule.RuleModule = {
                   if (before)
                     return fixer.insertTextBefore(before, `${read}, `);
                   if (after) return fixer.insertTextAfter(after, `, ${read}`);
-                  // An empty array has no element to sit before, so the array
-                  // itself is what gets written.
-                  return expression.elements.length === 0
+                  // An array with nothing to sit against — empty, or holes
+                  // only — is replaced rather than inserted into.
+                  return written.length === 0
                     ? fixer.replaceText(expression, `[${read}]`)
-                    : fixer.insertTextBefore(
-                        expression.elements[0],
-                        `${read}, `,
-                      );
+                    : fixer.insertTextBefore(written[0], `${read}, `);
                 },
               });
             }
