@@ -12,6 +12,7 @@ export interface ModuleMap {
   names: Record<string, string>;
   composes?: Record<string, string[]>;
   functions?: Record<string, string[]>;
+  tags?: { key: string; tag: string; under: string }[];
 }
 
 export interface AdoptStylesOptions {
@@ -48,6 +49,7 @@ export const adoptStyles: Rule.RuleModule = {
       value: 'A style read as a value goes back through `css.use`.',
       joined: 'A joined class list is written as an array.',
       call: 'The custom properties are the arguments of a function style.',
+      tag: 'A rule reached this <{{tag}}> through a class; carry it as "{{key}}".',
     },
     schema: [
       {
@@ -64,6 +66,7 @@ export const adoptStyles: Rule.RuleModule = {
   create(context) {
     const { modules, styleProp } = readOptions(context);
     const bindings = new Map<string, { entry: ModuleMap; local: string }>();
+    const tagged = new Set<unknown>();
     let hasCore = false;
     let stylesTaken = false;
     let coreLocal: string | undefined;
@@ -500,6 +503,122 @@ export const adoptStyles: Rule.RuleModule = {
                 ),
           ],
         });
+      },
+
+      // `.card h2` has no class to hash, so the key rides on the tag itself.
+      // The pairing is only followed where the markup is visible here.
+      JSXElement(node: any) {
+        const scoped: { tag: string; key: string; local: string }[] = [];
+        for (const attribute of node.openingElement?.attributes ?? []) {
+          if (attribute.type !== 'JSXAttribute') continue;
+          const name = attribute.name?.name;
+          if (name !== 'className' && name !== styleProp) continue;
+          if (attribute.value?.type !== 'JSXExpressionContainer') continue;
+          const reads: any[] = [];
+          const gather = (expression: any): void => {
+            if (!expression || typeof expression !== 'object') return;
+            if (expression.type === 'MemberExpression') {
+              reads.push(expression);
+              return;
+            }
+            if (expression.type === 'ArrayExpression')
+              expression.elements.forEach(gather);
+            else if (expression.type === 'TemplateLiteral')
+              expression.expressions.forEach(gather);
+            else if (expression.type === 'LogicalExpression') {
+              gather(expression.left);
+              gather(expression.right);
+            } else if (expression.type === 'ConditionalExpression') {
+              gather(expression.consequent);
+              gather(expression.alternate);
+            }
+          };
+          gather(attribute.value.expression);
+          for (const read of reads) {
+            const name_ = read.object?.name;
+            const binding =
+              bindings.get(name_) ??
+              [...bindings.values()].find((b) => b.local === name_);
+            if (!binding) continue;
+            const written = read.property?.name ?? read.property?.value;
+            if (written == null) continue;
+            const key = binding.entry.names[written] ?? written;
+            for (const pair of binding.entry.tags ?? [])
+              if (pair.under === key)
+                scoped.push({
+                  tag: pair.tag,
+                  key: pair.key,
+                  local: binding.local,
+                });
+          }
+        }
+        if (!scoped.length) return;
+
+        const walk = (children: any[]): void => {
+          for (const child of children ?? []) {
+            if (child.type !== 'JSXElement') continue;
+            const opening = child.openingElement;
+            const named =
+              opening?.name?.type === 'JSXIdentifier'
+                ? opening.name.name
+                : null;
+            const attributes = opening?.attributes ?? [];
+            const already = attributes.find(
+              (attribute: any) =>
+                attribute.type === 'JSXAttribute' &&
+                attribute.name?.name === styleProp &&
+                attribute.value?.type === 'JSXExpressionContainer',
+            );
+            // A `className` still waiting to be renamed is left for the pass
+            // that renames it, so the two fixes never touch one range.
+            const pending = attributes.some(
+              (attribute: any) =>
+                attribute.type === 'JSXAttribute' &&
+                attribute.name?.name === 'className',
+            );
+            for (const pair of scoped) {
+              if (named !== pair.tag || pending) continue;
+              if (tagged.has(opening)) continue;
+              const read = `${pair.local}.${pair.key}`;
+              if (already?.value.expression.type === 'ArrayExpression') {
+                const [first] = already.value.expression.elements;
+                if (!first) continue;
+                if (context.sourceCode.getText(first) === read) continue;
+              } else if (
+                already &&
+                context.sourceCode.getText(already.value.expression) === read
+              )
+                continue;
+              tagged.add(opening);
+              context.report({
+                node: opening.name,
+                messageId: 'tag',
+                data: { tag: pair.tag, key: pair.key },
+                // The tag rule is the weaker of the two in CSS, so it goes on
+                // the left where the merge lets the class win.
+                fix: (fixer) =>
+                  already
+                    ? already.value.expression.type === 'ArrayExpression'
+                      ? fixer.insertTextBefore(
+                          already.value.expression.elements[0],
+                          `${read}, `,
+                        )
+                      : fixer.replaceText(
+                          already.value.expression,
+                          `[${read}, ${context.sourceCode.getText(
+                            already.value.expression,
+                          )}]`,
+                        )
+                    : fixer.insertTextAfter(
+                        opening.name,
+                        ` ${styleProp}={${read}}`,
+                      ),
+              });
+            }
+            walk(child.children);
+          }
+        };
+        walk(node.children);
       },
 
       JSXAttribute(node: any) {
