@@ -3,7 +3,7 @@
  */
 
 import postcss from 'postcss';
-import { unrepresentable, type Held } from '../cascade';
+import { rankOf, unrepresentable, type Held } from '../cascade';
 import selectorParser from 'postcss-selector-parser';
 import type { Rule, Declaration, AtRule, Container } from 'postcss';
 
@@ -311,6 +311,7 @@ export function convertStylesheet(css: string): Converted {
   const unconvertible = new Set<string>();
   const order: Record<string, number> = {};
   const held: Record<string, Held[]> = {};
+  let wrote = 0;
   let seen = 0;
   // One rule per key, in the order the stylesheet wrote them, so a class split
   // across the sheet can be told apart from one written once.
@@ -434,11 +435,14 @@ export function convertStylesheet(css: string): Converted {
         // later declaration wins rather than being written a second time.
         const property = toProperty(child.prop);
         props.add(`${where}::${property}`);
+        // Counted per declaration, not per rule: two written into one rule are
+        // still ordered, and a rule written later for another property says
+        // nothing about the one that disagrees.
         mine.push({
           property: child.prop,
           suffix: target.pseudo,
-          conditional,
-          place,
+          rank: rankOf(child.prop, conditional),
+          place: wrote++,
         });
         const held = node.decls.findIndex(([name]) => name === property);
         if (held !== -1) node.decls.splice(held, 1);
