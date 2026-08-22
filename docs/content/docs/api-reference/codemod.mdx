@@ -182,7 +182,7 @@ Nothing is reported for that on its own, and both classes convert. An element ca
 
 A class that does it to itself needs no call site to show it — one key holds both declarations and has no array to settle them with — so `@media print { .a { color } }` followed by `.a { color }` is reported when the stylesheet is read. Writing the plain rule first, or writing it under an at-rule too, settles either shape.
 
-Two conditional declarations never meet this: Plumeria ranks every at-rule declaration alike, so they are level and the array carries their order the same way two plain ones do. `padding` against `padding-top` is read as the overlap it is, not as two different properties.
+The at-rule is one of two things Plumeria ranks by. The other is the shorthand graph: a longhand [outranks the shorthand that writes it](/docs/reference/specificity), so `.a { padding-top }` followed by `.b { padding }` reads the same way — CSS lets the later shorthand reset the longhand, and Plumeria does not. Both are the one rank, counted in steps: one for being written, one more under an at-rule, one per step down the graph. Two declarations Plumeria ranks alike are level, and there the array carries their order.
 
 The pair is read one declaration at a time rather than by where the class ended up. A class that writes `color` first and `margin` last sits late in the stylesheet on account of the `margin`, which says nothing about the `color` that disagrees. A `composes` goes through the same reading, because the composed class lands on the element beside the one that named it.
 
