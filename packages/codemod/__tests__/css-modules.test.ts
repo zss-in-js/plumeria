@@ -200,6 +200,42 @@ describe('convertStylesheet', () => {
     expect(unconvertible).toEqual([]);
   });
 
+  it('records where each key was last written', () => {
+    const { order } = convertStylesheet(
+      '.a { color: red } .b { color: blue } .c { color: teal }',
+    );
+    expect(order).toEqual({ a: 0, b: 1, c: 2 });
+  });
+
+  it('moves a class written again later to its last place', () => {
+    const { order } = convertStylesheet(
+      '.a { color: red } .b { color: blue } .a { padding: 1px }',
+    );
+    expect(order.a).toBeGreaterThan(order.b);
+  });
+
+  it('reports a class written on both sides of one it shares a property with', () => {
+    const { reports, unconvertible } = convertStylesheet(
+      '.a { color: red } .b { color: blue } .a { padding: 1px }',
+    );
+    expect(reports.map((r) => r.kind)).toContain('split-order');
+    expect(unconvertible.sort()).toEqual(['a', 'b']);
+  });
+
+  it('says nothing where the split classes share no property', () => {
+    const { reports } = convertStylesheet(
+      '.a { color: red } .b { margin: 1px } .a { padding: 1px }',
+    );
+    expect(reports).toHaveLength(0);
+  });
+
+  it('says nothing where the property meets under another at-rule', () => {
+    const { reports } = convertStylesheet(
+      '.a { color: red } @media print { .b { color: blue } } .a { padding: 1px }',
+    );
+    expect(reports).toHaveLength(0);
+  });
+
   it('wraps an attribute selector into a selector key', () => {
     const { code, reports } = convertStylesheet(
       ".card[data-open='true'] { display: block }",
