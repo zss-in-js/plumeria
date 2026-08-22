@@ -331,6 +331,40 @@ async function migrateFromCssModules(options: MigrateOptions): Promise<number> {
     return 0;
   }
 
+  // A consumer reading a class the conversion refused a rule for cannot be
+  // rewritten faithfully, so the stylesheet it came from is held back whole
+  // rather than half-applied. Nothing is written for it, which is what lets a
+  // later run pick it up once the rule it named is dealt with.
+  const held = new Map<string, Set<string>>();
+  const detected = await new ESLint({
+    overrideConfigFile: true as const,
+    overrideConfig: migrateConfig(modules),
+    errorOnUnmatchedPattern: false,
+  }).lintFiles(targets);
+  for (const result of detected)
+    for (const message of result.messages) {
+      if (message.messageId !== 'missing') continue;
+      const [sheet, rest] = message.message.split(' :: ');
+      if (!modules[sheet]) continue;
+      const named = held.get(sheet) ?? new Set<string>();
+      named.add(rest);
+      held.set(sheet, named);
+    }
+
+  for (const [sheet, named] of held) {
+    delete modules[sheet];
+    const listed = [...named].map((name) => `\`${name}\``).join(', ');
+    stylesheets
+      .find((s) => s.source === sheet)
+      ?.reports.push({
+        line: 0,
+        column: 0,
+        kind: 'held-for-consumer',
+        source: '',
+        hint: `${listed} ${named.size === 1 ? 'is' : 'are'} read by a consumer, so nothing was written and no consumer was moved. Settle the rules above and run again.`,
+      });
+  }
+
   for (const sheet of stylesheets) {
     if (!modules[sheet.source]) continue;
     console.log(`  ${relative(sheet.source)}  ->  ${relative(sheet.target)}`);
@@ -352,7 +386,7 @@ async function migrateFromCssModules(options: MigrateOptions): Promise<number> {
     console.log('Run without --dry-run to apply.');
   } else {
     warnIfDirty();
-    write(targets);
+    write(targets, new Set(held.keys()));
     const applied = await new ESLint({ ...config, fix: true }).lintFiles(
       targets,
     );
