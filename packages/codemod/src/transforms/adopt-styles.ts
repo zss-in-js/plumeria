@@ -5,7 +5,7 @@
 import * as path from 'node:path';
 import type { Rule } from 'eslint';
 import { resolveSourcePath } from '../resolve';
-import { relate } from '../cascade';
+import { unrepresentable } from '../cascade';
 
 export interface ModuleMap {
   source: string;
@@ -286,29 +286,24 @@ export const adoptStyles: Rule.RuleModule = {
     // lets a plain rule written later beat a conditional one; Plumeria ranks
     // the conditional one above it whatever the array says, so that pair is
     // the one the migration cannot carry across.
-    const unsettled = (elements: any[]): { entry: ModuleMap; key: string }[] =>
-      elements.flatMap((element, index) =>
-        elements.slice(index + 1).flatMap((other) => {
-          const mine = at(element);
-          const theirs = at(other);
-          if (!mine || !theirs || mine.entry !== theirs.entry) return [];
+    type Read = { entry: ModuleMap; key: string };
+
+    const unsettled = (held: Read[]): Read[] =>
+      held.flatMap((mine, index) =>
+        held.slice(index + 1).flatMap((theirs) => {
+          if (mine.entry !== theirs.entry) return [];
           const left = mine.entry.held?.[mine.key];
           const right = theirs.entry.held?.[theirs.key];
           if (!left || !right) return [];
-          const { ranked } = relate(left, right);
-          if (!ranked) return [];
-          // The plain one is the loser Plumeria picked; CSS gives it the win
-          // when it was written later.
-          const plain = ranked === 'left' ? theirs : mine;
-          const conditional = ranked === 'left' ? mine : theirs;
-          return plain.place > conditional.place
-            ? [
-                { entry: plain.entry, key: plain.key },
-                { entry: conditional.entry, key: conditional.key },
-              ]
-            : [];
+          return unrepresentable(left, right) ? [mine, theirs] : [];
         }),
       );
+
+    const readsOf = (elements: any[]): Read[] =>
+      elements.flatMap((element) => {
+        const found = at(element);
+        return found ? [{ entry: found.entry, key: found.key }] : [];
+      });
 
     return {
       Program(program: any) {
@@ -802,7 +797,7 @@ export const adoptStyles: Rule.RuleModule = {
           );
           // Where the array cannot carry the answer, nothing is rewritten and
           // the CLI is told which stylesheet to hold.
-          const beyond = unsettled(styles_);
+          const beyond = unsettled(readsOf(styles_));
           if (beyond.length > 0) {
             for (const { entry, key } of beyond)
               if (entry.stylesheet)
@@ -882,6 +877,22 @@ export const adoptStyles: Rule.RuleModule = {
         const key = written === null ? null : (entry.names[written] ?? written);
         const composed = key ? entry.composes?.[key] : undefined;
         if (!composed || composed.length === 0) return;
+
+        // A composed class lands on the element beside the one that named it,
+        // so the two settle against each other the same way a class list does.
+        const beyond = unsettled(
+          composed.concat(key as string).map((k) => ({ entry, key: k })),
+        );
+        if (beyond.length > 0) {
+          for (const held of beyond)
+            if (held.entry.stylesheet)
+              context.report({
+                node: expression,
+                messageId: 'cascade',
+                data: { stylesheet: held.entry.stylesheet, name: held.key },
+              });
+          return;
+        }
 
         // A composed class is another class of the same stylesheet, so which
         // of the two wins is the stylesheet's order rather than this one.
