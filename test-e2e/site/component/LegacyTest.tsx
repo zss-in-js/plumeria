@@ -9,9 +9,8 @@ export const LegacyTest = () => (
         <span className={styles.note}>Legacy note</span>
       </div>
       <ul className={styles.list}>
-        <li className={styles.item}>one</li>
-        <li className={styles.item}>two</li>
-        <li className={styles.item}>three</li>
+        <li>one</li>
+        <li>two</li>
       </ul>
     </div>
   </section>
