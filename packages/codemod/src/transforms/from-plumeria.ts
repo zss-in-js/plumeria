@@ -3,11 +3,10 @@
  */
 
 import { parse } from '@typescript-eslint/parser';
-import { coverageOf, overlaps } from '../cascade';
+import { coverageOf, depthOf, overlaps } from '../cascade';
 import {
   applyCssValue,
   camelToKebabCase,
-  DIRECT_LONGHANDS,
   exceptionCamelCase,
   genBase36Hash,
   impliesCondition,
@@ -110,26 +109,6 @@ type StaticValue = string | number | boolean | null;
 // Plumeria ranks a longhand above the shorthand that covers it by giving its
 // atom more specificity, so which of the two wins never depends on order. A
 // stylesheet has no such rank, and the export has to put it back.
-const DIRECT_SHORTHANDS: Record<string, string[]> = {};
-for (const [shorthand, longhands] of Object.entries(DIRECT_LONGHANDS)) {
-  for (const longhand of longhands as string[]) {
-    if (!DIRECT_SHORTHANDS[longhand]) DIRECT_SHORTHANDS[longhand] = [];
-    DIRECT_SHORTHANDS[longhand].push(shorthand);
-  }
-}
-
-const depths = new Map<string, number>();
-const depthOf = (property: string): number => {
-  const cached = depths.get(property);
-  if (cached !== undefined) return cached;
-  depths.set(property, 0);
-  let depth = 0;
-  for (const shorthand of DIRECT_SHORTHANDS[property] || [])
-    depth = Math.max(depth, depthOf(shorthand) + 1);
-  depths.set(property, depth);
-  return depth;
-};
-
 const covers = (outer: string, inner: string): boolean => {
   if (outer === inner) return false;
   const wide = coverageOf(outer);
