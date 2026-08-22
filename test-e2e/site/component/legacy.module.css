@@ -1,0 +1,41 @@
+.card {
+  padding: 16px;
+  background: white;
+}
+
+.card h2 {
+  font-size: 20px;
+}
+
+.card .body .note {
+  color: gray;
+}
+
+.card.featured {
+  border: 1px solid gold;
+}
+
+.list > li {
+  margin: 0;
+}
+
+.item {
+  padding: 2px;
+}
+
+.item + .item {
+  margin-top: 8px;
+}
+
+.card[data-open='true'] {
+  display: block;
+}
+
+:global(.dark) .card {
+  background: black;
+}
+
+.title {
+  composes: base from './legacy-shared.module.css';
+  font-weight: 700;
+}
