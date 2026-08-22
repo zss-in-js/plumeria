@@ -20,7 +20,16 @@ export interface Converted {
   composes: Record<string, string[]>;
   /** Keys that read custom properties nothing declares — a function style. */
   functions: Record<string, string[]>;
+  /** Bare tags a rule reached through a class, for the consumer to carry. */
+  tags: Tags[];
   reports: Report[];
+}
+
+/** `.card h2` — the key the consumer attaches to every `h2` under `card`. */
+export interface Tags {
+  key: string;
+  tag: string;
+  under: string;
 }
 
 /** A parameter reference, written without quotes. */
@@ -64,6 +73,8 @@ export const toValue = (raw: string): Value => {
   return value;
 };
 
+const last = (names: string[]): string => names[names.length - 1];
+
 const nest = (node: StyleNode, key: string): StyleNode => {
   const found = node.nested.find(([k]) => k === key);
   if (found) return found[1];
@@ -92,7 +103,8 @@ const atRuleKeys = (rule: Rule): string[] => {
 interface Target {
   key: string;
   pseudo: string;
-  ancestor?: { key: string; pseudo: string };
+  tag?: string;
+  ancestors?: { key: string; pseudo: string }[];
 }
 
 const readSelector = (
@@ -107,50 +119,50 @@ const readSelector = (
     const nodes = root.first.nodes.filter(
       (n) => n.type !== 'string' && !isSpecificityBoost(n),
     );
-    const parts: { className?: string; pseudos: string[] }[] = [
-      { pseudos: [] },
-    ];
+    const parts: {
+      classNames: string[];
+      pseudos: string[];
+      global?: string;
+      after?: string;
+      tag?: string;
+    }[] = [{ classNames: [], pseudos: [] }];
     let combinator: string | null = null;
     let bad: { kind: string; hint: string } | null = null;
 
     for (const node of nodes) {
       if (node.type === 'class') {
-        const current = parts[parts.length - 1];
-        if (current.className) {
-          bad = {
-            kind: 'unsupported-selector',
-            hint: 'Two classes on one element are written as an array at the call site.',
-          };
-          break;
-        }
-        current.className = node.value;
+        // `.card.featured` names one element twice. The call site writes both
+        // as an array, so the declarations ride on the class written last.
+        parts[parts.length - 1].classNames.push(node.value);
       } else if (node.type === 'pseudo') {
         if (node.value === ':global') {
-          bad = {
-            kind: 'global',
-            hint: "A global class is written as a selector key: `':is(.name *)'`.",
-          };
-          break;
+          const inner = String(node)
+            .slice(':global'.length)
+            .replace(/^\(|\)$/g, '');
+          if (!inner) {
+            bad = {
+              kind: 'global',
+              hint: "A global class is written as a selector key: `':is(.name *)'`.",
+            };
+            break;
+          }
+          parts[parts.length - 1].global = inner;
+          continue;
         }
         parts[parts.length - 1].pseudos.push(String(node));
+      } else if (node.type === 'tag') {
+        parts[parts.length - 1].tag = node.value;
+      } else if (node.type === 'attribute') {
+        const attr = node as unknown as {
+          quoteMark: string | null;
+          value?: string;
+        };
+        if (attr.value != null && attr.quoteMark === "'") attr.quoteMark = '"';
+        parts[parts.length - 1].pseudos.push(`:is(${String(node).trim()})`);
       } else if (node.type === 'combinator') {
         const value = node.value.trim();
-        if (value === '+' || value === '~') {
-          bad = {
-            kind: 'sibling-combinator',
-            hint: `A marker carries no order. Write the relation as a selector key: ${DOC}`,
-          };
-          break;
-        }
-        if (parts.length > 1) {
-          bad = {
-            kind: 'unsupported-selector',
-            hint: 'Only one level of nesting is converted.',
-          };
-          break;
-        }
-        combinator = value === '>' ? '>' : ' ';
-        parts.push({ pseudos: [] });
+        combinator = value === '>' ? '>' : value === ' ' ? ' ' : value;
+        parts.push({ classNames: [], pseudos: [], after: combinator });
       } else {
         bad = {
           kind: 'unsupported-selector',
@@ -164,26 +176,73 @@ const readSelector = (
       result = bad;
       return;
     }
-    if (parts.some((p) => !p.className)) return;
-
-    const [first, second] = parts;
-    if (!second) {
+    // A `:global(.x)` ancestor names a class Plumeria never hashes, so it
+    // survives as a selector key on the target instead of becoming a marker.
+    const globals = parts.filter((p) => p.global && !p.classNames.length);
+    if (globals.length) {
+      const rest = parts.filter((p) => !(p.global && !p.classNames.length));
+      if (rest.length !== 1 || !rest[0].classNames.length) return;
+      const ancestors = globals.map((p) => `${p.global} `).join('');
       result = {
         target: {
-          key: toKey(first.className!),
-          pseudo: first.pseudos.join(''),
+          key: toKey(last(rest[0].classNames)),
+          pseudo: `:is(${ancestors}*)${rest[0].pseudos.join('')}`,
         },
       };
       return;
     }
+
+    // A style query reaches descendants, never siblings, so no marker states
+    // this relation. An ordinal only agrees with it where every sibling in the
+    // parent carries the class, which the stylesheet cannot see.
+    if (parts.some((p) => p.after === '+' || p.after === '~')) {
+      result = {
+        kind: 'sibling-combinator',
+        hint: `A container query reaches descendants, never siblings, so no marker states this. Whether an ordinal such as \`:not(:first-child)\` is equivalent depends on the markup — write the relation as a selector key: ${DOC}`,
+      };
+      return;
+    }
+
+    const tagged = parts[parts.length - 1];
+    if (
+      parts.length > 1 &&
+      tagged.tag &&
+      !tagged.classNames.length &&
+      parts.slice(0, -1).every((p) => p.classNames.length)
+    ) {
+      const above = parts.slice(0, -1);
+      result = {
+        target: {
+          key: toKey(
+            `${last(above[above.length - 1].classNames)}-${tagged.tag}`,
+          ),
+          pseudo: tagged.pseudos.join(''),
+          tag: tagged.tag,
+          ancestors: above.map((part) => ({
+            key: toKey(last(part.classNames)),
+            pseudo: part.pseudos.join('') || ':defined',
+          })),
+        },
+      };
+      return;
+    }
+
+    if (parts.some((p) => !p.classNames.length)) return;
+
+    const target = parts[parts.length - 1];
+    const above = parts.slice(0, -1);
     result = {
       target: {
-        key: toKey(second.className!),
-        pseudo: second.pseudos.join(''),
-        ancestor: {
-          key: toKey(first.className!),
-          pseudo: first.pseudos.join('') || ':defined',
-        },
+        key: toKey(last(target.classNames)),
+        pseudo: target.pseudos.join(''),
+        ...(above.length
+          ? {
+              ancestors: above.map((part) => ({
+                key: toKey(last(part.classNames)),
+                pseudo: part.pseudos.join('') || ':defined',
+              })),
+            }
+          : {}),
       },
     };
     void combinator;
@@ -225,6 +284,7 @@ export function convertStylesheet(css: string): Converted {
   const composes: Record<string, string[]> = {};
   const reports: Report[] = [];
   const markerPseudos = new Map<string, Set<string>>();
+  const tags: Tags[] = [];
 
   const keyOf = (name: string): StyleNode => {
     if (!keys.has(name)) keys.set(name, emptyNode());
@@ -269,15 +329,28 @@ export function convertStylesheet(css: string): Converted {
 
       let node = keyOf(target.key);
 
-      if (target.ancestor) {
-        const { key: id, pseudo } = target.ancestor;
-        const seen = markerPseudos.get(id) ?? new Set<string>();
-        if (!seen.has(pseudo)) {
-          seen.add(pseudo);
-          markerPseudos.set(id, seen);
-          keyOf(id).markers.push(`css.marker('${id}', '${pseudo}')`);
+      if (target.tag && target.ancestors) {
+        const under = target.ancestors[target.ancestors.length - 1].key;
+        if (!tags.some((t) => t.key === target.key && t.tag === target.tag))
+          tags.push({ key: target.key, tag: target.tag, under });
+      }
+
+      if (target.ancestors) {
+        // Each marker below the outermost one is itself gated by the marker
+        // above it, so `.a .b .c` only fires `b` inside an `a`.
+        let gate: string | null = null;
+        for (const { key: id, pseudo } of target.ancestors) {
+          const signature = `${gate ?? ''}>${pseudo}`;
+          const seen = markerPseudos.get(id) ?? new Set<string>();
+          if (!seen.has(signature)) {
+            seen.add(signature);
+            markerPseudos.set(id, seen);
+            const holder = gate ? nest(keyOf(id), gate) : keyOf(id);
+            holder.markers.push(`css.marker('${id}', '${pseudo}')`);
+          }
+          gate = `css.extended('${id}', '${pseudo}')`;
         }
-        node = nest(node, `css.extended('${id}', '${pseudo}')`);
+        node = nest(node, gate!);
       }
 
       for (const key of atRuleKeys(rule)) node = nest(node, key);
@@ -291,7 +364,7 @@ export function convertStylesheet(css: string): Converted {
             report(
               child,
               'composes-external',
-              'A class composed from another file is not resolved.',
+              'A class composed from another file is not resolved. Convert that stylesheet too, then pass both at the call site as an array.',
             );
             return;
           }
@@ -366,5 +439,5 @@ ${body}
 });
 `;
 
-  return { code, names, composes, functions, reports };
+  return { code, names, composes, functions, tags, reports };
 }
