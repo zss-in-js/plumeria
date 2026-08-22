@@ -142,6 +142,28 @@ src/Card.module.css
 
 A `composes` reaching into another file, a sibling combinator, and a selector naming no local class — an id, an element on its own — are named rather than guessed at, and the original rule is left where it is. The exit code is 1 while anything remains, so the command composes with a script.
 
+### The order the array is written in
+
+A class list carries no order. `className={`${styles.b} ${styles.a}`}` and `className={`${styles.a} ${styles.b}`}` render the same page, because where two classes of equal specificity set one property the stylesheet decides, not the element. The styling prop is the other way round: the merge reads the array, and the entry written last wins.
+
+So the array is written in stylesheet order rather than in the order the class list happened to carry:
+
+```css title="Card.module.css"
+.a { color: red }
+.b { color: blue }
+```
+
+```diff title="Card.tsx"
+- <div className={`${styles.b} ${styles.a}`} />
++ <div classStyle={[styles.a, styles.b]} />
+```
+
+`blue` wins on both sides. Reading the class list instead would have handed it to `red`.
+
+Two stylesheets have no order between them that one file can be sure of — that is the bundler's — so reads of different modules keep the slots they were given, and only the reads of one module are sorted among themselves.
+
+A class written twice with another one between the two is the case a single place cannot answer: the merged key would take the later position for every declaration it holds, including the ones the class between them outranks. Where the two share a property, that is reported as `split-order` rather than guessed at.
+
 ### When a consumer reads what was refused
 
 A refusal leaves the rule in the stylesheet, which is harmless until a component reads the class it was written for. Half of that class would arrive as a Plumeria key and half would stay behind in a file the component no longer imports — a rule that silently stops applying, or a key that does not exist at all.
