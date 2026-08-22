@@ -184,6 +184,8 @@ A class that does it to itself needs no call site to show it — one key holds b
 
 Two conditional declarations never meet this: Plumeria ranks every at-rule declaration alike, so they are level and the array carries their order the same way two plain ones do. `padding` against `padding-top` is read as the overlap it is, not as two different properties.
 
+The pair is read one declaration at a time rather than by where the class ended up. A class that writes `color` first and `margin` last sits late in the stylesheet on account of the `margin`, which says nothing about the `color` that disagrees. A `composes` goes through the same reading, because the composed class lands on the element beside the one that named it.
+
 ### When a consumer reads what was refused
 
 A refusal leaves the rule in the stylesheet, which is harmless until a component reads the class it was written for. Half of that class would arrive as a Plumeria key and half would stay behind in a file the component no longer imports — a rule that silently stops applying, or a key that does not exist at all.
