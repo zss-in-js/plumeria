@@ -399,6 +399,78 @@ describe('rewrites that settle on a later pass', () => {
     ).toContain('classStyle={[b.one, a.two]}');
   });
 
+  // The stylesheet cannot know which classes meet; the call site can.
+  const cascading = {
+    './Card.module.css': {
+      source: './Card.styles',
+      stylesheet: '/abs/Card.module.css',
+      names: { printText: 'printText', screenText: 'screenText' },
+      order: { printText: 0, screenText: 1 },
+      held: {
+        printText: [
+          { property: 'color', suffix: '', conditional: true, place: 0 },
+        ],
+        screenText: [
+          { property: 'color', suffix: '', conditional: false, place: 1 },
+        ],
+      },
+    },
+  };
+
+  it('rewrites a class the other one never meets', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<p className={s.screenText} />;`,
+        cascading,
+      ),
+    ).toContain('classStyle={styles.screenText}');
+  });
+
+  it('reports a pair the array cannot answer for', () => {
+    // CSS gives `color` to the plain rule written later; Plumeria ranks the
+    // conditional one above it whatever the array says. The prop is left as it
+    // is and the CLI drops the whole module before the pass that fixes.
+    const found = messagesFor(
+      "import s from './Card.module.css';\n<p className={`${s.printText} ${s.screenText}`} />;",
+      cascading,
+    ).filter((m) => m.messageId === 'cascade');
+    expect(found.map((m) => m.message).sort()).toEqual([
+      '/abs/Card.module.css :: printText',
+      '/abs/Card.module.css :: screenText',
+    ]);
+  });
+
+  it('says nothing for a pair that settles', () => {
+    expect(
+      messagesFor(
+        "import s from './Card.module.css';\n<p className={`${s.screenText} ${s.screenText}`} />;",
+        cascading,
+      ).filter((m) => m.messageId === 'cascade'),
+    ).toHaveLength(0);
+  });
+
+  it('rewrites the pair when the plain rule was written first', () => {
+    expect(
+      settle(
+        "import s from './Card.module.css';\n<p className={`${s.printText} ${s.screenText}`} />;",
+        {
+          './Card.module.css': {
+            ...cascading['./Card.module.css'],
+            order: { screenText: 0, printText: 1 },
+            held: {
+              screenText: [
+                { property: 'color', suffix: '', conditional: false, place: 0 },
+              ],
+              printText: [
+                { property: 'color', suffix: '', conditional: true, place: 1 },
+              ],
+            },
+          },
+        },
+      ),
+    ).toContain('classStyle={[styles.screenText, styles.printText]}');
+  });
+
   it('leaves a tag it cannot see in this file alone', () => {
     expect(
       settle(
