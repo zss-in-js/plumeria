@@ -672,8 +672,11 @@ export const adoptStyles: Rule.RuleModule = {
                   }
                   if (before)
                     return fixer.insertTextBefore(before, `${read}, `);
-                  return after
-                    ? fixer.insertTextAfter(after, `, ${read}`)
+                  if (after) return fixer.insertTextAfter(after, `, ${read}`);
+                  // An empty array has no element to sit before, so the array
+                  // itself is what gets written.
+                  return expression.elements.length === 0
+                    ? fixer.replaceText(expression, `[${read}]`)
                     : fixer.insertTextBefore(
                         expression.elements[0],
                         `${read}, `,
