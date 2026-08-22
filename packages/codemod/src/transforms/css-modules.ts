@@ -3,7 +3,7 @@
  */
 
 import postcss from 'postcss';
-import { overlaps, type Held } from '../cascade';
+import { unrepresentable, type Held } from '../cascade';
 import selectorParser from 'postcss-selector-parser';
 import type { Rule, Declaration, AtRule, Container } from 'postcss';
 
@@ -507,28 +507,19 @@ ${body}
   // the array says; CSS ranks the two by where they were written, because an
   // at-rule carries no specificity. Inside one key there is no array to settle
   // it with, so a plain rule written after a conditional one is already lost.
-  for (const [key, declarations] of Object.entries(held))
-    for (const plain of declarations) {
-      if (plain.conditional) continue;
-      const beaten = declarations.find(
-        (other) =>
-          other.conditional &&
-          other.place < plain.place &&
-          other.suffix === plain.suffix &&
-          overlaps(other.property, plain.property),
-      );
-      if (!beaten) continue;
+  for (const [key, declarations] of Object.entries(held)) {
+    if (unrepresentable(declarations, declarations)) {
       reports.push({
         line: 0,
         column: 0,
         kind: 'condition-order',
         source: '',
-        hint: `\`${key}\` sets \`${plain.property}\` after setting it under an at-rule. CSS gives it to the plain rule; Plumeria ranks the conditional one above it, and one key has no order to settle that with. Write the plain rule first, or write it under an at-rule too.`,
+        hint: `\`${key}\` sets a property after setting it under an at-rule. CSS gives it to the plain rule; Plumeria ranks the conditional one above it, and one key has no order to settle that with. Write the plain rule first, or write it under an at-rule too.`,
       });
       for (const [name, candidate] of Object.entries(candidates))
         if (candidate === key) unconvertible.add(name);
-      break;
     }
+  }
 
   // A class written on both sides of another one cannot be answered by a single
   // place in the array: the merge would give every one of its declarations the
