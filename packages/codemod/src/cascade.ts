@@ -40,24 +40,27 @@ export interface Held {
 }
 
 /**
- * How two sets of declarations settle against each other.
+ * Whether the two hold a pair of declarations no array can order.
  *
- * `ranked` — Plumeria decides, whatever order the call site writes them in.
- * `crossing` — they are level, so the order of the array is what decides.
+ * Plumeria ranks a declaration under an at-rule above a plain one; CSS ranks
+ * the two by where they were written, because an at-rule carries no
+ * specificity. Where a plain declaration was written after a conditional one
+ * it overlaps, CSS gives it the win and Plumeria cannot, whatever the call
+ * site composes. The pairs are read one declaration at a time: a key answers
+ * for the last rule that named it, which says nothing about where the
+ * declaration that disagrees actually sat.
+ *
+ * Passing one list twice asks the question of a single key, which holds both
+ * declarations and has no array to settle them with.
  */
-export const relate = (
-  left: Held[],
-  right: Held[],
-): { ranked?: 'left' | 'right'; crossing: boolean } => {
-  let ranked: 'left' | 'right' | undefined;
-  let crossing = false;
-  for (const mine of left)
-    for (const theirs of right) {
-      if (mine.suffix !== theirs.suffix) continue;
-      if (!overlaps(mine.property, theirs.property)) continue;
-      if (mine.conditional === theirs.conditional) crossing = true;
-      else if (mine.conditional) ranked ??= 'left';
-      else ranked ??= 'right';
-    }
-  return { ranked, crossing };
-};
+export const unrepresentable = (left: Held[], right: Held[]): boolean =>
+  left.some((mine) =>
+    right.some((theirs) => {
+      if (mine.suffix !== theirs.suffix) return false;
+      if (mine.conditional === theirs.conditional) return false;
+      if (!overlaps(mine.property, theirs.property)) return false;
+      const plain = mine.conditional ? theirs : mine;
+      const conditional = mine.conditional ? mine : theirs;
+      return plain.place > conditional.place;
+    }),
+  );
