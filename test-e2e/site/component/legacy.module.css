@@ -19,14 +19,6 @@
   margin: 0;
 }
 
-.item {
-  padding: 2px;
-}
-
-.item + .item {
-  margin-top: 8px;
-}
-
 .card[data-open='true'] {
   display: block;
 }
@@ -36,6 +28,5 @@
 }
 
 .title {
-  composes: base from './legacy-shared.module.css';
   font-weight: 700;
 }
