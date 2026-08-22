@@ -1,0 +1,12 @@
+.row {
+  padding: 2px;
+}
+
+.row + .row {
+  margin-top: 8px;
+}
+
+.label {
+  composes: base from './legacy-shared.module.css';
+  text-transform: uppercase;
+}
