@@ -30,3 +30,11 @@
 .title {
   font-weight: 700;
 }
+
+.tone {
+  color: navy;
+}
+
+.emphasis {
+  color: crimson;
+}
