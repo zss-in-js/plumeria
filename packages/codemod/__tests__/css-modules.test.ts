@@ -262,12 +262,38 @@ describe('convertStylesheet', () => {
   });
 
   // One key holds both declarations, so there is no array to settle them with.
-  it('reports a plain rule written after a conditional one in one key', () => {
-    const { reports, unconvertible } = convertStylesheet(
+  it.each([
+    [
+      'a conditional rule',
+      '@media print { .a { color: black } } .a { color: blue }',
+    ],
+    ['a longhand', '.a { padding-top: 1px; padding: 2px }'],
+  ])(
+    'reports a declaration outranked by one written before it: %s',
+    (_l, css) => {
+      const { reports, unconvertible } = convertStylesheet(css);
+      expect(reports.map((r) => r.kind)).toContain('rank-order');
+      expect(unconvertible).toEqual(['a']);
+    },
+  );
+
+  it('names the two declarations rather than guessing at a cause', () => {
+    const { reports } = convertStylesheet(
+      '.a { padding-top: 1px; padding: 2px }',
+    );
+    const found = reports.find((r) => r.kind === 'rank-order');
+    expect(found?.hint).toContain('`padding` after `padding-top`');
+    // There is no at-rule here, so the hint may not name one.
+    expect(found?.hint).not.toContain('at-rule is one step up');
+  });
+
+  it('names the at-rule where that is what raised the rank', () => {
+    const { reports } = convertStylesheet(
       '@media print { .a { color: black } } .a { color: blue }',
     );
-    expect(reports.map((r) => r.kind)).toContain('condition-order');
-    expect(unconvertible).toEqual(['a']);
+    const found = reports.find((r) => r.kind === 'rank-order');
+    expect(found?.hint).toContain('an at-rule is one step up');
+    expect(found?.hint).not.toContain('`color` after `color`');
   });
 
   it('says nothing when that key writes the plain rule first', () => {
