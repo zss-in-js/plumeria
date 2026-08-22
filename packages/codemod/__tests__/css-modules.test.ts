@@ -131,6 +131,27 @@ describe('convertStylesheet', () => {
     expect(reports[0].kind).toBe('unsupported-selector');
   });
 
+  it('names the classes a refused rule leaves nothing faithful for', () => {
+    const { unconvertible } = convertStylesheet(
+      '.item { padding: 1px } .item + .item { margin: 1px } .card { color: red }',
+    );
+    // `item` keeps a key, but a rule naming it was refused, so a consumer
+    // reading it would silently lose that rule.
+    expect(unconvertible).toEqual(['item']);
+  });
+
+  it('names a class whose only refusal is a declaration', () => {
+    const { unconvertible } = convertStylesheet(
+      ".title { composes: base from './shared.module.css'; color: red }",
+    );
+    expect(unconvertible).toEqual(['title']);
+  });
+
+  it('leaves a clean stylesheet with nothing unconvertible', () => {
+    const { unconvertible } = convertStylesheet('.card { padding: 1px }');
+    expect(unconvertible).toEqual([]);
+  });
+
   it('wraps an attribute selector into a selector key', () => {
     const { code, reports } = convertStylesheet(
       ".card[data-open='true'] { display: block }",
