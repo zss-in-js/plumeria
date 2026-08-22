@@ -10,6 +10,8 @@ export interface ModuleMap {
   source: string;
   target?: string;
   names: Record<string, string>;
+  /** Where each key's last rule sat in the stylesheet. */
+  order?: Record<string, number>;
   composes?: Record<string, string[]>;
   functions?: Record<string, string[]>;
   tags?: {
@@ -225,6 +227,47 @@ export const adoptStyles: Rule.RuleModule = {
         current.parent.callee?.type === 'MemberExpression' &&
         current.parent.callee.property?.name === 'use'
       );
+    };
+
+    // A class list carries no order in CSS; the stylesheet does. The array
+    // the merge reads has to be given that order, so the reads of one module
+    // are sorted among themselves and left in the slots they occupied — two
+    // stylesheets have no order between them that a file can be sure of.
+    const inStylesheetOrder = (elements: any[]): any[] => {
+      const at = (element: any) => {
+        const read = styleRead(element);
+        const binding = bindings.get(read?.object?.name);
+        if (!binding) return null;
+        const written =
+          read.computed && read.property.type === 'Literal'
+            ? String(read.property.value)
+            : !read.computed && read.property.type === 'Identifier'
+              ? read.property.name
+              : null;
+        if (written === null) return null;
+        const key = binding.entry.names[written] ?? written;
+        const place = binding.entry.order?.[key];
+        return place === undefined
+          ? null
+          : { module: binding.entry.source, place };
+      };
+
+      const sorted = [...elements];
+      const groups = new Map<string, number[]>();
+      elements.forEach((element, index) => {
+        const found = at(element);
+        if (!found) return;
+        const slots = groups.get(found.module) ?? [];
+        slots.push(index);
+        groups.set(found.module, slots);
+      });
+      for (const slots of groups.values()) {
+        const ordered = slots
+          .map((index) => elements[index])
+          .sort((a, b) => at(a)!.place - at(b)!.place);
+        slots.forEach((index, at_) => (sorted[index] = ordered[at_]));
+      }
+      return sorted;
     };
 
     return {
@@ -717,7 +760,7 @@ export const adoptStyles: Rule.RuleModule = {
           const carried = joined.filter(
             (element: any) => !styles_.includes(element),
           );
-          const list = styles_.map(renamedText).join(', ');
+          const list = inStylesheetOrder(styles_).map(renamedText).join(', ');
           if (carried.length > 0) {
             const kept = carried
               .map((element: any) => context.sourceCode.getText(element))
