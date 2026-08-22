@@ -1,4 +1,5 @@
 import postcss from 'postcss';
+import { rankOf } from '../src/cascade';
 import {
   convertStylesheet,
   toKey,
@@ -241,9 +242,21 @@ describe('convertStylesheet', () => {
       '@media print { .a { color: black } } .b:hover { padding: 1px }',
     );
     expect(held).toEqual({
-      a: [{ property: 'color', suffix: '', conditional: true, place: 0 }],
+      a: [
+        {
+          property: 'color',
+          suffix: '',
+          rank: rankOf('color', true),
+          place: 0,
+        },
+      ],
       b: [
-        { property: 'padding', suffix: ':hover', conditional: false, place: 1 },
+        {
+          property: 'padding',
+          suffix: ':hover',
+          rank: rankOf('padding', false),
+          place: 1,
+        },
       ],
     });
   });
