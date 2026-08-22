@@ -146,13 +146,17 @@ const danglingClasses = (dir) => {
 };
 
 // A report is filed under the stylesheet named on the line above it, so the
-// refusals are read as a pair rather than by counting.
+// refusals are read as a pair rather than by counting. A stylesheet held back
+// for its consumers is a refusal too — nothing was written and nobody moved.
 const refusedSheets = (said) => {
   const refused = new Set();
   let sheet;
   for (const line of said.split('\n')) {
     if (/^\S/.test(line) && line.endsWith('.module.css')) sheet = line.trim();
-    else if (sheet && /^\s+\d+:\d+\s+target-exists$/.test(line))
+    else if (
+      sheet &&
+      /^\s+\d+:\d+\s+(target-exists|held-for-consumer)$/.test(line)
+    )
       refused.add(sheet);
   }
   return refused;
