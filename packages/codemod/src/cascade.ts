@@ -4,6 +4,38 @@
 
 import { DIRECT_LONGHANDS } from 'zss-engine';
 
+const SHORTHANDS_OF: Record<string, string[]> = {};
+for (const [shorthand, longhands] of Object.entries(DIRECT_LONGHANDS))
+  for (const longhand of longhands as string[])
+    (SHORTHANDS_OF[longhand] ??= []).push(shorthand);
+
+const depths = new Map<string, number>();
+
+/**
+ * How many steps a property sits below the shorthands that write it. Plumeria
+ * adds one `:not(#\#)` per step, which is what makes a longhand outrank the
+ * shorthand it narrows however the two are composed.
+ */
+export const depthOf = (property: string): number => {
+  const cached = depths.get(property);
+  if (cached !== undefined) return cached;
+  depths.set(property, 0);
+  let depth = 0;
+  for (const shorthand of SHORTHANDS_OF[property] ?? [])
+    depth = Math.max(depth, depthOf(shorthand) + 1);
+  depths.set(property, depth);
+  return depth;
+};
+
+/**
+ * What Plumeria ranks a declaration at. A custom property is left where it is;
+ * everything else takes one step for being written at all, one more for
+ * sitting under an at-rule — whichever at-rule, however deeply they nest — and
+ * one per step down the shorthand graph.
+ */
+export const rankOf = (property: string, conditional: boolean): number =>
+  property.startsWith('--') ? 0 : 1 + (conditional ? 1 : 0) + depthOf(property);
+
 const coverages = new Map<string, Set<string>>();
 
 /** The longhands a property finally writes, so a shorthand can be compared. */
@@ -34,21 +66,20 @@ export interface Held {
   property: string;
   /** The pseudo chain the declaration sits under; two only meet under one. */
   suffix: string;
-  conditional: boolean;
-  /** Where the rule sat in the stylesheet. */
+  /** What Plumeria ranks it at — see `rankOf`. */
+  rank: number;
+  /** Where the declaration sat in the stylesheet. */
   place: number;
 }
 
 /**
  * Whether the two hold a pair of declarations no array can order.
  *
- * Plumeria ranks a declaration under an at-rule above a plain one; CSS ranks
- * the two by where they were written, because an at-rule carries no
- * specificity. Where a plain declaration was written after a conditional one
- * it overlaps, CSS gives it the win and Plumeria cannot, whatever the call
- * site composes. The pairs are read one declaration at a time: a key answers
- * for the last rule that named it, which says nothing about where the
- * declaration that disagrees actually sat.
+ * Where two declarations reach one property on one element, CSS gives it to
+ * the one written later and Plumeria to the one it ranks higher. They agree
+ * wherever the later declaration is the higher-ranked one, and the array
+ * settles a tie. What no call site can undo is a declaration outranked by one
+ * written before it: Plumeria hands the property back to the earlier rule.
  *
  * Passing one list twice asks the question of a single key, which holds both
  * declarations and has no array to settle them with.
@@ -57,10 +88,10 @@ export const unrepresentable = (left: Held[], right: Held[]): boolean =>
   left.some((mine) =>
     right.some((theirs) => {
       if (mine.suffix !== theirs.suffix) return false;
-      if (mine.conditional === theirs.conditional) return false;
+      if (mine.place === theirs.place) return false;
       if (!overlaps(mine.property, theirs.property)) return false;
-      const plain = mine.conditional ? theirs : mine;
-      const conditional = mine.conditional ? mine : theirs;
-      return plain.place > conditional.place;
+      const [earlier, later] =
+        mine.place < theirs.place ? [mine, theirs] : [theirs, mine];
+      return earlier.rank > later.rank;
     }),
   );
