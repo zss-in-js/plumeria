@@ -22,6 +22,11 @@ export interface Converted {
   functions: Record<string, string[]>;
   /** Bare tags a rule reached through a class, for the consumer to carry. */
   tags: Tags[];
+  /**
+   * Class names a rule was refused for. The generated module says nothing
+   * about these, so a consumer reading one has to stay where it is.
+   */
+  unconvertible: string[];
   reports: Report[];
 }
 
@@ -285,6 +290,7 @@ export function convertStylesheet(css: string): Converted {
   const reports: Report[] = [];
   const markerPseudos = new Map<string, Set<string>>();
   const tags: Tags[] = [];
+  const unconvertible = new Set<string>();
 
   const keyOf = (name: string): StyleNode => {
     if (!keys.has(name)) keys.set(name, emptyNode());
@@ -292,6 +298,10 @@ export function convertStylesheet(css: string): Converted {
   };
 
   const report = (node: Rule | Declaration, kind: string, hint: string) => {
+    const rule =
+      node.type === 'rule' ? node : (node.parent as Rule | undefined);
+    for (const found of rule?.selector?.match(/\.([A-Za-z0-9_-]+)/g) ?? [])
+      unconvertible.add(found.slice(1));
     const start = node.source?.start;
     reports.push({
       line: start?.line ?? 0,
@@ -439,5 +449,13 @@ ${body}
 });
 `;
 
-  return { code, names, composes, functions, tags, reports };
+  return {
+    code,
+    names,
+    composes,
+    functions,
+    tags,
+    unconvertible: [...unconvertible],
+    reports,
+  };
 }
