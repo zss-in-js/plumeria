@@ -39,3 +39,11 @@
   composes: lateReader;
   padding: 1px;
 }
+
+.narrowFirst {
+  padding-top: 1px;
+}
+
+.wideAfter {
+  padding: 2px;
+}
