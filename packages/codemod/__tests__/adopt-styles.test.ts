@@ -471,6 +471,59 @@ describe('rewrites that settle on a later pass', () => {
     ).toContain('classStyle={[styles.screenText, styles.printText]}');
   });
 
+  it('reads the declaration that disagrees, not the last rule of the key', () => {
+    // `printText` writes `margin` last, which moves its key past `screenText`
+    // while the `color` the two disagree over stayed where it was.
+    const found = messagesFor(
+      "import s from './Card.module.css';\n<p className={`${s.printText} ${s.screenText}`} />;",
+      {
+        './Card.module.css': {
+          ...cascading['./Card.module.css'],
+          order: { screenText: 1, printText: 2 },
+          held: {
+            printText: [
+              { property: 'color', suffix: '', conditional: true, place: 0 },
+              { property: 'margin', suffix: '', conditional: false, place: 2 },
+            ],
+            screenText: [
+              { property: 'color', suffix: '', conditional: false, place: 1 },
+            ],
+          },
+        },
+      },
+    ).filter((m) => m.messageId === 'cascade');
+    expect(found).toHaveLength(2);
+  });
+
+  it('settles a composed class against the one that named it', () => {
+    // `composes` puts both classes on the element, so they meet the same way
+    // a class list does.
+    const found = messagesFor(
+      `import s from './Card.module.css';\n<div className={s.card} />;`,
+      {
+        './Card.module.css': {
+          source: './Card.styles',
+          stylesheet: '/abs/Card.module.css',
+          names: { base: 'base', card: 'card' },
+          composes: { card: ['base'] },
+          order: { base: 0, card: 1 },
+          held: {
+            base: [
+              { property: 'color', suffix: '', conditional: true, place: 0 },
+            ],
+            card: [
+              { property: 'color', suffix: '', conditional: false, place: 1 },
+            ],
+          },
+        },
+      },
+    ).filter((m) => m.messageId === 'cascade');
+    expect(found.map((m) => m.message).sort()).toEqual([
+      '/abs/Card.module.css :: base',
+      '/abs/Card.module.css :: card',
+    ]);
+  });
+
   it('leaves a tag it cannot see in this file alone', () => {
     expect(
       settle(
