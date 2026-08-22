@@ -89,6 +89,7 @@ export function plan(targets: string[]): Plan {
       target,
       stylesheet: source,
       names: converted.names,
+      order: converted.order,
       composes: converted.composes,
       functions: converted.functions,
       tags: converted.tags,
