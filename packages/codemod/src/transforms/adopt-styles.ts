@@ -247,13 +247,15 @@ export const adoptStyles: Rule.RuleModule = {
         if (written === null) return null;
         const key = binding.entry.names[written] ?? written;
         const place = binding.entry.order?.[key];
+        // The map itself identifies the stylesheet; two of them in different
+        // directories can share a basename, and so a `source`.
         return place === undefined
           ? null
-          : { module: binding.entry.source, place };
+          : { module: binding.entry as object, place };
       };
 
       const sorted = [...elements];
-      const groups = new Map<string, number[]>();
+      const groups = new Map<object, number[]>();
       elements.forEach((element, index) => {
         const found = at(element);
         if (!found) return;
@@ -830,8 +832,11 @@ export const adoptStyles: Rule.RuleModule = {
         const composed = key ? entry.composes?.[key] : undefined;
         if (!composed || composed.length === 0) return;
 
+        // A composed class is another class of the same stylesheet, so which
+        // of the two wins is the stylesheet's order rather than this one.
         const parts = composed
           .concat(key as string)
+          .sort((a, b) => (entry.order?.[a] ?? 0) - (entry.order?.[b] ?? 0))
           .map((k) => `${local}.${k}`)
           .join(', ');
 
