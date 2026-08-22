@@ -35,6 +35,8 @@ export interface Tags {
   key: string;
   tag: string;
   under: string;
+  /** `.a > h2` reaches one level; `.a h2` reaches any. */
+  direct: boolean;
 }
 
 /** A parameter reference, written without quotes. */
@@ -109,6 +111,7 @@ interface Target {
   key: string;
   pseudo: string;
   tag?: string;
+  direct?: boolean;
   ancestors?: { key: string; pseudo: string }[];
 }
 
@@ -223,6 +226,7 @@ const readSelector = (
           ),
           pseudo: tagged.pseudos.join(''),
           tag: tagged.tag,
+          direct: tagged.after === '>',
           ancestors: above.map((part) => ({
             key: toKey(last(part.classNames)),
             pseudo: part.pseudos.join('') || ':defined',
@@ -286,6 +290,7 @@ export function convertStylesheet(css: string): Converted {
   const root = postcss.parse(css);
   const keys = new Map<string, StyleNode>();
   const names: Record<string, string> = {};
+  const candidates: Record<string, string> = {};
   const composes: Record<string, string[]> = {};
   const reports: Report[] = [];
   const markerPseudos = new Map<string, Set<string>>();
@@ -324,7 +329,7 @@ export function convertStylesheet(css: string): Converted {
       for (const className of selector.match(/\.([A-Za-z0-9_-]+)/g) ?? []) {
         const bare = className.slice(1);
         const key = toKey(bare);
-        const taken = Object.entries(names).find(
+        const taken = Object.entries(candidates).find(
           ([other, k]) => k === key && other !== bare,
         );
         if (taken) {
@@ -334,7 +339,7 @@ export function convertStylesheet(css: string): Converted {
             `\`${bare}\` and \`${taken[0]}\` both become \`${key}\`.`,
           );
         }
-        names[bare] = key;
+        candidates[bare] = key;
       }
 
       let node = keyOf(target.key);
@@ -342,7 +347,12 @@ export function convertStylesheet(css: string): Converted {
       if (target.tag && target.ancestors) {
         const under = target.ancestors[target.ancestors.length - 1].key;
         if (!tags.some((t) => t.key === target.key && t.tag === target.tag))
-          tags.push({ key: target.key, tag: target.tag, under });
+          tags.push({
+            key: target.key,
+            tag: target.tag,
+            under,
+            direct: target.direct === true,
+          });
       }
 
       if (target.ancestors) {
@@ -448,6 +458,29 @@ export const styles = css.create({
 ${body}
 });
 `;
+
+  // A synthetic tag key is not a class name, so it never met the collision
+  // check the class names run through. `.card-h2` and `.card h2` both reach
+  // `cardH2`, and merging them would put one rule on the other's element.
+  for (const pair of tags) {
+    const taken = Object.entries(candidates).find(
+      ([, key]) => key === pair.key,
+    );
+    if (!taken) continue;
+    reports.push({
+      line: 0,
+      column: 0,
+      kind: 'key-collision',
+      source: '',
+      hint: `\`${taken[0]}\` and the rule reaching \`${pair.tag}\` both become \`${pair.key}\`.`,
+    });
+    unconvertible.add(taken[0]);
+  }
+
+  // `.card.active` alone writes `active` and nothing for `card`, so a consumer
+  // reading `card` has no key to be pointed at and the sheet has to be held.
+  for (const [bare, key] of Object.entries(candidates))
+    if (keys.has(key)) names[bare] = key;
 
   return {
     code,
