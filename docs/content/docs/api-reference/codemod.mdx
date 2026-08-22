@@ -85,9 +85,30 @@ export const styles = css.create({
   </div>
 ```
 
-A descendant rule has no combinator to translate into — `no-combinator` rejects one — so it becomes [`css.marker`](/docs/api-reference/javascript/marker) on the parent and `css.extended` on the child. Both class names sit in the same selector, so which is which is read from the stylesheet; no markup is inspected.
+A descendant rule has no combinator to translate into — `no-combinator` rejects one — so it becomes [`css.marker`](/docs/api-reference/javascript/marker) on the parent and `css.extended` on the child. Both class names sit in the same selector, so which is which is read from the stylesheet.
 
 Class names become camel-case keys, and a bare pixel length loses its unit, because `padding: 16` and `padding: '16px'` compile to the same rule.
+
+### What each selector becomes
+
+| CSS Modules | Plumeria |
+| :-- | :-- |
+| `.a .b`, `.a > .b` | `marker` on `a`, `extended` on `b` |
+| `.a .b .c` | one marker per level, each gated by the marker above it |
+| `.a[data-open="true"]` | `':is([data-open="true"])'` |
+| `:global(.dark) .a` | `':is(.dark *)'` — a global class is never hashed, so it survives as written |
+| `.a.b` | the pair rides on `b` |
+| `.a h2` | a key of its own, carried onto the markup |
+
+Three of these are worth reading twice.
+
+**A chain gates each marker by the one above it.** `.a .b .c` writes `b`'s marker inside `a`'s `extended`, so a `.c` under a `.b` that sits outside any `.a` stays untouched — the nesting is reproduced, not flattened.
+
+**A compound rides on the class written last.** `.a.b` only applies where both are present, and Plumeria hashes its classes, so no selector can state the pair. The call site already writes `[styles.a, styles.b]`, which is equivalent wherever the two appear together. Where `b` is also used on its own, it now carries what the pair set.
+
+**A tag needs markup to land on.** `.a h2` has no class to hash, so the rule takes a key of its own and the consumer rewrite puts it on every `h2` it can see under an `a` in that file. A tag arriving through `children` is not visible there and is reported instead.
+
+A sibling is the one relation nothing here states, and it is reported rather than converted. A style query reaches descendants, never siblings, so no marker carries the signal sideways. An ordinal is the usual replacement, but `:not(:first-child)` counts children of the parent while `+` reads the one element before it — the two agree only where every sibling carries the class. A header row or a separator in the list is enough to part them, and the stylesheet cannot see either. The rule is left where it is, named by file and line, because the markup that settles it is yours.
 
 ### Previewing the migration
 
@@ -110,11 +131,16 @@ Paths can follow the flag as usual. Rules that cannot be converted are reported 
 
 ```
 src/Card.module.css
-  10:1  sibling-combinator  .item + .item
-        A marker carries no order. Write the relation as a selector key.
+  9:3   composes-external  composes: base from './shared.module.css'
+        A class composed from another file is not resolved. Convert that
+        stylesheet too, then pass both at the call site as an array.
+  12:1  sibling-combinator  .item + .item
+        A container query reaches descendants, never siblings, so no marker
+        states this. Whether an ordinal such as `:not(:first-child)` is
+        equivalent depends on the markup.
 ```
 
-Sibling combinators, `:global`, and a `composes` reaching into another file are named rather than guessed at, and the original rule is left where it is. The exit code is 1 while anything remains, so the command composes with a script.
+A `composes` reaching into another file, a sibling combinator, and a selector naming no local class — an id, an element on its own — are named rather than guessed at, and the original rule is left where it is. The exit code is 1 while anything remains, so the command composes with a script.
 
 ## Migrating from Plumeria
 
