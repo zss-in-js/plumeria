@@ -253,22 +253,30 @@ describe('rewrites that settle on a later pass', () => {
 
   it.each([
     ['an empty array', '{[]}', '[styles.cardH2]'],
+    ['an array of holes', '{[, ,]}', '[styles.cardH2]'],
     [
       'an array holding a style',
       '{[styles.own]}',
       '[styles.cardH2, styles.own]',
     ],
+    [
+      'a sparse array holding a style',
+      '{[, styles.own]}',
+      '[, styles.cardH2, styles.own]',
+    ],
+    ['a trailing hole', '{[styles.own, ,]}', '[styles.cardH2, styles.own, ,]'],
     ['a bare style', '{styles.own}', '[styles.cardH2, styles.own]'],
   ])('writes a tag rule into %s', (_label, held, expected) => {
-    // An empty array has no element to sit before, so the array itself is
-    // what has to be written; anything else is inserted around what is there.
+    // Nothing to sit against — empty, or holes only — means the array itself
+    // is written; anything else is inserted around what is there. A hole has
+    // no text to read, so it never reaches `getText`.
     expect(
       settle(
         `import s from './Card.module.css';\n<div className={s.card}><h2 classStyle=${held}>t</h2></div>;`,
         {
           './Card.module.css': {
             source: './Card.styles',
-            names: { card: 'card' },
+            names: { card: 'card', own: 'own' },
             tags: [{ key: 'cardH2', tag: 'h2', under: 'card' }],
           },
         },
