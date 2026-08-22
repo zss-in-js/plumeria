@@ -3,6 +3,7 @@
  */
 
 import postcss from 'postcss';
+import { overlaps, type Held } from '../cascade';
 import selectorParser from 'postcss-selector-parser';
 import type { Rule, Declaration, AtRule, Container } from 'postcss';
 
@@ -22,6 +23,8 @@ export interface Converted {
   functions: Record<string, string[]>;
   /** Bare tags a rule reached through a class, for the consumer to carry. */
   tags: Tags[];
+  /** What each key writes and where, so a call site can settle two of them. */
+  held: Record<string, Held[]>;
   /**
    * Where each key's last rule sat in the stylesheet. A class list carries no
    * order in CSS — the stylesheet does — so the merge has to be given it.
@@ -307,6 +310,7 @@ export function convertStylesheet(css: string): Converted {
   const tags: Tags[] = [];
   const unconvertible = new Set<string>();
   const order: Record<string, number> = {};
+  const held: Record<string, Held[]> = {};
   let seen = 0;
   // One rule per key, in the order the stylesheet wrote them, so a class split
   // across the sheet can be told apart from one written once.
@@ -403,6 +407,8 @@ export function convertStylesheet(css: string): Converted {
       const props = new Set<string>();
       const where = `${atRuleKeys(rule).join('|')}::${target.pseudo}`;
       written.push({ key: target.key, place, props });
+      const conditional = atRuleKeys(rule).length > 0;
+      const mine = (held[target.key] ??= []);
 
       for (const key of atRuleKeys(rule)) node = nest(node, key);
       if (target.pseudo) node = nest(node, target.pseudo);
@@ -428,6 +434,12 @@ export function convertStylesheet(css: string): Converted {
         // later declaration wins rather than being written a second time.
         const property = toProperty(child.prop);
         props.add(`${where}::${property}`);
+        mine.push({
+          property: child.prop,
+          suffix: target.pseudo,
+          conditional,
+          place,
+        });
         const held = node.decls.findIndex(([name]) => name === property);
         if (held !== -1) node.decls.splice(held, 1);
         node.decls.push([property, toValue(child.value)]);
@@ -491,6 +503,33 @@ ${body}
 });
 `;
 
+  // Plumeria ranks a declaration under an at-rule above a plain one whatever
+  // the array says; CSS ranks the two by where they were written, because an
+  // at-rule carries no specificity. Inside one key there is no array to settle
+  // it with, so a plain rule written after a conditional one is already lost.
+  for (const [key, declarations] of Object.entries(held))
+    for (const plain of declarations) {
+      if (plain.conditional) continue;
+      const beaten = declarations.find(
+        (other) =>
+          other.conditional &&
+          other.place < plain.place &&
+          other.suffix === plain.suffix &&
+          overlaps(other.property, plain.property),
+      );
+      if (!beaten) continue;
+      reports.push({
+        line: 0,
+        column: 0,
+        kind: 'condition-order',
+        source: '',
+        hint: `\`${key}\` sets \`${plain.property}\` after setting it under an at-rule. CSS gives it to the plain rule; Plumeria ranks the conditional one above it, and one key has no order to settle that with. Write the plain rule first, or write it under an at-rule too.`,
+      });
+      for (const [name, candidate] of Object.entries(candidates))
+        if (candidate === key) unconvertible.add(name);
+      break;
+    }
+
   // A class written on both sides of another one cannot be answered by a single
   // place in the array: the merge would give every one of its declarations the
   // later position, including the ones the other class outranks.
@@ -551,6 +590,7 @@ ${body}
     code,
     names,
     order,
+    held,
     composes,
     functions,
     tags,
