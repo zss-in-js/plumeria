@@ -38,3 +38,13 @@
 .emphasis {
   color: crimson;
 }
+
+@media print {
+  .printOnly {
+    color: black;
+  }
+}
+
+.screenOnly {
+  color: purple;
+}
