@@ -12,7 +12,7 @@ export interface ModuleMap {
   names: Record<string, string>;
   composes?: Record<string, string[]>;
   functions?: Record<string, string[]>;
-  tags?: { key: string; tag: string; under: string }[];
+  tags?: { key: string; tag: string; under: string; direct?: boolean }[];
   /** The absolute path of the stylesheet this map came from. */
   stylesheet?: string;
   /** Class names the conversion refused a rule for. */
@@ -530,7 +530,12 @@ export const adoptStyles: Rule.RuleModule = {
       // `.card h2` has no class to hash, so the key rides on the tag itself.
       // The pairing is only followed where the markup is visible here.
       JSXElement(node: any) {
-        const scoped: { tag: string; key: string; local: string }[] = [];
+        const scoped: {
+          tag: string;
+          key: string;
+          local: string;
+          direct: boolean;
+        }[] = [];
         for (const attribute of node.openingElement?.attributes ?? []) {
           if (attribute.type !== 'JSXAttribute') continue;
           const name = attribute.name?.name;
@@ -571,12 +576,13 @@ export const adoptStyles: Rule.RuleModule = {
                   tag: pair.tag,
                   key: pair.key,
                   local: binding.local,
+                  direct: pair.direct === true,
                 });
           }
         }
         if (!scoped.length) return;
 
-        const walk = (children: any[]): void => {
+        const walk = (children: any[], depth: number): void => {
           for (const child of children ?? []) {
             if (child.type !== 'JSXElement') continue;
             const opening = child.openingElement;
@@ -598,19 +604,25 @@ export const adoptStyles: Rule.RuleModule = {
                 attribute.type === 'JSXAttribute' &&
                 attribute.name?.name === 'className',
             );
+            // Everything the prop already carries, so a second tag rule on the
+            // same element neither re-adds its own key nor displaces the first.
+            const carried = new Set<string>(
+              already
+                ? already.value.expression.type === 'ArrayExpression'
+                  ? already.value.expression.elements.map((element: any) =>
+                      context.sourceCode.getText(element),
+                    )
+                  : [context.sourceCode.getText(already.value.expression)]
+                : [],
+            );
             for (const pair of scoped) {
               if (named !== pair.tag || pending) continue;
-              if (tagged.has(opening)) continue;
+              if (pair.direct && depth > 1) continue;
               const read = `${pair.local}.${pair.key}`;
-              if (already?.value.expression.type === 'ArrayExpression') {
-                const [first] = already.value.expression.elements;
-                if (!first) continue;
-                if (context.sourceCode.getText(first) === read) continue;
-              } else if (
-                already &&
-                context.sourceCode.getText(already.value.expression) === read
-              )
-                continue;
+              if (carried.has(read)) continue;
+              // One insertion per element per pass: two fixes into one range
+              // would conflict, and the next pass carries the other.
+              if (tagged.has(opening)) continue;
               tagged.add(opening);
               context.report({
                 node: opening.name,
@@ -637,10 +649,10 @@ export const adoptStyles: Rule.RuleModule = {
                       ),
               });
             }
-            walk(child.children);
+            walk(child.children, depth + 1);
           }
         };
-        walk(node.children);
+        walk(node.children, 1);
       },
 
       JSXAttribute(node: any) {
