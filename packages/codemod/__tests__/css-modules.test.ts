@@ -121,7 +121,7 @@ describe('convertStylesheet', () => {
     );
     expect(reports).toHaveLength(0);
     expect(tags).toEqual([
-      { key: 'cardH2', tag: 'h2', under: 'card', direct: false },
+      { key: 'cardH2', tag: 'h2', under: 'card', direct: false, order: 0 },
     ]);
     expect(code).toContain('cardH2: {');
     expect(code).toContain("[css.extended('card', ':defined')]: {");
@@ -130,8 +130,25 @@ describe('convertStylesheet', () => {
   it('marks a child combinator so the consumer reaches one level only', () => {
     const { tags } = convertStylesheet('.panel > h2 { color: red }');
     expect(tags).toEqual([
-      { key: 'panelH2', tag: 'h2', under: 'panel', direct: true },
+      {
+        key: 'panelChildH2',
+        tag: 'h2',
+        under: 'panel',
+        direct: true,
+        order: 0,
+      },
     ]);
+  });
+
+  it('keeps a child and a descendant rule on separate keys', () => {
+    // One key would let whichever relation was read first decide for both:
+    // either the nested `h2` gains the child rule or it loses the other.
+    const { code, tags } = convertStylesheet(
+      '.card h2 { color: red } .card > h2 { font-weight: bold }',
+    );
+    expect(tags.map((t) => t.key)).toEqual(['cardH2', 'cardChildH2']);
+    expect(code).toContain('cardH2: {');
+    expect(code).toContain('cardChildH2: {');
   });
 
   it('keeps a class off names when no rule wrote a key for it', () => {
