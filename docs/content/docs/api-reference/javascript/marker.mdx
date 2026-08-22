@@ -263,6 +263,11 @@ The marker goes on the element both sides share — for a child that is the pare
 for a sibling their common parent. What separates a child from a sibling is not a
 selector but which element you hand `extended` to.
 
+That last part is why [`migrate --from css-modules`](/docs/api-reference/codemod)
+writes these pairings for you everywhere except the sibling, which it reports: a
+style query reaches descendants, never siblings, so the relation rests on a choice
+of element rather than on the selector it read, and only you can make it.
+
 The CSS column names a path; the Plumeria column does not. `marker` and
 `extended` are linked by an id, so the styles reach every descendant at any
 depth, and moving an element deeper does not invalidate the pair.
