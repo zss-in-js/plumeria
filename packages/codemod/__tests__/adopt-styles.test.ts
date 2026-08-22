@@ -284,6 +284,44 @@ describe('rewrites that settle on a later pass', () => {
     ).toContain(`classStyle={${expected}}`);
   });
 
+  it('writes a class list in stylesheet order, not the order it was written', () => {
+    // A class list carries no order in CSS, so the array cannot take one from it.
+    expect(
+      settle(
+        "import s from './Card.module.css';\n<div className={`${s.b} ${s.a}`} />;",
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { a: 'a', b: 'b' },
+            order: { a: 0, b: 1 },
+          },
+        },
+      ),
+    ).toContain('classStyle={[styles.a, styles.b]}');
+  });
+
+  it('leaves two stylesheets in the order the file wrote them', () => {
+    // Which of two stylesheets the bundler puts first is not a fact this file
+    // holds, so the reads keep the slots they were given.
+    expect(
+      settle(
+        "import a from './A.module.css';\nimport b from './B.module.css';\n<div className={`${b.one} ${a.two}`} />;",
+        {
+          './A.module.css': {
+            source: './A.styles',
+            names: { two: 'two' },
+            order: { two: 0 },
+          },
+          './B.module.css': {
+            source: './B.styles',
+            names: { one: 'one' },
+            order: { one: 0 },
+          },
+        },
+      ),
+    ).toContain('classStyle={[b.one, a.two]}');
+  });
+
   it('leaves a tag it cannot see in this file alone', () => {
     expect(
       settle(
