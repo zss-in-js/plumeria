@@ -13,6 +13,10 @@ export interface ModuleMap {
   composes?: Record<string, string[]>;
   functions?: Record<string, string[]>;
   tags?: { key: string; tag: string; under: string }[];
+  /** The absolute path of the stylesheet this map came from. */
+  stylesheet?: string;
+  /** Class names the conversion refused a rule for. */
+  unconvertible?: string[];
 }
 
 export interface AdoptStylesOptions {
@@ -50,6 +54,9 @@ export const adoptStyles: Rule.RuleModule = {
       joined: 'A joined class list is written as an array.',
       call: 'The custom properties are the arguments of a function style.',
       tag: 'A rule reached this <{{tag}}> through a class; carry it as "{{key}}".',
+      // Read back by the CLI to decide what to hold back, so the two halves
+      // and the separator are the contract; the sentence is written there.
+      missing: '{{stylesheet}} :: {{name}}',
     },
     schema: [
       {
@@ -387,6 +394,21 @@ export const adoptStyles: Rule.RuleModule = {
               data: { local },
               fix: (fixer) => fixer.replaceText(node.object, local),
             });
+          return;
+        }
+
+        // A class the conversion refused a rule for has no faithful key. Say so
+        // and fix nothing; the CLI holds the whole stylesheet back.
+        const entry = binding.entry;
+        if (
+          entry.stylesheet &&
+          (entry.unconvertible?.includes(written) || !(written in entry.names))
+        ) {
+          context.report({
+            node: node.property,
+            messageId: 'missing',
+            data: { stylesheet: entry.stylesheet, name: written },
+          });
           return;
         }
 
