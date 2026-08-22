@@ -211,6 +211,52 @@ describe('rewrites that settle on a later pass', () => {
     ).not.toContain('cardH2');
   });
 
+  // The read is reported and left alone; the CLI reads the stylesheet out of
+  // the message and drops the whole module before the pass that fixes.
+  const messagesFor = (code: string, modules: Record<string, unknown>) =>
+    new Linter().verify(code, {
+      languageOptions: {
+        parserOptions: { ecmaFeatures: { jsx: true }, sourceType: 'module' },
+      },
+      plugins: { codemod: { rules: { 'adopt-styles': adoptStyles } } },
+      rules: { 'codemod/adopt-styles': ['error', { modules }] },
+    });
+
+  it.each([
+    ['a class a refused rule named', ['card'], { card: 'card' }],
+    ['a class with no generated key at all', [], {}],
+  ])('reports %s', (_label, unconvertible, names) => {
+    const found = messagesFor(
+      `import s from './Card.module.css';\n<div className={s.card} />;`,
+      {
+        './Card.module.css': {
+          source: './Card.styles',
+          stylesheet: '/abs/Card.module.css',
+          names,
+          unconvertible,
+        },
+      },
+    ).filter((m) => m.messageId === 'missing');
+    expect(found).toHaveLength(1);
+    expect(found[0].message).toBe('/abs/Card.module.css :: card');
+  });
+
+  it('says nothing where every class converted', () => {
+    expect(
+      messagesFor(
+        `import s from './Card.module.css';\n<div className={s.card} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            stylesheet: '/abs/Card.module.css',
+            names: { card: 'card' },
+            unconvertible: [],
+          },
+        },
+      ).filter((m) => m.messageId === 'missing'),
+    ).toHaveLength(0);
+  });
+
   it('reads the custom properties back as function style arguments', () => {
     expect(
       settle(
