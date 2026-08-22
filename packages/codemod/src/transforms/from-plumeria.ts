@@ -3,6 +3,7 @@
  */
 
 import { parse } from '@typescript-eslint/parser';
+import { coverageOf, overlaps } from '../cascade';
 import {
   applyCssValue,
   camelToKebabCase,
@@ -129,28 +130,11 @@ const depthOf = (property: string): number => {
   return depth;
 };
 
-const coverages = new Map<string, Set<string>>();
-const coverageOf = (property: string): Set<string> => {
-  const cached = coverages.get(property);
-  if (cached) return cached;
-  const longhands = (DIRECT_LONGHANDS as Record<string, string[]>)[property];
-  const coverage = longhands
-    ? new Set(longhands.flatMap((longhand) => [...coverageOf(longhand)]))
-    : new Set([property]);
-  coverages.set(property, coverage);
-  return coverage;
-};
-
 const covers = (outer: string, inner: string): boolean => {
   if (outer === inner) return false;
   const wide = coverageOf(outer);
   const narrow = coverageOf(inner);
   return wide.size > narrow.size && [...narrow].every((leaf) => wide.has(leaf));
-};
-
-const overlaps = (first: string, second: string): boolean => {
-  const left = coverageOf(first);
-  return [...coverageOf(second)].some((leaf) => left.has(leaf));
 };
 
 // Within one rule the same rank applies: the shorthand is written first so the
