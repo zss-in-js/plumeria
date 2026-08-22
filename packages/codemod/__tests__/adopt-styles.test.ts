@@ -145,14 +145,22 @@ tester.run('adopt-styles', adoptStyles, {
 // applies: the import has to become the Plumeria form before the call site can
 // be read against it.
 describe('rewrites that settle on a later pass', () => {
-  const settle = (code: string, modules: Record<string, unknown>) =>
-    new Linter().verifyAndFix(code, {
-      languageOptions: {
-        parserOptions: { ecmaFeatures: { jsx: true }, sourceType: 'module' },
+  const settle = (
+    code: string,
+    modules: Record<string, unknown>,
+    filename?: string,
+  ) =>
+    new Linter().verifyAndFix(
+      code,
+      {
+        languageOptions: {
+          parserOptions: { ecmaFeatures: { jsx: true }, sourceType: 'module' },
+        },
+        plugins: { codemod: { rules: { 'adopt-styles': adoptStyles } } },
+        rules: { 'codemod/adopt-styles': ['error', { modules }] },
       },
-      plugins: { codemod: { rules: { 'adopt-styles': adoptStyles } } },
-      rules: { 'codemod/adopt-styles': ['error', { modules }] },
-    }).output;
+      filename,
+    ).output;
 
   it('reads a style used as a value back through css.use', () => {
     expect(
@@ -298,6 +306,75 @@ describe('rewrites that settle on a later pass', () => {
         },
       ),
     ).toContain('classStyle={[styles.a, styles.b]}');
+  });
+
+  it('expands composes in stylesheet order', () => {
+    // `.card { composes: base }` with `.base` written after it: the composed
+    // class is the later of the two, so it is the one that wins.
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<div className={s.card} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { card: 'card', base: 'base' },
+            composes: { card: ['base'] },
+            order: { card: 0, base: 1 },
+          },
+        },
+      ),
+    ).toContain('classStyle={[styles.card, styles.base]}');
+  });
+
+  it('expands composes the other way when the composed class is first', () => {
+    expect(
+      settle(
+        `import s from './Card.module.css';\n<div className={s.card} />;`,
+        {
+          './Card.module.css': {
+            source: './Card.styles',
+            names: { card: 'card', base: 'base' },
+            composes: { card: ['base'] },
+            order: { base: 0, card: 1 },
+          },
+        },
+      ),
+    ).toContain('classStyle={[styles.base, styles.card]}');
+  });
+
+  it('keeps two stylesheets apart when they share a basename', () => {
+    // Both maps say `./Card.styles`; only the map itself tells them apart.
+    // Each module is already in order, so any reordering here is the two
+    // being sorted as one.
+    const directory = fs.mkdtempSync(path.join(process.cwd(), '.same-name-'));
+    const one = path.join(directory, 'one');
+    const two = path.join(directory, 'two');
+    fs.mkdirSync(one);
+    fs.mkdirSync(two);
+    fs.writeFileSync(path.join(one, 'Card.module.css'), '');
+    fs.writeFileSync(path.join(two, 'Card.module.css'), '');
+    try {
+      expect(
+        settle(
+          "import a from './one/Card.module.css';\nimport b from './two/Card.module.css';\n<div className={`${a.x} ${b.p} ${a.y} ${b.q}`} />;",
+          {
+            [path.join(one, 'Card.module.css')]: {
+              source: './Card.styles',
+              names: { x: 'x', y: 'y' },
+              order: { x: 2, y: 3 },
+            },
+            [path.join(two, 'Card.module.css')]: {
+              source: './Card.styles',
+              names: { p: 'p', q: 'q' },
+              order: { p: 0, q: 1 },
+            },
+          },
+          path.join(directory, 'Two.js'),
+        ),
+      ).toContain('[a.x, b.p, a.y, b.q]');
+    } finally {
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
   });
 
   it('leaves two stylesheets in the order the file wrote them', () => {
