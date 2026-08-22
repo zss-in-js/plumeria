@@ -164,6 +164,26 @@ Two stylesheets have no order between them that one file can be sure of — that
 
 A class written twice with another one between the two is the case a single place cannot answer: the merged key would take the later position for every declaration it holds, including the ones the class between them outranks. Where the two share a property, that is reported as `split-order` rather than guessed at.
 
+### Where the order cannot be carried across
+
+An at-rule carries no specificity in CSS, so a plain rule written after a conditional one wins wherever the condition holds. Plumeria reads it the other way: a declaration under an at-rule [outranks a plain one](/docs/reference/specificity), whichever at-rule it is and however deeply they nest. No array can put that back.
+
+Only an element carrying both classes is affected by it, which is a fact about the call site rather than the stylesheet — a print rule sitting beside a screen rule settles nothing until something wears both. So the pairs are read where the class list is:
+
+```css title="Card.module.css"
+@media print {
+  .printOnly { color: black }
+}
+
+.screenOnly { color: purple }
+```
+
+Nothing is reported for that on its own, and both classes convert. An element carrying the two together is what cannot be answered, and there the stylesheet is held for its consumers.
+
+A class that does it to itself needs no call site to show it — one key holds both declarations and has no array to settle them with — so `@media print { .a { color } }` followed by `.a { color }` is reported when the stylesheet is read. Writing the plain rule first, or writing it under an at-rule too, settles either shape.
+
+Two conditional declarations never meet this: Plumeria ranks every at-rule declaration alike, so they are level and the array carries their order the same way two plain ones do. `padding` against `padding-top` is read as the overlap it is, not as two different properties.
+
 ### When a consumer reads what was refused
 
 A refusal leaves the rule in the stylesheet, which is harmless until a component reads the class it was written for. Half of that class would arrive as a Plumeria key and half would stay behind in a file the component no longer imports — a rule that silently stops applying, or a key that does not exist at all.
