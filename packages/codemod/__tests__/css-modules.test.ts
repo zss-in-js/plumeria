@@ -120,9 +120,40 @@ describe('convertStylesheet', () => {
       '.card { padding: 1px } .card h2 { font-size: 20px }',
     );
     expect(reports).toHaveLength(0);
-    expect(tags).toEqual([{ key: 'cardH2', tag: 'h2', under: 'card' }]);
+    expect(tags).toEqual([
+      { key: 'cardH2', tag: 'h2', under: 'card', direct: false },
+    ]);
     expect(code).toContain('cardH2: {');
     expect(code).toContain("[css.extended('card', ':defined')]: {");
+  });
+
+  it('marks a child combinator so the consumer reaches one level only', () => {
+    const { tags } = convertStylesheet('.panel > h2 { color: red }');
+    expect(tags).toEqual([
+      { key: 'panelH2', tag: 'h2', under: 'panel', direct: true },
+    ]);
+  });
+
+  it('keeps a class off names when no rule wrote a key for it', () => {
+    // `.card.active` writes `active`; nothing was written for `card`, so a
+    // consumer reading it has nothing faithful to be pointed at.
+    const { names } = convertStylesheet('.card.active { color: red }');
+    expect(names).toEqual({ active: 'active' });
+  });
+
+  it('keeps a compound class on names when a rule of its own wrote one', () => {
+    const { names } = convertStylesheet(
+      '.card { padding: 1px } .card.active { color: red }',
+    );
+    expect(names).toEqual({ card: 'card', active: 'active' });
+  });
+
+  it('reports a class name a synthetic tag key collides with', () => {
+    const { reports, unconvertible } = convertStylesheet(
+      '.card h2 { color: red } .card-h2 { color: blue }',
+    );
+    expect(reports.map((r) => r.kind)).toContain('key-collision');
+    expect(unconvertible).toContain('card-h2');
   });
 
   it('leaves a tag with no class above it alone', () => {
