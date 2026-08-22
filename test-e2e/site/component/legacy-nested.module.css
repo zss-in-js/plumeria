@@ -1,0 +1,15 @@
+.card {
+  padding: 1px;
+}
+
+.card h2 {
+  font-size: 18px;
+}
+
+.panel {
+  padding: 2px;
+}
+
+.panel > h2 {
+  color: teal;
+}
