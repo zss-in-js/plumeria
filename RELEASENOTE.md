@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.2.28 (Aug 22, 2026)
+
+- Update: the package now says on npm what it does. `migrate --from css-modules` is the reason most people reach for it, and neither the description nor the keywords named CSS Modules at all.
+
 ## 18.2.27 (Aug 22, 2026)
 
 - Update: `migrate --from css-modules` converts several selector shapes it used to report. A compound class rides on the class written last, a chain of three or more classes becomes one marker per level with each gated by the one above it, a bare tag under a class takes a key of its own that the consumer rewrite attaches to the markup it can see — a child combinator taking a different key from a descendant one, and reaching one level rather than any — and an attribute selector or a `:global` ancestor becomes an `:is()` selector key.
