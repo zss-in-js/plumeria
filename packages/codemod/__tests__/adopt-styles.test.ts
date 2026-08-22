@@ -232,6 +232,25 @@ describe('rewrites that settle on a later pass', () => {
     expect(output).toContain('<h2>b</h2>');
   });
 
+  it('carries tag rules in the order the stylesheet wrote them', () => {
+    // Equal specificity in CSS, so the later rule wins; the merge reads the
+    // rightmost entry, which is where the later rule has to land.
+    const output = settle(
+      `import s from './Card.module.css';\n<div className={s.card}><h2>a</h2></div>;`,
+      {
+        './Card.module.css': {
+          source: './Card.styles',
+          names: { card: 'card' },
+          tags: [
+            { key: 'cardH2', tag: 'h2', under: 'card' },
+            { key: 'cardChildH2', tag: 'h2', under: 'card', direct: true },
+          ],
+        },
+      },
+    );
+    expect(output).toContain('[styles.cardH2, styles.cardChildH2]');
+  });
+
   it('leaves a tag it cannot see in this file alone', () => {
     expect(
       settle(
