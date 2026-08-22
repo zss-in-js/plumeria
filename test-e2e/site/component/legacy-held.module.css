@@ -20,3 +20,22 @@
 .inkSaverOverride {
   color: orange;
 }
+
+@media print {
+  .lateWriter {
+    color: black;
+  }
+}
+
+.lateReader {
+  color: teal;
+}
+
+.lateWriter {
+  margin: 1px;
+}
+
+.composedBase {
+  composes: lateReader;
+  padding: 1px;
+}
