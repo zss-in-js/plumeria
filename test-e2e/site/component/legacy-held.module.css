@@ -10,3 +10,13 @@
   composes: base from './legacy-shared.module.css';
   text-transform: uppercase;
 }
+
+@media print {
+  .inkSaver {
+    color: black;
+  }
+}
+
+.inkSaverOverride {
+  color: orange;
+}
