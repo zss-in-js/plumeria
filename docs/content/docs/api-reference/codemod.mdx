@@ -142,6 +142,32 @@ src/Card.module.css
 
 A `composes` reaching into another file, a sibling combinator, and a selector naming no local class — an id, an element on its own — are named rather than guessed at, and the original rule is left where it is. The exit code is 1 while anything remains, so the command composes with a script.
 
+### When a consumer reads what was refused
+
+A refusal leaves the rule in the stylesheet, which is harmless until a component reads the class it was written for. Half of that class would arrive as a Plumeria key and half would stay behind in a file the component no longer imports — a rule that silently stops applying, or a key that does not exist at all.
+
+Rather than write that, the migration holds the stylesheet back whole:
+
+```
+src/Card.module.css
+  12:1  sibling-combinator  .row + .row
+        A container query reaches descendants, never siblings, so no marker
+        states this.
+  0:0   held-for-consumer
+        `row` is read by a consumer, so nothing was written and no consumer
+        was moved. Settle the rules above and run again.
+```
+
+No `*.styles.ts` is written and no call site is touched, so the component keeps reading the stylesheet it always read and the project still builds. Other stylesheets in the same run convert as usual — the hold is per stylesheet, not per run.
+
+Nothing being written is what makes the second attempt work. A module left on disk would be reported as `target-exists` on the next run and never picked up again; because the hold writes nothing, settling the rule it named and running again converts the file.
+
+<Callout type="info">
+  A class the migration converted in full is never held. The hold reads the
+  rules that were refused, so a stylesheet converts as soon as no component
+  depends on one of them.
+</Callout>
+
 ## Migrating from Plumeria
 
 ```sh title="Terminal"
