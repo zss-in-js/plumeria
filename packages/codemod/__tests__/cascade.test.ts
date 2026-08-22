@@ -48,30 +48,30 @@ describe('unrepresentable', () => {
     // Level in Plumeria, so the array carries their order.
     expect(
       unrepresentable([held('color', false, 0)], [held('color', false, 1)]),
-    ).toBe(false);
+    ).toBeUndefined();
   });
 
   it('says no where both are conditional', () => {
     // Plumeria ranks every at-rule declaration alike, whichever at-rule it is.
     expect(
       unrepresentable([held('color', true, 0)], [held('color', true, 1)]),
-    ).toBe(false);
+    ).toBeUndefined();
   });
 
   it('says yes where the plain one was written later', () => {
     expect(
       unrepresentable([held('color', true, 0)], [held('color', false, 1)]),
-    ).toBe(true);
+    ).toBeTruthy();
     expect(
       unrepresentable([held('color', false, 1)], [held('color', true, 0)]),
-    ).toBe(true);
+    ).toBeTruthy();
   });
 
   it('says no where the conditional one was written later', () => {
     // Both sides agree: the at-rule wins in CSS by order, in Plumeria by rank.
     expect(
       unrepresentable([held('color', false, 0)], [held('color', true, 1)]),
-    ).toBe(false);
+    ).toBeUndefined();
   });
 
   it('reads the place of the declarations, not of the key', () => {
@@ -82,7 +82,7 @@ describe('unrepresentable', () => {
         [held('color', true, 0), held('margin', false, 2)],
         [held('color', false, 1)],
       ),
-    ).toBe(true);
+    ).toBeTruthy();
   });
 
   it('reads a longhand against a shorthand written after it', () => {
@@ -93,7 +93,7 @@ describe('unrepresentable', () => {
         [held('padding-top', false, 0)],
         [held('padding', false, 1)],
       ),
-    ).toBe(true);
+    ).toBeTruthy();
   });
 
   it('says no when the shorthand came first', () => {
@@ -103,7 +103,7 @@ describe('unrepresentable', () => {
         [held('padding', false, 0)],
         [held('padding-top', false, 1)],
       ),
-    ).toBe(false);
+    ).toBeUndefined();
   });
 
   it('reads two declarations of one rule in the order they were written', () => {
@@ -111,23 +111,32 @@ describe('unrepresentable', () => {
       held('padding-top', false, 0),
       held('padding', false, 1),
     ];
-    expect(unrepresentable(declarations, declarations)).toBe(true);
+    expect(unrepresentable(declarations, declarations)).toBeTruthy();
   });
 
   it('says no where the two never meet', () => {
     expect(
       unrepresentable([held('color', true, 0)], [held('margin', false, 1)]),
-    ).toBe(false);
+    ).toBeUndefined();
     expect(
       unrepresentable(
         [held('color', true, 0, ':hover')],
         [held('color', false, 1)],
       ),
-    ).toBe(false);
+    ).toBeUndefined();
+  });
+
+  it('names the pair that cannot be ordered', () => {
+    const found = unrepresentable(
+      [held('padding-top', false, 0)],
+      [held('padding', false, 1)],
+    );
+    expect(found?.earlier.property).toBe('padding-top');
+    expect(found?.later.property).toBe('padding');
   });
 
   it('asks the question of one key when given its list twice', () => {
     const declarations = [held('color', true, 0), held('color', false, 1)];
-    expect(unrepresentable(declarations, declarations)).toBe(true);
+    expect(unrepresentable(declarations, declarations)).toBeTruthy();
   });
 });
