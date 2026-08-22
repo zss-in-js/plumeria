@@ -236,6 +236,43 @@ describe('convertStylesheet', () => {
     expect(reports).toHaveLength(0);
   });
 
+  it('records what each key writes and where', () => {
+    const { held } = convertStylesheet(
+      '@media print { .a { color: black } } .b:hover { padding: 1px }',
+    );
+    expect(held).toEqual({
+      a: [{ property: 'color', suffix: '', conditional: true, place: 0 }],
+      b: [
+        { property: 'padding', suffix: ':hover', conditional: false, place: 1 },
+      ],
+    });
+  });
+
+  // One key holds both declarations, so there is no array to settle them with.
+  it('reports a plain rule written after a conditional one in one key', () => {
+    const { reports, unconvertible } = convertStylesheet(
+      '@media print { .a { color: black } } .a { color: blue }',
+    );
+    expect(reports.map((r) => r.kind)).toContain('condition-order');
+    expect(unconvertible).toEqual(['a']);
+  });
+
+  it('says nothing when that key writes the plain rule first', () => {
+    const { reports } = convertStylesheet(
+      '.a { color: blue } @media print { .a { color: black } }',
+    );
+    expect(reports).toHaveLength(0);
+  });
+
+  // Two classes are the call site's business: they only settle anything where
+  // one element carries both, which the stylesheet cannot see.
+  it('says nothing about two classes, whatever their at-rules', () => {
+    const { reports } = convertStylesheet(
+      '@media print { .a { color: black } } .b { color: blue }',
+    );
+    expect(reports).toHaveLength(0);
+  });
+
   it('wraps an attribute selector into a selector key', () => {
     const { code, reports } = convertStylesheet(
       ".card[data-open='true'] { display: block }",
