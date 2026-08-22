@@ -1,11 +1,34 @@
-import { overlaps, unrepresentable, type Held } from '../src/cascade';
+import { depthOf, overlaps, rankOf, unrepresentable } from '../src/cascade';
+import type { Held } from '../src/cascade';
 
 const held = (
   property: string,
   conditional: boolean,
   place: number,
   suffix = '',
-): Held => ({ property, suffix, conditional, place });
+): Held => ({
+  property,
+  suffix,
+  rank: rankOf(property, conditional),
+  place,
+});
+
+describe('rankOf', () => {
+  it('puts a longhand above the shorthand that writes it', () => {
+    expect(depthOf('padding-top')).toBeGreaterThan(depthOf('padding'));
+    expect(rankOf('padding-top', false)).toBeGreaterThan(
+      rankOf('padding', false),
+    );
+  });
+
+  it('puts a conditional declaration one step above a plain one', () => {
+    expect(rankOf('color', true)).toBe(rankOf('color', false) + 1);
+  });
+
+  it('leaves a custom property where it is', () => {
+    expect(rankOf('--brand', true)).toBe(0);
+  });
+});
 
 describe('overlaps', () => {
   it.each([
@@ -62,13 +85,33 @@ describe('unrepresentable', () => {
     ).toBe(true);
   });
 
-  it('reads a shorthand against the longhand it covers', () => {
+  it('reads a longhand against a shorthand written after it', () => {
+    // CSS lets the later `padding` reset `padding-top`; Plumeria ranks the
+    // longhand above it, so no array can put that back.
     expect(
       unrepresentable(
-        [held('padding-top', true, 0)],
+        [held('padding-top', false, 0)],
         [held('padding', false, 1)],
       ),
     ).toBe(true);
+  });
+
+  it('says no when the shorthand came first', () => {
+    // Both sides give it to the longhand: CSS by order, Plumeria by rank.
+    expect(
+      unrepresentable(
+        [held('padding', false, 0)],
+        [held('padding-top', false, 1)],
+      ),
+    ).toBe(false);
+  });
+
+  it('reads two declarations of one rule in the order they were written', () => {
+    const declarations = [
+      held('padding-top', false, 0),
+      held('padding', false, 1),
+    ];
+    expect(unrepresentable(declarations, declarations)).toBe(true);
   });
 
   it('says no where the two never meet', () => {
