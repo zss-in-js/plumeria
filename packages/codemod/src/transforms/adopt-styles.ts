@@ -12,7 +12,13 @@ export interface ModuleMap {
   names: Record<string, string>;
   composes?: Record<string, string[]>;
   functions?: Record<string, string[]>;
-  tags?: { key: string; tag: string; under: string; direct?: boolean }[];
+  tags?: {
+    key: string;
+    tag: string;
+    under: string;
+    direct?: boolean;
+    order?: number;
+  }[];
   /** The absolute path of the stylesheet this map came from. */
   stylesheet?: string;
   /** Class names the conversion refused a rule for. */
@@ -535,6 +541,7 @@ export const adoptStyles: Rule.RuleModule = {
           key: string;
           local: string;
           direct: boolean;
+          order: number;
         }[] = [];
         for (const attribute of node.openingElement?.attributes ?? []) {
           if (attribute.type !== 'JSXAttribute') continue;
@@ -577,6 +584,7 @@ export const adoptStyles: Rule.RuleModule = {
                   key: pair.key,
                   local: binding.local,
                   direct: pair.direct === true,
+                  order: pair.order ?? 0,
                 });
           }
         }
@@ -624,29 +632,53 @@ export const adoptStyles: Rule.RuleModule = {
               // would conflict, and the next pass carries the other.
               if (tagged.has(opening)) continue;
               tagged.add(opening);
+              // Tag rules keep the order the stylesheet wrote them in, and sit
+              // left of the element's own classes where the merge lets those
+              // win. `reads` is every tag key that can land here, so the new
+              // one goes after the last of them rather than at the front.
+              const reads = new Map<string, number>();
+              for (const { entry, local } of bindings.values())
+                for (const other of entry.tags ?? [])
+                  reads.set(`${local}.${other.key}`, other.order ?? 0);
+              const placed = (already?.value.expression.elements ?? []).filter(
+                (element: any) =>
+                  reads.has(context.sourceCode.getText(element)),
+              );
+              const before = placed.find(
+                (element: any) =>
+                  (reads.get(context.sourceCode.getText(element)) ?? 0) >
+                  pair.order,
+              );
+              const after = before ? undefined : placed[placed.length - 1];
               context.report({
                 node: opening.name,
                 messageId: 'tag',
                 data: { tag: pair.tag, key: pair.key },
-                // The tag rule is the weaker of the two in CSS, so it goes on
-                // the left where the merge lets the class win.
-                fix: (fixer) =>
-                  already
-                    ? already.value.expression.type === 'ArrayExpression'
-                      ? fixer.insertTextBefore(
-                          already.value.expression.elements[0],
-                          `${read}, `,
-                        )
-                      : fixer.replaceText(
-                          already.value.expression,
-                          `[${read}, ${context.sourceCode.getText(
-                            already.value.expression,
-                          )}]`,
-                        )
-                    : fixer.insertTextAfter(
-                        opening.name,
-                        ` ${styleProp}={${read}}`,
-                      ),
+                fix: (fixer) => {
+                  if (!already)
+                    return fixer.insertTextAfter(
+                      opening.name,
+                      ` ${styleProp}={${read}}`,
+                    );
+                  const expression = already.value.expression;
+                  if (expression.type !== 'ArrayExpression') {
+                    const held = context.sourceCode.getText(expression);
+                    return fixer.replaceText(
+                      expression,
+                      reads.has(held)
+                        ? `[${held}, ${read}]`
+                        : `[${read}, ${held}]`,
+                    );
+                  }
+                  if (before)
+                    return fixer.insertTextBefore(before, `${read}, `);
+                  return after
+                    ? fixer.insertTextAfter(after, `, ${read}`)
+                    : fixer.insertTextBefore(
+                        expression.elements[0],
+                        `${read}, `,
+                      );
+                },
               });
             }
             walk(child.children, depth + 1);
