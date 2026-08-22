@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 18.2.27
+
+### Patch Changes
+
+- e184f05: Bump version to 18.2.27
+- Updated dependencies [e184f05]
+  - @plumeria/compiler@18.2.27
+  - @plumeria/utils@18.2.27
+
 ## 18.2.26
 
 ### Patch Changes
