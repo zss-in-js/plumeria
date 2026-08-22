@@ -9,6 +9,9 @@ export const LegacyHeldTest = () => (
       the key moved past it, the declaration did not
     </li>
     <li className={styles.composedBase}>composed onto a conditional rule</li>
+    <li className={`${styles.narrowFirst} ${styles.wideAfter}`}>
+      a shorthand written after the longhand it resets
+    </li>
     <li className={`${styles.inkSaver} ${styles.inkSaverOverride}`}>
       carried together, so the pair cannot be answered
     </li>
