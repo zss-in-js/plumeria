@@ -196,6 +196,42 @@ describe('rewrites that settle on a later pass', () => {
     ).toContain('<li classStyle={[styles.listLi, styles.item]}>');
   });
 
+  it('carries two tag rules onto one element without repeating either', () => {
+    const output = settle(
+      `import c from './Card.module.css';\nimport p from './Panel.module.css';\n<div className={c.card}><div className={p.panel}><h2>t</h2></div></div>;`,
+      {
+        './Card.module.css': {
+          source: './Card.styles',
+          names: { card: 'card' },
+          tags: [{ key: 'cardH2', tag: 'h2', under: 'card' }],
+        },
+        './Panel.module.css': {
+          source: './Panel.styles',
+          names: { panel: 'panel' },
+          tags: [{ key: 'panelH2', tag: 'h2', under: 'panel' }],
+        },
+      },
+    );
+    expect(output.match(/cardH2/g)).toHaveLength(1);
+    expect(output.match(/panelH2/g)).toHaveLength(1);
+  });
+
+  it('reaches one level only for a child combinator', () => {
+    const output = settle(
+      `import s from './Card.module.css';\n<div className={s.card}><h2>a</h2><section><h2>b</h2></section></div>;`,
+      {
+        './Card.module.css': {
+          source: './Card.styles',
+          names: { card: 'card' },
+          tags: [{ key: 'cardH2', tag: 'h2', under: 'card', direct: true }],
+        },
+      },
+    );
+    expect(output.match(/cardH2/g)).toHaveLength(1);
+    expect(output).toContain('<h2 classStyle={styles.cardH2}>a</h2>');
+    expect(output).toContain('<h2>b</h2>');
+  });
+
   it('leaves a tag it cannot see in this file alone', () => {
     expect(
       settle(
