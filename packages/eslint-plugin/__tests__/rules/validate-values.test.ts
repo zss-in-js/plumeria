@@ -210,6 +210,81 @@ ruleTester.run('validate-values', validateValues, {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transform: 'scale(1.5)' } });`,
     },
     {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transform: 'scaleX(var(--progress, 0))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transform: 'translateX(var(--offset)) rotate(var(--angle, 0deg))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'fit-content(var(--size))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'min(var(--size), 100px)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'var(--size, calc(100% - 1rem))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { alignmentBaseline: 'var(--baseline, var(--fallback, baseline))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { gridTemplateColumns: 'repeat(var(--columns), minmax(var(--minimum), 1fr))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { clipPath: 'circle(var(--radius))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { shapeOutside: 'inset(var(--offset))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { offsetPath: 'circle(var(--radius))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { content: 'counter(var(--counter))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { content: '"var("' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { content: 'var(--content, "var(")' } });`,
+    },
+    {
+      code: String.raw`import * as css from '@plumeria/core'; const styles = css.create({ s: { content: '"a\\b var("' } });`,
+    },
+    {
+      code: String.raw`import * as css from '@plumeria/core'; const styles = css.create({ s: { transform: 'scaleX("a\\b(" var(--scale))' } });`,
+    },
+    {
+      code: String.raw`import * as css from '@plumeria/core'; const styles = css.create({ s: { content: 'var(--content, "a\\b var(")' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { fontVariantAlternates: 'stylistic(var(--style))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { filter: 'blur(var(--radius))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { filter: 'drop-shadow(var(--shadow))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'steps(var(--steps), end)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'steps(2)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'steps(var(--step-args)), linear(var(--stops)), cubic-bezier(var(--points))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { fontSynthesis: 'var(--weight) var(--style)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { fontVariantNumeric: 'var(--figures) var(--spacing)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'var(--size,)' } });`,
+    },
+    {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transform: 'none' } });`,
     },
 
@@ -1425,6 +1500,89 @@ ruleTester.run('validate-values', validateValues, {
             "'transform' has an invalid value 'translateX(10px) wrong'. Valid values: none",
         },
       ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transform: 'scaleX(var(--progress)' } });`,
+      errors: [
+        {
+          message:
+            "'transform' has an invalid value 'scaleX(var(--progress)'. Valid values: none",
+        },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transform: 'scaleX(var(progress))' } });`,
+      errors: [
+        {
+          message:
+            "'transform' has an invalid value 'scaleX(var(progress))'. Valid values: none",
+        },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'steps(-3, end)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'steps(0, end)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'steps(1, jump-none)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { gridTemplateColumns: 'repeat()' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { gridTemplateColumns: 'repeat( )' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { gridTemplateColumns: 'repeat(())' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { gridTemplateColumns: 'repeat(( ))' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { borderImageSource: 'url(var(--image))' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { listStyleImage: 'url(var(--image))' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { maskBorderSource: 'url(var(--image))' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { maskImage: 'url(var(--image))' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { marker: 'url(var(--marker))' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'myvar(--size)' } });`,
+      errors: [
+        {
+          message:
+            "'width' has an invalid value 'myvar(--size)'. Valid values: auto, max-content, min-content, fit-content, stretch, contain",
+        },
+      ],
+    },
+    {
+      code: String.raw`import * as css from '@plumeria/core'; const styles = css.create({ s: { width: '\u0001' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'var(--size, "100px)' } });`,
+      errors: [{ messageId: 'validateValue' }],
     },
 
     // Cursor
