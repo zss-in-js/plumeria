@@ -204,7 +204,9 @@ const minString = 'min\\([^()]*\\)';
 const maxString = 'max\\([^()]*\\)';
 const minmaxString = 'minmax\\([^()]*\\)';
 const dashedIdentString = '--[a-zA-Z_][a-zA-Z0-9_-]*';
-const varString = `var\\(${dashedIdentString}(,\\s*[^\\)]+)?\\)`;
+const cssVariablePlaceholder = '\u0001';
+const canonicalCssVariable = (index: number) => `var(--x${index})`;
+const varString = `(?:var\\(${dashedIdentString}(,\\s*[^\\)]+)?\\)|${cssVariablePlaceholder})`;
 const varRegex = new RegExp(`^(${varString})$`);
 const pureNumber = `(-?\\d+(\\.\\d+)?)`;
 const numberPattern = `(${pureNumber}|${varString})`;
@@ -220,7 +222,7 @@ const anchorSizeString = 'anchor-size\\([^()]*\\)';
 const clampString = 'clamp\\([^()]*\\)';
 const gradientString =
   '(?:repeating-)?(?:linear|radial|conic)-gradient\\(.*\\)';
-const urlString = 'url\\([^\\)]+\\)';
+const urlString = `url\\([^\\)${cssVariablePlaceholder}]+\\)`;
 const imageSetString = 'image-set\\([^\\)]+\\)';
 const attrString = 'attr\\([^\\)]+\\)';
 const addString = `add\\(${integerPattern}\\)`;
@@ -229,7 +231,8 @@ const countersString = 'counters\\([^\\)]+\\)';
 const doubleQuoteString = '"[^"]*"';
 const singleQuoteString = "'[^']*'";
 const stringString = `(?:${doubleQuoteString}|${singleQuoteString})`;
-const repeatString = 'repeat\\([^\\)]+\\)';
+const functionContentsString = '(?=[^)]*[^\\s()])(?:[^()]|\\([^()]*\\))*';
+const repeatString = `repeat\\(${functionContentsString}\\)`;
 const colorSpaces =
   'srgb|srgb-linear|display-p3|a98-rgb|prophoto-rgb|rec2020|lab|oklab|xyz|xyz-d50|xyz-d65|hsl|hwb|lch|oklch';
 const hueModifiers = '(?:\\s+(?:shorter|longer|increasing|decreasing)\\s+hue)?';
@@ -308,6 +311,126 @@ const initialLetterProperties = ['initialLetter'];
 const hyphenateLimitCharsProperties = ['hyphenateLimitChars'];
 const shapeImageThresholdProperties = ['shapeImageThreshold'];
 const columnsProperties = ['columns'];
+
+function getParenthesisDepth(value: string, end: number): number {
+  let depth = 0;
+  let quote = '';
+  let escaped = false;
+  for (let index = 0; index < end; index++) {
+    const char = value[index];
+    if (escaped) {
+      escaped = false;
+    } else if (char === '\\') {
+      escaped = true;
+    } else if (quote) {
+      if (char === quote) quote = '';
+    } else if (char === '"' || char === "'") {
+      quote = char;
+    } else if (char === '(') {
+      depth++;
+    } else if (char === ')') {
+      depth--;
+    }
+  }
+  return depth;
+}
+
+type NormalizedCssVariables = {
+  isStandalone: boolean;
+  value: string;
+};
+
+function findCssVariableStart(value: string, start: number): number {
+  let quote = '';
+  let escaped = false;
+  for (let index = start; index < value.length; index++) {
+    const char = value[index];
+    if (escaped) {
+      escaped = false;
+    } else if (char === '\\') {
+      escaped = true;
+    } else if (quote) {
+      if (char === quote) quote = '';
+    } else if (char === '"' || char === "'") {
+      quote = char;
+    } else if (
+      value.startsWith('var(', index) &&
+      (index === 0 || !/[a-zA-Z0-9_-]/.test(value[index - 1]))
+    ) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function normalizeCssVariables(value: string): NormalizedCssVariables | null {
+  if (value.includes(cssVariablePlaceholder)) return null;
+
+  let normalized = '';
+  let cursor = 0;
+  let isStandalone = false;
+  let canonicalIndex = 0;
+  while (cursor < value.length) {
+    const start = findCssVariableStart(value, cursor);
+    if (start === -1) {
+      return { isStandalone, value: normalized + value.slice(cursor) };
+    }
+
+    normalized += value.slice(cursor, start);
+    let depth = 1;
+    let quote = '';
+    let escaped = false;
+    let firstComma = -1;
+    let end = start + 4;
+
+    for (; end < value.length; end++) {
+      const char = value[end];
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === '\\') {
+        escaped = true;
+        continue;
+      }
+      if (quote) {
+        if (char === quote) quote = '';
+        continue;
+      }
+      if (char === '"' || char === "'") {
+        quote = char;
+        continue;
+      }
+      if (char === '(') {
+        depth++;
+      } else if (char === ')') {
+        depth--;
+        if (depth === 0) break;
+      } else if (char === ',' && depth === 1 && firstComma === -1) {
+        firstComma = end;
+      }
+    }
+
+    if (depth !== 0 || quote) return null;
+    const nameEnd = firstComma === -1 ? end : firstComma;
+    const name = value.slice(start + 4, nameEnd).trim();
+    if (!new RegExp(`^${dashedIdentString}$`).test(name)) return null;
+
+    if (firstComma !== -1) {
+      const fallback = value.slice(firstComma + 1, end).trim();
+      if (fallback && normalizeCssVariables(fallback) === null) return null;
+    }
+
+    isStandalone = start === 0 && end === value.length - 1;
+    normalized +=
+      getParenthesisDepth(value, start) === 0
+        ? canonicalCssVariable(canonicalIndex++)
+        : cssVariablePlaceholder;
+    cursor = end + 1;
+  }
+
+  return { isStandalone, value: normalized };
+}
 
 const valueCountMap: { [key: string]: number } = {
   inset: 4,
@@ -546,7 +669,7 @@ function isValidTextDecorationLine(value: string) {
   if (value !== trimmedValue) return false;
   const tokens = trimmedValue.split(/\s+/);
   return tokens.every((token) => {
-    if (token.startsWith('var(') && varRegex.test(token)) return true;
+    if (varRegex.test(token)) return true;
     if (decorationValues.includes(token) || varString.includes(token))
       return !usedValues.has(token) && usedValues.add(token);
     return false;
@@ -562,7 +685,7 @@ function isValidContain(value: string) {
   if (value !== trimmedValue) return false;
   const tokens = trimmedValue.split(/\s+/);
   return tokens.every((token) => {
-    if (token.startsWith('var(') && varRegex.test(token)) return true;
+    if (varRegex.test(token)) return true;
     if (singleValues.includes(token)) return tokens.length === 1;
     if (sizeValues.includes(token))
       return !usedValues.has('size') && usedValues.add('size');
@@ -1492,9 +1615,9 @@ function getValidator(key: string): ValidatorFn | null {
     validator = (v) => r.test(v);
   } else if (['backdropFilter', 'filter'].includes(key)) {
     const filterNumPattern = `(?:brightness|contrast|grayscale|invert|opacity|sepia|saturate)\\(\\s*${numberPattern}%?\\s*\\)`;
-    const blurPattern = `blur\\(\\s*(${lengthPattern}|${calcString}|${clampString}|${minString}|${maxString})\\s*\\)`;
+    const blurPattern = `blur\\(\\s*(${lengthPattern}|${calcString}|${clampString}|${minString}|${maxString}|${varString})\\s*\\)`;
     const anglePatternFunc = `hue-rotate\\(\\s*${anglePattern}\\s*\\)`;
-    const dropShadowPattern = `drop-shadow\\(\\s*(?:${colorSource}|${lvp})(?:\\s+(?:${colorSource}|${lvp})){2,3}\\s*\\)`;
+    const dropShadowPattern = `drop-shadow\\(\\s*(?:${varString}|(?:${colorSource}|${lvp})(?:\\s+(?:${colorSource}|${lvp})){2,3})\\s*\\)`;
     const r = new RegExp(
       `^((?:${filterNumPattern}|${blurPattern}|${anglePatternFunc}|${dropShadowPattern}|(?:${urlString}|${gradientString}|${varString}\\s*)?)\\s*)+$`,
     );
@@ -1512,9 +1635,12 @@ function getValidator(key: string): ValidatorFn | null {
       'step-end',
     ].join('|');
     const zeroToOne = '(0(\\.\\d+)?|1(\\.0+)?|0?\\.\\d+)';
-    const cubicBezierPattern = `cubic-bezier\\(\\s*${zeroToOne}\\s*,\\s*(-?\\d+(\\.\\d+)?)\\s*,\\s*${zeroToOne}\\s*,\\s*(-?\\d+(\\.\\d+)?)\\s*\\)`;
-    const linearPattern = `linear\\(\\s*(${zeroToOne}(\\s+\\d+(\\.\\d+)?%){0,2}(\\s*,\\s*${zeroToOne}(\\s+\\d+(\\.\\d+)?%){0,2})*)+\\s*\\)`;
-    const stepPattern = `steps\\(\\s*(\\d+)\\s*,\\s*(jump-start|jump-end|jump-none|jump-both|start|end)\\s*\\)`;
+    const cubicBezierPattern = `cubic-bezier\\(\\s*(?:${varString}|${zeroToOne}\\s*,\\s*(-?\\d+(\\.\\d+)?)\\s*,\\s*${zeroToOne}\\s*,\\s*(-?\\d+(\\.\\d+)?))\\s*\\)`;
+    const linearPattern = `linear\\(\\s*(?:${varString}|(${zeroToOne}(\\s+\\d+(\\.\\d+)?%){0,2}(\\s*,\\s*${zeroToOne}(\\s+\\d+(\\.\\d+)?%){0,2})*)+)\\s*\\)`;
+    const positiveIntegerPattern = '[1-9]\\d*';
+    const atLeastTwoIntegerPattern = '(?:[2-9]|[1-9]\\d+)';
+    const stepPositionPattern = `(?:jump-start|jump-end|jump-both|start|end|${varString})`;
+    const stepPattern = `steps\\(\\s*(?:${varString}|(?:${positiveIntegerPattern}|${varString})(?:\\s*,\\s*${stepPositionPattern})?|(?:${atLeastTwoIntegerPattern}|${varString})\\s*,\\s*jump-none)\\s*\\)`;
     const singlePat = `(${easingPattern}|${cubicBezierPattern}|${linearPattern}|${stepPattern}|${varString})`;
     const r = new RegExp(`^${singlePat}(\\s*,\\s*${singlePat})*$`);
     validator = (v) => r.test(v);
@@ -1724,19 +1850,20 @@ export const validateValues: Rule.RuleModule = {
 
         if (typeof rawValue !== 'string') return;
         const value = rawValue;
+        const normalized = normalizeCssVariables(value);
 
         // Global values, Enums, and CSS Variables validation
         const globalValue =
           !validData[key].includes(value) &&
           !globalValues.includes(value) &&
-          !varRegex.test(value);
+          !normalized?.isStandalone;
 
         if (!globalValue) return; // Value is fully valid (enum/global/var)
 
         // 3. Dynamic Regex validation
         const validator = getValidator(key);
 
-        if (validator && !validator(value)) {
+        if (validator && (!normalized || !validator(normalized.value))) {
           context.report({
             node: property.value,
             messageId: 'validateValue',
