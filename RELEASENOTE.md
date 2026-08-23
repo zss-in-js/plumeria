@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.2.29 (Aug 23, 2026)
+
+- Fix: support nested CSS variables while rejecting malformed variables and invalid function values in `validate-values`.
+
 ## 18.2.28 (Aug 22, 2026)
 
 - Update: the package now says on npm what it does. `migrate --from css-modules` is the reason most people reach for it, and neither the description nor the keywords named CSS Modules at all.

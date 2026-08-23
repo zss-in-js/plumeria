@@ -1,3 +1,9 @@
+## 18.2.29
+
+### Patch Changes
+
+- e87798c: - Fix: support nested CSS variables while rejecting malformed variables and invalid function values in `validate-values`.
+
 ## 18.2.28
 
 ### Patch Changes
