@@ -328,6 +328,18 @@ describe('convertStylesheet', () => {
     expect(code).toContain("':is(.dark *)': {");
   });
 
+  it('reports an empty global selector', () => {
+    const { reports } = convertStylesheet(
+      ':global() .card { background: black }',
+    );
+    expect(reports).toEqual([
+      expect.objectContaining({
+        kind: 'global',
+        source: ':global() .card',
+      }),
+    ]);
+  });
+
   it('rides a compound class on the one written last', () => {
     const { code, reports } = convertStylesheet(
       '.card { padding: 1px } .card.active { color: red }',
