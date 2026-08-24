@@ -276,6 +276,21 @@ ruleTester.run('validate-values', validateValues, {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'steps(var(--step-args)), linear(var(--stops)), cubic-bezier(var(--points))' } });`,
     },
     {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'cubic-bezier(var(--x1), 0, 1, 1)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'cubic-bezier(0.4, var(--y1), 0.2, var(--y2))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(var(--start), var(--end))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0, var(--mid) 50%, 1)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0, 0.5 var(--position), 1)' } });`,
+    },
+    {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { fontSynthesis: 'var(--weight) var(--style)' } });`,
     },
     {
@@ -1520,6 +1535,10 @@ ruleTester.run('validate-values', validateValues, {
       ],
     },
     {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'var(--color, var(progress))' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'steps(-3, end)' } });`,
       errors: [{ messageId: 'validateValue' }],
     },
@@ -1529,6 +1548,18 @@ ruleTester.run('validate-values', validateValues, {
     },
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'steps(1, jump-none)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'cubic-bezier(1.5, 0, 0.2, 1)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'cubic-bezier(var(--x1), 0, 1)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0.5 50%0.5)' } });`,
       errors: [{ messageId: 'validateValue' }],
     },
     {
@@ -2140,6 +2171,24 @@ ruleTester.run('validate-values', validateValues, {
         {
           message:
             "'textDecorationLine' has an invalid value 'xyz'. Valid values: none, underline, overline, line-through, blink",
+        },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { textDecorationLine: ':' } });`,
+      errors: [
+        {
+          message:
+            "'textDecorationLine' has an invalid value ':'. Valid values: none, underline, overline, line-through, blink",
+        },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { textDecorationLine: 'underline var' } });`,
+      errors: [
+        {
+          message:
+            "'textDecorationLine' has an invalid value 'underline var'. Valid values: none, underline, overline, line-through, blink",
         },
       ],
     },
