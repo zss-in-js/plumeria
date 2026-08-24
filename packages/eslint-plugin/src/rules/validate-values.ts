@@ -670,7 +670,7 @@ function isValidTextDecorationLine(value: string) {
   const tokens = trimmedValue.split(/\s+/);
   return tokens.every((token) => {
     if (varRegex.test(token)) return true;
-    if (decorationValues.includes(token) || varString.includes(token))
+    if (decorationValues.includes(token))
       return !usedValues.has(token) && usedValues.add(token);
     return false;
   });
@@ -1635,8 +1635,11 @@ function getValidator(key: string): ValidatorFn | null {
       'step-end',
     ].join('|');
     const zeroToOne = '(0(\\.\\d+)?|1(\\.0+)?|0?\\.\\d+)';
-    const cubicBezierPattern = `cubic-bezier\\(\\s*(?:${varString}|${zeroToOne}\\s*,\\s*(-?\\d+(\\.\\d+)?)\\s*,\\s*${zeroToOne}\\s*,\\s*(-?\\d+(\\.\\d+)?))\\s*\\)`;
-    const linearPattern = `linear\\(\\s*(?:${varString}|(${zeroToOne}(\\s+\\d+(\\.\\d+)?%){0,2}(\\s*,\\s*${zeroToOne}(\\s+\\d+(\\.\\d+)?%){0,2})*)+)\\s*\\)`;
+    const progressPattern = `(?:${zeroToOne}|${varString})`;
+    const controlPointPattern = `(?:-?\\d+(\\.\\d+)?|${varString})`;
+    const cubicBezierPattern = `cubic-bezier\\(\\s*(?:${varString}|${progressPattern}\\s*,\\s*${controlPointPattern}\\s*,\\s*${progressPattern}\\s*,\\s*${controlPointPattern})\\s*\\)`;
+    const linearStopPattern = `${progressPattern}(?:\\s+(?:\\d+(\\.\\d+)?%|${varString})){0,2}`;
+    const linearPattern = `linear\\(\\s*(?:${varString}|${linearStopPattern}(?:\\s*,\\s*${linearStopPattern})*)\\s*\\)`;
     const positiveIntegerPattern = '[1-9]\\d*';
     const atLeastTwoIntegerPattern = '(?:[2-9]|[1-9]\\d+)';
     const stepPositionPattern = `(?:jump-start|jump-end|jump-both|start|end|${varString})`;
