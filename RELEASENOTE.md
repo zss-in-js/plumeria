@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.2.30 (Aug 24, 2026)
+
+- Fix: accept CSS variables in individual `cubic-bezier()` and `linear()` arguments, and stop `text-decoration-line` from accepting arbitrary tokens in `validate-values`.
+
 ## 18.2.29 (Aug 23, 2026)
 
 - Fix: support nested CSS variables while rejecting malformed variables and invalid function values in `validate-values`.
