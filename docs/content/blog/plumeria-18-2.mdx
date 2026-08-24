@@ -208,6 +208,10 @@ Which is a lot of claiming for something a reader cannot see. So CI exports this
 
 ---
 
+## 18.2.31 (Aug 24, 2026)
+
+- Fix: allow any number as a `linear()` easing stop in `validate-values`, so generated spring and bounce curves that overshoot past 1 or dip below 0 are no longer reported. Leading-dot numbers such as `.5` are now reported in `linear()` and `cubic-bezier()`, as they already were everywhere else.
+
 ## 18.2.30 (Aug 24, 2026)
 
 - Fix: accept CSS variables in individual `cubic-bezier()` and `linear()` arguments, and stop `text-decoration-line` from accepting arbitrary tokens in `validate-values`.
