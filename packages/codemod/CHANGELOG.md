@@ -1,5 +1,11 @@
 # @plumeria/codemod
 
+## 18.2.30
+
+### Patch Changes
+
+- bc2ddf3: Bump version to 18.2.30
+
 ## 18.2.29
 
 ### Patch Changes
