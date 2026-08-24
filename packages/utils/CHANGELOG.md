@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 18.2.30
+
+### Patch Changes
+
+- f4ba436: Bump version to 18.2.30
+
 ## 18.2.29
 
 ### Patch Changes

@@ -1,3 +1,9 @@
+## 18.2.30
+
+### Patch Changes
+
+- f4ba436: - Fix: accept CSS variables in individual `cubic-bezier()` and `linear()` arguments, and stop `text-decoration-line` from accepting arbitrary tokens in `validate-values`.
+
 ## 18.2.29
 
 ### Patch Changes
