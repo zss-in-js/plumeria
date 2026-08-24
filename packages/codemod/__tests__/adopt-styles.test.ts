@@ -189,6 +189,25 @@ describe('rewrites that settle on a later pass', () => {
     ).toContain('<h2 classStyle={styles.cardH2}>');
   });
 
+  it('finds tag rules in both sides of a conditional class', () => {
+    const output = settle(
+      `import s from './Card.module.css';\n<div className={active ? s.card : s.panel}><h2>t</h2></div>;`,
+      {
+        './Card.module.css': {
+          source: './Card.styles',
+          names: { card: 'card', panel: 'panel' },
+          tags: [
+            { key: 'cardH2', tag: 'h2', under: 'card', order: 0 },
+            { key: 'panelH2', tag: 'h2', under: 'panel', order: 1 },
+          ],
+        },
+      },
+    );
+    expect(output).toContain(
+      '<h2 classStyle={[styles.cardH2, styles.panelH2]}>',
+    );
+  });
+
   it('merges a tag rule to the left of the class already there', () => {
     // `.list > li` is the weaker of the two in CSS, so the class has to win.
     expect(
@@ -258,6 +277,23 @@ describe('rewrites that settle on a later pass', () => {
       },
     );
     expect(output).toContain('[styles.cardH2, styles.cardChildH2]');
+  });
+
+  it('inserts a tag rule before a later stylesheet key already present', () => {
+    const output = settle(
+      `import { styles } from './Card.styles';\n<div classStyle={styles.card}><h2 classStyle={[styles.late]}>a</h2></div>;`,
+      {
+        './Card.module.css': {
+          source: './Card.styles',
+          names: { card: 'card', late: 'late' },
+          tags: [
+            { key: 'cardH2', tag: 'h2', under: 'card', order: 0 },
+            { key: 'late', tag: 'h2', under: 'elsewhere', order: 1 },
+          ],
+        },
+      },
+    );
+    expect(output).toContain('<h2 classStyle={[styles.cardH2, styles.late]}>');
   });
 
   it.each([
