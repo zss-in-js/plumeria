@@ -291,6 +291,18 @@ ruleTester.run('validate-values', validateValues, {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0, 0.5 var(--position), 1)' } });`,
     },
     {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0, 1.2, 1)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0, -0.02, 1)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0, 0.5 -10%, 1)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'linear(0, 0.009, 0.035 2.1%, 0.723 12.9%, 1.149 24.3%, 1.017 43.1%, 0.997 69.8%, 1)' } });`,
+    },
+    {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { fontSynthesis: 'var(--weight) var(--style)' } });`,
     },
     {
@@ -1560,6 +1572,26 @@ ruleTester.run('validate-values', validateValues, {
     },
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0.5 50%0.5)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0, 1 2)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0, 1.2.3, 1)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0, 50%, 1)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(.5, 1)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'cubic-bezier(.4, 0, .2, 1)' } });`,
       errors: [{ messageId: 'validateValue' }],
     },
     {
