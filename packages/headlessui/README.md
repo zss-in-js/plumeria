@@ -69,7 +69,7 @@ export const FAQ = () => (
 
 ## Components
 
-The following twenty component groups are exported. All components support `ref` forwarding and props spread.
+The following twenty-five component groups are exported. All components support `ref` forwarding and props spread.
 
 ### Accordion
 
@@ -88,6 +88,11 @@ The following twenty component groups are exported. All components support `ref`
 - `Description`
 - `Action`
 - `Cancel`
+
+### Avatar
+
+- `Image`
+- `Fallback`
 
 ### Checkbox
 
@@ -144,6 +149,9 @@ The following twenty component groups are exported. All components support `ref`
 - `SubTrigger`
 - `SubContent`
 
+### Label
+
+
 ### Menubar
 
 - `Menu`
@@ -183,6 +191,10 @@ The following twenty component groups are exported. All components support `ref`
 - `Arrow`
 - `Anchor`
 
+### Progress
+
+- `Indicator`
+
 ### RadioGroup
 
 - `Item`
@@ -212,6 +224,9 @@ The following twenty component groups are exported. All components support `ref`
 - `ScrollDownButton`
 - `Separator`
 - `Arrow`
+
+### Separator
+
 
 ### Slider
 
@@ -252,6 +267,9 @@ The following twenty component groups are exported. All components support `ref`
 - `Portal`
 - `Content`
 - `Arrow`
+
+### VisuallyHidden
+
 
 ## License
 
