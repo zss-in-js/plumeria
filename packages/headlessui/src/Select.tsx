@@ -1,5 +1,4 @@
 import * as React from 'react';
-import type { Style } from '@plumeria/core';
 import * as SelectPrimitive from '@radix-ui/react-select';
 
 const SelectRoot = (props: SelectPrimitive.SelectProps) => {
@@ -118,9 +117,7 @@ SelectSeparator.displayName = 'SelectSeparator';
 
 const SelectArrow = React.forwardRef<
   React.ComponentRef<typeof SelectPrimitive.Arrow>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Arrow> & {
-    classStyle?: Style;
-  }
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Arrow>
 >((props, ref) => {
   return <SelectPrimitive.Arrow ref={ref} {...props} />;
 });
