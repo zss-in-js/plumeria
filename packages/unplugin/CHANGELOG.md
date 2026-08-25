@@ -1,5 +1,13 @@
 # @plumeria/unplugin
 
+## 18.2.34
+
+### Patch Changes
+
+- f3794bd: - Fix: a style function with a destructured parameter called with no argument — `styles.box()` against `({ tone = 'navy' }) => ...` — aborted the build with an internal `TypeError` instead of compiling. The same call already worked under `@plumeria/turbopack-loader`, and a parameter left without a default is now reported the way a named call with a missing key already was.
+- Updated dependencies [f3794bd]
+  - @plumeria/utils@18.2.34
+
 ## 18.2.33
 
 ### Patch Changes

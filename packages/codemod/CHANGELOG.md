@@ -1,5 +1,11 @@
 # @plumeria/codemod
 
+## 18.2.34
+
+### Patch Changes
+
+- f3794bd: Bump version to 18.2.34
+
 ## 18.2.33
 
 ### Patch Changes
