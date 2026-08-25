@@ -468,9 +468,7 @@ Anything none of the three settles is reported as `composition-order` and left i
 
 The migration is idempotent. The first run converts; every run after it is a fixed point:
 
-```
-f(f(x)) = f(x)
-```
+$$f(f(x)) = f(x)$$
 
 A second run finds no `css.create` to export, reports `target-exists` for the definition files it deliberately left behind, and writes nothing. The generated block in `global.css` is fenced by a marker comment and replaced rather than appended, so it does not grow. This holds even when the first run left styles behind: clear a report, run again, and only the newly resolvable files move.
 
