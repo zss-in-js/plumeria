@@ -1,4 +1,5 @@
 import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
+import 'katex/dist/katex.css';
 import type { ReactNode } from 'react';
 import { baseOptions } from 'app/layout.config';
 import { source } from 'lib/source';
