@@ -208,6 +208,16 @@ Which is a lot of claiming for something a reader cannot see. So CI exports this
 
 ---
 
+## 18.2.33 (Aug 25, 2026)
+
+- Feat: `@plumeria/headlessui` adds `Label`, `Separator`, `Avatar` (`Image`, `Fallback`), `Progress` (`Indicator`) and `VisuallyHidden`, bringing the exported set to twenty-five component groups. All five are the small primitives a form or a profile row is built from, and until now they were the ones you had to reach past the package for. `Separator` is the odd one: it already existed as a part inside `Select`, `DropdownMenu`, `ContextMenu` and `Menubar`, but not on its own.
+
+## 18.2.32 (Aug 25, 2026)
+
+- Fix: `@plumeria/headlessui` loads under Node's ESM resolver. The package is `"type": "module"`, but its entry re-exported the components without file extensions — which a bundler accepts and Node does not — so `import('@plumeria/headlessui')` failed with `ERR_MODULE_NOT_FOUND` anywhere it was not being bundled.
+- Update: the six `Arrow` components drop the `classStyle` declaration they carried. `classStyle` already reaches them through the `SVGAttributes` augmentation in `@plumeria/core/class-style`, the same way it reaches every other component and every SVG element, so the declaration was restating what was in scope. Nothing changes at the call site and the compiled JavaScript is unchanged.
+- Update: `@plumeria/inspector` no longer depends on `@plumeria/headlessui`. It never imported it, so installing the inspector pulled the whole Radix tree in for nothing.
+
 ## 18.2.31 (Aug 24, 2026)
 
 - Fix: allow any number as a `linear()` easing stop in `validate-values`, so generated spring and bounce curves that overshoot past 1 or dip below 0 are no longer reported. Leading-dot numbers such as `.5` are now reported in `linear()` and `cubic-bezier()`, as they already were everywhere else.
