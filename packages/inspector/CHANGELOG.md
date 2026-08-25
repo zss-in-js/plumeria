@@ -1,5 +1,11 @@
 # @plumeria/inspector
 
+## 18.2.33
+
+### Patch Changes
+
+- 903ea85: Bump version to 18.2.33
+
 ## 18.2.32
 
 ### Patch Changes

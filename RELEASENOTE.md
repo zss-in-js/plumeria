@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.2.33 (Aug 25, 2026)
+
+- Feat: `@plumeria/headlessui` adds `Label`, `Separator`, `Avatar`, `Progress` and `VisuallyHidden`, bringing the exported set to twenty-five component groups.
+
 ## 18.2.32 (Aug 25, 2026)
 
 - Fix: resolve `@plumeria/headlessui` under Node's ESM loader by emitting relative exports with file extensions, and drop the redundant `classStyle` declarations on the six `Arrow` components. `@plumeria/inspector` no longer depends on `@plumeria/headlessui`, which it never imported.
