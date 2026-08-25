@@ -1,5 +1,4 @@
 import * as React from 'react';
-import type { Style } from '@plumeria/core';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
 const TooltipProvider = (props: TooltipPrimitive.TooltipProviderProps) => {
@@ -35,9 +34,7 @@ TooltipContent.displayName = 'TooltipContent';
 
 const TooltipArrow = React.forwardRef<
   React.ComponentRef<typeof TooltipPrimitive.Arrow>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Arrow> & {
-    classStyle?: Style;
-  }
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Arrow>
 >((props, ref) => {
   return <TooltipPrimitive.Arrow ref={ref} {...props} />;
 });
