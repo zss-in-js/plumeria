@@ -1326,7 +1326,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             }
           });
 
-          const argObj = resolveObjectArg(argExpr as ObjectExpression) ?? {};
+          const argObj = argExpr
+            ? (resolveObjectArg(argExpr as ObjectExpression) ?? {})
+            : {};
           func.named.forEach(({ key, local }) => {
             const source = given.get(key);
             if (!source) {
