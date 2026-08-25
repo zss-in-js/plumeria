@@ -1,5 +1,4 @@
 import * as React from 'react';
-import type { Style } from '@plumeria/core';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 const PopoverRoot = (props: PopoverPrimitive.PopoverProps) => {
@@ -38,9 +37,7 @@ PopoverClose.displayName = 'PopoverClose';
 
 const PopoverArrow = React.forwardRef<
   React.ComponentRef<typeof PopoverPrimitive.Arrow>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Arrow> & {
-    classStyle?: Style;
-  }
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Arrow>
 >((props, ref) => {
   return <PopoverPrimitive.Arrow ref={ref} {...props} />;
 });
