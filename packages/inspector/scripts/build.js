@@ -29,13 +29,7 @@ async function run() {
     define: {
       'process.env.NODE_ENV': 'process.env.NODE_ENV',
     },
-    external: [
-      'react',
-      'react-dom',
-      'react/jsx-runtime',
-      '@plumeria/core',
-      '@plumeria/headlessui',
-    ],
+    external: ['react', 'react-dom', 'react/jsx-runtime', '@plumeria/core'],
   });
 
   // 2. Build the production no-op entry.
