@@ -43,9 +43,6 @@
   "scripts": {
     "build": "rimraf dist && node scripts/build.js && tsc --emitDeclarationOnly --declarationDir dist"
   },
-  "dependencies": {
-    "@plumeria/headlessui": "workspace:^"
-  },
   "devDependencies": {
     "@plumeria/core": "workspace:^",
     "@plumeria/unplugin": "workspace:^",
