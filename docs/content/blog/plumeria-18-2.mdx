@@ -208,6 +208,10 @@ Which is a lot of claiming for something a reader cannot see. So CI exports this
 
 ---
 
+## 18.2.34 (Aug 25, 2026)
+
+- Fix: a style function with a destructured parameter, called with no argument at all, aborted the build under `@plumeria/unplugin` with an internal `TypeError` rather than compiling. `({ tone = 'navy' }) => ({ backgroundColor: tone })` reached for as `styles.box()` is the same call as `styles.box({})`, and now resolves to the same class; a parameter left without a default is reported the way a named call with a missing key already was. The call already worked under `@plumeria/turbopack-loader`, so this only ever showed up outside Next.
+
 ## 18.2.33 (Aug 25, 2026)
 
 - Feat: `@plumeria/headlessui` adds `Label`, `Separator`, `Avatar` (`Image`, `Fallback`), `Progress` (`Indicator`) and `VisuallyHidden`, bringing the exported set to twenty-five component groups. All five are the small primitives a form or a profile row is built from, and until now they were the ones you had to reach past the package for. `Separator` is the odd one: it already existed as a part inside `Select`, `DropdownMenu`, `ContextMenu` and `Menubar`, but not on its own.
