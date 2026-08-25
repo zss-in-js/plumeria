@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.2.32 (Aug 25, 2026)
+
+- Fix: resolve `@plumeria/headlessui` under Node's ESM loader by emitting relative exports with file extensions, and drop the redundant `classStyle` declarations on the six `Arrow` components. `@plumeria/inspector` no longer depends on `@plumeria/headlessui`, which it never imported.
+
 ## 18.2.31 (Aug 24, 2026)
 
 - Fix: allow any number as a `linear()` easing stop in `validate-values`, so generated spring and bounce curves that overshoot past 1 or dip below 0 are no longer reported. Leading-dot numbers such as `.5` are now reported in `linear()` and `cubic-bezier()`, as they already were everywhere else.
