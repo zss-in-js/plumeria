@@ -1,3 +1,9 @@
+## 18.2.32
+
+### Patch Changes
+
+- 72b0f67: Bump version to 18.2.32
+
 ## 18.2.31
 
 ### Patch Changes
