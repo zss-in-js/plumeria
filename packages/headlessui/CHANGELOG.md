@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 18.2.33
+
+### Patch Changes
+
+- 903ea85: - Feat: `@plumeria/headlessui` adds `Label`, `Separator`, `Avatar`, `Progress` and `VisuallyHidden`, bringing the exported set to twenty-five component groups.
+
 ## 18.2.32
 
 ### Patch Changes
