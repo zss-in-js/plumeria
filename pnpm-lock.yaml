@@ -948,9 +948,6 @@ importers:
         specifier: ^1.1.8
         version: 1.2.10(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
     devDependencies:
-      '@plumeria/core':
-        specifier: workspace:^
-        version: link:../core
       '@types/react':
         specifier: 'catalog:'
         version: 19.2.18
@@ -959,10 +956,6 @@ importers:
         version: 19.2.4(@types/react@19.2.18)
 
   packages/inspector:
-    dependencies:
-      '@plumeria/headlessui':
-        specifier: workspace:^
-        version: link:../headlessui
     devDependencies:
       '@plumeria/core':
         specifier: workspace:^
