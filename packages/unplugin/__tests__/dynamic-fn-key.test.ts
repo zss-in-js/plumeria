@@ -90,6 +90,30 @@ const d = css.create({
     expect(code).not.toContain('style={{');
   });
 
+  it('applies a destructured default when the call takes no argument', async () => {
+    const omitted = await run(
+      defaults + 'export const A = () => <div classStyle={d.toned()} />;',
+      'default-named-omitted.tsx',
+    );
+    const empty = await run(
+      defaults + 'export const A = () => <div classStyle={d.toned({})} />;',
+      'default-named-empty.tsx',
+    );
+    expect(classOf(omitted.code)).toBe(classOf(empty.code));
+    expect(omitted.code).not.toContain('style={{');
+  });
+
+  it('rejects a call with no argument when a destructured parameter has no default', async () => {
+    await expect(
+      run(
+        `import * as css from '@plumeria/core';
+const s = css.create({ bare: ({ tone }: { tone: string }) => ({ backgroundColor: tone }) });
+export const B = () => <div classStyle={s.bare()} />;`,
+        'named-omitted-unset.tsx',
+      ),
+    ).rejects.toThrow('leaves "tone" unset');
+  });
+
   it('resolves a call on a style function that takes no parameter', async () => {
     const { code } = await run(
       defaults + 'export const A = () => <div classStyle={d.plain()} />;',
