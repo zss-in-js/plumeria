@@ -206,6 +206,12 @@ The export writes one class per `css.create` key, so a stylesheet has to reach t
 
 Which is a lot of claiming for something a reader cannot see. So CI exports this site and the end-to-end app, exports them a second time and requires nothing to move, adopts them back, and then opens both the Plumeria build and the exported one in a browser to compare what the two pages actually paint.
 
+Each direction is a fixed point after the first run:
+
+$$f(f(x)) = f(x)$$
+
+The round trip is not the identity, and CI does not ask it to be. A project that leaves and comes back has its constants folded and its merged classes named, so exporting it again reaches further than the first export did. What has to hold is that nothing new is reported and nothing new fails to compile.
+
 ---
 
 ## 18.2.34 (Aug 25, 2026)
