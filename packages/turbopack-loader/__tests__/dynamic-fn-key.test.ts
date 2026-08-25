@@ -76,6 +76,23 @@ describe('turbopack-loader: dynamic function keys', () => {
     expect(out).not.toContain('style={{');
   });
 
+  it('applies a destructured default when the call takes no argument', async () => {
+    const omitted = await run(
+      'export const A = () => <div classStyle={s.toned()} />;',
+    );
+    const empty = await run(
+      'export const A = () => <div classStyle={s.toned({})} />;',
+    );
+    expect(classOf(omitted)).toBe(classOf(empty));
+    expect(omitted).not.toContain('style={{');
+  });
+
+  it('rejects a call with no argument when a destructured parameter has no default', async () => {
+    await expect(
+      run('export const B = () => <div classStyle={s.boxed()} />;'),
+    ).rejects.toThrow('leaves "tone" unset');
+  });
+
   it('resolves a call on a style function that takes no parameter', async () => {
     const out = await run(
       'export const A = () => <div classStyle={s.plain()} />;',
