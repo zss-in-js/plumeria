@@ -17,6 +17,50 @@ export default defineConfig({
 
 That file is the whole integration. [`examples/vite-vue-ts`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-vue-ts), [`examples/vite-svelte-ts`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-svelte-ts), [`examples/vite-solid`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-solid), [`examples/vite-preact`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-preact), [`examples/vite-qwik`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-qwik), [`examples/react-router`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-react-router) and [`examples/storybook`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-storybook) are that file with the framework plugin swapped.
 
+## The styling prop
+
+`@plumeria/core/class-style` declares `classStyle` on React's `HTMLAttributes` and `SVGAttributes`, so anything rendering through the React namespace needs one line:
+
+```ts title="plumeria.d.ts"
+/// <reference types="@plumeria/core/class-style" />
+```
+
+A framework that keeps its JSX types in its own module cannot be reached that way. Module augmentation resolves the package from the file that writes it, and `@plumeria/core` does not depend on your framework, so the declaration has to live in your project:
+
+```ts title="types.d.ts"
+import 'preact';
+import type { Style } from '@plumeria/core';
+
+declare module 'preact' {
+  namespace JSX {
+    interface HTMLAttributes {
+      classStyle?: Style;
+    }
+    interface SVGAttributes {
+      classStyle?: Style;
+    }
+  }
+}
+```
+
+```ts title="types.d.ts"
+import '@builder.io/qwik';
+import type { Style } from '@plumeria/core';
+
+declare module '@builder.io/qwik' {
+  interface HTMLAttributes extends JSX.HTMLAttributes {
+    classStyle?: Style;
+  }
+  interface SVGAttributes extends JSX.SVGAttributes {
+    classStyle?: Style;
+  }
+}
+```
+
+Declare `SVGAttributes` even where the framework has it extend `HTMLAttributes` and one interface would do — Qwik's extends `AriaAttributes` instead, and an `<svg classStyle={...}>` under a declaration that covers only HTML is rejected outright.
+
+The type is `Style`. A name the package does not export is not reported here, so a stale one leaves `classStyle` accepting anything at all rather than failing.
+
 ## Single-file components
 
 The transform parses TypeScript and TSX. A `.vue`, `.svelte` or `.astro` file is neither, so `css.create` goes in a `.ts` module the component imports from:
