@@ -42,3 +42,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 | `Cmd + I` / `Ctrl + I` | Toggle inspector |
 | `Shift` | Lock / unlock target element |
 
+## API Stability
+
+**Stability: Stable** — additive only; existing signatures will not move.
+See [API Stability](https://github.com/zss-in-js/plumeria#api-stability).
+
+## License
+
+Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/LICENSE).
