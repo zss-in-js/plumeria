@@ -36,7 +36,7 @@ const config: NextConfig = withPlumeria({
   reactStrictMode: true,
 
   async rewrites() {
-    return [{ source: '/docs/:path*.mdx', destination: '/llms.mdx/docs/:path*' }];
+    return [{ source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*' }];
   },
 
   async headers() {
