@@ -50,6 +50,8 @@ export const baseOptions: BaseLayoutProps = {
             { text: 'Installation', url: '/docs/getting-started/installation' },
             { text: 'Selector rules', url: '/docs/getting-started/selector-rules' },
             { text: 'Editor integration', url: '/docs/getting-started/editor-integration' },
+            { type: 'divider' },
+            { text: 'Testing', url: '/docs/testing' },
           ]}
         />
       ),
