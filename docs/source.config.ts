@@ -7,6 +7,9 @@ import remarkMath from 'remark-math';
 
 export const { docs, meta } = defineDocs({
   dir: 'content/docs',
+  docs: {
+    postprocess: { includeProcessedMarkdown: true },
+  },
 });
 
 export const { docs: blogDocs, meta: blogMeta } = defineDocs({
