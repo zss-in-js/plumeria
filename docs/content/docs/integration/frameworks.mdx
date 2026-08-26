@@ -1,0 +1,91 @@
+---
+title: 'Frameworks'
+description: 'Learn more about using @plumeria/unplugin outside React.'
+---
+
+Plumeria compiles the `css` calls, not the component. Any framework Vite can build reaches it through the same [`@plumeria/unplugin`](/docs/integration/vite) entry — put `plumeria.vite()` in `plugins` beside the framework plugin.
+
+```ts title="vite.config.ts"
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import plumeria from '@plumeria/unplugin';
+
+export default defineConfig({
+  plugins: [vue(), plumeria.vite()],
+});
+```
+
+That file is the whole integration. [`examples/vite-vue-ts`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-vue-ts), [`examples/vite-svelte-ts`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-svelte-ts), [`examples/vite-solid`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-solid), [`examples/vite-preact`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-preact), [`examples/vite-qwik`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-qwik), [`examples/react-router`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-react-router) and [`examples/storybook`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-storybook) are that file with the framework plugin swapped.
+
+## Single-file components
+
+The transform parses TypeScript and TSX. A `.vue`, `.svelte` or `.astro` file is neither, so `css.create` goes in a `.ts` module the component imports from:
+
+```ts title="src/components/style.ts"
+import * as css from '@plumeria/core';
+
+export const styles = css.create({
+  main: { color: 'teal' },
+});
+```
+
+```html title="src/components/Card.vue"
+<script setup lang="ts">
+import { styles } from './style';
+</script>
+
+<template>
+  <div :class="styles.main">card</div>
+</template>
+```
+
+The lint rules read the same TypeScript, so the style module is covered by them.
+
+The plugin receives the component file whole, before the framework splits its script block out, so a `css.create` written inside one fails the build on the surrounding markup:
+
+```
+[plugin @plumeria/unplugin:vite] src/components/HelloWorld.vue
+Error:   x Expected '</', got ':'
+```
+
+A framework whose components are TSX — Qwik, Preact, Solid, React Router — has nowhere to put the call but the component, and needs no separate module.
+
+## Qwik
+
+`plumeria.vite()` goes before `qwikVite()`. The Qwik optimizer rewrites the component and re-exports what it finds there, so it has to run on styles that are already compiled away:
+
+```ts title="vite.config.ts"
+import { defineConfig } from 'vite';
+import { qwikVite } from '@builder.io/qwik/optimizer';
+import plumeria from '@plumeria/unplugin';
+
+export default defineConfig({
+  plugins: [plumeria.vite(), qwikVite({ csr: true })],
+});
+```
+
+The other order fails the build with `Export 'styles' is not defined`.
+
+## Astro
+
+Astro takes Vite plugins under `vite`:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+import plumeria from '@plumeria/unplugin';
+
+export default defineConfig({
+  vite: {
+    plugins: [plumeria.vite()],
+  },
+  integrations: [react()],
+});
+```
+
+See [`examples/vite-astro-ts`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-astro-ts).
+
+<Cards>
+  <Card title="See more about Vite" href="/docs/integration/vite" />
+  <Card title="See more about unplugin options" href="/docs/api-reference/plugins/unplugin" />
+</Cards>
