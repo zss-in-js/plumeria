@@ -27,16 +27,13 @@ const { unpluginFactory } = require('@plumeria/unplugin/factory');
 
 const compile = async (source) => {
   const plugin = unpluginFactory(undefined, { framework: 'vite' });
-  const result = await plugin.transform.call(
-    { addWatchFile: () => {} },
+  const { code } = await plugin.transform.call(
+    { addWatchFile() {} },
     source,
     `${__dirname}/fixture.tsx`,
   );
-  const code = typeof result === 'string' ? result : (result?.code ?? '');
-  const cssId = code.match(/import "([^"]*\.zero\.css)"/)?.[1];
-  const resolved = await plugin.resolveId?.call({}, cssId);
-  const loaded = await plugin.load?.call({}, resolved?.id ?? resolved);
-  return { code, css: typeof loaded === 'string' ? loaded : (loaded?.code ?? '') };
+  const cssId = code.match(/import "(.+\.zero\.css)"/)[1];
+  return { code, css: plugin.load(plugin.resolveId(cssId)) };
 };
 
 test('two properties become two atoms', async () => {
@@ -54,11 +51,11 @@ test('two properties become two atoms', async () => {
 
 `@plumeria/unplugin/factory` is new in this release. The bundler entries all reach `unplugin` itself, which is ESM and cannot be required from a CommonJS runner, so the factory was out of reach from Jest even though the code behind it had no such dependency — `core.ts` imports only a type from `unplugin`, and a type import is gone at run time. The subpath skips the entries and lands on it directly.
 
-Nothing in that test is runner-specific. It is plain asynchronous JavaScript, so Jest, Vitest and `node:test` all run it as it stands.
+Nothing in that test is tied to a runner beyond its boilerplate. It is written for Jest; Vitest wants `import { test, expect } from 'vitest'` and ESM in place of `require` and `__dirname`, and `node:test` takes `test` from `node:test` and asserts through `node:assert`, having no `expect`. What is being called stays the same in all three.
 
 ## Next.js tests the loader its own build runs
 
-`@plumeria/turbopack-loader` is a webpack loader, and a webpack loader is a function that reads four properties off `this`. Supplying them takes six lines:
+`@plumeria/turbopack-loader` is a webpack loader, and a webpack loader is a function that requires four properties off `this`. Supplying them takes six lines:
 
 ```js title="compile.test.js"
 const loader = require('@plumeria/turbopack-loader');
@@ -84,7 +81,7 @@ This is the part worth pausing on. Next.js documents its own Vitest setup with `
 export const A = () => <div className={"xqqbxt1d xq96bg3w"} />;
 ```
 
-The loader writes its stylesheet only under `NODE_ENV=development`, so a test run sees the class names and leaves the file alone. Set the variable when the stylesheet is what you came for: those writes are taken under a lock, and four Jest workers compiling forty-eight atoms in parallel produced the same output as the same run in band, five times over.
+The loader writes its stylesheet only when `NODE_ENV` is `development` or `production`. A test run is neither, so it sees the class names and leaves the file alone. Set `NODE_ENV=development` when the stylesheet is what you came for — `production` sweeps the whole project rather than compiling the module handed to it. Those writes are taken under a lock, and four Jest workers compiling forty-eight atoms in parallel produced the same output as the same run in band, five times over.
 
 `@plumeria/turbopack-loader` now declares `exports` rather than leaning on `main`. The entry and `zero-virtual.css` are named — the two `@plumeria/next-plugin` resolves, and the two a test reaches — where nothing else under `dist/` was ever referenced. Add it to your dev dependencies rather than reaching it through the plugin.
 
