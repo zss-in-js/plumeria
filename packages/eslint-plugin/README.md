@@ -251,3 +251,12 @@ You can run `plumerialint` in parallel with your build command (e.g. `next build
 If `plumerialint` detects any styling errors or warnings, it will print the diagnostics, kill the build process immediately, and exit with a non-zero code. This avoids compiling when styling validation fails.
 
 **Note:** `oxlint` is required as `plumerialint` uses it internally.
+
+## API Stability
+
+**Stability: Stable** — additive only; existing signatures will not move.
+See [API Stability](https://github.com/zss-in-js/plumeria#api-stability).
+
+## License
+
+Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/LICENSE).
