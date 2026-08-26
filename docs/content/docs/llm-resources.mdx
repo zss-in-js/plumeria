@@ -1,0 +1,41 @@
+---
+title: 'LLM Resources'
+description: 'Machine-readable documentation for coding agents working with Plumeria.'
+---
+
+Every page of this documentation is available as Markdown, and the rules an agent needs are written down in one place. What follows is where to point one.
+
+## The rules
+
+[**AI.md**](/docs/ai) is the document to hand an agent before it writes any Plumeria. It carries the whole rule set — what `css.create` accepts, why `:has()` and `:is()` are forbidden and what replaces them, how dynamic styles and themes are written, and how the compiler expects a file to be shaped. Give it to the agent in full; it is written to be read that way rather than searched.
+
+```
+https://plumeria.dev/docs/ai.mdx
+```
+
+## Any page as Markdown
+
+Add `.mdx` to the URL of any documentation page and the raw Markdown comes back, with the title and canonical URL at the top:
+
+```
+https://plumeria.dev/docs/testing.mdx
+https://plumeria.dev/docs/api-reference/javascript/create.mdx
+```
+
+Each page also carries **Copy as Markdown** and **View as Markdown** at the top, so the same content is one click away while you are reading.
+
+## The whole documentation
+
+| | |
+| :-- | :-- |
+| [`/llms.txt`](https://plumeria.dev/llms.txt) | An index of every page, with its title, URL and description. |
+| [`/llms-full.txt`](https://plumeria.dev/llms-full.txt) | Every page concatenated into one file, for ingesting the documentation in a single request. |
+
+## Working code
+
+[`examples/`](https://github.com/zss-in-js/plumeria/tree/main/examples) holds a project per bundler and per framework — Next.js, Vite, Rollup, Rspack, webpack, esbuild, Bun, Farm, Rolldown, and React Router, Vue, Svelte, Solid, Qwik, Preact, Astro and Storybook on top of them. Each one compiles, so an agent can read a working configuration rather than reconstruct one.
+
+<Cards>
+  <Card title="AI.md" href="/docs/ai" description="The rule set, written for agents" />
+  <Card title="Testing" href="/docs/testing" description="Driving the compiler without a bundler" />
+</Cards>
