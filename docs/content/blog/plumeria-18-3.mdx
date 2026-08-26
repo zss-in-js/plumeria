@@ -1,0 +1,136 @@
+---
+title: 'Plumeria 18.3'
+description: 'Update: the transform is callable on its own, so a style can be tested without a bundler, a DOM, or a stub'
+date: '2026-08-27'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v18.3 establishes how a style is tested.
+
+Every bundler package stands on its own. `@plumeria/unplugin` and `@plumeria/turbopack-loader` each compile a source string when called directly — no bundler around them, no DOM, and no test runner they are tied to. A style goes in, the rewritten code and the stylesheet come out, and both are ordinary values to assert on.
+
+That is the whole of it, and it settles a question that had been asked the wrong way round. `@plumeria/core` publishes types and no runtime, so a runner resolving it finds nothing to load, which under Jest reads as `Cannot find module '@plumeria/core'`. The reflex is a `moduleNameMapper` pointing at a stub: the suite goes green, every class name in it is invented, and the test stops saying anything about the styles. But the resolution only ever fails where a component is imported. Compile a source string instead and the package is never resolved at run time, so there is nothing to stub and no runner to choose between.
+
+---
+
+## The transform is a function
+
+`css.create` is resolved by the compiler, and the compiler is an ordinary function. Give it a source string and it hands back the rewritten code, with the stylesheet available beside it. No component, no DOM, no bundler:
+
+```js title="compile.test.js"
+const { unpluginFactory } = require('@plumeria/unplugin/factory');
+
+const compile = async (source) => {
+  const plugin = unpluginFactory(undefined, { framework: 'vite' });
+  const result = await plugin.transform.call(
+    { addWatchFile: () => {} },
+    source,
+    `${__dirname}/fixture.tsx`,
+  );
+  const code = typeof result === 'string' ? result : (result?.code ?? '');
+  const cssId = code.match(/import "([^"]*\.zero\.css)"/)?.[1];
+  const resolved = await plugin.resolveId?.call({}, cssId);
+  const loaded = await plugin.load?.call({}, resolved?.id ?? resolved);
+  return { code, css: typeof loaded === 'string' ? loaded : (loaded?.code ?? '') };
+};
+
+test('two properties become two atoms', async () => {
+  const { code, css } = await compile(`
+    import * as css from '@plumeria/core';
+    const styles = css.create({ box: { padding: 16, color: 'red' } });
+    export const A = () => <div classStyle={styles.box} />;
+  `);
+
+  expect(code).toMatch(/className=\{"\S+ \S+"\}/);
+  expect(css).toContain('padding: 16px');
+  expect(css).toContain('color: red');
+});
+```
+
+`@plumeria/unplugin/factory` is new in this release. The bundler entries all reach `unplugin` itself, which is ESM and cannot be required from a CommonJS runner, so the factory was out of reach from Jest even though the code behind it had no such dependency — `core.ts` imports only a type from `unplugin`, and a type import is gone at run time. The subpath skips the entries and lands on it directly.
+
+Nothing in that test is runner-specific. It is plain asynchronous JavaScript, so Jest, Vitest and `node:test` all run it as it stands.
+
+## Next.js tests the loader its own build runs
+
+`@plumeria/turbopack-loader` is a webpack loader, and a webpack loader is a function that reads four properties off `this`. Supplying them takes six lines:
+
+```js title="compile.test.js"
+const loader = require('@plumeria/turbopack-loader');
+const fn = loader.default ?? loader;
+
+const compile = (source) =>
+  new Promise((resolve, reject) => {
+    fn.call(
+      {
+        resourcePath: `${__dirname}/fixture.tsx`,
+        async: () => (err, content) => (err ? reject(err) : resolve(content)),
+        addDependency: () => {},
+        clearDependencies: () => {},
+      },
+      source,
+    );
+  });
+```
+
+This is the part worth pausing on. Next.js documents its own Vitest setup with `@vitejs/plugin-react` — a plugin the Next build never runs — so a Next unit test has always compiled through something other than the thing that ships. Here the opposite holds. The loader `withPlumeria` installs is the loader the test calls, and the class names come out identical to the plugin's:
+
+```tsx
+export const A = () => <div className={"xqqbxt1d xq96bg3w"} />;
+```
+
+The loader writes its stylesheet only under `NODE_ENV=development`, so a test run sees the class names and leaves the file alone. Set the variable when the stylesheet is what you came for: those writes are taken under a lock, and four Jest workers compiling forty-eight atoms in parallel produced the same output as the same run in band, five times over.
+
+`@plumeria/turbopack-loader` now declares `exports` rather than leaning on `main`. The entry and `zero-virtual.css` are named — the two `@plumeria/next-plugin` resolves, and the two a test reaches — where nothing else under `dist/` was ever referenced. Add it to your dev dependencies rather than reaching it through the plugin.
+
+## What each layer can see
+
+Three questions get asked of a style, and each has its own answer.
+
+**What did it compile to.** The transform, as above. Runs anywhere.
+
+**Does the component behave.** Vitest, with the plugin in the config. This is the one layer that needs the transform in the module pipeline, and the styling prop is gone by the time the markup reaches the DOM:
+
+```html
+<h1 class="xvdv6o3r xggb8uiu xvazecna">Vite + React</h1>
+```
+
+**Does the page look right.** Not jsdom. `document.styleSheets` is empty there and `getComputedStyle` returns initial values for every property the styles set, so a test can see which classes were attached and never what they do. Specificity between two styles, a `@media` branch, a `marker` with its `extended` styles — those need a real browser, end to end against the build.
+
+One rule cuts across all three: do not assert a generated class name in a component test. An atomic class name is one property–value pair, hashed, so adding a property to the style breaks every test that spelled the old list out. Read the names out of the compile test above, where they are derived rather than typed in.
+
+The full write-up is in [Testing](/docs/testing).
+
+---
+
+## Four ratings reach Frozen
+
+`@plumeria/next-plugin`, `@plumeria/unplugin` and `@plumeria/turbopack-loader` are rated Frozen in this release, and so are `css.marker` and `css.extended`.
+
+The two APIs had been held at Stable for a reason outside the library. They compile to CSS Container Style Queries, and style queries only reached every modern browser with Firefox 151. That was the last thing standing between them and the top rating.
+
+The three packages are the reason `@plumeria/turbopack-loader` now declares `exports`. Freezing a package is a statement about a surface, which only means something if the surface has an edge. Leaning on `main` left everything under `dist/` reachable and the edge undrawn — so the entry and `zero-virtual.css` are named, and nothing else was ever referenced to lose.
+
+Frozen now reads as *the signature will not change; behaviour may still be corrected*. The wording matters: the old phrasing promised no changes at all, which no maintained package can keep, and which would have made the entry point added above a contradiction rather than an addition.
+
+---
+
+## What landed in 18.2.x
+
+Thirty-four patches went out under 18.2, and three of them deserved more than the line they got.
+
+**`@plumeria/headlessui` gained five component groups** in 18.2.33 — `Label`, `Separator`, `Avatar` with `Image` and `Fallback`, `Progress` with `Indicator`, and `VisuallyHidden` — bringing the exported set to twenty-five. These are the small primitives a form or a profile row is built from, and until then they were the ones you had to reach past the package for. `Separator` is the odd one: it already existed as a part inside `Select`, `DropdownMenu`, `ContextMenu` and `Menubar`, but never on its own.
+
+**A style function's parameter default became the custom property's fallback** in 18.2.26. `(c = 'red') => ({ color: c })` had been read as neither a default nor a name and produced an empty class even when an argument was passed. Now `box()` and `box('blue')` share one class, and only the second writes an inline style. The same release stopped scanning the style prop table and started reading it by the owning component's key, which took a 400-component benchmark from 83ms to 44ms.
+
+**The codemod's round trip closed** across 18.2.20 through 18.2.27. A project exports to CSS Modules, adopts back into Plumeria, and exports again, with each direction reaching a fixed point on its second pass. Getting there meant reproducing the rank Plumeria gives a declaration — one step per shorthand covering the property, one more under an at-rule — inside a stylesheet that only has source order to work with, and refusing to write a call site it cannot answer for rather than guessing at one.
+
+<Cards>
+  <Card title="Testing" href="/docs/testing" description="Learn more about testing styles that are resolved at build time" />
+  <Card title="unplugin" href="/docs/api-reference/plugins/unplugin" description="Learn more about @plumeria/unplugin" />
+</Cards>
