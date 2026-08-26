@@ -96,6 +96,11 @@ export default withPlumeria(nextConfig, {
 
 Turbopack rule conditions keep the compiler from being handed every module in the graph, `node_modules` included. They are a Next.js 16 option, and the plugin applies them only from 16.0.0 up — on 15.x the rule stays unfiltered and builds are slower. Everything else works on both.
 
+## API Stability
+
+**Stability: Frozen** — the signature will not change; behaviour may still be corrected.
+See [API Stability](https://github.com/zss-in-js/plumeria#api-stability).
+
 ## License
 
 Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/LICENSE).
