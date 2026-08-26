@@ -1,3 +1,9 @@
+## 18.3.0
+
+### Minor Changes
+
+- 7b6e080: Bump version to 18.3.0
+
 ## 18.2.34
 
 ### Patch Changes
