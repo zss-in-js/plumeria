@@ -1,4 +1,4 @@
 {
   "defaultOpen": true,
-  "pages": ["bun", "esbuild", "farm", "next", "rollup", "rolldown", "rspack", "vite", "webpack", "component-library"]
+  "pages": ["bun", "esbuild", "farm", "next", "rollup", "rolldown", "rspack", "vite", "webpack", "frameworks", "component-library"]
 }
