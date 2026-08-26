@@ -108,3 +108,23 @@ For the default name, reference the declaration that ships with the package inst
 ```
 
 If the two disagree, the prop type-checks but is never compiled away. [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) reads the same name from `settings.plumeria.styleProp`.
+## Driving the loader
+
+`@plumeria/turbopack-loader` is the loader `withPlumeria` installs, and it can be called directly with a webpack loader context of your own:
+
+```js
+const loader = require('@plumeria/turbopack-loader');
+const fn = loader.default ?? loader;
+
+fn.call(
+  {
+    resourcePath: `${__dirname}/fixture.tsx`,
+    async: () => (err, content) => (err ? reject(err) : resolve(content)),
+    addDependency: () => {},
+    clearDependencies: () => {},
+  },
+  source,
+);
+```
+
+The rewritten code comes back through `async`. The stylesheet is written only under `NODE_ENV=development`, and those writes are taken under a lock, so parallel callers do not lose rules. Those four context properties are part of the published surface. See [Testing](/docs/testing).
