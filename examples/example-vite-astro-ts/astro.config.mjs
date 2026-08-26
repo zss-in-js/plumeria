@@ -7,7 +7,7 @@ import plumeria from '@plumeria/unplugin';
 // https://astro.build/config
 export default defineConfig({
   vite: {
-    plugins: [plumeria.vite({ devEmitToDisk: true })],
+    plugins: [plumeria.vite()],
   },
   integrations: [react()],
 });
