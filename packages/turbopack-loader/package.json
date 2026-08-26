@@ -17,6 +17,13 @@
   "sideEffects": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./zero-virtual.css": "./zero-virtual.css"
+  },
   "files": [
     "dist/",
     "zero-virtual.css"
