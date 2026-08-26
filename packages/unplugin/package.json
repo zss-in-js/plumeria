@@ -36,6 +36,11 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./factory": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.mjs",
+      "require": "./dist/core.js"
+    },
     "./vite": {
       "types": "./dist/vite.d.ts",
       "import": "./dist/vite.mjs",
