@@ -333,3 +333,12 @@ withPlumeria(nextConfig, { styleProp: 'sx' });
 // eslint.config.js
 settings: { plumeria: { styleProp: 'sx' } }
 ```
+
+## API Stability
+
+**Stability: Stable** — additive only; existing signatures will not move.
+See [API Stability](https://github.com/zss-in-js/plumeria#api-stability).
+
+## License
+
+Plumeria is [MIT licensed](https://github.com/zss-in-js/plumeria/blob/main/LICENSE).
