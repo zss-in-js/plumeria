@@ -565,21 +565,18 @@ In every pattern the component **applies** the style it receives. None of them f
 
 **NEVER assert a generated class name in a component test.** `xvdv6o3r` is one property-value pair, hashed. Adding a property to the style breaks every test that spelled the old list out. Assert what the component renders, holds, or branches on.
 
-**To test what a style compiles to, call the transform directly.** It takes a source string and returns the rewritten code plus the stylesheet — no component, no DOM, no bundler — so Jest, Vitest and `node:test` all run it unchanged.
+**To test what a style compiles to, call the transform directly.** It takes a source string and returns the rewritten code plus the stylesheet — no component, no DOM, no bundler. Write it for Jest; Vitest and `node:test` need their own imports, and `node:test` has no `expect` at all.
 
 For a project on `@plumeria/unplugin`:
 
 ```js
 const { unpluginFactory } = require('@plumeria/unplugin/factory');
 
-const plugin = unpluginFactory(undefined, { framework: 'vite' });
-const result = await plugin.transform.call({ addWatchFile: () => {} }, source, id);
-const code = typeof result === 'string' ? result : (result?.code ?? '');
+const plugin = unpluginFactory();
+const { code } = await plugin.transform(source, id);
 
-const cssId = code.match(/import "([^"]*\.zero\.css)"/)?.[1];
-const resolved = await plugin.resolveId?.call({}, cssId);
-const loaded = await plugin.load?.call({}, resolved?.id ?? resolved);
-const css = typeof loaded === 'string' ? loaded : (loaded?.code ?? '');
+const cssId = code.match(/import "(.+\.zero\.css)"/)[1];
+const css = plugin.load(cssId);
 ```
 
 For a project on `@plumeria/next-plugin`, call the loader its build runs, with a loader context of your own:
@@ -602,7 +599,7 @@ const compile = (source) =>
   });
 ```
 
-The loader returns the rewritten code and writes its stylesheet only under `NODE_ENV=development`. Read class names from the returned code and derive them; do not hard-code them.
+The loader returns the rewritten code and writes its stylesheet only when `NODE_ENV` is `development` or `production`; a test run is neither, so the file is left alone. Read class names from the returned code and derive them; do not hard-code them.
 
 **To test component behaviour, use Vitest with the plugin in the config.** This is the only layer that needs the transform in the module pipeline.
 
