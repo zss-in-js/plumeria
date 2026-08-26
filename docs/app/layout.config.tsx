@@ -103,6 +103,9 @@ export const baseOptions: BaseLayoutProps = {
             { text: 'Rspack', url: '/docs/integration/rspack' },
             { text: 'Vite', url: '/docs/integration/vite' },
             { text: 'Webpack', url: '/docs/integration/webpack' },
+            { type: 'divider' },
+            { text: 'Frameworks', url: '/docs/integration/frameworks' },
+            { text: 'Component Library', url: '/docs/integration/component-library' },
           ]}
         />
       ),
