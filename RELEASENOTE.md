@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.3.1 (Aug 26, 2026)
+
+- Update: README.md
+
 ## 18.3.0 (Aug 26, 2026)
 
 - Feat: add the `@plumeria/unplugin/factory` subpath, which hands back the transform as a plain function, so a test compiles a source string and reads the class names and the stylesheet out of it with no bundler in between. The bundler entries reach `unplugin` itself, which is ESM and cannot be required from a CommonJS runner; the factory carries only a type import of it, and loads under Jest as it stands.

@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 18.3.1
+
+### Patch Changes
+
+- 64c033e: Bump version to 18.3.1
+- Updated dependencies [64c033e]
+  - @plumeria/turbopack-loader@18.3.1
+
 ## 18.3.0
 
 ### Minor Changes
