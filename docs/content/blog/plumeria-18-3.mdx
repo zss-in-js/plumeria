@@ -10,17 +10,17 @@ import { GitHubUser } from 'component/GitHubUser'
 <GitHubUser username="refirst11" subtext="Core team members" />
 </div>
 
-Plumeria v18.3 establishes how a style is tested.
+Plumeria v18.3 establishes a clear way to test styles.
 
-Every bundler package stands on its own. `@plumeria/unplugin` and `@plumeria/turbopack-loader` each compile a source string when called directly — no bundler around them, no DOM, and no test runner they are tied to. A style goes in, the rewritten code and the stylesheet come out, and both are ordinary values to assert on.
+Each bundler package now stands on its own. Call `@plumeria/unplugin` or `@plumeria/turbopack-loader` directly with a source string, and it compiles that source without a bundler or DOM. The rewritten code and stylesheet come back as ordinary values that any test runner can assert on.
 
-That is the whole of it, and it settles a question that had been asked the wrong way round. `@plumeria/core` publishes types and no runtime, so a runner resolving it finds nothing to load, which under Jest reads as `Cannot find module '@plumeria/core'`. The reflex is a `moduleNameMapper` pointing at a stub: the suite goes green, every class name in it is invented, and the test stops saying anything about the styles. But the resolution only ever fails where a component is imported. Compile a source string instead and the package is never resolved at run time, so there is nothing to stub and no runner to choose between.
+This avoids importing `@plumeria/core` at run time, so tests no longer need a stub that invents class names.
 
 ---
 
 ## The transform is a function
 
-`css.create` is resolved by the compiler, and the compiler is an ordinary function. Give it a source string and it hands back the rewritten code, with the stylesheet available beside it. No component, no DOM, no bundler:
+The compiler resolves `css.create`, and the compiler is an ordinary function. Give it a source string and it returns the rewritten code alongside the stylesheet. No component, DOM, or bundler is required:
 
 ```js title="compile.test.js"
 const { unpluginFactory } = require('@plumeria/unplugin/factory');
@@ -49,13 +49,13 @@ test('two properties become two atoms', async () => {
 });
 ```
 
-`@plumeria/unplugin/factory` is new in this release. The bundler entries all reach `unplugin` itself, which is ESM and cannot be required from a CommonJS runner, so the factory was out of reach from Jest even though the code behind it had no such dependency — `core.ts` imports only a type from `unplugin`, and a type import is gone at run time. The subpath skips the entries and lands on it directly.
+`@plumeria/unplugin/factory` is new in this release. It exposes the factory directly so CommonJS runners such as Jest can require it.
 
-Nothing in that test is tied to a runner beyond its boilerplate. It is written for Jest; Vitest wants `import { test, expect } from 'vitest'` and ESM in place of `require` and `__dirname`, and `node:test` takes `test` from `node:test` and asserts through `node:assert`, having no `expect`. What is being called stays the same in all three.
+Only the boilerplate in this test is specific to Jest. For Vitest, import `test` and `expect` from `vitest` and use ESM instead of `require` and `__dirname`. For `node:test`, import `test` from `node:test` and use `node:assert`. All three runners call the same compiler.
 
 ## Next.js tests the loader its own build runs
 
-`@plumeria/turbopack-loader` is a webpack loader, and a webpack loader is a function that requires four properties off `this`. Supplying them takes six lines:
+`@plumeria/turbopack-loader` is a webpack loader. Calling it directly requires four properties on `this`:
 
 ```js title="compile.test.js"
 const loader = require('@plumeria/turbopack-loader');
@@ -75,61 +75,119 @@ const compile = (source) =>
   });
 ```
 
-This is the part worth pausing on. Next.js documents its own Vitest setup with `@vitejs/plugin-react` — a plugin the Next build never runs — so a Next unit test has always compiled through something other than the thing that ships. Here the opposite holds. The loader `withPlumeria` installs is the loader the test calls, and the class names come out identical to the plugin's:
+The test calls the same loader that `withPlumeria` installs, and it produces the same class names as the plugin:
 
 ```tsx
 export const A = () => <div className={"xqqbxt1d xq96bg3w"} />;
 ```
 
-The loader writes its stylesheet only when `NODE_ENV` is `development` or `production`. A test run is neither, so it sees the class names and leaves the file alone. Set `NODE_ENV=development` when the stylesheet is what you came for — `production` sweeps the whole project rather than compiling the module handed to it. Those writes are taken under a lock, and four Jest workers compiling forty-eight atoms in parallel produced the same output as the same run in band, five times over.
+The loader writes its stylesheet only when `NODE_ENV` is `development` or `production`. Set `NODE_ENV=development` when a test also needs to inspect the stylesheet.
 
-`@plumeria/turbopack-loader` now declares `exports` rather than leaning on `main`. The entry and `zero-virtual.css` are named — the two `@plumeria/next-plugin` resolves, and the two a test reaches — where nothing else under `dist/` was ever referenced. Add it to your dev dependencies rather than reaching it through the plugin.
+Add `@plumeria/turbopack-loader` to your dev dependencies when testing it directly.
 
 ## What each layer can see
 
-Three questions get asked of a style, and each has its own answer.
+Style tests answer three different questions. Each belongs at a different layer.
 
-**What did it compile to.** The transform, as above. Runs anywhere.
+**What did it compile to?** Call the transform directly, as shown above. This works in any test runner.
 
-**Does the component behave.** Vitest, with the plugin in the config. This is the one layer that needs the transform in the module pipeline, and the styling prop is gone by the time the markup reaches the DOM:
+**Does the component behave correctly?** Use Vitest with the plugin in its config. This layer needs the transform in the module pipeline. By the time the markup reaches the DOM, the styling prop is gone:
 
 ```html
 <h1 class="xvdv6o3r xggb8uiu xvazecna">Vite + React</h1>
 ```
 
-**Does the page look right.** Not jsdom. `document.styleSheets` is empty there and `getComputedStyle` returns initial values for every property the styles set, so a test can see which classes were attached and never what they do. Specificity between two styles, a `@media` branch, a `marker` with its `extended` styles — those need a real browser, end to end against the build.
+**Does the page look right?** Use an end-to-end test in a real browser. jsdom can see attached classes, but it cannot verify how the styles render.
 
-One rule cuts across all three: do not assert a generated class name in a component test. An atomic class name is one property–value pair, hashed, so adding a property to the style breaks every test that spelled the old list out. Read the names out of the compile test above, where they are derived rather than typed in.
+One rule applies to all three layers: do not hard-code generated class names in a component test. Each atomic class name is a hash of one property–value pair. Adding a property therefore changes the list and breaks any test that spells it out. When class names matter, derive them with a compile test instead.
 
 The full write-up is in [Testing](/docs/testing).
 
 ---
 
-## Four ratings reach Frozen
-
-`@plumeria/next-plugin`, `@plumeria/unplugin` and `@plumeria/turbopack-loader` are rated Frozen in this release, and so are `css.marker` and `css.extended`.
-
-The two APIs had been held at Stable for a reason outside the library. They compile to CSS Container Style Queries, and style queries only reached every modern browser with Firefox 151. That was the last thing standing between them and the top rating.
-
-The three packages are the reason `@plumeria/turbopack-loader` now declares `exports`. Freezing a package is a statement about a surface, which only means something if the surface has an edge. Leaning on `main` left everything under `dist/` reachable and the edge undrawn — so the entry and `zero-virtual.css` are named, and nothing else was ever referenced to lose.
-
-Frozen now reads as *the signature will not change; behaviour may still be corrected*. The wording matters: the old phrasing promised no changes at all, which no maintained package can keep, and which would have made the entry point added above a contradiction rather than an addition.
-
----
-
 ## What landed in 18.2.x
 
-Thirty-four patches went out under 18.2, and three of them deserved more than the line they got.
+Plumeria 18.2 received thirty-four patches. Together, they expanded which relationships styles can express, made CSS Modules migration work in both directions, and made the generated cascade more predictable.
 
-**`@plumeria/headlessui` gained five component groups** in 18.2.33 — `Label`, `Separator`, `Avatar` with `Image` and `Fallback`, `Progress` with `Indicator`, and `VisuallyHidden` — bringing the exported set to twenty-five. These are the small primitives a form or a profile row is built from, and until then they were the ones you had to reach past the package for. `Separator` is the odd one: it already existed as a part inside `Select`, `DropdownMenu`, `ContextMenu` and `Menubar`, but never on its own.
+### Functional pseudo-classes for `marker` and `extended`
 
-**A style function's parameter default became the custom property's fallback** in 18.2.26. `(c = 'red') => ({ color: c })` had been read as neither a default nor a name and produced an empty class even when an argument was passed. Now `box()` and `box('blue')` share one class, and only the second writes an inline style. The same release stopped scanning the style prop table and started reading it by the owning component's key, which took a 400-component benchmark from 83ms to 44ms.
+`css.marker` and `css.extended` now accept functional pseudo-classes such as `:has()`, `:is()`, `:not()`, and `:nth-child()`. Marker variable names are derived from a hash, so arguments and identifier-unsafe characters no longer produce invalid custom properties or collisions.
 
-**The codemod's round trip closed** across 18.2.20 through 18.2.27. A project exports to CSS Modules, adopts back into Plumeria, and exports again, with each direction reaching a fixed point on its second pass. Getting there meant reproducing the rank Plumeria gives a declaration — one step per shorthand covering the property, one more under an at-rule — inside a stylesheet that only has source order to work with, and refusing to write a call site it cannot answer for rather than guessing at one.
+With `:has()`, a descendant can activate styles elsewhere below the same marker. With `:defined`, the same APIs express an always-on descendant relationship. Together with selector keys, this makes descendant, child, and sibling relationships expressible without placing DOM paths in style objects.
+
+Generated marker variable names changed in 18.2.0, but builds regenerate the stylesheet automatically.
+
+### CSS Modules migration in both directions
+
+The codemod can adopt a CSS Modules project:
+
+```sh
+npx @plumeria/codemod migrate --from css-modules
+```
+
+It creates `*.styles.ts` files, rewrites imports and `className`, restores compositions, and translates descendant relationships to `marker` and `extended`. Unsupported or ambiguous selectors are reported and left unchanged.
+
+It can also export Plumeria styles back to CSS Modules:
+
+```sh
+npx @plumeria/codemod migrate --from plumeria
+```
+
+The reverse migration handles function styles through CSS variables, writes themes and animations to `global.css`, follows aliased and indexed imports, and expands `marker` and `extended` to the CSS they represent. Use `--dry-run` before writing files.
+
+Fixes from 18.2.20 through 18.2.27 closed the round trip. Exporting, adopting, and exporting again now reaches a fixed point on the second pass in each direction. See the [codemod documentation](/docs/api-reference/codemod) for supported conversions and reports.
+
+### Normalized merging and specificity
+
+18.2.5 stopped merging a shorthand and longhand by source order. They remain independent atoms, and the more specific property wins through its position in the shorthand graph. For example, `paddingBlockStart` outranks `paddingBlock`, which outranks `padding`.
+
+Conditional and nested declarations receive additional specificity. Identical selectors and at-rules are merged recursively without reordering their declarations, and the development stylesheet now goes through the same optimization. This keeps development and production behavior aligned.
+
+Conditions are ordered when one provably contains another. A narrower `@media` or `@container` interval is placed after the broader one. States such as `:hover` and `:focus` that can hold at the same time are settled by `classStyle` composition order when neither otherwise outranks the other.
+
+The implementation moved through `zss-engine` 2.4.1, 2.4.2, 2.4.3, and 2.5.0 before reaching 2.6.0. These releases normalized shorthand merging, corrected the logical-property graph, added missing shorthands, and made comparable media and container conditions understandable as intervals.
+
+The complete cascade model is documented in [Specificity](/docs/reference/specificity).
+
+### New ESLint rules for ambiguous property pairs
+
+18.2 added four rules:
+
+- `no-order-dependent-overlap` reports overlapping properties or states when neither side has a stable priority. It is enabled as a warning in `recommended`.
+- `expand-border-shorthands` expands border bundles into width, style, and color declarations.
+- `no-physical-properties` keeps a project on logical property names.
+- `no-logical-properties` keeps a project on physical property names.
+
+The last three are optional. Used together in the appropriate direction, border expansion and a property-naming rule remove the property pairs that specificity alone cannot rank. See [Optional rules](/docs/api-reference/plugins/eslint-plugin/optional-rules) for configuration and examples.
+
+ESLint checks also reach properties inside function style keys, and `validate-values` gained fixes for CSS variables, easing functions, and border values.
+
+### More reliable style resolution
+
+The compiler now reports a style prop that is never applied instead of silently dropping it. Conditional style arrays, imported function styles, imported constants, `createStatic`, and `createTheme` values also resolve across files.
+
+In 18.2.26, each component began reading its own style prop table. This fixed components that shared a prop name and reduced a 400-component stylesheet benchmark from 83ms to 44ms. Style function defaults now become CSS variable fallbacks, and parameterless style functions compile like their static equivalents.
+
+File scanning is sorted for reproducible stylesheet output. The dependency update in 18.2.25 also included the `@rust-gear/glob` 1.1.1 patch.
+
+### Five new Headless UI component groups
+
+18.2.33 added:
+
+- `Label`
+- `Separator`
+- `Avatar` with `Image` and `Fallback`
+- `Progress` with `Indicator`
+- `VisuallyHidden`
+
+`@plumeria/headlessui` now exports twenty-five component groups. The package also loads directly through Node's ESM resolver.
 
 <Cards>
   <Card title="Testing" href="/docs/testing" description="Learn more about testing styles that are resolved at build time" />
   <Card title="unplugin" href="/docs/api-reference/plugins/unplugin" description="Learn more about @plumeria/unplugin" />
+  <Card title="Codemod" href="/docs/api-reference/codemod" description="Migrate between Plumeria and CSS Modules" />
+  <Card title="Specificity" href="/docs/reference/specificity" description="Understand property, condition, and composition priority" />
+  <Card title="Optional ESLint rules" href="/docs/api-reference/plugins/eslint-plugin/optional-rules" description="Remove property pairs that depend on source order" />
 </Cards>
 
 ---
@@ -141,4 +199,3 @@ Thirty-four patches went out under 18.2, and three of them deserved more than th
 ---
 
 Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
-
