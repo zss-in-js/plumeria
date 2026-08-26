@@ -5,6 +5,7 @@ import { styles } from './styles';
 import '@plumeria/core';
 import { JSX } from 'react';
 import generateSEOData from 'lib/generateSEOData';
+import { formatDate } from 'lib/formatDate';
 
 export const metadata: Metadata = generateSEOData({
   title: 'Blog',
@@ -29,7 +30,7 @@ export default function Page(): JSX.Element {
             <h2 classStyle={styles.cardTitle}>{post.data.title}</h2>
             <p classStyle={styles.cardDesc}>{post.data.description}</p>
             <p classStyle={styles.cardDesc}>Read more →</p>
-            <p classStyle={styles.cardDate}>{post.data.date}</p>
+            <p classStyle={styles.cardDate}>{formatDate(post.data.date)}</p>
           </Link>
         ))}
     </main>
