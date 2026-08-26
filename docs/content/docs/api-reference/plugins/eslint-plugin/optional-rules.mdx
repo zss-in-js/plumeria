@@ -7,6 +7,10 @@ description: 'Rules that make an order-dependent pair impossible to write'
 room for one, at the cost of narrowing how you are allowed to write. None of
 them is on by default.
 
+They are turned on in an ESLint config only: `plumerialint` runs a fixed oxlint
+config that does not list them, and a rule that config leaves out cannot be
+turned on from the command line.
+
 ## What they are for
 
 Specificity settles every pair where one property contains another — a shorthand
