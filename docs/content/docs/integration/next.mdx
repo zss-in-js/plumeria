@@ -29,11 +29,11 @@ pnpm i --save-dev @plumeria/next-plugin
 
 ## next.config.ts
 
-If you do not add `turbopack` to the end of the path, it will be `webpack`.
+`withPlumeria` works with both Turbopack and Webpack.
 
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
-import { withPlumeria } from "@plumeria/next-plugin/turbopack";
+import { withPlumeria } from "@plumeria/next-plugin";
 
 const nextConfig: NextConfig = {
   /* config options here */
