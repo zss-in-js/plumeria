@@ -67,9 +67,11 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 
 | Rating | Label            | Meaning                                                                                 |
 | ------ | ---------------- | --------------------------------------------------------------------------------------- |
-| ★★★★★  | **Frozen**       | Will not make any changes in any major release for the next N months. |
+| ★★★★★  | **Frozen**       | The signature will not change. Behaviour may still be corrected.                        |
 | ★★★★☆  | **Stable**       | Additive only. Existing signatures will not move.                                       |
 | ★★★☆☆  | **Candidate**    | Shape is settled. Details may still change.                                             |
+
+Packages under **Internal** are not public API. They carry no rating: depend on them and they may change in any release.
 
 ### Core API — `@plumeria/core`
 
@@ -80,8 +82,8 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 | `css.createStatic`   | ★★★★★     | Frozen |
 | `css.keyframes`      | ★★★★★     | Frozen |
 | `css.viewTransition` | ★★★★★     | Frozen |
-| `css.marker`         | ★★★★☆     | Stable |
-| `css.extended`       | ★★★★☆     | Stable |
+| `css.marker`         | ★★★★★     | Frozen |
+| `css.extended`       | ★★★★★     | Frozen |
 | `css.use`/`classStyle`| ★★★★★    | Frozen | 
 
 > The **`classStyle`** can be renamed via configuration
@@ -90,25 +92,25 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 
 | Package                      | Stability |           |
 | -----------------------------| --------- | --------- |
-| `@plumeria/next-plugin`      | ★★★★☆     | Stable    |
-| `@plumeria/unplugin`         | ★★★★☆     | Stable    |
-| `@plumeria/turbopack-loader` | ★★★★☆     | Stable    |
+| `@plumeria/next-plugin`      | ★★★★★     | Frozen    |
+| `@plumeria/unplugin`         | ★★★★★     | Frozen    |
+| `@plumeria/turbopack-loader` | ★★★★★     | Frozen    |
 
 ### Tooling
 
 | Package                   | Stability |           |
 | --------------------------| --------- | --------- |
-| `@plumeria/codemod`       | ★★★☆☆     | Candidate |
+| `@plumeria/codemod`       | ★★★★☆     | Stable |
 | `@plumeria/eslint-plugin` | ★★★★☆     | Stable    |
 | `@plumeria/headlessui`    | ★★★★☆     | Stable    |
-| `@plumeria/inspector`     | ★★★☆☆     | Candidate |
+| `@plumeria/inspector`     | ★★★★☆     | Stable |
 
 ### Internal
 
 | Package              | Stability |        |
 | -------------------- | --------- | ------ |
-| `@plumeria/compiler` | ★★★★☆     | Stable |
-| `@plumeria/utils`    | ★★★★☆     | Stable |
+| `@plumeria/compiler` | —         | Internal |
+| `@plumeria/utils`    | —         | Internal |
 
 > **Not planned** — a predefined utility atom vocabulary, a runtime style merger, or fallback chains. None can be reconciled with the closed-world static resolution performed by scanAll(). For one-off styles, give them a local name in css.create — the naming requirement is deliberate. For how this compares with open-world systems such as StyleX, see the [side-by-side benchmark](https://github.com/refirst11/stylex-plumeria-benchmark).
 
