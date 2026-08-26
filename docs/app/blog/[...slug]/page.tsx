@@ -8,6 +8,7 @@ import '@plumeria/core';
 import { styles } from './styles';
 import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
+import { formatDate } from 'lib/formatDate';
 
 export async function generateStaticParams(): Promise<Array<{ slug: Array<string> }>> {
   return blog.getPages().map((page) => ({
@@ -40,7 +41,9 @@ export default async function Page(props: { params: Promise<{ slug?: Array<strin
       </div>
 
       {page.data.title && <h1 classStyle={styles.title}>{page.data.title}</h1>}
-      <p classStyle={styles.date}>{page.data.date}</p>
+      <p classStyle={styles.date}>
+        <time dateTime={page.data.date}>{formatDate(page.data.date)}</time>
+      </p>
       <DocsBody>
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>
