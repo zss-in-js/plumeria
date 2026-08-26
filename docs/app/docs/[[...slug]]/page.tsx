@@ -40,7 +40,7 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription hidden>{page.data.description}</DocsDescription>
       <DocsBody>
-        <MarkdownActions markdownUrl={`${page.url}.mdx`} />
+        <MarkdownActions markdownUrl={`${page.url}.md`} />
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>
     </DocsPage>
