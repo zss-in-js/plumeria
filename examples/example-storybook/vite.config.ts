@@ -5,7 +5,4 @@ import plumeria from '@plumeria/unplugin';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), plumeria.vite()],
-  optimizeDeps: {
-    exclude: ['@plumeria/core'],
-  },
 });
