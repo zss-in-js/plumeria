@@ -1,5 +1,3 @@
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
 import { source } from 'lib/source';
 
 export const revalidate = false;
@@ -10,11 +8,8 @@ export async function GET(): Promise<Response> {
 
   const pages = await Promise.all(
     source.getPages().map(async (page) => {
-      const file = path.join(process.cwd(), 'content/docs', page.path);
-      const raw = await readFile(file, 'utf8');
-      const body = raw.replace(/^---\n[\s\S]*?\n---\n/, '').trim();
-
-      return [`# ${page.data.title}`, '', `Source: ${url(page.url)}`, '', body].join('\n');
+      const processed = await page.data.getText('processed');
+      return `# ${page.data.title}\n\nSource: ${url(page.url)}\n\n${processed}`;
     }),
   );
 
