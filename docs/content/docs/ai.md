@@ -559,6 +559,62 @@ Prop drilling is an anti-pattern in React on its own terms; here it is also unre
 
 In every pattern the component **applies** the style it receives. None of them forward it.
 
+## Testing
+
+**NEVER stub `@plumeria/core`.** It publishes types and no runtime. A `moduleNameMapper` entry or a hand-written mock makes the suite run, but every class name it produces is invented, so the test says nothing about the styles. If a runner cannot resolve the package, that is the signal to test a different layer, not to fake the package.
+
+**NEVER assert a generated class name in a component test.** `xvdv6o3r` is one property-value pair, hashed. Adding a property to the style breaks every test that spelled the old list out. Assert what the component renders, holds, or branches on.
+
+**To test what a style compiles to, call the transform directly.** It takes a source string and returns the rewritten code plus the stylesheet — no component, no DOM, no bundler — so Jest, Vitest and `node:test` all run it unchanged.
+
+For a project on `@plumeria/unplugin`:
+
+```js
+const { unpluginFactory } = require('@plumeria/unplugin/factory');
+
+const plugin = unpluginFactory(undefined, { framework: 'vite' });
+const result = await plugin.transform.call({ addWatchFile: () => {} }, source, id);
+const code = typeof result === 'string' ? result : (result?.code ?? '');
+
+const cssId = code.match(/import "([^"]*\.zero\.css)"/)?.[1];
+const resolved = await plugin.resolveId?.call({}, cssId);
+const loaded = await plugin.load?.call({}, resolved?.id ?? resolved);
+const css = typeof loaded === 'string' ? loaded : (loaded?.code ?? '');
+```
+
+For a project on `@plumeria/next-plugin`, call the loader its build runs, with a loader context of your own:
+
+```js
+const loader = require('@plumeria/turbopack-loader');
+const fn = loader.default ?? loader;
+
+const compile = (source) =>
+  new Promise((resolve, reject) => {
+    fn.call(
+      {
+        resourcePath: `${__dirname}/fixture.tsx`,
+        async: () => (err, content) => (err ? reject(err) : resolve(content)),
+        addDependency: () => {},
+        clearDependencies: () => {},
+      },
+      source,
+    );
+  });
+```
+
+The loader returns the rewritten code and writes its stylesheet only under `NODE_ENV=development`. Read class names from the returned code and derive them; do not hard-code them.
+
+**To test component behaviour, use Vitest with the plugin in the config.** This is the only layer that needs the transform in the module pipeline.
+
+```ts
+export default defineConfig({
+  plugins: [react(), plumeria.vite()],
+  test: { environment: 'jsdom' },
+});
+```
+
+**jsdom applies no stylesheet.** `document.styleSheets` is empty and `getComputedStyle` returns initial values. A test there can see which classes were attached, never what they do. Anything about the cascade — specificity, `@media`, `marker` with `extended` — belongs in an end-to-end test against a real browser.
+
 ## Toolchain Notes
 
 **Compiler expectations.** The SWC compiler statically extracts `css.create()` calls, which is why they MUST sit at module top level. Prefer direct, clearly defined references — indirect variable references may be unanalyzable.
