@@ -196,7 +196,7 @@ If the two disagree, the prop type-checks but is never compiled away. [`@plumeri
 
 `@plumeria/unplugin` provides HMR optimized for each bundler in development mode (dev server).
 
-- **Vite / Farm / Webpack / Rspack**: The plugin extracts styles as CSS modules, enabling seamless updates via hot reloading.
+- **Vite / Farm / Webpack / Rspack**: The extracted stylesheet is served as a virtual module and reloaded only when its content actually changed, so a style edit updates in place without a repaint.
 
 ## Testing
 
