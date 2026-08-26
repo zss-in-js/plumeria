@@ -48,6 +48,8 @@ The declarations move to a generated stylesheet:
 
 The style still renders, yet `import * as css from '@plumeria/core'` and the entire `css.create` declaration have vanished. This is not dead-code elimination — nothing in this file is unused, and no bundler could remove a live call for you. The compiler resolves the class names statically and rewrites the call site, so the library never has a runtime form to eliminate in the first place. That disappearing import is the most concise illustration of a **Zero-Trace Runtime** — anything that shouldn't exist at runtime leaves no trace, not even an import statement. This isn't a best practice; it's a compiler contract.
 
+Nothing of the library reaches the component, so a React Server Component keeps its styles with no `'use client'` boundary to add.
+
 Plumeria goes one step further than CSS Modules here. Where CSS Modules ship a class mapping object in your JS bundle, Plumeria inlines the final class name strings directly into the compiled output and deletes the `css.create` declarations. Not even a styling map remains in production JS. (See the [Introduction](/docs) for how the compilation works.)
 
 Note the two class names in that output: one per property. Every property–value pair compiles to a global atomic class shared across your entire project, so your CSS stops growing in proportion to your component count — it plateaus.
