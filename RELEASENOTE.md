@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.3.0 (Aug 26, 2026)
+
+- Feat: add the `@plumeria/unplugin/factory` subpath, which hands back the transform as a plain function, so a test compiles a source string and reads the class names and the stylesheet out of it with no bundler in between. The bundler entries reach `unplugin` itself, which is ESM and cannot be required from a CommonJS runner; the factory carries only a type import of it, and loads under Jest as it stands.
+
+- Update: `@plumeria/turbopack-loader` declares `exports` rather than leaning on `main`. The entry and `zero-virtual.css` are named — the two `@plumeria/next-plugin` resolves, and the two a test driving the loader directly reaches — where nothing else under `dist/` was ever referenced.
+
 ## 18.2.34 (Aug 25, 2026)
 
 - Fix: a style function with a destructured parameter called with no argument — `styles.box()` against `({ tone = 'navy' }) => ...` — aborted the build with an internal `TypeError` instead of compiling. The same call already worked under `@plumeria/turbopack-loader`, and a parameter left without a default is now reported the way a named call with a missing key already was.
