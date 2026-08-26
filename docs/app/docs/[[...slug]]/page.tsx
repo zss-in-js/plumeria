@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
+import { MarkdownActions } from 'component/MarkdownActions';
 
 export async function generateMetadata(props: { params: Promise<{ slug?: Array<string> }> }): Promise<Metadata> {
   const params = await props.params;
@@ -39,6 +40,7 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription hidden>{page.data.description}</DocsDescription>
       <DocsBody>
+        <MarkdownActions markdownUrl={`${page.url}.mdx`} />
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>
     </DocsPage>
