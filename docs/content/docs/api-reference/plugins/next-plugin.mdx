@@ -127,4 +127,6 @@ fn.call(
 );
 ```
 
+`withPlumeria` takes no part in this. The test requires the loader itself, so add `@plumeria/turbopack-loader` to your dev dependencies — it arrives as a dependency of this package either way, but a strict package manager such as pnpm does not put a transitive dependency where your own code can reach it.
+
 The rewritten code comes back through `async`. The stylesheet is written only under `NODE_ENV=development`, and those writes are taken under a lock, so parallel callers do not lose rules. Those four context properties are part of the published surface. See [Testing](/docs/testing).
