@@ -2,5 +2,15 @@
   "title": "Library",
   "description": "The CSS-in-JS library",
   "root": true,
-  "pages": ["index", "why-plumeria", "category", "ai", "getting-started", "api-reference", "integration", "reference"]
+  "pages": [
+    "index",
+    "why-plumeria",
+    "category",
+    "ai",
+    "getting-started",
+    "api-reference",
+    "integration",
+    "testing",
+    "reference"
+  ]
 }
