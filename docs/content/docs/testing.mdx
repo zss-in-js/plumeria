@@ -1,0 +1,142 @@
+---
+title: 'Testing'
+description: 'Learn more about testing styles that are resolved at build time.'
+---
+
+Three questions get asked of a style, and each has its own answer. What did it compile to. Does the component that uses it behave. Does the page it renders actually look right.
+
+## What a style compiles to
+
+The transform is a function. Give it a source string and it hands back the rewritten code and the stylesheet, with no component, no DOM and no bundler in between — the same thing you would otherwise read off a `console.log`, in a form you can assert on.
+
+```js title="compile.test.js"
+const { unpluginFactory } = require('@plumeria/unplugin/factory');
+
+const compile = async (source) => {
+  const plugin = unpluginFactory(undefined, { framework: 'vite' });
+  const result = await plugin.transform.call(
+    { addWatchFile: () => {} },
+    source,
+    `${__dirname}/fixture.tsx`,
+  );
+  const code = typeof result === 'string' ? result : (result?.code ?? '');
+  const cssId = code.match(/import "([^"]*\.zero\.css)"/)?.[1];
+  const resolved = await plugin.resolveId?.call({}, cssId);
+  const loaded = await plugin.load?.call({}, resolved?.id ?? resolved);
+  return { code, css: typeof loaded === 'string' ? loaded : (loaded?.code ?? '') };
+};
+
+test('two properties become two atoms', async () => {
+  const { code, css } = await compile(`
+    import * as css from '@plumeria/core';
+    const styles = css.create({ box: { padding: 16, color: 'red' } });
+    export const A = () => <div classStyle={styles.box} />;
+  `);
+
+  expect(code).toMatch(/className=\{"\S+ \S+"\}/);
+  expect(css).toContain('padding: 16px');
+  expect(css).toContain('color: red');
+});
+```
+
+Nothing here is runner-specific. It is plain asynchronous JavaScript, so Jest, Vitest and `node:test` all run it as it stands.
+
+`@plumeria/unplugin/factory` and the default export of `@plumeria/turbopack-loader` are supported entry points for exactly this. The factory's hooks and the four properties the loader reads off its context are part of the published surface, and will not be changed under you.
+
+### Next.js
+
+A project on [`@plumeria/next-plugin`](/docs/api-reference/plugins/next-plugin) tests the loader that its own build runs. It takes a webpack loader context rather than plugin hooks, which is six lines to stand up:
+
+```js title="compile.test.js"
+const loader = require('@plumeria/turbopack-loader');
+const fn = loader.default ?? loader;
+
+const compile = (source) =>
+  new Promise((resolve, reject) => {
+    const ctx = {
+      resourcePath: `${__dirname}/fixture.tsx`,
+      async: () => (err, content) => (err ? reject(err) : resolve(content)),
+      addDependency: () => {},
+      clearDependencies: () => {},
+    };
+    fn.call(ctx, source);
+  });
+```
+
+Add `@plumeria/turbopack-loader` to your dev dependencies rather than reaching it through the plugin.
+
+The loader returns the rewritten code, and writes its stylesheet only under `NODE_ENV=development`. A test run leaves that file alone and sees the class names but no CSS. Set the variable if the stylesheet is what you came for — writes are taken under a lock, so parallel workers do not lose rules — or read it from the factory's `load()` above, which keeps it in memory and touches nothing.
+
+## Components
+
+Vitest runs on Vite, so it takes the plugin directly:
+
+```ts title="vitest.config.ts"
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import plumeria from '@plumeria/unplugin';
+
+export default defineConfig({
+  plugins: [react(), plumeria.vite()],
+  test: {
+    environment: 'jsdom',
+  },
+});
+```
+
+The component is compiled by the plugin, and the styling prop is gone by the time it reaches the DOM:
+
+```html
+<h1 class="xvdv6o3r xggb8uiu xvazecna">Vite + React</h1>
+```
+
+This is the one layer that needs the transform in the module pipeline. A runner that resolves `@plumeria/core` itself finds a package of types with no runtime behind it, and stops there.
+
+### Never assert a generated class name
+
+```ts
+expect(heading.className).toBe('xvdv6o3r xggb8uiu xvazecna'); // don't
+```
+
+An atomic class name is one property–value pair, hashed. Add a property to the style and every test that spelled the old list out fails, having found nothing wrong with the component. Assert what the component does — the text it renders, the state it holds, the branch it took — and leave the names to the compile test above, which reads them out of the output instead of hard-coding them.
+
+## What jsdom does not give you
+
+The class names are real, but no stylesheet is loaded into the document — `document.styleSheets` is empty, and `getComputedStyle` returns initial values for every property the styles set. A test can see that the right classes were attached; it cannot see what they do.
+
+Anything that turns on the cascade — specificity between two styles, a `@media` branch, a `marker` and its `extended` styles — needs a real browser. Run those end to end, against the build, where the emitted stylesheet is actually applied.
+
+## Types
+
+Because the package is types-only, the API surface can be tested with nothing but `tsc`. Write the calls you expect to hold, mark the ones you expect to fail, and type-check the file:
+
+```ts title="styles.test-d.ts"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  text: { fontSize: '12px', color: 'red' },
+  variant: (size: number) => ({ width: `${size}px` }),
+});
+
+export const atomic: string = styles.text.color;
+export const fromVariant: string = styles.variant(8).width;
+
+// @ts-expect-error atomic class names are branded per property
+export const crossed: css.AtomicClassNameFor<'color', 'red'> = styles.text.fontSize;
+
+// @ts-expect-error the key was never defined
+export const missing: string = styles.nope.color;
+```
+
+```sh title="Terminal"
+tsc --noEmit
+```
+
+An `@ts-expect-error` that stops being an error is itself reported, as `TS2578: Unused '@ts-expect-error' directive`, so the file fails when a guarantee quietly disappears.
+
+The work is already divided by the time a test runs. TypeScript offers the property names and values as you write them, and the [lint rules](/docs/api-reference/plugins/eslint-plugin) check what you wrote — spelling, values, pseudos, selectors, order-dependent overlap. What neither of them states is the type that comes back out, and that is what this file pins: the branding that keeps one property's class name from being passed off as another's, and keys that do not exist.
+
+<Cards>
+  <Card title="See more about unplugin options" href="/docs/api-reference/plugins/unplugin" />
+  <Card title="See more about the lint rules" href="/docs/api-reference/plugins/eslint-plugin" />
+</Cards>
