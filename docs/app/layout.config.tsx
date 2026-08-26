@@ -45,6 +45,7 @@ export const baseOptions: BaseLayoutProps = {
             { text: 'Why Plumeria?', url: '/docs/why-plumeria' },
             { text: 'Category theory', url: '/docs/category' },
             { text: 'AI.md', url: '/docs/ai' },
+            { text: 'LLM Resources', url: '/docs/llm-resources' },
             { type: 'divider' },
             { type: 'header', text: 'Getting Started' },
             { text: 'Installation', url: '/docs/getting-started/installation' },
