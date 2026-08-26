@@ -91,13 +91,14 @@ For the default name, reference the declaration that ships with the package inst
 If the two disagree, the prop type-checks but is never compiled away. [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) reads the same name from `settings.plumeria.styleProp`.
 ## Driving the transform
 
-`@plumeria/unplugin/factory` exposes the compiler behind every bundler entry as a plain function. It takes a source string and hands back the rewritten code, with the stylesheet available from `resolveId` and `load`:
+`@plumeria/unplugin/factory` exposes the plugin behind every bundler entry. `transform` takes a source string and hands back the rewritten code; `load` hands back the stylesheet it emitted:
 
 ```js
 const { unpluginFactory } = require('@plumeria/unplugin/factory');
 
-const plugin = unpluginFactory(undefined, { framework: 'vite' });
-const result = await plugin.transform.call({ addWatchFile: () => {} }, source, id);
+const plugin = unpluginFactory();
+const { code } = await plugin.transform(source, id);
+const css = plugin.load(code.match(/import "(.+\.zero\.css)"/)[1]);
 ```
 
-No bundler, no DOM and no runtime resolution of `@plumeria/core` is involved, so it runs anywhere plain JavaScript does. The hooks and the `addWatchFile` the transform reads off its context are part of the published surface. See [Testing](/docs/testing).
+No bundler, no DOM and no runtime resolution of `@plumeria/core` is involved, so it runs anywhere plain JavaScript does. The hooks are part of the published surface. See [Testing](/docs/testing).
