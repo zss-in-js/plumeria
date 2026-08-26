@@ -1,0 +1,152 @@
+---
+title: 'AI Agent Resources'
+description: 'Copy-ready context and a complete documentation map for coding agents working with Plumeria.'
+---
+
+Plumeria's documentation is available as plain Markdown for Claude, Codex, Gemini, ChatGPT, and other coding agents. Start with installation, then add only the references the task needs.
+
+<Callout type="info" title="Installation comes first">
+  Always load the installation guide before asking an agent to write Plumeria. The compiler and bundler integration are part of the programming model—not optional setup around it.
+</Callout>
+
+## Start here
+
+Copy this into your agent's prompt. It establishes the correct reading order and gives the agent the complete Plumeria rule set before it edits code.
+
+```text title="Prompt for your coding agent"
+Read these Plumeria documents in order before making changes:
+
+1. Installation — https://plumeria.dev/docs/getting-started/installation.md
+2. Rules for AI agents — https://plumeria.dev/docs/ai.md
+3. Introduction and core usage — https://plumeria.dev/docs.md
+
+Follow AI.md as authoritative. Inspect the existing project's bundler and framework,
+then read the matching integration guide before changing configuration. Do not apply
+runtime CSS-in-JS conventions to Plumeria: its styles are compiled statically.
+```
+
+The installation guide covers the package, styling-prop declaration, ESLint setup, and the compiler integration required for Next.js and Vite. For another bundler, append its guide from [Integrations](#integrations).
+
+```text title="Minimum context"
+https://plumeria.dev/docs/getting-started/installation.md
+https://plumeria.dev/docs/ai.md
+https://plumeria.dev/docs.md
+```
+
+## Add context for the task
+
+Keep the three documents above, then append one of these focused sets.
+
+### Writing components and styles
+
+Use this set for everyday component work, selectors, composition, dynamic values, themes, animations, and style props.
+
+```text title="Authoring context"
+https://plumeria.dev/docs/getting-started/selector-rules.md
+https://plumeria.dev/docs/reference/specificity.md
+https://plumeria.dev/docs/api-reference/javascript/create.md
+https://plumeria.dev/docs/api-reference/javascript/createStatic.md
+https://plumeria.dev/docs/api-reference/javascript/createTheme.md
+https://plumeria.dev/docs/api-reference/javascript/keyframes.md
+https://plumeria.dev/docs/api-reference/javascript/marker.md
+https://plumeria.dev/docs/api-reference/javascript/use.md
+https://plumeria.dev/docs/api-reference/javascript/viewTransition.md
+```
+
+### Tooling, testing, and migration
+
+Use this set when configuring linting, testing compiler output, or migrating an existing codebase.
+
+```text title="Tooling context"
+https://plumeria.dev/docs/getting-started/editor-integration.md
+https://plumeria.dev/docs/testing.md
+https://plumeria.dev/docs/api-reference/plugins/eslint-plugin.md
+https://plumeria.dev/docs/api-reference/plugins/eslint-plugin/optional-rules.md
+https://plumeria.dev/docs/api-reference/codemod.md
+```
+
+### Components and distribution
+
+Use this set for component libraries, framework components, or development inspection.
+
+```text title="Component context"
+https://plumeria.dev/docs/integration/frameworks.md
+https://plumeria.dev/docs/integration/component-library.md
+https://plumeria.dev/docs/api-reference/components/headlessui.md
+https://plumeria.dev/docs/api-reference/components/inspector.md
+```
+
+## Integrations
+
+Load the guide that matches the project. Each page includes installation and a working configuration.
+
+```text title="Bundler and framework integrations"
+Next.js     https://plumeria.dev/docs/integration/next.md
+Vite        https://plumeria.dev/docs/integration/vite.md
+Bun         https://plumeria.dev/docs/integration/bun.md
+esbuild     https://plumeria.dev/docs/integration/esbuild.md
+Farm        https://plumeria.dev/docs/integration/farm.md
+Rollup      https://plumeria.dev/docs/integration/rollup.md
+Rolldown    https://plumeria.dev/docs/integration/rolldown.md
+Rspack      https://plumeria.dev/docs/integration/rspack.md
+webpack     https://plumeria.dev/docs/integration/webpack.md
+
+Frameworks  https://plumeria.dev/docs/integration/frameworks.md
+```
+
+The lower-level plugin references document every configuration option:
+
+```text title="Plugin references"
+Next.js plugin  https://plumeria.dev/docs/api-reference/plugins/next-plugin.md
+Unplugin        https://plumeria.dev/docs/api-reference/plugins/unplugin.md
+ESLint plugin   https://plumeria.dev/docs/api-reference/plugins/eslint-plugin.md
+```
+
+## Complete documentation map
+
+Use this map when an agent needs to discover material outside the focused sets above. It covers every documentation section, from concepts through API and CSS references.
+
+| Area | What it contains | Markdown |
+| :-- | :-- | :-- |
+| Getting started | Installation, selector rules, editor and ESLint setup | [Open section](/docs/getting-started) · [Markdown](/docs/getting-started.md) |
+| Core concepts | Why Plumeria, compile-time behavior, composition | [Introduction](/docs) · [Why Plumeria?](/docs/why-plumeria) · [Category theory](/docs/category) |
+| JavaScript API | `create`, static styles, themes, keyframes, markers, transitions, and `use` | [Open section](/docs/api-reference/javascript) · [Markdown](/docs/api-reference/javascript.md) |
+| Components | Headless UI integration and the development inspector | [Open section](/docs/api-reference/components) · [Markdown](/docs/api-reference/components.md) |
+| Plugins and tools | Next.js, unplugin, ESLint, and codemods | [Open section](/docs/api-reference/plugins) · [API index](/docs/api-reference) |
+| Integrations | Nine bundlers, frameworks, and component-library distribution | [Open section](/docs/integration) · [Markdown](/docs/integration.md) |
+| Testing | Compiler, component, jsdom, and type testing | [Open page](/docs/testing) · [Markdown](/docs/testing.md) |
+| CSS reference | Specificity, colors, and supported pseudo-selectors | [Open section](/docs/reference) · [Markdown](/docs/reference.md) |
+
+## Fetch Markdown
+
+Add `.md` to any documentation URL to get the page as raw Markdown. The response includes its title and canonical URL.
+
+```text title="Any page as Markdown"
+https://plumeria.dev/docs/testing.md
+https://plumeria.dev/docs/api-reference/javascript/create.md
+https://plumeria.dev/docs/integration/webpack.md
+```
+
+For broad research, use the generated machine-readable indexes:
+
+<Cards>
+  <Card
+    title="llms.txt"
+    href="https://plumeria.dev/llms.txt"
+    description="Every page with its title, URL, and description"
+  />
+  <Card
+    title="llms-full.txt"
+    href="https://plumeria.dev/llms-full.txt"
+    description="The complete documentation concatenated into one file"
+  />
+  <Card
+    title="AI.md"
+    href="/docs/ai"
+    description="Authoritative rules and mental models for agents"
+  />
+</Cards>
+
+## Working examples
+
+The [`examples/` directory](https://github.com/zss-in-js/plumeria/tree/main/examples) contains compiling projects for Next.js, Vite, Rollup, Rspack, webpack, esbuild, Bun, Farm, and Rolldown, plus React Router, Vue, Svelte, Solid, Qwik, Preact, Astro, and Storybook. Point an agent to the matching example when it needs a complete configuration rather than an isolated snippet.
