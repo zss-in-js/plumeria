@@ -271,6 +271,11 @@ The following twenty-five component groups are exported. All components support 
 ### VisuallyHidden
 
 
+## API Stability
+
+**Stability: Stable** — additive only; existing signatures will not move.
+See [API Stability](https://github.com/zss-in-js/plumeria#api-stability).
+
 ## License
 
 Plumeria is MIT licensed.
