@@ -200,44 +200,7 @@ If the two disagree, the prop type-checks but is never compiled away. [`@plumeri
 
 ## Testing
 
-`@plumeria/unplugin/factory` exposes the compiler behind every bundler entry as a plain function. Give it a source string and it hands back the rewritten code, with the stylesheet available from `resolveId` and `load`:
-
-```js
-// compile.test.js
-const { unpluginFactory } = require('@plumeria/unplugin/factory');
-
-const compile = async (source) => {
-  const plugin = unpluginFactory(undefined, { framework: 'vite' });
-  const result = await plugin.transform.call(
-    { addWatchFile: () => {} },
-    source,
-    `${__dirname}/fixture.tsx`,
-  );
-  const code = typeof result === 'string' ? result : (result?.code ?? '');
-  const cssId = code.match(/import "([^"]*\.zero\.css)"/)?.[1];
-  const resolved = await plugin.resolveId?.call({}, cssId);
-  const loaded = await plugin.load?.call({}, resolved?.id ?? resolved);
-  return { code, css: typeof loaded === 'string' ? loaded : (loaded?.code ?? '') };
-};
-
-test('two properties become two atoms', async () => {
-  const { code, css } = await compile(`
-    import * as css from '@plumeria/core';
-    const styles = css.create({ box: { padding: 16, color: 'red' } });
-    export const A = () => <div classStyle={styles.box} />;
-  `);
-
-  expect(code).toMatch(/className=\{"\S+ \S+"\}/);
-  expect(css).toContain('padding: 16px');
-  expect(css).toContain('color: red');
-});
-```
-
-No bundler, no DOM, and no runtime resolution of `@plumeria/core` is involved, so Jest, Vitest and `node:test` all run it as it stands. The bundler entries reach `unplugin` itself, which is ESM and cannot be required from a CommonJS runner; this subpath skips them.
-
-Read the class names out of the returned code rather than hard-coding them. An atomic class name is one property–value pair, hashed, so a list spelled out in a test breaks the next time a property is added to the style.
-
-See [Testing](https://plumeria.dev/docs/testing) for the layer this belongs to, and the two it does not cover.
+`@plumeria/unplugin/factory` exposes the plugin behind every bundler entry, so a test can drive its `transform`, `resolveId` and `load` hooks directly and assert on the compiled output with no bundler in between. See [Testing](https://plumeria.dev/docs/testing) for the example, and for the component behavior and rendered-page checks that complement it.
 
 ## API Stability
 
