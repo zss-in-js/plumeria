@@ -21,6 +21,67 @@ describe('convertStylesheet', () => {
     expect(names).toEqual({ card: 'card' });
   });
 
+  it('writes a keyframes the stylesheet declares as a css.keyframes binding', () => {
+    const { code, reports } = convertStylesheet(
+      `@keyframes pulse-soft { 0%, 100% { opacity: 1 } 50% { opacity: 0.4 } }
+       .badge { animation-name: pulse-soft; animation-duration: 2s }`,
+    );
+
+    expect(code).toContain('const pulseSoft = css.keyframes({');
+    expect(code).toContain("'0%, 100%': {");
+    expect(code).toContain('animationName: pulseSoft,');
+    expect(code).toContain("animationDuration: '2s',");
+    expect(reports).toEqual([]);
+  });
+
+  it('splits an animation shorthand that names a local keyframes', () => {
+    const { code } = convertStylesheet(
+      `@keyframes spin { from { rotate: 0deg } to { rotate: 360deg } }
+       .icon { animation: spin 1s 200ms linear infinite both }`,
+    );
+
+    expect(code).toContain('const spin = css.keyframes({');
+    expect(code).toContain('from: {');
+    expect(code).toContain('animationName: spin,');
+    expect(code).toContain("animationDuration: '1s',");
+    expect(code).toContain("animationDelay: '200ms',");
+    expect(code).toContain("animationTimingFunction: 'linear',");
+    expect(code).toContain("animationIterationCount: 'infinite',");
+    expect(code).toContain("animationFillMode: 'both',");
+  });
+
+  it('leaves an animation naming something the stylesheet never declares', () => {
+    const { code, reports } = convertStylesheet(
+      '.icon { animation: fade-in 1s; animation-name: fade-out }',
+    );
+
+    expect(code).toContain("animation: 'fade-in 1s',");
+    expect(code).toContain("animationName: 'fade-out',");
+    expect(reports).toEqual([]);
+  });
+
+  it('reports an animation shorthand it cannot split', () => {
+    const { code, reports } = convertStylesheet(
+      `@keyframes spin { from { rotate: 0deg } }
+       .icon { animation: spin 1s, fade-in 2s }`,
+    );
+
+    expect(reports.map((report) => report.kind)).toContain(
+      'unsupported-animation',
+    );
+    expect(code).toContain("animation: 'spin 1s, fade-in 2s',");
+  });
+
+  it('reports a keyframes nothing in the stylesheet reads', () => {
+    const { code, reports } = convertStylesheet(
+      `@keyframes spin { from { rotate: 0deg } }
+       .icon { color: red }`,
+    );
+
+    expect(code).not.toContain('css.keyframes');
+    expect(reports.map((report) => report.kind)).toEqual(['unused-keyframes']);
+  });
+
   it('camel-cases the class name and the property', () => {
     const { code, names } = convertStylesheet(
       '.card-title { font-size: 12px }',
@@ -435,6 +496,7 @@ describe('convertStylesheet', () => {
     });
     const rules = [rule('.card-title'), rule('.cardTitle'), rule('.orphan')];
     const parse = jest.spyOn(postcss, 'parse').mockReturnValue({
+      walkAtRules: () => undefined,
       walkRules: (visit: (item: unknown) => void) => rules.forEach(visit),
       walkDecls: () => undefined,
     } as never);
