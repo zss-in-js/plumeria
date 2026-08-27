@@ -121,20 +121,28 @@ const walk = (node: any, visit: (node: any) => void) => {
 export const releasedPath = (source: string): string =>
   source.replace(/(?:\.styles)?\.[^.]+$/, '.module.css');
 
+const GLOBAL_DIRECTORIES = [
+  ['src', 'app'],
+  ['app'],
+  ['src', 'styles'],
+  ['styles'],
+];
+
+const GLOBAL_NAMES = ['global.css', 'globals.css'];
+
 const globalPath = (targets: string[]): string => {
   const first = path.resolve(targets[0]);
   const root =
     fs.existsSync(first) && fs.statSync(first).isDirectory()
       ? first
       : path.dirname(first);
-  const candidates = [
-    path.join(root, 'src', 'styles', 'global.css'),
-    path.join(root, 'styles', 'global.css'),
-  ];
-  return (
-    candidates.find((candidate) => fs.existsSync(candidate)) ??
-    (fs.existsSync(path.join(root, 'src')) ? candidates[0] : candidates[1])
-  );
+  const existing = GLOBAL_DIRECTORIES.flatMap((directory) =>
+    GLOBAL_NAMES.map((name) => path.join(root, ...directory, name)),
+  ).find((candidate) => fs.existsSync(candidate));
+  if (existing) return existing;
+  return fs.existsSync(path.join(root, 'src'))
+    ? path.join(root, 'src', 'styles', 'global.css')
+    : path.join(root, 'styles', 'global.css');
 };
 
 export function planRelease(targets: string[]): ReleasePlan {
