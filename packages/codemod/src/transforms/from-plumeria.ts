@@ -88,6 +88,7 @@ const own = (target: string, classNames: string[]): string =>
 export interface ThemeExtraction {
   bindings: Record<string, Record<string, string>>;
   globalCss: string;
+  cssByBinding: Record<string, string>;
   reports: PlumeriaReport[];
 }
 
@@ -101,6 +102,7 @@ export interface AnimationExtraction {
   keyframes: string[];
   viewTransitions: string[];
   globalCss: string;
+  cssByBinding: Record<string, string>;
   reports: PlumeriaReport[];
 }
 
@@ -352,6 +354,7 @@ const readThemes = (ast: any): ThemeExtraction => {
   const values = new Map<string, Record<string, string>>();
   const reports: PlumeriaReport[] = [];
   const globalRules: string[] = [];
+  const cssByBinding: Record<string, string> = {};
   const report = (node: any, kind: string, hint: string) => {
     reports.push({
       line: node.loc.start.line,
@@ -413,7 +416,7 @@ const readThemes = (ast: any): ThemeExtraction => {
         continue;
       }
       values.set(declaration.id.name, references);
-      globalRules.push(`:where(:root) {\n${rootDeclarations.join('\n')}\n}`);
+      const rules = [`:where(:root) {\n${rootDeclarations.join('\n')}\n}`];
       const target =
         selector.startsWith('@') ||
         selector.startsWith('.') ||
@@ -423,20 +426,23 @@ const readThemes = (ast: any): ThemeExtraction => {
           ? selector
           : `.${selector}`;
       if (isAtRule(target)) {
-        globalRules.push(
+        rules.push(
           `${target} {\n  :where(:root) {\n${themeDeclarations
             .map((line) => `  ${line}`)
             .join('\n')}\n  }\n}`,
         );
       } else {
-        globalRules.push(`${target} {\n${themeDeclarations.join('\n')}\n}`);
+        rules.push(`${target} {\n${themeDeclarations.join('\n')}\n}`);
       }
+      cssByBinding[declaration.id.name] = rules.join('\n\n');
+      globalRules.push(...rules);
     }
   }
 
   return {
     bindings: Object.fromEntries(values),
     globalCss: globalRules.length > 0 ? `${globalRules.join('\n\n')}\n` : '',
+    cssByBinding,
     reports,
   };
 };
@@ -529,6 +535,7 @@ export function extractPlumeriaAnimations(
   const bindings: Record<string, string> = {};
   const reports: PlumeriaReport[] = [];
   const rules: string[] = [];
+  const cssByBinding: Record<string, string> = {};
   const keyframes: string[] = [];
   const viewTransitions: string[] = [];
   const report = (node: any, kind: string, hint: string) => {
@@ -566,9 +573,12 @@ export function extractPlumeriaAnimations(
     values.set(declaration.id.name, name);
     bindings[declaration.id.name] = name;
     keyframes.push(declaration.id.name);
-    rules.push(
-      emitGlobalObject(`@keyframes ${name}`, object as Record<string, unknown>),
+    const rule = emitGlobalObject(
+      `@keyframes ${name}`,
+      object as Record<string, unknown>,
     );
+    cssByBinding[declaration.id.name] = rule;
+    rules.push(rule);
   }
 
   for (const declaration of declarations) {
@@ -591,11 +601,12 @@ export function extractPlumeriaAnimations(
     values.set(declaration.id.name, name);
     bindings[declaration.id.name] = name;
     viewTransitions.push(declaration.id.name);
+    const parts: string[] = [];
     for (const part of ['group', 'imagePair', 'old', 'new']) {
       const style = (object as Record<string, unknown>)[part];
       if (style && typeof style === 'object') {
         const pseudoPart = part === 'imagePair' ? 'image-pair' : part;
-        rules.push(
+        parts.push(
           emitGlobalObject(
             `::view-transition-${pseudoPart}(${name})`,
             style as Record<string, unknown>,
@@ -603,6 +614,9 @@ export function extractPlumeriaAnimations(
         );
       }
     }
+    if (parts.length > 0)
+      cssByBinding[declaration.id.name] = parts.join('\n\n');
+    rules.push(...parts);
   }
 
   return {
@@ -610,6 +624,7 @@ export function extractPlumeriaAnimations(
     keyframes,
     viewTransitions,
     globalCss: rules.length > 0 ? `${rules.join('\n\n')}\n` : '',
+    cssByBinding,
     reports,
   };
 }
