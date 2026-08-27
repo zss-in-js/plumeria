@@ -259,6 +259,67 @@ export const theme = css.createTheme('.dark', {
     expect(fs.readFileSync(global, 'utf8')).toContain('createTheme');
   });
 
+  it('appends keyframes to the app/global.css the layout already imports', () => {
+    const appDir = path.join(dir, 'app');
+    fs.mkdirSync(appDir);
+    const global = path.join(appDir, 'global.css');
+    fs.writeFileSync(global, '@layer reset;\n');
+    fs.writeFileSync(
+      path.join(appDir, 'layout.tsx'),
+      `import './global.css';\n\nexport default function Layout() {\n  return null;\n}`,
+    );
+    fs.writeFileSync(
+      path.join(dir, 'Spinner.tsx'),
+      `import * as css from '@plumeria/core';
+const spin = css.keyframes({ from: { rotate: '0deg' }, to: { rotate: '360deg' } });
+export const styles = css.create({ icon: { animationName: spin } });`,
+    );
+
+    const plan = planRelease([dir]);
+    expect(plan.global?.target).toBe(global);
+    writeRelease(plan);
+    const written = fs.readFileSync(global, 'utf8');
+    expect(written).toContain('@layer reset;');
+    expect(written).toMatch(/@keyframes kf-[a-z0-9]+/);
+    expect(fs.existsSync(path.join(dir, 'styles', 'global.css'))).toBe(false);
+  });
+
+  it('finds the stylesheet under src/app, and takes globals.css too', () => {
+    const appDir = path.join(dir, 'src', 'app');
+    fs.mkdirSync(appDir, { recursive: true });
+    const global = path.join(appDir, 'globals.css');
+    fs.writeFileSync(global, '');
+    fs.writeFileSync(
+      path.join(dir, 'src', 'theme.ts'),
+      `import * as css from '@plumeria/core';
+export const theme = css.createTheme('.dark', {
+  color: { default: 'black', theme: 'white' },
+});`,
+    );
+
+    expect(planRelease([dir]).global?.target).toBe(global);
+  });
+
+  it('prefers the app stylesheet over one under styles', () => {
+    const appDir = path.join(dir, 'app');
+    const stylesDir = path.join(dir, 'styles');
+    fs.mkdirSync(appDir);
+    fs.mkdirSync(stylesDir);
+    fs.writeFileSync(path.join(appDir, 'global.css'), '');
+    fs.writeFileSync(path.join(stylesDir, 'global.css'), '');
+    fs.writeFileSync(
+      path.join(dir, 'theme.ts'),
+      `import * as css from '@plumeria/core';
+export const theme = css.createTheme('.dark', {
+  color: { default: 'black', theme: 'white' },
+});`,
+    );
+
+    expect(planRelease([dir]).global?.target).toBe(
+      path.join(appDir, 'global.css'),
+    );
+  });
+
   it('records function metadata in a releasable module', () => {
     const source = path.join(dir, 'dynamic.tsx');
     fs.writeFileSync(
