@@ -216,11 +216,13 @@ reported as `dynamic-style-access` and its definitions stay in Plumeria.
 
 `css.createTheme`, `css.keyframes`, and `css.viewTransition` produce rules that
 belong in a global stylesheet, not in a CSS Module. The codemod extracts them and
-appends them to `src/styles/global.css` (or `styles/global.css` when `src` does
-not exist). Theme tokens become CSS custom properties under `:where(:root)` and
-the theme selector; keyframes become `@keyframes kf-<hash>`; view transitions
-become `::view-transition-*` pseudo-element rules. References in style objects
-are replaced by their generated names.
+appends them to the stylesheet the project already loads — `app/global.css` or
+`styles/global.css`, under `src` or not, spelled `global` or `globals` — and
+writes `src/styles/global.css` (or `styles/global.css` when `src` does not
+exist) when it finds none. Theme tokens become CSS custom properties under
+`:where(:root)` and the theme selector; keyframes become `@keyframes kf-<hash>`;
+view transitions become `::view-transition-*` pseudo-element rules. References
+in style objects are replaced by their generated names.
 
 `css.createStatic` values are statically evaluated and inlined directly into the
 generated CSS rules — no separate output file is needed.
