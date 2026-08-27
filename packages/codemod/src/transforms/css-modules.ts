@@ -83,6 +83,43 @@ export const toKey = (className: string): string => camel(className);
 const PX = /^-?(\d+\.?\d*|\.\d+)px$/;
 const NUMBER = /^-?(\d+\.?\d*|\.\d+)$/;
 
+const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
+
+const RESERVED_BINDINGS = new Set(['css', 'styles']);
+
+const ANIMATION_PARTS: [string, RegExp][] = [
+  ['animationTimingFunction', /^(cubic-bezier|steps|linear)\(/i],
+  [
+    'animationTimingFunction',
+    /^(linear|ease|ease-in|ease-out|ease-in-out|step-start|step-end)$/i,
+  ],
+  ['animationIterationCount', /^(infinite|\d+\.?\d*)$/i],
+  ['animationDirection', /^(normal|reverse|alternate|alternate-reverse)$/i],
+  ['animationFillMode', /^(none|forwards|backwards|both)$/i],
+  ['animationPlayState', /^(running|paused)$/i],
+];
+
+const TIME = /^-?(\d+\.?\d*|\.\d+)(s|ms)$/i;
+
+const words = (value: string): string[] | null => {
+  const found: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const character of value) {
+    if (character === '(') depth += 1;
+    if (character === ')') depth -= 1;
+    if (character === ',' && depth === 0) return null;
+    if (/\s/.test(character) && depth === 0) {
+      if (current) found.push(current);
+      current = '';
+      continue;
+    }
+    current += character;
+  }
+  if (current) found.push(current);
+  return found;
+};
+
 export const toValue = (raw: string): Value => {
   const value = raw.trim();
   if (PX.test(value)) return Number(value.slice(0, -2));
@@ -291,7 +328,11 @@ const serialise = (node: StyleNode, indent: string): string => {
     lines.push(`${indent}${key}: ${written},`);
   }
   for (const [key, child] of node.nested) {
-    const written = key.startsWith('css.extended(') ? `[${key}]` : `'${key}'`;
+    const written = key.startsWith('css.extended(')
+      ? `[${key}]`
+      : IDENTIFIER.test(key)
+        ? key
+        : `'${key}'`;
     lines.push(`${indent}${written}: {`);
     lines.push(serialise(child, indent + '  '));
     lines.push(`${indent}},`);
@@ -335,6 +376,105 @@ export function convertStylesheet(css: string): Converted {
       source: node.type === 'rule' ? node.selector : String(node),
       hint,
     });
+  };
+
+  const animations = new Map<string, string>();
+  const animationNodes = new Map<string, StyleNode>();
+  const reachedAnimations = new Set<string>();
+
+  root.walkAtRules(/^(-[a-z]+-)?keyframes$/i, (atRule) => {
+    const name = atRule.params.trim();
+    const binding = toKey(name);
+    const taken =
+      RESERVED_BINDINGS.has(binding) ||
+      [...animations.values()].includes(binding);
+    if (!IDENTIFIER.test(binding) || taken) {
+      reports.push({
+        line: atRule.source?.start?.line ?? 0,
+        column: atRule.source?.start?.column ?? 0,
+        kind: 'unsupported-keyframes',
+        source: `@${atRule.name} ${atRule.params}`,
+        hint: `\`${name}\` cannot be written as a \`css.keyframes\` binding. Rename it, then run again.`,
+      });
+      atRule.remove();
+      return;
+    }
+    const node = emptyNode();
+    atRule.each((child) => {
+      if (child.type !== 'rule') return;
+      const step = nest(node, child.selectors.join(', '));
+      child.each((declaration) => {
+        if (declaration.type !== 'decl') return;
+        step.decls.push([
+          toProperty(declaration.prop),
+          toValue(declaration.value),
+        ]);
+      });
+    });
+    animations.set(name, binding);
+    animationNodes.set(binding, node);
+    atRule.remove();
+  });
+
+  const animationDeclarations = (
+    declaration: Declaration,
+  ): [string, Value][] | null => {
+    if (animations.size === 0) return null;
+    const value = declaration.value.trim();
+    if (declaration.prop === 'animation-name') {
+      const binding = animations.get(value);
+      if (!binding) return null;
+      reachedAnimations.add(binding);
+      return [['animation-name', { raw: binding }]];
+    }
+    if (declaration.prop !== 'animation') return null;
+    const tokens = words(value);
+    const named = tokens?.filter((token) => animations.has(token)) ?? [];
+    if (!tokens || named.length === 0) {
+      const reads = (words(value.replace(/,/g, ' ')) ?? []).some((token) =>
+        animations.has(token),
+      );
+      if (reads)
+        report(
+          declaration,
+          'unsupported-animation',
+          'Only a single `animation` naming one local `@keyframes` is split into longhands. Write the longhands instead.',
+        );
+      return null;
+    }
+    const written = new Map<string, Value>();
+    for (const token of tokens) {
+      if (animations.has(token)) {
+        if (written.has('animation-name')) return null;
+        written.set('animation-name', { raw: animations.get(token) as string });
+        continue;
+      }
+      if (TIME.test(token)) {
+        const property = written.has('animation-duration')
+          ? 'animation-delay'
+          : 'animation-duration';
+        if (written.has(property)) return null;
+        written.set(property, token);
+        continue;
+      }
+      const part = ANIMATION_PARTS.find(([, pattern]) => pattern.test(token));
+      const property = part
+        ? part[0].replace(/([A-Z])/g, '-$1').toLowerCase()
+        : undefined;
+      if (!property || written.has(property)) {
+        report(
+          declaration,
+          'unsupported-animation',
+          `\`${token}\` was not recognised as an \`animation\` component, so the shorthand was left as it was written.`,
+        );
+        return null;
+      }
+      written.set(property, token);
+    }
+    reachedAnimations.add(
+      (written.get('animation-name') as { raw: string }).raw,
+    );
+    return [...written];
   };
 
   root.walkRules((rule) => {
@@ -433,20 +573,25 @@ export function convertStylesheet(css: string): Converted {
         }
         // A merged class arrives as consecutive rules for one selector, so the
         // later declaration wins rather than being written a second time.
-        const property = toProperty(child.prop);
-        props.add(`${where}::${property}`);
-        // Counted per declaration, not per rule: two written into one rule are
-        // still ordered, and a rule written later for another property says
-        // nothing about the one that disagrees.
-        mine.push({
-          property: child.prop,
-          suffix: target.pseudo,
-          rank: rankOf(child.prop, conditional),
-          place: wrote++,
-        });
-        const held = node.decls.findIndex(([name]) => name === property);
-        if (held !== -1) node.decls.splice(held, 1);
-        node.decls.push([property, toValue(child.value)]);
+        const expanded: [string, Value][] = animationDeclarations(child) ?? [
+          [child.prop, toValue(child.value)],
+        ];
+        for (const [name, value] of expanded) {
+          const property = toProperty(name);
+          props.add(`${where}::${property}`);
+          // Counted per declaration, not per rule: two written into one rule
+          // are still ordered, and a rule written later for another property
+          // says nothing about the one that disagrees.
+          mine.push({
+            property: name,
+            suffix: target.pseudo,
+            rank: rankOf(name, conditional),
+            place: wrote++,
+          });
+          const held = node.decls.findIndex(([held]) => held === property);
+          if (held !== -1) node.decls.splice(held, 1);
+          node.decls.push([property, value]);
+        }
       });
     }
   });
@@ -500,9 +645,28 @@ export function convertStylesheet(css: string): Converted {
     })
     .join('\n');
 
+  const bindings = [...animationNodes]
+    .filter(([binding]) => reachedAnimations.has(binding))
+    .map(
+      ([binding, node]) =>
+        `const ${binding} = css.keyframes({\n${serialise(node, '  ')}\n});\n\n`,
+    )
+    .join('');
+
+  for (const [name, binding] of animations) {
+    if (reachedAnimations.has(binding)) continue;
+    reports.push({
+      line: 0,
+      column: 0,
+      kind: 'unused-keyframes',
+      source: `@keyframes ${name}`,
+      hint: `Nothing in the stylesheet reads \`${name}\`, so it was not written.`,
+    });
+  }
+
   const code = `import * as css from '@plumeria/core';
 
-export const styles = css.create({
+${bindings}export const styles = css.create({
 ${body}
 });
 `;
