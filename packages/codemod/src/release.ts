@@ -162,9 +162,10 @@ export function planRelease(targets: string[]): ReleasePlan {
     Record<string, Record<string, unknown>>
   >();
   const reportsBySource = new Map<string, PlumeriaReport[]>();
-  const globalBySource = new Map<string, string[]>();
   const themeKeys = new Map<string, string[]>();
+  const themeCss = new Map<string, Record<string, string>>();
   const animationKeys = new Map<string, string[]>();
+  const animationCss = new Map<string, Record<string, string>>();
   const staticKeys = new Map<string, string[]>();
   const dependencies = new Map<string, Set<string>>();
 
@@ -173,15 +174,6 @@ export function planRelease(targets: string[]): ReleasePlan {
     reportsBySource.set(source, [
       ...(reportsBySource.get(source) ?? []),
       ...reports,
-    ]);
-  };
-
-  const addGlobal = (source: string, css: string) => {
-    const trimmed = css.trim();
-    if (trimmed.length === 0) return;
-    globalBySource.set(source, [
-      ...(globalBySource.get(source) ?? []),
-      trimmed,
     ]);
   };
 
@@ -288,7 +280,7 @@ export function planRelease(targets: string[]): ReleasePlan {
       note(source, extracted.reports);
       if (Object.keys(extracted.bindings).length === 0) continue;
       themeKeys.set(source, Object.keys(extracted.bindings));
-      addGlobal(source, extracted.globalCss);
+      themeCss.set(source, extracted.cssByBinding);
     } catch {
       // The converter reports parse failures through the source rewrite pass.
     }
@@ -325,7 +317,7 @@ export function planRelease(targets: string[]): ReleasePlan {
         ...extracted.keyframes,
         ...extracted.viewTransitions,
       ]);
-      addGlobal(source, extracted.globalCss);
+      animationCss.set(source, extracted.cssByBinding);
     } catch {
       // The converter reports parse failures through the source rewrite pass.
     }
@@ -636,16 +628,197 @@ export function planRelease(targets: string[]): ReleasePlan {
     }
   }
 
+  const definedKey = (source: string, binding: string): string =>
+    `${source}\u0000${binding}`;
+
+  const definedIn = (source: string): string[] => [
+    ...(themeKeys.get(source) ?? []),
+    ...(animationKeys.get(source) ?? []),
+  ];
+
+  const outerReferences = new Map<string, string[]>();
+  const innerReferences = new Map<string, Map<string, string[]>>();
+
+  for (const source of sources) {
+    if (blocked.has(source)) continue;
+    const owned = definedIn(source);
+    let ast;
+    try {
+      ast = parse(sourceText.get(source) as string, {
+        sourceType: 'module',
+        ecmaFeatures: { jsx: true },
+      }) as any;
+    } catch {
+      continue;
+    }
+
+    const local = new Map<string, string>();
+    const namespaces = new Map<string, string>();
+    for (const binding of owned)
+      local.set(binding, definedKey(source, binding));
+    for (const node of ast.body) {
+      if (
+        node.type !== 'ImportDeclaration' ||
+        typeof node.source.value !== 'string'
+      )
+        continue;
+      const target = resolveSourcePath(node.source.value, source);
+      const available = target ? definedIn(target) : [];
+      if (!target || available.length === 0) continue;
+      for (const specifier of node.specifiers) {
+        if (specifier.type === 'ImportNamespaceSpecifier') {
+          namespaces.set(specifier.local.name, target);
+          continue;
+        }
+        if (specifier.type !== 'ImportSpecifier') continue;
+        const imported = specifier.imported.name ?? specifier.imported.value;
+        if (available.includes(imported))
+          local.set(specifier.local.name, definedKey(target, imported));
+      }
+    }
+    if (local.size === 0 && namespaces.size === 0) continue;
+
+    const named = new Set<any>();
+    walk(ast, (node: any) => {
+      if (node.type === 'MemberExpression' && !node.computed)
+        named.add(node.property);
+      else if (node.type === 'Property' && !node.computed) named.add(node.key);
+      else if (node.type === 'ImportSpecifier') {
+        named.add(node.local);
+        named.add(node.imported);
+      } else if (
+        node.type === 'ImportDefaultSpecifier' ||
+        node.type === 'ImportNamespaceSpecifier'
+      )
+        named.add(node.local);
+    });
+
+    const definitions = new Map<string, any>();
+    for (const raw of ast.body) {
+      const statement =
+        raw.type === 'ExportNamedDeclaration' ? raw.declaration : raw;
+      if (statement?.type !== 'VariableDeclaration') continue;
+      for (const declaration of statement.declarations) {
+        if (
+          declaration.id.type !== 'Identifier' ||
+          !owned.includes(declaration.id.name)
+        )
+          continue;
+        named.add(declaration.id);
+        definitions.set(declaration.id.name, declaration.init);
+      }
+    }
+
+    const inside = new Set<any>();
+    for (const init of definitions.values())
+      walk(init, (node: any) => inside.add(node));
+
+    const readsOf = (root: any, skip: (node: any) => boolean): string[] => {
+      const found = new Set<string>();
+      walk(root, (node: any) => {
+        if (skip(node)) return;
+        if (node.type === 'Identifier' && !named.has(node)) {
+          const key = local.get(node.name);
+          if (key) found.add(key);
+          return;
+        }
+        if (
+          node.type !== 'MemberExpression' ||
+          node.computed ||
+          node.object.type !== 'Identifier' ||
+          node.property.type !== 'Identifier'
+        )
+          return;
+        const target = namespaces.get(node.object.name);
+        const available = target ? definedIn(target) : [];
+        if (target && available.includes(node.property.name))
+          found.add(definedKey(target, node.property.name));
+      });
+      return [...found];
+    };
+
+    outerReferences.set(
+      source,
+      readsOf(ast, (node) => inside.has(node)),
+    );
+    innerReferences.set(
+      source,
+      new Map(
+        [...definitions].map(([binding, init]) => [
+          binding,
+          readsOf(init, () => false),
+        ]),
+      ),
+    );
+  }
+
+  const reachable = new Set<string>();
+  const pending: string[] = [];
+  const reach = (key: string) => {
+    if (reachable.has(key)) return;
+    reachable.add(key);
+    pending.push(key);
+  };
+  for (const keys of outerReferences.values())
+    for (const key of keys) reach(key);
+  while (pending.length > 0) {
+    const [target, binding] = (pending.pop() as string).split('\u0000');
+    for (const key of innerReferences.get(target)?.get(binding) ?? [])
+      reach(key);
+  }
+
+  const releasedFrom = (source: string, binding: string): boolean =>
+    reachable.has(definedKey(source, binding));
+
+  // A CSS Module scopes an `animation-name` value the way it scopes a class, so
+  // a keyframes written to the global stylesheet is renamed at the call site
+  // and matches nothing. The rule rides in the module that reads it instead.
+  const keyframesByName = new Map<string, string>();
+  for (const [source, bindings] of animationValues) {
+    for (const [binding, name] of Object.entries(bindings)) {
+      if (!name.startsWith('kf-') || !releasedFrom(source, binding)) continue;
+      const rule = animationCss.get(source)?.[binding]?.trim();
+      if (rule) keyframesByName.set(name, rule);
+    }
+  }
+
+  // A `::view-transition-*` rule sits in the global stylesheet, so a keyframes
+  // it names has to be written there unscoped as well.
+  const globalReads = new Set<string>();
+  for (const [source, bindings] of animationValues) {
+    for (const [binding, name] of Object.entries(bindings)) {
+      if (!name.startsWith('vt-') || !releasedFrom(source, binding)) continue;
+      for (const read of animationCss
+        .get(source)
+        ?.[binding]?.match(/\bkf-[a-z0-9]+\b/g) ?? [])
+        globalReads.add(read);
+    }
+  }
+
+  const carried = new Map<string, string[]>();
+  const placed = new Set<string>();
+  for (const [source, module] of converted) {
+    if (blocked.has(source) || !module) continue;
+    const read = [...new Set(module.css.match(/\bkf-[a-z0-9]+\b/g) ?? [])]
+      .filter((name) => keyframesByName.has(name))
+      .map((name) => {
+        placed.add(name);
+        return keyframesByName.get(name) as string;
+      });
+    if (read.length > 0) carried.set(source, read);
+  }
+
   const globalRules: string[] = [];
   const values: Record<string, Record<string, unknown>> = {};
   for (const source of sources) {
     const reports = reportsBySource.get(source) ?? [];
     const module = converted.get(source);
     if (module) {
+      const held = carried.get(source);
       stylesheets.push({
         source,
         target: releasedPath(source),
-        css: module.css,
+        css: held ? `${held.join('\n\n')}\n\n${module.css}` : module.css,
         reports,
       });
     } else if (reports.length > 0) {
@@ -654,15 +827,40 @@ export function planRelease(targets: string[]): ReleasePlan {
     if (blocked.has(source)) continue;
     const resolved = {
       ...(staticValues.get(source) ?? {}),
-      ...(themeValues.get(source) ?? {}),
-      ...(animationValues.get(source) ?? {}),
+      ...Object.fromEntries(
+        Object.entries(themeValues.get(source) ?? {}).filter(([binding]) =>
+          releasedFrom(source, binding),
+        ),
+      ),
+      ...Object.fromEntries(
+        Object.entries(animationValues.get(source) ?? {}).filter(([binding]) =>
+          releasedFrom(source, binding),
+        ),
+      ),
     };
     if (Object.keys(resolved).length > 0) values[source] = resolved;
-    globalRules.push(...(globalBySource.get(source) ?? []));
-    if (themeKeys.has(source))
-      themes[source] = themeKeys.get(source) as string[];
-    if (animationKeys.has(source))
-      animations[source] = animationKeys.get(source) as string[];
+    const releasedThemes = (themeKeys.get(source) ?? []).filter((binding) =>
+      releasedFrom(source, binding),
+    );
+    if (releasedThemes.length > 0) {
+      themes[source] = releasedThemes;
+      for (const binding of releasedThemes) {
+        const rule = themeCss.get(source)?.[binding]?.trim();
+        if (rule) globalRules.push(rule);
+      }
+    }
+    const releasedAnimations = (animationKeys.get(source) ?? []).filter(
+      (binding) => releasedFrom(source, binding),
+    );
+    if (releasedAnimations.length > 0) {
+      animations[source] = releasedAnimations;
+      for (const binding of releasedAnimations) {
+        const name = animationValues.get(source)?.[binding];
+        if (name && placed.has(name) && !globalReads.has(name)) continue;
+        const rule = animationCss.get(source)?.[binding]?.trim();
+        if (rule) globalRules.push(rule);
+      }
+    }
     if (staticKeys.has(source))
       statics[source] = staticKeys.get(source) as string[];
     if (!module) continue;
