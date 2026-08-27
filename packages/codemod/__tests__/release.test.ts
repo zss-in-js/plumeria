@@ -104,7 +104,9 @@ export const styles = css.create({ card: { color: theme.text } });`,
     const source = path.join(dir, 'transition.ts');
     fs.writeFileSync(
       source,
-      `import * as css from '@plumeria/core';\nexport const transition = css.viewTransition({});`,
+      `import * as css from '@plumeria/core';
+const transition = css.viewTransition({});
+export const styles = css.create({ page: { viewTransitionName: transition } });`,
     );
 
     const plan = planRelease([dir]);
@@ -169,6 +171,118 @@ export const styles = css.create({ card: {
     );
     expect(plan.global?.css).toMatch(/@keyframes kf-[a-z\d]+/);
     expect(plan.global?.css).toMatch(/::view-transition-old\(vt-[a-z\d]+\)/);
+  });
+
+  it('leaves a createTheme nothing reads in the file that declares it', () => {
+    const source = path.join(dir, 'theme.ts');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';
+export const theme = css.createTheme('.dark', {
+  color: { default: 'black', theme: 'white' },
+});`,
+    );
+
+    const plan = planRelease([dir]);
+    expect(plan.themes[source]).toBeUndefined();
+    expect(plan.global).toBeUndefined();
+  });
+
+  it('releases only the theme a converted style reaches', () => {
+    const source = path.join(dir, 'theme.ts');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';
+export const theme = css.createTheme('.dark', {
+  color: { default: 'black', theme: 'white' },
+});
+export const spacing = css.createTheme('.dense', {
+  gap: { default: '8px', theme: '4px' },
+});`,
+    );
+    fs.writeFileSync(
+      path.join(dir, 'Card.tsx'),
+      `import * as css from '@plumeria/core';
+import { theme } from './theme';
+export const styles = css.create({ card: { color: theme.color } });`,
+    );
+
+    const plan = planRelease([dir]);
+    expect(plan.themes[source]).toEqual(['theme']);
+    expect(plan.global?.css).toContain('.dark');
+    expect(plan.global?.css).not.toContain('.dense');
+  });
+
+  it('leaves a keyframes nothing reads in the file that declares it', () => {
+    const source = path.join(dir, 'animation.ts');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';
+export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });`,
+    );
+
+    const plan = planRelease([dir]);
+    expect(plan.animations[source]).toBeUndefined();
+    expect(plan.global).toBeUndefined();
+  });
+
+  it('releases only the keyframes a converted style reaches', () => {
+    const animation = path.join(dir, 'animation.ts');
+    fs.writeFileSync(
+      animation,
+      `import * as css from '@plumeria/core';
+export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
+export const spin = css.keyframes({ from: { rotate: '0deg' }, to: { rotate: '360deg' } });`,
+    );
+    fs.writeFileSync(
+      path.join(dir, 'Card.tsx'),
+      `import * as css from '@plumeria/core';
+import { fade } from './animation';
+export const styles = css.create({ card: { animationName: fade } });`,
+    );
+
+    const plan = planRelease([dir]);
+    expect(plan.animations[animation]).toEqual(['fade']);
+    const card = plan.stylesheets.find((sheet) =>
+      sheet.source.endsWith('Card.tsx'),
+    );
+    expect(card?.css.match(/@keyframes/g)).toHaveLength(1);
+    expect(plan.global).toBeUndefined();
+  });
+
+  it('keeps a keyframes only an unreleased view transition reads', () => {
+    const source = path.join(dir, 'animation.ts');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';
+const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
+export const crossFade = css.viewTransition({ old: { animationName: fade } });`,
+    );
+
+    const plan = planRelease([dir]);
+    expect(plan.animations[source]).toBeUndefined();
+    expect(plan.global).toBeUndefined();
+  });
+
+  it('keeps a keyframes the file that reads it was held back with', () => {
+    const animation = path.join(dir, 'animation.ts');
+    const card = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      animation,
+      `import * as css from '@plumeria/core';
+export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });`,
+    );
+    fs.writeFileSync(
+      card,
+      `import * as css from '@plumeria/core';
+import { fade } from './animation';
+export const styles = css.create({ card: { animationName: fade } });`,
+    );
+    fs.writeFileSync(releasedPath(card), '.old {}');
+
+    const plan = planRelease([dir]);
+    expect(plan.animations[animation]).toBeUndefined();
+    expect(plan.global).toBeUndefined();
   });
 
   it('resolves namespace imports and appends after a file without a newline', () => {
@@ -248,9 +362,10 @@ const styles = css.create({ card: { color: 'red' } });`,
     fs.writeFileSync(
       source,
       `import * as css from '@plumeria/core';
-export const theme = css.createTheme('.dark', {
+const theme = css.createTheme('.dark', {
   color: { default: 'black', theme: 'white' },
-});`,
+});
+export const styles = css.create({ card: { color: theme.color } });`,
     );
 
     const plan = planRelease([source]);
@@ -259,7 +374,7 @@ export const theme = css.createTheme('.dark', {
     expect(fs.readFileSync(global, 'utf8')).toContain('createTheme');
   });
 
-  it('appends keyframes to the app/global.css the layout already imports', () => {
+  it('appends the theme to the app/global.css the layout already imports', () => {
     const appDir = path.join(dir, 'app');
     fs.mkdirSync(appDir);
     const global = path.join(appDir, 'global.css');
@@ -268,11 +383,13 @@ export const theme = css.createTheme('.dark', {
       path.join(appDir, 'layout.tsx'),
       `import './global.css';\n\nexport default function Layout() {\n  return null;\n}`,
     );
+    const spinner = path.join(dir, 'Spinner.tsx');
     fs.writeFileSync(
-      path.join(dir, 'Spinner.tsx'),
+      spinner,
       `import * as css from '@plumeria/core';
+const theme = css.createTheme('.dark', { text: { default: 'black', theme: 'white' } });
 const spin = css.keyframes({ from: { rotate: '0deg' }, to: { rotate: '360deg' } });
-export const styles = css.create({ icon: { animationName: spin } });`,
+export const styles = css.create({ icon: { color: theme.text, animationName: spin } });`,
     );
 
     const plan = planRelease([dir]);
@@ -280,7 +397,11 @@ export const styles = css.create({ icon: { animationName: spin } });`,
     writeRelease(plan);
     const written = fs.readFileSync(global, 'utf8');
     expect(written).toContain('@layer reset;');
-    expect(written).toMatch(/@keyframes kf-[a-z0-9]+/);
+    expect(written).toContain('.dark');
+    expect(written).not.toContain('@keyframes');
+    expect(fs.readFileSync(releasedPath(spinner), 'utf8')).toMatch(
+      /@keyframes kf-[a-z0-9]+/,
+    );
     expect(fs.existsSync(path.join(dir, 'styles', 'global.css'))).toBe(false);
   });
 
@@ -292,9 +413,10 @@ export const styles = css.create({ icon: { animationName: spin } });`,
     fs.writeFileSync(
       path.join(dir, 'src', 'theme.ts'),
       `import * as css from '@plumeria/core';
-export const theme = css.createTheme('.dark', {
+const theme = css.createTheme('.dark', {
   color: { default: 'black', theme: 'white' },
-});`,
+});
+export const styles = css.create({ card: { color: theme.color } });`,
     );
 
     expect(planRelease([dir]).global?.target).toBe(global);
@@ -310,9 +432,10 @@ export const theme = css.createTheme('.dark', {
     fs.writeFileSync(
       path.join(dir, 'theme.ts'),
       `import * as css from '@plumeria/core';
-export const theme = css.createTheme('.dark', {
+const theme = css.createTheme('.dark', {
   color: { default: 'black', theme: 'white' },
-});`,
+});
+export const styles = css.create({ card: { color: theme.color } });`,
     );
 
     expect(planRelease([dir]).global?.target).toBe(
@@ -344,7 +467,8 @@ export const styles = css.create({ size: (width) => ({ width }) });`,
       `import * as css from '@plumeria/core';
 const theme = css.createTheme('.dark', {
   color: { default: 'black', theme: 'white' },
-});`,
+});
+export const styles = css.create({ card: { color: theme.color } });`,
     );
 
     const plan = planRelease([source]);
@@ -456,7 +580,7 @@ const styles = css.create({ card: { color: theme.color } });`,
     const source = path.join(dir, 'src', 'theme.ts');
     fs.writeFileSync(
       source,
-      `import * as css from '@plumeria/core';\nexport const theme = css.createTheme('.dark', { text: { default: 'black', theme: 'white' } });`,
+      `import * as css from '@plumeria/core';\nconst theme = css.createTheme('.dark', { text: { default: 'black', theme: 'white' } });\nexport const styles = css.create({ card: { color: theme.text } });`,
     );
 
     writeRelease(planRelease([dir]));
