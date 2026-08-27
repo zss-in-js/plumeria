@@ -64,6 +64,11 @@ A descendant rule has no combinator to translate into, so it becomes
 is read from the stylesheet; no markup is inspected. Class names become
 camel-case keys, and a bare pixel length loses its unit.
 
+A `@keyframes` the stylesheet declares becomes a `css.keyframes` binding above
+the `css.create`, and the rules naming it read the binding. An `animation`
+shorthand naming one is split into its longhands, since only `animationName`
+resolves a binding.
+
 ### What it reports instead of converting
 
 ```
@@ -214,15 +219,22 @@ reported as `dynamic-style-access` and its definitions stay in Plumeria.
 
 ### Global styles
 
-`css.createTheme`, `css.keyframes`, and `css.viewTransition` produce rules that
-belong in a global stylesheet, not in a CSS Module. The codemod extracts them and
-appends them to the stylesheet the project already loads — `app/global.css` or
+`css.createTheme` and `css.viewTransition` produce rules that belong in a global
+stylesheet, not in a CSS Module. The codemod extracts them and appends them to
+the stylesheet the project already loads — `app/global.css` or
 `styles/global.css`, under `src` or not, spelled `global` or `globals` — and
 writes `src/styles/global.css` (or `styles/global.css` when `src` does not
 exist) when it finds none. Theme tokens become CSS custom properties under
-`:where(:root)` and the theme selector; keyframes become `@keyframes kf-<hash>`;
-view transitions become `::view-transition-*` pseudo-element rules. References
-in style objects are replaced by their generated names.
+`:where(:root)` and the theme selector; view transitions become
+`::view-transition-*` pseudo-element rules. References in style objects are
+replaced by their generated names. A `keyframes` or `viewTransition` nothing the
+migration exports reaches is left where it is.
+
+A CSS Module renames the value of `animation-name` the way it renames a class,
+so a `css.keyframes` is written as `@keyframes kf-<hash>` at the top of each
+module that reads it. In the global stylesheet the renamed reference would match
+nothing. One a view transition names is written globally as well, since the
+`::view-transition-*` rule is not scoped.
 
 `css.createStatic` values are statically evaluated and inlined directly into the
 generated CSS rules — no separate output file is needed.
