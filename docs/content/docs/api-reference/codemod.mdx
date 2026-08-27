@@ -89,6 +89,37 @@ A descendant rule has no combinator to translate into — `no-combinator` reject
 
 Class names become camel-case keys, and a bare pixel length loses its unit, because `padding: 16` and `padding: '16px'` compile to the same rule.
 
+### Keyframes
+
+A `@keyframes` the stylesheet declares becomes a [`css.keyframes`](/docs/api-reference/javascript/keyframes) binding written above the `css.create`, and `animation-name` reads that binding instead of the name. An `animation` shorthand naming one is split into its longhands — only `animationName` resolves a binding, so the shorthand cannot carry it:
+
+```css
+/* Spinner.module.css */
+@keyframes spin { from { rotate: 0deg } to { rotate: 360deg } }
+.icon { animation: spin 1s linear infinite }
+```
+
+```ts
+/* Spinner.styles.ts */
+import * as css from '@plumeria/core';
+
+const spin = css.keyframes({
+  from: { rotate: '0deg' },
+  to: { rotate: '360deg' },
+});
+
+export const styles = css.create({
+  icon: {
+    animationName: spin,
+    animationDuration: '1s',
+    animationTimingFunction: 'linear',
+    animationIterationCount: 'infinite',
+  },
+});
+```
+
+An `animation` naming something the stylesheet never declares is left as it was written — the name belongs to a global stylesheet, and nothing in the module can resolve it. A shorthand this cannot read, such as a comma-separated list, is reported as `unsupported-animation` and left alone; a `@keyframes` no rule in the stylesheet reads is reported as `unused-keyframes` and not written.
+
 ### What each selector becomes
 
 | CSS Modules | Plumeria |
@@ -291,12 +322,14 @@ export function Card({ width }: { width: number }) {
 
 ### Global styles: themes and animations
 
-Definitions created with `css.createTheme`, `css.keyframes`, and `css.viewTransition` are extracted and appended to the stylesheet the project already loads — `app/global.css` or `styles/global.css`, under `src` or not, spelled `global` or `globals` — and to a new `src/styles/global.css` (or `styles/global.css`) when it finds none:
+Definitions created with `css.createTheme` and `css.viewTransition` are extracted and appended to the stylesheet the project already loads — `app/global.css` or `styles/global.css`, under `src` or not, spelled `global` or `globals` — and to a new `src/styles/global.css` (or `styles/global.css`) when it finds none:
 
 - **`css.createTheme`**: Emits root CSS variables (`:where(:root)`) and selector/at-rule scoped variables (e.g. `.dark`, `@media (prefers-color-scheme: dark)`). References across modules become `var(--hash-tokenName)`.
-- **`css.keyframes`**: Emits `@keyframes kf-xxxx` in global CSS. References in styles are replaced by the generated keyframe identifier.
+- **`css.keyframes`**: Emits `@keyframes kf-xxxx` at the top of each CSS Module that reads it, not in global CSS — a CSS Module renames the value of `animation-name` the way it renames a class, so a global definition never matches the renamed reference. One a `css.viewTransition` names is written globally as well, since a `::view-transition-*` rule is not scoped.
 - **`css.viewTransition`**: Emits `::view-transition-*` pseudo-element rules in global CSS and assigns `view-transition-name: vt-xxxx`.
 - **`css.createStatic`**: Constant values are statically evaluated and inlined directly into generated CSS rules.
+
+Only the `css.keyframes` and `css.viewTransition` definitions an exported style reaches are written out. One that nothing reads, or that only a file the migration held back reads, stays in the TypeScript file that declares it.
 
 ### Where definitions may live
 
