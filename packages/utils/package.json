@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/utils",
-  "version": "18.3.1",
+  "version": "18.3.2",
   "description": "Internal helpers shared by the Plumeria compiler and bundler plugins.",
   "author": "Refirst 11",
   "license": "MIT",
