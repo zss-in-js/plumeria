@@ -10,7 +10,7 @@
 
 - Feat: `migrate --from css-modules` reads a stylesheet's `@keyframes` back into a `css.keyframes` binding, and splits an `animation` shorthand naming one into its longhands. A keyframe step no longer reports as an unsupported selector.
 
-## 18.3.1 (Aug 26, 2026)
+## 18.3.1 (Aug 27, 2026)
 
 - Update: README.md
 
