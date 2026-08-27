@@ -72,7 +72,7 @@ export const baseOptions: BaseLayoutProps = {
             { text: 'keyframes', url: '/docs/api-reference/javascript/keyframes' },
             { text: 'viewTransition', url: '/docs/api-reference/javascript/viewTransition' },
             { text: 'marker & extended', url: '/docs/api-reference/javascript/marker' },
-            { text: 'styleName & use()', url: '/docs/api-reference/javascript/use' },
+            { text: 'use() & classStyle', url: '/docs/api-reference/javascript/use' },
             { type: 'divider' },
             { type: 'header', text: 'Components' },
             { text: 'headlessui', url: '/docs/api-reference/components/headlessui' },
