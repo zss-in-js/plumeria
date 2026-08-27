@@ -291,7 +291,7 @@ export function Card({ width }: { width: number }) {
 
 ### Global styles: themes and animations
 
-Definitions created with `css.createTheme`, `css.keyframes`, and `css.viewTransition` are extracted and appended to `src/styles/global.css` (or `styles/global.css`):
+Definitions created with `css.createTheme`, `css.keyframes`, and `css.viewTransition` are extracted and appended to the stylesheet the project already loads — `app/global.css` or `styles/global.css`, under `src` or not, spelled `global` or `globals` — and to a new `src/styles/global.css` (or `styles/global.css`) when it finds none:
 
 - **`css.createTheme`**: Emits root CSS variables (`:where(:root)`) and selector/at-rule scoped variables (e.g. `.dark`, `@media (prefers-color-scheme: dark)`). References across modules become `var(--hash-tokenName)`.
 - **`css.keyframes`**: Emits `@keyframes kf-xxxx` in global CSS. References in styles are replaced by the generated keyframe identifier.
