@@ -149,6 +149,33 @@ ruleTester.run('validate-values', validateValues, {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationIterationCount: 'inherit' } });`,
     },
     {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRangeStart: 'cover 20%' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRangeStart: 'entry-crossing 50%' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRangeStart: 'calc(100% - 20px)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRangeStart: 20 } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRangeEnd: 'normal' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRange: 'entry 0% exit 100%' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRange: 'cover 20%, exit 80%' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimeline: '--my-timeline' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimeline: 'scroll(root block)' } });`,
+    },
+    {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'inherit' } });`,
     },
     {
@@ -1795,6 +1822,46 @@ ruleTester.run('validate-values', validateValues, {
         {
           message:
             "'animationPlayState' has an invalid value 'pauseds'. Valid values: ",
+        },
+      ],
+    },
+
+    // AnimationRange
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRangeStart: 'covor 20%' } });`,
+      errors: [
+        {
+          message:
+            "'animationRangeStart' has an invalid value 'covor 20%'. Valid values: normal, cover, contain, entry, exit, entry-crossing, exit-crossing, scroll",
+        },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRangeStart: 'cover 20' } });`,
+      errors: [
+        {
+          message:
+            "'animationRangeStart' has an invalid value 'cover 20'. Valid values: normal, cover, contain, entry, exit, entry-crossing, exit-crossing, scroll",
+        },
+      ],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRange: 'entry 0% exit 100% cover 50%' } });`,
+      errors: [
+        {
+          message:
+            "'animationRange' has an invalid value 'entry 0% exit 100% cover 50%'. Valid values: normal, cover, contain, entry, exit, entry-crossing, exit-crossing, scroll",
+        },
+      ],
+    },
+
+    // AnimationTimeline
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimeline: 20 } });`,
+      errors: [
+        {
+          message:
+            "'animationTimeline' does not accept numeric values. Expected a string value.",
         },
       ],
     },
