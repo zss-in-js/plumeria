@@ -176,6 +176,36 @@ ruleTester.run('validate-values', validateValues, {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimeline: 'scroll(root block)' } });`,
     },
     {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { top: 'anchor(--a bottom)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { insetBlockStart: 'anchor(--a bottom)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'anchor-size(--a width)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { marginTop: 'anchor-size(--a width)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { display: 'BLOCK' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRangeStart: 'COVER' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { borderColor: 'CURRENTCOLOR' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { colorInterpolation: 'srgb' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: '10PX' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'INHERIT' } });`,
+    },
+    {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationTimingFunction: 'inherit' } });`,
     },
     {
@@ -1864,6 +1894,24 @@ ruleTester.run('validate-values', validateValues, {
             "'animationTimeline' does not accept numeric values. Expected a string value.",
         },
       ],
+    },
+
+    // Anchor positioning outside the properties that accept it
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'anchor(--a top)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { animationRangeStart: 'anchor(--a top)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { paddingTop: 'anchor-size(--a width)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { display: 'BLOCKS' } });`,
+      errors: [{ messageId: 'validateValue' }],
     },
 
     // AnimationTimingFunction
