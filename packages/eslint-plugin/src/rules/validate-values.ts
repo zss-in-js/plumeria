@@ -113,6 +113,9 @@ const lengthValueProperties = [
 ];
 
 const lengthPercentage = [
+  'animationRange',
+  'animationRangeEnd',
+  'animationRangeStart',
   'width',
   'maxWidth',
   'minWidth',
@@ -1257,6 +1260,7 @@ function getValidator(key: string): ValidatorFn | null {
   } else if (
     [
       'animationName',
+      'animationTimeline',
       'counterIncrement',
       'counterReset',
       'counterSet',
@@ -1669,6 +1673,23 @@ function getValidator(key: string): ValidatorFn | null {
       varString,
     ].join('|');
     const r = new RegExp(`^(${dr})(,\\s*(${dr}))*$`);
+    validator = (v) => r.test(v);
+  } else if (
+    ['animationRange', 'animationRangeStart', 'animationRangeEnd'].includes(key)
+  ) {
+    const rangeName = [
+      'entry-crossing',
+      'exit-crossing',
+      'cover',
+      'contain',
+      'entry',
+      'exit',
+      'scroll',
+    ].join('|');
+    const bound = `(?:normal|(?:${lvp})|(?:${rangeName})(?:\\s+(?:${lvp}))?)`;
+    const segment =
+      key === 'animationRange' ? `${bound}(?:\\s+${bound})?` : bound;
+    const r = new RegExp(`^${segment}(?:\\s*,\\s*${segment})*$`);
     validator = (v) => r.test(v);
   } else if (
     [
