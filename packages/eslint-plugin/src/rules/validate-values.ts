@@ -202,6 +202,46 @@ const lengthPercentage = [
   'verticalAlign',
 ];
 
+const insetProperties = [
+  'top',
+  'right',
+  'bottom',
+  'left',
+  'inset',
+  'insetBlock',
+  'insetBlockStart',
+  'insetBlockEnd',
+  'insetInline',
+  'insetInlineStart',
+  'insetInlineEnd',
+];
+const anchorSizeProperties = [
+  ...insetProperties,
+  'margin',
+  'marginTop',
+  'marginRight',
+  'marginBottom',
+  'marginLeft',
+  'marginBlock',
+  'marginBlockStart',
+  'marginBlockEnd',
+  'marginInline',
+  'marginInlineStart',
+  'marginInlineEnd',
+  'width',
+  'minWidth',
+  'maxWidth',
+  'height',
+  'minHeight',
+  'maxHeight',
+  'blockSize',
+  'minBlockSize',
+  'maxBlockSize',
+  'inlineSize',
+  'minInlineSize',
+  'maxInlineSize',
+];
+
 const fitContentString = 'fit-content\\([^()]*\\)';
 const minString = 'min\\([^()]*\\)';
 const maxString = 'max\\([^()]*\\)';
@@ -767,6 +807,8 @@ function getLengthValuePattern(key: string): string {
   ];
   const isFitContent = isFitContentGroup.includes(key);
   const isLengthPercentage = lengthPercentage.includes(key);
+  const isAnchor = insetProperties.includes(key);
+  const isAnchorSize = anchorSizeProperties.includes(key);
 
   return (
     `${lengthPattern}` +
@@ -779,13 +821,25 @@ function getLengthValuePattern(key: string): string {
     (isBackgroundPositionX ? '|left|center|right' : '') +
     (isBackgroundPosition ? '|top|bottom|center|left|right' : '') +
     (isBackgroundSize ? '|cover|contain' : '') +
-    `|${calcString}|${clampString}|${anchorString}|${anchorSizeString}|${minString}|${maxString}|${varString}`
+    (isAnchor ? `|${anchorString}` : '') +
+    (isAnchorSize ? `|${anchorSizeString}` : '') +
+    `|${calcString}|${clampString}|${minString}|${maxString}|${varString}`
   );
 }
 
 // --- Validator Factory & Cache ---
 type ValidatorFn = (value: string) => boolean;
 const validatorCache = new Map<string, ValidatorFn | null>();
+const foldedValueCache = new Map<string, Set<string>>();
+
+function getFoldedValues(key: string): Set<string> {
+  const cached = foldedValueCache.get(key);
+  if (cached) return cached;
+
+  const folded = new Set(validData[key].map((v) => v.toLowerCase()));
+  foldedValueCache.set(key, folded);
+  return folded;
+}
 
 function getValidator(key: string): ValidatorFn | null {
   if (validatorCache.has(key)) return validatorCache.get(key)!;
@@ -1875,11 +1929,12 @@ export const validateValues: Rule.RuleModule = {
         if (typeof rawValue !== 'string') return;
         const value = rawValue;
         const normalized = normalizeCssVariables(value);
+        const folded = value.toLowerCase();
 
         // Global values, Enums, and CSS Variables validation
         const globalValue =
-          !validData[key].includes(value) &&
-          !globalValues.includes(value) &&
+          !getFoldedValues(key).has(folded) &&
+          !globalValues.includes(folded) &&
           !normalized?.isStandalone;
 
         if (!globalValue) return; // Value is fully valid (enum/global/var)
@@ -1887,7 +1942,10 @@ export const validateValues: Rule.RuleModule = {
         // 3. Dynamic Regex validation
         const validator = getValidator(key);
 
-        if (validator && (!normalized || !validator(normalized.value))) {
+        const accepts = (v: string) =>
+          !!validator && (validator(v) || validator(v.toLowerCase()));
+
+        if (validator && (!normalized || !accepts(normalized.value))) {
           context.report({
             node: property.value,
             messageId: 'validateValue',
