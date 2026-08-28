@@ -532,6 +532,7 @@ export const propertyGroups: Group[] = [
       'animationDelay',
       'animationIterationCount',
       'animationDirection',
+      'animationFillMode',
       'animationPlayState',
     ],
   },
