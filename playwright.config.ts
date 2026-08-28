@@ -39,7 +39,7 @@ export default defineConfig({
   // The parity run needs both builds side by side, so it belongs to the
   // exported target alone.
   ...(isExported
-    ? { testMatch: /(composition-order|exported-parity)\.test\.ts/ }
+    ? { testMatch: /(composition-order|keyframes|exported-parity)\.test\.ts/ }
     : { testIgnore: /exported-parity\.test\.ts/ }),
   /* Maximum time one test can run for. */
   timeout: 10 * 1000,
