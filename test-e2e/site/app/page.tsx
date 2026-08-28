@@ -2,6 +2,7 @@ import { CascadeTest } from 'component/CascadeTest';
 import { CompositionOrderTest } from 'component/CompositionOrderTest';
 import { ConditionalTest } from 'component/ConditionalTest';
 import { ContainerQueryTest } from 'component/ContainerQueryTest';
+import { KeyframesTest } from 'component/KeyframesTest';
 import { QueryOrderTest } from 'component/QueryOrderTest';
 import { MultiArgTest } from 'component/MultiArgTest';
 import { VariableTest } from 'component/VariableTest';
@@ -29,6 +30,7 @@ export default function Home() {
       <MultiArgTest />
       <VariableTest />
       <VariantTest />
+      <KeyframesTest />
     </main>
   );
 }
