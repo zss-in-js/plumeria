@@ -559,6 +559,104 @@ Prop drilling is an anti-pattern in React on its own terms; here it is also unre
 
 In every pattern the component **applies** the style it receives. None of them forward it.
 
+## Migrating from Tailwind CSS
+
+Tailwind's model and Plumeria's do not map one-to-one. A utility-by-utility rewrite produces code that fails to compile, silently breaks, or reads like Tailwind reimplemented. Migrate one component at a time, under three rules.
+
+**Resolve values from the compiled stylesheet, never from memory.** Utility values come from the project's `@theme`, not from a fixed table: `p-4` is `calc(var(--spacing) * 4)`, `text-sm` sets `font-size` *and* a paired `line-height`, and the color scale is whatever the project defines. Build the project and read the declarations out of the emitted CSS.
+
+**NEVER carry a `--tw-*` variable chain across.** `shadow-lg` compiles to `--tw-shadow: …` plus `box-shadow: var(--tw-inset-shadow), …, var(--tw-shadow)`, and those variables hold a value only because Tailwind registers them with `@property`. Copied literally, the declaration is invalid and the shadow disappears. Resolve the chain to its final value instead.
+
+**Name keys after what the element is, not after the utilities it carried.** The class list is the input to the migration, not the output.
+
+```tsx
+// ❌ Tailwind reimplemented — these names carry no more meaning than the class list did
+const styles = css.create({
+  hoverBgBlue500: { ':hover': { backgroundColor: '#3b82f6' } },
+  px4: { paddingInline: '1rem' },
+});
+
+// ✅ One key per thing the component has
+const styles = css.create({
+  submitButton: {
+    paddingInline: '1rem',
+    backgroundColor: '#2563eb',
+    ':hover': { backgroundColor: '#3b82f6' },
+  },
+});
+```
+
+**Three variants need restructuring rather than translation.** Breakpoints (`md:`) and `data-*` variants map directly, to `@media` and attribute-selector keys. `dark:` depends on the project: it is `@media (prefers-color-scheme: dark)` by default, but `@custom-variant dark` commonly redefines it as a `.dark` class selector — which belongs in the restructuring set below, not the direct one. Check the compiled output before assuming which.
+
+| Tailwind | Compiles to | Write instead |
+|---|---|---|
+| `hover:`, `focus:` | `&:hover { @media (hover: hover) { … } }` | `':hover': { … }`, dropping the `@media (hover: hover)` wrapper — Plumeria forbids a query inside a pseudo. The styles then apply on touch devices too. |
+| `group-*`, `peer-*` | `&:is(:where(.group):hover *)` | `css.marker()` on the parent and `css.extended()` on the descendant. The `.group` / `.peer` class disappears. |
+| `space-x-*`, `divide-*` | `:where(& > :not(:last-child))` | The margin or border applied to the children directly — Plumeria has no child selectors. |
+
+### `tv()` and `twMerge()`
+
+| Tailwind Variants | Plumeria |
+|---|---|
+| `base` | Static keys in the component's own `css.create()` |
+| `variants` | One dedicated `css.create()` per variant group, read with bracket notation (keep these calls minimal — see Bracket notation) |
+| `defaultVariants` | Default parameter values |
+| `compoundVariants` | An explicit condition in the `classStyle` array |
+| `slots` | One `css.create()` per element, not one call carrying every slot |
+
+**An external `className` override becomes a `Style` prop, not a `className`.** `twMerge(button(...), className)` exists to let the call site win; Pattern 2 does the same job, because array position is right-wins. **NEVER** resolve the override away, force it through `css.use()`, or change the component's public API to avoid the mixing rule.
+
+**NEVER guess a class name that was built at runtime.** A template literal or a value read from props or state is not statically knowable. Leave the component on Tailwind and report it; a guessed utility compiles and is silently wrong.
+
+```tsx
+// --- Before ---
+const button = tv({
+  base: 'inline-flex rounded font-medium',
+  variants: {
+    size: { sm: 'h-8 px-3 text-sm', lg: 'h-12 px-6 text-lg' },
+    tone: { primary: 'bg-blue-500 text-white', danger: 'bg-red-500 text-white' },
+  },
+  compoundVariants: [{ size: 'lg', tone: 'primary', class: 'shadow-lg' }],
+  defaultVariants: { size: 'sm', tone: 'primary' },
+});
+
+<button className={twMerge(button({ size, tone }), className)} />;
+
+// --- After (values resolved from the project's compiled CSS, not recalled) ---
+const styles = css.create({
+  base: { display: 'inline-flex', borderRadius: '4px', fontWeight: 500 },
+  lgPrimary: { boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' },
+});
+
+const sizeStyles = css.create({
+  sm: { height: '32px', paddingInline: '12px', fontSize: '14px' },
+  lg: { height: '48px', paddingInline: '24px', fontSize: '18px' },
+});
+
+const toneStyles = css.create({
+  primary: { backgroundColor: '#3b82f6', color: '#fff' },
+  danger: { backgroundColor: '#ef4444', color: '#fff' },
+});
+
+type ButtonProps = {
+  size?: keyof typeof sizeStyles;
+  tone?: keyof typeof toneStyles;
+  styleArray?: css.Style;
+};
+
+export const Button = ({ size = 'sm', tone = 'primary', styleArray }: ButtonProps) => (
+  <button
+    classStyle={[
+      styles.base,
+      sizeStyles[size],
+      toneStyles[tone],
+      size === 'lg' && tone === 'primary' && styles.lgPrimary,
+      styleArray,
+    ]}
+  />
+);
+```
+
 ## Testing
 
 **NEVER stub `@plumeria/core`.** It publishes types and no runtime. A `moduleNameMapper` entry or a hand-written mock makes the suite run, but every class name it produces is invented, so the test says nothing about the styles. If a runner cannot resolve the package, that is the signal to test a different layer, not to fake the package.
