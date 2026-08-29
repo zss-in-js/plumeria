@@ -407,7 +407,11 @@ describe('parser', () => {
         // variantsHashTable
         {},
       );
-      const atomicHash = genBase36Hash({ primary: '#fff' }, 1, 8);
+      const atomicHash = genBase36Hash(
+        { _theme: 'hashT', primary: '#fff' },
+        1,
+        8,
+      );
       expect(result.color).toBe(`var(--${atomicHash}-primary)`);
     });
 
@@ -2413,7 +2417,7 @@ describe('extractOndemandStyles (integration)', () => {
     tables.createThemeHashTable['T'] = themeHash;
 
     const atomicHash = genBase36Hash(
-      { primary: { default: 'blue', theme: 'white' } },
+      { _theme: themeHash, primary: { default: 'blue', theme: 'white' } },
       1,
       8,
     );
