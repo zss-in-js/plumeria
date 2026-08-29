@@ -8,6 +8,8 @@ Plumeria is a compile-time CSS-in-JS library for React. You write style objects 
 \mathtt{Plumeria(Type)} \xrightarrow{\text{Compilation}} \mathtt{Static\ Atomic\ CSS}
 ```
 
+Two things follow from compiling instead of injecting. The order of the generated CSS is decided by the compiler's module graph, not by the order a bundler happens to emit chunks — split and rearrange files, and the layout holds. And the way in is also the way out: `npx @plumeria/codemod migrate --from css-modules` brings a CSS Modules project in, and `--from plumeria` takes it back out. See [`@plumeria/codemod`](/docs/api-reference/codemod).
+
 ## Usage
 
 Styling is straightforward: define styles once with `css.create()`, and the compiler handles everything else. The atomic class names are determined at that point — all that remains is to attach them via the `classStyle` prop.
