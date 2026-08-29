@@ -21,7 +21,7 @@ import type {
   TableEntry,
 } from './types';
 
-import { createTheme } from './createTheme';
+import { createTheme, themeHashOf } from './createTheme';
 
 import { parseSync } from '@swc/core';
 import type {
@@ -1270,7 +1270,11 @@ function resolveCreateThemeTableMemberExpressionByNode(
 
         if (key && themeObj[key] !== undefined) {
           const value = themeObj[key];
-          const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
+          const atomicHash = genBase36Hash(
+            { _theme: hash, [key]: value },
+            1,
+            8,
+          );
           const cssVarName = camelToKebabCase(key);
           return `var(--${atomicHash}-${cssVarName})`;
         }
@@ -1972,7 +1976,7 @@ export function scanAll(): Tables {
                   if (t.isStringLiteral(selectorExpr)) {
                     selector = selectorExpr.value;
                   }
-                  const hash = genBase36Hash(obj, 1, 8);
+                  const hash = themeHashOf(selector, obj);
                   localTables.createThemeObjectTable[hash] = obj;
                   localCreateThemeObjectTable[hash] = obj;
                   registerObjectOwner('createThemeObjectTable', hash, filePath);
@@ -1987,7 +1991,11 @@ export function scanAll(): Tables {
                   );
                   const hashMap: Record<string, any> = {};
                   for (const [key, value] of Object.entries(obj)) {
-                    const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
+                    const atomicHash = genBase36Hash(
+                      { _theme: hash, [key]: value },
+                      1,
+                      8,
+                    );
                     const cssVarName = camelToKebabCase(key);
                     hashMap[key] = `var(--${atomicHash}-${cssVarName})`;
                   }
@@ -2681,12 +2689,18 @@ export function extractOndemandStyles(
         if (definition && typeof definition === 'object' && selector) {
           Object.keys(definition).forEach((key) => {
             const value = definition[key];
-            const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
+            const atomicHash = genBase36Hash(
+              { _theme: hash, [key]: value },
+              1,
+              8,
+            );
             const varName = `--${atomicHash}-${camelToKebabCase(key)}`;
             if (usedVariables.has(varName)) {
-              const styles = createTheme(selector, {
-                [key]: value,
-              } as CreateTheme);
+              const styles = createTheme(
+                selector,
+                { [key]: value } as CreateTheme,
+                hash,
+              );
               const { styleSheet } = transpile(styles, undefined, '--global');
               addSheet(styleSheet);
             }
