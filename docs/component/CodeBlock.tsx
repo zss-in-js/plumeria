@@ -44,7 +44,7 @@ const styles = css.create({
     zIndex: 0,
     display: 'flex',
     flexDirection: 'column',
-    width: 1000,
+    width: '100%',
     overflow: 'hidden',
     background: 'rgb(24, 24, 27)',
     borderRadius: '16px',
