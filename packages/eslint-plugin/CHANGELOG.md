@@ -1,3 +1,9 @@
+## 18.3.7
+
+### Patch Changes
+
+- b867ab2: Bump version to 18.3.7
+
 ## 18.3.6
 
 ### Patch Changes
