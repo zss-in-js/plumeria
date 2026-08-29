@@ -1,16 +1,22 @@
 import { camelToKebabCase, genBase36Hash, isAtRule } from 'zss-engine';
 import type { CreateTheme } from './types';
 
+const themeHashOf = (
+  themeSelector: string,
+  rule: Record<string, unknown>,
+): string => genBase36Hash({ _themeSelector: themeSelector, ...rule }, 1, 8);
+
 const createTheme = <const T extends CreateTheme>(
   themeSelector: string,
   rule: T,
+  themeHash: string,
 ) => {
   const rootTarget: Record<string, string> = {};
   const themeTarget: Record<string, string> = {};
 
   for (const key in rule) {
     const valueObj = rule[key];
-    const hash = genBase36Hash({ [key]: valueObj }, 1, 8);
+    const hash = genBase36Hash({ _theme: themeHash, [key]: valueObj }, 1, 8);
     const cssVarName = `--${hash}-${camelToKebabCase(key)}`;
     rootTarget[cssVarName] = valueObj.default;
     themeTarget[cssVarName] = valueObj.theme;
@@ -40,4 +46,4 @@ const createTheme = <const T extends CreateTheme>(
   };
 };
 
-export { createTheme };
+export { createTheme, themeHashOf };
