@@ -35,6 +35,12 @@ export const theme = css.createTheme('.dark', {
     theme:
       '0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 2px 8px 0 rgba(0, 0, 0, 0.2), inset 0 0 1.5px 1px rgba(255, 255, 255, 0.05)',
   },
+  cardHoverBoxShadow: {
+    default:
+      '0 12px 40px 0 rgba(0, 0, 0, 0.14), 0 4px 12px 0 rgba(0, 0, 0, 0.04), inset 0 0 1.5px 1px rgba(160, 160, 160, 0.6)',
+    theme:
+      '0 12px 40px 0 rgba(0, 0, 0, 0.4), 0 4px 12px 0 rgba(0, 0, 0, 0.3), inset 0 0 1.5px 1px rgba(255, 255, 255, 0.12)',
+  },
   iconColor: {
     default: '#71717a',
     theme: '#e4e4e7',
