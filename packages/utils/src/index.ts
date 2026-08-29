@@ -28,7 +28,7 @@ export type { Specificity } from 'zss-engine';
 export { getSpecificity, getPseudoElement } from 'zss-engine';
 export type { StyleSource } from './escalation';
 export { getStateWeights } from './escalation';
-export { createTheme } from './createTheme';
+export { themeHashOf } from './createTheme';
 export { resolveImportPath } from './resolver';
 export { optimizer } from './optimizer';
 export { processVariants } from './variants';
