@@ -91,7 +91,7 @@ Class names become camel-case keys, and a bare pixel length loses its unit, beca
 
 ### Keyframes
 
-A `@keyframes` the stylesheet declares becomes a [`css.keyframes`](/docs/api-reference/javascript/keyframes) binding written above the `css.create`, and `animation-name` reads that binding instead of the name. An `animation` shorthand naming one is split into its longhands — only `animationName` resolves a binding, so the shorthand cannot carry it:
+A `@keyframes` the stylesheet declares becomes a [`css.keyframes`](/docs/api-reference/javascript/keyframes) binding written above the `css.create`, and `animation-name` reads that binding instead of the name. An `animation` shorthand naming one is split into its longhands:
 
 ```css
 /* Spinner.module.css */
