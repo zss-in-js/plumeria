@@ -1,4 +1,3 @@
-import { theme } from 'lib/theme';
 import * as css from '@plumeria/core';
 
 export const svg = {
@@ -29,18 +28,23 @@ export const svg = {
     );
   },
 
-  /*
-   * Author: Boxicons
-   * License: MIT
-   */
   Ghost() {
     return (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-        <title>Bxs Ghost SVG Icon</title>
-        <path
-          d="M3 11v8h.051c.245 1.692 1.69 3 3.449 3c1.174 0 2.074-.417 2.672-1.174a3.99 3.99 0 0 0 5.668-.014c.601.762 1.504 1.188 2.66 1.188c1.93 0 3.5-1.57 3.5-3.5V11c0-4.962-4.037-9-9-9s-9 4.038-9 9zm6 1c-1.103 0-2-.897-2-2s.897-2 2-2s2 .897 2 2s-.897 2-2 2zm6-4c1.103 0 2 .897 2 2s-.897 2-2 2s-2-.897-2-2s.897-2 2-2z"
-          fill={String(theme.textPrimary)}
-        ></path>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      >
+        <title>Ghost SVG Icon</title>
+        <path d="M12 3a7 7 0 0 0-7 7v10l2.33-2.33 2.34 2.33 2.33-2.33 2.34 2.33 2.33-2.33L19 20V10a7 7 0 0 0-7-7Z"></path>
+        <circle cx="9.5" cy="11" r="1" fill="currentColor" stroke="none"></circle>
+        <circle cx="14.5" cy="11" r="1" fill="currentColor" stroke="none"></circle>
       </svg>
     );
   },
@@ -53,32 +57,42 @@ export const svg = {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
         <title>Atom 2 SVG Icon</title>
-        <g fill="none" stroke="#3B9EF5" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+        <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
           <path d="M18.893 7.936a8.003 8.003 0 0 1-7.774 12.016m-6.012-3.888a8.003 8.003 0 0 1 7.774-12.016"></path>
-          <circle cx="17.657" cy="6.343" r="2" fill="#3B9EF5" transform="rotate(45 17.657 6.343)"></circle>
-          <circle cx="6.343" cy="17.657" r="2" fill="#3B9EF5" transform="rotate(45 6.343 17.657)"></circle>
-          <circle cx="12" cy="12" r="2" fill="#3B9EF5" transform="rotate(45 12 12)"></circle>
+          <circle cx="17.657" cy="6.343" r="2" fill="currentColor" transform="rotate(45 17.657 6.343)"></circle>
+          <circle cx="6.343" cy="17.657" r="2" fill="currentColor" transform="rotate(45 6.343 17.657)"></circle>
+          <circle cx="12" cy="12" r="2" fill="currentColor" transform="rotate(45 12 12)"></circle>
         </g>
       </svg>
     );
   },
 
-  Eslint() {
-    /*
-     * Author: konpa
-     * License: MIT
-     */
+  Graph() {
     return (
-      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 128 128">
-        <title>Eslint SVG Icon</title>
-        <path
-          fill="#8080F2"
-          d="M39.5 49.2L63 35.6c.6-.3 1.3-.3 1.9 0l23.6 13.6c.6.3 1 1 1 1.6V78c0 .7-.4 1.3-1 1.7L65 93.3c-.6.3-1.3.3-1.9 0L39.5 79.7c-.6-.3-1-1-1-1.7V50.8c0-.6.4-1.3 1-1.6"
-        ></path>
-        <path
-          fill="#4B32C3"
-          d="m125.2 61.6l-28.1-49c-1-1.8-2.9-3.1-5-3.1H35.9c-2 0-3.9 1.3-5 3.1L2.8 61.5c-1 1.8-1 4 0 5.8l28.1 48.6c1 1.8 2.9 2.7 5 2.7h56.3c2 0 3.9-.9 5-2.6l28.1-48.6c1-2 1-4.1-.1-5.8m-23.3 23.5c0 .7-.4 1.4-1.1 1.7L65 107.5c-.6.4-1.4.4-2 0L27.1 86.9c-.6-.4-1.1-1-1.1-1.7V43.7c0-.7.4-1.4 1.1-1.7L63 21.3c.6-.4 1.4-.4 2 0L100.9 42c.6.4 1.1 1 1.1 1.7v41.4z"
-        ></path>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <title>Module Graph SVG Icon</title>
+        <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+          <circle cx="12" cy="5" r="2" fill="currentColor"></circle>
+          <circle cx="5" cy="19" r="2" fill="currentColor"></circle>
+          <circle cx="19" cy="19" r="2" fill="currentColor"></circle>
+          <path d="M10.5 8 6.5 16"></path>
+          <path d="M13.5 8 17.5 16"></path>
+          <path d="M8 19h8"></path>
+        </g>
+      </svg>
+    );
+  },
+
+  Exchange() {
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <title>Exchange SVG Icon</title>
+        <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+          <path d="M4 8h16"></path>
+          <path d="m16 4 4 4-4 4"></path>
+          <path d="M20 16H4"></path>
+          <path d="m8 12-4 4 4 4"></path>
+        </g>
       </svg>
     );
   },
