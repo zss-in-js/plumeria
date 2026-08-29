@@ -29,12 +29,12 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
     tables.createThemeHashTable['T'] = themeHash;
 
     const primaryHash = genBase36Hash(
-      { primary: { default: 'blue', theme: 'white' } },
+      { _theme: themeHash, primary: { default: 'blue', theme: 'white' } },
       1,
       8,
     );
     const secondaryHash = genBase36Hash(
-      { secondary: { default: 'green', theme: 'black' } },
+      { _theme: themeHash, secondary: { default: 'green', theme: 'black' } },
       1,
       8,
     );
@@ -68,17 +68,17 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
     tables.createThemeHashTable['T'] = themeHash;
 
     const primaryHash = genBase36Hash(
-      { primary: { default: 'blue', theme: 'white' } },
+      { _theme: themeHash, primary: { default: 'blue', theme: 'white' } },
       1,
       8,
     );
     const secondaryHash = genBase36Hash(
-      { secondary: { default: 'green', theme: 'black' } },
+      { _theme: themeHash, secondary: { default: 'green', theme: 'black' } },
       1,
       8,
     );
     const accentHash = genBase36Hash(
-      { accent: { default: 'pink', theme: 'purple' } },
+      { _theme: themeHash, accent: { default: 'pink', theme: 'purple' } },
       1,
       8,
     );
