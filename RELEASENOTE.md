@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.3.5 (Aug 29, 2026)
+
+- Fix: a `css.createTheme` selector written as anything other than a string literal — a template literal, or a name the file declares — was read as an empty selector, which dropped the theme's whole rule and left the styles pointing at custom properties nothing declared. The selector is now resolved the same way a style value is, so a name or a `createStatic` entry works, and two themes that differ only by selector stay apart.
+
+- Fix: a selector that still cannot be read at build time is now reported where it is written, instead of compiling to no CSS at all.
+
 ## 18.3.4 (Aug 29, 2026)
 
 - Fix: editing only the selector passed to `css.createTheme` left the rule under the old selector setting the same custom properties, because their names were hashed from the value alone and never from the selector. The selector is now part of the hash, so the rule left behind declares variables of its own and stops competing with the new one.
