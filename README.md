@@ -67,7 +67,7 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 
 | Rating | Label            | Meaning                                                                                 |
 | ------ | ---------------- | --------------------------------------------------------------------------------------- |
-| ★★★★★  | **Frozen**       | Will not make any changes in any major release for the next N months. |
+| ★★★★★  | **Frozen**       | Bug fixes ship continuously. The signature will not change.                             |
 | ★★★★☆  | **Stable**       | Additive only. Existing signatures will not move.                                       |
 | ★★★☆☆  | **Candidate**    | Shape is settled. Details may still change.                                             |
 
