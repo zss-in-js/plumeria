@@ -1,0 +1,192 @@
+---
+title: 'How to leave Plumeria'
+description: 'What the codemod guarantees is idempotence, not identity — and the round trip runs in CI against real projects'
+date: '2026-08-29'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Zero-runtime is not a differentiator any more. Neither is atomic CSS. Every library in this space says both.
+
+What still stops adoption is that nobody can tell whether they can get back out. Migration tooling is usually written in one direction, and where a way back exists it has been exercised on the author's own fixtures — which makes it a claim, not a fact.
+
+Plumeria's codemod runs both ways. That alone is not the interesting part. The interesting part is deciding, in advance, **what is guaranteed and what is not**.
+
+---
+
+## Deciding what "reversible" means
+
+The naive definition: convert, convert back, get the original file. Byte equality.
+
+That definition cannot be met, and it does not need to be.
+
+Here is the one actually used:
+
+> What comes back type-checks, renders the same page, and **can leave again**.
+
+The third clause is the one doing work. A tool verified in one direction only is free to strand people somewhere with no way forward. If the project that came back can be converted again, it is not a dead end.
+
+---
+
+## What is guaranteed: idempotence
+
+$$f(f(x)) = f(x)$$
+
+The first run converts. Every run after it is a fixed point. This holds in both directions.
+
+```sh title="Terminal"
+$ npx @plumeria/codemod migrate --from css-modules src
+  src/Card.module.css  ->  src/Card.styles.ts
+
+✔ converted 1 stylesheet(s) and rewrote 1 consumer(s).
+
+$ npx @plumeria/codemod migrate --from css-modules src
+
+✔ converted 0 stylesheet(s) and rewrote 0 consumer(s).
+
+Left in place — these rules were not converted:
+
+src/Card.module.css
+  0:0  target-exists
+        Card.styles.ts already exists and was not overwritten.
+```
+
+The mechanism is dull: a target that already exists is never overwritten, and the generated block in `global.css` is fenced by a marker comment so it is replaced rather than appended.
+
+The property is not dull. **Idempotence means the migration does not have to be finished.**
+
+It can be stopped halfway. Clear one report by hand, run again, and only the files that became resolvable move — everything the previous pass wrote is left alone. The mixed tree in between is a state that builds, and therefore a state that can be committed.
+
+Most of the weight of a migration was never in the conversion. It was in not knowing what happens if you stop in the middle. Idempotence removes exactly that.
+
+---
+
+## What is not guaranteed: identity
+
+Run the round trip and the CSS does not come back wearing its original face.
+
+```css title="Card.module.css — before"
+.card { composes: base; padding: 16px; background: navy }
+.card:hover { background: teal }
+.card .card-title { color: red }
+```
+
+```css title="Card.module.css — after the round trip"
+.card {
+  padding: 16px;
+  background: navy;
+}
+
+.card:defined {
+  --xeu694oh-card-defined: 1;
+}
+
+.card:hover {
+  background: teal;
+}
+
+@container style(--xeu694oh-card-defined: 1) {
+  .cardTitle {
+    color: red;
+  }
+}
+
+.baseCard {
+  composes: base card;
+}
+```
+
+Two lines in there deserve a word, because they are the ones that look like something was done to your stylesheet.
+
+`:defined` matches every standard element, so the marker rule is permanently on — it is the way to say *no state at all*, leaving the plain descendant relation behind. And `--xeu694oh-card-defined` is hashed from the id and the pseudo together, so that an argument like `:nth-child(2n)` never reaches the name and two markers differing only inside the parentheses cannot collide. The hash is a naming scheme, not an obfuscation.
+
+With that read, three things moved. The descendant selector became a style query, `composes` folded into a new `.baseCard`, and the key came back camel-cased. The consumer is rewritten to match, reading `styles.baseCard`.
+
+Whether that counts as loss depends on what was supposed to be preserved.
+
+What was supposed to be preserved is **which declarations land on which elements** — not the text of the selector. A CSS Modules class name is hashed away at build time regardless, so `card-title` becoming `cardTitle` is not observable from outside. And the descendant relation turning into a `marker` / `extended` pair is the design [18.2](/blog/plumeria-18-2) shipped: a selector spells out the path between two elements, while the pair is linked by an id and survives another wrapper being nested between them.
+
+So byte equality is not the claim. The claim is that **nothing breaks and nothing new is refused**.
+
+---
+
+## What CI actually runs
+
+To keep that from being another author's claim, it runs against two real projects on every push — this documentation site and the end-to-end site — not against fixtures written to pass.
+
+One detail matters more than it looks. This documentation site was started in June 2025. The migration transforms landed in August 2026, fourteen months later. Not one line of its styling was written with a codemod in mind, because there was no codemod to have in mind. It is an ordinary Next.js app that happens to be the one nearest to hand.
+
+```yaml title=".github/workflows/tests.yml"
+codemod-round-trip:
+  steps:
+    - name: Export, re-export, and adopt back
+      run: |
+        pnpm codemod:round-trip docs
+        pnpm codemod:round-trip test-e2e/site
+```
+
+Five passes. Two of them are the same command run twice, which is the point.
+
+| # | Command | What it proves |
+| --: | :-- | :-- |
+| 1 | `migrate --from plumeria` | No new type error. No class named that was never written |
+| 2 | `migrate --from plumeria` | Run again, not one byte moves |
+| 3 | `migrate --from css-modules` | No new type error. No consumer left reading a `*.module.css` |
+| 4 | `migrate --from css-modules` | Run again, not one byte moves |
+| 5 | `migrate --from plumeria` | No new kind of report, and no new type error |
+
+`--from` names what is being left, so 1 and 2 leave Plumeria and 3 and 4 come back to it. Passes 2 and 4 are not new work: they re-run the pass above them and assert nothing happened. Pass 5 is the one that matters most — the project that came back has to be able to leave a second time, and it runs after deleting the stylesheets a leaver would have deleted, so it is a real export rather than a report that the targets already exist.
+
+Type errors are measured as a regression against a baseline taken before the first pass, so the check means something even on a project that does not currently compile clean.
+
+Source that compiles is still not a page that renders. The exported site is built, served, and compared against the Plumeria one screenshot by screenshot in `test-e2e/test/exported-parity.test.ts`.
+
+---
+
+## What it cannot convert does not disappear quietly
+
+The first question about any migration tool is how much it actually leaves behind. Here are both projects the round trip runs on, exported:
+
+| Project | Modules exported | Files rewritten | Left behind |
+| :-- | --: | --: | :-- |
+| This documentation site | 16 | 20 | nothing |
+| The end-to-end site | 17 | 11 | 4 reports, across 2 files |
+
+The documentation site is an ordinary Next.js app and it leaves with nothing reported. The end-to-end site is not ordinary — it exists to hold the cases the compiler has to survive — and what it reports is `dynamic-value` on three declarations whose value is computed at run time, plus the `blocked-dependency` naming the file that defines them. A value that is not known until run time is not a static rule; there is nothing for it to become.
+
+Everything the codemod refuses comes back as a report of a fixed kind, and the kinds fall into two groups that are worth telling apart.
+
+**The ones you can actually meet.** A style whose value is decided at run time (`dynamic-value`), a key the call site computes rather than names (`dynamic-style-access`), one class written twice with another class between them (`split-order`), and a call site whose ordering specificity cannot settle (`composition-order`). These describe real code, and the last two are worth reading closely because they are about the cascade rather than about syntax — merging a split class would give every declaration the later position, including the ones the class in between should outrank.
+
+**The ones enumerated for completeness.** `sibling-combinator` is the clearest example. A style query reaches descendants and never siblings, so no marker states the relation `.a + .b` carries, and whether an ordinal such as `:not(:first-child)` is equivalent depends on markup the stylesheet cannot see. It is listed because the analysis is exhaustive, not because it comes up: the common use of the adjacent sibling was `.item + .item` spacing, and `gap` replaced it. If you do hit it, the relation is still writable by hand as a selector key — `:is()` permits a combinator inside it — so it is a report, not a wall.
+
+What every kind shares is a refusal to guess when more than one answer fits. The boundary of what closed-world static analysis can decide is the boundary of what gets written. Guessing the most likely reading would raise the conversion rate and produce the class of bug you find weeks later.
+
+---
+
+## The exit is the feature
+
+The value of migration tooling is not on the way in. The way in is a weekend of typing.
+
+The value is that a way out you can see makes the way in a smaller decision. "Try it, and back it out if it doesn't fit" is either true or it is marketing, and the difference is whether anyone has run it.
+
+What that required was not a round trip that preserves identity. It was a round trip **defined so that stopping anywhere is legal**.
+
+```sh title="Terminal"
+npx @plumeria/codemod migrate --from css-modules
+npx @plumeria/codemod migrate --from plumeria
+```
+
+One command in, one command out, and neither has to be finished.
+
+One thing is left to you. The codemod never deletes the file it converted from — come in from CSS Modules and the `*.module.css` stays, leave and the `*.styles.ts` stays. Nothing reads them any more, since the imports were rewritten, so they are inert. Deleting them is the act that says you have actually decided, and a tool that guesses at that on your behalf is a tool you cannot run to look. It is also why pass 5 above removes them first: to export a second time you have to have committed to the first move.
+
+None of this is a wind-down. Removing the cost of leaving raises the bar the library is judged against: once the exit is free, the question stops being *can I get back out* and becomes *is it any good*. That is the harder question, and it is the one worth being asked.
+
+---
+
+The full reference for both directions — every report kind, what it means, and what to do about it — is in [`@plumeria/codemod`](/docs/api-reference/codemod).
