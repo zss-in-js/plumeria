@@ -220,7 +220,7 @@ describe('scanAll import and export shapes', () => {
     expect(Object.keys(tables.createHashTable)).toContain(`${styles}-s`);
   });
 
-  it('handles createTheme whose selector is not a string literal', () => {
+  it('reads a createTheme selector the file declares as a name', () => {
     const file = f('theme/dyn.ts');
     const { tables } = scanFiles({
       [file]:
@@ -229,7 +229,21 @@ describe('scanAll import and export shapes', () => {
 
     const hash = tables.createThemeHashTable[`${file}-th`];
     expect(hash).toBeDefined();
-    expect(tables.createThemeSelectorTable[hash]).toBe('');
+    expect(tables.createThemeSelectorTable[hash]).toBe(':root');
+  });
+
+  it('keeps two themes apart when only their selectors differ', () => {
+    const file = f('theme/pair.ts');
+    const { tables } = scanFiles({
+      [file]:
+        'import * as css from "@plumeria/core"; const one = ".one"; const two = ".two"; export const t1 = css.createTheme(one, { main: "red" }); export const t2 = css.createTheme(two, { main: "red" });',
+    });
+
+    const first = tables.createThemeHashTable[`${file}-t1`];
+    const second = tables.createThemeHashTable[`${file}-t2`];
+    expect(first).not.toBe(second);
+    expect(tables.createThemeSelectorTable[first]).toBe('.one');
+    expect(tables.createThemeSelectorTable[second]).toBe('.two');
   });
 
   it('resolves a re-export whose source does not exist', () => {
