@@ -36,6 +36,7 @@ import {
   resolveImportPath,
   resolveExport,
   themeHashOf,
+  resolveThemeSelector,
   DEFAULT_STYLE_PROP,
 } from '@plumeria/utils';
 import type {
@@ -1192,10 +1193,18 @@ export function compileCSS(options: CompilerOptions) {
           args.length >= 2 &&
           t.isObjectExpression(args[1].expression)
         ) {
-          let selector = '';
           const selectorExpr = args[0].expression;
-          if (t.isStringLiteral(selectorExpr)) {
-            selector = selectorExpr.value;
+          const selector = resolveThemeSelector(
+            selectorExpr,
+            ctx.mergedStaticTable,
+            ctx.mergedCreateStaticHashTable,
+            ctx.scannedTables.createStaticObjectTable,
+          );
+          if (!selector) {
+            throw new Error(
+              `[plumeria] createTheme needs a selector it can read at build time. ` +
+                `Pass a string literal such as ".dark", or a name this file declares as one. (${path.basename(resourcePath)})`,
+            );
           }
           const obj = objectExpressionToObject(
             args[1].expression as ObjectExpression,
@@ -1314,10 +1323,18 @@ export function compileCSS(options: CompilerOptions) {
                   };
                 }
               } else if (pName === 'createTheme') {
-                let selector = '';
                 const selectorExpr = init.arguments[0].expression;
-                if (t.isStringLiteral(selectorExpr)) {
-                  selector = selectorExpr.value;
+                const selector = resolveThemeSelector(
+                  selectorExpr,
+                  ctx.mergedStaticTable,
+                  ctx.mergedCreateStaticHashTable,
+                  ctx.scannedTables.createStaticObjectTable,
+                );
+                if (!selector) {
+                  throw new Error(
+                    `[plumeria] createTheme needs a selector it can read at build time. ` +
+                      `Pass a string literal such as ".dark", or a name this file declares as one. (${path.basename(resourcePath)})`,
+                  );
                 }
                 const obj = objectExpressionToObject(
                   arg,
