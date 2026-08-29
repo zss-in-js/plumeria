@@ -21,6 +21,7 @@ export {
   getFileDependencies,
   resolveExport,
   resolveComponentKey,
+  resolveThemeSelector,
 } from './parser';
 export type { StyleRecord } from './create';
 export { getStyleRecords } from './create';
