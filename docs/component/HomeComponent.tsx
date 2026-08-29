@@ -413,7 +413,7 @@ const styles = css.create({
   featureCard: {
     position: 'relative',
     width: 274,
-    height: 220,
+    minHeight: 220,
     padding: 24,
     background: theme.cardBg,
     borderRadius: '16px',
@@ -498,30 +498,34 @@ export const HomeComponent = () => {
         <section classStyle={styles.featuresSection}>
           <div classStyle={styles.featureCard}>
             <div classStyle={styles.featureIcon}>{svg.Ghost()}</div>
-            <h3 classStyle={styles.featureTitle}>Ghostly</h3>
+            <h3 classStyle={styles.featureTitle}>Zero-Trace Runtime</h3>
             <p classStyle={styles.featureDescription}>
-              The core implementation does not use JavaScript. Therefore, there is no footprint.
-            </p>
-          </div>
-
-          <div classStyle={styles.featureCard}>
-            <div classStyle={styles.featureIcon}>{svg.Eslint()}</div>
-            <h3 classStyle={styles.featureTitle}>Linting</h3>
-            <p classStyle={styles.featureDescription}>This improves efficiency during editing.</p>
-          </div>
-
-          <div classStyle={styles.featureCard}>
-            <div classStyle={styles.featureIcon}>⚡</div>
-            <h3 classStyle={styles.featureTitle}>Build time</h3>
-            <p classStyle={styles.featureDescription}>
-              All style processing completes at build time leaving no runtime cost.
+              The compiler rewrites the call site and deletes the import. Nothing of the library reaches the browser.
             </p>
           </div>
 
           <div classStyle={styles.featureCard}>
             <div classStyle={styles.featureIcon}>{svg.Atom()}</div>
             <h3 classStyle={styles.featureTitle}>Atomic CSS</h3>
-            <p classStyle={styles.featureDescription}>Abstracted layers are automatically atomized.</p>
+            <p classStyle={styles.featureDescription}>
+              One class per property–value pair, shared project-wide. Components reuse them instead of adding CSS.
+            </p>
+          </div>
+
+          <div classStyle={styles.featureCard}>
+            <div classStyle={styles.featureIcon}>{svg.Graph()}</div>
+            <h3 classStyle={styles.featureTitle}>Deterministic order</h3>
+            <p classStyle={styles.featureDescription}>
+              Output follows the compiler’s module graph, not bundle order. Split files freely; the layout holds.
+            </p>
+          </div>
+
+          <div classStyle={styles.featureCard}>
+            <div classStyle={styles.featureIcon}>{svg.Exchange()}</div>
+            <h3 classStyle={styles.featureTitle}>Migrate both ways</h3>
+            <p classStyle={styles.featureDescription}>
+              One command brings CSS Modules in. The same command takes your project back out. No lock-in.
+            </p>
           </div>
         </section>
 
