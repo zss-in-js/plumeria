@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 18.3.7
+
+### Patch Changes
+
+- b867ab2: Fix: a theme variable written with a fallback, or nested inside another variable's fallback, was not recognised as used, so its declaration never reached the sheet and the value fell back for want of anything to read. The name is now read up to where the fallback begins, rather than up to a closing parenthesis that may belong to an inner `var()`.
+
 ## 18.3.6
 
 ### Patch Changes
