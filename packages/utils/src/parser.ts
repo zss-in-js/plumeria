@@ -1315,6 +1315,33 @@ function resolveCreateStaticTableMemberExpression(
   return undefined;
 }
 
+// The theme selector decides both the emitted CSS selector and the variable
+// hash, so a name the declaring file resolves for itself has to be settled
+// here. Left unresolved it collapses to '', which drops the theme's own rule
+// and hashes every such theme alike.
+export function resolveThemeSelector(
+  node: Expression,
+  staticTable: StaticTable,
+  createStaticHashTable: CreateStaticHashTable,
+  createStaticObjectTable: CreateStaticObjectTable,
+): string {
+  try {
+    const value = evaluateExpression(
+      node,
+      staticTable,
+      {},
+      {},
+      {},
+      {},
+      createStaticHashTable,
+      createStaticObjectTable,
+    );
+    return typeof value === 'string' ? value : '';
+  } catch {
+    return '';
+  }
+}
+
 // Cache for incremental scanning
 interface CachedData {
   mtimeMs: number;
@@ -1971,11 +1998,12 @@ export function scanAll(): Tables {
                     filePath,
                   );
                 } else if (method === 'createTheme') {
-                  let selector = '';
-                  const selectorExpr = init.arguments[0].expression;
-                  if (t.isStringLiteral(selectorExpr)) {
-                    selector = selectorExpr.value;
-                  }
+                  const selector = resolveThemeSelector(
+                    init.arguments[0].expression,
+                    scopedStaticTable,
+                    localCreateStaticHashTable,
+                    localCreateStaticObjectTable,
+                  );
                   const hash = themeHashOf(selector, obj);
                   localTables.createThemeObjectTable[hash] = obj;
                   localCreateThemeObjectTable[hash] = obj;
