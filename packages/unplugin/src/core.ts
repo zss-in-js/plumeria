@@ -47,6 +47,7 @@ import {
   getFileDependencies,
   resolveExport,
   resolveComponentKey,
+  resolveThemeSelector,
   DEFAULT_STYLE_PROP,
 } from '@plumeria/utils';
 import type {
@@ -831,10 +832,20 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               idSpans.add(node.id.span.start);
             }
 
-            let selector = '';
             const selectorExpr = init.arguments[0].expression;
-            if (t.isStringLiteral(selectorExpr)) {
-              selector = selectorExpr.value;
+            const selector = resolveThemeSelector(
+              selectorExpr,
+              mergedStaticTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
+            );
+
+            if (!selector) {
+              throwCompilationError(
+                `Plumeria: createTheme needs a selector it can read at build time. ` +
+                  `Pass a string literal such as ".dark", or a name this file declares as one.`,
+                selectorExpr as HasSpan,
+              );
             }
 
             if (selector.startsWith('@') && !isAtRule(selector)) {
@@ -1085,10 +1096,20 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               args.length >= 2 &&
               t.isObjectExpression(args[1].expression)
             ) {
-              let selector = '';
               const selectorExpr = args[0].expression;
-              if (t.isStringLiteral(selectorExpr)) {
-                selector = selectorExpr.value;
+              const selector = resolveThemeSelector(
+                selectorExpr,
+                mergedStaticTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
+              );
+
+              if (!selector) {
+                throwCompilationError(
+                  `Plumeria: createTheme needs a selector it can read at build time. ` +
+                    `Pass a string literal such as ".dark", or a name this file declares as one.`,
+                  selectorExpr as HasSpan,
+                );
               }
 
               if (selector.startsWith('@') && !isAtRule(selector)) {
