@@ -1064,12 +1064,15 @@ function evaluateExpression(
       return staticTable[node.value];
     }
 
+    // The same binding read as a value elsewhere carries its prefix, and the
+    // prefix is what names the rule in the sheet. Reading it through a template
+    // or a concatenation has to yield the same string.
     if (keyframesHashTable[node.value] !== undefined) {
-      return keyframesHashTable[node.value];
+      return 'kf-' + keyframesHashTable[node.value];
     }
 
     if (viewTransitionHashTable[node.value] !== undefined) {
-      return viewTransitionHashTable[node.value];
+      return 'vt-' + viewTransitionHashTable[node.value];
     }
 
     if (createStaticHashTable[node.value] !== undefined) {
@@ -2598,6 +2601,10 @@ export function resolveExport(
   return null;
 }
 
+// `kf-`, `vt-` and `cr-` name a rule the sheet has to carry, and a shorthand
+// can hold one in the middle of its value.
+const REFERENCE_MARKER = /(kf|vt|cr)-([0-9a-z]+)/g;
+
 export function extractOndemandStyles(
   obj: any,
   extractedSheets: string[],
@@ -2617,25 +2624,30 @@ export function extractOndemandStyles(
 
     Object.values(n).forEach((val) => {
       if (typeof val === 'string') {
-        if (val.startsWith('kf-')) {
-          const hash = val.slice(3);
-          if (!keyframesHashes.has(hash)) {
-            keyframesHashes.add(hash);
-            walk(t.keyframesObjectTable[hash]);
-          }
-        } else if (val.startsWith('vt-')) {
-          const hash = val.slice(3);
-          if (!viewTransitionHashes.has(hash)) {
-            viewTransitionHashes.add(hash);
-            walk(t.viewTransitionObjectTable[hash]);
-          }
-        } else if (val.startsWith('cr-')) {
-          const hash = val.slice(3);
-          if (!createHashes.has(hash)) {
+        // A shorthand carries the reference alongside the rest of the value,
+        // so the marker is looked for anywhere in the string. A hash no table
+        // knows is some other text that happens to read like one.
+        for (const [, kind, hash] of val.matchAll(REFERENCE_MARKER)) {
+          if (kind === 'kf') {
+            if (!keyframesHashes.has(hash) && t.keyframesObjectTable[hash]) {
+              keyframesHashes.add(hash);
+              walk(t.keyframesObjectTable[hash]);
+            }
+          } else if (kind === 'vt') {
+            if (
+              !viewTransitionHashes.has(hash) &&
+              t.viewTransitionObjectTable[hash]
+            ) {
+              viewTransitionHashes.add(hash);
+              walk(t.viewTransitionObjectTable[hash]);
+            }
+          } else if (!createHashes.has(hash) && t.createObjectTable[hash]) {
             createHashes.add(hash);
             walk(t.createObjectTable[hash]);
           }
-        } else if (val.includes('var(--')) {
+        }
+
+        if (val.includes('var(--')) {
           let startIdx = 0;
           while ((startIdx = val.indexOf('var(--', startIdx)) !== -1) {
             startIdx += 4;
