@@ -2374,6 +2374,20 @@ describe('extractOndemandStyles (integration)', () => {
     expect(extracted.length).toBeGreaterThan(0);
   });
 
+  it('should find a reference sitting in the middle of a shorthand', () => {
+    const extracted: string[] = [];
+
+    extractOndemandStyles({ animation: 'kf-abc 1s ease' }, extracted, tables);
+    expect(extracted.join('')).toContain('@keyframes kf-abc');
+  });
+
+  it('should ignore text that only reads like a reference', () => {
+    const extracted: string[] = [];
+
+    extractOndemandStyles({ content: '"kf-nothing"' }, extracted, tables);
+    expect(extracted).toHaveLength(0);
+  });
+
   it('should handle malformed var() references', () => {
     const extracted: string[] = [];
     const style = {
