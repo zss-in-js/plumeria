@@ -42,6 +42,7 @@ import {
   scanAll,
   resolveImportPath,
   optimizer,
+  themeHashOf,
   getLeadingCommentLength,
   getFileDependencies,
   resolveExport,
@@ -851,11 +852,7 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedVariantsTable,
           );
 
-          const hash = genBase36Hash(
-            { _themeSelector: selector, ...obj },
-            1,
-            8,
-          );
+          const hash = themeHashOf(selector, obj);
           if (t.isIdentifier(node.id)) {
             const uniqueKey = `${resourcePath}-${node.id.value}`;
 
@@ -870,7 +867,11 @@ export default async function loader(this: LoaderContext, source: string) {
             const themeHashMap: Record<string, any> = {};
             for (const [key, value] of Object.entries(obj)) {
               const cssVarName = camelToKebabCase(key);
-              const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
+              const atomicHash = genBase36Hash(
+                { _theme: hash, [key]: value },
+                1,
+                8,
+              );
               themeHashMap[key] = `var(--${atomicHash}-${cssVarName})`;
             }
 
@@ -1101,11 +1102,7 @@ export default async function loader(this: LoaderContext, source: string) {
               scannedTables.createStaticObjectTable,
               mergedVariantsTable,
             );
-            const hash = genBase36Hash(
-              { _themeSelector: selector, ...obj },
-              1,
-              8,
-            );
+            const hash = themeHashOf(selector, obj);
             scannedTables.createThemeObjectTable[hash] = obj;
             if (scannedTables.createThemeSelectorTable) {
               scannedTables.createThemeSelectorTable[hash] = selector;
