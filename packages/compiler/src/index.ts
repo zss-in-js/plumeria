@@ -35,6 +35,7 @@ import {
   scanAll,
   resolveImportPath,
   resolveExport,
+  themeHashOf,
   DEFAULT_STYLE_PROP,
 } from '@plumeria/utils';
 import type {
@@ -1208,11 +1209,7 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
             ctx.mergedVariantsTable,
           );
-          const hash = genBase36Hash(
-            { _themeSelector: selector, ...obj },
-            1,
-            8,
-          );
+          const hash = themeHashOf(selector, obj);
           ctx.scannedTables.createThemeObjectTable[hash] = obj;
           if (ctx.scannedTables.createThemeSelectorTable) {
             ctx.scannedTables.createThemeSelectorTable[hash] = selector;
@@ -1334,11 +1331,7 @@ export function compileCSS(options: CompilerOptions) {
                   ctx.scannedTables.createStaticObjectTable,
                   ctx.mergedVariantsTable,
                 );
-                const hash = genBase36Hash(
-                  { _themeSelector: selector, ...obj },
-                  1,
-                  8,
-                );
+                const hash = themeHashOf(selector, obj);
                 const uKey = `${resourcePath}-${node.id.value}`;
                 ctx.scannedTables.createThemeHashTable[uKey] = hash;
                 ctx.scannedTables.createThemeObjectTable[hash] = obj;
@@ -1348,7 +1341,11 @@ export function compileCSS(options: CompilerOptions) {
                 const themeHashMap: Record<string, any> = {};
                 for (const [key, value] of Object.entries(obj)) {
                   const cssVarName = camelToKebabCase(key);
-                  const atomicHash = genBase36Hash({ [key]: value }, 1, 8);
+                  const atomicHash = genBase36Hash(
+                    { _theme: hash, [key]: value },
+                    1,
+                    8,
+                  );
                   themeHashMap[key] = `var(--${atomicHash}-${cssVarName})`;
                 }
                 ctx.scannedTables.createAtomicMapTable[hash] = themeHashMap;
