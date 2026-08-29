@@ -135,7 +135,11 @@ export const baseOptions: BaseLayoutProps = {
         <NavDropdown
           title={'Blog'}
           url={'/blog'}
-          items={[...latestReleasePosts, { text: 'Eating up the libraries', url: '/blog/eating-up-the-libraries' }]}
+          items={[
+            ...latestReleasePosts,
+            { text: 'Eating up the libraries', url: '/blog/eating-up-the-libraries' },
+            { text: 'How to leave Plumeria', url: '/blog/how-to-leave-plumeria' },
+          ]}
         />
       ),
       on: 'all',
