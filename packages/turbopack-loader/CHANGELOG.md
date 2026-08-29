@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 18.3.8
+
+### Patch Changes
+
+- 9fc80c2: Update README.md
+- Updated dependencies [9fc80c2]
+  - @plumeria/compiler@18.3.8
+  - @plumeria/utils@18.3.8
+
 ## 18.3.7
 
 ### Patch Changes

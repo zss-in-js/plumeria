@@ -1,3 +1,9 @@
+## 18.3.8
+
+### Patch Changes
+
+- 9fc80c2: Update README.md
+
 ## 18.3.7
 
 ### Patch Changes
