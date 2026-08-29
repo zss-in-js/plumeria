@@ -192,6 +192,25 @@ File scanning is sorted for reproducible stylesheet output. The dependency updat
 
 ---
 
+## 18.3.8 (Aug 29, 2026)
+
+- Update README.md
+
+## 18.3.7 (Aug 29, 2026)
+
+- Fix: a theme variable written with a fallback, or nested inside another variable's fallback, was not recognised as used, so its declaration never reached the sheet and the value fell back for want of anything to read. The name is now read up to where the fallback begins, rather than up to a closing parenthesis that may belong to an inner `var()`.
+
+## 18.3.6 (Aug 29, 2026)
+
+- Fix: a `css.keyframes` or `css.viewTransition` binding read inside a template literal or a concatenation lost the `kf-` / `vt-` prefix its own name carries, so the value named a rule that was never emitted and an `animation` shorthand built that way animated nothing. The binding now reads the same wherever it is read.
+- Fix: a reference sitting in the middle of a value, as an `animation` shorthand holds one, is now found when collecting the rules a sheet needs, instead of only when it is the whole value.
+
+## 18.3.5 (Aug 29, 2026)
+
+- Fix: a `css.createTheme` selector written as anything other than a string literal — a template literal, or a name the file declares — was read as an empty selector, which dropped the theme's whole rule and left the styles pointing at custom properties nothing declared. The selector is now resolved the same way a style value is, so a name or a `createStatic` entry works, and two themes that differ only by selector stay apart.
+- Fix: a selector that still cannot be read at build time is now reported where it is written, instead of compiling to no CSS at all.
+
+
 ## 18.3.4 (Aug 29, 2026)
 
 - Fix: editing only the selector passed to `css.createTheme` left the rule under the old selector setting the same custom properties, because their names were hashed from the value alone and never from the selector. The selector is now part of the hash, so the rule left behind declares variables of its own and stops competing with the new one.
