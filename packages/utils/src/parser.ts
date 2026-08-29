@@ -2605,6 +2605,11 @@ export function resolveExport(
 // can hold one in the middle of its value.
 const REFERENCE_MARKER = /(kf|vt|cr)-([0-9a-z]+)/g;
 
+// The name is what the reference is read for, and it ends where the fallback
+// begins. Reading up to the closing parenthesis instead takes the fallback
+// with it, and finds the wrong parenthesis whenever a var() holds another.
+const CUSTOM_PROPERTY = /var\(\s*(--[^\s,)]+)/g;
+
 export function extractOndemandStyles(
   obj: any,
   extractedSheets: string[],
@@ -2648,20 +2653,8 @@ export function extractOndemandStyles(
         }
 
         if (val.includes('var(--')) {
-          let startIdx = 0;
-          while ((startIdx = val.indexOf('var(--', startIdx)) !== -1) {
-            startIdx += 4;
-            const endIdx = val.indexOf(')', startIdx);
-            if (endIdx !== -1) {
-              const content = val.slice(startIdx, endIdx);
-              const varName = content.trim();
-              if (varName.startsWith('--')) {
-                usedVariables.add(varName);
-              }
-              startIdx = endIdx + 1;
-            } else {
-              break;
-            }
+          for (const [, varName] of val.matchAll(CUSTOM_PROPERTY)) {
+            usedVariables.add(varName);
           }
         }
       } else {
