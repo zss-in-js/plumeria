@@ -360,6 +360,7 @@ const styles = css.create({
 
   image: {
     filter: 'drop-shadow(0 0 90px rgba(13, 255, 255, 1))',
+    transition: 'filter 0.3s ease',
     [breakpoints.md]: {
       width: '120px',
       height: '120px',
@@ -368,7 +369,6 @@ const styles = css.create({
     },
     ':hover': {
       filter: 'none',
-      transition: 'all 0.3s',
     },
   },
 
@@ -403,16 +403,16 @@ const styles = css.create({
     gap: 24,
     width: '100%',
     maxWidth: '1200px',
+    [breakpoints.lg]: {
+      gridTemplateColumns: 'repeat(2, 1fr)',
+    },
     [breakpoints.md]: {
       gridTemplateColumns: '1fr',
       gap: 20,
-      maxWidth: '500px',
     },
   },
 
   featureCard: {
-    position: 'relative',
-    width: 274,
     minHeight: 220,
     padding: 24,
     background: theme.cardBg,
@@ -420,8 +420,11 @@ const styles = css.create({
     boxShadow: theme.cardBoxShadow,
     transition: 'all 0.3s ease',
     [breakpoints.md]: {
-      width: '100%',
-      padding: '24px',
+      minHeight: 0,
+    },
+    ':hover': {
+      boxShadow: theme.cardHoverBoxShadow,
+      transform: 'translateY(-2px)',
     },
   },
 
@@ -479,10 +482,10 @@ export const HomeComponent = () => {
           </div>
 
           <div classStyle={styles.heroContent}>
-            <h2 classStyle={styles.mainHeadline}>
+            <h1 classStyle={styles.mainHeadline}>
               <span classStyle={styles.headings}>Plumeria</span>
               <span classStyle={styles.headings2}>Abstraction layer</span>
-            </h2>
+            </h1>
             <div classStyle={styles.subHeadlineWrapper}>
               <span classStyle={styles.typingText1}>A library for more ambitious interfaces</span>
               <span classStyle={styles.typingText2}>Pure · Self-evident · Mathematical</span>
