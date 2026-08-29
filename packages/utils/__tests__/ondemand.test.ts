@@ -117,6 +117,84 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
     expect(extracted).toHaveLength(0);
   });
 
+  it('should extract a variable used as another variable fallback', () => {
+    const extracted: string[] = [];
+
+    const themeObj = {
+      primary: { default: 'blue', theme: 'white' },
+    };
+    const themeHash = 'themeHashFallback';
+    tables.createThemeObjectTable[themeHash] = themeObj;
+    tables.createThemeSelectorTable[themeHash] = '.dark';
+    tables.createThemeHashTable['T'] = themeHash;
+
+    const primaryHash = genBase36Hash(
+      { _theme: themeHash, primary: { default: 'blue', theme: 'white' } },
+      1,
+      8,
+    );
+
+    // The name ends at the comma. Reading on to the closing parenthesis takes
+    // the fallback with it, and the inner one closes first.
+    const style = { color: `var(--override, var(--${primaryHash}-primary))` };
+
+    extractOndemandStyles(style, extracted, tables);
+
+    expect(extracted.join('')).toContain(`--${primaryHash}-primary: blue`);
+  });
+
+  it('should extract a variable that carries a fallback of its own', () => {
+    const extracted: string[] = [];
+
+    const themeObj = {
+      primary: { default: 'blue', theme: 'white' },
+    };
+    const themeHash = 'themeHashOwnFallback';
+    tables.createThemeObjectTable[themeHash] = themeObj;
+    tables.createThemeSelectorTable[themeHash] = '.dark';
+    tables.createThemeHashTable['T'] = themeHash;
+
+    const primaryHash = genBase36Hash(
+      { _theme: themeHash, primary: { default: 'blue', theme: 'white' } },
+      1,
+      8,
+    );
+
+    const style = { color: `var(--${primaryHash}-primary, red)` };
+
+    extractOndemandStyles(style, extracted, tables);
+
+    expect(extracted.join('')).toContain(`--${primaryHash}-primary: white`);
+  });
+
+  it('should extract a variable written with space inside var()', () => {
+    const extracted: string[] = [];
+
+    const themeObj = {
+      primary: { default: 'blue', theme: 'white' },
+    };
+    const themeHash = 'themeHashSpaced';
+    tables.createThemeObjectTable[themeHash] = themeObj;
+    tables.createThemeSelectorTable[themeHash] = '.dark';
+    tables.createThemeHashTable['T'] = themeHash;
+
+    const primaryHash = genBase36Hash(
+      { _theme: themeHash, primary: { default: 'blue', theme: 'white' } },
+      1,
+      8,
+    );
+
+    // CSS allows whitespace after the parenthesis, including a newline, and
+    // every var() in the value can carry it.
+    const style = {
+      color: `var( --override,\n  var(\t--${primaryHash}-primary))`,
+    };
+
+    extractOndemandStyles(style, extracted, tables);
+
+    expect(extracted.join('')).toContain(`--${primaryHash}-primary: blue`);
+  });
+
   it('should handle malformed var() without closing parenthesis safely', () => {
     const extracted: string[] = [];
 
