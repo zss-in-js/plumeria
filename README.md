@@ -61,6 +61,10 @@ export default function App({ cond }) {
 }
 ```
 
+## Benchmark
+
+For how Plumeria compares with StyleX, see the [side-by-side benchmark](https://github.com/refirst11/stylex-plumeria-benchmark).
+
 ## API Stability
 
 Plumeria publishes frequently. To make that legible, every public API is rated for **future** change likelihood — not past churn. The rating is a commitment about what will happen next, not a description of what already has.
@@ -110,7 +114,7 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 | `@plumeria/compiler` | ★★★★☆     | Stable |
 | `@plumeria/utils`    | ★★★★☆     | Stable |
 
-> **Not planned** — a predefined utility atom vocabulary, a runtime style merger, or fallback chains. None can be reconciled with the closed-world static resolution performed by scanAll(). For one-off styles, give them a local name in css.create — the naming requirement is deliberate. For how this compares with open-world systems such as StyleX, see the [side-by-side benchmark](https://github.com/refirst11/stylex-plumeria-benchmark).
+> **Not planned** — a predefined utility atom vocabulary, a runtime style merger, or fallback chains. None can be reconciled with the closed-world static resolution performed by scanAll(). For one-off styles, give them a local name in css.create — the naming requirement is deliberate.
 
 ## Structure
 
