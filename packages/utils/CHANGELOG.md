@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 18.3.10
+
+### Patch Changes
+
+- c53466e: Perf: a value that holds no `var(` skips the custom property scan, which the on-demand walk had been running over every string it visits. The gate is implied by the pattern it guards, so the set of variables found is unchanged.
+
 ## 18.3.9
 
 ### Patch Changes
