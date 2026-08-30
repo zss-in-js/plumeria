@@ -7,7 +7,7 @@
 ![Types](https://img.shields.io/badge/Types-100%25-6366F1?logo=npm&logoColor=white)
 ![Runtime](https://img.shields.io/badge/Runtime-never-6366F1?logo=npm&logoColor=white)
 
-**Plumeria** is a **zero-cost abstraction layer** for styling React components. You write type-safe styles in TypeScript, and style composition is defined as a monoid whose operation is fully determined at compile time — what ships is a class string, not a style object and a merger. Grounded in category theory, styles become self-evident, predictable, and composable by construction, while strict syntax and linting keep the cognitive overhead low.
+**Plumeria** is a **zero-cost abstraction layer** for styling React components. You write type-safe styles in TypeScript, and what ships is a class string — not a style object and a merger. Style composition is a monoid whose operation is fully determined at compile time, which is where the predictability comes from: styles are composable by construction, and strict syntax and linting keep the cognitive overhead low.
 
 ## Installation
 
