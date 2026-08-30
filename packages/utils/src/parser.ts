@@ -2608,8 +2608,6 @@ const REFERENCE_MARKER = /(kf|vt|cr)-([0-9a-z]+)/g;
 // The name is what the reference is read for, and it ends where the fallback
 // begins. Reading up to the closing parenthesis instead takes the fallback
 // with it, and finds the wrong parenthesis whenever a var() holds another.
-// This is the only thing that decides what counts as a reference: a cheaper
-// test in front of it is one more place for the two to disagree.
 const CUSTOM_PROPERTY = /var\(\s*(--[^\s,)]+)/g;
 
 export function extractOndemandStyles(
@@ -2654,8 +2652,10 @@ export function extractOndemandStyles(
           }
         }
 
-        for (const [, varName] of val.matchAll(CUSTOM_PROPERTY)) {
-          usedVariables.add(varName);
+        if (val.includes('var(')) {
+          for (const [, varName] of val.matchAll(CUSTOM_PROPERTY)) {
+            usedVariables.add(varName);
+          }
         }
       } else {
         walk(val);
