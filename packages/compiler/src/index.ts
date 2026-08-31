@@ -349,7 +349,8 @@ export function compileCSS(options: CompilerOptions) {
   const scannedTables = scanAll();
 
   const processFile = (filePath: string): string[] => {
-    const source = fs.readFileSync(filePath, 'utf-8');
+    const resourcePath = path.resolve(cwd, filePath);
+    const source = fs.readFileSync(resourcePath, 'utf-8');
     const extractedSheets: string[] = [];
 
     const ast = parseSync(source, {
@@ -367,7 +368,6 @@ export function compileCSS(options: CompilerOptions) {
     const baseByteOffset = ast.span.start - leadingBytes;
 
     const localConsts = collectLocalConsts(ast);
-    const resourcePath = path.resolve(cwd, filePath);
     const importMap: StaticTable = {};
     const keyframesImportMap: KeyframesHashTable = {};
     const viewTransitionImportMap: ViewTransitionHashTable = {};
