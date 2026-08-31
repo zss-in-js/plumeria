@@ -2632,23 +2632,25 @@ export function extractOndemandStyles(
         // A shorthand carries the reference alongside the rest of the value,
         // so the marker is looked for anywhere in the string. A hash no table
         // knows is some other text that happens to read like one.
-        for (const [, kind, hash] of val.matchAll(REFERENCE_MARKER)) {
-          if (kind === 'kf') {
-            if (!keyframesHashes.has(hash) && t.keyframesObjectTable[hash]) {
-              keyframesHashes.add(hash);
-              walk(t.keyframesObjectTable[hash]);
+        if (val.includes('kf-') || val.includes('vt-') || val.includes('cr-')) {
+          for (const [, kind, hash] of val.matchAll(REFERENCE_MARKER)) {
+            if (kind === 'kf') {
+              if (!keyframesHashes.has(hash) && t.keyframesObjectTable[hash]) {
+                keyframesHashes.add(hash);
+                walk(t.keyframesObjectTable[hash]);
+              }
+            } else if (kind === 'vt') {
+              if (
+                !viewTransitionHashes.has(hash) &&
+                t.viewTransitionObjectTable[hash]
+              ) {
+                viewTransitionHashes.add(hash);
+                walk(t.viewTransitionObjectTable[hash]);
+              }
+            } else if (!createHashes.has(hash) && t.createObjectTable[hash]) {
+              createHashes.add(hash);
+              walk(t.createObjectTable[hash]);
             }
-          } else if (kind === 'vt') {
-            if (
-              !viewTransitionHashes.has(hash) &&
-              t.viewTransitionObjectTable[hash]
-            ) {
-              viewTransitionHashes.add(hash);
-              walk(t.viewTransitionObjectTable[hash]);
-            }
-          } else if (!createHashes.has(hash) && t.createObjectTable[hash]) {
-            createHashes.add(hash);
-            walk(t.createObjectTable[hash]);
           }
         }
 
