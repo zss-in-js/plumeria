@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 18.3.11
+
+### Patch Changes
+
+- dc8fb4d: Bump version to 18.3.11
+
 ## 18.3.10
 
 ### Patch Changes
