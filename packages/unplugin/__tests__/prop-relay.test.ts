@@ -18,6 +18,7 @@ const COHABIT = path.join(DIR, 'Cohabit.tsx');
 const MASKED = path.join(DIR, 'Masked.tsx');
 const RENAMED_BINDING = path.join(DIR, 'RenamedBinding.tsx');
 const TWINS = path.join(DIR, 'Twins.tsx');
+const DEFAULT_TWINS = path.join(DIR, 'DefaultTwins.tsx');
 const PARENT = path.join(DIR, 'Parent.tsx');
 
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
@@ -117,6 +118,15 @@ export const TwinB = ({ styleArray }: { styleArray?: css.Style }) => (
   <span classStyle={styleArray} />
 );
 `,
+  [DEFAULT_TWINS]: `
+import * as css from '@plumeria/core';
+export default function TwinDefault({ styleArray }: { styleArray?: css.Style }) {
+  return <div classStyle={styleArray} />;
+}
+export const TwinNamed = ({ styleArray }: { styleArray?: css.Style }) => (
+  <section classStyle={styleArray} />
+);
+`,
   [PARENT]: `
 import '@plumeria/core';
 import { styles } from './styles';
@@ -129,6 +139,8 @@ import { Applies, Forwards } from './Cohabit';
 import { WrappedApplies, MaskedForwards } from './Masked';
 import { RenamedBinding } from './RenamedBinding';
 import { TwinA, TwinB } from './Twins';
+import TwinDefault from './DefaultTwins';
+import { TwinNamed } from './DefaultTwins';
 
 export const Parent = () => (
   <div>
@@ -143,6 +155,8 @@ export const Parent = () => (
     <WrappedApplies styleArray={styles.red} />
     <MaskedForwards styleArray={styles.blue} />
     <RenamedBinding styleArray={styles.blue} />
+    <TwinNamed styleArray={styles.red} />
+    <TwinDefault styleArray={styles.blue} />
     <TwinA styleArray={styles.red} />
     <TwinB styleArray={styles.blue} />
   </div>
@@ -218,6 +232,24 @@ describe('unplugin: a style received through a prop', () => {
 
     expect(render(exprs[0], keys[keys.length - 2])).toBe(norm(classesOf(RED)));
     expect(render(exprs[1], keys[keys.length - 1])).toBe(norm(classesOf(BLUE)));
+  });
+
+  // A default export is registered under the name it is declared with, so a
+  // named component sharing its file and its prop name cannot stand in for it.
+  // Registered first, that neighbour is what a name-less lookup finds.
+  it('keeps a default export apart from a named one in the same file', async () => {
+    const keys = [...(await run(PARENT)).matchAll(/styleArray={"(\w+)"}/g)].map(
+      (m) => m[1],
+    );
+    const code = await run(DEFAULT_TWINS);
+    const exprs = [...code.matchAll(/className=\{([\s\S]*?)\}(?= \/>)/g)].map(
+      (m) => m[1],
+    );
+    const render = (expr: string, styleArray: unknown) =>
+      norm(new Function('styleArray', `return (${expr});`)(styleArray));
+
+    expect(render(exprs[0], keys[keys.length - 3])).toBe(norm(classesOf(BLUE)));
+    expect(render(exprs[1], keys[keys.length - 4])).toBe(norm(classesOf(RED)));
   });
 
   it('is rejected when passed on to another component', async () => {
