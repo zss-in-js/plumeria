@@ -2588,7 +2588,9 @@ export function resolveExport(
         return resolveExport(actualPath, localName, visited);
       }
     } else {
-      return resolveExport(filePath, localName, visited);
+      return (
+        resolveExport(filePath, localName, visited) ?? { filePath, localName }
+      );
     }
   }
 
