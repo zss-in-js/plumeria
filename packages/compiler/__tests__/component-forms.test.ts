@@ -112,6 +112,25 @@ describe('compiler: the forms a component receiving a style can take', () => {
     expect(css).toContain('color: purple');
   });
 
+  it('reads the parameter of a component a call wraps', () => {
+    // `memo`, `forwardRef` and any other wrapper leave the component a function
+    // argument of a call, which is still the function whose parameter names the
+    // styles handed to it.
+    const css = compile(
+      `import { memo } from 'react';\nexport const Card = memo((props: any) => <div className={css.use(props.cardStyle)} />);`,
+      named,
+    );
+    expect(css).toContain('color: purple');
+  });
+
+  it('reads the parameter through nested wrappers', () => {
+    const css = compile(
+      `import { memo, forwardRef } from 'react';\nexport const Card = memo(forwardRef(({ cardStyle }: any, ref: any) => <div ref={ref} className={css.use(cardStyle)} />));`,
+      named,
+    );
+    expect(css).toContain('color: purple');
+  });
+
   it('reads a destructured parameter of a function declaration', () => {
     const css = compile(
       `export function Card({ cardStyle }: any) { return <div className={css.use(cardStyle)} />; }`,
