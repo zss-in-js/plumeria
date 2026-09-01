@@ -577,6 +577,95 @@ describe('parser', () => {
       expect(result.color).toBe('blue');
     });
 
+    it('should resolve a nested member expression path from constTable', () => {
+      const source = `const obj = { color: theme.colors.brand.primary }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const staticTable = {
+        theme: {
+          colors: {
+            brand: {
+              primary: 'blue',
+            },
+          },
+        },
+      };
+      const result = objectExpressionToObject(
+        objectExpr,
+        staticTable,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      expect(result.color).toBe('blue');
+    });
+
+    it('should leave out a nested path the constTable does not hold', () => {
+      const source = `const obj = { color: theme.colors.accent }`;
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const staticTable = {
+        theme: {
+          colors: {
+            primary: 'blue',
+          },
+        },
+      };
+      const result = objectExpressionToObject(
+        objectExpr,
+        staticTable,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      expect(result.color).toBeUndefined();
+    });
+
+    it('should resolve a nested member expression inside a template literal', () => {
+      const source = 'const obj = { padding: `${theme.space.sm} 0` }';
+      const ast = parseSync(source, { syntax: 'typescript' });
+      const varDecl = ast.body[0] as any;
+      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
+
+      const staticTable = {
+        theme: {
+          space: {
+            sm: '4px',
+          },
+        },
+      };
+      const result = objectExpressionToObject(
+        objectExpr,
+        staticTable,
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+      );
+
+      expect(result.padding).toBe('4px 0');
+    });
+
     it('should resolve identifier values from constTable', () => {
       const source = `const obj = { color: myColor }`;
       const ast = parseSync(source, { syntax: 'typescript' });
