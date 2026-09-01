@@ -19,6 +19,7 @@ const MASKED = path.join(DIR, 'Masked.tsx');
 const RENAMED_BINDING = path.join(DIR, 'RenamedBinding.tsx');
 const TWINS = path.join(DIR, 'Twins.tsx');
 const DEFAULT_TWINS = path.join(DIR, 'DefaultTwins.tsx');
+const WRAPPED = path.join(DIR, 'Wrapped.tsx');
 const PARENT = path.join(DIR, 'Parent.tsx');
 
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
@@ -127,6 +128,16 @@ export const TwinNamed = ({ styleArray }: { styleArray?: css.Style }) => (
   <section classStyle={styleArray} />
 );
 `,
+  [WRAPPED]: `
+import * as css from '@plumeria/core';
+const wrap = (component: unknown) => component;
+export const Sibling = ({ styleArray }: { styleArray?: css.Style }) => (
+  <div classStyle={styleArray} />
+);
+export const Wrapped = wrap(({ styleArray }: { styleArray?: css.Style }) => (
+  <span classStyle={styleArray} />
+));
+`,
   [PARENT]: `
 import '@plumeria/core';
 import { styles } from './styles';
@@ -140,6 +151,7 @@ import { WrappedApplies, MaskedForwards } from './Masked';
 import { RenamedBinding } from './RenamedBinding';
 import { TwinA, TwinB } from './Twins';
 import TwinDefault from './DefaultTwins';
+import { Sibling, Wrapped } from './Wrapped';
 import { TwinNamed } from './DefaultTwins';
 
 export const Parent = () => (
@@ -155,6 +167,8 @@ export const Parent = () => (
     <WrappedApplies styleArray={styles.red} />
     <MaskedForwards styleArray={styles.blue} />
     <RenamedBinding styleArray={styles.blue} />
+    <Sibling styleArray={styles.red} />
+    <Wrapped styleArray={styles.blue} />
     <TwinNamed styleArray={styles.red} />
     <TwinDefault styleArray={styles.blue} />
     <TwinA styleArray={styles.red} />
@@ -250,6 +264,25 @@ describe('unplugin: a style received through a prop', () => {
 
     expect(render(exprs[0], keys[keys.length - 3])).toBe(norm(classesOf(BLUE)));
     expect(render(exprs[1], keys[keys.length - 4])).toBe(norm(classesOf(RED)));
+  });
+
+  // A component the file does not declare at the top level has no owner to look
+  // its styles up by, so every style the file's components were handed is a
+  // candidate. Taking one of them is a guess; the runtime key picks the right
+  // one out of all of them.
+  it('applies to a component no declaration names', async () => {
+    const keys = [...(await run(PARENT)).matchAll(/styleArray={"(\w+)"}/g)].map(
+      (m) => m[1],
+    );
+    const code = await run(WRAPPED);
+    const exprs = [...code.matchAll(/className=\{([\s\S]*?)\}(?= \/>)/g)].map(
+      (m) => m[1],
+    );
+    const render = (expr: string, styleArray: unknown) =>
+      norm(new Function('styleArray', `return (${expr});`)(styleArray));
+
+    expect(render(exprs[0], keys[keys.length - 6])).toBe(norm(classesOf(RED)));
+    expect(render(exprs[1], keys[keys.length - 5])).toBe(norm(classesOf(BLUE)));
   });
 
   it('is rejected when passed on to another component', async () => {
