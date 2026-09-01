@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.3.13 (Sep 1, 2026)
+
+- Fix: a component exported as the default of its file was keyed by `default` instead of by the name it is declared with, so a named component sharing that file and that prop name could be found in its place and its styles bound to the wrong element. A default export now resolves to the local binding it names.
+
+- Fix: a style prop on a component the file does not declare at the top level — one wrapped in `memo`, `forwardRef` or any other call — was resolved by taking the first component in the file that takes a prop of that name, which depends on registration order and could bind another component's style or none at all. Every candidate in the file is now collected, and the key the caller passed selects among them at runtime.
+
 ## 18.3.12 (Sep 1, 2026)
 
 Fix: a style handed to a component through a prop threw `Dynamic or unresolvable style object` when that component was written as a function declaration or exported as the default. Every form a component can take is now read, and `compileCSS` falls back to the file's other components when the owner holds no entry, as the bundler plugins already did.
