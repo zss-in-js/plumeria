@@ -20,6 +20,8 @@ const RENAMED_BINDING = path.join(DIR, 'RenamedBinding.tsx');
 const TWINS = path.join(DIR, 'Twins.tsx');
 const DEFAULT_TWINS = path.join(DIR, 'DefaultTwins.tsx');
 const WRAPPED = path.join(DIR, 'Wrapped.tsx');
+const WRAPPED_RELAY = path.join(DIR, 'WrappedRelay.tsx');
+const WRAPPED_UNUSED = path.join(DIR, 'WrappedUnused.tsx');
 const PARENT = path.join(DIR, 'Parent.tsx');
 
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
@@ -137,6 +139,25 @@ export const Sibling = ({ styleArray }: { styleArray?: css.Style }) => (
 export const Wrapped = wrap(({ styleArray }: { styleArray?: css.Style }) => (
   <span classStyle={styleArray} />
 ));
+`,
+  [WRAPPED_RELAY]: `
+import * as css from '@plumeria/core';
+import { styles } from './styles';
+import { Leaf } from './Leaf';
+const memo = (component: unknown) => component;
+export const WrappedRelay = memo(({ styleArray }: { styleArray?: css.Style }) => (
+  <Leaf styleArray={styleArray} />
+));
+export const CallsWrappedRelay = () => <WrappedRelay styleArray={styles.red} />;
+`,
+  [WRAPPED_UNUSED]: `
+import * as css from '@plumeria/core';
+import { styles } from './styles';
+const memo = (component: unknown) => component;
+export const WrappedUnused = memo(({ label }: { label?: string; styleArray?: css.Style }) => (
+  <div>{label}</div>
+));
+export const CallsWrappedUnused = () => <WrappedUnused styleArray={styles.red} />;
 `,
   [PARENT]: `
 import '@plumeria/core';
@@ -266,11 +287,9 @@ describe('unplugin: a style received through a prop', () => {
     expect(render(exprs[1], keys[keys.length - 4])).toBe(norm(classesOf(RED)));
   });
 
-  // A component the file does not declare at the top level has no owner to look
-  // its styles up by, so every style the file's components were handed is a
-  // candidate. Taking one of them is a guess; the runtime key picks the right
-  // one out of all of them.
-  it('applies to a component no declaration names', async () => {
+  // A wrapper leaves the component as a function argument of a call, which is
+  // still the component the styles were handed to.
+  it('applies to a component a call wraps', async () => {
     const keys = [...(await run(PARENT)).matchAll(/styleArray={"(\w+)"}/g)].map(
       (m) => m[1],
     );
@@ -283,6 +302,20 @@ describe('unplugin: a style received through a prop', () => {
 
     expect(render(exprs[0], keys[keys.length - 6])).toBe(norm(classesOf(RED)));
     expect(render(exprs[1], keys[keys.length - 5])).toBe(norm(classesOf(BLUE)));
+  });
+
+  // Wrapping a component used to put it out of reach of this rule, so the same
+  // code compiled or not depending on whether a call stood in front of it.
+  it('is rejected when a wrapped component passes it on', async () => {
+    await expect(run(WRAPPED_RELAY)).rejects.toThrow(
+      /"styleArray" is a style received through a prop but is never applied/,
+    );
+  });
+
+  it('is rejected when a wrapped component never applies it', async () => {
+    await expect(run(WRAPPED_UNUSED)).rejects.toThrow(
+      /a style prop cannot be passed on to another component/,
+    );
   });
 
   it('is rejected when passed on to another component', async () => {
