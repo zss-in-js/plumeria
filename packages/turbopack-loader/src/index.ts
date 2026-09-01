@@ -1778,15 +1778,15 @@ export default async function loader(this: LoaderContext, source: string) {
             ]
           : undefined;
         if (!possibilities) {
+          const candidates: any[] = [];
           for (const key of Object.keys(
             scannedTables.componentPropsTable || {},
           )) {
             if (!key.startsWith(`${resourcePath}-`)) continue;
-            if (scannedTables.componentPropsTable?.[key]?.[varName]) {
-              possibilities = scannedTables.componentPropsTable[key][varName];
-              break;
-            }
+            const entries = scannedTables.componentPropsTable?.[key]?.[varName];
+            if (entries) candidates.push(...entries);
           }
+          if (candidates.length > 0) possibilities = candidates;
         }
         if (!possibilities || possibilities.length === 0) return false;
 
