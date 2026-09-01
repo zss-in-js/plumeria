@@ -63,6 +63,20 @@ interface CompilerOptions {
 // Definition of recontext and extraction logic
 // ============================================
 
+const unwrapExport = (node: any): any => {
+  if (node?.type === 'ExportDeclaration') return node.declaration;
+  if (node?.type === 'ExportDefaultDeclaration') return node.decl;
+  if (node?.type === 'ExportDefaultExpression') return node.expression;
+  return node;
+};
+
+const isFunctionNode = (
+  node: any,
+): node is HasSpan & { params: unknown[]; identifier?: Identifier } =>
+  node?.type === 'FunctionDeclaration' ||
+  node?.type === 'FunctionExpression' ||
+  node?.type === 'ArrowFunctionExpression';
+
 // A named argument folds into the style only when its value is written out in
 // full. Anything the parser can only read in part -- a template literal with an
 // interpolation, an expression -- has to reach the element as a custom property
@@ -560,45 +574,39 @@ export function compileCSS(options: CompilerOptions) {
     };
 
     const componentParamNames = new Set<string>();
-    for (const node of ast.body) {
-      let declarations: VariableDeclarator[] = [];
-      if (node.type === 'VariableDeclaration') {
-        declarations = node.declarations;
+    const addFirstParamName = (fn: { params: unknown[] }) => {
+      const p = fn.params[0];
+      if (t.isIdentifier(p)) {
+        componentParamNames.add(p.value);
       } else if (
-        node.type === 'ExportDeclaration' &&
-        node.declaration.type === 'VariableDeclaration'
+        typeof p === 'object' &&
+        p !== null &&
+        'pat' in p &&
+        t.isIdentifier(p.pat)
       ) {
-        declarations = node.declaration.declarations;
+        componentParamNames.add(p.pat.value);
       }
-      for (const decl of declarations) {
-        if (!t.isIdentifier(decl.id) || !decl.init) continue;
-        const init = decl.init;
-        if (
-          init.type !== 'ArrowFunctionExpression' &&
-          init.type !== 'FunctionExpression'
-        )
-          continue;
-        if (init.params.length > 0) {
-          const p = init.params[0];
-          if (t.isIdentifier(p)) {
-            componentParamNames.add(p.value);
-          } else if (
-            typeof p === 'object' &&
-            p !== null &&
-            'pat' in p &&
-            t.isIdentifier(p.pat)
-          ) {
-            componentParamNames.add(p.pat.value);
-          }
+    };
+    for (const node of ast.body) {
+      const statement = unwrapExport(node);
+      if (isFunctionNode(statement)) {
+        addFirstParamName(statement);
+      } else if (t.isVariableDeclaration(statement)) {
+        for (const decl of statement.declarations) {
+          if (!t.isIdentifier(decl.id) || !decl.init) continue;
+          if (isFunctionNode(decl.init)) addFirstParamName(decl.init);
         }
       }
     }
 
     const components: Array<{ name: string; node: HasSpan }> = [];
     for (const node of ast.body) {
-      const statement = t.isExportDeclaration(node) ? node.declaration : node;
-      if (statement.type === 'FunctionDeclaration' && statement.identifier) {
-        components.push({ name: statement.identifier.value, node: statement });
+      const statement = unwrapExport(node);
+      if (isFunctionNode(statement)) {
+        components.push({
+          name: statement.identifier?.value ?? 'default',
+          node: statement,
+        });
       } else if (t.isVariableDeclaration(statement)) {
         for (const decl of statement.declarations) {
           if (
@@ -1069,7 +1077,8 @@ export function compileCSS(options: CompilerOptions) {
                 `${resourcePath}-${owner}`
               ]?.[varName];
             if (entries) propPossibilities.push(...entries);
-          } else {
+          }
+          if (propPossibilities.length === 0) {
             const filePrefix = `${resourcePath}-`;
             for (const key of Object.keys(
               ctx.scannedTables.componentPropsTable || {},
