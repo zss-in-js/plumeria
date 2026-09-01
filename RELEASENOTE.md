@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.3.12 (Sep 1, 2026)
+
+Fix: a style handed to a component through a prop threw `Dynamic or unresolvable style object` when that component was written as a function declaration or exported as the default. Every form a component can take is now read, and `compileCSS` falls back to the file's other components when the owner holds no entry, as the bundler plugins already did.
+
+Fix: a constant read through more than one property, such as `theme.colors.primary`, resolved to nothing, so the declaration was dropped from the sheet without an error and an interpolation of it was left empty. The whole path is now walked.
+
 ## 18.3.11 (Aug 31, 2026)
 
 Fix: `compileCSS` read each globbed file at the path the glob returned, which is relative to `cwd`. Passing a `cwd` other than the process directory threw `ENOENT`. The path is now resolved against `cwd` before it is read.

@@ -1,5 +1,11 @@
 # @plumeria/inspector
 
+## 18.3.12
+
+### Patch Changes
+
+- cf0091d: Bump version to 18.3.12
+
 ## 18.3.11
 
 ### Patch Changes
