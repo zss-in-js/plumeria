@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.3.14 (Sep 1, 2026)
+
+- Fix: a component held by a call — `memo`, `forwardRef` or any other wrapper — was not read as a component, so a style reached through its non-destructured parameter threw `Dynamic or unresolvable style object`, and the styles handed to it were found by scanning the file rather than by name. The function a call wraps is now read as the component it is.
+
+- Change: a wrapped component is now held to the same rule as every other one, so a style prop it never applies to an element is reported where it is received. Passing that style on to another component already failed the build, but the error was raised in the component that received it next.
+
 ## 18.3.13 (Sep 1, 2026)
 
 - Fix: a component exported as the default of its file was keyed by `default` instead of by the name it is declared with, so a named component sharing that file and that prop name could be found in its place and its styles bound to the wrong element. A default export now resolves to the local binding it names.
