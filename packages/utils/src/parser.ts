@@ -1237,16 +1237,22 @@ function resolveStaticTableMemberExpression(
   node: MemberExpression,
   staticTable: StaticTable,
 ): CSSValue | undefined {
-  if (t.isIdentifier(node.object) && t.isIdentifier(node.property)) {
-    const varName = node.object.value;
-    const key = node.property.value;
-    const tableValue = staticTable[varName];
-
-    if (tableValue && typeof tableValue === 'object' && key in tableValue) {
-      return tableValue[key];
-    }
+  const keys: string[] = [];
+  let current: Expression = node;
+  while (t.isMemberExpression(current)) {
+    if (!t.isIdentifier(current.property)) return undefined;
+    keys.unshift(current.property.value);
+    current = current.object;
   }
-  return undefined;
+  if (!t.isIdentifier(current)) return undefined;
+
+  let value = staticTable[current.value];
+  for (const key of keys) {
+    if (!value || typeof value !== 'object' || !(key in value))
+      return undefined;
+    value = (value as Record<string, CSSValue>)[key];
+  }
+  return value;
 }
 /* istanbul ignore next */
 function resolveCreateThemeTableMemberExpressionByNode(
