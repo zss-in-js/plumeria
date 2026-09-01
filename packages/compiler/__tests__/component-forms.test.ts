@@ -131,6 +131,20 @@ describe('compiler: the forms a component receiving a style can take', () => {
     expect(css).toContain('color: purple');
   });
 
+  it('reads the parameter of a wrapped default export', () => {
+    // The component is the function the call holds, wherever in the argument
+    // list it sits, and a call is what the default export names here.
+    const css = compile(
+      `const withOptions = (options: unknown, component: unknown) => component;\n` +
+        `export default withOptions(\n` +
+        `  { displayName: 'Card' },\n` +
+        `  (props: any) => <div className={css.use(props.cardStyle)} />,\n` +
+        `);`,
+      fromDefault,
+    );
+    expect(css).toContain('color: purple');
+  });
+
   it('reads a destructured parameter of a function declaration', () => {
     const css = compile(
       `export function Card({ cardStyle }: any) { return <div className={css.use(cardStyle)} />; }`,
