@@ -77,6 +77,19 @@ const isFunctionNode = (
   node?.type === 'FunctionExpression' ||
   node?.type === 'ArrowFunctionExpression';
 
+const componentFunctionOf = (
+  node: any,
+): (HasSpan & { params: unknown[]; identifier?: Identifier }) | undefined => {
+  if (isFunctionNode(node)) return node;
+  if (node?.type === 'CallExpression') {
+    for (const arg of node.arguments ?? []) {
+      const fn = componentFunctionOf(arg.expression);
+      if (fn) return fn;
+    }
+  }
+  return undefined;
+};
+
 // A named argument folds into the style only when its value is written out in
 // full. Anything the parser can only read in part -- a template literal with an
 // interpolation, an expression -- has to reach the element as a custom property
@@ -591,10 +604,14 @@ export function compileCSS(options: CompilerOptions) {
       const statement = unwrapExport(node);
       if (isFunctionNode(statement)) {
         addFirstParamName(statement);
+      } else if (statement?.type === 'CallExpression') {
+        const fn = componentFunctionOf(statement);
+        if (fn) addFirstParamName(fn);
       } else if (t.isVariableDeclaration(statement)) {
         for (const decl of statement.declarations) {
           if (!t.isIdentifier(decl.id) || !decl.init) continue;
-          if (isFunctionNode(decl.init)) addFirstParamName(decl.init);
+          const fn = componentFunctionOf(decl.init);
+          if (fn) addFirstParamName(fn);
         }
       }
     }
@@ -607,15 +624,14 @@ export function compileCSS(options: CompilerOptions) {
           name: statement.identifier?.value ?? 'default',
           node: statement,
         });
+      } else if (statement?.type === 'CallExpression') {
+        const fn = componentFunctionOf(statement);
+        if (fn) components.push({ name: 'default', node: fn });
       } else if (t.isVariableDeclaration(statement)) {
         for (const decl of statement.declarations) {
-          if (
-            t.isIdentifier(decl.id) &&
-            (decl.init?.type === 'ArrowFunctionExpression' ||
-              decl.init?.type === 'FunctionExpression')
-          ) {
-            components.push({ name: decl.id.value, node: decl.init });
-          }
+          if (!t.isIdentifier(decl.id)) continue;
+          const fn = componentFunctionOf(decl.init);
+          if (fn) components.push({ name: decl.id.value, node: fn });
         }
       }
     }
