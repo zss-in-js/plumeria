@@ -176,6 +176,15 @@ describe('parser2 coverage completion tests', () => {
       localName: 'internalVar',
     });
 
+    // A default export declared with a name resolves to that binding, which is
+    // not an export of its own: reading it as `default` loses the name the
+    // component is keyed by everywhere else.
+    const resNamedDefault = resolveExport(subFile, 'default');
+    expect(resNamedDefault).toEqual({
+      filePath: subFile,
+      localName: 'defaultSubFunc',
+    });
+
     const resAnonDefault = resolveExport(defaultAnonFile, 'default');
     expect(resAnonDefault).toEqual({
       filePath: defaultAnonFile,
