@@ -14,31 +14,31 @@
 
 ## 18.3.12 (Sep 1, 2026)
 
-Fix: a style handed to a component through a prop threw `Dynamic or unresolvable style object` when that component was written as a function declaration or exported as the default. Every form a component can take is now read, and `compileCSS` falls back to the file's other components when the owner holds no entry, as the bundler plugins already did.
+- Fix: a style handed to a component through a prop threw `Dynamic or unresolvable style object` when that component was written as a function declaration or exported as the default. Every form a component can take is now read, and `compileCSS` falls back to the file's other components when the owner holds no entry, as the bundler plugins already did.
 
-Fix: a constant read through more than one property, such as `theme.colors.primary`, resolved to nothing, so the declaration was dropped from the sheet without an error and an interpolation of it was left empty. The whole path is now walked.
+- Fix: a constant read through more than one property, such as `theme.colors.primary`, resolved to nothing, so the declaration was dropped from the sheet without an error and an interpolation of it was left empty. The whole path is now walked.
 
 ## 18.3.11 (Aug 31, 2026)
 
-Fix: `compileCSS` read each globbed file at the path the glob returned, which is relative to `cwd`. Passing a `cwd` other than the process directory threw `ENOENT`. The path is now resolved against `cwd` before it is read.
+- Fix: `compileCSS` read each globbed file at the path the glob returned, which is relative to `cwd`. Passing a `cwd` other than the process directory threw `ENOENT`. The path is now resolved against `cwd` before it is read.
 
-Perf: a value that holds none of `kf-`, `vt-` or `cr-` skips the reference marker scan, which the on-demand walk had been running over every string it visits. Every match begins with one of the three, so the set of references found is unchanged.
+- Perf: a value that holds none of `kf-`, `vt-` or `cr-` skips the reference marker scan, which the on-demand walk had been running over every string it visits. Every match begins with one of the three, so the set of references found is unchanged.
 
 ## 18.3.10 (Aug 30, 2026)
 
-Perf: a value that holds no `var(` skips the custom property scan, which the on-demand walk had been running over every string it visits. The gate is implied by the pattern it guards, so the set of variables found is unchanged.
+- Perf: a value that holds no `var(` skips the custom property scan, which the on-demand walk had been running over every string it visits. The gate is implied by the pattern it guards, so the set of variables found is unchanged.
 
 ## 18.3.9 (Aug 30, 2026)
 
-Update README.md
+- Update README.md
 
 ## 18.3.8 (Aug 29, 2026)
 
-Update README.md
+- Update README.md
 
 ## 18.3.7 (Aug 29, 2026)
 
-Fix: a theme variable written with a fallback, or nested inside another variable's fallback, was not recognised as used, so its declaration never reached the sheet and the value fell back for want of anything to read. The name is now read up to where the fallback begins, rather than up to a closing parenthesis that may belong to an inner `var()`.
+- Fix: a theme variable written with a fallback, or nested inside another variable's fallback, was not recognised as used, so its declaration never reached the sheet and the value fell back for want of anything to read. The name is now read up to where the fallback begins, rather than up to a closing parenthesis that may belong to an inner `var()`.
 
 ## 18.3.6 (Aug 29, 2026)
 
