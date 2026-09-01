@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 18.3.13
+
+### Patch Changes
+
+- 1b27b59: Bump version to 18.3.13
+
 ## 18.3.12
 
 ### Patch Changes
