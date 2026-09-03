@@ -33,6 +33,7 @@ import {
   extractOndemandStyles,
   deepMerge,
   scanAll,
+  resolveFileError,
   resolveImportPath,
   resolveExport,
   themeHashOf,
@@ -756,8 +757,14 @@ export function compileCSS(options: CompilerOptions) {
               ctx.mergedCreateTable[rootId] !== undefined ||
               ctx.mergedVariantsTable[rootId] !== undefined);
           if (!isPlumeriaStyle) {
+            const origin = rootId ? localImports[rootId] : undefined;
+            const failure = origin
+              ? resolveFileError(origin.actualPath, origin.importedName)
+              : undefined;
             throw new Error(
-              `[plumeria] Dynamic or unresolvable style object "${getSource(node)}" is not supported. (${path.basename(resourcePath)})`,
+              failure
+                ? `[plumeria] ${failure.message} (${path.basename(failure.filePath)})`
+                : `[plumeria] Dynamic or unresolvable style object "${getSource(node)}" is not supported. (${path.basename(resourcePath)})`,
             );
           }
         }
