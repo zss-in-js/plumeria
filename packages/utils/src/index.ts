@@ -18,6 +18,7 @@ export {
   extractOndemandStyles,
   deepMerge,
   scanAll,
+  resolveFileError,
   getFileDependencies,
   resolveExport,
   resolveComponentKey,
