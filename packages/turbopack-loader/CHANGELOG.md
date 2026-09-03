@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 18.3.15
+
+### Patch Changes
+
+- cea31e3: - Fix: an error thrown while scanning the file a style is declared in was reported under the name of the file that uses the style. It is now reported under the name of the file it came from, including when the style is reached through a re-export.
+- Updated dependencies [cea31e3]
+  - @plumeria/compiler@18.3.15
+  - @plumeria/utils@18.3.15
+
 ## 18.3.14
 
 ### Patch Changes
