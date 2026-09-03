@@ -40,6 +40,7 @@ import {
   extractOndemandStyles,
   deepMerge,
   scanAll,
+  resolveFileError,
   resolveImportPath,
   getLeadingCommentLength,
   optimizer,
@@ -437,6 +438,15 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               mergedCreateTable[rootId] !== undefined ||
               mergedVariantsTable[rootId] !== undefined);
           if (!isPlumeriaStyle) {
+            const origin = rootId ? localImports[rootId] : undefined;
+            const failure = origin
+              ? resolveFileError(origin.actualPath, origin.importedName)
+              : undefined;
+            if (failure) {
+              throwCompilationError(
+                `Plumeria: ${failure.message} (${path.basename(failure.filePath)})`,
+              );
+            }
             throwCompilationError(
               `Plumeria: Dynamic or unresolvable style object "${getSource(node)}" is not supported.`,
               node,
