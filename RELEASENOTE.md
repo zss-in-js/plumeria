@@ -1,5 +1,15 @@
 # Release Notes
 
+## 18.3.16 (Sep 3, 2026)
+
+- Fix: a custom property written in camelCase, such as `--fooBar`, was emitted kebab-cased as `--foo-bar` while `var(--fooBar)` in a value was left as written, so the variable never resolved. Custom property names now keep their case.
+
+- Fix: an at-rule nested inside another at-rule dropped the outer condition, so `@media` wrapping `@supports` compiled to the `@supports` block alone. Both conditions are now kept, and `@supports`, `@layer` and `@scope` are accepted alongside a nested query in the types.
+
+- Fix: a hex code inside `url()` or a quoted value was replaced with its color name, so `url(#fff)` became `url(white)` and `content: '#fff'` became `content: 'white'`. Those values are now left as written.
+
+- Update: `navy`, `springgreen`, `powderblue` and `lavenderblush` are normalized like the other named colors.
+
 ## 18.3.15 (Sep 3, 2026)
 
 - Fix: an error thrown while scanning the file a style is declared in was reported under the name of the file that uses the style. It is now reported under the name of the file it came from, including when the style is reached through a re-export.
