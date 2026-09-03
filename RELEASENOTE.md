@@ -1,6 +1,8 @@
 # Release Notes
 
-## 18.3.16 (Sep 3, 2026)
+## 18.3.16 (Sep 4, 2026)
+
+- Update: zss-engine@2.7.0
 
 - Fix: a custom property written in camelCase, such as `--fooBar`, was emitted kebab-cased as `--foo-bar` while `var(--fooBar)` in a value was left as written, so the variable never resolved. Custom property names now keep their case.
 
