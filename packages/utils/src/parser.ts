@@ -1351,6 +1351,28 @@ export function resolveThemeSelector(
   }
 }
 
+const fileErrors: Record<string, string> = {};
+const DIAGNOSTIC_PREFIX = '[plumeria] ';
+
+function recordFileError(filePath: string, e: unknown): void {
+  const message = e instanceof Error ? e.message : String(e);
+  if (message.startsWith(DIAGNOSTIC_PREFIX))
+    fileErrors[filePath] = message.slice(DIAGNOSTIC_PREFIX.length);
+}
+
+export function resolveFileError(
+  actualPath: string,
+  importedName: string,
+): { filePath: string; message: string } | undefined {
+  const resolved = resolveExport(actualPath, importedName);
+  const candidates = resolved ? [resolved.filePath, actualPath] : [actualPath];
+  for (const filePath of candidates) {
+    const message = fileErrors[filePath];
+    if (message) return { filePath, message };
+  }
+  return undefined;
+}
+
 // Cache for incremental scanning
 interface CachedData {
   mtimeMs: number;
@@ -1650,6 +1672,7 @@ export function scanAll(): Tables {
     if (cached) stripFileContributions(fp, cached);
     updateDependencyEdges(fp, cached?.dependencies, undefined);
     delete fileCache[fp];
+    delete fileErrors[fp];
   }
 
   // Only invalidated files need work. Their stale contributions are stripped
@@ -1658,6 +1681,7 @@ export function scanAll(): Tables {
   // left untouched in `localTables`: no per-file copy work at all.
   const uncachedFiles = files.filter((f) => invalidated.has(f));
   for (const filePath of uncachedFiles) {
+    delete fileErrors[filePath];
     const cached = fileCache[filePath];
     if (cached) stripFileContributions(filePath, cached);
   }
@@ -1738,6 +1762,7 @@ export function scanAll(): Tables {
 
     for (const { filePath, ast, mtimeMs } of parsedFiles) {
       try {
+        delete fileErrors[filePath];
         let localConsts: Record<string, any> | undefined;
         const localDependencies = new Set<string>();
         const localStaticTable: StaticTable = {};
@@ -2126,13 +2151,14 @@ export function scanAll(): Tables {
           localImports,
         });
       } catch (e) {
-        // ignore
+        recordFileError(filePath, e);
       }
     }
   }
 
   for (const entry of jsxPhaseQueue) {
     try {
+      delete fileErrors[entry.filePath];
       const {
         filePath,
         ast,
@@ -2369,7 +2395,7 @@ export function scanAll(): Tables {
         fileCache[filePath].dependencies,
       );
     } catch (e) {
-      // ignore
+      recordFileError(entry.filePath, e);
     }
   }
 
