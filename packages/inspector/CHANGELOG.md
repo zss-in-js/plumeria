@@ -1,5 +1,11 @@
 # @plumeria/inspector
 
+## 18.3.15
+
+### Patch Changes
+
+- cea31e3: Bump version to 18.3.15
+
 ## 18.3.14
 
 ### Patch Changes
