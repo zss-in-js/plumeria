@@ -192,6 +192,10 @@ File scanning is sorted for reproducible stylesheet output. The dependency updat
 
 ---
 
+## 18.3.15 (Sep 3, 2026)
+
+- Fix: an error thrown while scanning the file a style is declared in was reported under the name of the file that uses the style. It is now reported under the name of the file it came from, including when the style is reached through a re-export.
+
 ## 18.3.14 (Sep 1, 2026)
 
 - Fix: a component held by a call — `memo`, `forwardRef` or any other wrapper — was not read as a component, so a style reached through its non-destructured parameter threw `Dynamic or unresolvable style object`, and the styles handed to it were found by scanning the file rather than by name. The function a call wraps is now read as the component it is.
