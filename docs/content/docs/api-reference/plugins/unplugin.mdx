@@ -47,6 +47,8 @@ export default {
 - `exclude`: The path to the file to be excluded from conversion.
 - `devEmitToDisk`: Whether to write styles as actual files (`zero-virtual.css`) instead of virtual modules in development mode. The default is `false`.
 - `styleProp`: The JSX prop that carries styles. The default is `'classStyle'`.
+- `withoutLogicalProperties`: Rejects the logical name of a property that also has a physical name. The default is `false`.
+- `withoutPhysicalProperties`: Rejects the physical name of a property that also has a logical name. The default is `false`.
 
 ```ts
 interface PluginOptions {
@@ -54,6 +56,8 @@ interface PluginOptions {
   exclude?: string | RegExp | Array<string | RegExp>;
   devEmitToDisk?: boolean;
   styleProp?: string;
+  withoutLogicalProperties?: boolean | { sizes?: boolean };
+  withoutPhysicalProperties?: boolean | { sizes?: boolean };
 }
 ```
 
@@ -89,6 +93,36 @@ For the default name, reference the declaration that ships with the package inst
 ```
 
 If the two disagree, the prop type-checks but is never compiled away. [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) reads the same name from `settings.plumeria.styleProp`.
+
+### withoutLogicalProperties and withoutPhysicalProperties
+
+Two names for the same box edge cannot be ranked by specificity, so a file that
+uses both leaves the result to source order. These options settle it by
+rejecting one spelling:
+
+```ts
+plumeria.vite({ withoutPhysicalProperties: true });
+```
+
+The build fails on the first rejected property, and the message names the file
+and the property to write instead. Nothing is rewritten. `{ sizes: true }`
+extends the check from the edges to the twelve axis pairs — `width`, `height`,
+their `min` and `max` forms, and `overflow`, `overscroll-behavior` and
+`contain-intrinsic-size` on both axes:
+
+```ts
+plumeria.vite({ withoutPhysicalProperties: { sizes: true } });
+```
+
+Enabling both is a configuration error, and the direction has to match the lint
+rule you run: `withoutPhysicalProperties` with
+[`no-physical-properties`](/docs/api-reference/plugins/eslint-plugin/optional-rules) and `withoutLogicalProperties` with
+[`no-logical-properties`](/docs/api-reference/plugins/eslint-plugin/optional-rules), `{ sizes }` included. Set opposite
+directions and the rule renames a property the build then rejects.
+
+[Specificity](/docs/reference/specificity) explains why the pair cannot be
+ranked, and why neither spelling is rewritten for you.
+
 ## Driving the transform
 
 `@plumeria/unplugin/factory` exposes the plugin behind every bundler entry. `transform` takes a source string and hands back the rewritten code; `load` hands back the stylesheet it emitted:
