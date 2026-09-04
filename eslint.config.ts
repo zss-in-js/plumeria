@@ -27,6 +27,7 @@ export default defineConfig(
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/triple-slash-reference': 'off',
       '@typescript-eslint/no-this-alias': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
     },
   },
 );
