@@ -18,6 +18,7 @@ import {
   genBase36Hash,
   camelToKebabCase,
   applyCssValue,
+  exceptionCamelCase,
 } from 'zss-engine';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -180,6 +181,67 @@ interface TraversalContext {
 type StyleFunctions = NonNullable<
   TraversalContext['localCreateStyles'][string]['functions']
 >;
+
+const isUnitlessProp = (prop: string): boolean =>
+  exceptionCamelCase.includes(prop) || prop.startsWith('--');
+
+const collectVarProps = (
+  style: CSSObject,
+  cssVar: string,
+  props: string[],
+): void => {
+  const reference = `var(${cssVar})`;
+  for (const [prop, value] of Object.entries(style)) {
+    if (typeof value === 'string' && value.includes(reference))
+      props.push(prop);
+    else if (value !== null && typeof value === 'object')
+      collectVarProps(value as CSSObject, cssVar, props);
+  }
+};
+
+const retargetVar = (
+  style: CSSObject,
+  cssVar: string,
+  next: string,
+  unitless: boolean,
+): void => {
+  const reference = `var(${cssVar})`;
+  for (const [prop, value] of Object.entries(style)) {
+    if (typeof value === 'string' && value.includes(reference)) {
+      if (isUnitlessProp(prop) === unitless)
+        (style as Record<string, unknown>)[prop] = value
+          .split(reference)
+          .join(`var(${next})`);
+    } else if (value !== null && typeof value === 'object') {
+      retargetVar(value as CSSObject, cssVar, next, unitless);
+    }
+  }
+};
+
+// The element sets a variable once, so a parameter that lands in declarations
+// with different unit rules needs one variable per rule: `4` and `4px` cannot
+// both be the value.
+const splitVarByUnit = (
+  style: CSSObject,
+  cssVar: string,
+): Array<{ cssVar: string; prop: string }> => {
+  const props: string[] = [];
+  collectVarProps(style, cssVar, props);
+  if (props.length === 0) return [];
+
+  const lead = props[0];
+  const split = props.find(
+    (prop) => isUnitlessProp(prop) !== isUnitlessProp(lead),
+  );
+  if (!split) return [{ cssVar, prop: lead }];
+
+  const splitVar = `${cssVar}-${camelToKebabCase(split).replace(/^-+/, '')}`;
+  retargetVar(style, cssVar, splitVar, isUnitlessProp(split));
+  return [
+    { cssVar, prop: lead },
+    { cssVar: splitVar, prop: split },
+  ];
+};
 
 const applyVarFallback = (
   style: CSSObject,
@@ -946,15 +1008,24 @@ export function compileCSS(options: CompilerOptions) {
         );
         if (!style) return null;
 
-        withDefault.forEach(([param, expr]) => {
+        const varGroups = new Map<
+          string,
+          Array<{ cssVar: string; prop: string }>
+        >();
+        varParams.forEach((param) => {
           const cssVar = cssVars[param];
-          if (!cssVar) return;
+          if (cssVar) varGroups.set(param, splitVarByUnit(style, cssVar));
+        });
+
+        withDefault.forEach(([param, expr]) => {
           const literal =
             expr.type === 'StringLiteral' || expr.type === 'NumericLiteral'
               ? expr.value
               : undefined;
           if (literal === undefined) return;
-          applyVarFallback(style, cssVar, literal);
+          (varGroups.get(param) ?? []).forEach(({ cssVar }) =>
+            applyVarFallback(style, cssVar, literal),
+          );
         });
 
         return style;
