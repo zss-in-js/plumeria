@@ -132,13 +132,33 @@ Each accepts `{ sizes }`, `false` by default:
 
 Off, the rule covers the edges — `paddingLeft`, `marginTop`, `top`,
 `borderTopColor`. On, it also covers `width`, `height`, their `min` and `max`
-forms, and `overflow-x` and `overflow-y`. An edge is what a direction reverses;
-a size is the same box either way, so renaming it buys less and touches far
-more code.
+forms, and `overflow`, `overscroll-behavior` and `contain-intrinsic-size` on
+both axes. An edge is what a direction reverses; a size is the same box either
+way, so renaming it buys less and touches far more code.
 
 Renaming is offered as a suggestion rather than a fix. In a vertical writing
 mode the two spellings are two different edges, so the rewrite is a change of
 meaning that you should apply deliberately.
+
+### Holding the count at zero
+
+A rule reports; it does not guarantee. It can be set to `'off'` for one
+developer, and it does nothing where no linter runs. Once the 56 pairs are gone,
+the bundler can keep them gone. `withoutLogicalProperties` and
+`withoutPhysicalProperties` reject the same spelling at build time and take the
+same `{ sizes }` option, on
+[Next.js](/docs/api-reference/plugins/next-plugin#withoutlogicalproperties-and-withoutphysicalproperties)
+and on
+[every other bundler](/docs/api-reference/plugins/unplugin#withoutlogicalproperties-and-withoutphysicalproperties).
+They do not depend on each developer running ESLint, and they apply to every
+file the compiler processes — which `include` and `exclude` decide, so a file
+outside that set is not compiled and not checked.
+
+They are the same choice made at a different level, so run the rule first. It
+reports every occurrence at once and offers the rename, which is what moving an
+existing codebase needs; the build option is for afterwards, and its direction
+has to match the rule you kept. Turning both build options on at once is a
+configuration error, the same contradiction as running both rules.
 
 ## What is left
 
