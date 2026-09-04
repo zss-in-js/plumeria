@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.3.17 (Sep 4, 2026)
+
+- Fix: a style function parameter with a default overwrote the whole declaration value with its variable, so ``background: `linear-gradient(${c}, #000)` `` compiled to `background: var(--hash-c, teal)` and the text around the variable was dropped. The fallback is now written into the variable reference.
+
+- Fix: the default only reached the first declaration the parameter landed in, so `(c = 'red') => ({ color: c, borderColor: c })` left `border-color` without a fallback. Every declaration now gets one, with the unit decided per declaration.
+
 ## 18.3.16 (Sep 4, 2026)
 
 - Update: zss-engine@2.7.0
