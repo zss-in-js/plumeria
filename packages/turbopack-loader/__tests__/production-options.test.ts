@@ -6,9 +6,32 @@ jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 const mockCompileCSS = jest.fn(() => '');
 jest.mock('@plumeria/compiler', () => ({ compileCSS: mockCompileCSS }));
 
+// The production path writes the shared zero-virtual.css and takes its lock.
+// Other suites drive the same file, so this one keeps away from both: only the
+// options handed to compileCSS are under test.
+jest.mock('../src/file-lock', () => ({
+  acquireLock: async () => {},
+  releaseLockSync: () => {},
+}));
+jest.mock('fs', () => {
+  const actual = jest.requireActual('fs');
+  const shared = (p: unknown) =>
+    typeof p === 'string' && p.includes('zero-virtual.css');
+  return {
+    ...actual,
+    readFileSync: (p: string, ...rest: unknown[]) => {
+      if (shared(p)) throw new Error('ENOENT');
+      return (actual.readFileSync as Function)(p, ...rest);
+    },
+    writeFileSync: (p: string, ...rest: unknown[]) =>
+      shared(p) ? undefined : (actual.writeFileSync as Function)(p, ...rest),
+    renameSync: (from: string, to: string) =>
+      shared(from) || shared(to) ? undefined : actual.renameSync(from, to),
+  };
+});
+
 import * as fs from 'fs';
 
-const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
 const FIXTURE_DIR = fs.realpathSync(
   fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-')),
 );
@@ -49,28 +72,17 @@ const runLoader = (options: Record<string, unknown>): Promise<void> =>
  */
 describe('turbopack-loader: options handed to the production compile', () => {
   const NODE_ENV = process.env.NODE_ENV;
-  let backup: string | null = null;
 
   beforeAll(() => {
-    try {
-      backup = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
-    } catch {
-      backup = null;
-    }
     (process.env as Record<string, string>).NODE_ENV = 'production';
   });
 
   afterAll(() => {
     (process.env as Record<string, string | undefined>).NODE_ENV = NODE_ENV;
-    if (backup === null) fs.rmSync(VIRTUAL_FILE_PATH, { force: true });
-    else fs.writeFileSync(VIRTUAL_FILE_PATH, backup, 'utf-8');
     fs.rmSync(FIXTURE_DIR, { recursive: true, force: true });
   });
 
-  beforeEach(() => {
-    mockCompileCSS.mockClear();
-    fs.rmSync(VIRTUAL_FILE_PATH, { force: true });
-  });
+  beforeEach(() => mockCompileCSS.mockClear());
 
   it('forwards withoutLogicalProperties', async () => {
     await runLoader({ withoutLogicalProperties: { sizes: true } });
