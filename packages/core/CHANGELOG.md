@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 18.4.0
+
+### Minor Changes
+
+- 51978e5: Bump version to 18.4.0
+
 ## 18.3.18
 
 ### Patch Changes
