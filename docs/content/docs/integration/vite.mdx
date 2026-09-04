@@ -55,6 +55,8 @@ export default defineConfig({
 - `exclude` — The path to the file to be excluded from conversion.
 - `styleProp` — The JSX prop that carries styles. The default is `'classStyle'`.
 
+These are the options a project usually sets. `devEmitToDisk` writes the stylesheet to disk in development, and `withoutLogicalProperties` / `withoutPhysicalProperties` reject one spelling of a property that carries both names, so the pair cannot be written; see [@plumeria/unplugin](/docs/api-reference/plugins/unplugin) for every option and its type.
+
 ## plumeria.d.ts
 
 `@plumeria/core` ships no prop declaration of its own, so name the styling prop your project compiles with.
