@@ -3,22 +3,12 @@
  */
 
 import { all } from 'known-css-properties';
+import { camelToKebabCase } from 'zss-engine';
 import type { ObjectExpression, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
 
 const knownProperties = new Set(all);
-
-const kebabCache = new Map<string, string>();
-
-function toKebabCase(str: string): string {
-  if (kebabCache.has(str)) {
-    return kebabCache.get(str)!;
-  }
-  const result = str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
-  kebabCache.set(str, result);
-  return result;
-}
 
 export const noUnknownCssProperties: Rule.RuleModule = {
   meta: {
@@ -131,7 +121,7 @@ export const noUnknownCssProperties: Rule.RuleModule = {
               !keyName.startsWith('@') &&
               !keyName.startsWith('--')
             ) {
-              const kebabName = toKebabCase(keyName);
+              const kebabName = camelToKebabCase(keyName);
               if (!knownProperties.has(kebabName)) {
                 context.report({
                   node: prop.key,
