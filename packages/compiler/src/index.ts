@@ -185,18 +185,19 @@ const applyVarFallback = (
   style: CSSObject,
   cssVar: string,
   literal: string | number,
-): boolean => {
+): void => {
+  const reference = `var(${cssVar})`;
   for (const [prop, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.includes(cssVar)) {
-      (style as Record<string, unknown>)[prop] =
-        `var(${cssVar}, ${applyCssValue(literal, camelToKebabCase(prop))})`;
-      return true;
-    }
-    if (value !== null && typeof value === 'object') {
-      if (applyVarFallback(value as CSSObject, cssVar, literal)) return true;
+    if (typeof value === 'string' && value.includes(reference)) {
+      (style as Record<string, unknown>)[prop] = value
+        .split(reference)
+        .join(
+          `var(${cssVar}, ${applyCssValue(literal, camelToKebabCase(prop))})`,
+        );
+    } else if (value !== null && typeof value === 'object') {
+      applyVarFallback(value as CSSObject, cssVar, literal);
     }
   }
-  return false;
 };
 
 const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
