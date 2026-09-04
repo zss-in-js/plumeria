@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/codemod",
-  "version": "18.3.18",
+  "version": "18.4.0",
   "description": "Codemods for Plumeria: migrate a CSS Modules codebase in, export it back out, and rename the styling prop",
   "author": "Refirst 11",
   "license": "MIT",

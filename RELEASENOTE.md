@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.4.0 (Sep 4, 2026)
+
+- Add `withoutLogicalProperties` and `withoutPhysicalProperties` to the compiler, unplugin and turbopack-loader options. Either one rejects one spelling of a property that carries both a logical and a physical name, so the pair specificity cannot rank never reaches the stylesheet. Both take `{ sizes: true }` to extend the check from the edges to the twelve axis pairs, enabling both is a configuration error, and neither rewrites anything.
+
+- Fix: `no-unknown-css-properties` reported the `ms`-prefixed properties such as `msOverflowStyle` as unknown. It now shares the case conversion the compiler uses, and reports the obsolete `Khtml`- and `O`-prefixed forms instead.
+
 ## 18.3.18 (Sep 4, 2026)
 
 - Fix: a style function parameter used in declarations with different unit rules shared one variable, so `(n: number) => ({ padding: n, zIndex: n })` set it to `4px` and left `z-index` invalid. Such a parameter now gets one variable per unit rule, and a parameter whose declarations agree keeps the single variable it had.
