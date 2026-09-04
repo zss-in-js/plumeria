@@ -7,7 +7,7 @@ import {
   EXPRESSION_MARKER,
   splitBorderValue,
 } from '../util/borderShorthand';
-import { toCamelCase, toKebabCase } from '../util/logicalPhysical';
+import { camelToKebabCase, kebabToCamelCase } from 'zss-engine';
 import type { ObjectExpression, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
@@ -121,7 +121,7 @@ export const expandBorderShorthands: Rule.RuleModule = {
           name = prop.key.value;
         }
 
-        const kebab = toKebabCase(name);
+        const kebab = camelToKebabCase(name);
         if (!BUNDLES.has(kebab)) return;
 
         let literal: string | null = null;
@@ -182,7 +182,7 @@ export const expandBorderShorthands: Rule.RuleModule = {
         const declarations = (['width', 'style', 'color'] as const)
           .map(
             (part) =>
-              `${toCamelCase(`${kebab}-${part}`)}: ${render(parts[part])}`,
+              `${kebabToCamelCase(`${kebab}-${part}`)}: ${render(parts[part])}`,
           )
           .join(`,\n${indent}`);
 
