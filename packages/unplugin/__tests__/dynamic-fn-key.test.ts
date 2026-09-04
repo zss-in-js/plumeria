@@ -353,6 +353,30 @@ export const F3 = (p: any) => (<div><i classStyle={s.gap(4)} /><b classStyle={s.
     expect(code).toMatch(/"--[^"]+-n": p\.n/);
   });
 
+  it('splits the variable when the parameter lands in both unit rules', async () => {
+    // The element sets the variable once, so padding and z-index cannot read
+    // the same one: 4px and 4 are both needed.
+    const { code } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ units: (n: number) => ({ padding: n, zIndex: n }) });
+export const U = (p: any) => <div classStyle={s.units(p.n)} />;`,
+      'unit-split.tsx',
+    );
+    expect(code).toMatch(
+      /"--([a-z0-9]+)-n": \(typeof \(p\.n\) === 'number' \? \(p\.n\) \+ 'px' : \(p\.n\)\), "--\1-n-z-index": p\.n/,
+    );
+  });
+
+  it('keeps one variable when the declarations share a unit rule', async () => {
+    const { code } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ same: (c: string) => ({ color: c, borderColor: c }) });
+export const S = (p: any) => <div classStyle={s.same(p.c)} />;`,
+      'unit-same.tsx',
+    );
+    expect(code.match(/"--[^"]+"/g)).toHaveLength(1);
+  });
+
   it('gives the variable of a call under a condition the same reach as its class', async () => {
     // lookup.test.ts pins the class list; what it cannot see is the value, and
     // one variable name serves every branch that shares the declaration.
