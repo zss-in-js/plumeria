@@ -88,6 +88,8 @@ export const Color = ({ color }) => {
 }
 ```
 
+Pass a plain value. The argument is written into the element, so an expression that is not the same on every read — a call with a side effect, a getter — is not read once.
+
 ## Variants bracket notation
 
 You can resolve dynamic variant styles using standard bracket notation (e.g., `variantStyles[size]`). Plumeria's compiler automatically extracts these variants and creates static lookup tables at build time.
