@@ -40,7 +40,10 @@ import {
   themeHashOf,
   resolveThemeSelector,
   DEFAULT_STYLE_PROP,
+  resolvePropertyPolicy,
+  assertPropertyPolicy,
 } from '@plumeria/utils';
+import type { PropertyPolicyOptions } from '@plumeria/utils';
 import type {
   StyleRecord,
   CSSObject,
@@ -54,7 +57,7 @@ import type {
 } from '@plumeria/utils';
 import { getLeadingCommentLength } from '@plumeria/utils';
 
-interface CompilerOptions {
+interface CompilerOptions extends PropertyPolicyOptions {
   include: string[];
   exclude: string[];
   cwd?: string;
@@ -429,6 +432,7 @@ export function compileCSS(options: CompilerOptions) {
     cwd = process.cwd(),
     styleProp = DEFAULT_STYLE_PROP,
   } = options;
+  const propertyPolicy = resolvePropertyPolicy(options);
   const allSheets = new Set<string>();
 
   const files = rs.globSync(include, {
@@ -449,6 +453,8 @@ export function compileCSS(options: CompilerOptions) {
       tsx: true,
       target: 'es2022',
     });
+
+    assertPropertyPolicy(ast, propertyPolicy, resourcePath);
 
     const leadingLen = getLeadingCommentLength(source);
     const sourceBuffer = Buffer.from(source, 'utf-8');
