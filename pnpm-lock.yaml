@@ -34,8 +34,8 @@ catalogs:
       specifier: 5.109.2
       version: 5.109.2
     zss-engine:
-      specifier: 2.7.0
-      version: 2.7.0
+      specifier: 2.8.0
+      version: 2.8.0
 
 importers:
 
@@ -837,7 +837,7 @@ importers:
         version: 7.1.1
       zss-engine:
         specifier: 'catalog:'
-        version: 2.7.0
+        version: 2.8.0
 
   packages/compiler:
     dependencies:
@@ -853,7 +853,7 @@ importers:
         version: 1.15.47(@swc/helpers@0.5.23)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.7.0
+        version: 2.8.0
 
   packages/core: {}
 
@@ -867,7 +867,7 @@ importers:
         version: 0.37.0
       zss-engine:
         specifier: 'catalog:'
-        version: 2.7.0
+        version: 2.8.0
     devDependencies:
       '@types/eslint':
         specifier: ^9.6.1
@@ -1015,7 +1015,7 @@ importers:
         version: 1.15.47(@swc/helpers@0.5.23)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.7.0
+        version: 2.8.0
 
   packages/unplugin:
     dependencies:
@@ -1037,7 +1037,7 @@ importers:
         version: 8.0.14(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.48.0)
       zss-engine:
         specifier: 'catalog:'
-        version: 2.7.0
+        version: 2.8.0
 
   packages/utils:
     dependencies:
@@ -1055,7 +1055,7 @@ importers:
         version: 8.5.26
       zss-engine:
         specifier: 'catalog:'
-        version: 2.7.0
+        version: 2.8.0
 
   test-e2e/site:
     dependencies:
@@ -11068,8 +11068,8 @@ packages:
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
-  zss-engine@2.7.0:
-    resolution: {integrity: sha512-bbLV5KmPgqZfEfSmOHFQ21j0fBV1trZ4VEudUcZPaaaqSFT0o+5Cf/hz29iWpVvyH0Fb9zOAhmD5n9JkmO2pYg==}
+  zss-engine@2.8.0:
+    resolution: {integrity: sha512-Vf2aLkqzDgN+8Jy/04nW3ThlZA38kI2IG13O6niF/9/uncUMzuQx+ufGY7CgVlJ3Rt5qzkpydow6axmdwixv3A==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -22126,7 +22126,7 @@ snapshots:
 
   zod@4.4.3: {}
 
-  zss-engine@2.7.0:
+  zss-engine@2.8.0:
     dependencies:
       csstype: 3.2.3
 
