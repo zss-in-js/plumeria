@@ -1,10 +1,10 @@
 import {
+  camelToKebabCase,
   counterpartOf,
+  kebabToCamelCase,
   spellingOf,
-  toCamelCase,
-  toKebabCase,
-} from './logicalPhysical';
-import type { PropertySpelling } from './logicalPhysical';
+} from 'zss-engine';
+import type { PropertySpelling } from 'zss-engine';
 import type { ObjectExpression, Property, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
 import { styleObjectFromValue } from './styleObject';
@@ -137,10 +137,10 @@ export const createSpellingRule = (
 
         if (!name) return;
 
-        const kebab = toKebabCase(name);
+        const kebab = camelToKebabCase(name);
         if (spellingOf(kebab, includeAxes) !== reject) return;
 
-        report(prop, name, toCamelCase(counterpartOf(kebab)!));
+        report(prop, name, kebabToCamelCase(counterpartOf(kebab)!));
       });
     }
 
