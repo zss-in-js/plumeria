@@ -276,21 +276,23 @@ const foldDynamicVars = (vars: DynamicVar[]): string[] => {
   });
 };
 
-const replaceVarValue = (
+const applyVarFallback = (
   style: CSSObject,
   cssVar: string,
-  next: string,
-): boolean => {
+  literal: string | number,
+): void => {
+  const reference = `var(${cssVar})`;
   for (const [prop, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.includes(cssVar)) {
-      (style as Record<string, unknown>)[prop] = next;
-      return true;
-    }
-    if (value !== null && typeof value === 'object') {
-      if (replaceVarValue(value as CSSObject, cssVar, next)) return true;
+    if (typeof value === 'string' && value.includes(reference)) {
+      (style as Record<string, unknown>)[prop] = value
+        .split(reference)
+        .join(
+          `var(${cssVar}, ${applyCssValue(literal, camelToKebabCase(prop))})`,
+        );
+    } else if (value !== null && typeof value === 'object') {
+      applyVarFallback(value as CSSObject, cssVar, literal);
     }
   }
-  return false;
 };
 
 const findVarProp = (style: CSSObject, cssVar: string): string | undefined => {
@@ -1467,11 +1469,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               ? expr.value
               : undefined;
           if (literal === undefined) return;
-          replaceVarValue(
-            style,
-            cssVar,
-            `var(${cssVar}, ${applyCssValue(literal, camelToKebabCase(targetProp))})`,
-          );
+          applyVarFallback(style, cssVar, literal);
         });
 
         const vars: DynamicVar[] = [];
