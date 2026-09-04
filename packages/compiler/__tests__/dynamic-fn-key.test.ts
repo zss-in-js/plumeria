@@ -36,6 +36,44 @@ export const B = (p: any) => <div classStyle={s.tinted(p.c)} />;
     expect(css.match(/color: var\(/g)).toHaveLength(1);
   });
 
+  it('keeps the value around a defaulted parameter', () => {
+    // The fallback belongs to the variable reference, not to the declaration,
+    // so the text on either side of it has to survive.
+    const css = compile(`
+import * as css from '@plumeria/core';
+const s = css.create({
+  grad: (c = 'teal') => ({ background: \`linear-gradient(\${c}, #000)\` }),
+  twice: (g = 'red') => ({ background: \`linear-gradient(\${g}, \${g})\` }),
+});
+export const A = () => <div classStyle={s.grad()} />;
+export const B = () => <div classStyle={s.twice()} />;
+`);
+    expect(css).toMatch(
+      /background: linear-gradient\(var\(--[a-z0-9]+-c, teal\), black\)/,
+    );
+    expect(css).toMatch(
+      /background: linear-gradient\(var\(--([a-z0-9]+)-g, red\), var\(--\1-g, red\)\)/,
+    );
+  });
+
+  it('reaches every declaration the parameter lands in', () => {
+    // The unit is decided per declaration, so the fallback cannot be built
+    // once from whichever property happens to come first.
+    const css = compile(`
+import * as css from '@plumeria/core';
+const s = css.create({
+  paired: (c = 'red') => ({ color: c, ':hover': { borderColor: c } }),
+  units: (n = 4) => ({ padding: n, zIndex: n }),
+});
+export const A = () => <div classStyle={s.paired()} />;
+export const B = () => <div classStyle={s.units()} />;
+`);
+    expect(css).toMatch(/color: var\(--([a-z0-9]+)-c, red\)/);
+    expect(css).toMatch(/border-color: var\(--[a-z0-9]+-c, red\)/);
+    expect(css).toMatch(/padding: var\(--[a-z0-9]+-n, 4px\)/);
+    expect(css).toMatch(/z-index: var\(--[a-z0-9]+-n, 4\)/);
+  });
+
   it('gives a numeric default its unit', () => {
     const css = compile(`
 import * as css from '@plumeria/core';
