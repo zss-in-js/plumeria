@@ -196,6 +196,20 @@ const styles = css.create({
 });
 ```
 
+A rule reports and offers the rename; it cannot hold the count at zero, because
+it can be switched off for one developer and does nothing where no linter runs.
+`withoutLogicalProperties` and `withoutPhysicalProperties` make the same choice
+in the bundler, and every file the compiler processes is checked against it —
+[Next.js](/docs/api-reference/plugins/next-plugin) and
+[every other bundler](/docs/api-reference/plugins/unplugin). Run the rule first,
+since it reports every occurrence at once and that is what moving an existing
+codebase needs; turn the build option on once the count has reached zero.
+
+Both take `{ sizes: true }`, which extends the check from the edges to the
+twelve axis pairs, and both directions at once is a configuration error. Neither
+rewrites anything, for the reason above: where an element is vertical the rename
+is a change of meaning.
+
 ### Two shorthands that cross
 
 `borderTop` sets three values on one edge. `borderBlockWidth` sets one value on
