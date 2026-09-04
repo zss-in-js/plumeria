@@ -1,0 +1,77 @@
+---
+title: 'Plumeria 18.4'
+description: 'Update: the bundler can settle which spelling a codebase uses, so the pair specificity cannot rank never reaches the stylesheet'
+date: '2026-09-04'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v18.4 lets the build settle a question the cascade cannot.
+
+`withoutLogicalProperties` and `withoutPhysicalProperties` are new options on the compiler, `@plumeria/unplugin` and `@plumeria/turbopack-loader`. Either one rejects a spelling at build time, so a property that carries both a logical and a physical name can only be written one way.
+
+Both are off by default. This is not a style preference made mandatory: it is the one assumption the atomic lowering makes that the source has to satisfy.
+
+---
+
+## One property, two nodes
+
+`marginTop` and `marginBlockStart` are the same property in CSS. In the atomic conflict graph they are two nodes.
+
+Specificity settles every pair where one declaration contains another — a shorthand and its longhand, an axis and an edge. It cannot settle two names for the same box edge, because neither contains the other. Which one survives falls to the order the rules were written in, and that is the one thing atomic output does not promise: a class name is supposed to mean the same thing whichever module the bundler reached first.
+
+Fifty-six such pairs exist: 44 edges and 12 axes.
+
+## Why the graph cannot close this on its own
+
+The obvious fix is to fold the two spellings into one node, so the graph stops seeing two properties where CSS has one. Plumeria does not do that, and cannot.
+
+In a vertical writing mode `marginTop` and `marginBlockStart` are two different edges. Which one an element renders under is decided at run time and inherited, so no build-time setting can answer it. A compiler that folded them would be right for a horizontal document and wrong for a vertical one.
+
+So the graph stays honest about what it can see, and the only way to keep it accurate is for the source to settle on one spelling. That is what the options require, and it is also why neither of them rewrites anything: the rename is a change of meaning, so it stays a decision you make.
+
+## Using them
+
+```ts title="next.config.ts"
+export default withPlumeria(nextConfig, { withoutPhysicalProperties: true });
+```
+
+```ts title="vite.config.ts"
+plumeria.vite({ withoutPhysicalProperties: true });
+```
+
+The build fails on the first rejected property, and the message names the file and the property to write instead:
+
+```
+[plumeria] 'marginTop' is the physical name of this property.
+Write it as 'marginBlockStart', which follows the writing mode. (Card.tsx)
+```
+
+`{ sizes: true }` extends the check from the edges to the twelve axis pairs — `width`, `height`, their `min` and `max` forms, and `overflow`, `overscroll-behavior` and `contain-intrinsic-size` on both axes. An edge is what a direction reverses; a size is the same box either way, so renaming it buys less and touches far more code.
+
+Enabling both at once is a configuration error. They contradict each other, so pick the direction the codebase is already written in.
+
+## Lint migrates, the build locks
+
+[`no-physical-properties` and `no-logical-properties`](/docs/api-reference/plugins/eslint-plugin/optional-rules) have covered this since 18.2.9, and they are still where an existing codebase starts. A rule reports every occurrence at once and offers the rename, which is what moving a codebase needs.
+
+What a rule cannot do is hold the count at zero afterwards. It can be set to `'off'` for one developer, and it does nothing where no linter runs. The build option does not depend on anyone running ESLint, and it applies to every file the compiler processes — which `include` and `exclude` decide, so a file outside that set is not compiled and not checked.
+
+Run the rule first, turn the option on once the count reaches zero, and keep the two pointing the same way: `withoutPhysicalProperties` pairs with `no-physical-properties`, `withoutLogicalProperties` with `no-logical-properties`. Set opposite directions and the rule renames a property the build then rejects.
+
+[Specificity](/docs/reference/specificity) has the full account of which pairs nothing ranks and why.
+
+---
+
+## 18.4.0 (Sep 4, 2026)
+
+- Feat: `withoutLogicalProperties` and `withoutPhysicalProperties` on the compiler, unplugin and turbopack-loader options. Either one rejects one spelling of a property that carries both a logical and a physical name, so the pair specificity cannot rank never reaches the stylesheet. Both take `{ sizes: true }` to extend the check from the edges to the twelve axis pairs, enabling both is a configuration error, and neither rewrites anything.
+- Fix: `no-unknown-css-properties` reported the `ms`-prefixed properties such as `msOverflowStyle` as unknown, because it lowercased the prefix without the leading hyphen it carries. It now shares the case conversion the compiler uses, and reports the obsolete `Khtml`- and `O`-prefixed forms instead.
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
