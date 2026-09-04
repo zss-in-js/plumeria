@@ -56,6 +56,8 @@ export default withPlumeria(nextConfig, {
 - `exclude` — Globs excluded from that compilation. The default is `node_modules`, `dist` and `.next`.
 - `styleProp` — The JSX prop that carries styles. The default is `'classStyle'`.
 
+These are the options a project usually sets. `withoutLogicalProperties` and `withoutPhysicalProperties` reject one spelling of a property that carries both names, so the pair cannot be written; see [@plumeria/next-plugin](/docs/api-reference/plugins/next-plugin) for every option and its type.
+
 ## plumeria.d.ts
 
 `@plumeria/core` ships no prop declaration of its own, so name the styling prop your project compiles with.
