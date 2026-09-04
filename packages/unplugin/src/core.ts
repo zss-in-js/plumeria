@@ -30,6 +30,8 @@ import {
 import type { CSSProperties } from 'zss-engine';
 import {
   traverse,
+  resolvePropertyPolicy,
+  assertPropertyPolicy,
   collectReferenceIdentifiers,
   getStyleRecords,
   getStateWeights,
@@ -51,6 +53,7 @@ import {
   resolveThemeSelector,
   DEFAULT_STYLE_PROP,
 } from '@plumeria/utils';
+import type { PropertyPolicyOptions } from '@plumeria/utils';
 import type {
   StyleRecord,
   StyleSource,
@@ -64,7 +67,7 @@ import type {
   CSSObject,
 } from '@plumeria/utils';
 
-export interface PluginOptions {
+export interface PluginOptions extends PropertyPolicyOptions {
   include?: string | RegExp | Array<string | RegExp>;
   exclude?: string | RegExp | Array<string | RegExp>;
   devEmitToDisk?: boolean;
@@ -361,6 +364,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
   unpluginMeta,
 ) => {
   const filter = createFilter(options.include, options.exclude);
+  const propertyPolicy = resolvePropertyPolicy(options);
   const styleProp = options.styleProp ?? DEFAULT_STYLE_PROP;
 
   const cssLookup = new Map<string, string>();
@@ -440,6 +444,8 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         tsx: true,
         target: 'es2022',
       });
+
+      assertPropertyPolicy(ast, propertyPolicy, id);
 
       const leadingLen = getLeadingCommentLength(source);
       const sourceBuffer = Buffer.from(source, 'utf-8');
