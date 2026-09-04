@@ -4,11 +4,12 @@
 
 import {
   DIRECT_LONGHANDS,
+  camelToKebabCase,
+  canonicalProperty,
   impliesCondition,
   getPseudoElement,
   getSpecificity,
 } from 'zss-engine';
-import { canonicalProperty, toKebabCase } from '../util/logicalPhysical';
 import {
   areExclusive,
   compoundOf,
@@ -198,9 +199,10 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
         return first === second;
       }
       return (
-        canonicalProperty(toKebabCase(first)) ===
-          canonicalProperty(toKebabCase(second)) ||
-        overlapOf(toKebabCase(first), toKebabCase(second)) === 'crossing'
+        canonicalProperty(camelToKebabCase(first)) ===
+          canonicalProperty(camelToKebabCase(second)) ||
+        overlapOf(camelToKebabCase(first), camelToKebabCase(second)) ===
+          'crossing'
       );
     }
 
@@ -273,7 +275,7 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
           return;
         }
 
-        declarations.push({ prop, name, kebab: toKebabCase(name) });
+        declarations.push({ prop, name, kebab: camelToKebabCase(name) });
       });
 
       for (let i = 0; i < conditions.length; i++) {
