@@ -30,6 +30,8 @@ import type { CSSProperties } from 'zss-engine';
 
 import {
   traverse,
+  resolvePropertyPolicy,
+  assertPropertyPolicy,
   collectReferenceIdentifiers,
   getStyleRecords,
   getStateWeights,
@@ -51,6 +53,7 @@ import {
   resolveThemeSelector,
   DEFAULT_STYLE_PROP,
 } from '@plumeria/utils';
+import type { PropertyPolicyOptions } from '@plumeria/utils';
 import type {
   StyleRecord,
   StyleSource,
@@ -94,6 +97,8 @@ async function generateProductionCss(
       exclude: options.exclude ?? DEFAULT_EXCLUDE,
       cwd: process.cwd(),
       styleProp: options.styleProp ?? DEFAULT_STYLE_PROP,
+      withoutLogicalProperties: options.withoutLogicalProperties,
+      withoutPhysicalProperties: options.withoutPhysicalProperties,
     });
     const optimized = await optimizer(css);
 
@@ -398,7 +403,7 @@ interface StyleConditional {
   order?: number;
 }
 
-export interface LoaderOptions {
+export interface LoaderOptions extends PropertyPolicyOptions {
   include?: string[];
   exclude?: string[];
   styleProp?: string;
@@ -422,6 +427,7 @@ export default async function loader(this: LoaderContext, source: string) {
     (typeof this.query === 'object' ? this.query : undefined) ??
     {};
   const styleProp = loaderOptions.styleProp ?? DEFAULT_STYLE_PROP;
+  const propertyPolicy = resolvePropertyPolicy(loaderOptions);
   const resourcePath = this.resourcePath;
   const isProduction = process.env.NODE_ENV === 'production';
   const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
@@ -441,6 +447,8 @@ export default async function loader(this: LoaderContext, source: string) {
       tsx: true,
       target: 'es2022',
     });
+
+    assertPropertyPolicy(ast, propertyPolicy, resourcePath);
 
     const leadingLen = getLeadingCommentLength(source);
     const sourceBuffer = Buffer.from(source, 'utf-8');
