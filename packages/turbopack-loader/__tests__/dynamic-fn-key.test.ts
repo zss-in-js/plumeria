@@ -23,6 +23,8 @@ const s = css.create({
   boxed: ({ tone: t }: { tone: string }) => ({ backgroundColor: t }),
   layer: (z: number) => ({ zIndex: z }),
   gapped: (n: number) => ({ '--gap': n, gap: 'var(--gap)' }),
+  units: (n: number) => ({ padding: n, zIndex: n }),
+  same: (c: string) => ({ color: c, borderColor: c }),
   tinted: (c = 'teal') => ({ color: c }),
   plain: () => ({ color: 'olive' }),
   toned: ({ tone = 'navy' }) => ({ backgroundColor: tone }),
@@ -283,6 +285,24 @@ ${usage}`,
     );
     expect(code).toMatch(/"--[^"]+-n": "4"/);
     expect(code).toMatch(/"--[^"]+-n": p\.n/);
+  });
+
+  it('splits the variable when the parameter lands in both unit rules', async () => {
+    // The element sets the variable once, so padding and z-index cannot read
+    // the same one: 4px and 4 are both needed.
+    const code = await run(
+      'export const A = (p: any) => <div classStyle={s.units(p.n)} />;',
+    );
+    expect(code).toMatch(
+      /"--([a-z0-9]+)-n": \(typeof \(p\.n\) === 'number' \? \(p\.n\) \+ 'px' : \(p\.n\)\), "--\1-n-z-index": p\.n/,
+    );
+  });
+
+  it('keeps one variable when the declarations share a unit rule', async () => {
+    const code = await run(
+      'export const A = (p: any) => <div classStyle={s.same(p.c)} />;',
+    );
+    expect(code.match(/"--[^"]+"/g)).toHaveLength(1);
   });
 
   it('rejects a call handed to a component prop', async () => {
