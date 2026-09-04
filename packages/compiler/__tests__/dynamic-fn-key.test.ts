@@ -71,7 +71,7 @@ export const B = () => <div classStyle={s.units()} />;
     expect(css).toMatch(/color: var\(--([a-z0-9]+)-c, red\)/);
     expect(css).toMatch(/border-color: var\(--[a-z0-9]+-c, red\)/);
     expect(css).toMatch(/padding: var\(--[a-z0-9]+-n, 4px\)/);
-    expect(css).toMatch(/z-index: var\(--[a-z0-9]+-n, 4\)/);
+    expect(css).toMatch(/z-index: var\(--[a-z0-9]+-n-z-index, 4\)/);
   });
 
   it('gives a numeric default its unit', () => {
