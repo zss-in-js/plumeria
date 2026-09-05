@@ -246,4 +246,40 @@ export const A = () => <div classStyle={importedStyles.plain} />;
     expect(css).toContain('color: red');
     expect(css).toContain('font-weight: 700');
   });
+
+  // The receiving component renders the merged rule when the prop is given and
+  // its own base when it is not, so the sheet has to hold both.
+  it('emits both sides of a dynamic key handed over a component prop', () => {
+    write(
+      'styles.ts',
+      `import * as css from '@plumeria/core';
+export const styles = css.create({
+  base: { backgroundColor: 'green', padding: 24 },
+  tone: (c: string) => ({ backgroundColor: c }),
+});
+`,
+    );
+    write(
+      'Merged.tsx',
+      `import * as css from '@plumeria/core';
+import { styles } from './styles';
+export const Merged = ({ deco }: any) => (
+  <div classStyle={[styles.base, deco]} />
+);
+`,
+    );
+    write(
+      'parent.tsx',
+      `import '@plumeria/core';
+import { styles } from './styles';
+import { Merged } from './Merged';
+export const P = (p: any) => <Merged deco={styles.tone(p.c)} />;
+`,
+    );
+
+    const css = compile();
+    expect(css).toMatch(/background-color: var\(--\w+-c\)/);
+    expect(css).toContain('background-color: green');
+    expect(css).toContain('padding: 24px');
+  });
 });
