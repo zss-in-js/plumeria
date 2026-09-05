@@ -28,6 +28,7 @@ The complete rule set, distilled. Each rule is explained with examples in the se
 - Nest a media/container query inside a pseudo-selector. The reverse (pseudo inside media) is allowed once. (→ Selector Rules)
 - Mix `className` and `classStyle` on the same element. (→ Forbidden Patterns)
 - Merge `css.use()` output with the inline `style` prop. (→ Dynamic Styling)
+- Route a function key through `css.use()`, inline or through a `Style` prop. (→ Dynamic Styling)
 - Pass a received `Style` prop on to another component. Apply it on the element the component renders. (→ Styling Custom Components)
 
 ## Mental Model
@@ -213,7 +214,7 @@ Best practices:
 
 ### `css.use()` returns a static string
 
-`css.use()` compiles to a static class name string. It has **no** integration with the inline `style` prop — never attempt to merge or combine `css.use()` output with `style`.
+`css.use()` compiles to a static class name string. It has **no** integration with the inline `style` prop — never attempt to merge or combine `css.use()` output with `style`. A function key cannot go through it, inline or through a `Style` prop: the value reaches the element as a CSS variable on `style`, which `css.use()` never sets.
 
 ## Advanced APIs
 
@@ -500,6 +501,20 @@ const styles = css.create({
 // The compiler traces styleArray inside css.use() and resolves it statically
 <Button styleArray={[styles.primary, styles.text]}>Click me</Button>;
 ```
+
+This pattern cannot carry a function key. The call site's value reaches the element as a CSS variable, and `css.use()` returns a class name with nowhere to put it:
+
+```tsx
+// ❌ INVALID: palette is a function key, so its variable has no element to land on
+<Button styleArray={styles.palette(color)}>Click me</Button>;
+```
+
+```
+Plumeria: "styleArray" carries a dynamic function key, and css.use() returns
+only a class name. Apply it to classStyle on the element instead.
+```
+
+Use Pattern 2 for a prop that may carry one: `classStyle` sets the variable next to the class.
 
 ### Anti-pattern: relaying a `Style` prop
 
