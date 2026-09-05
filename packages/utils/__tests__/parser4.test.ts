@@ -415,3 +415,99 @@ describe('scanAll classStyle prop registration', () => {
     expect(new Set(entries.map((e: any) => e.filePath)).size).toBe(2);
   });
 });
+
+describe('dynamic style props in scanAll', () => {
+  const definitions = `
+    import * as css from '@plumeria/core';
+    export const styles = css.create({
+      size: (size) => ({ width: size }),
+      named: ({ width: size, color = 'red' }) => ({ width: size, color }),
+      defaults: ({ size = 4 }) => ({ width: size }),
+      fixed: (unused) => ({ color: 'red' }),
+    });
+  `;
+
+  test.each([
+    ['styles.size(value)', true],
+    ['styles.size(value, extra)', true],
+    ['styles.named({ width: value })', true],
+    ['styles.named({ "width": value, color })', true],
+    ['styles.defaults()', false],
+    ['styles.fixed(value)', false],
+    ['[styles.size(value), styles.fixed(value)]', true],
+    ['[true ? styles.size(value) : styles.fixed(value)]', true],
+    ['[false ? styles.fixed(value) : styles.size(value)]', true],
+    ['[true && styles.size(value)]', true],
+    ['[(styles.size(value))]', true],
+  ])('registers %s with hasVars=%s', (expression, hasVars) => {
+    const { tables } = scanFiles({
+      [f('dynamic/styles.ts')]: definitions,
+      [f('dynamic/page.tsx')]:
+        `import * as css from '@plumeria/core'; import { styles } from './styles'; export const Page = () => <Card styleProp={${expression}} />;`,
+    });
+    const entries = propEntries(tables);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].classString).not.toBe('');
+    expect(entries[0].hasVars ?? false).toBe(hasVars);
+    if (hasVars) expect(entries[0].styleObj.width).toMatch(/^var\(--/);
+    else
+      expect(entries[0].styleObj).toEqual(
+        expression.includes('defaults')
+          ? { width: expect.stringMatching(/^var\(--.*?, 4px\)$/) }
+          : { color: 'red' },
+      );
+  });
+
+  test.each([
+    'unknown(value)',
+    'styles["size"](value)',
+    'styles.missing(value)',
+    'styles.size(...values)',
+    'styles.named(value)',
+    'styles.named({}, {})',
+    'styles.named({ color: value })',
+    'styles.size({ size: value })',
+  ])('does not register unsupported call %s', (expression) => {
+    const { tables } = scanFiles({
+      [f('dynamic/page.tsx')]:
+        `${definitions} export const Page = () => <Card styleProp={${expression}} />;`,
+    });
+    expect(propEntries(tables)).toEqual([]);
+  });
+
+  test('records an evaluation error in the JSX phase', () => {
+    const file = f('dynamic/error.tsx');
+    const { mod, tables } = scanFiles({
+      [file]: `import * as css from '@plumeria/core'; export const styles = css.create({ bad: (value) => ({ width: value ** 2 }) }); export const Page = () => <Card styleProp={styles.bad(value)} />;`,
+    });
+    expect(propEntries(tables)).toEqual([]);
+    expect(mod.resolveFileError(file, 'styles')).toEqual({
+      filePath: file,
+      message: expect.stringContaining('Unsupported binary operator'),
+    });
+  });
+});
+
+describe('theme selector failures', () => {
+  test('returns an empty selector when evaluation throws', () => {
+    const { resolveThemeSelector } = require('../src/parser');
+    const expression = (objExpr('{ value: value ** 2 }').properties[0] as any)
+      .value;
+    expect(resolveThemeSelector(expression, {}, {}, {})).toBe('');
+  });
+
+  test('resolves a quoted createStatic member as a selector', () => {
+    const { resolveThemeSelector } = require('../src/parser');
+    const expression = (
+      objExpr('{ value: selectors["root"] }').properties[0] as any
+    ).value;
+    expect(
+      resolveThemeSelector(
+        expression,
+        {},
+        { selectors: 'hash' },
+        { hash: { root: '.root' } },
+      ),
+    ).toBe('.root');
+  });
+});
