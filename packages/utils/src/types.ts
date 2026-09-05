@@ -37,6 +37,7 @@ export interface TableEntry {
   classString: string;
   spanStart: number;
   filePath: string;
+  hasVars?: boolean;
 }
 
 export interface Tables {
