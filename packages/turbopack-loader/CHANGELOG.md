@@ -1,5 +1,15 @@
 # @plumeria/turbopack-loader
 
+## 18.4.2
+
+### Patch Changes
+
+- 128309e: - Fix: skip false, null and undefined style entries while preserving adjacent styles and existing class names.
+  - Fix: resolve renamed destructured style props by their original prop names.
+- Updated dependencies [128309e]
+  - @plumeria/compiler@18.4.2
+  - @plumeria/utils@18.4.2
+
 ## 18.4.1
 
 ### Patch Changes

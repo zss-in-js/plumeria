@@ -1,5 +1,11 @@
 # Release Notes
 
+## 18.4.2 (Sep 5, 2026)
+
+- Fix: skip false, null and undefined style entries while preserving adjacent styles and existing class names.
+
+- Fix: resolve renamed destructured style props by their original prop names.
+
 ## 18.4.1 (Sep 5, 2026)
 
 - Fix: a dynamic function key handed to a component through a style prop was silently dropped. The key now reaches the element together with the variables the caller computed, so `<Card styleArray={styles.tone(color)} />` renders the class and the custom property that writing the call on the element would.
