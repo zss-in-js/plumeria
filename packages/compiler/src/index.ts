@@ -7,7 +7,6 @@ import type {
   MemberExpression,
   Identifier,
   ExprOrSpread,
-  Statement,
   VariableDeclarator,
   FunctionDeclaration,
   HasSpan,
@@ -17,8 +16,6 @@ import {
   type CSSProperties,
   genBase36Hash,
   camelToKebabCase,
-  applyCssValue,
-  exceptionCamelCase,
 } from 'zss-engine';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -42,8 +39,15 @@ import {
   DEFAULT_STYLE_PROP,
   resolvePropertyPolicy,
   assertPropertyPolicy,
+  styleFunctionsOf,
+  resolveDynamicStyle,
 } from '@plumeria/utils';
-import type { PropertyPolicyOptions } from '@plumeria/utils';
+import type {
+  PropertyPolicyOptions,
+  NamedParam,
+  StyleFunctions,
+  DynamicStyleTables,
+} from '@plumeria/utils';
 import type {
   StyleRecord,
   CSSObject,
@@ -107,49 +111,6 @@ const isStaticArgValue = (node: Expression): boolean =>
   t.isIdentifier(node) ||
   t.isMemberExpression(node);
 
-type NamedParam = { key: string; local: string };
-
-// A dynamic style function may name its parameters by destructuring them, in
-// which case the call passes one object and the key it uses is not necessarily
-// the name the body reads.
-const namedParamsOf = (
-  params: unknown[],
-  defaults: Record<string, Expression>,
-): NamedParam[] | undefined => {
-  if (params.length !== 1) return undefined;
-  const first = params[0] as { type?: string; pat?: { type?: string } };
-  const pattern = (first?.pat ?? first) as {
-    type?: string;
-    properties?: any[];
-  };
-  if (pattern?.type !== 'ObjectPattern') return undefined;
-
-  const named: NamedParam[] = [];
-  for (const prop of pattern.properties ?? []) {
-    if (prop.type === 'AssignmentPatternProperty' && t.isIdentifier(prop.key)) {
-      named.push({ key: prop.key.value, local: prop.key.value });
-      if (prop.value) defaults[prop.key.value] = prop.value as Expression;
-    } else if (
-      prop.type === 'KeyValuePatternProperty' &&
-      t.isIdentifier(prop.key) &&
-      t.isIdentifier(prop.value)
-    ) {
-      named.push({ key: prop.key.value, local: prop.value.value });
-    } else if (
-      prop.type === 'KeyValuePatternProperty' &&
-      t.isIdentifier(prop.key) &&
-      prop.value?.type === 'AssignmentPattern' &&
-      t.isIdentifier(prop.value.left)
-    ) {
-      named.push({ key: String(prop.key.value), local: prop.value.left.value });
-      defaults[prop.value.left.value] = prop.value.right;
-    } else {
-      return undefined;
-    }
-  }
-  return named.length > 0 ? named : undefined;
-};
-
 interface TraversalContext {
   mergedStaticTable: StaticTable;
   mergedKeyframesTable: KeyframesHashTable;
@@ -181,140 +142,16 @@ interface TraversalContext {
   localStyleAliases?: Record<string, Expression>;
 }
 
-type StyleFunctions = NonNullable<
-  TraversalContext['localCreateStyles'][string]['functions']
->;
-
-const isUnitlessProp = (prop: string): boolean =>
-  exceptionCamelCase.includes(prop) || prop.startsWith('--');
-
-const collectVarProps = (
-  style: CSSObject,
-  cssVar: string,
-  props: string[],
-): void => {
-  const reference = `var(${cssVar})`;
-  for (const [prop, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.includes(reference))
-      props.push(prop);
-    else if (value !== null && typeof value === 'object')
-      collectVarProps(value as CSSObject, cssVar, props);
-  }
-};
-
-const retargetVar = (
-  style: CSSObject,
-  cssVar: string,
-  next: string,
-  unitless: boolean,
-): void => {
-  const reference = `var(${cssVar})`;
-  for (const [prop, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.includes(reference)) {
-      if (isUnitlessProp(prop) === unitless)
-        (style as Record<string, unknown>)[prop] = value
-          .split(reference)
-          .join(`var(${next})`);
-    } else if (value !== null && typeof value === 'object') {
-      retargetVar(value as CSSObject, cssVar, next, unitless);
-    }
-  }
-};
-
-// The element sets a variable once, so a parameter that lands in declarations
-// with different unit rules needs one variable per rule: `4` and `4px` cannot
-// both be the value.
-const splitVarByUnit = (
-  style: CSSObject,
-  cssVar: string,
-): Array<{ cssVar: string; prop: string }> => {
-  const props: string[] = [];
-  collectVarProps(style, cssVar, props);
-  if (props.length === 0) return [];
-
-  const lead = props[0];
-  const split = props.find(
-    (prop) => isUnitlessProp(prop) !== isUnitlessProp(lead),
-  );
-  if (!split) return [{ cssVar, prop: lead }];
-
-  const splitVar = `${cssVar}-${camelToKebabCase(split).replace(/^-+/, '')}`;
-  retargetVar(style, cssVar, splitVar, isUnitlessProp(split));
-  return [
-    { cssVar, prop: lead },
-    { cssVar: splitVar, prop: split },
-  ];
-};
-
-const applyVarFallback = (
-  style: CSSObject,
-  cssVar: string,
-  literal: string | number,
-): void => {
-  const reference = `var(${cssVar})`;
-  for (const [prop, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.includes(reference)) {
-      (style as Record<string, unknown>)[prop] = value
-        .split(reference)
-        .join(
-          `var(${cssVar}, ${applyCssValue(literal, camelToKebabCase(prop))})`,
-        );
-    } else if (value !== null && typeof value === 'object') {
-      applyVarFallback(value as CSSObject, cssVar, literal);
-    }
-  }
-};
-
-const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
-  const styleFunctions: StyleFunctions = {};
-
-  objExpr.properties.forEach((prop) => {
-    if (prop.type !== 'KeyValueProperty' || prop.key.type !== 'Identifier')
-      return;
-    const func = prop.value;
-    if (
-      func.type !== 'ArrowFunctionExpression' &&
-      func.type !== 'FunctionExpression'
-    )
-      return;
-
-    const defaults: Record<string, Expression> = {};
-    const params: string[] = func.params.map((p) => {
-      const pattern = (
-        typeof p === 'object' && p !== null && 'pat' in p ? p.pat : p
-      ) as { type?: string; left?: Identifier; right?: Expression };
-      if (t.isIdentifier(pattern)) return pattern.value;
-      if (
-        pattern?.type === 'AssignmentPattern' &&
-        t.isIdentifier(pattern.left)
-      ) {
-        defaults[pattern.left.value] = pattern.right as Expression;
-        return pattern.left.value;
-      }
-      return 'arg';
-    });
-
-    let actualBody: Expression | Statement | undefined = func.body;
-    if (actualBody?.type === 'ParenthesisExpression')
-      actualBody = actualBody.expression;
-    if (actualBody?.type === 'BlockStatement') {
-      const first = actualBody.stmts?.[0];
-      if (first?.type === 'ReturnStatement') actualBody = first.argument;
-      if (actualBody?.type === 'ParenthesisExpression')
-        actualBody = actualBody.expression;
-    }
-
-    if (actualBody && actualBody.type === 'ObjectExpression') {
-      styleFunctions[prop.key.value] = {
-        params,
-        named: namedParamsOf(func.params, defaults),
-        defaults,
-        body: actualBody as ObjectExpression,
-      };
-    }
-  });
-  return styleFunctions;
-};
+const dynamicTablesOf = (ctx: TraversalContext): DynamicStyleTables => ({
+  keyframesHashTable: ctx.mergedKeyframesTable,
+  viewTransitionHashTable: ctx.mergedViewTransitionTable,
+  createThemeHashTable: ctx.mergedCreateThemeHashTable,
+  createThemeObjectTable: ctx.scannedTables.createThemeObjectTable,
+  createHashTable: ctx.mergedCreateTable,
+  createStaticHashTable: ctx.mergedCreateStaticHashTable,
+  createStaticObjectTable: ctx.scannedTables.createStaticObjectTable,
+  variantsHashTable: ctx.mergedVariantsTable,
+});
 
 function extractStylesFromExpression(
   expression: Expression,
@@ -968,71 +805,14 @@ export function compileCSS(options: CompilerOptions) {
           });
         }
 
-        const withDefault = Object.entries(func.defaults ?? {}).filter(
-          ([param]) => tempStaticTable[param] === undefined,
-        );
-        const cssVars: Record<string, string> = {};
-        const varParams = Array.from(
-          new Set([...runtime, ...withDefault.map(([param]) => param)]),
-        );
-
-        if (varParams.length > 0) {
-          varParams.forEach((p) => (tempStaticTable[p] = p));
-
-          const probe = objectExpressionToObject(
-            func.body,
-            tempStaticTable,
-            ctx.mergedKeyframesTable,
-            ctx.mergedViewTransitionTable,
-            ctx.mergedCreateThemeHashTable,
-            ctx.scannedTables.createThemeObjectTable,
-            ctx.mergedCreateTable,
-            ctx.mergedCreateStaticHashTable,
-            ctx.scannedTables.createStaticObjectTable,
-            ctx.mergedVariantsTable,
-          );
-          const hash = genBase36Hash(probe ?? {}, 1, 8);
-
-          varParams.forEach((p) => {
-            const cssVar = `--${hash}-${p}`;
-            tempStaticTable[p] = `var(${cssVar})`;
-            cssVars[p] = cssVar;
-          });
-        }
-
-        const style = objectExpressionToObject(
-          func.body,
+        const resolved = resolveDynamicStyle(
+          func,
+          runtime,
           tempStaticTable,
-          ctx.mergedKeyframesTable,
-          ctx.mergedViewTransitionTable,
-          ctx.mergedCreateThemeHashTable,
-          ctx.scannedTables.createThemeObjectTable,
-          ctx.mergedCreateTable,
-          ctx.mergedCreateStaticHashTable,
-          ctx.scannedTables.createStaticObjectTable,
-          ctx.mergedVariantsTable,
+          dynamicTablesOf(ctx),
         );
-        if (!style) return null;
-
-        const varGroups = new Map<
-          string,
-          Array<{ cssVar: string; prop: string }>
-        >();
-        varParams.forEach((param) => {
-          const cssVar = cssVars[param];
-          if (cssVar) varGroups.set(param, splitVarByUnit(style, cssVar));
-        });
-
-        withDefault.forEach(([param, expr]) => {
-          const literal =
-            expr.type === 'StringLiteral' || expr.type === 'NumericLiteral'
-              ? expr.value
-              : undefined;
-          if (literal === undefined) return;
-          (varGroups.get(param) ?? []).forEach(({ cssVar }) =>
-            applyVarFallback(style, cssVar, literal),
-          );
-        });
+        if (!resolved) return null;
+        const { style } = resolved;
 
         return style;
       };
