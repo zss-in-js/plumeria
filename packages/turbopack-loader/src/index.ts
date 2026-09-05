@@ -153,6 +153,28 @@ const componentFunctionOf = (
   return undefined;
 };
 
+const unwrapPatternDefault = (pattern: any): any =>
+  pattern?.type === 'AssignmentPattern' ? pattern.left : pattern;
+
+const destructuredPropAliases = (fn: {
+  params: unknown[];
+}): Map<string, string> => {
+  const aliases = new Map<string, string>();
+  const first = fn.params[0] as any;
+  const pattern = unwrapPatternDefault(first?.pat ?? first);
+  if (pattern?.type !== 'ObjectPattern') return aliases;
+  for (const item of pattern.properties ?? []) {
+    if (item.type !== 'KeyValuePatternProperty') continue;
+    const local = unwrapPatternDefault(item.value);
+    const key = item.key;
+    if (!t.isIdentifier(local)) continue;
+    if (!t.isIdentifier(key) && !t.isStringLiteral(key)) continue;
+    const name = String(key.value);
+    if (name !== local.value) aliases.set(local.value, name);
+  }
+  return aliases;
+};
+
 // A named argument folds into the style only when its value is written out in
 // full. Anything the parser can only read in part -- a template literal with an
 // interpolation, an expression -- has to reach the element as a custom property
@@ -164,6 +186,11 @@ const isStaticArgValue = (node: Expression): boolean =>
   (node.type === 'TemplateLiteral' && node.expressions.length === 0) ||
   t.isIdentifier(node) ||
   t.isMemberExpression(node);
+
+const isNoOpStyle = (node: Expression): boolean =>
+  t.isNullLiteral(node) ||
+  (t.isBooleanLiteral(node) && node.value === false) ||
+  (t.isIdentifier(node) && node.value === 'undefined');
 
 type DynamicVar = {
   cssVar: string;
@@ -380,21 +407,27 @@ export default async function loader(this: LoaderContext, source: string) {
     }
 
     const components: Array<{ name: string; node: HasSpan }> = [];
+    const propAliases = new Map<string, Map<string, string>>();
+    const addComponent = (
+      name: string,
+      fn: HasSpan & { params: unknown[] },
+    ) => {
+      components.push({ name, node: fn });
+      const aliases = destructuredPropAliases(fn);
+      if (aliases.size > 0) propAliases.set(name, aliases);
+    };
     for (const node of ast.body) {
       const statement = unwrapExport(node);
       if (isFunctionNode(statement)) {
-        components.push({
-          name: statement.identifier?.value ?? 'default',
-          node: statement,
-        });
+        addComponent(statement.identifier?.value ?? 'default', statement);
       } else if (statement?.type === 'CallExpression') {
         const fn = componentFunctionOf(statement);
-        if (fn) components.push({ name: 'default', node: fn });
+        if (fn) addComponent('default', fn);
       } else if (t.isVariableDeclaration(statement)) {
         for (const decl of statement.declarations) {
           if (!t.isIdentifier(decl.id)) continue;
           const fn = componentFunctionOf(decl.init);
-          if (fn) components.push({ name: decl.id.value, node: fn });
+          if (fn) addComponent(decl.id.value, fn);
         }
       }
     }
@@ -1555,6 +1588,7 @@ export default async function loader(this: LoaderContext, source: string) {
         currentTestStrings: string[] = [],
         argOrder?: number,
       ): boolean => {
+        if (isNoOpStyle(node)) return true;
         let branchStyle = resolveStyleObject(node);
         if (!branchStyle) {
           const dynamic = resolveDynamicCall(node);
@@ -1660,12 +1694,16 @@ export default async function loader(this: LoaderContext, source: string) {
           ? expr.value
           : ((expr as MemberExpression).property as Identifier).value;
         const source = t.isIdentifier(expr) ? varName : getSource(expr);
-        markStylePropApplied(varName, expr as HasSpan);
-
         const owner = ownerComponentOf(expr as HasSpan);
+        const propName =
+          (t.isIdentifier(expr) && owner
+            ? propAliases.get(owner)?.get(varName)
+            : undefined) ?? varName;
+        markStylePropApplied(propName, expr as HasSpan);
+
         let possibilities: any[] | undefined = owner
           ? scannedTables.componentPropsTable?.[`${resourcePath}-${owner}`]?.[
-              varName
+              propName
             ]
           : undefined;
         if (!possibilities) {
@@ -1674,7 +1712,8 @@ export default async function loader(this: LoaderContext, source: string) {
             scannedTables.componentPropsTable || {},
           )) {
             if (!key.startsWith(`${resourcePath}-`)) continue;
-            const entries = scannedTables.componentPropsTable?.[key]?.[varName];
+            const entries =
+              scannedTables.componentPropsTable?.[key]?.[propName];
             if (entries) candidates.push(...entries);
           }
           if (candidates.length > 0) possibilities = candidates;
@@ -1733,6 +1772,8 @@ export default async function loader(this: LoaderContext, source: string) {
 
       for (const arg of args) {
         const expr = arg.expression;
+
+        if (isNoOpStyle(expr)) continue;
 
         if (pushPropPossibilities(expr, [])) continue;
 
@@ -2712,10 +2753,13 @@ export default async function loader(this: LoaderContext, source: string) {
             content: `className={${replacement}}${styleAttr}`,
           });
         } else {
+          const keptClass = existingClassExpr
+            ? `className={${existingClassExpr}}`
+            : '';
           replacements.push({
             start: node.span.start - baseByteOffset,
             end: node.span.end - baseByteOffset,
-            content: styleAttr || '',
+            content: `${keptClass}${styleAttr}`,
           });
         }
       },
