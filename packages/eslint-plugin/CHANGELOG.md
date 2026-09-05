@@ -1,3 +1,9 @@
+## 18.4.1
+
+### Patch Changes
+
+- 683fef4: Bump version to 18.4.1
+
 ## 18.4.0
 
 ### Minor Changes
