@@ -13,7 +13,6 @@ import type {
   VariableDeclarator,
   JSXAttributeOrSpread,
   JSXAttribute,
-  Statement,
   SpreadElement,
   ExportDeclaration,
   JSXOpeningElement,
@@ -23,7 +22,6 @@ import * as path from 'path';
 import {
   applyCssValue,
   genBase36Hash,
-  exceptionCamelCase,
   camelToKebabCase,
   isAtRule,
 } from 'zss-engine';
@@ -46,6 +44,9 @@ import {
   resolveImportPath,
   getLeadingCommentLength,
   optimizer,
+  styleFunctionsOf,
+  isUnitlessProp,
+  resolveDynamicStyle,
   themeHashOf,
   getFileDependencies,
   resolveExport,
@@ -53,7 +54,12 @@ import {
   resolveThemeSelector,
   DEFAULT_STYLE_PROP,
 } from '@plumeria/utils';
-import type { PropertyPolicyOptions } from '@plumeria/utils';
+import type {
+  PropertyPolicyOptions,
+  NamedParam,
+  StyleFunctions,
+  DynamicStyleTables,
+} from '@plumeria/utils';
 import type {
   StyleRecord,
   StyleSource,
@@ -151,106 +157,6 @@ const isStaticArgValue = (node: Expression): boolean =>
   t.isIdentifier(node) ||
   t.isMemberExpression(node);
 
-type NamedParam = { key: string; local: string };
-
-// A dynamic style function may name its parameters by destructuring them, in
-// which case the call passes one object and the key it uses is not necessarily
-// the name the body reads.
-const namedParamsOf = (
-  params: unknown[],
-  defaults: Record<string, Expression>,
-): NamedParam[] | undefined => {
-  if (params.length !== 1) return undefined;
-  const first = params[0] as { type?: string; pat?: { type?: string } };
-  const pattern = (first?.pat ?? first) as {
-    type?: string;
-    properties?: any[];
-  };
-  if (pattern?.type !== 'ObjectPattern') return undefined;
-
-  const named: NamedParam[] = [];
-  for (const prop of pattern.properties ?? []) {
-    if (prop.type === 'AssignmentPatternProperty' && t.isIdentifier(prop.key)) {
-      named.push({ key: prop.key.value, local: prop.key.value });
-      if (prop.value) defaults[prop.key.value] = prop.value as Expression;
-    } else if (
-      prop.type === 'KeyValuePatternProperty' &&
-      t.isIdentifier(prop.key) &&
-      t.isIdentifier(prop.value)
-    ) {
-      named.push({ key: prop.key.value, local: prop.value.value });
-    } else if (
-      prop.type === 'KeyValuePatternProperty' &&
-      t.isIdentifier(prop.key) &&
-      (prop.value as { type?: string })?.type === 'AssignmentPattern' &&
-      t.isIdentifier((prop.value as { left: Expression }).left)
-    ) {
-      const pattern = prop.value as unknown as {
-        left: Identifier;
-        right: Expression;
-      };
-      named.push({ key: String(prop.key.value), local: pattern.left.value });
-      defaults[pattern.left.value] = pattern.right;
-    } else {
-      return undefined;
-    }
-  }
-  return named.length > 0 ? named : undefined;
-};
-
-type StyleFunctions = NonNullable<CreateStyleValue['functions']>;
-
-const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
-  const styleFunctions: StyleFunctions = {};
-
-  objExpr.properties.forEach((prop) => {
-    if (prop.type !== 'KeyValueProperty' || prop.key.type !== 'Identifier')
-      return;
-
-    const func = prop.value;
-    if (
-      func.type !== 'ArrowFunctionExpression' &&
-      func.type !== 'FunctionExpression'
-    )
-      return;
-
-    const defaults: Record<string, Expression> = {};
-    const params: string[] = func.params.map((p: any) => {
-      const pattern =
-        typeof p === 'object' && p !== null && 'pat' in p ? p.pat : p;
-      if (t.isIdentifier(pattern)) return pattern.value;
-      if (
-        pattern?.type === 'AssignmentPattern' &&
-        t.isIdentifier(pattern.left)
-      ) {
-        defaults[pattern.left.value] = pattern.right;
-        return pattern.left.value;
-      }
-      return 'arg';
-    });
-
-    let actualBody: Expression | Statement | undefined = func.body;
-    if (actualBody?.type === 'ParenthesisExpression')
-      actualBody = actualBody.expression;
-    if (actualBody?.type === 'BlockStatement') {
-      const first = actualBody.stmts?.[0];
-      if (first?.type === 'ReturnStatement') actualBody = first.argument;
-      if (actualBody?.type === 'ParenthesisExpression')
-        actualBody = actualBody.expression;
-    }
-
-    if (actualBody && actualBody.type === 'ObjectExpression') {
-      styleFunctions[prop.key.value] = {
-        params,
-        named: namedParamsOf(func.params, defaults),
-        defaults,
-        body: actualBody as ObjectExpression,
-      };
-    }
-  });
-  return styleFunctions;
-};
-
 type DynamicVar = {
   cssVar: string;
   valueExpr: string;
@@ -277,86 +183,6 @@ const foldDynamicVars = (vars: DynamicVar[]): string[] => {
     });
     return `"${cssVar}": ${value}`;
   });
-};
-
-const isUnitlessProp = (prop: string): boolean =>
-  exceptionCamelCase.includes(prop) || prop.startsWith('--');
-
-const collectVarProps = (
-  style: CSSObject,
-  cssVar: string,
-  props: string[],
-): void => {
-  const reference = `var(${cssVar})`;
-  for (const [prop, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.includes(reference))
-      props.push(prop);
-    else if (value !== null && typeof value === 'object')
-      collectVarProps(value as CSSObject, cssVar, props);
-  }
-};
-
-const retargetVar = (
-  style: CSSObject,
-  cssVar: string,
-  next: string,
-  unitless: boolean,
-): void => {
-  const reference = `var(${cssVar})`;
-  for (const [prop, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.includes(reference)) {
-      if (isUnitlessProp(prop) === unitless)
-        (style as Record<string, unknown>)[prop] = value
-          .split(reference)
-          .join(`var(${next})`);
-    } else if (value !== null && typeof value === 'object') {
-      retargetVar(value as CSSObject, cssVar, next, unitless);
-    }
-  }
-};
-
-// The element sets a variable once, so a parameter that lands in declarations
-// with different unit rules needs one variable per rule: `4` and `4px` cannot
-// both be the value.
-const splitVarByUnit = (
-  style: CSSObject,
-  cssVar: string,
-): Array<{ cssVar: string; prop: string }> => {
-  const props: string[] = [];
-  collectVarProps(style, cssVar, props);
-  if (props.length === 0) return [];
-
-  const lead = props[0];
-  const split = props.find(
-    (prop) => isUnitlessProp(prop) !== isUnitlessProp(lead),
-  );
-  if (!split) return [{ cssVar, prop: lead }];
-
-  const splitVar = `${cssVar}-${camelToKebabCase(split).replace(/^-+/, '')}`;
-  retargetVar(style, cssVar, splitVar, isUnitlessProp(split));
-  return [
-    { cssVar, prop: lead },
-    { cssVar: splitVar, prop: split },
-  ];
-};
-
-const applyVarFallback = (
-  style: CSSObject,
-  cssVar: string,
-  literal: string | number,
-): void => {
-  const reference = `var(${cssVar})`;
-  for (const [prop, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.includes(reference)) {
-      (style as Record<string, unknown>)[prop] = value
-        .split(reference)
-        .join(
-          `var(${cssVar}, ${applyCssValue(literal, camelToKebabCase(prop))})`,
-        );
-    } else if (value !== null && typeof value === 'object') {
-      applyVarFallback(value as CSSObject, cssVar, literal);
-    }
-  }
 };
 
 export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
@@ -796,6 +622,17 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       for (const key of Object.keys(createStaticImportMap)) {
         mergedCreateStaticHashTable[key] = createStaticImportMap[key];
       }
+
+      const dynamicStyleTables: DynamicStyleTables = {
+        keyframesHashTable: mergedKeyframesTable,
+        viewTransitionHashTable: mergedViewTransitionTable,
+        createThemeHashTable: mergedCreateThemeHashTable,
+        createThemeObjectTable: scannedTables.createThemeObjectTable,
+        createHashTable: mergedCreateTable,
+        createStaticHashTable: mergedCreateStaticHashTable,
+        createStaticObjectTable: scannedTables.createStaticObjectTable,
+        variantsHashTable: mergedVariantsTable,
+      };
 
       const localCreateStyles: Record<string, CreateStyleValue> = {};
       const localStyleAliases: Record<string, Expression> = {};
@@ -1373,8 +1210,27 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         return null;
       };
 
+      const isStyleFunctionCall = (expr: Expression): boolean => {
+        if (!t.isCallExpression(expr) || !t.isMemberExpression(expr.callee))
+          return false;
+        const callee = expr.callee;
+        if (!t.isIdentifier(callee.object) || !t.isIdentifier(callee.property))
+          return false;
+        return Boolean(
+          localCreateStyles[callee.object.value]?.functions?.[
+            callee.property.value
+          ] ??
+          createFunctionImportMap[callee.object.value]?.[callee.property.value],
+        );
+      };
+
+      // A dynamic call reached through a component prop cannot fold a
+      // written-out argument into the rule: the file that only sees the prop
+      // has no way to read that value, so both sides have to agree that every
+      // parameter travels as a custom property.
       const resolveDynamicCall = (
         expr: Expression,
+        forceRuntime = false,
       ): { style: CSSObject; vars: DynamicVar[] } | null => {
         if (!t.isCallExpression(expr) || !t.isMemberExpression(expr.callee))
           return null;
@@ -1446,7 +1302,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               );
               return;
             }
-            if (isStaticArgValue(source) && argObj[key] !== undefined)
+            if (
+              !forceRuntime &&
+              isStaticArgValue(source) &&
+              argObj[key] !== undefined
+            )
               tempStaticTable[local] = argObj[key];
             else runtime.push({ param: local, source });
           });
@@ -1454,6 +1314,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           callArgs.length === 1 &&
           callArgs[0].expression.type === 'ObjectExpression'
         ) {
+          if (forceRuntime) return null;
           const argObj =
             resolveObjectArg(callArgs[0].expression as ObjectExpression) ?? {};
           func.params.forEach((p) => {
@@ -1467,74 +1328,14 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           });
         }
 
-        const withDefault = Object.entries(func.defaults ?? {}).filter(
-          ([param]) => tempStaticTable[param] === undefined,
-        );
-
-        const cssVars: Record<string, string> = {};
-        const varParams = Array.from(
-          new Set([
-            ...runtime.map(({ param }) => param),
-            ...withDefault.map(([param]) => param),
-          ]),
-        );
-        if (varParams.length > 0) {
-          varParams.forEach((param) => (tempStaticTable[param] = param));
-
-          const probe = objectExpressionToObject(
-            func.body,
-            tempStaticTable,
-            mergedKeyframesTable,
-            mergedViewTransitionTable,
-            mergedCreateThemeHashTable,
-            scannedTables.createThemeObjectTable,
-            mergedCreateTable,
-            mergedCreateStaticHashTable,
-            scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
-          );
-          const hash = genBase36Hash(probe ?? {}, 1, 8);
-
-          varParams.forEach((param) => {
-            const cssVar = `--${hash}-${param}`;
-            tempStaticTable[param] = `var(${cssVar})`;
-            cssVars[param] = cssVar;
-          });
-        }
-
-        const style = objectExpressionToObject(
-          func.body,
+        const resolved = resolveDynamicStyle(
+          func,
+          runtime.map(({ param }) => param),
           tempStaticTable,
-          mergedKeyframesTable,
-          mergedViewTransitionTable,
-          mergedCreateThemeHashTable,
-          scannedTables.createThemeObjectTable,
-          mergedCreateTable,
-          mergedCreateStaticHashTable,
-          scannedTables.createStaticObjectTable,
-          mergedVariantsTable,
+          dynamicStyleTables,
         );
-        if (!style) return null;
-
-        const varGroups = new Map<
-          string,
-          Array<{ cssVar: string; prop: string }>
-        >();
-        varParams.forEach((param) => {
-          const cssVar = cssVars[param];
-          if (cssVar) varGroups.set(param, splitVarByUnit(style, cssVar));
-        });
-
-        withDefault.forEach(([param, expr]) => {
-          const literal =
-            expr.type === 'StringLiteral' || expr.type === 'NumericLiteral'
-              ? expr.value
-              : undefined;
-          if (literal === undefined) return;
-          (varGroups.get(param) ?? []).forEach(({ cssVar }) =>
-            applyVarFallback(style, cssVar, literal),
-          );
-        });
+        if (!resolved) return null;
+        const { style, varGroups } = resolved;
 
         const vars: DynamicVar[] = [];
         runtime.forEach(({ param, source }) => {
@@ -1585,6 +1386,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         isOptimizable: boolean;
         baseStyle: CSSObject;
         dynamicVars: DynamicVar[];
+        propVarSpreads: string[];
       } => {
         args.forEach((arg) => {
           const expr = arg.expression;
@@ -1595,6 +1397,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
         const conditionals: StyleConditional[] = [];
         const dynamicVars: DynamicVar[] = [];
+        const propVarSpreads: string[] = [];
         let groupIdCounter = 0;
         // Every source of this styling prop gets a slot, in the order it was
         // written, so the conflict table can merge them the way the author
@@ -1905,9 +1708,29 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           }
           if (!possibilities || possibilities.length === 0) return false;
 
-          const testLHS = gates.length
-            ? `((${gates.join(' && ')}) ? ${source} : "")`
+          // A style that reached the prop with values beside it arrives as a
+          // pair. The key still picks the rule; the values have to be spread
+          // on the element, which only the styling prop has room for.
+          const carriesVars = possibilities.some((entry) => entry.hasVars);
+          if (carriesVars && !isStyleProp) {
+            throwCompilationError(
+              `Plumeria: "${varName}" carries a dynamic function key, and css.use() returns only a class name. ` +
+                `Apply it to ${styleProp} on the element instead.`,
+              expr as HasSpan,
+            );
+          }
+          const gate = gates.length ? `(${gates.join(' && ')}) && ` : '';
+          if (carriesVars) {
+            const spread = `...(${gate}${source} && ${source}.vars)`;
+            if (!propVarSpreads.includes(spread)) propVarSpreads.push(spread);
+          }
+
+          const token = carriesVars
+            ? `((${source} && ${source}.key) || ${source})`
             : source;
+          const testLHS = gates.length
+            ? `((${gates.join(' && ')}) ? ${token} : "")`
+            : token;
           const currentGroupId = ++groupIdCounter;
           const currentOrder = sourceOrder++;
 
@@ -2177,6 +2000,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             isOptimizable,
             baseStyle,
             dynamicVars,
+            propVarSpreads,
           };
         }
 
@@ -2489,7 +2313,13 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         }
 
         classParts.push(...dynamicClassParts);
-        return { classParts, isOptimizable, baseStyle, dynamicVars };
+        return {
+          classParts,
+          isOptimizable,
+          baseStyle,
+          dynamicVars,
+          propVarSpreads,
+        };
       };
 
       // Pass 2: Confirm reference replacement
@@ -2727,19 +2557,45 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 node.value.type === 'JSXExpressionContainer'
               ) {
                 const expr = node.value.expression;
-                const replaceWithKey = (subNode: {
-                  span: { start: number; end: number };
-                }) => {
+                // The key alone names a rule the child already knows. What
+                // it cannot know is what the caller put in the variables, so
+                // the key travels with them under names no compiled style can
+                // answer to -- a Style array the scan could not read still
+                // reaches the same prop, and must not be read as a carrier.
+                const carrierFor = (subNode: Expression): string | null => {
+                  const vars: DynamicVar[] = [];
+                  let unresolved = false;
+                  traverse(subNode, {
+                    CallExpression({ node: call }: { node: CallExpression }) {
+                      if (!isStyleFunctionCall(call)) return;
+                      const resolved = resolveDynamicCall(call, true);
+                      if (!resolved) {
+                        unresolved = true;
+                        return;
+                      }
+                      vars.push(...resolved.vars);
+                    },
+                  });
+                  if (unresolved) return null;
+                  return `{ ${foldDynamicVars(vars).join(', ')} }`;
+                };
+                const replaceWithKey = (subNode: Expression) => {
                   const entry = list.find(
                     (x) =>
-                      x.spanStart === subNode.span.start &&
+                      x.spanStart === (subNode as HasSpan).span.start &&
                       x.filePath === resourcePath,
                   );
                   if (entry) {
+                    let content = JSON.stringify(entry.key);
+                    if (entry.hasVars) {
+                      const carrier = carrierFor(subNode);
+                      if (!carrier) return false;
+                      content = `{ key: ${content}, vars: ${carrier} }`;
+                    }
                     replacements.push({
-                      start: subNode.span.start - baseByteOffset,
-                      end: subNode.span.end - baseByteOffset,
-                      content: JSON.stringify(entry.key),
+                      start: (subNode as HasSpan).span.start - baseByteOffset,
+                      end: (subNode as HasSpan).span.end - baseByteOffset,
+                      content,
                     });
                     // Emit the prop style's CSS from the parent too, so the
                     // rules are live as soon as the parent recompiles even if
@@ -2756,6 +2612,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                     }
                   },
                   ArrayExpression({ node: subNode }) {
+                    if (replaceWithKey(subNode)) {
+                      excludeSubtreeSpans(subNode);
+                    }
+                  },
+                  CallExpression({ node: subNode }) {
                     if (replaceWithKey(subNode)) {
                       excludeSubtreeSpans(subNode);
                     }
@@ -2852,11 +2713,19 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             }
           }
 
-          const { classParts, isOptimizable, baseStyle, dynamicVars } =
-            buildClassParts(args, dynamicClassParts, existingClassExpr, true);
+          const {
+            classParts,
+            isOptimizable,
+            baseStyle,
+            dynamicVars,
+            propVarSpreads,
+          } = buildClassParts(args, dynamicClassParts, existingClassExpr, true);
 
-          const dynamicStyleParts = foldDynamicVars(dynamicVars);
-          const styleParts = [...existingStyleParts, ...dynamicStyleParts];
+          const styleParts = [
+            ...existingStyleParts,
+            ...foldDynamicVars(dynamicVars),
+            ...propVarSpreads,
+          ];
           const styleAttr =
             styleParts.length > 0 || existingStyleExpr
               ? ` style={{ ${[existingStyleExpr, ...styleParts].filter(Boolean).join(', ')} }}`
