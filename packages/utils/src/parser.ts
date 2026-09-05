@@ -57,6 +57,8 @@ import { camelToKebabCase, genBase36Hash, transpile } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 import { createViewTransition } from './viewTransition';
 import { getStyleRecords } from './create';
+import { styleFunctionsOf, resolveDynamicStyle } from './dynamicKey';
+import type { DynamicStyleTables } from './dynamicKey';
 import type { StyleRecord } from './create';
 import { resolveImportPath } from './resolver';
 
@@ -2182,6 +2184,8 @@ export function scanAll(): Tables {
         localImports,
       } = entry;
 
+      const localCreateFunctionTable: Record<string, ObjectExpression> = {};
+
       for (const localName of Object.keys(localImports)) {
         const { actualPath, importedName } = localImports[localName];
         let resolvedKey = `${actualPath}-${importedName}`;
@@ -2193,28 +2197,144 @@ export function scanAll(): Tables {
         if (hash) {
           localCreateHashTable[localName] = hash;
         }
+        const fnObj = localTables.createFunctionTable[resolvedKey];
+        if (fnObj) {
+          localCreateFunctionTable[localName] = fnObj;
+        }
       }
+
+      const dynamicStyleTables: DynamicStyleTables = {
+        keyframesHashTable: localKeyframesHashTable,
+        viewTransitionHashTable: localViewTransitionHashTable,
+        createThemeHashTable: localCreateThemeHashTable,
+        createThemeObjectTable: localTables.createThemeObjectTable,
+        createHashTable: localCreateHashTable,
+        createStaticHashTable: localCreateStaticHashTable,
+        createStaticObjectTable: localTables.createStaticObjectTable,
+        variantsHashTable: localVariantsHashTable,
+      };
+
+      const dynamicStaticTable: StaticTable = {
+        ...localTables.staticTable,
+        ...localStaticTable,
+      };
+
+      // The class a dynamic key resolves to has to be known here, because the
+      // component that receives the style through a prop only ever sees the
+      // key this scan hands it. The values stay behind in the caller and reach
+      // the element as custom properties, so no argument is read.
+      const resolveDynamicCallInScan = (
+        expr: CallExpression,
+      ): { style: CSSObject; hasVars: boolean } | null => {
+        const callee = expr.callee;
+        if (
+          callee.type !== 'MemberExpression' ||
+          callee.object.type !== 'Identifier' ||
+          callee.property.type !== 'Identifier'
+        )
+          return null;
+
+        const fnObj =
+          localCreateFunctionTable[callee.object.value] ??
+          localTables.createFunctionTable[`${filePath}-${callee.object.value}`];
+        if (!fnObj) return null;
+
+        const func = styleFunctionsOf(fnObj)[callee.property.value];
+        if (!func) return null;
+
+        const callArgs = expr.arguments;
+        if (callArgs.some((a) => a.spread)) return null;
+
+        const runtime: string[] = [];
+        if (func.named) {
+          const argExpr = callArgs[0]?.expression;
+          if (
+            callArgs.length > 1 ||
+            (argExpr && argExpr.type !== 'ObjectExpression')
+          )
+            return null;
+          const given = new Set<string>();
+          ((argExpr as ObjectExpression)?.properties ?? []).forEach((prop) => {
+            if (prop.type === 'Identifier') given.add(prop.value);
+            else if (
+              prop.type === 'KeyValueProperty' &&
+              (t.isIdentifier(prop.key) || t.isStringLiteral(prop.key))
+            )
+              given.add(String(prop.key.value));
+          });
+          for (const { key, local } of func.named) {
+            if (given.has(key)) runtime.push(local);
+            else if (!func.defaults?.[local]) return null;
+          }
+        } else if (
+          callArgs.length === 1 &&
+          callArgs[0].expression.type === 'ObjectExpression'
+        ) {
+          return null;
+        } else {
+          callArgs.forEach((_, i) => {
+            const param = func.params[i];
+            if (param) runtime.push(param);
+          });
+        }
+
+        const resolved = resolveDynamicStyle(
+          func,
+          runtime,
+          dynamicStaticTable,
+          dynamicStyleTables,
+        );
+        if (!resolved) return null;
+
+        const hasVars = runtime.some(
+          (param) => (resolved.varGroups.get(param) ?? []).length > 0,
+        );
+        return { style: resolved.style, hasVars };
+      };
 
       const resolveCallStylePropInScan = (
         expr: Expression,
-      ): { classString: string; styleObj: CSSObject } | null => {
+      ): {
+        classString: string;
+        styleObj: CSSObject;
+        hasVars?: boolean;
+      } | null => {
         if (expr.type === 'ArrayExpression') {
           let mergedStyle: CSSObject = {};
           const classList: string[] = [];
           let valid = false;
+          let hasVars = false;
           for (const el of expr.elements) {
             if (el && el.expression) {
               const res = resolveCallStylePropInScan(el.expression);
-              if (res) {
-                mergedStyle = deepMerge(mergedStyle, res.styleObj);
-                if (res.classString) classList.push(res.classString);
-                valid = true;
-              }
+              if (!res) continue;
+              mergedStyle = deepMerge(mergedStyle, res.styleObj);
+              if (res.classString) classList.push(res.classString);
+              if (res.hasVars) hasVars = true;
+              valid = true;
             }
           }
           return valid
-            ? { classString: classList.join(' '), styleObj: mergedStyle }
+            ? {
+                classString: classList.join(' '),
+                styleObj: mergedStyle,
+                hasVars,
+              }
             : null;
+        }
+
+        if (expr.type === 'CallExpression') {
+          const resolved = resolveDynamicCallInScan(expr);
+          if (!resolved) return null;
+          const atomMap: Record<string, string> = {};
+          getStyleRecords(resolved.style as CSSProperties).forEach(
+            (record) => (atomMap[record.key] = record.hash),
+          );
+          return {
+            classString: Object.values(atomMap).join(' '),
+            styleObj: resolved.style,
+            hasVars: resolved.hasVars,
+          };
         }
 
         if (expr.type === 'ConditionalExpression') {
@@ -2307,6 +2427,7 @@ export function scanAll(): Tables {
             spanStart: (node as HasSpan).span.start,
             filePath,
           };
+          if (resolved.hasVars) entry.hasVars = true;
 
           list.push(entry);
         }
