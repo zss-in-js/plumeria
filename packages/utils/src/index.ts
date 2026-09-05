@@ -26,6 +26,20 @@ export {
 } from './parser';
 export type { StyleRecord } from './create';
 export { getStyleRecords } from './create';
+export type {
+  NamedParam,
+  StyleFunction,
+  StyleFunctions,
+  DynamicStyleTables,
+  DynamicStyleResult,
+} from './dynamicKey';
+export {
+  styleFunctionsOf,
+  isUnitlessProp,
+  splitVarByUnit,
+  applyVarFallback,
+  resolveDynamicStyle,
+} from './dynamicKey';
 export type { Specificity } from 'zss-engine';
 export { getSpecificity, getPseudoElement } from 'zss-engine';
 export type { StyleSource } from './escalation';
