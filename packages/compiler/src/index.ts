@@ -558,7 +558,6 @@ export function compileCSS(options: CompilerOptions) {
     // Common processing for use() and styleProp={}
     const extractAndProcessConditionals = (
       args: Array<{ expression: Expression }>,
-      isStyleProp: boolean = false,
     ) => {
       args.forEach((arg) => {
         if (
@@ -895,48 +894,7 @@ export function compileCSS(options: CompilerOptions) {
         return false;
       };
 
-      const checkFunctionKey = (node: Expression): void => {
-        if (isStyleProp) return;
-        if (
-          t.isCallExpression(node) &&
-          t.isMemberExpression(node.callee) &&
-          t.isIdentifier(node.callee.object) &&
-          t.isIdentifier(node.callee.property)
-        ) {
-          const varName = node.callee.object.value;
-          const propKey = node.callee.property.value;
-          const styleInfo = ctx.localCreateStyles[varName];
-          const atomMap = styleInfo?.obj[propKey];
-          if (
-            typeof atomMap === 'object' &&
-            atomMap !== null &&
-            '__cssVars__' in atomMap
-          ) {
-            throw new Error(
-              `[plumeria] css.use(${getSource(node)}) cannot handle dynamic style functions. Use ${styleProp} instead.\n`,
-            );
-          }
-        }
-        if (node.type === 'ConditionalExpression') {
-          checkFunctionKey(node.consequent);
-          checkFunctionKey(node.alternate);
-        } else if (
-          node.type === 'BinaryExpression' &&
-          ['&&', '||', '??'].includes(node.operator)
-        ) {
-          checkFunctionKey(node.left);
-          checkFunctionKey(node.right);
-        } else if (node.type === 'ParenthesisExpression') {
-          checkFunctionKey(node.expression);
-        } else if (node.type === 'ArrayExpression') {
-          for (const el of node.elements) {
-            if (el && el.expression) checkFunctionKey(el.expression);
-          }
-        }
-      };
-
       for (const arg of args) {
-        checkFunctionKey(arg.expression);
         const expr = arg.expression;
 
         if (
@@ -1039,7 +997,7 @@ export function compileCSS(options: CompilerOptions) {
         const args = node.arguments;
 
         if (propName === 'use') {
-          extractAndProcessConditionals(args, false);
+          extractAndProcessConditionals(args);
         } else if (
           propName === 'keyframes' &&
           args.length > 0 &&
@@ -1350,7 +1308,7 @@ export function compileCSS(options: CompilerOptions) {
                 .map((el: ExprOrSpread) => ({ expression: el.expression }))
             : [{ expression: expr }];
 
-        extractAndProcessConditionals(args, true);
+        extractAndProcessConditionals(args);
       },
     });
     return extractedSheets;
