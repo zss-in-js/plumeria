@@ -15,6 +15,7 @@ export {
   traverse,
   t,
   getRootIdentifier,
+  unwrapExpression,
   extractOndemandStyles,
   deepMerge,
   scanAll,
