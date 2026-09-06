@@ -60,7 +60,29 @@ import { getStyleRecords } from './create';
 import { styleFunctionsOf, resolveDynamicStyle } from './dynamicKey';
 import type { DynamicStyleTables } from './dynamicKey';
 import type { StyleRecord } from './create';
-import { resolveImportPath } from './resolver';
+import { resolveImportPath, resetImportResolutionCache } from './resolver';
+
+export function unwrapExpression(node: any): any {
+  while (
+    node &&
+    [
+      'ParenthesisExpression',
+      'TsConstAssertion',
+      'TsAsExpression',
+      'TsSatisfiesExpression',
+      'TsNonNullExpression',
+      'TsTypeAssertion',
+    ].includes(node.type)
+  )
+    node = node.expression;
+  if (node?.type === 'OptionalChainingExpression')
+    return unwrapExpression(node.base);
+  if (node?.type === 'MemberExpression') {
+    const object = unwrapExpression(node.object);
+    if (object !== node.object) return { ...node, object };
+  }
+  return node;
+}
 
 const toIdent = (value: string): string => value.replace(/[^A-Za-z0-9-]/g, '');
 
@@ -70,6 +92,7 @@ const getMarkerVar = (id: string, pseudo: string): string => {
 };
 
 export const getRootIdentifier = (node: Expression): string | null => {
+  node = unwrapExpression(node);
   if (t.isIdentifier(node)) {
     return node.value;
   }
@@ -230,14 +253,6 @@ export function traverse(
   walk(node);
 }
 
-const PROJECT_ROOT = process.cwd().split('node_modules')[0];
-const PATTERN_PATH = path.join(PROJECT_ROOT, '**/*.{js,jsx,ts,tsx}');
-const GLOB_OPTIONS = {
-  exclude: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.next/**'],
-  cwd: PROJECT_ROOT,
-  sort: true,
-};
-
 /*
 These internal functions are executed through the loader function, so they are already comprehensively covered by the current tests.
 Implementation details: These are implementation details that are not exposed, and you end up testing the implementation instead of the behavior.
@@ -256,7 +271,7 @@ export function objectExpressionToObject(
   variantsHashTable: VariantsHashTable,
   resolveVariable?: (name: string) => any,
 ): CSSObject {
-  const obj: CSSObject = {};
+  const obj: CSSObject = Object.create(null);
 
   node.properties.forEach((prop) => {
     if (prop.type === 'SpreadElement') {
@@ -272,7 +287,7 @@ export function objectExpressionToObject(
         createStaticObjectTable,
       );
       if (typeof spreadVal === 'object' && spreadVal !== null) {
-        Object.assign(obj, deepMerge(obj, spreadVal));
+        Object.assign(obj, spreadVal);
       }
       return;
     }
@@ -307,17 +322,21 @@ export function objectExpressionToObject(
     );
     if (!key) return;
 
-    const val = prop.value;
+    const val = unwrapExpression(prop.value);
 
     if (t.isIdentifier(val) || t.isMemberExpression(val)) {
       if (resolveVariable && t.isMemberExpression(val)) {
-        if (t.isIdentifier(val.object) && t.isIdentifier(val.property)) {
-          const resolved = resolveVariable(val.object.value);
-          const prop = val.property.value;
-          if (resolved && resolved[prop]) {
-            obj[key] = resolved[prop];
-            return;
-          }
+        const root = getRootIdentifier(val);
+        const resolved = root ? resolveVariable(root) : undefined;
+        if (resolved !== undefined && root) {
+          const member = resolveStaticTableMemberExpression(val, {
+            ...staticTable,
+            [root]: resolved,
+          });
+          if (member === undefined)
+            throw new Error(`[plumeria] Unknown style member on ${root}.`);
+          obj[key] = member;
+          return;
         }
       }
 
@@ -381,7 +400,16 @@ export function objectExpressionToObject(
     ) {
       obj[key] = val.value;
     } else if (t.isUnaryExpression(val)) {
-      obj[key] = evaluateUnaryExpression(val);
+      obj[key] = evaluateExpression(
+        val,
+        staticTable,
+        keyframesHashTable,
+        viewTransitionHashTable,
+        createThemeHashTable,
+        createThemeObjectTable,
+        createStaticHashTable,
+        createStaticObjectTable,
+      ) as CSSValue;
     } else if (t.isObjectExpression(val)) {
       obj[key] = objectExpressionToObject(
         val,
@@ -463,7 +491,7 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
     if (!decls.has(name) || visiting.has(name)) return undefined;
 
     visiting.add(name);
-    const init = decls.get(name);
+    const init = unwrapExpression(decls.get(name));
     let result: any;
     try {
       if (
@@ -582,6 +610,10 @@ function inlineOuterScope(
 ): ObjectExpression {
   const rewriteProperty = (prop: any, params: Set<string>): any => {
     if (prop.type === 'KeyValueProperty') {
+      if (prop.key?.type === 'Computed') {
+        const expression = rewriteExpression(prop.key.expression, params);
+        prop = { ...prop, key: { ...prop.key, expression } };
+      }
       const val = prop.value;
       if (val.type === 'ObjectExpression') {
         const rewritten = rewriteObject(val, params);
@@ -706,10 +738,24 @@ function inlineOuterScope(
       return prop;
 
     const func = prop.value;
-    const body = rewriteBody(func.body, paramNames(func));
-    if (body === func.body) return prop;
+    const names = paramNames(func);
+    const rewriteParam = (p: any): any => {
+      if (!p || typeof p !== 'object') return p;
+      if (p.type === 'AssignmentPattern')
+        return { ...p, right: rewriteExpression(p.right, names) };
+      if (p.type === 'AssignmentPatternProperty' && p.value)
+        return { ...p, value: rewriteExpression(p.value, names) };
+      if (p.pat) return { ...p, pat: rewriteParam(p.pat) };
+      if (p.properties)
+        return { ...p, properties: p.properties.map(rewriteParam) };
+      if (p.type === 'KeyValuePatternProperty')
+        return { ...p, value: rewriteParam(p.value) };
+      return p;
+    };
+    const params = func.params.map(rewriteParam);
+    const body = rewriteBody(func.body, names);
     changed = true;
-    return { ...prop, value: { ...func, body } };
+    return { ...prop, value: { ...func, body, params } };
   });
 
   return changed ? { ...objExpression, properties } : objExpression;
@@ -863,6 +909,10 @@ function evaluateTemplateLiteral(
         createStaticHashTable,
         createStaticObjectTable,
       );
+      if (evaluatedExpr === null || typeof evaluatedExpr === 'object')
+        throw new Error(
+          '[plumeria] Template value cannot be resolved to a primitive.',
+        );
       result += String(evaluatedExpr);
     }
   }
@@ -880,7 +930,7 @@ function evaluateBinaryExpression(
   createThemeObjectTable: CreateThemeObjectTable,
   createStaticHashTable: CreateStaticHashTable,
   createStaticObjectTable: CreateStaticObjectTable,
-): string | number {
+): any {
   const left = evaluateExpression(
     node.left as Expression,
     staticTable,
@@ -891,6 +941,9 @@ function evaluateBinaryExpression(
     createStaticHashTable,
     createStaticObjectTable,
   );
+  if (node.operator === '&&' && !left) return left;
+  if (node.operator === '||' && left) return left;
+  if (node.operator === '??' && left !== null) return left;
   const right = evaluateExpression(
     node.right as Expression,
     staticTable,
@@ -902,6 +955,7 @@ function evaluateBinaryExpression(
     createStaticObjectTable,
   );
 
+  if (['&&', '||', '??'].includes(node.operator)) return right;
   if (typeof left === 'number' && typeof right === 'number') {
     if (node.operator === '+') {
       return left + right;
@@ -941,8 +995,27 @@ function evaluateBinaryExpression(
     }
   }
 
-  if (node.operator === '+') {
+  if (
+    node.operator === '+' &&
+    left !== null &&
+    right !== null &&
+    typeof left !== 'object' &&
+    typeof right !== 'object'
+  ) {
     return String(left) + String(right);
+  }
+
+  if (
+    ['+', '-', '*', '/', '%', '**', '&', '<<', '>>', '>>>', '^', '|'].includes(
+      node.operator,
+    )
+  ) {
+    const expected = node.operator === '+' ? 'non-null primitive' : 'numeric';
+    const leftType = left === null ? 'null' : typeof left;
+    const rightType = right === null ? 'null' : typeof right;
+    throw new Error(
+      `[plumeria] Binary operator ${node.operator} requires ${expected} operands; received ${leftType} and ${rightType}.`,
+    );
   }
 
   throw new Error(`[plumeria] Unsupported binary operator: ${node.operator}`);
@@ -1042,6 +1115,7 @@ function evaluateExpression(
   createStaticHashTable: CreateStaticHashTable,
   createStaticObjectTable: CreateStaticObjectTable,
 ): string | number | boolean | null | CSSObject {
+  node = unwrapExpression(node);
   if (t.isCallExpression(node)) {
     return evaluateCallExpression(node, staticTable);
   }
@@ -1084,7 +1158,7 @@ function evaluateExpression(
       }
     }
 
-    return '';
+    throw new Error(`[plumeria] Cannot resolve static value: ${node.value}`);
   }
 
   if (t.isMemberExpression(node)) {
@@ -1110,7 +1184,7 @@ function evaluateExpression(
       return resolvedStatic;
     }
 
-    return '';
+    throw new Error('[plumeria] Cannot resolve static member expression.');
   }
 
   if (t.isBinaryExpression(node)) {
@@ -1140,7 +1214,25 @@ function evaluateExpression(
   }
 
   if (t.isUnaryExpression(node)) {
-    return evaluateUnaryExpression(node);
+    const value = evaluateExpression(
+      node.argument,
+      staticTable,
+      keyframesHashTable,
+      viewTransitionHashTable,
+      createThemeHashTable,
+      createThemeObjectTable,
+      createStaticHashTable,
+      createStaticObjectTable,
+    );
+    if (node.operator === '!') return !value;
+    if (typeof value === 'number') {
+      if (node.operator === '-') return -value;
+      if (node.operator === '+') return value;
+      if (node.operator === '~') return ~value;
+    }
+    throw new Error(
+      `[plumeria] Unsupported unary operand for ${node.operator}`,
+    );
   }
 
   if (t.isParenthesisExpression(node)) {
@@ -1157,26 +1249,6 @@ function evaluateExpression(
   }
 
   throw new Error(`[plumeria] Unsupported expression type: ${node.type}`);
-}
-
-/* istanbul ignore next */
-function evaluateUnaryExpression(node: UnaryExpression): number | string {
-  const arg = node.argument;
-  switch (node.operator) {
-    case '-':
-      if (t.isNumericLiteral(arg)) return -arg.value;
-      break;
-    case '+':
-      if (t.isNumericLiteral(arg)) return +arg.value;
-      break;
-    default:
-      throw new Error(
-        `[plumeria] Unsupported unary operator: ${node.operator}`,
-      );
-  }
-  throw new Error(
-    `[plumeria] Unsupported UnaryExpression argument type: ${arg.type}`,
-  );
 }
 
 function resolveKeyframesTableMemberExpression(
@@ -1214,11 +1286,6 @@ function resolveCreateTableMemberExpression(
   if (t.isIdentifier(node)) {
     return createHashTable[node.value];
   }
-  if (t.isMemberExpression(node)) {
-    if (t.isIdentifier(node.object)) {
-      return createHashTable[node.object.value];
-    }
-  }
 }
 
 function resolveVariantsTableMemberExpression(
@@ -1242,15 +1309,30 @@ function resolveStaticTableMemberExpression(
   const keys: string[] = [];
   let current: Expression = node;
   while (t.isMemberExpression(current)) {
-    if (!t.isIdentifier(current.property)) return undefined;
-    keys.unshift(current.property.value);
-    current = current.object;
+    const property = current.property;
+    const key = t.isIdentifier(property)
+      ? property.value
+      : property.type === 'Computed'
+        ? unwrapExpression(property.expression)
+        : undefined;
+    const value =
+      typeof key === 'string'
+        ? key
+        : t.isStringLiteral(key) || t.isNumericLiteral(key)
+          ? String(key.value)
+          : t.isIdentifier(key)
+            ? staticTable[key.value]
+            : undefined;
+    if (typeof value !== 'string' && typeof value !== 'number')
+      return undefined;
+    keys.unshift(String(value));
+    current = unwrapExpression(current.object);
   }
   if (!t.isIdentifier(current)) return undefined;
 
   let value = staticTable[current.value];
   for (const key of keys) {
-    if (!value || typeof value !== 'object' || !(key in value))
+    if (!value || typeof value !== 'object' || !Object.hasOwn(value, key))
       return undefined;
     value = (value as Record<string, CSSValue>)[key];
   }
@@ -1358,8 +1440,9 @@ const DIAGNOSTIC_PREFIX = '[plumeria] ';
 
 function recordFileError(filePath: string, e: unknown): void {
   const message = e instanceof Error ? e.message : String(e);
-  if (message.startsWith(DIAGNOSTIC_PREFIX))
-    fileErrors[filePath] = message.slice(DIAGNOSTIC_PREFIX.length);
+  fileErrors[filePath] = message.startsWith(DIAGNOSTIC_PREFIX)
+    ? message.slice(DIAGNOSTIC_PREFIX.length)
+    : message;
 }
 
 export function resolveFileError(
@@ -1378,6 +1461,7 @@ export function resolveFileError(
 // Cache for incremental scanning
 interface CachedData {
   mtimeMs: number;
+  exportsMtimeMs?: number;
   dependencies?: string[];
   exports?: {
     localExports: string[];
@@ -1454,6 +1538,7 @@ const globalAgregatedTables: Tables = {
   componentPropsTable: {},
 };
 let hasComputedOnce = false;
+let resolutionConfigStamp: string | undefined;
 
 // Content-hash-keyed "Object" tables (keyframesObjectTable, createObjectTable,
 // etc.) have keys derived purely from style content, not from the file that
@@ -1462,12 +1547,41 @@ let hasComputedOnce = false;
 // owning file is invalidated/deleted, without disturbing an entry another
 // live file still relies on.
 const objectTableOwners = new Map<string, Set<string>>();
+const fileObjectContributions = new Map<string, Map<string, Set<string>>>();
+function snapshotTables(): Tables {
+  return Object.fromEntries(
+    Object.entries(globalAgregatedTables).map(([key, value]) => [
+      key,
+      { ...value },
+    ]),
+  ) as Tables;
+}
+function releaseFileObjects(filePath: string) {
+  const contributions = fileObjectContributions.get(filePath);
+  if (!contributions) return;
+  for (const [tableName, hashes] of contributions) {
+    for (const hash of hashes)
+      releaseObjectOwner(
+        tableName,
+        hash,
+        filePath,
+        (globalAgregatedTables as any)[tableName],
+      );
+  }
+  fileObjectContributions.delete(filePath);
+}
 
 function registerObjectOwner(
   tableName: string,
   hash: string,
   filePath: string,
 ) {
+  let contributions = fileObjectContributions.get(filePath);
+  if (!contributions)
+    fileObjectContributions.set(filePath, (contributions = new Map()));
+  let hashes = contributions.get(tableName);
+  if (!hashes) contributions.set(tableName, (hashes = new Set()));
+  hashes.add(hash);
   const key = `${tableName}:${hash}`;
   let owners = objectTableOwners.get(key);
   if (!owners) {
@@ -1498,7 +1612,18 @@ function releaseObjectOwner(
 // and BEFORE that entry is overwritten or deleted, since the composite keys
 // to remove are derived from it.
 function stripFileContributions(filePath: string, cached: CachedData) {
-  if (!cached.hasCssUsage) return;
+  releaseFileObjects(filePath);
+  for (const [name, table] of Object.entries(globalAgregatedTables)) {
+    if (
+      name.endsWith('ObjectTable') ||
+      name === 'createAtomicMapTable' ||
+      name === 'createThemeSelectorTable' ||
+      name === 'componentPropsTable'
+    )
+      continue;
+    for (const key of Object.keys(table))
+      if (key.startsWith(`${filePath}-`)) delete (table as any)[key];
+  }
 
   const localTables = globalAgregatedTables;
   for (const key of Object.keys(cached.staticTable)) {
@@ -1613,12 +1738,44 @@ function stripFileContributions(filePath: string, cached: CachedData) {
 
 export function scanAll(): Tables {
   if (hasComputedOnce && process.env.NODE_ENV === 'production') {
-    return globalAgregatedTables;
+    return snapshotTables();
   }
 
   const localTables = globalAgregatedTables;
 
-  const files = rs.globSync(PATTERN_PATH, GLOB_OPTIONS);
+  const configPath = path.join(process.cwd(), 'tsconfig.json');
+  let configStamp = configPath;
+  try {
+    configStamp += `:${fs.statSync(configPath).mtimeMs}`;
+  } catch {
+    /* No config. */
+  }
+  const resolutionChanged =
+    resolutionConfigStamp !== undefined &&
+    resolutionConfigStamp !== configStamp;
+  if (resolutionChanged) resetImportResolutionCache();
+  resolutionConfigStamp = configStamp;
+
+  const cwd = process.cwd();
+  const segments = cwd.split(path.sep);
+  const dependencyDirectory = segments.indexOf('node_modules');
+  const root =
+    dependencyDirectory < 0
+      ? cwd
+      : segments.slice(0, dependencyDirectory).join(path.sep) ||
+        path.parse(cwd).root;
+  const files = rs
+    .globSync(path.join(root, '**/*.{js,jsx,ts,tsx}'), {
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/.next/**',
+      ],
+      cwd: root,
+      sort: true,
+    })
+    .sort();
   const currentFiles = new Set(files);
 
   // Detect deleted files
@@ -1636,13 +1793,30 @@ export function scanAll(): Tables {
     try {
       const stats = fs.statSync(filePath);
       const cached = fileCache[filePath];
-      if (!cached || cached.mtimeMs !== stats.mtimeMs) {
+      if (resolutionChanged || !cached || cached.mtimeMs !== stats.mtimeMs) {
         invalidated.add(filePath);
         queue.push(filePath);
       }
     } catch (e) {
       invalidated.add(filePath);
       queue.push(filePath);
+    }
+  }
+  for (const dependency of dependentsMap.keys()) {
+    if (currentFiles.has(dependency)) continue;
+    const cached = fileCache[dependency];
+    if (!cached) continue;
+    let changed: boolean;
+    try {
+      changed =
+        (cached.exportsMtimeMs ?? cached.mtimeMs) !==
+        fs.statSync(dependency).mtimeMs;
+    } catch {
+      changed = true;
+    }
+    if (changed) {
+      invalidated.add(dependency);
+      queue.push(dependency);
     }
   }
   for (const fp of deletedFiles) {
@@ -1665,7 +1839,7 @@ export function scanAll(): Tables {
 
   // Return the most recent aggregated data immediately if there are no changes
   if (invalidated.size === 0 && hasComputedOnce) {
-    return localTables;
+    return snapshotTables();
   }
 
   // Strip deleted files' stale contributions, then clean up cache/dependency edges
@@ -1730,7 +1904,7 @@ export function scanAll(): Tables {
       });
       parsedFiles.push({ filePath, ast, mtimeMs: stats.mtimeMs });
     } catch (e) {
-      // ignore
+      recordFileError(filePath, e);
     }
   }
 
@@ -1757,6 +1931,28 @@ export function scanAll(): Tables {
     localImports: Record<string, { actualPath: string; importedName: string }>;
   };
   const jsxPhaseQueue: JsxPhaseEntry[] = [];
+
+  for (const file of parsedFiles) {
+    try {
+      extractAndCacheExports(file.filePath, file.ast, file.mtimeMs);
+    } catch (error) {
+      recordFileError(file.filePath, error);
+    }
+  }
+  const byPath = new Map(parsedFiles.map((file) => [file.filePath, file]));
+  const ordered: typeof parsedFiles = [];
+  const visitedFiles = new Set<string>();
+  const visitFile = (file: (typeof parsedFiles)[number]) => {
+    if (visitedFiles.has(file.filePath)) return;
+    visitedFiles.add(file.filePath);
+    for (const dependency of getFileDependencies(file.filePath)) {
+      const imported = byPath.get(dependency);
+      if (imported) visitFile(imported);
+    }
+    ordered.push(file);
+  };
+  parsedFiles.forEach(visitFile);
+  parsedFiles.splice(0, parsedFiles.length, ...ordered);
 
   // 2 pass scanning
   for (let passNumber = 1; passNumber <= 2; passNumber++) {
@@ -1878,6 +2074,8 @@ export function scanAll(): Tables {
                     if (localTables.createHashTable[uniqueKey]) {
                       const hash = localTables.createHashTable[uniqueKey];
                       localCreateHashTable[localName] = hash;
+                      localCreateObjectTable[hash] =
+                        localTables.createObjectTable[hash];
                     }
                   }
                 });
@@ -1900,6 +2098,37 @@ export function scanAll(): Tables {
           }
         }
 
+        const initializers = new Map<string, Expression>();
+        for (const statement of ast.body) {
+          const declaration =
+            statement.type === 'ExportDeclaration'
+              ? statement.declaration
+              : statement;
+          if (
+            t.isVariableDeclaration(declaration) &&
+            declaration.kind === 'const'
+          ) {
+            for (const variable of declaration.declarations)
+              if (t.isIdentifier(variable.id) && variable.init)
+                initializers.set(variable.id.value, variable.init);
+          }
+        }
+        const objectArgument = (
+          expression: Expression,
+          visiting = new Set<string>(),
+        ): Expression => {
+          const value = unwrapExpression(expression);
+          if (
+            t.isIdentifier(value) &&
+            initializers.has(value.value) &&
+            !visiting.has(value.value)
+          ) {
+            visiting.add(value.value);
+            return objectArgument(initializers.get(value.value)!, visiting);
+          }
+          return value;
+        };
+
         for (const node of ast.body) {
           let declarations: VariableDeclarator[] = [];
 
@@ -1913,6 +2142,10 @@ export function scanAll(): Tables {
           }
 
           for (const decl of declarations) {
+            if (decl.init) decl.init = unwrapExpression(decl.init);
+            if (t.isCallExpression(decl.init))
+              for (const arg of decl.init.arguments)
+                arg.expression = unwrapExpression(arg.expression);
             if (
               t.isVariableDeclarator(decl) &&
               t.isIdentifier(decl.id) &&
@@ -1941,6 +2174,21 @@ export function scanAll(): Tables {
                 }
               }
 
+              if (
+                method &&
+                [
+                  'create',
+                  'createTheme',
+                  'createStatic',
+                  'keyframes',
+                  'viewTransition',
+                ].includes(method)
+              ) {
+                const argument =
+                  decl.init.arguments[method === 'createTheme' ? 1 : 0];
+                if (argument)
+                  argument.expression = objectArgument(argument.expression);
+              }
               const isCreateTheme = method === 'createTheme';
               if (
                 method &&
@@ -2040,6 +2288,10 @@ export function scanAll(): Tables {
                     localCreateStaticHashTable,
                     localCreateStaticObjectTable,
                   );
+                  if (!selector)
+                    throw new Error(
+                      '[plumeria] createTheme requires a statically resolvable non-empty selector.',
+                    );
                   const hash = themeHashOf(selector, obj);
                   localTables.createThemeObjectTable[hash] = obj;
                   localCreateThemeObjectTable[hash] = obj;
@@ -2215,7 +2467,7 @@ export function scanAll(): Tables {
       };
 
       const dynamicStaticTable: StaticTable = {
-        ...localTables.staticTable,
+        ...collectLocalConsts(ast),
         ...localStaticTable,
       };
 
@@ -2299,6 +2551,7 @@ export function scanAll(): Tables {
         styleObj: CSSObject;
         hasVars?: boolean;
       } | null => {
+        expr = unwrapExpression(expr);
         if (expr.type === 'ArrayExpression') {
           let mergedStyle: CSSObject = {};
           const classList: string[] = [];
@@ -2384,6 +2637,107 @@ export function scanAll(): Tables {
         return null;
       };
 
+      type PropAlternative = {
+        styleObj: CSSObject;
+        conditions: Array<{ test: Expression; truthy: boolean }>;
+        dynamicCalls: Expression[];
+      };
+      const containsStyleReference = (expr: Expression): boolean => {
+        let found = false;
+        traverse(expr, {
+          Identifier({ node }) {
+            if (
+              localCreateHashTable[node.value] ||
+              localTables.createHashTable[`${filePath}-${node.value}`]
+            )
+              found = true;
+          },
+        });
+        return found;
+      };
+      const propAlternatives = (expr: Expression): PropAlternative[] | null => {
+        expr = unwrapExpression(expr);
+        const empty: PropAlternative = {
+          styleObj: {},
+          conditions: [],
+          dynamicCalls: [],
+        };
+        if (
+          expr.type === 'NullLiteral' ||
+          (expr.type === 'BooleanLiteral' && !expr.value) ||
+          (expr.type === 'Identifier' && expr.value === 'undefined')
+        )
+          return [empty];
+        if (expr.type === 'ConditionalExpression') {
+          if (expr.test.type === 'BooleanLiteral')
+            return propAlternatives(
+              expr.test.value ? expr.consequent : expr.alternate,
+            );
+          const truthy = propAlternatives(expr.consequent);
+          const falsy = propAlternatives(expr.alternate);
+          if (!truthy || !falsy) return null;
+          return [
+            ...truthy.map((entry) => ({
+              ...entry,
+              conditions: [
+                { test: expr.test, truthy: true },
+                ...entry.conditions,
+              ],
+            })),
+            ...falsy.map((entry) => ({
+              ...entry,
+              conditions: [
+                { test: expr.test, truthy: false },
+                ...entry.conditions,
+              ],
+            })),
+          ];
+        }
+        if (expr.type === 'BinaryExpression' && expr.operator === '&&') {
+          if (expr.left.type === 'BooleanLiteral')
+            return expr.left.value ? propAlternatives(expr.right) : [empty];
+          const truthy = propAlternatives(expr.right);
+          if (!truthy) return null;
+          return [
+            ...truthy.map((entry) => ({
+              ...entry,
+              conditions: [
+                { test: expr.left, truthy: true },
+                ...entry.conditions,
+              ],
+            })),
+            { ...empty, conditions: [{ test: expr.left, truthy: false }] },
+          ];
+        }
+        if (expr.type === 'ArrayExpression') {
+          let result = [empty];
+          for (const element of expr.elements) {
+            if (!element) continue;
+            if (element.spread) return null;
+            const choices = propAlternatives(element.expression);
+            if (!choices) return null;
+            result = result.flatMap((base) =>
+              choices.map((choice) => ({
+                styleObj: deepMerge(base.styleObj, choice.styleObj),
+                conditions: [...base.conditions, ...choice.conditions],
+                dynamicCalls: [...base.dynamicCalls, ...choice.dynamicCalls],
+              })),
+            );
+          }
+          return result;
+        }
+        const resolved = resolveCallStylePropInScan(expr);
+        return resolved
+          ? [
+              {
+                styleObj: resolved.styleObj,
+                conditions: [],
+                dynamicCalls: resolved.hasVars ? [expr] : [],
+              },
+            ]
+          : null;
+      };
+
       const localComponentPropsTable: Record<
         string,
         Record<string, TableEntry[]>
@@ -2407,6 +2761,45 @@ export function scanAll(): Tables {
         if (node.type === 'ParenthesisExpression') {
           registerStyles(node.expression, propName, compKey, table);
           return;
+        }
+
+        if (node.type === 'ArrayExpression') {
+          const alternatives = propAlternatives(node);
+          if (!alternatives) {
+            if (!containsStyleReference(node)) return;
+            throw new Error(
+              '[plumeria] A style prop array contains an unsupported style expression. Use defined styles, null, false, undefined, or conditional branches of defined styles.',
+            );
+          }
+          if (!containsStyleReference(node)) return;
+          const list = ((table[compKey] ??= {})[propName] ??= []);
+          for (const alternative of alternatives) {
+            const atomMap: Record<string, string> = {};
+            getStyleRecords(alternative.styleObj as CSSProperties).forEach(
+              (record) => (atomMap[record.key] = record.hash),
+            );
+            const classString = Object.values(atomMap).join(' ');
+            list.push({
+              key: genBase36Hash(classString, 1, 8),
+              classString,
+              styleObj: alternative.styleObj,
+              spanStart: node.span.start,
+              filePath,
+              conditions: alternative.conditions,
+              dynamicCalls: alternative.dynamicCalls,
+              hasVars: alternative.dynamicCalls.length > 0,
+            });
+          }
+          return;
+        }
+        if (
+          node.type === 'BinaryExpression' &&
+          (node.operator === '||' || node.operator === '??')
+        ) {
+          if (!containsStyleReference(node)) return;
+          throw new Error(
+            '[plumeria] Style prop fallbacks using || or ?? cannot be resolved. Use a conditional expression with defined styles.',
+          );
         }
 
         const resolved = resolveCallStylePropInScan(node);
@@ -2476,7 +2869,10 @@ export function scanAll(): Tables {
             const exists = globalTable[compKey][propName].some(
               (x) =>
                 x.spanStart === entry.spanStart &&
-                x.filePath === entry.filePath,
+                x.filePath === entry.filePath &&
+                x.key === entry.key &&
+                JSON.stringify(x.conditions) ===
+                  JSON.stringify(entry.conditions),
             );
             if (!exists) {
               globalTable[compKey][propName].push(entry);
@@ -2491,6 +2887,7 @@ export function scanAll(): Tables {
         mtimeMs: mtimeMs,
         dependencies: Array.from(localDependencies),
         exports: fileCache[filePath]?.exports,
+        exportsMtimeMs: fileCache[filePath]?.exportsMtimeMs,
         staticTable: localStaticTable,
         keyframesHashTable: localKeyframesHashTable,
         keyframesObjectTable: localKeyframesObjectTable,
@@ -2520,8 +2917,33 @@ export function scanAll(): Tables {
     }
   }
 
+  for (const entry of jsxPhaseQueue) {
+    const cached = fileCache[entry.filePath];
+    if (!cached?.hasCssUsage || fileErrors[entry.filePath]) continue;
+    const contributions = fileObjectContributions.get(entry.filePath);
+    for (const [tableName, hashes] of contributions ?? []) {
+      for (const hash of [...hashes]) {
+        if (!Object.hasOwn((cached as any)[tableName] ?? {}, hash)) {
+          releaseObjectOwner(
+            tableName,
+            hash,
+            entry.filePath,
+            (localTables as any)[tableName],
+          );
+          hashes.delete(hash);
+        }
+      }
+    }
+  }
+  for (const props of Object.values(localTables.componentPropsTable ?? {})) {
+    for (const entries of Object.values(props))
+      entries.sort(
+        (a, b) =>
+          a.filePath.localeCompare(b.filePath) || a.spanStart - b.spanStart,
+      );
+  }
   hasComputedOnce = true;
-  return localTables;
+  return snapshotTables();
 }
 
 export function getFileDependencies(filePath: string): string[] {
@@ -2694,6 +3116,7 @@ function extractAndCacheExports(
     };
     fileCache[filePath].dependencies = newDeps;
   }
+  fileCache[filePath].exportsMtimeMs = mtimeMs;
 }
 
 export function resolveExport(
@@ -2705,10 +3128,14 @@ export function resolveExport(
   if (visited.has(key)) return null;
   visited.add(key);
 
-  if (!fileCache[filePath] || !fileCache[filePath].exports) {
+  {
     try {
       const stats = fs.statSync(filePath);
-      if (stats.isFile()) {
+      if (
+        (!fileCache[filePath]?.exports ||
+          fileCache[filePath].exportsMtimeMs !== stats.mtimeMs) &&
+        stats.isFile()
+      ) {
         const source = fs.readFileSync(filePath, 'utf8');
         const ast = parseSync(source, {
           syntax: 'typescript',
@@ -2904,9 +3331,9 @@ export function deepMerge(
   target: Record<string, any>,
   source: Record<string, any>,
 ): Record<string, any> {
-  const result = { ...target };
+  const result = Object.assign(Object.create(null), target);
 
-  for (const key in source) {
+  for (const key of Object.keys(source)) {
     const val = source[key];
     if (val && typeof val === 'object' && !Array.isArray(val)) {
       if (result[key] && typeof result[key] === 'object') {
