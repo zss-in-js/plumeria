@@ -1,5 +1,5 @@
 import { CSSProperties } from 'zss-engine';
-import type { ObjectExpression } from '@swc/core';
+import type { ObjectExpression, Expression } from '@swc/core';
 
 // Basic primitives (types handled by the implementation)
 type CSSPrimitive = string | number | boolean;
@@ -38,6 +38,8 @@ export interface TableEntry {
   spanStart: number;
   filePath: string;
   hasVars?: boolean;
+  conditions?: Array<{ test: Expression; truthy: boolean }>;
+  dynamicCalls?: Expression[];
 }
 
 export interface Tables {
