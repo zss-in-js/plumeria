@@ -1,8 +1,8 @@
 export function getLeadingCommentLength(source: string): number {
-  let i = 0;
+  let i = source.charCodeAt(0) === 0xfeff ? 1 : 0;
   const len = source.length;
 
-  if (source.startsWith('#!')) {
+  if (source.startsWith('#!', i)) {
     while (i < len && source[i] !== '\n') i++;
   }
 
