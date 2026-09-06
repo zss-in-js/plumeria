@@ -168,21 +168,10 @@ function extractStylesFromExpression(
 
   const results: CSSObject[] = [];
 
-  if (t.isObjectExpression(expr)) {
-    const object = objectExpressionToObject(
-      expr as ObjectExpression,
-      ctx.mergedStaticTable,
-      ctx.mergedKeyframesTable,
-      ctx.mergedViewTransitionTable,
-      ctx.mergedCreateThemeHashTable,
-      ctx.scannedTables.createThemeObjectTable,
-      ctx.mergedCreateTable,
-      ctx.mergedCreateStaticHashTable,
-      ctx.scannedTables.createStaticObjectTable,
-      ctx.mergedVariantsTable,
-    );
-    if (object) results.push(object);
-  } else if (t.isMemberExpression(expr)) {
+  // This also scans ordinary component props. Only references to Plumeria
+  // definitions identify styles here; an object literal may be arbitrary data.
+  // Explicit styling expressions are evaluated by resolveStyleObject instead.
+  if (t.isMemberExpression(expr)) {
     const memberExpr = expr as MemberExpression;
     if (t.isIdentifier(memberExpr.object)) {
       const variableName = (memberExpr.object as Identifier).value;
