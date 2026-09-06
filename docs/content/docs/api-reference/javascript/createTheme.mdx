@@ -18,6 +18,8 @@ export const createTheme: createTheme;
 `createTheme` defines scoped CSS variables for custom themes.  
 Since a unique hash is automatically prepended to the generated variable names, there is zero risk of name collisions with other themes or global CSS variables.
 
+References between Plumeria themes are not supported: `default` and `theme` accept strings, not another theme member, and generated CSS variable names are content hashes that can change when the theme changes.
+
 ---
 
 ## selector Patterns & Compiled CSS
