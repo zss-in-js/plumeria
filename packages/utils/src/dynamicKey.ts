@@ -28,6 +28,7 @@ export type NamedParam = { key: string; local: string };
 
 export type StyleFunction = {
   params: string[];
+  unsupportedParams?: boolean;
   named?: NamedParam[];
   defaults?: Record<string, Expression>;
   body: ObjectExpression;
@@ -122,6 +123,15 @@ export const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
     if (actualBody && actualBody.type === 'ObjectExpression') {
       styleFunctions[prop.key.value] = {
         params,
+        unsupportedParams: func.params.some((p: any) => {
+          const pattern = p?.pat ?? p;
+          return (
+            pattern?.type === 'ArrayPattern' ||
+            pattern?.type === 'RestElement' ||
+            (pattern?.type === 'ObjectPattern' &&
+              !namedParamsOf(func.params, {}))
+          );
+        }),
         named: namedParamsOf(func.params, defaults),
         defaults,
         body: actualBody as ObjectExpression,
@@ -237,6 +247,10 @@ export const resolveDynamicStyle = (
   staticTable: StaticTable,
   tables: DynamicStyleTables,
 ): DynamicStyleResult | null => {
+  if (func.unsupportedParams)
+    throw new Error(
+      '[plumeria] Dynamic styles require named parameters or object destructuring; array and rest parameters are not supported.',
+    );
   const tempStaticTable: StaticTable = { ...staticTable };
   const resolveBody = () =>
     objectExpressionToObject(
@@ -282,11 +296,35 @@ export const resolveDynamicStyle = (
   });
 
   withDefault.forEach(([param, expr]) => {
-    const literal =
-      expr.type === 'StringLiteral' || expr.type === 'NumericLiteral'
-        ? expr.value
-        : undefined;
-    if (literal === undefined) return;
+    const resolved = objectExpressionToObject(
+      {
+        type: 'ObjectExpression',
+        span: func.body.span,
+        properties: [
+          {
+            type: 'KeyValueProperty',
+            key: {
+              type: 'Identifier',
+              span: func.body.span,
+              value: 'value',
+              optional: false,
+            },
+            value: expr,
+          },
+        ],
+      },
+      staticTable,
+      tables.keyframesHashTable,
+      tables.viewTransitionHashTable,
+      tables.createThemeHashTable,
+      tables.createThemeObjectTable,
+      tables.createHashTable,
+      tables.createStaticHashTable,
+      tables.createStaticObjectTable,
+      tables.variantsHashTable,
+    );
+    const literal = resolved.value;
+    if (typeof literal !== 'string' && typeof literal !== 'number') return;
     (varGroups.get(param) ?? []).forEach(({ cssVar }) =>
       applyVarFallback(style, cssVar, literal),
     );
