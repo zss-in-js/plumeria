@@ -88,8 +88,7 @@ export const UsedPlain = ({ plain }: { plain?: css.Style }) => (
   <div className={css.use(plain)} />
 );
 `,
-  // The scan cannot read a runtime condition inside an array, so this call
-  // site keeps its array and reaches the same prop the carriers do.
+  // A dynamic function must be called before it can travel through a style prop.
   [UNREADABLE]: `
 import '@plumeria/core';
 import { styles } from './styles';
@@ -188,11 +187,6 @@ const elementsOf = (code: string): Rendered[] =>
   }));
 
 /** The one array the unreadable call site hands over, as it reaches the child. */
-const unreadableValue = (code: string) => {
-  const match = code.match(/styleArray=\{(\[[\s\S]*?\])\}\s*\/>/);
-  if (!match) throw new Error(`no array left in:\n${code}`);
-  return new Function('on', `return (${match[1]});`)(true);
-};
 
 /** The child's element, applied to one value of the style prop. */
 const renderOf = (code: string) => {
@@ -322,19 +316,10 @@ describe('turbopack-loader: a dynamic function key passed through a prop', () =>
 
   // A Style array the scan could not read keeps its array and reaches the same
   // prop. Reading it by position would take its second element for variables.
-  it('does not mistake an unreadable Style array for a carrier', async () => {
-    await run(PARENT);
-    const value = unreadableValue(await run(UNREADABLE));
-    expect(Array.isArray(value)).toBe(true);
-
-    const leaf = await run(LEAF);
-    // The prop does carry variables from other call sites, so the element is
-    // reading for a carrier here -- otherwise this proves nothing.
-    expect(leaf).toContain('.vars');
-
-    const render = renderOf(leaf)(value);
-    expect(render.className).toBe('');
-    expect(render.style).toEqual({});
+  it('rejects an uncalled dynamic function in a style prop array', async () => {
+    await expect(run(UNREADABLE)).rejects.toThrow(
+      'unsupported style expression',
+    );
   });
 
   it('is still rejected when passed on to another component', async () => {
