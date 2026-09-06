@@ -164,11 +164,11 @@ beforeAll(() => {
 
 afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
 
-describe('turbopack-loader: an array over a prop that the build cannot fully read', () => {
+describe('turbopack-loader: conditional arrays passed through a prop', () => {
   it.each([
     ['alongside a static call site', PARENT, LEAF, 3],
     ['as the only call site', ONLY_PARENT, ONLY_LEAF, 1],
-  ])('preserves the readable styles %s', async (_, parent, leaf, count) => {
+  ])('preserves conditional styles %s', async (_, parent, leaf, count) => {
     const values = passedValues(await run(parent as string));
     const code = await run(leaf as string);
     const expr = extractJsxExpr(code, 'className');
@@ -179,10 +179,12 @@ describe('turbopack-loader: an array over a prop that the build cannot fully rea
       new Function('on', `return ${source};`)(on);
 
     expect(values).toHaveLength(count);
-    // Preserve the existing partial resolution for either runtime condition.
-    for (const value of values) {
+    for (const [index, value] of values.entries()) {
       for (const on of [false, true]) {
-        expect(render(valueOf(value, on))).toBe(norm(classesOf(BASE)));
+        const isConditional = parent === ONLY_PARENT || index > 0;
+        expect(render(valueOf(value, on))).toBe(
+          norm(classesOf(on && isConditional ? deepMerge(BASE, OTHER) : BASE)),
+        );
       }
     }
   });
@@ -231,7 +233,7 @@ describe('turbopack-loader: an array over a prop that the build cannot fully rea
       expect(render(valueOf(values[2], false))).toBe(norm(classesOf(OTHER)));
     });
 
-    it('preserves the readable base style for a ternary inside an array', async () => {
+    it('merges the selected ternary branch inside an array', async () => {
       const values = passedValues(await run(SHAPES_PARENT));
       const code = await run(SHAPES_LEAF);
       const expr = extractJsxExpr(code, 'className');
@@ -242,7 +244,9 @@ describe('turbopack-loader: an array over a prop that the build cannot fully rea
         new Function('on', `return ${source};`)(on);
 
       expect(render(valueOf(values[3], false))).toBe(norm(classesOf(BASE)));
-      expect(render(valueOf(values[3], true))).toBe(norm(classesOf(BASE)));
+      expect(render(valueOf(values[3], true))).toBe(
+        norm(classesOf(deepMerge(BASE, OTHER))),
+      );
     });
   });
 });
