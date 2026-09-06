@@ -7,7 +7,9 @@ export async function acquireLock(
   lockDir: string,
   delayMs = 2,
   maxDelayMs = 50,
+  timeoutMs = 30_000,
 ) {
+  const started = Date.now();
   let delay = delayMs;
   while (true) {
     try {
@@ -15,7 +17,14 @@ export async function acquireLock(
       return;
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
-        await sleep(delay);
+        const remaining = timeoutMs - (Date.now() - started);
+        if (remaining <= 0) {
+          throw new Error(
+            `Plumeria: Timed out waiting for CSS lock "${lockDir}". If no build is running, remove the stale lock directory and retry.`,
+            { cause: err },
+          );
+        }
+        await sleep(Math.min(delay, remaining));
         delay = Math.min(delay * 2, maxDelayMs);
         continue;
       }
