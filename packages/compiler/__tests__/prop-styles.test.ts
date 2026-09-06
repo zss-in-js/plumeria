@@ -65,6 +65,58 @@ describe('compiler: styles passed through component props', () => {
     expect(css).not.toContain('gap: 2px');
   });
 
+  it.each([
+    '<Card nav={{ ...baseOptions.nav }} />',
+    '<Card foo={{ ...baseOptions.nav }} />',
+    '<Card nav={{ a: baseOptions.nav }} />',
+    '<Card nav={{ ...local }} />',
+    '<Card nav={baseOptions.nav} />',
+    '<Card nav={flag ? { ...baseOptions.nav } : { ...unknown }} />',
+    '<Card nav={flag && { ...baseOptions.nav }} />',
+    '<Card nav={({ ...baseOptions.nav })} />',
+    '<icons.Card nav={{ ...baseOptions.nav }} />',
+    '<Card nav={{ color: "red", width: `calc(${value}px)` }} />',
+  ])('does not evaluate ordinary component data as CSS: %s', (jsx) => {
+    expect(
+      compile(`const local = { color: 'red' }; export const A = () => ${jsx};`),
+    ).toBe('');
+  });
+
+  it('preserves style references next to ordinary data and inside conditional props', () => {
+    const sheet = compile(
+      `export const A = () => <Card nav={{ ...baseOptions.nav }} boxStyle={flag ? s.boxed : { ...unknown }} />;`,
+    );
+    expect(sheet).toContain('color: purple');
+  });
+
+  it.each([
+    '<Card classStyle={{ ...baseOptions.nav }} />',
+    '<div classStyle={{ ...baseOptions.nav }} />',
+    '<Card className={css.use({ ...baseOptions.nav })} />',
+  ])(
+    'still diagnoses unresolved spreads in explicit styling expressions: %s',
+    (jsx) => {
+      expect(() => compile(`export const A = () => ${jsx};`)).toThrow(
+        'Cannot resolve static member expression',
+      );
+    },
+  );
+
+  it('keeps inline object evaluation for the configured styling prop', () => {
+    expect(
+      compile(
+        'export const A = () => <Card sx={{ color: "red" }} nav={{ ...baseOptions.nav }} />;',
+        'sx',
+      ),
+    ).toContain('color: red');
+    expect(() =>
+      compile(
+        'export const A = () => <Card sx={{ ...baseOptions.nav }} />;',
+        'sx',
+      ),
+    ).toThrow('Cannot resolve static member expression');
+  });
+
   it('still emits classStyle on a host element', () => {
     const css = compile(`export const A = () => <div classStyle={s.boxed} />;`);
     expect(css).toContain('color: purple');
