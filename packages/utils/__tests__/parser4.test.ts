@@ -319,7 +319,7 @@ describe('scanAll classStyle prop registration', () => {
     expect(entries[0].classString).toBe('');
   });
 
-  it('gives up on a conditional inside an array when the test is dynamic', () => {
+  it('registers both alternatives of a conditional inside an array', () => {
     const user = f('props/dyncond.tsx');
     const { tables } = scanFiles({
       [child]: childSource,
@@ -327,7 +327,16 @@ describe('scanAll classStyle prop registration', () => {
         'import * as css from "@plumeria/core"; import { Child } from "./Child"; const s = css.create({ a: { color: "red" }, b: { color: "blue" } }); export const U = ({ flag }: any) => <Child classStyle={[flag ? s.a : s.b]} />;',
     });
 
-    expect(propEntries(tables)).toHaveLength(0);
+    const entries = propEntries(tables);
+    expect(entries).toHaveLength(2);
+    expect(entries.map((entry) => entry.styleObj.color).sort()).toEqual([
+      'blue',
+      'red',
+    ]);
+    expect(entries.map((entry) => entry.conditions?.[0].truthy)).toEqual([
+      true,
+      false,
+    ]);
   });
 
   it('ignores a member access to a key the create call never defined', () => {
@@ -483,7 +492,9 @@ describe('dynamic style props in scanAll', () => {
     expect(propEntries(tables)).toEqual([]);
     expect(mod.resolveFileError(file, 'styles')).toEqual({
       filePath: file,
-      message: expect.stringContaining('Unsupported binary operator'),
+      message: expect.stringContaining(
+        'Binary operator ** requires numeric operands',
+      ),
     });
   });
 });
