@@ -1,0 +1,130 @@
+---
+title: 'Plumeria 18.5'
+description: 'Update: conditional style props keep their branches, static references resolve consistently, and unsupported expressions produce clear build errors'
+date: '2026-09-06'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team member" />
+</div>
+
+Plumeria v18.5 preserves more of what a style expression says and reports expressions it cannot compile.
+
+Conditional arrays passed to components now keep their branches and override order. Static references resolve consistently across files, and a corrected definition clears the errors and stale styles left by a failed scan.
+
+This release also tightens compilation checks. Some expressions that previously built with missing styles now stop the build with a diagnostic. When upgrading, check the reported expression and use one of the supported forms below.
+
+---
+
+## Conditional arrays reach the child intact
+
+An array passed through a component prop follows the same ordering rule as a style list written on an element:
+
+```tsx
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  base: { color: 'white', padding: 12 },
+  active: { color: 'royalblue' },
+});
+
+const Card = ({ styleArray }: { styleArray: css.Style }) => (
+  <div classStyle={styleArray} />
+);
+
+export const Example = ({ active }: { active: boolean }) => (
+  <Card styleArray={[styles.base, active && styles.active]} />
+);
+```
+
+The card keeps its padding in both states. Its colour is white when `active` is false and royal blue when it is true. Previously, resolving the array could discard the conditional entry and leave only the base style.
+
+Both `&&` and ternary branches inside these arrays now work through the Turbopack loader and unplugin. Later entries still win when they set the same property, including properties inside nested blocks.
+
+## Static expressions keep their meaning
+
+Named constants now work as unary operands, and bracket references, parentheses and TypeScript assertions no longer make otherwise readable values disappear:
+
+```ts
+const GAP = 8;
+const palette = { text: '#333' };
+
+const styles = css.create({
+  box: {
+    marginTop: -GAP,
+    color: (palette['text'] as string),
+  },
+});
+```
+
+Dynamic styles also retain computed keys and default values declared in their defining file. Moving a media query or a parameter default into a constant no longer loses that value when the style is imported elsewhere.
+
+## Object spreads replace nested values
+
+Object spreads inside a definition now follow JavaScript's shallow replacement rule:
+
+```ts
+const override = { ':hover': { color: 'green' } };
+
+const styles = css.create({
+  box: {
+    ':hover': { color: 'red', backgroundColor: 'blue' },
+    ...override,
+  },
+});
+```
+
+The final `:hover` block contains only `color: 'green'`. Earlier versions also retained the blue background by merging the two nested objects.
+
+If the nested merge is intentional, define separate styles and compose them with `classStyle={[styles.base, styles.override]}`. Style lists continue to merge property by property. See [css.create](/docs/api-reference/javascript/create).
+
+## Unsupported expressions produce diagnostics
+
+The Turbopack loader now reports unsupported style entries instead of removing their styles from the element. For a style prop fallback, write an explicit condition between defined styles:
+
+```tsx
+<Card styleArray={active ? styles.active : styles.base} />
+```
+
+Style prop fallbacks using `||` or `??` remain unsupported. Dynamic style functions with array or rest parameter patterns now report an error when used; use positional parameters or supported object destructuring instead.
+
+The Turbopack loader and unplugin also require style definitions to be assigned to a top-level variable. Move definitions out of functions or blocks, and export the binding when needed:
+
+```ts
+const styles = css.create({ box: { color: 'red' } });
+export default styles;
+```
+
+The Turbopack loader diagnoses direct `export default css.create(...)`, assignment after declaration, and destructuring the result. Object literals wrapped in `as const` or `satisfies`, and object arguments held in top-level constants, are accepted by the loader.
+
+Diagnostics now distinguish unsupported operators from invalid operand types. For `{ width: '10' - 2 }`, the message is:
+
+```text
+[plumeria] Binary operator - requires numeric operands; received string and number.
+```
+
+The evaluator still requires numbers for subtraction. Writing `10 - 2` resolves to `8`.
+
+## Edits clear the failure they repair
+
+Changing a definition, its dependency, or its import path configuration now clears stale scan contributions and diagnostics when the source becomes resolvable. An unchanged cached error does not itself trigger another scan.
+
+Imported styles are processed in dependency order, so their values no longer depend on which file the scan visits first. The Turbopack loader registers transitive watch dependencies after scanning, allowing edits behind a re-export to rebuild their consumers.
+
+---
+
+## 18.5.0 (Sep 6, 2026)
+
+- Fix: preserve conditional arrays passed through component style props, including their branch selection and property override order.
+- Fix: resolve static expressions, imported create members, computed keys and dynamic defaults consistently.
+- Fix: apply JavaScript replacement semantics to object spreads inside style definitions.
+- Update: report unsupported style expressions and declaration forms, invalid operand types, and empty theme selectors instead of silently losing output.
+- Fix: clear stale scan contributions after source, dependency and import configuration changes, and refresh cached export mappings.
+- Fix: the Turbopack loader preserves adjacent variable declarations, separately exported bindings, and references inside existing `style` and `className` attributes. It also respects shadowed bindings, handles BOM-prefixed files and array holes, and resolves component props received through object rest.
+- Fix: a rejected production CSS generation promise no longer blocks every later attempt in the worker. CSS lock waits now time out with a diagnostic instead of waiting indefinitely.
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
