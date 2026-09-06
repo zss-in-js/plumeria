@@ -1,5 +1,21 @@
 # @plumeria/unplugin
 
+## 18.5.0
+
+### Minor Changes
+
+- 9fe1a2f: - Fix: resolve static expressions and imported styles consistently and preserve conditional style prop arrays.
+  - Fix: distinguish invalid operand types from unsupported binary operators in diagnostics.
+  - Fix: clear stale scan contributions and diagnostics after source, dependency, or import configuration changes.
+  - Fix: preserve loader bindings and JSX attributes, report unsupported style expressions, and recover from failed CSS generation.
+  - Fix: apply the same top-level style declaration checks in unplugin and the Turbopack loader.
+  - Fix: avoid evaluating ordinary JSX component prop objects as CSS while retaining strict validation of styling expressions.
+
+### Patch Changes
+
+- Updated dependencies [9fe1a2f]
+  - @plumeria/utils@18.5.0
+
 ## 18.4.2
 
 ### Patch Changes
