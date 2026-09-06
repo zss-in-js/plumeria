@@ -875,27 +875,25 @@ describe('parser', () => {
       expect(result['&:hover']).toEqual({ backgroundColor: 'lightblue' });
     });
 
-    it('should ignore spread elements', () => {
-      const source = `const obj = { ...spread, color: 'red' }`;
-      const ast = parseSync(source, { syntax: 'typescript' });
-      const varDecl = ast.body[0] as any;
-      const objectExpr = varDecl.declarations[0].init as ObjectExpression;
-
-      const result = objectExpressionToObject(
-        objectExpr,
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-      );
-
-      expect(result.color).toBe('red');
-      expect(Object.keys(result)).toHaveLength(1);
+    it('reports unresolved spread values', () => {
+      const ast = parseSync("const obj = { ...spread, color: 'red' }", {
+        syntax: 'typescript',
+      });
+      const objectExpr = (ast.body[0] as any).declarations[0].init;
+      expect(() =>
+        objectExpressionToObject(
+          objectExpr,
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+        ),
+      ).toThrow('Cannot resolve static value: spread');
     });
 
     it('should ignore properties with unsupported keys', () => {
