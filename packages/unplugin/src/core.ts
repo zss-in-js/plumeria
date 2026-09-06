@@ -37,6 +37,7 @@ import {
   objectExpressionToObject,
   t,
   getRootIdentifier,
+  unwrapExpression,
   extractOndemandStyles,
   deepMerge,
   scanAll,
@@ -696,13 +697,57 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       const excludedSpans = new Set<number>();
       const referenceIdents = collectReferenceIdentifiers(ast);
 
+      const topLevelDeclarators = new Set<VariableDeclarator>();
+      for (const statement of ast.body) {
+        const declaration = unwrapExport(statement);
+        if (t.isVariableDeclaration(declaration)) {
+          declaration.declarations.forEach((decl) =>
+            topLevelDeclarators.add(decl),
+          );
+        }
+      }
+
+      const unwrapStyleExpression = (node: any): any => {
+        while (
+          node &&
+          [
+            'ParenthesisExpression',
+            'TsAsExpression',
+            'TsSatisfiesExpression',
+            'TsNonNullExpression',
+            'TsConstAssertion',
+            'TsTypeAssertion',
+          ].includes(node.type)
+        )
+          node = node.expression;
+        return node;
+      };
+      const literalObjectArgument = (
+        node: Expression,
+        seen = new Set<string>(),
+      ): ObjectExpression | null => {
+        node = unwrapStyleExpression(node);
+        if (t.isObjectExpression(node)) return node;
+        if (!t.isIdentifier(node) || seen.has(node.value)) return null;
+        seen.add(node.value);
+        const declaration = [...topLevelDeclarators].find(
+          (decl) =>
+            t.isIdentifier(decl.id) &&
+            decl.id.value === (node as Identifier).value,
+        );
+        return declaration?.init
+          ? literalObjectArgument(declaration.init, seen)
+          : null;
+      };
+      const registeredStyleCalls = new Set<number>();
+
       const registerStyle = (
         node: VariableDeclarator,
         declSpan: { start: number; end: number },
         isExported: boolean,
       ) => {
         let propName: string | undefined;
-        const init = node.init;
+        const init = unwrapStyleExpression(node.init) as Expression | undefined;
         if (
           t.isIdentifier(node.id) &&
           init &&
@@ -733,6 +778,28 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         }
 
         if (propName && init && t.isCallExpression(init)) {
+          if (
+            ['create', 'createTheme', 'createStatic'].includes(propName) &&
+            !topLevelDeclarators.has(node)
+          ) {
+            throwCompilationError(
+              `Plumeria: css.${propName} must be assigned to a top-level variable so its styles can be resolved across files. Move this declaration outside the function or block.`,
+              node,
+            );
+          }
+          if (['create', 'createTheme', 'createStatic'].includes(propName)) {
+            const argumentIndex = propName === 'createTheme' ? 1 : 0;
+            const argument = init.arguments[argumentIndex];
+            const object =
+              argument && literalObjectArgument(argument.expression);
+            if (!object)
+              throwCompilationError(
+                `Plumeria: css.${propName} needs a style object it can read at build time. Pass an object literal or a top-level constant containing one.`,
+                init,
+              );
+            argument.expression = object!;
+            registeredStyleCalls.add(init.span.start);
+          }
           if (
             propName === 'create' &&
             t.isObjectExpression(init.arguments[0].expression)
@@ -1006,6 +1073,15 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           }
 
           if (propName) {
+            if (
+              ['create', 'createTheme', 'createStatic'].includes(propName) &&
+              !registeredStyleCalls.has(node.span.start)
+            ) {
+              throwCompilationError(
+                `Plumeria: css.${propName} must be assigned to a named top-level variable. Destructuring, assignment statements, and default-exported calls cannot be compiled.`,
+                node,
+              );
+            }
             const args = node.arguments;
 
             if (propName === 'keyframes' && args.length > 0) {
@@ -1187,6 +1263,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       };
 
       const resolveStyleObject = (expr: Expression): CSSObject | null => {
+        expr = unwrapExpression(expr);
         if (t.isObjectExpression(expr)) {
           return objectExpressionToObject(
             expr,
@@ -1285,7 +1362,15 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
         const resolveObjectArg = (argExpr: ObjectExpression) =>
           objectExpressionToObject(
-            argExpr,
+            {
+              ...argExpr,
+              properties: argExpr.properties.filter(
+                (prop) =>
+                  prop.type === 'Identifier' ||
+                  (prop.type === 'KeyValueProperty' &&
+                    isStaticArgValue(prop.value)),
+              ),
+            },
             mergedStaticTable,
             mergedKeyframesTable,
             mergedViewTransitionTable,
@@ -1611,6 +1696,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           currentTestStrings: string[] = [],
           argOrder?: number,
         ): boolean => {
+          node = unwrapExpression(node);
           if (isNoOpStyle(node)) return true;
           let branchStyle = resolveStyleObject(node);
           if (!branchStyle) {
@@ -2602,48 +2688,59 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 // the key travels with them under names no compiled style can
                 // answer to -- a Style array the scan could not read still
                 // reaches the same prop, and must not be read as a carrier.
-                const carrierFor = (subNode: Expression): string | null => {
+                const carrierFor = (
+                  subNode: Expression,
+                  calls?: Expression[],
+                ): string | null => {
                   const vars: DynamicVar[] = [];
                   let unresolved = false;
-                  traverse(subNode, {
-                    CallExpression({ node: call }: { node: CallExpression }) {
-                      if (!isStyleFunctionCall(call)) return;
-                      const resolved = resolveDynamicCall(call, true);
-                      if (!resolved) {
-                        unresolved = true;
-                        return;
-                      }
-                      vars.push(...resolved.vars);
-                    },
-                  });
+                  for (const expression of calls ?? [subNode])
+                    traverse(expression, {
+                      CallExpression({ node: call }: { node: CallExpression }) {
+                        if (!isStyleFunctionCall(call)) return;
+                        const resolved = resolveDynamicCall(call, true);
+                        if (!resolved) {
+                          unresolved = true;
+                          return;
+                        }
+                        vars.push(...resolved.vars);
+                      },
+                    });
                   if (unresolved) return null;
                   return `{ ${foldDynamicVars(vars).join(', ')} }`;
                 };
                 const replaceWithKey = (subNode: Expression) => {
-                  const entry = list.find(
-                    (x) =>
-                      x.spanStart === (subNode as HasSpan).span.start &&
-                      x.filePath === resourcePath,
+                  const entries = list.filter(
+                    (entry) =>
+                      entry.spanStart === (subNode as HasSpan).span.start &&
+                      entry.filePath === resourcePath,
                   );
-                  if (entry) {
-                    let content = JSON.stringify(entry.key);
+                  if (!entries.length) return false;
+                  let content = '""';
+                  for (const entry of [...entries].reverse()) {
+                    let value = JSON.stringify(entry.key);
                     if (entry.hasVars) {
-                      const carrier = carrierFor(subNode);
+                      const carrier = carrierFor(subNode, entry.dynamicCalls);
                       if (!carrier) return false;
-                      content = `{ key: ${content}, vars: ${carrier} }`;
+                      value = `{ key: ${value}, vars: ${carrier} }`;
                     }
-                    replacements.push({
-                      start: (subNode as HasSpan).span.start - baseByteOffset,
-                      end: (subNode as HasSpan).span.end - baseByteOffset,
-                      content,
-                    });
-                    // Emit the prop style's CSS from the parent too, so the
-                    // rules are live as soon as the parent recompiles even if
-                    // the child module hasn't re-transformed yet.
+                    const condition = entry.conditions
+                      ?.map(
+                        ({ test, truthy }) =>
+                          `${truthy ? '' : '!'}(${getSource(test)})`,
+                      )
+                      .join(' && ');
+                    content = condition
+                      ? `((${condition}) ? ${value} : ${content})`
+                      : value;
                     processStyleRecords(entry.styleObj);
-                    return true;
                   }
-                  return false;
+                  replacements.push({
+                    start: (subNode as HasSpan).span.start - baseByteOffset,
+                    end: (subNode as HasSpan).span.end - baseByteOffset,
+                    content,
+                  });
+                  return true;
                 };
                 traverse(expr, {
                   MemberExpression({ node: subNode }) {
