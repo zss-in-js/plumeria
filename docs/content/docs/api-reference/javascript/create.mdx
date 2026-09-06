@@ -159,6 +159,8 @@ All three set `color` here. Entries that touch different properties never compet
 
 Merging goes property by property, and that includes nested blocks. Overriding a `:hover` colour leaves the rest of the `:hover` block in place.
 
+This merging rule applies to the style list. Object spreads inside a style definition follow JavaScript semantics: a later property replaces the whole earlier value, including a nested object.
+
 One pair the list does not settle is a shorthand and a longhand of the same property — `margin` against `marginTop`. The longhand wins wherever the two meet, whichever is written last. See [Specificity](/docs/reference/specificity).
 
 <Callout title="After 18.1.1">
