@@ -148,6 +148,24 @@ const destructuredPropAliases = (fn: { params: unknown[] }) => {
   return aliases;
 };
 
+const sourceOf = (
+  node: Expression,
+  sourceBuffer: Buffer,
+  baseByteOffset: number,
+): string =>
+  sourceBuffer
+    .subarray(
+      (node as HasSpan).span.start - baseByteOffset,
+      (node as HasSpan).span.end - baseByteOffset,
+    )
+    .toString('utf-8');
+
+const spreadStyleError = (source: string, fileName: string): Error =>
+  new Error(
+    `[plumeria] Spread elements in a style array are not supported: "...${source}". ` +
+      `List each style explicitly. (${fileName})`,
+  );
+
 // A named argument folds into the style only when its value is written out in
 // full. Anything the parser can only read in part -- a template literal with an
 // interpolation, an expression -- has to reach the element as a custom property
@@ -161,6 +179,7 @@ const isStaticArgValue = (node: Expression): boolean =>
   t.isMemberExpression(node);
 
 interface TraversalContext {
+  resourcePath: string;
   mergedStaticTable: StaticTable;
   mergedKeyframesTable: KeyframesHashTable;
   mergedViewTransitionTable: ViewTransitionHashTable;
@@ -276,10 +295,29 @@ function extractStylesFromExpression(
       }
     }
   } else if (expr.type === 'ArrayExpression') {
+    const spreads: Expression[] = [];
+    const elementStyles: CSSObject[] = [];
     for (const element of expr.elements ?? []) {
-      if (!element || element.spread) continue;
-      results.push(...extractStylesFromExpression(element.expression, ctx));
+      if (!element) continue;
+      if (element.spread) {
+        spreads.push(element.expression);
+        continue;
+      }
+      elementStyles.push(
+        ...extractStylesFromExpression(element.expression, ctx),
+      );
     }
+    for (const spread of spreads) {
+      if (
+        elementStyles.length > 0 ||
+        extractStylesFromExpression(spread, ctx).length > 0
+      )
+        throw spreadStyleError(
+          sourceOf(spread, ctx.sourceBuffer, ctx.baseByteOffset),
+          path.basename(ctx.resourcePath),
+        );
+    }
+    results.push(...elementStyles);
   } else if (t.isConditionalExpression(expr)) {
     const condExpr = expr;
     results.push(...extractStylesFromExpression(condExpr.consequent, ctx));
@@ -518,6 +556,7 @@ export function compileCSS(options: CompilerOptions) {
     }
 
     const ctx: TraversalContext = {
+      resourcePath,
       mergedStaticTable,
       mergedKeyframesTable,
       mergedViewTransitionTable,
@@ -541,9 +580,9 @@ export function compileCSS(options: CompilerOptions) {
         componentParamNames.add(p.value);
       } else if (p?.type === 'ObjectPattern') {
         for (const item of p.properties ?? []) {
-          const key = item.key;
-          const local = unwrapPatternDefault(item.value) ?? key;
-          if (t.isIdentifier(local)) componentParamNames.add(local.value);
+          if (item.type === 'RestElement' && t.isIdentifier(item.argument)) {
+            componentParamNames.add(item.argument.value);
+          }
         }
       }
     };
@@ -652,7 +691,12 @@ export function compileCSS(options: CompilerOptions) {
         if (expr.type === 'ArrayExpression') {
           let merged: CSSObject = {};
           for (const element of expr.elements ?? []) {
-            if (!element || element.spread) continue;
+            if (!element) continue;
+            if (element.spread)
+              throw spreadStyleError(
+                getSource(element.expression),
+                path.basename(resourcePath),
+              );
             const style = resolveStyleObject(element.expression);
             if (!style) return null;
             merged = deepMerge(merged, style) as CSSObject;
@@ -718,12 +762,7 @@ export function compileCSS(options: CompilerOptions) {
       };
 
       const getSource = (node: Expression) =>
-        ctx.sourceBuffer
-          .subarray(
-            (node as HasSpan).span.start - ctx.baseByteOffset,
-            (node as HasSpan).span.end - ctx.baseByteOffset,
-          )
-          .toString('utf-8');
+        sourceOf(node, ctx.sourceBuffer, ctx.baseByteOffset);
 
       const assertResolvable = (node: Expression): void => {
         if (t.isIdentifier(node) && (node as Identifier).value === 'undefined')
@@ -977,7 +1016,12 @@ export function compileCSS(options: CompilerOptions) {
         if (node.type === 'ArrayExpression') {
           let handled = true;
           for (const element of node.elements ?? []) {
-            if (!element || element.spread) continue;
+            if (!element) continue;
+            if (element.spread)
+              throw spreadStyleError(
+                getSource(element.expression),
+                path.basename(resourcePath),
+              );
             handled =
               collectConditions(element.expression, currentTestStrings) &&
               handled;
@@ -1264,9 +1308,7 @@ export function compileCSS(options: CompilerOptions) {
               ((!isTheme && init.arguments.length === 1) ||
                 (isTheme && init.arguments.length >= 2))
             ) {
-              const arg = isTheme
-                ? (unwrappedDefinitionArg as ObjectExpression)
-                : (unwrappedDefinitionArg as ObjectExpression);
+              const arg = unwrappedDefinitionArg as ObjectExpression;
               const resolveVariable = (name: string) =>
                 ctx.localCreateStyles[name]?.obj ||
                 (ctx.mergedCreateThemeHashTable[name]
@@ -1442,7 +1484,12 @@ export function compileCSS(options: CompilerOptions) {
           node = unwrapExpression(node);
           if (node.type === 'ArrayExpression') {
             for (const element of node.elements ?? []) {
-              if (!element || element.spread) continue;
+              if (!element) continue;
+              if (element.spread)
+                throw spreadStyleError(
+                  sourceOf(element.expression, sourceBuffer, baseByteOffset),
+                  path.basename(resourcePath),
+                );
               addArgs(element.expression);
             }
           } else {
