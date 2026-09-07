@@ -181,6 +181,30 @@ const destructuredPropAliases = (fn: {
   return aliases;
 };
 
+type LocalStyleAlias = { expression: Expression; context: number };
+
+const resolveLocalStyleAlias = (
+  aliases: Record<string, LocalStyleAlias[]>,
+  expression: Expression,
+): Expression => {
+  let current = expression;
+  const seen = new Set<string>();
+  while (t.isIdentifier(current)) {
+    const name = current.value;
+    if (seen.has(name)) break;
+    seen.add(name);
+    const candidates = aliases[name];
+    if (!candidates || candidates.length === 0) break;
+    const candidate = candidates.find(
+      (candidate) =>
+        candidate.context === (current as Identifier & { ctxt: number }).ctxt,
+    );
+    if (!candidate) break;
+    current = candidate.expression;
+  }
+  return current;
+};
+
 // A named argument folds into the style only when its value is written out in
 // full. Anything the parser can only read in part -- a template literal with an
 // interpolation, an expression -- has to reach the element as a custom property
@@ -417,13 +441,35 @@ export default async function loader(this: LoaderContext, source: string) {
 
     const components: Array<{ name: string; node: HasSpan }> = [];
     const propAliases = new Map<string, Map<string, string>>();
+    const propDefaults = new Map<string, Map<string, Expression>>();
+    const declaredProps = new Map<string, Set<string>>();
     const addComponent = (
       name: string,
       fn: HasSpan & { params: unknown[] },
     ) => {
       components.push({ name, node: fn });
+      const first = fn.params[0] as any;
+      const pattern = unwrapPatternDefault(first?.pat ?? first);
+      const defaults = new Map<string, Expression>();
+      for (const item of pattern?.properties ?? []) {
+        if (item.type === 'AssignmentPatternProperty' && item.value)
+          defaults.set(item.key.value, item.value);
+        if (
+          item.type === 'KeyValuePatternProperty' &&
+          item.value?.type === 'AssignmentPattern'
+        )
+          defaults.set(item.key.value, item.value.right);
+      }
+      propDefaults.set(name, defaults);
       const aliases = destructuredPropAliases(fn);
       if (aliases.size > 0) propAliases.set(name, aliases);
+      const declared = new Set<string>();
+      for (const item of pattern?.properties ?? []) {
+        const key = item.key;
+        if (t.isIdentifier(key) || t.isStringLiteral(key))
+          declared.add(String(key.value));
+      }
+      if (declared.size > 0) declaredProps.set(name, declared);
     };
     for (const node of ast.body) {
       const statement = unwrapExport(node);
@@ -680,18 +726,21 @@ export default async function loader(this: LoaderContext, source: string) {
     };
 
     const localCreateStyles: Record<string, CreateStyleValue> = {};
-    const localStyleAliases: Record<string, Expression> = {};
+    const localStyleAliases: Record<string, LocalStyleAlias[]> = {};
 
     const checkStyleAliasAssignment = (decl: VariableDeclarator) => {
       if (!t.isIdentifier(decl.id) || !decl.init) return;
-      const init = decl.init;
+      const init = unwrapExpression(decl.init);
       if (t.isMemberExpression(init) && t.isIdentifier(init.object)) {
         const objName = init.object.value;
         if (
           localCreateStyles[objName] !== undefined ||
           mergedCreateTable[objName] !== undefined
         ) {
-          localStyleAliases[decl.id.value] = init;
+          (localStyleAliases[decl.id.value] ??= []).push({
+            expression: init,
+            context: (decl.id as Identifier & { ctxt: number }).ctxt,
+          });
         }
       }
     };
@@ -1323,7 +1372,18 @@ export default async function loader(this: LoaderContext, source: string) {
 
     const resolveStyleObject = (expr: Expression): CSSObject | null => {
       expr = unwrapExpression(expr);
+      expr = resolveLocalStyleAlias(localStyleAliases, expr);
       if (!isVisibleReference(expr)) return null;
+      if (expr.type === 'ArrayExpression') {
+        let merged: CSSObject = {};
+        for (const element of expr.elements ?? []) {
+          if (!element || element.spread) continue;
+          const style = resolveStyleObject(element.expression);
+          if (!style) return null;
+          merged = deepMerge(merged, style) as CSSObject;
+        }
+        return merged;
+      }
       if (t.isObjectExpression(expr)) {
         return objectExpressionToObject(
           expr,
@@ -1419,6 +1479,7 @@ export default async function loader(this: LoaderContext, source: string) {
       if (callArgs.some((a) => a.spread)) return null;
 
       const tempStaticTable = { ...mergedStaticTable };
+      const providedParams = new Set<string>();
       const runtime: Array<{ param: string; source: Expression }> = [];
 
       const resolveObjectArg = (argExpr: ObjectExpression) =>
@@ -1485,9 +1546,10 @@ export default async function loader(this: LoaderContext, source: string) {
             !forceRuntime &&
             isStaticArgValue(source) &&
             argObj[key] !== undefined
-          )
+          ) {
             tempStaticTable[local] = argObj[key];
-          else runtime.push({ param: local, source });
+            providedParams.add(local);
+          } else runtime.push({ param: local, source });
         });
       } else if (
         callArgs.length === 1 &&
@@ -1497,7 +1559,10 @@ export default async function loader(this: LoaderContext, source: string) {
         const argObj =
           resolveObjectArg(callArgs[0].expression as ObjectExpression) ?? {};
         func.params.forEach((p) => {
-          if (argObj[p] !== undefined) tempStaticTable[p] = argObj[p];
+          if (argObj[p] !== undefined) {
+            tempStaticTable[p] = argObj[p];
+            providedParams.add(p);
+          }
         });
       } else {
         callArgs.forEach((callArg, i) => {
@@ -1512,6 +1577,7 @@ export default async function loader(this: LoaderContext, source: string) {
         runtime.map(({ param }) => param),
         tempStaticTable,
         dynamicStyleTables,
+        providedParams,
       );
       if (!resolved) return null;
       const { style, varGroups } = resolved;
@@ -1565,10 +1631,10 @@ export default async function loader(this: LoaderContext, source: string) {
       propVarSpreads: string[];
     } => {
       args.forEach((arg) => {
-        const expr = arg.expression;
-        if (t.isIdentifier(expr) && localStyleAliases[expr.value]) {
-          arg.expression = localStyleAliases[expr.value];
-        }
+        arg.expression = resolveLocalStyleAlias(
+          localStyleAliases,
+          arg.expression,
+        );
       });
 
       const conditionals: StyleConditional[] = [];
@@ -1738,6 +1804,7 @@ export default async function loader(this: LoaderContext, source: string) {
         argOrder?: number,
       ): boolean => {
         node = unwrapExpression(node);
+        node = resolveLocalStyleAlias(localStyleAliases, node);
         if (isNoOpStyle(node)) return true;
         if (node.type === 'ArrayExpression') {
           return node.elements.every(
@@ -1850,6 +1917,14 @@ export default async function loader(this: LoaderContext, source: string) {
           componentParamNames.has(expr.object.value) &&
           t.isIdentifier(expr.property);
         if (!t.isIdentifier(expr) && !isParamMember) return false;
+        const paramObject = isParamMember
+          ? ((expr as MemberExpression).object as Identifier).value
+          : undefined;
+        const isPropsMember = Boolean(
+          paramObject &&
+          localCreateStyles[paramObject] === undefined &&
+          mergedCreateTable[paramObject] === undefined,
+        );
 
         const varName = t.isIdentifier(expr)
           ? expr.value
@@ -1879,7 +1954,45 @@ export default async function loader(this: LoaderContext, source: string) {
           }
           if (candidates.length > 0) possibilities = candidates;
         }
-        if (!possibilities || possibilities.length === 0) return false;
+        const fallback = owner && propDefaults.get(owner)?.get(propName);
+        if (fallback) {
+          const style = resolveStyleObject(fallback);
+          if (style) {
+            const atoms: Record<string, string> = {};
+            getStyleRecords(style as CSSProperties).forEach((record) => {
+              atoms[record.key] = record.hash;
+            });
+            const key = genBase36Hash(Object.values(atoms).join(' '), 1, 8);
+            possibilities = [
+              ...(possibilities ?? []),
+              { key, styleObj: style },
+            ];
+            const span = (fallback as HasSpan).span;
+            {
+              for (let i = replacements.length - 1; i >= 0; i--) {
+                const replacement = replacements[i];
+                if (
+                  replacement.start >= span.start - baseByteOffset &&
+                  replacement.end <= span.end - baseByteOffset
+                )
+                  replacements.splice(i, 1);
+              }
+              excludeSubtreeSpans(fallback);
+              replacements.push({
+                start: span.start - baseByteOffset,
+                end: span.end - baseByteOffset,
+                content: JSON.stringify(key),
+              });
+            }
+          } else {
+            assertResolvable(fallback as HasSpan);
+          }
+        }
+        if (!possibilities || possibilities.length === 0) {
+          return Boolean(
+            isPropsMember || (owner && declaredProps.get(owner)?.has(propName)),
+          );
+        }
 
         // A style that reached the prop with values beside it arrives as a
         // pair. The key still picks the rule; the values have to be spread on
