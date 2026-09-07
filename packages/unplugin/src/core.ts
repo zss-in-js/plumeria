@@ -168,6 +168,10 @@ const destructuredPropAliases = (fn: {
   return aliases;
 };
 
+const spreadStyleMessage = (source: string): string =>
+  `Plumeria: Spread elements in a style array are not supported: "...${source}". ` +
+  `List each style explicitly.`;
+
 type LocalStyleAlias = { expression: Expression; context: number };
 
 const resolveLocalStyleAlias = (
@@ -1278,6 +1282,12 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         const p = unwrapPatternDefault(first?.pat ?? first);
         if (t.isIdentifier(p)) {
           componentParamNames.add(p.value);
+        } else if (p?.type === 'ObjectPattern') {
+          for (const item of p.properties) {
+            if (item.type === 'RestElement' && t.isIdentifier(item.argument)) {
+              componentParamNames.add(item.argument.value);
+            }
+          }
         }
       };
       for (const node of ast.body) {
@@ -1316,7 +1326,12 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         if (expr.type === 'ArrayExpression') {
           let merged: CSSObject = {};
           for (const element of expr.elements ?? []) {
-            if (!element || element.spread) continue;
+            if (!element) continue;
+            if (element.spread)
+              throwCompilationError(
+                spreadStyleMessage(getSource(element.expression)),
+                element.expression as HasSpan,
+              );
             const style = resolveStyleObject(element.expression);
             if (!style) return null;
             merged = deepMerge(merged, style) as CSSObject;
@@ -1391,6 +1406,29 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           ] ??
           createFunctionImportMap[callee.object.value]?.[callee.property.value],
         );
+      };
+
+      const carriesStyleReference = (expression: Expression): boolean => {
+        const node = unwrapExpression(expression) as Expression;
+        if (node.type === 'ArrayExpression')
+          return node.elements.some(
+            (element) => !!element && carriesStyleReference(element.expression),
+          );
+        if (isStyleFunctionCall(node)) return true;
+        if (t.isObjectExpression(node)) return false;
+        return resolveStyleObject(node) !== null;
+      };
+
+      const assertNoStyleArraySpread = (expression: Expression) => {
+        const node = unwrapExpression(expression) as Expression;
+        if (node.type !== 'ArrayExpression') return;
+        const spread = node.elements.find((element) => element?.spread);
+        if (!spread) return;
+        if (carriesStyleReference(node))
+          throwCompilationError(
+            spreadStyleMessage(getSource(spread.expression)),
+            spread.expression as HasSpan,
+          );
       };
 
       // A dynamic call reached through a component prop cannot fold a
@@ -2788,6 +2826,8 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             }
 
             if (compKey) {
+              if (node.value?.type === 'JSXExpressionContainer')
+                assertNoStyleArraySpread(node.value.expression);
               const list =
                 scannedTables.componentPropsTable?.[compKey]?.[attrName];
               if (
@@ -2885,7 +2925,14 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             expr.type === 'ArrayExpression'
               ? expr.elements
                   .filter((el) => el !== undefined)
-                  .map((el) => ({ expression: el.expression }))
+                  .map((el) => {
+                    if (el.spread)
+                      throwCompilationError(
+                        spreadStyleMessage(getSource(el.expression)),
+                        el.expression as HasSpan,
+                      );
+                    return { expression: el.expression };
+                  })
               : [{ expression: expr }];
 
           const dynamicClassParts: string[] = [];
