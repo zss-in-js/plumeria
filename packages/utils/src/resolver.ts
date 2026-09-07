@@ -9,8 +9,8 @@ let cachedTsConfig:
   | null
   | undefined = undefined;
 
-export function resetImportResolutionCache(): void {
-  const configPath = path.join(process.cwd(), 'tsconfig.json');
+export function resetImportResolutionCache(cwd: string = process.cwd()): void {
+  const configPath = path.join(cwd, 'tsconfig.json');
   try {
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     cachedTsConfig = {
