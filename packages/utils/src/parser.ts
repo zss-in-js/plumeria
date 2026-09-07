@@ -105,9 +105,6 @@ export const getRootIdentifier = (node: Expression): string | null => {
       return getRootIdentifier(callee as Expression);
     }
   }
-  if (node.type === 'ParenthesisExpression') {
-    return getRootIdentifier(node.expression);
-  }
   return null;
 };
 
@@ -1539,6 +1536,7 @@ const globalAgregatedTables: Tables = {
 };
 let hasComputedOnce = false;
 let resolutionConfigStamp: string | undefined;
+let scannedCwd: string | undefined;
 
 // Content-hash-keyed "Object" tables (keyframesObjectTable, createObjectTable,
 // etc.) have keys derived purely from style content, not from the file that
@@ -1736,14 +1734,20 @@ function stripFileContributions(filePath: string, cached: CachedData) {
   }
 }
 
-export function scanAll(): Tables {
-  if (hasComputedOnce && process.env.NODE_ENV === 'production') {
+export function scanAll(scanCwd: string = process.cwd()): Tables {
+  const cwd = path.resolve(scanCwd);
+  if (
+    hasComputedOnce &&
+    process.env.NODE_ENV === 'production' &&
+    scannedCwd === cwd
+  ) {
     return snapshotTables();
   }
 
   const localTables = globalAgregatedTables;
+  scannedCwd = cwd;
 
-  const configPath = path.join(process.cwd(), 'tsconfig.json');
+  const configPath = path.join(cwd, 'tsconfig.json');
   let configStamp = configPath;
   try {
     configStamp += `:${fs.statSync(configPath).mtimeMs}`;
@@ -1753,10 +1757,9 @@ export function scanAll(): Tables {
   const resolutionChanged =
     resolutionConfigStamp !== undefined &&
     resolutionConfigStamp !== configStamp;
-  if (resolutionChanged) resetImportResolutionCache();
+  if (resolutionConfigStamp !== configStamp) resetImportResolutionCache(cwd);
   resolutionConfigStamp = configStamp;
 
-  const cwd = process.cwd();
   const segments = cwd.split(path.sep);
   const dependencyDirectory = segments.indexOf('node_modules');
   const root =
@@ -2535,6 +2538,7 @@ export function scanAll(): Tables {
           runtime,
           dynamicStaticTable,
           dynamicStyleTables,
+          new Set(),
         );
         if (!resolved) return null;
 
@@ -2604,10 +2608,6 @@ export function scanAll(): Tables {
               return resolveCallStylePropInScan(expr.right);
             }
           }
-        }
-
-        if (expr.type === 'ParenthesisExpression') {
-          return resolveCallStylePropInScan(expr.expression);
         }
 
         if (
