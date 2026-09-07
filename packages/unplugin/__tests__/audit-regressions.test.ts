@@ -139,3 +139,61 @@ it('selects the default or supplied style at runtime', async () => {
     glob.mockReturnValue([]);
   }
 });
+
+const spreadPrefix = `import * as css from '@plumeria/core';const s=css.create({a:{color:'red'},b:{padding:4}});`;
+it.each([
+  [
+    'a style prop',
+    `export const App=()=> <div classStyle={[s.a, ...[s.b]]}/>;`,
+  ],
+  [
+    'a prop default',
+    `export const Card=({cardStyle=[s.a,...[s.b]]}:{cardStyle?:css.Style})=><div classStyle={cardStyle}/>;export const App=()=> <Card/>;`,
+  ],
+  [
+    'css.use',
+    `export const App=()=> <div className={css.use([s.a, ...[s.b]])}/>;`,
+  ],
+  [
+    'a component prop',
+    `const Card=({boxStyle}:{boxStyle?:css.Style})=><div classStyle={boxStyle}/>;export const App=()=> <Card boxStyle={[s.a, ...[s.b]]}/>;`,
+  ],
+])(
+  'rejects a spread element in a style array passed to %s',
+  async (_case, body) => {
+    await expect(run(spreadPrefix + body)).rejects.toThrow(
+      /Spread elements in a style array are not supported/,
+    );
+  },
+);
+
+it('keeps a spread in an array that carries no style', async () => {
+  const output = await run(
+    spreadPrefix +
+      `const rest=[2,3];export const App=()=> <div classStyle={s.a} data-x={[1, ...rest]}/>;`,
+  );
+  expect(output).toContain(classHash({ color: 'red' }));
+});
+
+it('accepts an omitted optional style prop read off rest props', async () => {
+  const output = await run(
+    `import * as css from '@plumeria/core';export const Card=({...rest}:{cardStyle?:css.Style})=><div classStyle={rest.cardStyle}/>;export const App=()=> <Card/>;`,
+  );
+  expect(output).toContain('className');
+});
+
+it('rejects a member read off a destructured style prop', async () => {
+  await expect(
+    run(
+      `import * as css from '@plumeria/core';export const Card=({styles}:{styles:any})=><div classStyle={styles.a}/>;export const App=()=> <Card styles={{}}/>;`,
+    ),
+  ).rejects.toThrow(/Dynamic or unresolvable style object/);
+});
+
+it('keeps a spread in a component prop array of plain data', async () => {
+  const output = await run(
+    spreadPrefix +
+      `const posts=[{text:'a',url:'/a'}];export const App=()=> <Nav items={[...posts, {text:'b',url:'/b'}]} classStyle={s.a}/>;`,
+  );
+  expect(output).toContain(classHash({ color: 'red' }));
+});
