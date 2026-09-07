@@ -181,6 +181,10 @@ const destructuredPropAliases = (fn: {
   return aliases;
 };
 
+const spreadStyleMessage = (source: string): string =>
+  `Plumeria: Spread elements in a style array are not supported: "...${source}". ` +
+  `List each style explicitly.`;
+
 type LocalStyleAlias = { expression: Expression; context: number };
 
 const resolveLocalStyleAlias = (
@@ -1377,7 +1381,12 @@ export default async function loader(this: LoaderContext, source: string) {
       if (expr.type === 'ArrayExpression') {
         let merged: CSSObject = {};
         for (const element of expr.elements ?? []) {
-          if (!element || element.spread) continue;
+          if (!element) continue;
+          if (element.spread)
+            throwCompilationError(
+              spreadStyleMessage(getSource(element.expression)),
+              element.expression as HasSpan,
+            );
           const style = resolveStyleObject(element.expression);
           if (!style) return null;
           merged = deepMerge(merged, style) as CSSObject;
@@ -1452,6 +1461,29 @@ export default async function loader(this: LoaderContext, source: string) {
         ] ??
         createFunctionImportMap[callee.object.value]?.[callee.property.value],
       );
+    };
+
+    const carriesStyleReference = (expression: Expression): boolean => {
+      const node = unwrapExpression(expression) as Expression;
+      if (node.type === 'ArrayExpression')
+        return node.elements.some(
+          (element) => !!element && carriesStyleReference(element.expression),
+        );
+      if (isStyleFunctionCall(node)) return true;
+      if (t.isObjectExpression(node)) return false;
+      return resolveStyleObject(node) !== null;
+    };
+
+    const assertNoStyleArraySpread = (expression: Expression) => {
+      const node = unwrapExpression(expression) as Expression;
+      if (node.type !== 'ArrayExpression') return;
+      const spread = node.elements.find((element) => element?.spread);
+      if (!spread) return;
+      if (carriesStyleReference(node))
+        throwCompilationError(
+          spreadStyleMessage(getSource(spread.expression)),
+          spread.expression as HasSpan,
+        );
     };
 
     // A dynamic call reached through a component prop cannot fold a written-out
@@ -1807,16 +1839,19 @@ export default async function loader(this: LoaderContext, source: string) {
         node = resolveLocalStyleAlias(localStyleAliases, node);
         if (isNoOpStyle(node)) return true;
         if (node.type === 'ArrayExpression') {
-          return node.elements.every(
-            (element) =>
-              !element ||
-              (!element.spread &&
-                collectConditions(
-                  element.expression,
-                  currentTestStrings,
-                  argOrder,
-                )),
-          );
+          return node.elements.every((element) => {
+            if (!element) return true;
+            if (element.spread)
+              throwCompilationError(
+                spreadStyleMessage(getSource(element.expression)),
+                element.expression as HasSpan,
+              );
+            return collectConditions(
+              element.expression,
+              currentTestStrings,
+              argOrder,
+            );
+          });
         }
         let branchStyle = resolveStyleObject(node);
         if (!branchStyle) {
@@ -2845,6 +2880,8 @@ export default async function loader(this: LoaderContext, source: string) {
           }
 
           if (compKey) {
+            if (node.value?.type === 'JSXExpressionContainer')
+              assertNoStyleArraySpread(node.value.expression);
             const list =
               scannedTables.componentPropsTable?.[compKey]?.[attrName];
             if (
@@ -2941,7 +2978,14 @@ export default async function loader(this: LoaderContext, source: string) {
           expr.type === 'ArrayExpression'
             ? expr.elements
                 .filter((el) => el != null)
-                .map((el) => ({ expression: el.expression }))
+                .map((el) => {
+                  if (el.spread)
+                    throwCompilationError(
+                      spreadStyleMessage(getSource(el.expression)),
+                      el.expression as HasSpan,
+                    );
+                  return { expression: el.expression };
+                })
             : [{ expression: expr }];
 
         const dynamicClassParts: string[] = [];
