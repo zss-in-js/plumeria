@@ -246,6 +246,7 @@ export const resolveDynamicStyle = (
   runtimeParams: string[],
   staticTable: StaticTable,
   tables: DynamicStyleTables,
+  providedParams?: ReadonlySet<string>,
 ): DynamicStyleResult | null => {
   if (func.unsupportedParams)
     throw new Error(
@@ -266,8 +267,10 @@ export const resolveDynamicStyle = (
       tables.variantsHashTable,
     );
 
-  const withDefault = Object.entries(func.defaults ?? {}).filter(
-    ([param]) => tempStaticTable[param] === undefined,
+  const withDefault = Object.entries(func.defaults ?? {}).filter(([param]) =>
+    providedParams
+      ? !providedParams.has(param)
+      : tempStaticTable[param] === undefined,
   );
 
   const cssVars: Record<string, string> = {};
