@@ -249,3 +249,60 @@ it('emits both default and supplied prop styles', () => {
   expect(output).toContain('color: red');
   expect(output).toContain('color: blue');
 });
+
+const spreadPrefix = `import * as css from '@plumeria/core';const s=css.create({a:{color:'red'},b:{padding:4}});`;
+it.each([
+  [
+    'a style prop',
+    `export const App=()=> <div classStyle={[s.a, ...[s.b]]}/>;`,
+  ],
+  [
+    'a prop default',
+    `export const Card=({cardStyle=[s.a,...[s.b]]}:{cardStyle?:css.Style})=><div classStyle={cardStyle}/>;export const App=()=> <Card/>;`,
+  ],
+  [
+    'css.use',
+    `export const App=()=> <div className={css.use([s.a, ...[s.b]])}/>;`,
+  ],
+  [
+    'a component prop',
+    `const Card=({boxStyle}:{boxStyle?:css.Style})=><div classStyle={boxStyle}/>;export const App=()=> <Card boxStyle={[s.a, ...[s.b]]}/>;`,
+  ],
+])('rejects a spread element in a style array passed to %s', (_case, body) => {
+  writeProject({ 'App.tsx': spreadPrefix + body });
+  expect(() => compile()).toThrow(
+    /Spread elements in a style array are not supported/,
+  );
+});
+
+it('keeps a spread in an array that carries no style', () => {
+  writeProject({
+    'App.tsx':
+      spreadPrefix +
+      `const rest=[2,3];export const App=()=> <div classStyle={s.a} data-x={[1, ...rest]}/>;`,
+  });
+  expect(compile()).toContain('color: red');
+});
+
+it('accepts an omitted optional style prop read off rest props', () => {
+  writeProject({
+    'App.tsx': `import * as css from '@plumeria/core';export const Card=({...rest}:{cardStyle?:css.Style})=><div classStyle={rest.cardStyle}/>;export const App=()=> <Card/>;`,
+  });
+  expect(() => compile()).not.toThrow();
+});
+
+it('rejects a member read off a destructured style prop', () => {
+  writeProject({
+    'App.tsx': `import * as css from '@plumeria/core';export const Card=({styles}:{styles:any})=><div classStyle={styles.a}/>;export const App=()=> <Card styles={{}}/>;`,
+  });
+  expect(() => compile()).toThrow(/Dynamic or unresolvable style object/);
+});
+
+it('keeps a spread in a component prop array of plain data', () => {
+  writeProject({
+    'App.tsx':
+      spreadPrefix +
+      `const posts=[{text:'a',url:'/a'}];export const App=()=> <Nav items={[...posts, {text:'b',url:'/b'}]} classStyle={s.a}/>;`,
+  });
+  expect(compile()).toContain('color: red');
+});
