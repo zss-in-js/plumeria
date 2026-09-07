@@ -2563,6 +2563,7 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
           let hasVars = false;
           for (const el of expr.elements) {
             if (el && el.expression) {
+              if (el.spread) return null;
               const res = resolveCallStylePropInScan(el.expression);
               if (!res) continue;
               mergedStyle = deepMerge(mergedStyle, res.styleObj);
@@ -2767,6 +2768,10 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
           const alternatives = propAlternatives(node);
           if (!alternatives) {
             if (!containsStyleReference(node)) return;
+            if (node.elements.some((element) => element?.spread))
+              throw new Error(
+                '[plumeria] Spread elements in a style array are not supported. List each style explicitly.',
+              );
             throw new Error(
               '[plumeria] A style prop array contains an unsupported style expression. Use defined styles, null, false, undefined, or conditional branches of defined styles.',
             );
