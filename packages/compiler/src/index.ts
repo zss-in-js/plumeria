@@ -6,7 +6,6 @@ import type {
   CallExpression,
   MemberExpression,
   Identifier,
-  ExprOrSpread,
   VariableDeclarator,
   FunctionDeclaration,
   HasSpan,
@@ -16,6 +15,7 @@ import {
   type CSSProperties,
   genBase36Hash,
   camelToKebabCase,
+  isAtRule,
 } from 'zss-engine';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -27,6 +27,7 @@ import {
   collectLocalConsts,
   objectExpressionToObject,
   t,
+  unwrapExpression,
   getRootIdentifier,
   extractOndemandStyles,
   deepMerge,
@@ -99,6 +100,54 @@ const componentFunctionOf = (
   return undefined;
 };
 
+const unwrapPatternDefault = (pattern: any): any =>
+  pattern?.type === 'AssignmentPattern' ? pattern.left : pattern;
+
+type LocalStyleAlias = { expression: Expression; context: number };
+
+const resolveLocalStyleAlias = (
+  aliases: Record<string, LocalStyleAlias[]>,
+  expression: Expression,
+): Expression => {
+  let current = expression;
+  const seen = new Set<string>();
+  while (t.isIdentifier(current)) {
+    const name = current.value;
+    if (seen.has(name)) break;
+    seen.add(name);
+    const candidates = aliases[name];
+    if (!candidates || candidates.length === 0) break;
+    const candidate = candidates.find(
+      (candidate) =>
+        candidate.context === (current as Identifier & { ctxt: number }).ctxt,
+    );
+    if (!candidate) break;
+    current = candidate.expression;
+  }
+  return current;
+};
+
+const destructuredPropAliases = (fn: { params: unknown[] }) => {
+  const aliases = new Map<string, string>();
+  const first = fn.params[0] as any;
+  const pattern = unwrapPatternDefault(first?.pat ?? first);
+  if (pattern?.type !== 'ObjectPattern') return aliases;
+  for (const item of pattern.properties ?? []) {
+    if (
+      item.type !== 'KeyValuePatternProperty' &&
+      item.type !== 'AssignmentPatternProperty'
+    )
+      continue;
+    const key = item.key;
+    const local = unwrapPatternDefault(item.value) ?? key;
+    if (!t.isIdentifier(local)) continue;
+    if (!t.isIdentifier(key) && !t.isStringLiteral(key)) continue;
+    const name = String(key.value);
+    if (name !== local.value) aliases.set(local.value, name);
+  }
+  return aliases;
+};
+
 // A named argument folds into the style only when its value is written out in
 // full. Anything the parser can only read in part -- a template literal with an
 // interpolation, an expression -- has to reach the element as a custom property
@@ -139,7 +188,7 @@ interface TraversalContext {
   >;
   sourceBuffer: Buffer;
   baseByteOffset: number;
-  localStyleAliases?: Record<string, Expression>;
+  localStyleAliases?: Record<string, LocalStyleAlias[]>;
 }
 
 const dynamicTablesOf = (ctx: TraversalContext): DynamicStyleTables => ({
@@ -158,12 +207,9 @@ function extractStylesFromExpression(
   ctx: TraversalContext,
 ): CSSObject[] {
   let expr = expression;
-  if (
-    ctx.localStyleAliases &&
-    t.isIdentifier(expr) &&
-    ctx.localStyleAliases[expr.value]
-  ) {
-    expr = ctx.localStyleAliases[expr.value];
+  expr = unwrapExpression(expr);
+  if (ctx.localStyleAliases) {
+    expr = resolveLocalStyleAlias(ctx.localStyleAliases, expr);
   }
 
   const results: CSSObject[] = [];
@@ -229,6 +275,11 @@ function extractStylesFromExpression(
         if (objectFromTable) results.push(objectFromTable as CSSObject);
       }
     }
+  } else if (expr.type === 'ArrayExpression') {
+    for (const element of expr.elements ?? []) {
+      if (!element || element.spread) continue;
+      results.push(...extractStylesFromExpression(element.expression, ctx));
+    }
   } else if (t.isConditionalExpression(expr)) {
     const condExpr = expr;
     results.push(...extractStylesFromExpression(condExpr.consequent, ctx));
@@ -267,7 +318,7 @@ export function compileCSS(options: CompilerOptions) {
     sort: true,
   });
 
-  const scannedTables = scanAll();
+  const scannedTables = scanAll(cwd);
 
   const processFile = (filePath: string): string[] => {
     const resourcePath = path.resolve(cwd, filePath);
@@ -304,7 +355,7 @@ export function compileCSS(options: CompilerOptions) {
       string,
       { actualPath: string; importedName: string }
     > = {};
-    const localStyleAliases: Record<string, Expression> = {};
+    const localStyleAliases: Record<string, LocalStyleAlias[]> = {};
 
     traverse(ast, {
       ImportDeclaration({ node }) {
@@ -484,16 +535,16 @@ export function compileCSS(options: CompilerOptions) {
 
     const componentParamNames = new Set<string>();
     const addFirstParamName = (fn: { params: unknown[] }) => {
-      const p = fn.params[0];
+      const first = fn.params[0] as any;
+      const p = unwrapPatternDefault(first?.pat ?? first);
       if (t.isIdentifier(p)) {
         componentParamNames.add(p.value);
-      } else if (
-        typeof p === 'object' &&
-        p !== null &&
-        'pat' in p &&
-        t.isIdentifier(p.pat)
-      ) {
-        componentParamNames.add(p.pat.value);
+      } else if (p?.type === 'ObjectPattern') {
+        for (const item of p.properties ?? []) {
+          const key = item.key;
+          const local = unwrapPatternDefault(item.value) ?? key;
+          if (t.isIdentifier(local)) componentParamNames.add(local.value);
+        }
       }
     };
     for (const node of ast.body) {
@@ -513,21 +564,49 @@ export function compileCSS(options: CompilerOptions) {
     }
 
     const components: Array<{ name: string; node: HasSpan }> = [];
+    const propAliases = new Map<string, Map<string, string>>();
+    const propDefaults = new Map<string, Map<string, Expression>>();
+    const declaredProps = new Map<string, Set<string>>();
+    const addComponent = (
+      name: string,
+      fn: HasSpan & { params: unknown[] },
+    ) => {
+      components.push({ name, node: fn });
+      const first = fn.params[0] as any;
+      const pattern = unwrapPatternDefault(first?.pat ?? first);
+      const defaults = new Map<string, Expression>();
+      for (const item of pattern?.properties ?? []) {
+        if (item.type === 'AssignmentPatternProperty' && item.value)
+          defaults.set(item.key.value, item.value);
+        if (
+          item.type === 'KeyValuePatternProperty' &&
+          item.value?.type === 'AssignmentPattern'
+        )
+          defaults.set(item.key.value, item.value.right);
+      }
+      propDefaults.set(name, defaults);
+      const aliases = destructuredPropAliases(fn);
+      if (aliases.size > 0) propAliases.set(name, aliases);
+      const declared = new Set<string>();
+      for (const item of pattern?.properties ?? []) {
+        const key = item.key;
+        if (t.isIdentifier(key) || t.isStringLiteral(key))
+          declared.add(String(key.value));
+      }
+      if (declared.size > 0) declaredProps.set(name, declared);
+    };
     for (const node of ast.body) {
       const statement = unwrapExport(node);
       if (isFunctionNode(statement)) {
-        components.push({
-          name: statement.identifier?.value ?? 'default',
-          node: statement,
-        });
+        addComponent(statement.identifier?.value ?? 'default', statement);
       } else if (statement?.type === 'CallExpression') {
         const fn = componentFunctionOf(statement);
-        if (fn) components.push({ name: 'default', node: fn });
+        if (fn) addComponent('default', fn);
       } else if (t.isVariableDeclaration(statement)) {
         for (const decl of statement.declarations) {
           if (!t.isIdentifier(decl.id)) continue;
           const fn = componentFunctionOf(decl.init);
-          if (fn) components.push({ name: decl.id.value, node: fn });
+          if (fn) addComponent(decl.id.value, fn);
         }
       }
     }
@@ -549,12 +628,10 @@ export function compileCSS(options: CompilerOptions) {
       args: Array<{ expression: Expression }>,
     ) => {
       args.forEach((arg) => {
-        if (
-          t.isIdentifier(arg.expression) &&
-          localStyleAliases[arg.expression.value]
-        ) {
-          arg.expression = localStyleAliases[arg.expression.value];
-        }
+        arg.expression = resolveLocalStyleAlias(
+          localStyleAliases,
+          arg.expression,
+        );
       });
 
       const conditionals: Array<{
@@ -568,6 +645,20 @@ export function compileCSS(options: CompilerOptions) {
       let baseStyle: CSSObject = {};
 
       const resolveStyleObject = (expr: Expression): CSSObject | null => {
+        expr = resolveLocalStyleAlias(
+          localStyleAliases,
+          unwrapExpression(expr),
+        );
+        if (expr.type === 'ArrayExpression') {
+          let merged: CSSObject = {};
+          for (const element of expr.elements ?? []) {
+            if (!element || element.spread) continue;
+            const style = resolveStyleObject(element.expression);
+            if (!style) return null;
+            merged = deepMerge(merged, style) as CSSObject;
+          }
+          return merged;
+        }
         if (t.isObjectExpression(expr)) {
           return objectExpressionToObject(
             expr,
@@ -713,7 +804,29 @@ export function compileCSS(options: CompilerOptions) {
         if (callArgs.some((a) => a.spread)) return null;
 
         const tempStaticTable = { ...ctx.mergedStaticTable };
+        const providedParams = new Set<string>();
         const runtime: string[] = [];
+        const resolveObjectArg = (argExpr: ObjectExpression) =>
+          objectExpressionToObject(
+            {
+              ...argExpr,
+              properties: argExpr.properties.filter(
+                (prop) =>
+                  prop.type === 'Identifier' ||
+                  (prop.type === 'KeyValueProperty' &&
+                    isStaticArgValue(prop.value)),
+              ),
+            },
+            ctx.mergedStaticTable,
+            ctx.mergedKeyframesTable,
+            ctx.mergedViewTransitionTable,
+            ctx.mergedCreateThemeHashTable,
+            ctx.scannedTables.createThemeObjectTable,
+            ctx.mergedCreateTable,
+            ctx.mergedCreateStaticHashTable,
+            ctx.scannedTables.createStaticObjectTable,
+            ctx.mergedVariantsTable,
+          );
 
         if (func.named) {
           const argExpr = callArgs[0]?.expression;
@@ -739,20 +852,9 @@ export function compileCSS(options: CompilerOptions) {
             }
           });
 
-          const argObj = !argExpr
-            ? {}
-            : (objectExpressionToObject(
-                argExpr as ObjectExpression,
-                ctx.mergedStaticTable,
-                ctx.mergedKeyframesTable,
-                ctx.mergedViewTransitionTable,
-                ctx.mergedCreateThemeHashTable,
-                ctx.scannedTables.createThemeObjectTable,
-                ctx.mergedCreateTable,
-                ctx.mergedCreateStaticHashTable,
-                ctx.scannedTables.createStaticObjectTable,
-                ctx.mergedVariantsTable,
-              ) ?? {});
+          const argObj = argExpr
+            ? (resolveObjectArg(argExpr as ObjectExpression) ?? {})
+            : {};
 
           func.named.forEach(({ key, local }) => {
             const source = given.get(key);
@@ -762,28 +864,21 @@ export function compileCSS(options: CompilerOptions) {
                 `[plumeria] ${getSource(expr)} leaves "${key}" unset, and a dynamic style function has no value to fall back on.\n`,
               );
             }
-            if (isStaticArgValue(source) && argObj[key] !== undefined)
+            if (isStaticArgValue(source) && argObj[key] !== undefined) {
               tempStaticTable[local] = argObj[key];
-            else runtime.push(local);
+              providedParams.add(local);
+            } else runtime.push(local);
           });
         } else if (
           callArgs.length === 1 &&
           callArgs[0].expression.type === 'ObjectExpression'
         ) {
-          const argObj = objectExpressionToObject(
-            callArgs[0].expression,
-            ctx.mergedStaticTable,
-            ctx.mergedKeyframesTable,
-            ctx.mergedViewTransitionTable,
-            ctx.mergedCreateThemeHashTable,
-            ctx.scannedTables.createThemeObjectTable,
-            ctx.mergedCreateTable,
-            ctx.mergedCreateStaticHashTable,
-            ctx.scannedTables.createStaticObjectTable,
-            ctx.mergedVariantsTable,
-          );
+          const argObj = resolveObjectArg(callArgs[0].expression) ?? {};
           func.params.forEach((p) => {
-            if (argObj[p] !== undefined) tempStaticTable[p] = argObj[p];
+            if (argObj[p] !== undefined) {
+              tempStaticTable[p] = argObj[p];
+              providedParams.add(p);
+            }
           });
         } else {
           callArgs.forEach((_callArg: any, i: number) => {
@@ -798,6 +893,7 @@ export function compileCSS(options: CompilerOptions) {
           runtime,
           tempStaticTable,
           dynamicTablesOf(ctx),
+          providedParams,
         );
         if (!resolved) return null;
         const { style } = resolved;
@@ -805,10 +901,89 @@ export function compileCSS(options: CompilerOptions) {
         return style;
       };
 
+      const collectPropStyles = (expr: Expression): boolean => {
+        const isParamMember =
+          t.isMemberExpression(expr) &&
+          t.isIdentifier(expr.object) &&
+          componentParamNames.has(expr.object.value) &&
+          t.isIdentifier(expr.property);
+        if (!t.isIdentifier(expr) && !isParamMember) return false;
+        const paramObject = isParamMember
+          ? ((expr as MemberExpression).object as Identifier).value
+          : undefined;
+        const isPropsMember = Boolean(
+          paramObject &&
+          ctx.localCreateStyles[paramObject] === undefined &&
+          ctx.mergedCreateTable[paramObject] === undefined,
+        );
+
+        const varName = t.isIdentifier(expr)
+          ? expr.value
+          : (expr.property as Identifier).value;
+        const owner = ownerComponentOf(expr as HasSpan);
+        const propName =
+          (t.isIdentifier(expr) && owner
+            ? propAliases.get(owner)?.get(varName)
+            : undefined) ?? varName;
+        const possibilities: any[] = [];
+        if (owner) {
+          const entries =
+            ctx.scannedTables.componentPropsTable?.[
+              `${resourcePath}-${owner}`
+            ]?.[propName];
+          if (entries) possibilities.push(...entries);
+        }
+        if (possibilities.length === 0) {
+          const filePrefix = `${resourcePath}-`;
+          for (const key of Object.keys(
+            ctx.scannedTables.componentPropsTable || {},
+          )) {
+            if (!key.startsWith(filePrefix)) continue;
+            const entries =
+              ctx.scannedTables.componentPropsTable?.[key]?.[propName];
+            if (entries) possibilities.push(...entries);
+          }
+        }
+        const fallback = owner && propDefaults.get(owner)?.get(propName);
+        if (fallback) collectConditions(fallback);
+        if (possibilities.length > 0) {
+          const uniqueEntries: any[] = [];
+          possibilities.forEach((entry) => {
+            if (!uniqueEntries.some((x) => x.key === entry.key)) {
+              uniqueEntries.push(entry);
+            }
+          });
+          uniqueEntries.forEach((entry) => {
+            if (entry.styleObj && Object.keys(entry.styleObj).length > 0) {
+              processStyle(entry.styleObj);
+            }
+          });
+          return true;
+        }
+        if (fallback) return true;
+        return Boolean(
+          isPropsMember || (owner && declaredProps.get(owner)?.has(propName)),
+        );
+      };
+
       const collectConditions = (
         node: Expression,
         currentTestStrings: string[] = [],
       ): boolean => {
+        node = resolveLocalStyleAlias(
+          localStyleAliases,
+          unwrapExpression(node),
+        );
+        if (node.type === 'ArrayExpression') {
+          let handled = true;
+          for (const element of node.elements ?? []) {
+            if (!element || element.spread) continue;
+            handled =
+              collectConditions(element.expression, currentTestStrings) &&
+              handled;
+          }
+          return handled;
+        }
         if (node.type === 'ConditionalExpression') {
           const testSource = getSource(node.test);
           if (currentTestStrings.length === 0) {
@@ -843,6 +1018,8 @@ export function compileCSS(options: CompilerOptions) {
         } else if (node.type === 'ParenthesisExpression') {
           return collectConditions(node.expression, currentTestStrings);
         }
+
+        if (collectPropStyles(node)) return true;
 
         const staticStyle =
           resolveStyleObject(node) ?? resolveDynamicCall(node);
@@ -886,54 +1063,7 @@ export function compileCSS(options: CompilerOptions) {
       for (const arg of args) {
         const expr = arg.expression;
 
-        if (
-          t.isIdentifier(expr) ||
-          (t.isMemberExpression(expr) &&
-            t.isIdentifier(expr.object) &&
-            componentParamNames.has(expr.object.value) &&
-            t.isIdentifier(expr.property))
-        ) {
-          const varName = t.isIdentifier(expr)
-            ? expr.value
-            : (expr.property as Identifier).value;
-
-          const owner = ownerComponentOf(expr as HasSpan);
-          const propPossibilities: any[] = [];
-          if (owner) {
-            const entries =
-              ctx.scannedTables.componentPropsTable?.[
-                `${resourcePath}-${owner}`
-              ]?.[varName];
-            if (entries) propPossibilities.push(...entries);
-          }
-          if (propPossibilities.length === 0) {
-            const filePrefix = `${resourcePath}-`;
-            for (const key of Object.keys(
-              ctx.scannedTables.componentPropsTable || {},
-            )) {
-              if (!key.startsWith(filePrefix)) continue;
-              const entries =
-                ctx.scannedTables.componentPropsTable?.[key]?.[varName];
-              if (entries) propPossibilities.push(...entries);
-            }
-          }
-
-          if (propPossibilities.length > 0) {
-            const uniqueEntries: any[] = [];
-            propPossibilities.forEach((entry) => {
-              if (!uniqueEntries.some((x) => x.key === entry.key)) {
-                uniqueEntries.push(entry);
-              }
-            });
-
-            uniqueEntries.forEach((entry) => {
-              if (entry.styleObj && Object.keys(entry.styleObj).length > 0) {
-                processStyle(entry.styleObj);
-              }
-            });
-            continue;
-          }
-        }
+        if (collectPropStyles(expr)) continue;
 
         const dynamicStyle = resolveDynamicCall(expr);
         if (dynamicStyle) {
@@ -1043,6 +1173,12 @@ export function compileCSS(options: CompilerOptions) {
                 `Pass a string literal such as ".dark", or a name this file declares as one. (${path.basename(resourcePath)})`,
             );
           }
+          if (selector.startsWith('@') && !isAtRule(selector)) {
+            throw new Error(
+              `[plumeria] Unsupported at-rule: "${selector}". createTheme only supports ` +
+                `nesting at-rules such as @media, @container, @supports, @layer, and @scope. (${path.basename(resourcePath)})`,
+            );
+          }
           const obj = objectExpressionToObject(
             args[1].expression as ObjectExpression,
             ctx.mergedStaticTable,
@@ -1094,7 +1230,7 @@ export function compileCSS(options: CompilerOptions) {
     traverse(ast, {
       VariableDeclarator({ node }: { node: VariableDeclarator }) {
         if (t.isIdentifier(node.id) && node.init) {
-          const init = node.init;
+          const init = unwrapExpression(node.init);
           if (t.isCallExpression(init)) {
             const callee = init.callee;
             let pName: string | undefined;
@@ -1114,19 +1250,23 @@ export function compileCSS(options: CompilerOptions) {
             }
 
             const isTheme = pName === 'createTheme';
+            const definitionArg =
+              pName === 'createTheme'
+                ? init.arguments[1]?.expression
+                : init.arguments[0]?.expression;
+            const unwrappedDefinitionArg = definitionArg
+              ? unwrapExpression(definitionArg)
+              : undefined;
             if (
               pName &&
-              init.arguments.length > 0 &&
-              ((!isTheme &&
-                init.arguments.length === 1 &&
-                t.isObjectExpression(init.arguments[0].expression)) ||
-                (isTheme &&
-                  init.arguments.length >= 2 &&
-                  t.isObjectExpression(init.arguments[1].expression)))
+              unwrappedDefinitionArg &&
+              t.isObjectExpression(unwrappedDefinitionArg) &&
+              ((!isTheme && init.arguments.length === 1) ||
+                (isTheme && init.arguments.length >= 2))
             ) {
               const arg = isTheme
-                ? (init.arguments[1].expression as ObjectExpression)
-                : (init.arguments[0].expression as ObjectExpression);
+                ? (unwrappedDefinitionArg as ObjectExpression)
+                : (unwrappedDefinitionArg as ObjectExpression);
               const resolveVariable = (name: string) =>
                 ctx.localCreateStyles[name]?.obj ||
                 (ctx.mergedCreateThemeHashTable[name]
@@ -1171,6 +1311,12 @@ export function compileCSS(options: CompilerOptions) {
                   throw new Error(
                     `[plumeria] createTheme needs a selector it can read at build time. ` +
                       `Pass a string literal such as ".dark", or a name this file declares as one. (${path.basename(resourcePath)})`,
+                  );
+                }
+                if (selector.startsWith('@') && !isAtRule(selector)) {
+                  throw new Error(
+                    `[plumeria] Unsupported at-rule: "${selector}". createTheme only supports ` +
+                      `nesting at-rules such as @media, @container, @supports, @layer, and @scope. (${path.basename(resourcePath)})`,
                   );
                 }
                 const obj = objectExpressionToObject(
@@ -1238,7 +1384,10 @@ export function compileCSS(options: CompilerOptions) {
               ctx.localCreateStyles[objName] !== undefined ||
               ctx.mergedCreateTable[objName] !== undefined
             ) {
-              localStyleAliases[node.id.value] = init;
+              (localStyleAliases[node.id.value] ??= []).push({
+                expression: init,
+                context: (node.id as Identifier & { ctxt: number }).ctxt,
+              });
             }
           }
         }
@@ -1276,9 +1425,7 @@ export function compileCSS(options: CompilerOptions) {
           if (value.expression.type === 'JSXEmptyExpression') return;
 
           let expr: Expression = value.expression;
-          if (t.isIdentifier(expr) && localStyleAliases[expr.value]) {
-            expr = localStyleAliases[expr.value];
-          }
+          expr = resolveLocalStyleAlias(localStyleAliases, expr);
           extractStylesFromExpression(expr, ctx).forEach(processStyle);
         });
       },
@@ -1290,12 +1437,19 @@ export function compileCSS(options: CompilerOptions) {
         if (node.value.expression.type === 'JSXEmptyExpression') return;
 
         const expr = node.value.expression;
-        const args =
-          expr.type === 'ArrayExpression'
-            ? expr.elements
-                .filter((el: ExprOrSpread) => el !== undefined)
-                .map((el: ExprOrSpread) => ({ expression: el.expression }))
-            : [{ expression: expr }];
+        const args: Array<{ expression: Expression }> = [];
+        const addArgs = (node: Expression) => {
+          node = unwrapExpression(node);
+          if (node.type === 'ArrayExpression') {
+            for (const element of node.elements ?? []) {
+              if (!element || element.spread) continue;
+              addArgs(element.expression);
+            }
+          } else {
+            args.push({ expression: node });
+          }
+        };
+        addArgs(expr);
 
         extractAndProcessConditionals(args);
       },
