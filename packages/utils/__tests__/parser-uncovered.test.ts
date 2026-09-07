@@ -96,3 +96,12 @@ it('handles a file removed between globbing and stat', () => {
     expect(() => scanAll(directory)).not.toThrow();
   });
 });
+
+it('reports a spread element in a style prop array', () => {
+  const result = scan(
+    prefix + `export const App=()=> <Card boxStyle={[s.a, ...[s.a]]}/>;`,
+  );
+  expect(result.error?.message).toMatch(
+    /Spread elements in a style array are not supported/,
+  );
+});
