@@ -3,7 +3,7 @@ import type { ImportSpecifier, CallExpression } from 'estree';
 import { JSXAttribute } from 'estree-jsx';
 import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
 
-type PlumeriaMethod = 'use' | 'variants';
+type PlumeriaMethod = 'use';
 
 function isPlumeriaMemberCall(
   node: CallExpression,
@@ -39,8 +39,6 @@ export const noInlineObject: Rule.RuleModule = {
         'Do not pass inline objects to "{{prop}}". It only accepts compiled styles from css.create().',
       noInlineObjectInCssUse:
         'Do not pass inline objects to css.use(). It only accepts compiled styles from css.create().',
-      noInlineObjectInCssVariants:
-        'Do not pass inline objects to css.variants(). It only accepts compiled styles from css.create().',
     },
     schema: stylePropSchema,
   },
@@ -109,25 +107,6 @@ export const noInlineObject: Rule.RuleModule = {
                 messageId: 'noInlineObjectInCssUse',
               });
             }
-          });
-        }
-
-        if (isPlumeriaMemberCall(callNode, plumeriaAliases, 'variants')) {
-          const config = callNode.arguments[0];
-          if (config?.type !== 'ObjectExpression') return;
-
-          config.properties.forEach((prop) => {
-            if (prop.type !== 'Property') return;
-            if (prop.value.type !== 'ObjectExpression') return;
-            prop.value.properties.forEach((nested) => {
-              if (nested.type !== 'Property') return;
-              if (nested.value.type === 'ObjectExpression') {
-                context.report({
-                  node: nested.value as Rule.Node,
-                  messageId: 'noInlineObjectInCssVariants',
-                });
-              }
-            });
           });
         }
       },
