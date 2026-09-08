@@ -497,6 +497,8 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
         t.isBooleanLiteral(init)
       ) {
         result = init.value;
+      } else if (t.isIdentifier(init)) {
+        result = resolveValue(init.value);
       } else if (t.isObjectExpression(init)) {
         result = objectExpressionToObject(
           init,
