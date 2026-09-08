@@ -27,7 +27,6 @@ const parseObject = (source: string, constants = '') => {
     {},
     {},
     {},
-    {},
   );
 };
 
@@ -330,7 +329,6 @@ it('keeps const-based defaults in generated dynamic CSS', () => {
       createHashTable: {},
       createStaticHashTable: {},
       createStaticObjectTable: {},
-      variantsHashTable: {},
     },
   );
   expect(result?.style.padding).toMatch(/,\s*8px\)/);
