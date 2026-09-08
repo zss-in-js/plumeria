@@ -10,6 +10,15 @@ const settings = {
 ruleTester.run('no-inner-call', noInnerCall, {
   valid: [
     {
+      code: "import { variants as legacy } from '@plumeria/core'; function f() { legacy({}); }",
+    },
+
+    // Retired APIs are outside this rule; do not suggest using them differently.
+    {
+      code: `import * as css from '@plumeria/core'; const func = function() { css.variants(); };`,
+    },
+
+    {
       code: `import * as css from '@plumeria/core'; css.create();`,
       settings,
     },
@@ -108,11 +117,6 @@ ruleTester.run('no-inner-call', noInnerCall, {
     {
       code: `import * as css from '@plumeria/core'; const func = function() { css.create(); };`,
       errors: [{ message: 'Do not use css.create inside functions' }],
-      settings,
-    },
-    {
-      code: `import * as css from '@plumeria/core'; const func = function() { css.variants(); };`,
-      errors: [{ message: 'Do not use css.variants inside functions' }],
       settings,
     },
   ],
