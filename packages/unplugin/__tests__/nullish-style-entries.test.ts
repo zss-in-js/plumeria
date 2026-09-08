@@ -59,11 +59,12 @@ describe('unplugin: an entry that contributes nothing', () => {
     expect(out).toContain('keep');
   });
 
-  it('preserves className when the style expression cannot be optimized', async () => {
-    const out = await run(
-      `export const A = () => <div className="keep" classStyle={s.p1 || s.p3} />;`,
-    );
-    expect(out).toMatch(/className=(?:"keep"|\{"keep"\})/);
+  it('rejects an unresolved style expression even with an existing className', async () => {
+    await expect(
+      run(
+        `export const A = () => <div className="keep" classStyle={s.p1 || s.p3} />;`,
+      ),
+    ).rejects.toThrow('unresolvable style object');
   });
 
   // `use` reads the same argument list as the styling prop.
