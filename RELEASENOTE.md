@@ -1,5 +1,13 @@
 # Release Notes
 
+## 18.5.3 (Sep 8, 2026)
+
+- Fix: align style transformation, scope checks, preserved JSX references, and compilation errors with the Turbopack loader.
+
+- Refactor: remove the legacy css.variants tables, which the bracket notation on css.create replaces.
+
+- Fix: stop applying legacy css.variants checks in no-inline-object, no-combinator, no-inner-call, and no-destructure while preserving current API diagnostics.
+
 ## 18.5.2 (Sep 8, 2026)
 
 - Fix: read a renamed style prop only from a renaming pattern, so a plain default value no longer stands in for the prop name.
