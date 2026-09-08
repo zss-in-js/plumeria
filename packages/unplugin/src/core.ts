@@ -68,7 +68,6 @@ import type {
   KeyframesHashTable,
   ViewTransitionHashTable,
   CreateHashTable,
-  VariantsHashTable,
   CreateThemeHashTable,
   CreateStaticHashTable,
   CSSObject,
@@ -377,10 +376,10 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           const rootId = getRootIdentifier(node);
           const isPlumeriaStyle =
             rootId &&
+            isVisibleReference(node as Expression) &&
             ((localCreateStyles[rootId] !== undefined &&
               localCreateStyles[rootId].type !== 'constant') ||
-              mergedCreateTable[rootId] !== undefined ||
-              mergedVariantsTable[rootId] !== undefined);
+              mergedCreateTable[rootId] !== undefined);
           if (!isPlumeriaStyle) {
             const origin = rootId ? localImports[rootId] : undefined;
             const failure = origin
@@ -399,6 +398,10 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         }
       };
 
+      const scannedTables = scanAll();
+      const ownFailure = resolveFileError(baseId, '');
+      if (ownFailure) throwCompilationError(`Plumeria: ${ownFailure.message}`);
+
       for (const node of ast.body) {
         if (node.type === 'ImportDeclaration') {
           const sourcePath = node.source.value;
@@ -412,8 +415,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           }
         }
       }
-
-      const scannedTables = scanAll();
 
       // Reverse edges child -> parents: this file's compiled lookup map
       // depends on prop entries discovered while scanning the parents that
@@ -519,14 +520,13 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
       const resourcePath = id;
       const localConsts = collectLocalConsts(ast);
-      const importMap: Record<string, any> = {};
+      const importMap: StaticTable = {};
       const keyframesImportMap: KeyframesHashTable = {};
       const viewTransitionImportMap: ViewTransitionHashTable = {};
       const createImportMap: CreateHashTable = {};
       const createFunctionImportMap: Record<string, StyleFunctions> = {};
-      const variantsImportMap: VariantsHashTable = {};
-      const createThemeImportMap: Record<string, any> = {};
-      const createStaticImportMap: Record<string, any> = {};
+      const createThemeImportMap: CreateThemeHashTable = {};
+      const createStaticImportMap: CreateStaticHashTable = {};
       const plumeriaAliases: Record<string, string> = {};
       const localImports: Record<
         string,
@@ -604,10 +604,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                     scannedTables.createFunctionTable[uniqueKey],
                   );
                 }
-                if (scannedTables.variantsHashTable[uniqueKey]) {
-                  variantsImportMap[localName] =
-                    scannedTables.variantsHashTable[uniqueKey];
-                }
                 if (scannedTables.createThemeHashTable[uniqueKey]) {
                   createThemeImportMap[localName] =
                     scannedTables.createThemeHashTable[uniqueKey];
@@ -671,18 +667,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         mergedCreateTable[key] = createImportMap[key];
       }
 
-      const mergedVariantsTable: VariantsHashTable = {};
-      for (const key of Object.keys(scannedTables.variantsHashTable)) {
-        mergedVariantsTable[key] = scannedTables.variantsHashTable[key];
-        if (key.startsWith(`${resourcePath}-`)) {
-          const varName = key.slice(resourcePath.length + 1);
-          mergedVariantsTable[varName] = scannedTables.variantsHashTable[key];
-        }
-      }
-      for (const key of Object.keys(variantsImportMap)) {
-        mergedVariantsTable[key] = variantsImportMap[key];
-      }
-
       const mergedCreateThemeHashTable: CreateThemeHashTable = {};
       for (const key of Object.keys(scannedTables.createThemeHashTable)) {
         mergedCreateThemeHashTable[key] =
@@ -719,7 +703,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         createHashTable: mergedCreateTable,
         createStaticHashTable: mergedCreateStaticHashTable,
         createStaticObjectTable: scannedTables.createStaticObjectTable,
-        variantsHashTable: mergedVariantsTable,
       };
 
       const localCreateStyles: Record<string, CreateStyleValue> = {};
@@ -748,8 +731,38 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         content: string;
       }> = [];
 
+      const deferredSources: Array<{
+        token: string;
+        start: number;
+        end: number;
+        stripObject: boolean;
+      }> = [];
+      const deferSource = (node: HasSpan, stripObject = false): string => {
+        const token = `__plumeria_preserved_${deferredSources.length}__`;
+        deferredSources.push({
+          token,
+          start: node.span.start - baseByteOffset,
+          end: node.span.end - baseByteOffset,
+          stripObject,
+        });
+        return token;
+      };
+
       const dynamicFnCalls: CallExpression[] = [];
       const processedDecls = new Set<VariableDeclaration>();
+      const separatelyExported = new Set<string>();
+      for (const statement of ast.body) {
+        if (statement.type !== 'ExportNamedDeclaration' || statement.source)
+          continue;
+        for (const specifier of statement.specifiers) {
+          if (
+            specifier.type === 'ExportSpecifier' &&
+            t.isIdentifier(specifier.orig)
+          ) {
+            separatelyExported.add(specifier.orig.value);
+          }
+        }
+      }
       const idSpans = new Set<number>();
       const excludedSpans = new Set<number>();
       const referenceIdents = collectReferenceIdentifiers(ast);
@@ -871,7 +884,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
-              mergedVariantsTable,
             );
 
             if (obj) {
@@ -953,7 +965,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
-              mergedVariantsTable,
             );
 
             const hash = themeHashOf(selector, obj);
@@ -1012,7 +1023,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
-              mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
             if (t.isIdentifier(node.id)) {
@@ -1100,7 +1110,13 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         VariableDeclaration({ node }: { node: VariableDeclaration }) {
           if (processedDecls.has(node)) return;
           node.declarations.forEach((decl) => {
-            registerStyle(decl, node.span, false);
+            registerStyle(
+              decl,
+              node.span,
+              node.declarations.length > 1 ||
+                (t.isIdentifier(decl.id) &&
+                  separatelyExported.has(decl.id.value)),
+            );
             checkStyleAliasAssignment(decl);
           });
         },
@@ -1154,7 +1170,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                   mergedCreateTable,
                   mergedCreateStaticHashTable,
                   scannedTables.createStaticObjectTable,
-                  mergedVariantsTable,
                 );
                 const hash = genBase36Hash(obj, 1, 8);
                 scannedTables.keyframesObjectTable[hash] = obj;
@@ -1179,7 +1194,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 mergedCreateTable,
                 mergedCreateStaticHashTable,
                 scannedTables.createStaticObjectTable,
-                mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
               scannedTables.viewTransitionObjectTable[hash] = obj;
@@ -1225,7 +1239,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 mergedCreateTable,
                 mergedCreateStaticHashTable,
                 scannedTables.createStaticObjectTable,
-                mergedVariantsTable,
               );
               const hash = themeHashOf(selector, obj);
               scannedTables.createThemeObjectTable[hash] = obj;
@@ -1247,7 +1260,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 mergedCreateTable,
                 mergedCreateStaticHashTable,
                 scannedTables.createStaticObjectTable,
-                mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
               scannedTables.createStaticObjectTable[hash] = obj;
@@ -1266,7 +1278,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 mergedCreateTable,
                 mergedCreateStaticHashTable,
                 scannedTables.createStaticObjectTable,
-                mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
               scannedTables.createObjectTable[hash] = obj;
@@ -1324,9 +1335,23 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         return sourceBuffer.subarray(start, end).toString('utf-8');
       };
 
+      const isVisibleReference = (expr: Expression): boolean => {
+        if (t.isIdentifier(expr))
+          return referenceIdents.references.has(expr.span.start);
+        if (t.isMemberExpression(expr)) return isVisibleReference(expr.object);
+        if (
+          t.isCallExpression(expr) &&
+          expr.callee.type !== 'Super' &&
+          expr.callee.type !== 'Import'
+        )
+          return isVisibleReference(expr.callee);
+        return true;
+      };
+
       const resolveStyleObject = (expr: Expression): CSSObject | null => {
         expr = unwrapExpression(expr);
         expr = resolveLocalStyleAlias(localStyleAliases, expr);
+        if (!isVisibleReference(expr)) return null;
         if (expr.type === 'ArrayExpression') {
           let merged: CSSObject = {};
           for (const element of expr.elements ?? []) {
@@ -1353,7 +1378,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
           );
         } else if (
           t.isMemberExpression(expr) &&
@@ -1392,8 +1416,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           }
           const styleInfo = localCreateStyles[varName];
           if (styleInfo?.obj) return styleInfo.obj;
-          const vHash = mergedVariantsTable[varName];
-          if (vHash) return scannedTables.variantsObjectTable[vHash];
         }
         return null;
       };
@@ -1435,10 +1457,10 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           );
       };
 
-      // A dynamic call reached through a component prop cannot fold a
-      // written-out argument into the rule: the file that only sees the prop
-      // has no way to read that value, so both sides have to agree that every
-      // parameter travels as a custom property.
+      // A dynamic call reached through a component prop cannot fold a written-out
+      // argument into the rule: the file that only sees the prop has no way to
+      // read that value, so both sides have to agree that every parameter travels
+      // as a custom property.
       const resolveDynamicCall = (
         expr: Expression,
         forceRuntime = false,
@@ -1449,6 +1471,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         if (!t.isIdentifier(callee.object) || !t.isIdentifier(callee.property))
           return null;
 
+        if (!isVisibleReference(callee.object)) return null;
         const styleInfo = localCreateStyles[callee.object.value];
         const func =
           styleInfo?.functions?.[callee.property.value] ??
@@ -1481,7 +1504,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
           );
 
         if (func.named) {
@@ -1659,6 +1681,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           ) {
             return null;
           }
+          if (!isVisibleReference(node.object)) return null;
           const varName = (node.object as Identifier).value;
           const obj = resolveCreateObject(varName);
           return obj
@@ -1806,6 +1829,21 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           node = unwrapExpression(node);
           node = resolveLocalStyleAlias(localStyleAliases, node);
           if (isNoOpStyle(node)) return true;
+          if (node.type === 'ArrayExpression') {
+            return node.elements.every((element) => {
+              if (!element) return true;
+              if (element.spread)
+                throwCompilationError(
+                  spreadStyleMessage(getSource(element.expression)),
+                  element.expression as HasSpan,
+                );
+              return collectConditions(
+                element.expression,
+                currentTestStrings,
+                argOrder,
+              );
+            });
+          }
           let branchStyle = resolveStyleObject(node);
           if (!branchStyle) {
             const dynamic = resolveDynamicCall(node);
@@ -1864,27 +1902,26 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
                 return true;
               }
             }
-            collectConditions(
+            const consequentHandled = collectConditions(
               node.consequent,
               [...currentTestStrings, `(${testSource})`],
               argOrder,
             );
-            collectConditions(
+            const alternateHandled = collectConditions(
               node.alternate,
               [...currentTestStrings, `!(${testSource})`],
               argOrder,
             );
-            return true;
+            return consequentHandled && alternateHandled;
           } else if (
             node.type === 'BinaryExpression' &&
             node.operator === '&&'
           ) {
-            collectConditions(
+            return collectConditions(
               node.right,
               [...currentTestStrings, `(${getSource(node.left)})`],
               argOrder,
             );
-            return true;
           } else if (node.type === 'ParenthesisExpression') {
             return collectConditions(
               node.expression,
@@ -1987,8 +2024,8 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           }
 
           // A style that reached the prop with values beside it arrives as a
-          // pair. The key still picks the rule; the values have to be spread
-          // on the element, which only the styling prop has room for.
+          // pair. The key still picks the rule; the values have to be spread on
+          // the element, which only the styling prop has room for.
           const carriesVars = possibilities.some((entry) => entry.hasVars);
           if (carriesVars && !isStyleProp) {
             throwCompilationError(
@@ -2045,14 +2082,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
           if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
             const varName = expr.callee.value;
-            const uniqueKey = `${resourcePath}-${varName}`;
             let variantObj: CSSObject | undefined;
 
-            let hash = scannedTables.variantsHashTable[uniqueKey];
-            if (!hash) hash = mergedVariantsTable[varName];
-            if (hash && scannedTables.variantsObjectTable[hash])
-              variantObj = scannedTables.variantsObjectTable[hash];
-            if (!variantObj && localCreateStyles[varName]?.obj)
+            if (isVisibleReference(expr) && localCreateStyles[varName]?.obj)
               variantObj = localCreateStyles[varName].obj;
 
             if (variantObj) {
@@ -2169,14 +2201,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             }
           } else if (t.isIdentifier(expr)) {
             const varName = expr.value;
-            const uniqueKey = `${resourcePath}-${varName}`;
             let variantObj: CSSObject | undefined;
 
-            let hash = scannedTables.variantsHashTable[uniqueKey];
-            if (!hash) hash = mergedVariantsTable[varName];
-            if (hash && scannedTables.variantsObjectTable[hash])
-              variantObj = scannedTables.variantsObjectTable[hash];
-            if (!variantObj && localCreateStyles[varName]?.obj)
+            if (isVisibleReference(expr) && localCreateStyles[varName]?.obj)
               variantObj = localCreateStyles[varName].obj;
 
             if (variantObj) {
@@ -2213,7 +2240,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             expr.property.type === 'Computed'
           ) {
             const varName = expr.object.value;
-            const styleObj = resolveCreateObject(varName);
+            const styleObj = isVisibleReference(expr)
+              ? resolveCreateObject(varName)
+              : null;
             if (styleObj) {
               const dynExpr = expr.property.expression;
               const dynSource = getSource(dynExpr);
@@ -2611,6 +2640,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           });
         },
         MemberExpression({ node }: { node: MemberExpression }) {
+          if (!isVisibleReference(node)) return;
           if (
             t.isIdentifier(node.object) &&
             (t.isIdentifier(node.property) || node.property.type === 'Computed')
@@ -2840,10 +2870,10 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               ) {
                 const expr = node.value.expression;
                 // The key alone names a rule the child already knows. What
-                // it cannot know is what the caller put in the variables, so
-                // the key travels with them under names no compiled style can
-                // answer to -- a Style array the scan could not read still
-                // reaches the same prop, and must not be read as a carrier.
+                // it cannot know is what the caller put in the variables, so the
+                // key travels with them under names no compiled style can answer
+                // to -- a Style array the scan could not read still reaches the
+                // same prop, and must not be read as a carrier.
                 const carrierFor = (
                   subNode: Expression,
                   calls?: Expression[],
@@ -2927,7 +2957,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           const args: Array<{ expression: Expression; order?: number }> =
             expr.type === 'ArrayExpression'
               ? expr.elements
-                  .filter((el) => el !== undefined)
+                  .filter((el) => el != null)
                   .map((el) => {
                     if (el.spread)
                       throwCompilationError(
@@ -2969,15 +2999,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             if (classNameAttr.value?.type === 'StringLiteral') {
               existingClassExpr = JSON.stringify(classNameAttr.value.value);
             } else if (classNameAttr.value?.type === 'JSXExpressionContainer') {
-              const start =
-                (classNameAttr.value.expression as HasSpan).span.start -
-                baseByteOffset;
-              const end =
-                (classNameAttr.value.expression as HasSpan).span.end -
-                baseByteOffset;
-              existingClassExpr = `(${sourceBuffer
-                .subarray(start, end)
-                .toString('utf-8')})`;
+              existingClassExpr = `(${deferSource(classNameAttr.value.expression as HasSpan)})`;
             }
           }
 
@@ -2998,17 +3020,12 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
             if (styleAttrExisting.value?.type === 'JSXExpressionContainer') {
               const innerExpr = styleAttrExisting.value?.expression;
-              const start = (innerExpr as HasSpan).span.start - baseByteOffset;
-              const end = (innerExpr as HasSpan).span.end - baseByteOffset;
-              const innerSource = sourceBuffer
-                .subarray(start, end)
-                .toString('utf-8');
 
               if (innerExpr.type === 'ObjectExpression') {
-                const stripped = innerSource.slice(1, -1).trim();
-                if (stripped) existingStyleParts.push(stripped);
+                if (innerExpr.properties.length > 0)
+                  existingStyleParts.push(deferSource(innerExpr, true));
               } else {
-                existingStyleExpr = `...(${innerSource})`;
+                existingStyleExpr = `...(${deferSource(innerExpr as HasSpan)})`;
               }
             }
           }
@@ -3020,6 +3037,13 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             dynamicVars,
             propVarSpreads,
           } = buildClassParts(args, dynamicClassParts, existingClassExpr, true);
+
+          if (!isOptimizable) {
+            throwCompilationError(
+              `Plumeria: Dynamic or unresolvable style object "${getSource(expr)}" is not supported.`,
+              expr as HasSpan,
+            );
+          }
 
           const styleParts = [
             ...existingStyleParts,
@@ -3198,6 +3222,32 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           );
         }
       });
+
+      for (const deferred of deferredSources) {
+        let cursor = deferred.start;
+        const pieces: string[] = [];
+        for (const replacement of [...replacements].sort(
+          (a, b) => a.start - b.start || b.end - a.end,
+        )) {
+          if (replacement.start < cursor || replacement.end > deferred.end)
+            continue;
+          pieces.push(
+            sourceBuffer.subarray(cursor, replacement.start).toString('utf-8'),
+            replacement.content,
+          );
+          cursor = replacement.end;
+        }
+        pieces.push(
+          sourceBuffer.subarray(cursor, deferred.end).toString('utf-8'),
+        );
+        let content = pieces.join('');
+        if (deferred.stripObject) content = content.slice(1, -1).trim();
+        for (const replacement of replacements)
+          replacement.content = replacement.content.replaceAll(
+            deferred.token,
+            content,
+          );
+      }
 
       // Apply replacements
       const buffer = Buffer.from(source);
