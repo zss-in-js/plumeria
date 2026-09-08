@@ -20,8 +20,6 @@ export type CreateThemeObjectTable = Record<string, CSSObject>; // { string: { v
 export type CreateHashTable = Record<string, string>; // varName -> hash
 export type CreateObjectTable = Record<string, CSSObject>; // hash -> { classStyle: { prop: value }, ... }
 export type CreateFunctionTable = Record<string, ObjectExpression>; // varName -> create argument holding function keys
-export type VariantsHashTable = Record<string, string>; // varName -> hash
-export type VariantsObjectTable = Record<string, CSSObject>; // hash -> Variant object
 export type CreateAtomicMapTable = Record<
   string,
   Record<string, Record<string, string>>
@@ -57,8 +55,6 @@ export interface Tables {
   createAtomicMapTable: CreateAtomicMapTable;
   createStaticHashTable: CreateStaticHashTable;
   createStaticObjectTable: CreateStaticObjectTable;
-  variantsHashTable: VariantsHashTable;
-  variantsObjectTable: VariantsObjectTable;
   componentPropsTable?: Record<string, Record<string, TableEntry[]>>;
 }
 
