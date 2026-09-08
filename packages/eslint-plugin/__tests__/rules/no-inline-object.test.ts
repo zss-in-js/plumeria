@@ -15,6 +15,24 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('no-inline-object', noInlineObject, {
   valid: [
+    {
+      code: "import * as css from '@plumeria/core'; css.variants({ size: { small: { color: 'red' } } });",
+    },
+    {
+      code: "import { variants as legacy } from '@plumeria/core'; legacy({ size: { small: { color: 'red' } } });",
+    },
+    {
+      code: "import * as css from '@plumeria/core'; const styles = css.create({ small: { color: 'red' }, large: { color: 'blue' } }); css.use(styles[size]);",
+    },
+    {
+      code: "import * as css from '@plumeria/core'; const styles = css.create({ small: { color: 'red' }, large: { color: 'blue' } }); <div classStyle={styles[size]} />;",
+    },
+
+    // Retired APIs are outside this rule; do not suggest using them differently.
+    {
+      code: "import { variants } from '@plumeria/core'; const getStyle = variants({ variant: { style: { color:'red' } } });",
+    },
+
     { code: '<div style={{ color: "red" }} />' },
     { code: '<div classStyle={styles.active} />' },
     { code: '<div classStyle={[styles.base, isActive && styles.active]} />' },
@@ -93,10 +111,6 @@ ruleTester.run('no-inline-object', noInlineObject, {
     {
       code: "import css from '@plumeria/core'; <div className={css.use({ color: 'red' })} />",
       errors: [{ messageId: 'noInlineObjectInCssUse' }],
-    },
-    {
-      code: "import { variants } from '@plumeria/core'; const getStyle = variants({ variant: { style: { color:'red' } } });",
-      errors: [{ messageId: 'noInlineObjectInCssVariants' }],
     },
   ],
 });
