@@ -6,6 +6,15 @@ const ruleTester = new RuleTester();
 ruleTester.run('no-destructure', noDestructure, {
   valid: [
     {
+      code: "import css from '@plumeria/core'; const { variants: legacy } = css;",
+    },
+
+    // Retired APIs are outside this rule; do not suggest using them differently.
+    {
+      code: `import * as css from '@plumeria/core'; const { variants } = css;`,
+    },
+
+    {
       code: `import * as css from '@plumeria/core'; const styles = css.create({})`,
     },
     {
@@ -66,15 +75,6 @@ ruleTester.run('no-destructure', noDestructure, {
         {
           message:
             'Do not destructure "use" from "css". Use dot notation instead.',
-        },
-      ],
-    },
-    {
-      code: `import * as css from '@plumeria/core'; const { variants } = css;`,
-      errors: [
-        {
-          message:
-            'Do not destructure "variants" from "css". Use dot notation instead.',
         },
       ],
     },
@@ -145,10 +145,6 @@ ruleTester.run('no-destructure', noDestructure, {
         {
           message:
             'Do not destructure "use" from "css". Use dot notation instead.',
-        },
-        {
-          message:
-            'Do not destructure "variants" from "css". Use dot notation instead.',
         },
       ],
     },
