@@ -133,13 +133,9 @@ const destructuredPropAliases = (fn: { params: unknown[] }) => {
   const pattern = unwrapPatternDefault(first?.pat ?? first);
   if (pattern?.type !== 'ObjectPattern') return aliases;
   for (const item of pattern.properties ?? []) {
-    if (
-      item.type !== 'KeyValuePatternProperty' &&
-      item.type !== 'AssignmentPatternProperty'
-    )
-      continue;
+    if (item.type !== 'KeyValuePatternProperty') continue;
+    const local = unwrapPatternDefault(item.value);
     const key = item.key;
-    const local = unwrapPatternDefault(item.value) ?? key;
     if (!t.isIdentifier(local)) continue;
     if (!t.isIdentifier(key) && !t.isStringLiteral(key)) continue;
     const name = String(key.value);
@@ -159,6 +155,17 @@ const sourceOf = (
       (node as HasSpan).span.end - baseByteOffset,
     )
     .toString('utf-8');
+
+const isNoOpStyle = (node: Expression): boolean =>
+  t.isNullLiteral(node) ||
+  (t.isBooleanLiteral(node) && node.value === false) ||
+  (t.isIdentifier(node) && node.value === 'undefined');
+
+const propDefaultError = (source: string, fileName: string): Error =>
+  new Error(
+    `[plumeria] A style prop default must be a defined style: "${source}". ` +
+      `Apply a conditional or dynamic style where the element is styled. (${fileName})`,
+  );
 
 const spreadStyleError = (source: string, fileName: string): Error =>
   new Error(
@@ -984,7 +991,15 @@ export function compileCSS(options: CompilerOptions) {
           }
         }
         const fallback = owner && propDefaults.get(owner)?.get(propName);
-        if (fallback) collectConditions(fallback);
+        if (fallback && !isNoOpStyle(unwrapExpression(fallback))) {
+          const style = resolveStyleObject(fallback);
+          if (!style)
+            throw propDefaultError(
+              getSource(fallback),
+              path.basename(resourcePath),
+            );
+          processStyle(style);
+        }
         if (possibilities.length > 0) {
           const uniqueEntries: any[] = [];
           possibilities.forEach((entry) => {
