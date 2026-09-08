@@ -83,7 +83,6 @@ describe('objectExpressionToObject fallbacks', () => {
       {},
       opts.createStaticHashTable ?? {},
       opts.createStaticObjectTable ?? {},
-      {},
       opts.resolveVariable,
     );
 
