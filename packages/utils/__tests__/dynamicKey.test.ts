@@ -20,7 +20,6 @@ const tables: DynamicStyleTables = {
   createHashTable: {},
   createStaticHashTable: {},
   createStaticObjectTable: {},
-  variantsHashTable: {},
 };
 
 describe('styleFunctionsOf', () => {
