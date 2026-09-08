@@ -69,7 +69,6 @@ import type {
   KeyframesHashTable,
   ViewTransitionHashTable,
   CreateHashTable,
-  VariantsHashTable,
   CreateThemeHashTable,
   CreateStaticHashTable,
 } from '@plumeria/utils';
@@ -385,8 +384,7 @@ export default async function loader(this: LoaderContext, source: string) {
           isVisibleReference(node as Expression) &&
           ((localCreateStyles[rootId] !== undefined &&
             localCreateStyles[rootId].type !== 'constant') ||
-            mergedCreateTable[rootId] !== undefined ||
-            mergedVariantsTable[rootId] !== undefined);
+            mergedCreateTable[rootId] !== undefined);
         if (!isPlumeriaStyle) {
           const origin = rootId ? localImports[rootId] : undefined;
           const failure = origin
@@ -536,7 +534,6 @@ export default async function loader(this: LoaderContext, source: string) {
     const viewTransitionImportMap: ViewTransitionHashTable = {};
     const createImportMap: CreateHashTable = {};
     const createFunctionImportMap: Record<string, StyleFunctions> = {};
-    const variantsImportMap: VariantsHashTable = {};
     const createThemeImportMap: CreateThemeHashTable = {};
     const createStaticImportMap: CreateStaticHashTable = {};
     const plumeriaAliases: Record<string, string> = {};
@@ -616,10 +613,6 @@ export default async function loader(this: LoaderContext, source: string) {
                   scannedTables.createFunctionTable[uniqueKey],
                 );
               }
-              if (scannedTables.variantsHashTable[uniqueKey]) {
-                variantsImportMap[localName] =
-                  scannedTables.variantsHashTable[uniqueKey];
-              }
               if (scannedTables.createThemeHashTable[uniqueKey]) {
                 createThemeImportMap[localName] =
                   scannedTables.createThemeHashTable[uniqueKey];
@@ -683,18 +676,6 @@ export default async function loader(this: LoaderContext, source: string) {
       mergedCreateTable[key] = createImportMap[key];
     }
 
-    const mergedVariantsTable: VariantsHashTable = {};
-    for (const key of Object.keys(scannedTables.variantsHashTable)) {
-      mergedVariantsTable[key] = scannedTables.variantsHashTable[key];
-      if (key.startsWith(`${resourcePath}-`)) {
-        const varName = key.slice(resourcePath.length + 1);
-        mergedVariantsTable[varName] = scannedTables.variantsHashTable[key];
-      }
-    }
-    for (const key of Object.keys(variantsImportMap)) {
-      mergedVariantsTable[key] = variantsImportMap[key];
-    }
-
     const mergedCreateThemeHashTable: CreateThemeHashTable = {};
     for (const key of Object.keys(scannedTables.createThemeHashTable)) {
       mergedCreateThemeHashTable[key] = scannedTables.createThemeHashTable[key];
@@ -730,7 +711,6 @@ export default async function loader(this: LoaderContext, source: string) {
       createHashTable: mergedCreateTable,
       createStaticHashTable: mergedCreateStaticHashTable,
       createStaticObjectTable: scannedTables.createStaticObjectTable,
-      variantsHashTable: mergedVariantsTable,
     };
 
     const localCreateStyles: Record<string, CreateStyleValue> = {};
@@ -908,7 +888,6 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
           );
 
           if (obj) {
@@ -990,7 +969,6 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
           );
 
           const hash = themeHashOf(selector, obj);
@@ -1049,7 +1027,6 @@ export default async function loader(this: LoaderContext, source: string) {
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
-            mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
           if (t.isIdentifier(node.id)) {
@@ -1195,7 +1172,6 @@ export default async function loader(this: LoaderContext, source: string) {
                 mergedCreateTable,
                 mergedCreateStaticHashTable,
                 scannedTables.createStaticObjectTable,
-                mergedVariantsTable,
               );
               const hash = genBase36Hash(obj, 1, 8);
               scannedTables.keyframesObjectTable[hash] = obj;
@@ -1220,7 +1196,6 @@ export default async function loader(this: LoaderContext, source: string) {
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
-              mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
             scannedTables.viewTransitionObjectTable[hash] = obj;
@@ -1266,7 +1241,6 @@ export default async function loader(this: LoaderContext, source: string) {
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
-              mergedVariantsTable,
             );
             const hash = themeHashOf(selector, obj);
             scannedTables.createThemeObjectTable[hash] = obj;
@@ -1288,7 +1262,6 @@ export default async function loader(this: LoaderContext, source: string) {
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
-              mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
             scannedTables.createStaticObjectTable[hash] = obj;
@@ -1307,7 +1280,6 @@ export default async function loader(this: LoaderContext, source: string) {
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
-              mergedVariantsTable,
             );
             const hash = genBase36Hash(obj, 1, 8);
             scannedTables.createObjectTable[hash] = obj;
@@ -1408,7 +1380,6 @@ export default async function loader(this: LoaderContext, source: string) {
           mergedCreateTable,
           mergedCreateStaticHashTable,
           scannedTables.createStaticObjectTable,
-          mergedVariantsTable,
         );
       } else if (
         t.isMemberExpression(expr) &&
@@ -1447,8 +1418,6 @@ export default async function loader(this: LoaderContext, source: string) {
         }
         const styleInfo = localCreateStyles[varName];
         if (styleInfo?.obj) return styleInfo.obj;
-        const vHash = mergedVariantsTable[varName];
-        if (vHash) return scannedTables.variantsObjectTable[vHash];
       }
       return null;
     };
@@ -1537,7 +1506,6 @@ export default async function loader(this: LoaderContext, source: string) {
           mergedCreateTable,
           mergedCreateStaticHashTable,
           scannedTables.createStaticObjectTable,
-          mergedVariantsTable,
         );
 
       if (func.named) {
@@ -2088,19 +2056,9 @@ export default async function loader(this: LoaderContext, source: string) {
 
         if (t.isCallExpression(expr) && t.isIdentifier(expr.callee)) {
           const varName = expr.callee.value;
-          const uniqueKey = `${resourcePath}-${varName}`;
           let variantObj: CSSObject | undefined;
 
-          let hash = scannedTables.variantsHashTable[uniqueKey];
-          if (!hash) hash = mergedVariantsTable[varName];
-          if (hash && scannedTables.variantsObjectTable[hash])
-            variantObj = scannedTables.variantsObjectTable[hash];
-          if (!isVisibleReference(expr)) variantObj = undefined;
-          if (
-            isVisibleReference(expr) &&
-            !variantObj &&
-            localCreateStyles[varName]?.obj
-          )
+          if (isVisibleReference(expr) && localCreateStyles[varName]?.obj)
             variantObj = localCreateStyles[varName].obj;
 
           if (variantObj) {
@@ -2217,19 +2175,9 @@ export default async function loader(this: LoaderContext, source: string) {
           }
         } else if (t.isIdentifier(expr)) {
           const varName = expr.value;
-          const uniqueKey = `${resourcePath}-${varName}`;
           let variantObj: CSSObject | undefined;
 
-          let hash = scannedTables.variantsHashTable[uniqueKey];
-          if (!hash) hash = mergedVariantsTable[varName];
-          if (hash && scannedTables.variantsObjectTable[hash])
-            variantObj = scannedTables.variantsObjectTable[hash];
-          if (!isVisibleReference(expr)) variantObj = undefined;
-          if (
-            isVisibleReference(expr) &&
-            !variantObj &&
-            localCreateStyles[varName]?.obj
-          )
+          if (isVisibleReference(expr) && localCreateStyles[varName]?.obj)
             variantObj = localCreateStyles[varName].obj;
 
           if (variantObj) {
