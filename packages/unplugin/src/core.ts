@@ -168,6 +168,10 @@ const destructuredPropAliases = (fn: {
   return aliases;
 };
 
+const propDefaultMessage = (source: string): string =>
+  `Plumeria: A style prop default must be a defined style: "${source}". ` +
+  `Apply a conditional or dynamic style where the element is styled.`;
+
 const spreadStyleMessage = (source: string): string =>
   `Plumeria: Spread elements in a style array are not supported: "...${source}". ` +
   `List each style explicitly.`;
@@ -1943,38 +1947,37 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             if (candidates.length > 0) possibilities = candidates;
           }
           const fallback = owner && propDefaults.get(owner)?.get(propName);
-          if (fallback) {
+          if (fallback && !isNoOpStyle(unwrapExpression(fallback))) {
             const style = resolveStyleObject(fallback);
-            if (style) {
-              const atoms: Record<string, string> = {};
-              getStyleRecords(style as CSSProperties).forEach((record) => {
-                atoms[record.key] = record.hash;
-              });
-              const key = genBase36Hash(Object.values(atoms).join(' '), 1, 8);
-              possibilities = [
-                ...(possibilities ?? []),
-                { key, styleObj: style },
-              ];
-              const span = (fallback as HasSpan).span;
-              {
-                for (let i = replacements.length - 1; i >= 0; i--) {
-                  const replacement = replacements[i];
-                  if (
-                    replacement.start >= span.start - baseByteOffset &&
-                    replacement.end <= span.end - baseByteOffset
-                  )
-                    replacements.splice(i, 1);
-                }
-                excludeSubtreeSpans(fallback);
-                replacements.push({
-                  start: span.start - baseByteOffset,
-                  end: span.end - baseByteOffset,
-                  content: JSON.stringify(key),
-                });
-              }
-            } else {
-              assertResolvable(fallback as HasSpan);
+            if (!style)
+              throwCompilationError(
+                propDefaultMessage(getSource(fallback)),
+                fallback as HasSpan,
+              );
+            const atoms: Record<string, string> = {};
+            getStyleRecords(style as CSSProperties).forEach((record) => {
+              atoms[record.key] = record.hash;
+            });
+            const key = genBase36Hash(Object.values(atoms).join(' '), 1, 8);
+            possibilities = [
+              ...(possibilities ?? []),
+              { key, styleObj: style },
+            ];
+            const span = (fallback as HasSpan).span;
+            for (let index = replacements.length - 1; index >= 0; index--) {
+              const replacement = replacements[index];
+              if (
+                replacement.start >= span.start - baseByteOffset &&
+                replacement.end <= span.end - baseByteOffset
+              )
+                replacements.splice(index, 1);
             }
+            excludeSubtreeSpans(fallback);
+            replacements.push({
+              start: span.start - baseByteOffset,
+              end: span.end - baseByteOffset,
+              content: JSON.stringify(key),
+            });
           }
           if (!possibilities || possibilities.length === 0) {
             return Boolean(
