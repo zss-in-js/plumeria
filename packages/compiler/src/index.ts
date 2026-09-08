@@ -52,7 +52,6 @@ import type {
 import type {
   StyleRecord,
   CSSObject,
-  VariantsHashTable,
   CreateHashTable,
   CreateThemeHashTable,
   CreateStaticHashTable,
@@ -193,7 +192,6 @@ interface TraversalContext {
   mergedCreateThemeHashTable: CreateThemeHashTable;
   mergedCreateStaticHashTable: CreateStaticHashTable;
   mergedCreateTable: CreateHashTable;
-  mergedVariantsTable: VariantsHashTable;
   scannedTables: ReturnType<typeof scanAll>;
   createFunctionImportMap: Record<string, StyleFunctions>;
   localCreateStyles: Record<
@@ -225,7 +223,6 @@ const dynamicTablesOf = (ctx: TraversalContext): DynamicStyleTables => ({
   createHashTable: ctx.mergedCreateTable,
   createStaticHashTable: ctx.mergedCreateStaticHashTable,
   createStaticObjectTable: ctx.scannedTables.createStaticObjectTable,
-  variantsHashTable: ctx.mergedVariantsTable,
 });
 
 function extractStylesFromExpression(
@@ -392,7 +389,6 @@ export function compileCSS(options: CompilerOptions) {
     const viewTransitionImportMap: ViewTransitionHashTable = {};
     const createImportMap: CreateHashTable = {};
     const createFunctionImportMap: Record<string, StyleFunctions> = {};
-    const variantsImportMap: VariantsHashTable = {};
     const createThemeImportMap: CreateThemeHashTable = {};
     const createStaticImportMap: CreateStaticHashTable = {};
     const plumeriaAliases: Record<string, string> = {};
@@ -459,9 +455,6 @@ export function compileCSS(options: CompilerOptions) {
                 createFunctionImportMap[localName] = styleFunctionsOf(
                   scannedTables.createFunctionTable[uniqueKey],
                 );
-              if (scannedTables.variantsHashTable[uniqueKey])
-                variantsImportMap[localName] =
-                  scannedTables.variantsHashTable[uniqueKey];
               if (scannedTables.createThemeHashTable[uniqueKey])
                 createThemeImportMap[localName] =
                   scannedTables.createThemeHashTable[uniqueKey];
@@ -550,18 +543,6 @@ export function compileCSS(options: CompilerOptions) {
       mergedCreateTable[key] = createImportMap[key];
     }
 
-    const mergedVariantsTable: VariantsHashTable = {};
-    for (const key of Object.keys(scannedTables.variantsHashTable)) {
-      mergedVariantsTable[key] = scannedTables.variantsHashTable[key];
-      if (key.startsWith(`${resourcePath}-`)) {
-        const varName = key.slice(resourcePath.length + 1);
-        mergedVariantsTable[varName] = scannedTables.variantsHashTable[key];
-      }
-    }
-    for (const key of Object.keys(variantsImportMap)) {
-      mergedVariantsTable[key] = variantsImportMap[key];
-    }
-
     const ctx: TraversalContext = {
       resourcePath,
       mergedStaticTable,
@@ -570,7 +551,6 @@ export function compileCSS(options: CompilerOptions) {
       mergedCreateThemeHashTable,
       mergedCreateStaticHashTable,
       mergedCreateTable,
-      mergedVariantsTable,
       scannedTables,
       createFunctionImportMap,
       localCreateStyles: {},
@@ -721,7 +701,6 @@ export function compileCSS(options: CompilerOptions) {
             ctx.mergedCreateTable,
             ctx.mergedCreateStaticHashTable,
             ctx.scannedTables.createStaticObjectTable,
-            ctx.mergedVariantsTable,
           );
         } else if (
           t.isMemberExpression(expr) &&
@@ -785,8 +764,7 @@ export function compileCSS(options: CompilerOptions) {
           const isPlumeriaStyle =
             rootId &&
             (ctx.localCreateStyles[rootId] !== undefined ||
-              ctx.mergedCreateTable[rootId] !== undefined ||
-              ctx.mergedVariantsTable[rootId] !== undefined);
+              ctx.mergedCreateTable[rootId] !== undefined);
           if (!isPlumeriaStyle) {
             const origin = rootId ? localImports[rootId] : undefined;
             const failure = origin
@@ -871,7 +849,6 @@ export function compileCSS(options: CompilerOptions) {
             ctx.mergedCreateTable,
             ctx.mergedCreateStaticHashTable,
             ctx.scannedTables.createStaticObjectTable,
-            ctx.mergedVariantsTable,
           );
 
         if (func.named) {
@@ -1191,7 +1168,6 @@ export function compileCSS(options: CompilerOptions) {
             ctx.mergedCreateTable,
             ctx.mergedCreateStaticHashTable,
             ctx.scannedTables.createStaticObjectTable,
-            ctx.mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
           ctx.scannedTables.keyframesObjectTable[hash] = obj;
@@ -1210,7 +1186,6 @@ export function compileCSS(options: CompilerOptions) {
             ctx.mergedCreateTable,
             ctx.mergedCreateStaticHashTable,
             ctx.scannedTables.createStaticObjectTable,
-            ctx.mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
           ctx.scannedTables.viewTransitionObjectTable[hash] = obj;
@@ -1248,7 +1223,6 @@ export function compileCSS(options: CompilerOptions) {
             ctx.mergedCreateTable,
             ctx.mergedCreateStaticHashTable,
             ctx.scannedTables.createStaticObjectTable,
-            ctx.mergedVariantsTable,
           );
           const hash = themeHashOf(selector, obj);
           ctx.scannedTables.createThemeObjectTable[hash] = obj;
@@ -1270,7 +1244,6 @@ export function compileCSS(options: CompilerOptions) {
             ctx.mergedCreateTable,
             ctx.mergedCreateStaticHashTable,
             ctx.scannedTables.createStaticObjectTable,
-            ctx.mergedVariantsTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
           ctx.scannedTables.createStaticObjectTable[hash] = obj;
@@ -1343,7 +1316,6 @@ export function compileCSS(options: CompilerOptions) {
                   ctx.mergedCreateTable,
                   ctx.mergedCreateStaticHashTable,
                   ctx.scannedTables.createStaticObjectTable,
-                  ctx.mergedVariantsTable,
                   resolveVariable,
                 );
 
@@ -1386,7 +1358,6 @@ export function compileCSS(options: CompilerOptions) {
                   ctx.mergedCreateTable,
                   ctx.mergedCreateStaticHashTable,
                   ctx.scannedTables.createStaticObjectTable,
-                  ctx.mergedVariantsTable,
                 );
                 const hash = themeHashOf(selector, obj);
                 const uKey = `${resourcePath}-${node.id.value}`;
@@ -1421,7 +1392,6 @@ export function compileCSS(options: CompilerOptions) {
                   ctx.mergedCreateTable,
                   ctx.mergedCreateStaticHashTable,
                   ctx.scannedTables.createStaticObjectTable,
-                  ctx.mergedVariantsTable,
                 );
                 if (obj) {
                   const hash = genBase36Hash(obj, 1, 8);
