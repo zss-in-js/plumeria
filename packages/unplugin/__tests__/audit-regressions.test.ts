@@ -197,3 +197,28 @@ it('keeps a spread in a component prop array of plain data', async () => {
   );
   expect(output).toContain(classHash({ color: 'red' }));
 });
+
+const defaultPrefix = `import * as css from '@plumeria/core';const s=css.create({a:{color:'red'},b:{padding:4},box:(n:number)=>({margin:n})});`;
+it.each([
+  ['a conditional', `on?s.a:s.b`],
+  ['a logical branch', `on&&s.a`],
+  ['a dynamic call', `s.box(4)`],
+])('rejects %s as a style prop default', async (_case, value) => {
+  await expect(
+    run(
+      defaultPrefix +
+        `export const Card=({on,cardStyle=${value}}:{on?:boolean;cardStyle?:css.Style})=><div classStyle={cardStyle}/>;export const App=()=> <Card/>;`,
+    ),
+  ).rejects.toThrow(/A style prop default must be a defined style/);
+});
+
+it.each(['null', 'undefined', 'false as unknown as css.Style'])(
+  'accepts %s as a style prop default',
+  async (value) => {
+    const output = await run(
+      defaultPrefix +
+        `export const Card=({cardStyle=${value}}:{cardStyle?:css.Style})=><div classStyle={cardStyle}/>;export const App=()=> <Card/>;`,
+    );
+    expect(output).toContain('className');
+  },
+);
