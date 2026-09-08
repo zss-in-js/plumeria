@@ -5,7 +5,6 @@ export type {
   ViewTransitionHashTable,
   CreateHashTable,
   CreateFunctionTable,
-  VariantsHashTable,
   CreateThemeHashTable,
   CreateStaticHashTable,
 } from './types';
@@ -48,7 +47,6 @@ export { getStateWeights } from './escalation';
 export { themeHashOf } from './createTheme';
 export { resolveImportPath } from './resolver';
 export { optimizer } from './optimizer';
-export { processVariants } from './variants';
 export { getLeadingCommentLength } from './ast';
 export type { ReferenceIdentifiers } from './references';
 export { collectReferenceIdentifiers } from './references';
