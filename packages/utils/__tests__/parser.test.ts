@@ -283,7 +283,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result.animation).toBe('kf-abc123');
@@ -301,7 +300,6 @@ describe('parser', () => {
         {},
         {},
         viewTransitionHash,
-        {},
         {},
         {},
         {},
@@ -326,7 +324,6 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
-        {},
         {},
         {},
         {},
@@ -362,7 +359,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result.concat).toBe('foobar');
@@ -381,7 +377,6 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         consts,
-        {},
         {},
         {},
         {},
@@ -423,8 +418,6 @@ describe('parser', () => {
         {},
         // createStaticObjectTable
         {},
-        // variantsHashTable
-        {},
       );
       const atomicHash = genBase36Hash(
         { _theme: 'hashT', primary: '#fff' },
@@ -442,7 +435,6 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
-        {},
         {},
         {},
         {},
@@ -473,7 +465,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result.width).toBe(100);
@@ -488,7 +479,6 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
-        {},
         {},
         {},
         {},
@@ -519,7 +509,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result.outer).toEqual({ inner: 'value' });
@@ -533,7 +522,6 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
-        {},
         {},
         {},
         {},
@@ -563,7 +551,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result.color).toBeUndefined();
@@ -583,7 +570,6 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
-        {},
         {},
         {},
         {},
@@ -621,7 +607,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result.color).toBe('blue');
@@ -643,7 +628,6 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
-        {},
         {},
         {},
         {},
@@ -679,7 +663,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result.padding).toBe('4px 0');
@@ -695,7 +678,6 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
-        {},
         {},
         {},
         {},
@@ -724,7 +706,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result.func).toBeUndefined();
@@ -741,7 +722,6 @@ describe('parser', () => {
       const objectExpr = varDecl.declarations[0].init as ObjectExpression;
       const result = objectExpressionToObject(
         objectExpr,
-        {},
         {},
         {},
         {},
@@ -776,7 +756,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result).toHaveProperty('&:hover');
@@ -796,7 +775,6 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
-        {},
         {},
         {},
         {},
@@ -829,7 +807,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result).toHaveProperty('&:active');
@@ -849,7 +826,6 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
-        {},
         {},
         {},
         {},
@@ -887,7 +863,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result).toHaveProperty('&:hover');
@@ -900,18 +875,7 @@ describe('parser', () => {
       });
       const objectExpr = (ast.body[0] as any).declarations[0].init;
       expect(() =>
-        objectExpressionToObject(
-          objectExpr,
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-          {},
-        ),
+        objectExpressionToObject(objectExpr, {}, {}, {}, {}, {}, {}, {}, {}),
       ).toThrow('Cannot resolve static value: spread');
     });
 
@@ -924,7 +888,6 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
-        {},
         {},
         {},
         {},
@@ -950,7 +913,6 @@ describe('parser', () => {
       const result = objectExpressionToObject(
         objectExpr,
         staticTable,
-        {},
         {},
         {},
         {},
@@ -985,7 +947,6 @@ describe('parser', () => {
             md: '@media (max-width: 768px)',
           },
         },
-        {},
       );
 
       expect(result.color).toBe('@media (max-width: 768px)');
@@ -999,7 +960,6 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
-        {},
         {},
         {},
         {},
@@ -1027,7 +987,6 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
-        {},
         {},
         {},
         {},
@@ -1067,7 +1026,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
       );
 
       expect(result).toEqual({ a: 1, b: 2 });
@@ -1082,7 +1040,6 @@ describe('parser', () => {
 
       const result = objectExpressionToObject(
         objectExpr,
-        {},
         {},
         {},
         {},
@@ -1114,7 +1071,6 @@ describe('parser', () => {
         {},
         {},
         {},
-        {},
         resolveVariable,
       );
       expect(result1.width).toBe('100px');
@@ -1124,7 +1080,6 @@ describe('parser', () => {
       const result2 = objectExpressionToObject(
         objectExpr,
         { width: '200px' },
-        {},
         {},
         {},
         {},
@@ -1501,16 +1456,19 @@ describe('parser', () => {
       ).toEqual([['tone', 'ArrowFunctionExpression']]);
     });
 
-    it('should scan for variants', () => {
+    it('should register a variant option set into the create table', () => {
       mockedRs.globSync.mockReturnValue(['/test/variants.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'import * as css from "@plumeria/core"; export const btn = css.variants({ variants: { size: { sm: { padding: 4 } } } });',
+        'import * as css from "@plumeria/core"; export const btn = css.create({ sm: { padding: 4 }, lg: { padding: 8 } });',
       );
 
       const result = scanAll();
-      const keys = Object.keys(result.variantsHashTable);
-      expect(keys.some((key) => key.endsWith('-btn'))).toBe(true);
-      expect(result.variantsObjectTable).toBeDefined();
+      const hash = result.createHashTable['/test/variants.ts-btn'];
+      expect(hash).toBeDefined();
+      expect(result.createObjectTable[hash]).toEqual({
+        sm: { padding: 4 },
+        lg: { padding: 8 },
+      });
     });
 
     it('should resolve variables from create table', () => {
@@ -1536,25 +1494,24 @@ describe('parser', () => {
       expect(result.staticTable[derivedKey!]).toEqual({ ref: 'red' });
     });
 
-    it('should resolve variants from variants table', () => {
-      mockedRs.globSync.mockReturnValue(['/test/resolve_var.ts'] as any);
-      mockedFs.readFileSync.mockReturnValue(
-        `
-         import * as css from "@plumeria/core";
-         const btn = css.variants({ variants: {} });
-         const derived = css.createStatic({
-           ref: btn
-         });
-         `,
-      );
-      const result = scanAll();
-      const keys = Object.keys(result.staticTable);
-      const derivedKey = keys.find((k) => k.endsWith('-derived'));
-      expect(derivedKey).toBeDefined();
-      // Expect ref to start with 'vr-'
-      const val = result.staticTable[derivedKey!] as any;
-      expect(val.ref).toMatch(/^vr-/);
-    });
+    it.each(["btn['sm']", 'btn[size]'])(
+      'should resolve a bracket variant from the create table: %s',
+      (reference) => {
+        mockedRs.globSync.mockReturnValue(['/test/resolve_var.ts'] as any);
+        mockedFs.readFileSync.mockReturnValue(`
+          import * as css from "@plumeria/core";
+          const size = 'sm';
+          const btn = css.create({ sm: { padding: 4 }, lg: { padding: 8 } });
+          const derived = css.create({ selected: ${reference} });
+        `);
+        const result = scanAll();
+        const hash = result.createHashTable['/test/resolve_var.ts-derived'];
+        expect(hash).toBeDefined();
+        expect(result.createObjectTable[hash]).toEqual({
+          selected: { padding: 4 },
+        });
+      },
+    );
 
     it('should use global cache in production', () => {
       const originalEnv = process.env.NODE_ENV;
@@ -1622,7 +1579,7 @@ describe('parser', () => {
          export const C = css.createStatic({ color: "red" });
          export const T = css.createTheme(".dark", { p: { default: 1, theme: 2 } });
          export const S = css.create({ c: "blue" });
-         export const V = css.variants({ variants: {} });
+         export const V = css.create({ sm: { padding: 4 }, lg: { padding: 8 } });
          export const K = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
          export const VT = css.viewTransition({ group: { name: "none" } });
         `,
@@ -1646,8 +1603,12 @@ describe('parser', () => {
       const createKeys = Object.keys(result.createHashTable);
       expect(createKeys.some((k) => k.endsWith('-S'))).toBe(true);
 
-      const variantKeys = Object.keys(result.variantsHashTable);
-      expect(variantKeys.some((k) => k.endsWith('-V'))).toBe(true);
+      const variantHash = result.createHashTable['/test/cache.ts-V'];
+      expect(variantHash).toBeDefined();
+      expect(result.createObjectTable[variantHash]).toEqual({
+        sm: { padding: 4 },
+        lg: { padding: 8 },
+      });
 
       const kfKeys = Object.keys(result.keyframesHashTable);
       expect(kfKeys.some((k) => k.endsWith('-K'))).toBe(true);
@@ -2384,8 +2345,6 @@ describe('extractOndemandStyles (integration)', () => {
     tables.createHashTable = {};
     tables.createObjectTable = {};
     tables.createAtomicMapTable = {};
-    tables.variantsHashTable = {};
-    tables.variantsObjectTable = {};
     tables.createStaticHashTable = {};
     tables.createStaticObjectTable = {};
     tables.componentPropsTable = {};
