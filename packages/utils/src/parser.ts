@@ -10,8 +10,6 @@ import type {
   CreateHashTable,
   CreateObjectTable,
   CreateAtomicMapTable,
-  VariantsHashTable,
-  VariantsObjectTable,
   CreateThemeHashTable,
   CreateThemeObjectTable,
   CreateThemeSelectorTable,
@@ -265,7 +263,6 @@ export function objectExpressionToObject(
   createHashTable: CreateHashTable,
   createStaticHashTable: CreateStaticHashTable,
   createStaticObjectTable: CreateStaticObjectTable,
-  variantsHashTable: VariantsHashTable,
   resolveVariable?: (name: string) => any,
 ): CSSObject {
   const obj: CSSObject = Object.create(null);
@@ -380,14 +377,6 @@ export function objectExpressionToObject(
         obj[key] = resolvedStatic;
         return;
       }
-      const resolvedVariants = resolveVariantsTableMemberExpression(
-        val,
-        variantsHashTable,
-      );
-      if (resolvedVariants !== undefined) {
-        obj[key] = 'vr-' + resolvedVariants;
-        return;
-      }
     }
 
     if (
@@ -418,7 +407,6 @@ export function objectExpressionToObject(
         createHashTable,
         createStaticHashTable,
         createStaticObjectTable,
-        variantsHashTable,
         resolveVariable,
       );
     } else if (t.isBinaryExpression(val) || t.isTemplateLiteral(val)) {
@@ -503,7 +491,6 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
         result = objectExpressionToObject(
           init,
           localConsts,
-          {},
           {},
           {},
           {},
@@ -1287,20 +1274,6 @@ function resolveCreateTableMemberExpression(
   }
 }
 
-function resolveVariantsTableMemberExpression(
-  node: Identifier | MemberExpression,
-  variantsHashTable: VariantsHashTable,
-): string | undefined {
-  if (t.isIdentifier(node)) {
-    return variantsHashTable[node.value];
-  }
-  if (t.isMemberExpression(node)) {
-    if (t.isIdentifier(node.object)) {
-      return variantsHashTable[node.object.value];
-    }
-  }
-}
-
 function resolveStaticTableMemberExpression(
   node: MemberExpression,
   staticTable: StaticTable,
@@ -1481,8 +1454,6 @@ interface CachedData {
   createHashTable: CreateHashTable;
   createObjectTable: CreateObjectTable;
   createAtomicMapTable: CreateAtomicMapTable;
-  variantsHashTable: VariantsHashTable;
-  variantsObjectTable: VariantsObjectTable;
   createStaticHashTable: CreateStaticHashTable;
   createStaticObjectTable: CreateStaticObjectTable;
   componentPropsTable?: Record<string, Record<string, TableEntry[]>>;
@@ -1529,8 +1500,6 @@ const globalAgregatedTables: Tables = {
   createObjectTable: {},
   createFunctionTable: {},
   createAtomicMapTable: {},
-  variantsHashTable: {},
-  variantsObjectTable: {},
   createThemeHashTable: {},
   createStaticHashTable: {},
   createStaticObjectTable: {},
@@ -1645,9 +1614,6 @@ function stripFileContributions(filePath: string, cached: CachedData) {
     delete localTables.createHashTable[`${filePath}-${key}`];
     delete localTables.createFunctionTable[`${filePath}-${key}`];
   }
-  for (const key of Object.keys(cached.variantsHashTable)) {
-    delete localTables.variantsHashTable[`${filePath}-${key}`];
-  }
 
   for (const key of Object.keys(cached.createStaticObjectTable)) {
     releaseObjectOwner(
@@ -1703,14 +1669,6 @@ function stripFileContributions(filePath: string, cached: CachedData) {
       key,
       filePath,
       localTables.createAtomicMapTable,
-    );
-  }
-  for (const key of Object.keys(cached.variantsObjectTable)) {
-    releaseObjectOwner(
-      'variantsObjectTable',
-      key,
-      filePath,
-      localTables.variantsObjectTable,
     );
   }
 
@@ -1893,8 +1851,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
           createHashTable: {},
           createObjectTable: {},
           createAtomicMapTable: {},
-          variantsHashTable: {},
-          variantsObjectTable: {},
           createStaticHashTable: {},
           createStaticObjectTable: {},
           hasCssUsage: false,
@@ -1928,8 +1884,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
     localCreateHashTable: CreateHashTable;
     localCreateObjectTable: CreateObjectTable;
     localCreateAtomicMapTable: CreateAtomicMapTable;
-    localVariantsHashTable: VariantsHashTable;
-    localVariantsObjectTable: VariantsObjectTable;
     localCreateThemeHashTable: CreateThemeHashTable;
     localCreateStaticHashTable: CreateStaticHashTable;
     localCreateStaticObjectTable: CreateStaticObjectTable;
@@ -1978,8 +1932,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
         const localCreateHashTable: CreateHashTable = {};
         const localCreateObjectTable: CreateObjectTable = {};
         const localCreateAtomicMapTable: CreateAtomicMapTable = {};
-        const localVariantsHashTable: VariantsHashTable = {};
-        const localVariantsObjectTable: VariantsObjectTable = {};
         const localCreateThemeHashTable: CreateThemeHashTable = {};
         const localCreateStaticHashTable: CreateStaticHashTable = {};
         const localCreateStaticObjectTable: CreateStaticObjectTable = {};
@@ -2225,7 +2177,7 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
 
                 // Two-pass scanning:
                 // Pass 1: Collect all createStatic, createTheme, keyframes, and viewTransition definitions for global resolution
-                // Pass 2: Process css.create and variants (with all global definitions available)
+                // Pass 2: Process css.create (with all global definitions available)
                 const isPassOneMethod =
                   method === 'createStatic' ||
                   method === 'createTheme' ||
@@ -2247,7 +2199,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
                   localCreateHashTable,
                   localCreateStaticHashTable,
                   localCreateStaticObjectTable,
-                  localVariantsHashTable,
                   resolveVariable,
                 );
 
@@ -2353,7 +2304,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
                           localCreateHashTable,
                           localCreateStaticHashTable,
                           localCreateStaticObjectTable,
-                          localVariantsHashTable,
                           resolveVariable,
                         ),
                       );
@@ -2369,13 +2319,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
                   localCreateAtomicMapTable[hash] = hashMap;
                   localTables.createAtomicMapTable[hash] = hashMap;
                   registerObjectOwner('createAtomicMapTable', hash, filePath);
-                } else if (method === 'variants') {
-                  const hash = genBase36Hash(obj, 1, 8);
-                  localVariantsHashTable[name] = hash;
-                  localTables.variantsHashTable[uniqueKey] = hash;
-                  localTables.variantsObjectTable[hash] = obj;
-                  localVariantsObjectTable[hash] = obj;
-                  registerObjectOwner('variantsObjectTable', hash, filePath);
                 }
               }
             }
@@ -2402,8 +2345,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
           localCreateHashTable,
           localCreateObjectTable,
           localCreateAtomicMapTable,
-          localVariantsHashTable,
-          localVariantsObjectTable,
           localCreateThemeHashTable,
           localCreateStaticHashTable,
           localCreateStaticObjectTable,
@@ -2433,8 +2374,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
         localCreateHashTable,
         localCreateObjectTable,
         localCreateAtomicMapTable,
-        localVariantsHashTable,
-        localVariantsObjectTable,
         localCreateThemeHashTable,
         localCreateStaticHashTable,
         localCreateStaticObjectTable,
@@ -2468,7 +2407,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
         createHashTable: localCreateHashTable,
         createStaticHashTable: localCreateStaticHashTable,
         createStaticObjectTable: localTables.createStaticObjectTable,
-        variantsHashTable: localVariantsHashTable,
       };
 
       const dynamicStaticTable: StaticTable = {
@@ -2906,8 +2844,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
         createHashTable: localCreateHashTable,
         createObjectTable: localCreateObjectTable,
         createAtomicMapTable: localCreateAtomicMapTable,
-        variantsHashTable: localVariantsHashTable,
-        variantsObjectTable: localVariantsObjectTable,
         createStaticHashTable: localCreateStaticHashTable,
         createStaticObjectTable: localCreateStaticObjectTable,
         componentPropsTable: localComponentPropsTable,
@@ -3108,8 +3044,6 @@ function extractAndCacheExports(
       createHashTable: {},
       createObjectTable: {},
       createAtomicMapTable: {},
-      variantsHashTable: {},
-      variantsObjectTable: {},
       createStaticHashTable: {},
       createStaticObjectTable: {},
       hasCssUsage: false,
