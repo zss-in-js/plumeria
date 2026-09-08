@@ -178,6 +178,25 @@ describe('parser', () => {
       expect(consts.size).toBe('large');
     });
 
+    it('should follow a constant that names another constant', () => {
+      const ast = parseSync('const red = "red"; const color = red;', {
+        syntax: 'typescript',
+      });
+      const consts = collectLocalConsts(ast);
+
+      expect(consts.color).toBe('red');
+    });
+
+    it('should stop on a cycle between constants', () => {
+      const ast = parseSync('const a = b; const b = a;', {
+        syntax: 'typescript',
+      });
+      const consts = collectLocalConsts(ast);
+
+      expect(consts.a).toBeUndefined();
+      expect(consts.b).toBeUndefined();
+    });
+
     it('should collect object constants', () => {
       const ast = parseSync('const theme = { primary: "blue" };', {
         syntax: 'typescript',
