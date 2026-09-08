@@ -20,7 +20,6 @@ import type {
   CreateThemeObjectTable,
   CreateStaticHashTable,
   CreateStaticObjectTable,
-  VariantsHashTable,
 } from './types';
 import { objectExpressionToObject, t } from './parser';
 
@@ -229,7 +228,6 @@ export type DynamicStyleTables = {
   createHashTable: CreateHashTable;
   createStaticHashTable: CreateStaticHashTable;
   createStaticObjectTable: CreateStaticObjectTable;
-  variantsHashTable: VariantsHashTable;
 };
 
 export type DynamicStyleResult = {
@@ -264,7 +262,6 @@ export const resolveDynamicStyle = (
       tables.createHashTable,
       tables.createStaticHashTable,
       tables.createStaticObjectTable,
-      tables.variantsHashTable,
     );
 
   const withDefault = Object.entries(func.defaults ?? {}).filter(([param]) =>
@@ -324,7 +321,6 @@ export const resolveDynamicStyle = (
       tables.createHashTable,
       tables.createStaticHashTable,
       tables.createStaticObjectTable,
-      tables.variantsHashTable,
     );
     const literal = resolved.value;
     if (typeof literal !== 'string' && typeof literal !== 'number') return;
