@@ -38,7 +38,6 @@ it('reports a missing member on a resolved style variable', () => {
       {},
       {},
       {},
-      {},
       () => ({ present: 'red' }),
     ),
   ).toThrow('Unknown style member on theme');
