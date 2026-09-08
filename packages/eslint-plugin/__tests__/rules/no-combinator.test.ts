@@ -6,6 +6,15 @@ const ruleTester = new RuleTester();
 ruleTester.run('no-combinator', noCombinator, {
   valid: [
     {
+      code: "import { variants as legacy } from '@plumeria/core'; legacy({ container: { '> div': {} } });",
+    },
+
+    // Retired APIs are outside this rule; do not suggest using them differently.
+    {
+      code: `import * as css from '@plumeria/core'; css.variants({ container: { '> div': {} } })`,
+    },
+
+    {
       code: `import * as css from '@plumeria/core'; css.create({ container: { ':has(> div)': { color: 'red' } } })`,
     },
     {
@@ -342,17 +351,6 @@ ruleTester.run('no-combinator', noCombinator, {
         {
           message:
             'Combinator "(space)" is not allowed unless inside functional pseudo-classes.',
-        },
-      ],
-    },
-
-    {
-      // variants invalid usage
-      code: `import * as css from '@plumeria/core'; css.variants({ container: { '> div': {} } })`,
-      errors: [
-        {
-          message:
-            'Combinator ">" is not allowed unless inside functional pseudo-classes.',
         },
       ],
     },
