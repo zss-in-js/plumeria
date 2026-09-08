@@ -168,7 +168,7 @@ export const noCombinator: Rule.RuleModule = {
               node.callee.property.type === 'Identifier'
                 ? node.callee.property.name
                 : null;
-            if (propertyName === 'create' || propertyName === 'variants') {
+            if (propertyName === 'create') {
               node.arguments.forEach((arg) => {
                 if (arg.type === 'ObjectExpression') {
                   checkForCombinatorsRecursively(arg);
@@ -184,7 +184,7 @@ export const noCombinator: Rule.RuleModule = {
           }
         } else if (node.callee.type === 'Identifier') {
           const alias = plumeriaAliases[node.callee.name];
-          if (alias === 'create' || alias === 'variants') {
+          if (alias === 'create') {
             node.arguments.forEach((arg) => {
               if (arg.type === 'ObjectExpression') {
                 checkForCombinatorsRecursively(arg);
