@@ -1,5 +1,11 @@
 # @plumeria/inspector
 
+## 18.5.2
+
+### Patch Changes
+
+- cab3a5e: Bump version to 18.5.2
+
 ## 18.5.1
 
 ### Patch Changes

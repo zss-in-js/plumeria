@@ -1,5 +1,13 @@
 # Release Notes
 
+## 18.5.2 (Sep 8, 2026)
+
+- Fix: read a renamed style prop only from a renaming pattern, so a plain default value no longer stands in for the prop name.
+
+- Fix: report a style prop default that is not a defined style, instead of dropping it or emitting a rule nothing can set.
+
+- Fix: resolve a constant that names another constant, so its value reaches the style.
+
 ## 18.5.1 (Sep 7, 2026)
 
 - Fix: extract styles from wrapped expressions, nested arrays, scoped aliases, and conditional style props.
