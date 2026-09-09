@@ -16,6 +16,9 @@ declare module '@plumeria/core' {
   import type {
     AtomicClassNameFor,
     Style,
+    StyleProps,
+    StaticStyles,
+    WithoutProperties,
     CSSProperties,
     CreateStyleValue,
     CreateReturnType,
@@ -29,7 +32,14 @@ declare module '@plumeria/core' {
     Extended,
   } from '#types';
 
-  export type { AtomicClassNameFor, Style, CSSProperties };
+  export type {
+    AtomicClassNameFor,
+    Style,
+    StyleProps,
+    StaticStyles,
+    WithoutProperties,
+    CSSProperties,
+  };
 
   export const create: create;
   export type create = <const T extends Record<string, CreateStyleValue>>(
