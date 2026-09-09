@@ -1,0 +1,96 @@
+---
+title: 'Style'
+description: 'API reference for the Style type'
+---
+
+```ts
+type Style = StyleList<StyleNamespace>;
+export type { Style };
+```
+
+`Style` is the type of the `classStyle` prop and of every argument to [css.use()](/docs/api-reference/javascript/use). It accepts a style created by [css.create](/docs/api-reference/javascript/create), the falsy values `false`, `null` and `undefined`, and arrays nesting any of those.
+
+## Example
+
+```tsx title="TypeScript"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  base: {
+    color: 'red',
+  },
+  active: {
+    fontWeight: 'bold',
+  },
+});
+
+export function Component({ active }: { active: boolean }) {
+  return <div classStyle={[styles.base, active && styles.active]} />;
+}
+```
+
+## Only created styles are accepted
+
+A style has to come out of `css.create` for the compiler to resolve it. An inline object is a type error:
+
+```tsx
+<div classStyle={styles.base} />       // ok
+<div classStyle={{ color: 'red' }} />  // Type error
+```
+
+## Declaring the styling prop
+
+`@plumeria/core` ships no prop declaration of its own. `classStyle` comes from the declaration bundled with the package, which you reference from `plumeria.d.ts`:
+
+```ts title="plumeria.d.ts"
+/// <reference types="@plumeria/core/class-style" />
+```
+
+Exporting `Style` is what lets you name that prop yourself instead. Set `styleProp` in the build configuration, then declare the same name against React:
+
+```ts title="plumeria.d.ts"
+import type { Style } from '@plumeria/core';
+
+declare global {
+  namespace React {
+    interface HTMLAttributes<T> {
+      sx?: Style;
+    }
+    interface SVGAttributes<T> {
+      sx?: Style;
+    }
+  }
+}
+```
+
+The prop then behaves exactly like `classStyle`, arrays and falsy values included:
+
+```tsx
+<div sx={[styles.text, cond && styles.cond]} />
+```
+
+The `styleProp` in the build configuration and the property name in `plumeria.d.ts` must match. If they disagree, the prop type-checks but is never compiled away. See [Next.js](/docs/integration/next) or [Vite](/docs/integration/vite) for the configuration.
+
+## Any prop can carry a style
+
+`Style` is not tied to a host element prop at all. Type any prop of your own component with it, and the compiler resolves the style through the call site, because prop styles are registered by component rather than by prop name:
+
+```tsx title="TypeScript"
+import * as css from '@plumeria/core';
+
+type CardProps = {
+  boxStyle?: css.Style;
+};
+
+function Card({ boxStyle }: CardProps) {
+  return <div classStyle={[styles.base, boxStyle]} />;
+}
+
+export function Example() {
+  return <Card boxStyle={styles.active} />;
+}
+```
+
+<Callout title="Good to know">
+`Style` accepts every property. To constrain what a component accepts through a style prop, use [StyleProps](/docs/api-reference/types/StyleProps), [WithoutProperties](/docs/api-reference/types/WithoutProperties) or [StaticStyles](/docs/api-reference/types/StaticStyles).
+</Callout>
