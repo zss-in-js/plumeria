@@ -33,7 +33,7 @@ import plumeria from '@plumeria/eslint-plugin';
 export default [plumeria.configs.recommended];
 ```
 
-`no-invalid-selector` and `validate-pseudos` read TypeScript's type information to resolve selectors that are not written as string literals — a key that comes from a variable or a `const` object, for example. Without it the rules see nothing to check and skip those keys silently.
+`no-invalid-selector`, `validate-pseudos`, and `validate-at-rules` read TypeScript's type information to resolve selectors that are not written as string literals — a key that comes from a variable or a `const` object, for example. Without it the rules see nothing to check and skip those keys silently.
 
 Turn it on in the root `eslint.config.ts` by giving the TypeScript files a project service:
 
@@ -72,6 +72,7 @@ Literal selectors are still checked without this, so the rules work either way �
 - `'@plumeria/format-properties': 'warn'`
 - `'@plumeria/validate-values': 'warn'`
 - `'@plumeria/validate-pseudos': 'error'`
+- `'@plumeria/validate-at-rules': 'error'`
 
 When using `recommended`, all rules are turned on.
 
