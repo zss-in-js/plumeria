@@ -1,0 +1,160 @@
+---
+title: 'Plumeria 19.0'
+description: 'Update: a style prop can name the properties it accepts, and an inline object no longer type-checks'
+date: '2026-09-09'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v19.0 moves the guarantees the compiler already enforced forward to the call site.
+
+The 18.5 patches spent four releases closing the paths where a style expression compiled to nothing. What they could not change is when you find out. A build error arrives after you have written the file; a type error arrives while you are writing it. Four things land together:
+
+1. **`Style` accepts only created styles** — an inline object is now a type error, not a build error.
+2. **`StyleProps`, `WithoutProperties` and `StaticStyles`** — a component can state which properties it accepts through a style prop.
+3. **`StaticStyles` rejects a dynamic style** — the one thing `css.use()` cannot carry, said at the call site.
+4. **`validate-at-rules`** — a new lint rule for the one key the type system cannot reach.
+
+Let's walk through each.
+
+---
+
+## 1. `Style` accepts only created styles
+
+```diff
+- <div classStyle={{ color: 'red' }} />
++ <div classStyle={styles.text} />
+```
+
+`Style` used to be written in terms of `CSSProperties`, the shape of the objects you hand to `css.create`. That made an inline object structurally valid, so it type-checked, and the compiler rejected it a step later. The two layers disagreed, and the gap was covered by a lint rule you had to be running.
+
+`Style` is now written in terms of what `css.create` returns. Each property of a created style is a class name carrying the property it was generated for, and a plain string is not one of those, so the object literal has nowhere to land:
+
+```ts
+type Style = StyleList<StyleNamespace>;
+```
+
+The type reaches further than the rule it overlaps with. `no-inline-object` sees the object handed directly to `css.use()`; it does not see the one nested inside a style list. The type sees both:
+
+```ts
+css.use({ color: 'red' });                          // rule and type
+css.use([styles.text, { ':hover': { color: 'blue' } }]);  // type only
+```
+
+## 2. A prop can name the properties it accepts
+
+A design system component owns a shape. Letting a caller override its padding is deliberate; letting one override its `position` is how a card escapes its grid. Until now the type had no way to say which is which, because a compiler can check that a style resolves — it cannot know which overrides you meant to allow.
+
+`StyleProps` enumerates them:
+
+```tsx
+type TextProps = {
+  classStyle?: css.StyleProps<'color' | 'fontSize'>;
+};
+```
+
+`WithoutProperties` is the inverse, for the common case of protecting a few properties and leaving the rest open:
+
+```tsx
+type PanelProps = {
+  classStyle?: css.WithoutProperties<'position' | 'top' | 'left'>;
+};
+```
+
+Both reach into nested blocks. A property cannot slip past the constraint by being written inside a pseudo class or an at-rule:
+
+```tsx
+// Rejected by WithoutProperties<'position'>
+<Panel classStyle={styles.hoverPinned} />
+```
+
+```ts
+const styles = css.create({
+  hoverPinned: {
+    ':hover': {
+      position: 'fixed',
+    },
+  },
+});
+```
+
+## 3. `StaticStyles` rejects a dynamic style
+
+A dynamic style is a style defined as a function. Its values are computed by the caller, so they reach the element as custom properties — and a class name string has no room for a custom property. That is why 18.4.1 made `css.use()` report one instead of dropping it.
+
+Reporting it is still a build error. A component that renders through `css.use()` can now say so in its own signature:
+
+```tsx
+type ChipProps = {
+  classStyle?: css.StaticStyles;
+};
+
+function Chip({ classStyle }: ChipProps) {
+  return <span className={css.use(styles.base, classStyle)} />;
+}
+```
+
+```tsx
+<Chip classStyle={styles.tinted} />     // ok
+<Chip classStyle={styles.sized(120)} /> // Type error
+```
+
+Written without a type argument, `StaticStyles` accepts every property and rejects only the dynamic style, which is the shape most components want. A type argument narrows the properties as well, so `StaticStyles<'color'>` is `StyleProps<'color'>` without dynamic styles.
+
+A component that applies its styles through `classStyle` has no such limit and should keep using `StyleProps` or `WithoutProperties`.
+
+## 4. An unrecognised at-rule is reported
+
+A key inside a style object is the one place the type system cannot help. `css.create` infers its argument through a generic constraint, and a constraint check performs no excess property check, so a key that matches nothing was accepted:
+
+```ts
+css.create({ box: { '@unknown foo': { position: 'absolute' } } });
+```
+
+The compiler emitted nothing for it and raised nothing either. `validate-at-rules` reports it:
+
+```text
+Invalid at-rule: "@unknown foo".
+```
+
+It accepts `@media`, `@container`, `@supports`, `@layer` and `@scope`, each with a prelude, and reaches into pseudo classes, nested at-rules and dynamic styles. Given TypeScript project information it resolves computed keys as well, the same way `no-invalid-selector` and `validate-pseudos` do. It is `error` in `recommended`.
+
+The rule is scoped to `css.create` because that is where the gap is. `createTheme` takes its selector as a plain parameter rather than a key inside an inferred object, so the type already rejects an unrecognised at-rule there.
+
+## Upgrading
+
+An inline object in a style prop stops the build. It was already a build error, so a codebase that compiles today compiles on 19.0 — the change is that the editor now says it first. Move the object into `css.create` and pass the created style.
+
+The new types are additive. `Style` still accepts every property, and a component that does not need to constrain anything needs no change.
+
+`@plumeria/codemod` learned about these types in the same release. The export removes the `@plumeria/core` import, so any reference to `Style` or to one of the three new types is left without the import that declares it — a component prop, a type alias, a variable annotation alike. Those modules are now left in place and reported:
+
+```text
+component/Badge.tsx
+  21:16  style-type-reference
+        `css.StaticStyles` has no CSS Modules equivalent, and the import that
+        declares it does not survive the export of Badge.tsx.
+```
+
+Before, the export rewrote such a component's call sites to `className` while its declaration still said `classStyle`, and left the file uncompilable. It now joins `dynamic-value` and the other reasons the export already leaves styles behind, so a migration that meets one is partial rather than broken. One shape is still outside it: a module that declares nothing but style prop types has no stylesheet to hold the report, and its consumer will not compile after the export. Keeping the prop type in the file that defines the styles avoids it, and [the codemod reference](/docs/api-reference/codemod) says so where the other reports are listed.
+
+---
+
+## Release notes
+
+## 19.0.0 (Sep 9, 2026)
+- Feat: add `StyleProps` and `WithoutProperties` for constraining the properties a style prop accepts
+- Feat: add `StaticStyles`, which rejects a dynamic style and narrows properties when given a type argument
+- Feat: add the `validate-at-rules` lint rule, which reports an unrecognised at-rule inside `css.create()`
+- Feat: `@plumeria/codemod` reports a reference to a Plumeria style type instead of removing the import it still needs
+- Fix: `css.use()` declared a rest parameter that was not an array type
+- Fix: the `classStyle` global augmentation was missing its `declare` modifier
+- Break: `Style` accepts only styles created by `css.create`; an inline object is a type error
+
+---
+
+Thanks for building with Plumeria! If you have any feedback or questions, please let us know on [GitHub Discussions](https://github.com/zss-in-js/plumeria/discussions) or [GitHub Issues](https://github.com/zss-in-js/plumeria/issues).
