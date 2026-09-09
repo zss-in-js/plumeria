@@ -6,15 +6,15 @@ To apply styles defined in Plumeria to a component, use the `classStyle` prop or
 
 ## classStyle
 ```ts
-type Style = CSSProperties | (false | CSSProperties | null | undefined)[];
+type Style = StyleList<StyleNamespace>;
 
-  global {
-    namespace React {
-      interface HTMLAttributes<T> {
-        classStyle?: Style;
-      }
+declare global {
+  namespace React {
+    interface HTMLAttributes<T> {
+      classStyle?: Style;
     }
   }
+}
 
 export type { Style };
 ```
@@ -48,7 +48,7 @@ function Component({ active }) {
 
 ## css.use()
 ```ts
-export type use = (...rules: Style) => string;
+export type use = (...rules: Style[]) => string;
 export const use: use;
 ```
 `css.use()` is a function that converts a style object into a string of class names (`string`). Where the `classStyle` prop cannot be used (for example, when passing class names to external libraries).
