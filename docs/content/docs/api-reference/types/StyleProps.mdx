@@ -1,0 +1,59 @@
+---
+title: 'StyleProps'
+description: 'API reference for the StyleProps type'
+---
+
+```ts
+type StyleProps<K extends StyleKey> = StyleList<AllowedNamespace<K>>;
+export type { StyleProps };
+```
+
+`StyleProps` enumerates the properties a component accepts through a style prop. A style that sets anything outside the list is rejected.
+
+## Example
+
+```tsx title="TypeScript"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  base: {
+    fontSize: '14px',
+  },
+});
+
+type TextProps = {
+  classStyle?: css.StyleProps<'color' | 'fontSize'>;
+};
+
+export function Text({ classStyle }: TextProps) {
+  return <span classStyle={[styles.base, classStyle]} />;
+}
+```
+
+```tsx
+<Text classStyle={styles.tinted} />  // ok when tinted only sets color
+<Text classStyle={styles.pinned} />  // Type error when pinned sets position
+```
+
+## Nested blocks are covered
+
+The enumeration reaches into pseudo classes and at-rules, so a property that is only set inside a nested block is checked the same way:
+
+```tsx
+// Type error, position is not enumerated
+<Text classStyle={styles.hoverPinned} />
+```
+
+```ts
+const styles = css.create({
+  hoverPinned: {
+    ':hover': {
+      position: 'fixed',
+    },
+  },
+});
+```
+
+<Callout title="Good to know">
+When a component only needs to protect a few properties, [WithoutProperties](/docs/api-reference/types/WithoutProperties) is the shorter way to say the same thing.
+</Callout>
