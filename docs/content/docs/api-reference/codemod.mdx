@@ -461,11 +461,31 @@ src/Card.tsx
         The value of `color` cannot be represented statically.
   12:3  spread-create
         Top-level spreads cannot name a CSS Module class.
+  19:16  style-type-reference
+        `css.StaticStyles` has no CSS Modules equivalent, and the import that
+        declares it does not survive the export of Card.tsx.
 ```
 
 - Dynamic values, computed properties, or runtime function calls in style objects
 - Object spreads in top-level `css.create` or style definitions, other than `css.marker`
 - Existing `*.module.css` target files are reported as `target-exists` and will not be overwritten
+- References to `Style`, `StyleProps`, `WithoutProperties`, `StaticStyles` or `AtomicClassNameFor`, reported as `style-type-reference`
+
+The export removes the `@plumeria/core` import, so a reference to one of those types is left without the import that declares it. A component prop, a type alias and a variable annotation are treated alike, and the styles that module reads are held with it.
+
+<Callout title="A type-only module is not reported">
+A module that declares nothing but style prop types is not reached by this. It defines no styles of its own, so there is no stylesheet for the report to hold, and the component importing the type refers to it by a local name the export does not recognise as a Plumeria type. Its consumer will not compile after the export.
+
+```ts title="props.ts"
+import type { StyleProps } from '@plumeria/core';
+
+export type CardProps = {
+  classStyle?: StyleProps<'color'>;
+};
+```
+
+Keep the prop type in the file that defines the styles, and the export reports it rather than breaking the consumer. This predates the prop types themselves — a module declaring only `classStyle?: Style` behaves the same way.
+</Callout>
 
 ### Composition order after the export
 
