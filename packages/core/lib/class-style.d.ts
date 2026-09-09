@@ -1,6 +1,6 @@
 import type { Style } from '#types';
 
-global {
+declare global {
   namespace React {
     interface HTMLAttributes<T> {
       classStyle?: Style;
