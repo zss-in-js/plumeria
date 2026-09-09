@@ -247,6 +247,9 @@ src/Card.tsx
         The value of `color` cannot be represented statically.
   12:3  spread-create
         Top-level spreads cannot name a CSS Module class.
+  19:16  style-type-reference
+        `css.StaticStyles` has no CSS Modules equivalent, and the import that
+        declares it does not survive the export of Card.tsx.
 ```
 
 Constructs that cannot be resolved statically — dynamic values, computed keys,
@@ -254,6 +257,17 @@ runtime function calls, and object spreads — are reported and left in place,
 together with every file whose definitions they still need. A target
 `*.module.css` that already exists is reported as `target-exists` and will not be
 overwritten.
+
+The export removes the `@plumeria/core` import, so a reference to `Style`,
+`StyleProps`, `WithoutProperties`, `StaticStyles` or `AtomicClassNameFor` is left
+without the import that declares it. Those are reported as
+`style-type-reference`, whether the type names a component prop, a type alias or
+a variable annotation.
+
+A module that declares nothing but style prop types is the one shape this does
+not reach: it defines no styles, so there is no stylesheet for the report to hold
+onto, and its consumer will not compile after the export. Keep the prop type in
+the file that defines the styles and the export reports it instead.
 
 Several `css.create` calls in one file are not reported: they are written to the
 same stylesheet, and a key an earlier call claimed is renamed.
