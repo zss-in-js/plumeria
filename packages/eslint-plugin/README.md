@@ -21,6 +21,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/format-properties`: **warn**
 - `@plumeria/validate-values`: **warn**
 - `@plumeria/validate-pseudos`: **error**
+- `@plumeria/validate-at-rules`: **error**
 
 ```js
 import plumeria from '@plumeria/eslint-plugin';
@@ -147,6 +148,10 @@ Validates CSS property values for correctness. Only standard CSS properties are 
 ### validate-pseudos
 
 Validates CSS pseudo-classes and pseudo-elements inside `css.create()`. It checks for typos and structural correctness and supports validation of computed keys when TypeScript is available.
+
+### validate-at-rules
+
+Validates at-rules inside `css.create()`. It accepts `@media`, `@container`, `@supports`, `@layer`, and `@scope`, and supports validation of computed keys when TypeScript is available.
 
 ## Optional rules
 
