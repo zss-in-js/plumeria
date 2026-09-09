@@ -82,6 +82,14 @@ const findSources = (targets: string[]): string[] => {
 
 const STYLE_PROP = 'classStyle';
 
+const STYLE_TYPES = new Set([
+  'Style',
+  'StyleProps',
+  'WithoutProperties',
+  'StaticStyles',
+  'AtomicClassNameFor',
+]);
+
 const memberOf = (node: any): { object: string; key: string } | undefined => {
   if (node?.type !== 'MemberExpression' || node.object.type !== 'Identifier')
     return undefined;
@@ -480,6 +488,74 @@ export function planRelease(targets: string[]): ReleasePlan {
         },
       ]);
     });
+
+    const styleTypeNamespaces = new Set<string>();
+    const styleTypeLocals = new Set<string>();
+    for (const node of ast.body) {
+      if (
+        node.type !== 'ImportDeclaration' ||
+        node.source.value !== '@plumeria/core'
+      )
+        continue;
+      for (const specifier of node.specifiers) {
+        if (
+          specifier.type === 'ImportNamespaceSpecifier' ||
+          specifier.type === 'ImportDefaultSpecifier'
+        ) {
+          styleTypeNamespaces.add(specifier.local.name);
+          continue;
+        }
+        if (specifier.type !== 'ImportSpecifier') continue;
+        const imported = specifier.imported.name ?? specifier.imported.value;
+        if (STYLE_TYPES.has(imported))
+          styleTypeLocals.add(specifier.local.name);
+      }
+    }
+
+    const styleTypeUses: { line: number; column: number; name: string }[] = [];
+    walk(ast.body, (node: any) => {
+      if (node.type !== 'TSTypeReference') return;
+      const name = node.typeName;
+      if (
+        name?.type === 'TSQualifiedName' &&
+        name.left?.type === 'Identifier' &&
+        styleTypeNamespaces.has(name.left.name) &&
+        name.right?.type === 'Identifier' &&
+        STYLE_TYPES.has(name.right.name)
+      ) {
+        styleTypeUses.push({
+          line: node.loc.start.line,
+          column: node.loc.start.column + 1,
+          name: `${name.left.name}.${name.right.name}`,
+        });
+        return;
+      }
+      if (name?.type === 'Identifier' && styleTypeLocals.has(name.name))
+        styleTypeUses.push({
+          line: node.loc.start.line,
+          column: node.loc.start.column + 1,
+          name: name.name,
+        });
+    });
+
+    if (styleTypeUses.length > 0) {
+      const held = new Set<string>();
+      walk(ast.body, (node: any) => {
+        if (node.type !== 'Identifier') return;
+        const owner = owners.get(node.name);
+        if (owner) held.add(owner.source);
+      });
+      for (const use of styleTypeUses)
+        for (const target of held)
+          note(target, [
+            {
+              line: use.line,
+              column: use.column,
+              kind: 'style-type-reference',
+              hint: `\`${use.name}\` has no CSS Modules equivalent, and the import that declares it does not survive the export of ${path.basename(source)}.`,
+            },
+          ]);
+    }
 
     walk(ast.body, (node: any) => {
       if (
