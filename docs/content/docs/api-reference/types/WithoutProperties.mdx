@@ -1,0 +1,57 @@
+---
+title: 'WithoutProperties'
+description: 'API reference for the WithoutProperties type'
+---
+
+```ts
+type WithoutProperties<K extends StyleKey> = StyleProps<Exclude<StyleKey, K>>;
+export type { WithoutProperties };
+```
+
+`WithoutProperties` is the inverse of [StyleProps](/docs/api-reference/types/StyleProps). Every property is accepted except the ones named, which is the shorter way to write a component that has to protect a few properties from being overridden while leaving the rest open.
+
+## Example
+
+```tsx title="TypeScript"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  base: {
+    display: 'flex',
+    padding: '8px',
+  },
+});
+
+type PanelProps = {
+  classStyle?: css.WithoutProperties<'position' | 'top' | 'left'>;
+};
+
+export function Panel({ classStyle }: PanelProps) {
+  return <div classStyle={[styles.base, classStyle]} />;
+}
+```
+
+```tsx
+<Panel classStyle={styles.tinted} />  // ok when tinted only sets color
+<Panel classStyle={styles.pinned} />  // Type error when pinned sets position
+```
+
+## Nested blocks are covered
+
+The exclusion reaches into pseudo classes and at-rules, so a layout property cannot slip in behind a selector:
+
+```ts
+// Both are rejected by WithoutProperties<'position'>
+const styles = css.create({
+  hoverPinned: {
+    ':hover': {
+      position: 'fixed',
+    },
+  },
+  widePinned: {
+    '@media (min-width: 640px)': {
+      position: 'sticky',
+    },
+  },
+});
+```
