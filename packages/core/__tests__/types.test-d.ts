@@ -77,6 +77,16 @@ export const transition: string = css.viewTransition({
 });
 
 export const marked = css.marker('badge', '::before');
+
+const markerStyles = css.create({
+  badge: css.marker('badge', ':defined'),
+  spread: {
+    ...css.marker('badge', ':defined'),
+    color: 'red',
+  },
+});
+export const markerStyle: css.Style = markerStyles.badge;
+export const markerSpread: css.Style = markerStyles.spread;
 export const extended: '@container style(--badge-hover: 1)' = css.extended(
   'badge',
   ':hover',
