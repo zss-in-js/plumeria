@@ -740,17 +740,38 @@ export default async function loader(this: LoaderContext, source: string) {
       token: string;
       start: number;
       end: number;
-      stripObject: boolean;
     }> = [];
-    const deferSource = (node: HasSpan, stripObject = false): string => {
+    const deferRange = (start: number, end: number): string => {
       const token = `__plumeria_preserved_${deferredSources.length}__`;
-      deferredSources.push({
-        token,
-        start: node.span.start - baseByteOffset,
-        end: node.span.end - baseByteOffset,
-        stripObject,
-      });
+      deferredSources.push({ token, start, end });
       return token;
+    };
+    const deferSource = (node: HasSpan): string =>
+      deferRange(
+        node.span.start - baseByteOffset,
+        node.span.end - baseByteOffset,
+      );
+    const deferProperty = (
+      property: ObjectExpression['properties'][number],
+    ): string | null => {
+      const node = property as {
+        span?: { start: number; end: number };
+        spread?: { start: number; end: number };
+        arguments?: HasSpan;
+        key?: HasSpan;
+        value?: HasSpan;
+      };
+      const range =
+        node.spread && node.arguments
+          ? { start: node.spread.start, end: node.arguments.span.end }
+          : node.span
+            ? { start: node.span.start, end: node.span.end }
+            : node.key && node.value
+              ? { start: node.key.span.start, end: node.value.span.end }
+              : null;
+      return range
+        ? deferRange(range.start - baseByteOffset, range.end - baseByteOffset)
+        : null;
     };
 
     const dynamicFnCalls: CallExpression[] = [];
@@ -2990,8 +3011,10 @@ export default async function loader(this: LoaderContext, source: string) {
             const innerExpr = styleAttrExisting.value?.expression;
 
             if (innerExpr.type === 'ObjectExpression') {
-              if (innerExpr.properties.length > 0)
-                existingStyleParts.push(deferSource(innerExpr, true));
+              for (const property of innerExpr.properties) {
+                const token = deferProperty(property);
+                if (token) existingStyleParts.push(token);
+              }
             } else {
               existingStyleExpr = `...(${deferSource(innerExpr as HasSpan)})`;
             }
@@ -3208,8 +3231,7 @@ export default async function loader(this: LoaderContext, source: string) {
       pieces.push(
         sourceBuffer.subarray(cursor, deferred.end).toString('utf-8'),
       );
-      let content = pieces.join('');
-      if (deferred.stripObject) content = content.slice(1, -1).trim();
+      const content = pieces.join('');
       for (const replacement of replacements)
         replacement.content = replacement.content.replaceAll(
           deferred.token,
