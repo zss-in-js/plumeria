@@ -1,0 +1,58 @@
+---
+title: 'StaticStyles'
+description: 'API reference for the StaticStyles type'
+---
+
+```ts
+type StaticStyles<K extends StyleKey = StyleKey> = StyleList<StaticNamespace<K>>;
+export type { StaticStyles };
+```
+
+`StaticStyles` rejects the result of a dynamic style, which is a style defined as a function in [css.create](/docs/api-reference/javascript/create). A dynamic style has to reach the element as a custom property, so a component that turns its styles into a class name string with [css.use()](/docs/api-reference/javascript/use) cannot carry one.
+
+## Without a type argument
+
+Every property is accepted and only the dynamic style is rejected:
+
+```tsx title="TypeScript"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  base: {
+    padding: '8px',
+  },
+  tinted: {
+    color: 'gold',
+  },
+  sized: (width: number) => ({
+    width,
+  }),
+});
+
+type ChipProps = {
+  classStyle?: css.StaticStyles;
+};
+
+export function Chip({ classStyle }: ChipProps) {
+  return <span className={css.use(styles.base, classStyle)} />;
+}
+```
+
+```tsx
+<Chip classStyle={styles.tinted} />      // ok
+<Chip classStyle={styles.sized(120)} />  // Type error
+```
+
+## With a type argument
+
+A type argument narrows the properties as well, so `StaticStyles<'color'>` is [StyleProps](/docs/api-reference/types/StyleProps)`<'color'>` without dynamic styles:
+
+```tsx
+type BadgeProps = {
+  classStyle?: css.StaticStyles<'color' | 'backgroundColor'>;
+};
+```
+
+<Callout title="Good to know">
+A component that applies its styles through the `classStyle` prop can carry a dynamic style. Use [StyleProps](/docs/api-reference/types/StyleProps) or [WithoutProperties](/docs/api-reference/types/WithoutProperties) there instead.
+</Callout>
