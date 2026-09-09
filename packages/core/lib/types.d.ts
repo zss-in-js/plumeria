@@ -31,6 +31,9 @@ type AtRule =
   | `@layer ${string}`
   | `@scope ${string}`;
 
+type StyleKey = keyof CSSTypes;
+type NestedKey = ColonString | ArrayString | AtRule;
+
 type AtRuleSelector = {
   [K in AtRule]:
     | CommonProperties
@@ -56,10 +59,9 @@ type AtomicClassNameFor<P extends string, V> = string & {
   readonly _value: V;
 };
 
-type AtString = `@${string}`;
 type MapNamespace<T> = Readonly<{
   [key in keyof T]: T[key] extends Record<string, unknown>
-    ? key extends ColonString | ArrayString | AtString
+    ? key extends NestedKey
       ? MapNamespace<T[key]>
       : AtomicClassNameFor<key & string, T[key]>
     : key extends string
@@ -67,16 +69,46 @@ type MapNamespace<T> = Readonly<{
       : never;
 }>;
 
+declare const DynamicTag: unique symbol;
+
+type DynamicNamespace<T> = MapNamespace<T> & {
+  readonly [DynamicTag]: true;
+};
+
 type CreateReturnType<T> = Readonly<{
   [K in keyof T]: T[K] extends (...args: infer A) => infer R
-    ? (...args: A) => MapNamespace<R>
+    ? (...args: A) => DynamicNamespace<R>
     : MapNamespace<T[K]>;
 }>;
-type StyleNamespace = Readonly<{
-  [key: string]: AtomicClassNameFor<string, unknown> | StyleNamespace;
-}>;
-type Conditional = false | StyleNamespace | null | undefined;
-type Style = Conditional | Style[];
+type FlatNamespace<K extends StyleKey> = {
+  readonly [P in StyleKey]?: P extends K
+    ? AtomicClassNameFor<P & string, unknown>
+    : never;
+};
+
+interface NestedNamespace<K extends StyleKey> {
+  readonly [P: NestedKey]: AllowedNamespace<K> | undefined;
+}
+
+type AllowedNamespace<K extends StyleKey> = FlatNamespace<K> &
+  NestedNamespace<K>;
+
+type StyleList<T> = T | false | null | undefined | StyleList<T>[];
+
+type StyleNamespace = AllowedNamespace<StyleKey>;
+type Style = StyleList<StyleNamespace>;
+
+type StyleProps<K extends StyleKey> = StyleList<AllowedNamespace<K>>;
+
+type WithoutProperties<K extends StyleKey> = StyleProps<Exclude<StyleKey, K>>;
+
+type StaticNamespace<K extends StyleKey> = AllowedNamespace<K> & {
+  readonly [DynamicTag]?: never;
+};
+
+type StaticStyles<K extends StyleKey = StyleKey> = StyleList<
+  StaticNamespace<K>
+>;
 
 type CreateStatic = Record<string, string | number>;
 
@@ -114,6 +146,9 @@ type Extended<
 export type {
   AtomicClassNameFor,
   Style,
+  StyleProps,
+  StaticStyles,
+  WithoutProperties,
   CSSProperties,
   CreateStyleValue,
   CreateReturnType,
