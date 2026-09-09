@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 18.5.4
+
+### Patch Changes
+
+- 4bc0c1b: - Fix: carry a preserved inline style object one property at a time, so a trailing comma or a line comment no longer breaks the merged style attribute.
+- Updated dependencies [4bc0c1b]
+  - @plumeria/compiler@18.5.4
+  - @plumeria/utils@18.5.4
+
 ## 18.5.3
 
 ### Patch Changes
