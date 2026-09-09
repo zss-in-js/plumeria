@@ -15,6 +15,7 @@ import { sortProperties } from './rules/sort-properties';
 import { formatProperties } from './rules/format-properties';
 import { validateValues } from './rules/validate-values';
 import { validatePseudos } from './rules/validate-pseudos';
+import { validateAtRules } from './rules/validate-at-rules';
 
 import type { Linter, Rule } from 'eslint';
 
@@ -41,6 +42,7 @@ const rules: Rules = {
   'format-properties': formatProperties,
   'validate-values': validateValues,
   'validate-pseudos': validatePseudos,
+  'validate-at-rules': validateAtRules,
 };
 
 const configs: Configs = {
@@ -65,6 +67,7 @@ const configs: Configs = {
       '@plumeria/format-properties': 'warn',
       '@plumeria/validate-values': 'warn',
       '@plumeria/validate-pseudos': 'error',
+      '@plumeria/validate-at-rules': 'error',
     },
   },
 };
