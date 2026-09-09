@@ -1,0 +1,36 @@
+---
+title: 'CSSProperties'
+description: 'API reference for the CSSProperties type'
+---
+
+```ts
+type CSSProperties;
+export type { CSSProperties };
+```
+
+`CSSProperties` is the shape of the style objects handed to [css.create](/docs/api-reference/javascript/create). Use it with `satisfies`, which checks the object while leaving its inferred type intact.
+
+## Example
+
+```ts title="TypeScript"
+import * as css from '@plumeria/core';
+
+const flexBox = css.createStatic({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+} satisfies css.CSSProperties);
+
+export const styles = css.create({
+  container: {
+    ...flexBox,
+    backgroundColor: 'red',
+  },
+});
+```
+
+See [createStatic](/docs/api-reference/javascript/createStatic) for what the spread compiles to.
+
+<Callout title="Use satisfies, not an annotation">
+Annotating a variable with `css.CSSProperties` widens every value to its declared type and makes each generated class name optional, because the properties of `CSSProperties` are themselves optional. Write `satisfies css.CSSProperties` so the literal types survive.
+</Callout>
