@@ -72,7 +72,10 @@ type CreateReturnType<T> = Readonly<{
     ? (...args: A) => MapNamespace<R>
     : MapNamespace<T[K]>;
 }>;
-type Conditional = false | CSSProperties | null | undefined;
+type StyleNamespace = Readonly<{
+  [key: string]: AtomicClassNameFor<string, unknown> | StyleNamespace;
+}>;
+type Conditional = false | StyleNamespace | null | undefined;
 type Style = Conditional | Style[];
 
 type CreateStatic = Record<string, string | number>;
