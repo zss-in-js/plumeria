@@ -1,0 +1,37 @@
+---
+title: 'AtomicClassNameFor'
+description: 'API reference for the AtomicClassNameFor type'
+---
+
+```ts
+type AtomicClassNameFor<P extends string, V>;
+export type { AtomicClassNameFor };
+```
+
+`AtomicClassNameFor` is the type of a single atomic class name, which is what reading one property off a created style gives you. It is a `string` that carries the property it was generated for, so a class name generated for one property is not assignable to another.
+
+## Example
+
+```ts title="TypeScript"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  text: {
+    color: 'red',
+    fontSize: '12px',
+  },
+});
+
+const color: css.AtomicClassNameFor<'color', 'red'> = styles.text.color; // ok
+const wrong: css.AtomicClassNameFor<'color', 'red'> = styles.text.fontSize; // Type error
+```
+
+Because it is a `string`, an atomic class name can be handed anywhere a class name is expected:
+
+```tsx
+<ExternalComponent className={styles.text.color} />
+```
+
+<Callout title="Good to know">
+Most code can type these as `string`. Reach for `AtomicClassNameFor` when a prop has to accept one atomic class name rather than a whole style, which [Style](/docs/api-reference/types/Style) and its narrowed forms describe.
+</Callout>
