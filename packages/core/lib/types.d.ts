@@ -134,14 +134,14 @@ type ViewTransition = {
   old?: CSSProperties;
 };
 
-type Marker = Record<string, CSSProperties>;
-
 type StripColon<T extends string> = T extends `:${infer R}` ? StripColon<R> : T;
 
 type Extended<
   I extends string,
   P extends string,
 > = `@container style(--${I}-${StripColon<P>}: 1)`;
+
+type Marker = Record<Extended<string, string>, CSSProperties>;
 
 export type {
   AtomicClassNameFor,
