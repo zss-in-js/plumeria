@@ -536,6 +536,66 @@ const styles = css.create({ card: { color: theme.color } });`,
     ).toEqual(['dynamic-style-access']);
   });
 
+  it('reports a component prop typed with a Plumeria style type', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ card: { padding: 8 } });\ntype CardProps = { classStyle?: css.WithoutProperties<'position'> };\nexport const Card = ({ classStyle }: CardProps) => <div classStyle={[styles.card, classStyle]} />;`,
+    );
+
+    expect(
+      planRelease([dir]).stylesheets[0].reports.map((report) => report.kind),
+    ).toEqual(['style-type-reference']);
+  });
+
+  it('reports a style type imported by name', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nimport type { Style } from '@plumeria/core';\nconst styles = css.create({ card: { padding: 8 } });\nexport const Card = ({ boxStyle }: { boxStyle?: Style }) => <div classStyle={[styles.card, boxStyle]} />;`,
+    );
+
+    expect(
+      planRelease([dir]).stylesheets[0].reports.map((report) => report.kind),
+    ).toEqual(['style-type-reference']);
+  });
+
+  it('reports a style type behind an alias, which the export also strands', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ card: { padding: 8 } });\ntype StoredStyle = css.Style;\nconst cached: StoredStyle = styles.card;\nexport const Card = () => <div classStyle={cached} />;`,
+    );
+
+    expect(
+      planRelease([dir]).stylesheets[0].reports.map((report) => report.kind),
+    ).toEqual(['style-type-reference']);
+  });
+
+  it('reports a style type on a variable annotation', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ card: { padding: 8 } });\nconst cached: css.Style = styles.card;\nexport const Card = () => <div classStyle={cached} />;`,
+    );
+
+    expect(
+      planRelease([dir]).stylesheets[0].reports.map((report) => report.kind),
+    ).toEqual(['style-type-reference']);
+  });
+
+  it('does not treat CSSProperties as a style prop type', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst flexBox = css.createStatic({ display: 'flex' } satisfies css.CSSProperties);\nconst styles = css.create({ card: { ...flexBox, padding: 8 } });\nexport const Card = () => <div classStyle={styles.card} />;`,
+    );
+
+    expect(
+      planRelease([dir]).stylesheets[0].reports.map((report) => report.kind),
+    ).not.toContain('style-type-reference');
+  });
+
   it('folds a composition whose members come from separate modules', () => {
     const other = path.join(dir, 'Other.tsx');
     fs.writeFileSync(
