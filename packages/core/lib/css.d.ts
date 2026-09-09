@@ -9,7 +9,7 @@
  * type viewTransition = <const T extends ViewTransition>(rule: T) => string;
  * type marker = (id: string, pseudo: string) => Marker;
  * type extended = <I extends string, P extends string>(id: I, pseudo: P) => Extended<I, P>;
- * type use = (...rules: Style) => string;
+ * type use = (...rules: Style[]) => string;
  * ```
  */
 declare module '@plumeria/core' {
@@ -63,5 +63,5 @@ declare module '@plumeria/core' {
   ) => Extended<I, P>;
 
   export const use: use;
-  export type use = (...rules: Style) => string;
+  export type use = (...rules: Style[]) => string;
 }
