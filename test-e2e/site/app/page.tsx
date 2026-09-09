@@ -4,6 +4,7 @@ import { ConditionalTest } from 'component/ConditionalTest';
 import { ContainerQueryTest } from 'component/ContainerQueryTest';
 import { KeyframesTest } from 'component/KeyframesTest';
 import { QueryOrderTest } from 'component/QueryOrderTest';
+import { StylePropTest } from 'component/StylePropTest';
 import { MultiArgTest } from 'component/MultiArgTest';
 import { VariableTest } from 'component/VariableTest';
 import { VariantTest } from 'component/VariantTest';
@@ -31,6 +32,7 @@ export default function Home() {
       <VariableTest />
       <VariantTest />
       <KeyframesTest />
+      <StylePropTest />
     </main>
   );
 }
