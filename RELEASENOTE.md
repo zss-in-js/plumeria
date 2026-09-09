@@ -1,5 +1,9 @@
 # Release Notes
 
+## 18.5.4 (Sep 9, 2026)
+
+- Fix: carry a preserved inline style object one property at a time, so a trailing comma or a line comment no longer breaks the merged style attribute.
+
 ## 18.5.3 (Sep 8, 2026)
 
 - Fix: align style transformation, scope checks, preserved JSX references, and compilation errors with the Turbopack loader.
