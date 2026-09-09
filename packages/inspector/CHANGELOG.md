@@ -1,5 +1,11 @@
 # @plumeria/inspector
 
+## 19.0.0
+
+### Major Changes
+
+- 137fae9: Bump version to 19.0.0
+
 ## 18.5.4
 
 ### Patch Changes
