@@ -212,3 +212,23 @@ it.each([
     expect(() => checkSyntax(result)).not.toThrow();
   },
 );
+
+it.each([
+  ["{ color: 'red', }", "color: 'red'"],
+  ["{ color: 'red' // note\n}", "color: 'red'"],
+  ["{ color: 'red', // note\n}", "color: 'red'"],
+  ['{ ...rest, }', '...rest'],
+])(
+  'extends a preserved inline style object written as %s',
+  async (styleObject, preserved) => {
+    const result = await run(
+      prefix +
+        styles +
+        `const tone = css.create({ box: (color: string) => ({ background: color }) });` +
+        `export const el = <div style={${styleObject}} classStyle={tone.box('blue')} />;`,
+    );
+    expect(result).toContain(preserved);
+    expect(result).toContain('"blue"');
+    expect(() => checkSyntax(result)).not.toThrow();
+  },
+);
