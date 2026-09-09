@@ -31,22 +31,25 @@ const securityHeaders = [
   },
 ];
 
-const config: NextConfig = withPlumeria({
-  reactCompiler: true,
-  reactStrictMode: true,
+const config: NextConfig = withPlumeria(
+  {
+    reactCompiler: true,
+    reactStrictMode: true,
 
-  async rewrites() {
-    return [{ source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*' }];
-  },
+    async rewrites() {
+      return [{ source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*' }];
+    },
 
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: securityHeaders,
-      },
-    ];
+    async headers() {
+      return [
+        {
+          source: '/(.*)',
+          headers: securityHeaders,
+        },
+      ];
+    },
   },
-});
+  { withoutLogicalProperties: true },
+);
 
 export default withMDX(config);
