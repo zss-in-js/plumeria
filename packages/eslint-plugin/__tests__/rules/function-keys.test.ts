@@ -9,6 +9,7 @@ import { noPhysicalProperties } from '../../src/rules/no-physical-properties';
 import { noUnknownCssProperties } from '../../src/rules/no-unknown-css-properties';
 import { sortProperties } from '../../src/rules/sort-properties';
 import { validatePseudos } from '../../src/rules/validate-pseudos';
+import { validateAtRules } from '../../src/rules/validate-at-rules';
 import { validateValues } from '../../src/rules/validate-values';
 
 const tester = new RuleTester({
@@ -51,6 +52,11 @@ rejects(
   'validate-pseudos',
   validatePseudos,
   `{ ':not-a-pseudo': { color: value } }`,
+);
+rejects(
+  'validate-at-rules',
+  validateAtRules,
+  `{ '@unknown foo': { color: value } }`,
 );
 rejects('no-combinator', noCombinator, `{ '& > span': { color: value } }`);
 rejects(
