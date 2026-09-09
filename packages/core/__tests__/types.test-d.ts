@@ -85,3 +85,11 @@ export const extended: '@container style(--badge-hover: 1)' = css.extended(
 export const merged: string = css.use(styles.text, false, null, undefined, [
   styles.hover,
 ]);
+
+export const dynamic: string = css.use(styles.variant(8));
+
+// @ts-expect-error a style list takes created styles, not an inline object
+css.use({ color: 'red' }); // eslint-disable-line @plumeria/no-inline-object
+
+// @ts-expect-error a nested inline object is not a created style either
+css.use([styles.text, { ':hover': { color: 'blue' } }]);
