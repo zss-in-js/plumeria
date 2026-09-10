@@ -53,7 +53,7 @@ A design system component owns a shape. Letting a caller override its padding is
 
 ```tsx
 type TextProps = {
-  classStyle?: css.StyleProps<'color' | 'fontSize'>;
+  styleArray?: css.StyleProps<'color' | 'fontSize'>;
 };
 ```
 
@@ -61,7 +61,7 @@ type TextProps = {
 
 ```tsx
 type PanelProps = {
-  classStyle?: css.WithoutProperties<'position' | 'top' | 'left'>;
+  styleArray?: css.WithoutProperties<'position' | 'top' | 'left'>;
 };
 ```
 
@@ -69,7 +69,7 @@ Both reach into nested blocks. A property cannot slip past the constraint by bei
 
 ```tsx
 // Rejected by WithoutProperties<'position'>
-<Panel classStyle={styles.hoverPinned} />
+<Panel styleArray={styles.hoverPinned} />
 ```
 
 ```ts
@@ -90,17 +90,17 @@ Reporting it is still a build error. A component that renders through `css.use()
 
 ```tsx
 type ChipProps = {
-  classStyle?: css.StaticStyles;
+  styleArray?: css.StaticStyles;
 };
 
-function Chip({ classStyle }: ChipProps) {
-  return <span className={css.use(styles.base, classStyle)} />;
+function Chip({ styleArray }: ChipProps) {
+  return <span className={css.use(styles.base, styleArray)} />;
 }
 ```
 
 ```tsx
-<Chip classStyle={styles.tinted} />     // ok
-<Chip classStyle={styles.sized(120)} /> // Type error
+<Chip styleArray={styles.tinted} />     // ok
+<Chip styleArray={styles.sized(120)} /> // Type error
 ```
 
 Written without a type argument, `StaticStyles` accepts every property and rejects only the dynamic style, which is the shape most components want. A type argument narrows the properties as well, so `StaticStyles<'color'>` is `StyleProps<'color'>` without dynamic styles.
