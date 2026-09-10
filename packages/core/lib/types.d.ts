@@ -24,12 +24,8 @@ type ColonSelector = {
   [key in ColonString]: CommonProperties | CSSVariableProperty;
 };
 
-type AtRule =
-  | `@media ${string}`
-  | `@container ${string}`
-  | `@supports ${string}`
-  | `@layer ${string}`
-  | `@scope ${string}`;
+type AtKeyword = '@media' | '@container' | '@supports' | '@layer' | '@scope';
+type AtRule = `${AtKeyword} ${string}` | `${AtKeyword}(${string}`;
 
 type StyleKey = keyof CSSTypes;
 type NestedKey = ColonString | ArrayString | AtRule;
@@ -59,6 +55,8 @@ type AtomicClassNameFor<P extends string, V> = string & {
   readonly _value: V;
 };
 
+declare const StyleTag: unique symbol;
+
 type MapNamespace<T> = Readonly<{
   [key in keyof T]: T[key] extends Record<string, unknown>
     ? key extends NestedKey
@@ -67,7 +65,9 @@ type MapNamespace<T> = Readonly<{
     : key extends string
       ? AtomicClassNameFor<key, T[key]>
       : never;
-}>;
+}> & {
+  readonly [StyleTag]: true;
+};
 
 declare const DynamicTag: unique symbol;
 
@@ -91,7 +91,9 @@ interface NestedNamespace<K extends StyleKey> {
 }
 
 type AllowedNamespace<K extends StyleKey> = FlatNamespace<K> &
-  NestedNamespace<K>;
+  NestedNamespace<K> & {
+    readonly [StyleTag]: true;
+  };
 
 type StyleList<T> = T | false | null | undefined | StyleList<T>[];
 
@@ -141,7 +143,7 @@ type Extended<
   P extends string,
 > = `@container style(--${I}-${StripColon<P>}: 1)`;
 
-type Marker = Record<Extended<string, string>, CSSProperties>;
+type Marker = Readonly<Record<ColonString, CSSVariableProperty>>;
 
 export type {
   AtomicClassNameFor,
