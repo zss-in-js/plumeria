@@ -18,36 +18,36 @@ const styles = css.create({
 });
 
 type BadgeProps = {
-  classStyle?: css.StaticStyles<'color' | 'backgroundColor' | 'padding'>;
+  styleArray?: css.StaticStyles<'color' | 'backgroundColor' | 'padding'>;
 };
 
-function Badge({ classStyle }: BadgeProps) {
+function Badge({ styleArray }: BadgeProps) {
   return (
-    <span data-testid="static-badge" classStyle={[styles.base, classStyle]}>
+    <span data-testid="static-badge" classStyle={[styles.base, styleArray]}>
       Badge
     </span>
   );
 }
 
 type PanelProps = {
-  classStyle?: css.WithoutProperties<'position'>;
+  styleArray?: css.WithoutProperties<'position'>;
 };
 
-function Panel({ classStyle }: PanelProps) {
+function Panel({ styleArray }: PanelProps) {
   return (
-    <div data-testid="restricted-panel" classStyle={[styles.base, classStyle]}>
+    <div data-testid="restricted-panel" classStyle={[styles.base, styleArray]}>
       Panel
     </div>
   );
 }
 
 type ChipProps = {
-  classStyle?: css.StaticStyles;
+  styleArray?: css.StaticStyles;
 };
 
-function Chip({ classStyle }: ChipProps) {
+function Chip({ styleArray }: ChipProps) {
   return (
-    <span data-testid="static-chip" classStyle={[styles.base, classStyle]}>
+    <span data-testid="static-chip" classStyle={[styles.base, styleArray]}>
       Chip
     </span>
   );
@@ -59,15 +59,15 @@ export function StylePropTest() {
       style={{ marginTop: '20px', border: '1px solid #ccc', padding: '10px' }}
     >
       <h3>Restricted Style Prop Test</h3>
-      <Badge classStyle={styles.emphasis} />
-      <Panel classStyle={styles.emphasis} />
+      <Badge styleArray={styles.emphasis} />
+      <Panel styleArray={styles.emphasis} />
       {/* @ts-expect-error a dynamic style carries a function key */}
-      <Badge classStyle={styles.sized(120)} />
+      <Badge styleArray={styles.sized(120)} />
       {/* @ts-expect-error position is excluded from this component */}
-      <Panel classStyle={styles.pinned} />
-      <Chip classStyle={styles.pinned} />
+      <Panel styleArray={styles.pinned} />
+      <Chip styleArray={styles.pinned} />
       {/* @ts-expect-error a function key is rejected without a type argument */}
-      <Chip classStyle={styles.sized(120)} />
+      <Chip styleArray={styles.sized(120)} />
     </div>
   );
 }
