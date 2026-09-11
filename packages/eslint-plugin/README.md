@@ -151,7 +151,7 @@ Validates CSS pseudo-classes and pseudo-elements inside `css.create()`. It check
 
 ### validate-at-rules
 
-Validates at-rules inside `css.create()`. It accepts `@media`, `@container`, `@supports`, `@layer`, and `@scope`, and supports validation of computed keys when TypeScript is available.
+Validates at-rules inside `css.create()`. It accepts `@media`, `@container`, `@supports`, `@layer`, and `@scope`, each with a prelude, whether or not a space separates it from the keyword, and supports validation of computed keys when TypeScript is available.
 
 ## Optional rules
 
