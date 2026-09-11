@@ -103,3 +103,11 @@ css.use({ color: 'red' }); // eslint-disable-line @plumeria/no-inline-object
 
 // @ts-expect-error a nested inline object is not a created style either
 css.use([styles.text, { ':hover': { color: 'blue' } }]);
+
+// @ts-expect-error the object css.create returns holds styles, it is not one
+css.use(styles);
+
+const foreign = { boxOfThings: 1 };
+
+// @ts-expect-error an object that never passed through css.create is not a style
+css.use(foreign);
