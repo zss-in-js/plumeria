@@ -5,6 +5,7 @@ module.exports = {
   transformIgnorePatterns: ['node_modules/\\.pnpm/(?!unplugin@)'],
   moduleNameMapper: {
     '^(\\..+)\\.js$': '$1',
+    '^@plumeria/utils$': '<rootDir>/packages/utils/src/index.ts',
   },
   roots: [
     '<rootDir>/scripts/__tests__',
