@@ -915,7 +915,6 @@ export function compileCSS(options: CompilerOptions) {
           dynamicTablesOf(ctx),
           providedParams,
         );
-        if (!resolved) return null;
         const { style } = resolved;
 
         return style;
