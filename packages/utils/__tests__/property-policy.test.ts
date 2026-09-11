@@ -11,13 +11,32 @@ jest.mock('@rust-gear/glob', () => ({
   globSync: jest.fn(() => files),
 }));
 
-import { unpluginFactory } from '../src/core';
+import { transformSource } from '../src/transform';
+import { resolvePropertyPolicy } from '../src/propertyPolicy';
+import type { PropertyPolicyOptions } from '../src/propertyPolicy';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (
+  source: string,
+  filePath: string,
+  options: PropertyPolicyOptions = {},
+) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: resolvePropertyPolicy(options),
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 let fixtureCount = 0;
 
 const run = async (
   body: string,
-  options: Record<string, unknown> = {},
+  options: PropertyPolicyOptions = {},
 ): Promise<string> => {
   const appPath = path.join(FIXTURE_DIR, `app-${fixtureCount++}.tsx`);
   const source = `import * as css from '@plumeria/core';\n${body}\n`;
@@ -26,17 +45,7 @@ const run = async (
   files.length = 0;
   files.push(appPath);
 
-  const plugin = unpluginFactory(
-    options as never,
-    {
-      framework: 'vite',
-    } as never,
-  ) as any;
-  const result = await plugin.transform.call(
-    { addWatchFile: () => {} },
-    source,
-    appPath,
-  );
+  const result = await transformSource(env(source, appPath, options));
   return typeof result === 'string' ? result : (result?.code ?? '');
 };
 
@@ -46,7 +55,7 @@ const style = (declaration: string) =>
   `export const s = css.create({ a: { ${declaration} } });\n` +
   `export const A = () => <div classStyle={s.a} />;`;
 
-describe('unplugin: withoutLogicalProperties', () => {
+describe('transform: withoutLogicalProperties', () => {
   it('fails the build on a logical property', async () => {
     await expect(
       run(style(`marginBlockStart: 0`), { withoutLogicalProperties: true }),
@@ -74,7 +83,7 @@ describe('unplugin: withoutLogicalProperties', () => {
   });
 });
 
-describe('unplugin: withoutPhysicalProperties', () => {
+describe('transform: withoutPhysicalProperties', () => {
   it('fails the build on a physical property', async () => {
     await expect(
       run(style(`marginTop: 0`), { withoutPhysicalProperties: true }),
@@ -88,7 +97,7 @@ describe('unplugin: withoutPhysicalProperties', () => {
   });
 });
 
-describe('unplugin: the property policy is off by default', () => {
+describe('transform: the property policy is off by default', () => {
   it('transforms either spelling when neither option is set', async () => {
     await expect(
       run(style(`marginTop: 0, insetInlineStart: 0`)),
@@ -96,7 +105,7 @@ describe('unplugin: the property policy is off by default', () => {
   });
 });
 
-describe('unplugin: the sizes option', () => {
+describe('transform: the sizes option', () => {
   it('leaves an axis property alone by default', async () => {
     await expect(
       run(style(`blockSize: 10`), { withoutLogicalProperties: true }),
@@ -112,7 +121,7 @@ describe('unplugin: the sizes option', () => {
   });
 });
 
-describe('unplugin: where the policy reaches', () => {
+describe('transform: where the policy reaches', () => {
   it('reaches a property nested under a selector', async () => {
     await expect(
       run(style(`':hover': { marginBlockStart: 0 }`), {
@@ -149,16 +158,13 @@ describe('unplugin: where the policy reaches', () => {
   });
 });
 
-describe('unplugin: the two options contradict each other', () => {
+describe('transform: the two options contradict each other', () => {
   it('refuses a configuration that enables both before any file is read', () => {
     expect(() =>
-      unpluginFactory(
-        {
-          withoutLogicalProperties: true,
-          withoutPhysicalProperties: true,
-        } as never,
-        { framework: 'vite' } as never,
-      ),
+      resolvePropertyPolicy({
+        withoutLogicalProperties: true,
+        withoutPhysicalProperties: true,
+      }),
     ).toThrow(/contradict each other/);
   });
 });
