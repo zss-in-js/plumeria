@@ -27,8 +27,21 @@ const PARENT = path.join(DIR, 'Parent.tsx');
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 const mockedGlob = jest.requireMock<{ globSync: jest.Mock }>('@rust-gear/glob');
 
-import { unpluginFactory } from '../src/core';
-import { getStyleRecords, deepMerge } from '@plumeria/utils';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+import { getStyleRecords, deepMerge } from '../src/index';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const RED = { padding: 4, color: 'red' };
 const BLUE = { padding: 8, color: 'blue' };
@@ -200,14 +213,7 @@ export const Parent = () => (
 };
 
 const run = async (file: string): Promise<string> => {
-  const plugin = unpluginFactory(undefined, {
-    framework: 'vite',
-  } as never) as any;
-  const result = await plugin.transform.call(
-    { addWatchFile: () => {} },
-    files[file],
-    file,
-  );
+  const result = await transformSource(env(files[file], file));
   return result.code;
 };
 
@@ -226,7 +232,7 @@ beforeAll(() => {
 
 afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
 
-describe('unplugin: a style received through a prop', () => {
+describe('transform: a style received through a prop', () => {
   it('applies to the element that received it', async () => {
     await run(PARENT);
     const code = await run(LEAF);
