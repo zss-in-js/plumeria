@@ -1,7 +1,8 @@
 module.exports = {
   transform: {
-    '^.+\\.ts$': '@swc/jest',
+    '^.+\\.(ts|mjs)$': '@swc/jest',
   },
+  transformIgnorePatterns: ['node_modules/\\.pnpm/(?!unplugin@)'],
   moduleNameMapper: {
     '^(\\..+)\\.js$': '$1',
   },
