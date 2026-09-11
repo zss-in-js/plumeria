@@ -8,7 +8,20 @@ const IMPORTED_STYLES = path.join(DIR, 'imported.styles.ts');
 
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
-import { unpluginFactory } from '../src/core';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const mockGlobSync = (
   jest.requireMock('@rust-gear/glob') as { globSync: jest.Mock }
@@ -32,10 +45,7 @@ export const importedStyles = css.create({
 const run = (code: string, name: string): Promise<{ code: string }> => {
   const file = path.join(DIR, name);
   fs.writeFileSync(file, code);
-  const plugin = unpluginFactory(undefined, {
-    framework: 'vite',
-  } as never) as any;
-  return plugin.transform.call({ addWatchFile: () => {} }, code, file);
+  return transformSource(env(code, file));
 };
 
 const header = `import * as css from '@plumeria/core';
@@ -131,14 +141,7 @@ export const Imported = (p: any) => <p classStyle={importedStyles.tone(p.color)}
     fs.writeFileSync(file, source);
     mockGlobSync.mockReturnValue([IMPORTED_STYLES, file]);
 
-    const plugin = unpluginFactory(undefined, {
-      framework: 'vite',
-    } as never) as any;
-    const { code } = await plugin.transform.call(
-      { addWatchFile: () => {} },
-      source,
-      file,
-    );
+    const { code } = await transformSource(env(source, file));
 
     expect(code).toContain('className={');
     expect(code).toContain('p.color');
@@ -167,14 +170,7 @@ import { scoped } from './scoped.styles';
 export const A = (p: any) => <div classStyle={scoped.tone(p.c)} />;`;
       fs.writeFileSync(consumerFile, consumer);
       mockGlobSync.mockReturnValue([stylesFile, consumerFile]);
-      const plugin = unpluginFactory(undefined, {
-        framework: 'vite',
-      } as never) as any;
-      const imported = await plugin.transform.call(
-        { addWatchFile: () => {} },
-        consumer,
-        consumerFile,
-      );
+      const imported = await transformSource(env(consumer, consumerFile));
       mockGlobSync.mockReturnValue([]);
 
       const inline = await run(
@@ -228,14 +224,7 @@ import { named } from './named.styles';
 export const A = (p: any) => <div classStyle={named.tone({ color: p.c })} />;`;
       fs.writeFileSync(consumerFile, consumer);
       mockGlobSync.mockReturnValue([stylesFile, consumerFile]);
-      const plugin = unpluginFactory(undefined, {
-        framework: 'vite',
-      } as never) as any;
-      const { code } = await plugin.transform.call(
-        { addWatchFile: () => {} },
-        consumer,
-        consumerFile,
-      );
+      const { code } = await transformSource(env(consumer, consumerFile));
       mockGlobSync.mockReturnValue([]);
 
       const inline = await run(
