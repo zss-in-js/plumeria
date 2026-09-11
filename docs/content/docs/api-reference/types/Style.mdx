@@ -97,6 +97,20 @@ export function Example() {
 }
 ```
 
+## One style rather than a list
+
+`Style` describes a list, so a prop typed with it can be handed an array, a conditional or nothing at all. A prop that instead takes exactly one created style, because the component reads a property off it, is [AtomicStyle](/docs/api-reference/types/AtomicStyle):
+
+```tsx
+function Glyph({ glyphStyle }: { glyphStyle: css.AtomicStyle<{ color: string }> }) {
+  return <svg fill="currentColor" className={glyphStyle.color} />;
+}
+```
+
+That is the whole difference: `Style` is what a styling prop accepts, `AtomicStyle` is what a component can look inside.
+
+It is also the name TypeScript writes when it emits a declaration for an exported style, so a package that ships styles compiles with `declaration: true`.
+
 <Callout title="Good to know">
 `Style` accepts every property. To constrain what a component accepts through a style prop, use [StyleProps](/docs/api-reference/types/StyleProps), [WithoutProperties](/docs/api-reference/types/WithoutProperties) or [StaticStyles](/docs/api-reference/types/StaticStyles).
 </Callout>
