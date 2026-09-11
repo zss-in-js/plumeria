@@ -54,3 +54,5 @@ export { profiling, mark, measure, tally, timed, timedAsync } from './profiler';
 export { DEFAULT_STYLE_PROP } from './constants';
 export type { PropertyPolicy, PropertyPolicyOptions } from './propertyPolicy';
 export { resolvePropertyPolicy, assertPropertyPolicy } from './propertyPolicy';
+export type { TransformEnv, TransformOutput } from './transform';
+export { transformSource } from './transform';
