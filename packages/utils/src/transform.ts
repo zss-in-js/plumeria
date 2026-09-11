@@ -1462,11 +1462,10 @@ export const transformSource = async (
         const source = given.get(key);
         if (!source) {
           if (func.defaults?.[local]) return;
-          throwCompilationError(
+          return throwCompilationError(
             `Plumeria: ${getSource(expr)} leaves "${key}" unset, and a dynamic style function has no value to fall back on.`,
             expr as HasSpan,
           );
-          return;
         }
         if (
           !forceRuntime &&
