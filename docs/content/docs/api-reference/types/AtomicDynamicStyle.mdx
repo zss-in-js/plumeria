@@ -1,0 +1,54 @@
+---
+title: 'AtomicDynamicStyle'
+description: 'API reference for the AtomicDynamicStyle type'
+---
+
+```ts
+type AtomicDynamicStyle<T>;
+export type { AtomicDynamicStyle };
+```
+
+`AtomicDynamicStyle` is the type of one style a dynamic style produced, which is a style defined as a function in [css.create](/docs/api-reference/javascript/create) and then called. It reads the same as [AtomicStyle](/docs/api-reference/types/AtomicStyle) — the type argument names the properties the style has to set — and adds that a static style will not do.
+
+## Example
+
+```tsx title="TypeScript"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  sized: (width: number) => ({ width }),
+  fixed: { width: '120px' },
+});
+
+type Sized = css.AtomicDynamicStyle<{ width: number }>;
+
+const a: Sized = styles.sized(120); // ok
+const b: Sized = styles.sized;      // Type error, the function has to be called
+const c: Sized = styles.fixed;      // Type error, this style is not dynamic
+```
+
+The property is still required. A dynamic style that sets something else is rejected the same way a static one would be:
+
+```tsx
+const styles = css.create({
+  offset: (top: number) => ({ top }),
+});
+
+const a: css.AtomicDynamicStyle<{ width: number }> = styles.offset(8); // Type error
+```
+
+## Choosing between the three
+
+A dynamic style reaches the element as a custom property, so whether a prop can carry one is a real distinction rather than a stylistic one. Three types divide it up:
+
+| Type | A static style | A called dynamic style |
+| --- | --- | --- |
+| [AtomicStyle](/docs/api-reference/types/AtomicStyle) | accepted | accepted |
+| `AtomicDynamicStyle` | rejected | accepted |
+| [StaticStyles](/docs/api-reference/types/StaticStyles) | accepted | rejected |
+
+`StaticStyles` is the one a component reaches for most, because [css.use()](/docs/api-reference/javascript/use) cannot carry a dynamic style. `AtomicDynamicStyle` is the opposite case: a component that exists to apply a caller's computed value.
+
+<Callout title="Good to know">
+`StaticStyles` is a style list, so it accepts arrays and the falsy members. `AtomicDynamicStyle` is one style, the same as `AtomicStyle`. See [Style](/docs/api-reference/types/Style) for the list forms.
+</Callout>
