@@ -8,6 +8,8 @@ export function splitCssRules(css: string): string[] {
 
   const flush = () => {
     const trimmed = currentRule.trim();
+    // flush is only called after appending a comment, `}`, or `;`.
+    /* istanbul ignore else */
     if (trimmed) rules.push(trimmed);
     currentRule = '';
     hasContent = false;
