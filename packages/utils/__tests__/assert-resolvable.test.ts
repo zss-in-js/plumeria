@@ -1,6 +1,19 @@
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
-import loader from '../src/index';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const wrap = (body: string) => `
 import * as css from '@plumeria/core';
@@ -16,21 +29,13 @@ function Test() {
 ${body}
 `;
 
-const run = (body: string): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const ctx = {
-      resourcePath: `${__dirname}/fixture.tsx`,
-      async: () => (err: Error | null, content?: string) =>
-        err ? reject(err) : resolve(content as string),
-      addDependency: () => {},
-      clearDependencies: () => {},
-    };
-    (loader as any).call(ctx, wrap(body));
-  });
+const run = (body: string): Promise<unknown> => {
+  return transformSource(env(wrap(body), `${__dirname}/fixture.tsx`));
+};
 
 const UNSUPPORTED = /is not supported/;
 
-describe('turbopack-loader: assertResolvable', () => {
+describe('transform: assertResolvable', () => {
   it.each([
     [
       'a function call in classStyle',
@@ -63,9 +68,11 @@ describe('turbopack-loader: assertResolvable', () => {
   // `use` is variadic, so calling it with nothing is legal. @plumeria/core has
   // no runtime, so the call has to be compiled away rather than left behind.
   it('compiles css.use() with no arguments away', async () => {
-    const out = await run('export const cls = css.use();');
-    expect(out).toContain('export const cls = ""');
-    expect(out).not.toMatch(/\bcss\.use\(/);
+    const out = (await run('export const cls = css.use();')) as {
+      code: string;
+    };
+    expect(out.code).toContain('export const cls = ""');
+    expect(out.code).not.toMatch(/\bcss\.use\(/);
   });
 
   // A malformed call is TypeScript's to reject. The compiler skips it, the way
@@ -73,7 +80,7 @@ describe('turbopack-loader: assertResolvable', () => {
   it('skips a keyframes call with no argument that is never applied', async () => {
     await expect(
       run('const spin = css.keyframes();\nexport const name = String(spin);'),
-    ).resolves.toEqual(expect.any(String));
+    ).resolves.toBeTruthy();
   });
 
   // `Conditional` allows undefined, so this must keep compiling.
@@ -82,6 +89,6 @@ describe('turbopack-loader: assertResolvable', () => {
       run(
         'export const A = () => <div classStyle={cond ? styles.box : undefined} />;',
       ),
-    ).resolves.toEqual(expect.any(String));
+    ).resolves.toBeTruthy();
   });
 });
