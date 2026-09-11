@@ -16,8 +16,21 @@ const PARENT = path.join(DIR, 'Parent.tsx');
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 const mockedGlob = jest.requireMock<{ globSync: jest.Mock }>('@rust-gear/glob');
 
-import loader from '../src/index';
-import { getStyleRecords, deepMerge } from '@plumeria/utils';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+import { getStyleRecords, deepMerge } from '../src/index';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const BASE = { padding: 24, fontWeight: 700, color: 'green' };
 const RED = { padding: 4, color: 'red' };
@@ -71,17 +84,10 @@ export const Parent = () => (
 `,
 };
 
-const run = (file: string): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const ctx = {
-      resourcePath: file,
-      async: () => (err: Error | null, content?: string) =>
-        err ? reject(err) : resolve(content as string),
-      addDependency: () => {},
-      clearDependencies: () => {},
-    };
-    (loader as any).call(ctx, files[file]);
-  });
+const run = async (file: string): Promise<string> => {
+  const result = await transformSource(env(files[file], file));
+  return result.code;
+};
 
 const norm = (value: string) =>
   value.trim().split(/\s+/).filter(Boolean).sort().join(' ');
@@ -118,7 +124,7 @@ beforeAll(async () => {
 
 afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
 
-describe('turbopack-loader: a style prop applied under a condition', () => {
+describe('transform: a style prop applied under a condition', () => {
   it('keys the call sites by content, so the same style repeats', () => {
     // [Gated red, Gated blue, Either red, Either blue]
     expect(keys).toHaveLength(4);
