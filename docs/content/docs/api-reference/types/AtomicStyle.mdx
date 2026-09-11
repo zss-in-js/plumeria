@@ -1,0 +1,110 @@
+---
+title: 'AtomicStyle'
+description: 'API reference for the AtomicStyle type'
+---
+
+```ts
+type AtomicStyle<T>;
+export type { AtomicStyle };
+```
+
+`AtomicStyle` is the type of one style that came out of [css.create](/docs/api-reference/javascript/create), written in terms of the rule object it was created from.
+
+Where [StyleProps](/docs/api-reference/types/StyleProps) and [WithoutProperties](/docs/api-reference/types/WithoutProperties) say which properties a prop accepts, `AtomicStyle` says which properties a style has to set, down to the value it sets them to.
+
+## Requiring a property
+
+```tsx title="TypeScript"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  tinted: { color: 'red' },
+  padded: { color: 'red', padding: 8 },
+  pinned: { position: 'absolute' },
+});
+
+type NeedsColor = css.AtomicStyle<{ color: string }>;
+
+const a: NeedsColor = styles.tinted; // ok
+const b: NeedsColor = styles.padded; // ok, setting more is allowed
+const c: NeedsColor = styles.pinned; // Type error, no color is set
+```
+
+The type argument names what has to be there. Anything the style sets beyond it is accepted.
+
+## Reading a class name off the prop
+
+Requiring a property is what makes it readable. A prop typed with `Style` is a list, so there is nothing to index; a prop typed with `AtomicStyle` hands the component the [atomic class name](/docs/api-reference/types/AtomicClassNameFor) for the property it named:
+
+```tsx title="TypeScript"
+function Glyph({ glyphStyle }: { glyphStyle: css.AtomicStyle<{ color: string }> }) {
+  return <svg fill="currentColor" className={glyphStyle.color} />;
+}
+
+<Glyph glyphStyle={styles.tinted} />  // ok
+<Glyph glyphStyle={styles.padded} />  // Type error, there is no color to read
+```
+
+A nested block is read the same way:
+
+```tsx
+function Hover({ s }: { s: css.AtomicStyle<{ ':hover': { color: string } }> }) {
+  return <span className={s[':hover'].color} />;
+}
+```
+
+## Pinning a value
+
+Because an atomic class name carries the value it was generated for, a literal in the type argument holds the style to it:
+
+```tsx
+const layouts = css.create({
+  flex: { display: 'flex' },
+  grid: { display: 'grid' },
+});
+
+type MustBeFlex = css.AtomicStyle<{ display: 'flex' }>;
+
+const a: MustBeFlex = layouts.flex; // ok
+const b: MustBeFlex = layouts.grid; // Type error, display is grid
+```
+
+## Either kind of style
+
+A style defined as a function satisfies `AtomicStyle` once it is called, as long as it sets the properties named:
+
+```tsx
+const styles = css.create({
+  sized: (width: number) => ({ width, color: 'red' }),
+});
+
+const a: NeedsColor = styles.sized(120); // ok
+```
+
+When only a dynamic style will do, [AtomicDynamicStyle](/docs/api-reference/types/AtomicDynamicStyle) says so. When it must not be one, [StaticStyles](/docs/api-reference/types/StaticStyles) does.
+
+## One style, not a list
+
+Neither type is a style list. Arrays and the falsy members belong to [Style](/docs/api-reference/types/Style) and its narrowed forms:
+
+```tsx
+const a: NeedsColor = [styles.tinted]; // Type error
+const b: NeedsColor = false;           // Type error
+```
+
+So a styling prop still wants `Style`, `StyleProps`, `WithoutProperties` or `StaticStyles`. Reach for `AtomicStyle` when a prop takes exactly one style and has to know what is in it.
+
+## In a generated declaration file
+
+This is also the name TypeScript writes when it emits a declaration for an exported style, so a package that ships styles compiles with `declaration: true`:
+
+```ts
+export declare const styles: Readonly<{
+  readonly base: css.AtomicStyle<{ readonly color: 'red' }>;
+  readonly sized: (width: number) => css.AtomicDynamicStyle<{ width: number }>;
+}>;
+```
+
+<Callout title="Good to know">
+The type argument is the rule object as it was written, not the style that came back. Reading it off an existing style with `typeof styles.base` says the same thing without restating the rule.
+</Callout>
