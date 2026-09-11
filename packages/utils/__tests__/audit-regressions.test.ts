@@ -3,22 +3,31 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-import { getStyleRecords } from '@plumeria/utils';
+import { getStyleRecords } from '../src/index';
 
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
-import { unpluginFactory } from '../src/core';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
+
 const directory = fs.mkdtempSync(
   path.join(os.tmpdir(), 'plumeria-unplugin-audit-'),
 );
 const run = async (source: string): Promise<string> => {
-  const plugin = unpluginFactory(undefined, {
-    framework: 'vite',
-  } as never) as any;
-  const result = await plugin.transform.call(
-    { addWatchFile: () => {} },
-    source,
-    path.join(directory, 'fixture.tsx'),
+  const result = await transformSource(
+    env(source, path.join(directory, 'fixture.tsx')),
   );
   return result.code;
 };
@@ -28,7 +37,7 @@ const classHash = (style: Record<string, any>) =>
 
 afterAll(() => fs.rmSync(directory, { recursive: true, force: true }));
 
-describe('unplugin: audit regressions', () => {
+describe('transform: audit regressions', () => {
   it.each(['box', '(box)', 'on && box', 'on ? box : styles.other'])(
     'resolves a style alias inside %s',
     async (expression) => {
