@@ -150,6 +150,15 @@ describe('CSS variable unit rules', () => {
 });
 
 describe('resolveDynamicStyle', () => {
+  test('rejects unsupported parameter patterns', () => {
+    const func = styleFunctionsOf(
+      object('{ root: ([size]) => ({ width: size }) }'),
+    ).root;
+    expect(() => resolveDynamicStyle(func, [], {}, tables)).toThrow(
+      'array and rest parameters are not supported',
+    );
+  });
+
   test('resolves static values without mutating the caller table', () => {
     const func = styleFunctionsOf(
       object('{ root: (size = 2) => ({ width: size }) }'),
@@ -161,7 +170,7 @@ describe('resolveDynamicStyle', () => {
     });
     expect(staticTable).toEqual({ size: 10 });
     const plain = { params: [], body: object('{ color: "red" }') };
-    expect(resolveDynamicStyle(plain, [], {}, tables)?.style).toEqual({
+    expect(resolveDynamicStyle(plain, [], {}, tables).style).toEqual({
       color: 'red',
     });
   });
@@ -192,8 +201,28 @@ describe('resolveDynamicStyle', () => {
     });
     expect(result.varGroups.get('missing')).toEqual([]);
     expect(result.varGroups.get('unused')).toEqual([]);
-    expect(resolveDynamicStyle(func, ['size'], {}, tables)?.style).toEqual(
-      resolveDynamicStyle(func, [], {}, tables)?.style,
+    expect(resolveDynamicStyle(func, ['size'], {}, tables).style).toEqual(
+      resolveDynamicStyle(func, [], {}, tables).style,
+    );
+  });
+
+  test('only applies defaults for parameters that were not provided', () => {
+    const func = styleFunctionsOf(
+      object('{ root: (size = 4, color = "red") => ({ width: size, color }) }'),
+    ).root;
+    const result = resolveDynamicStyle(
+      func,
+      ['size'],
+      {},
+      tables,
+      new Set(['size']),
+    )!;
+
+    expect(result.style.width).toBe(
+      `var(${result.varGroups.get('size')![0].cssVar})`,
+    );
+    expect(result.style.color).toBe(
+      `var(${result.varGroups.get('color')![0].cssVar}, red)`,
     );
   });
 });
