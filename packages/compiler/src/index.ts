@@ -333,9 +333,6 @@ function extractStylesFromExpression(
     const binaryExpr = expr;
     results.push(...extractStylesFromExpression(binaryExpr.left, ctx));
     results.push(...extractStylesFromExpression(binaryExpr.right, ctx));
-  } else if (expr.type === 'ParenthesisExpression') {
-    const parenExpr = expr;
-    results.push(...extractStylesFromExpression(parenExpr.expression, ctx));
   }
 
   return results;
@@ -1051,8 +1048,6 @@ export function compileCSS(options: CompilerOptions) {
             `(${getSource(node.left)})`,
           ]);
           return true;
-        } else if (node.type === 'ParenthesisExpression') {
-          return collectConditions(node.expression, currentTestStrings);
         }
 
         if (collectPropStyles(node)) return true;
