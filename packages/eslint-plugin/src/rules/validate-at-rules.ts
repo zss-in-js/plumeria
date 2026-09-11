@@ -7,17 +7,20 @@ import { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
 
 const VALID_AT_RULES = [
-  '@media ',
-  '@container ',
-  '@supports ',
-  '@layer ',
-  '@scope ',
+  '@media',
+  '@container',
+  '@supports',
+  '@layer',
+  '@scope',
 ];
 
 export function isValidAtRule(rule: string): boolean {
-  return VALID_AT_RULES.some(
-    (prefix) => rule.startsWith(prefix) && rule.length > prefix.length,
-  );
+  return VALID_AT_RULES.some((keyword) => {
+    if (!rule.startsWith(keyword)) return false;
+    const prelude = rule.slice(keyword.length);
+    if (!prelude.startsWith(' ') && !prelude.startsWith('(')) return false;
+    return prelude.replace(/[()\s]/g, '').length > 0;
+  });
 }
 
 export const validateAtRules: Rule.RuleModule = {
