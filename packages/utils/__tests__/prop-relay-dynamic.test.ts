@@ -23,8 +23,21 @@ const MIXED = path.join(DIR, 'Mixed.tsx');
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 const mockedGlob = jest.requireMock<{ globSync: jest.Mock }>('@rust-gear/glob');
 
-import loader from '../src/index';
-import { getStyleRecords, deepMerge } from '@plumeria/utils';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+import { getStyleRecords, deepMerge } from '../src/index';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const BASE = { backgroundColor: 'green', padding: 24 };
 
@@ -88,7 +101,8 @@ export const UsedPlain = ({ plain }: { plain?: css.Style }) => (
   <div className={css.use(plain)} />
 );
 `,
-  // A dynamic function must be called before it can travel through a style prop.
+  // The scan cannot read a runtime condition inside an array, so this call
+  // site keeps its array and reaches the same prop the carriers do.
   [UNREADABLE]: `
 import '@plumeria/core';
 import { styles } from './styles';
@@ -141,17 +155,10 @@ export const Parent = ({
 `,
 };
 
-const run = (file: string): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const ctx = {
-      resourcePath: file,
-      async: () => (err: Error | null, content?: string) =>
-        err ? reject(err) : resolve(content as string),
-      addDependency: () => {},
-      clearDependencies: () => {},
-    };
-    (loader as any).call(ctx, files[file]);
-  });
+const run = async (file: string): Promise<string> => {
+  const result = await transformSource(env(files[file], file));
+  return result.code;
+};
 
 const classesOf = (style: Record<string, unknown>) =>
   getStyleRecords(style as never)
@@ -186,8 +193,6 @@ const elementsOf = (code: string): Rendered[] =>
     ),
   }));
 
-/** The one array the unreadable call site hands over, as it reaches the child. */
-
 /** The child's element, applied to one value of the style prop. */
 const renderOf = (code: string) => {
   const match = code.match(
@@ -212,7 +217,7 @@ beforeAll(() => {
 
 afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
 
-describe('turbopack-loader: a dynamic function key passed through a prop', () => {
+describe('transform: a dynamic function key passed through a prop', () => {
   it('preserves readable styles and variables in a partially resolved array', async () => {
     const code = await run(MIXED);
     const inline = elementsOf(code)[0];
@@ -314,8 +319,6 @@ describe('turbopack-loader: a dynamic function key passed through a prop', () =>
     await expect(run(USED_PLAIN)).resolves.toContain('className=');
   });
 
-  // A Style array the scan could not read keeps its array and reaches the same
-  // prop. Reading it by position would take its second element for variables.
   it('rejects an uncalled dynamic function in a style prop array', async () => {
     await expect(run(UNREADABLE)).rejects.toThrow(
       'unsupported style expression',
