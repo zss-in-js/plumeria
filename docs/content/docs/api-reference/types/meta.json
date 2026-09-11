@@ -6,6 +6,7 @@
     "StyleProps",
     "StaticStyles",
     "WithoutProperties",
+    "AtomicStyle",
     "AtomicClassNameFor",
     "CSSProperties"
   ]
