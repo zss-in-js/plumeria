@@ -87,6 +87,8 @@ const STYLE_TYPES = new Set([
   'StyleProps',
   'WithoutProperties',
   'StaticStyles',
+  'AtomicStyle',
+  'AtomicDynamicStyle',
   'AtomicClassNameFor',
 ]);
 
