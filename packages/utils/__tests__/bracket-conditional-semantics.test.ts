@@ -4,7 +4,20 @@
 // equivalent literal-key form produces.
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
-import loader from '../src/index';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const HEAD = `
 import * as css from '@plumeria/core';
@@ -21,16 +34,10 @@ const both = css.create({
 `;
 
 const compile = async (body: string) => {
-  const code = await new Promise<string>((resolve, reject) => {
-    const ctx = {
-      resourcePath: `${__dirname}/fixture.tsx`,
-      async: () => (err: Error | null, content?: string) =>
-        err ? reject(err) : resolve(content as string),
-      addDependency: () => {},
-      clearDependencies: () => {},
-    };
-    (loader as any).call(ctx, HEAD + body);
-  });
+  const result = await transformSource(
+    env(HEAD + body, `${__dirname}/fixture.tsx`),
+  );
+  const code = typeof result === 'string' ? result : (result?.code ?? '');
   const found = code.match(/className=\{([\s\S]*?)\} \/>/);
   if (!found) throw new Error(`no className in:\n${code}`);
   return found[1];
