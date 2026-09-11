@@ -13,9 +13,23 @@
 // and every class the output can produce has a rule behind it.
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
-import { unpluginFactory } from '../src/core';
-import { getStyleRecords, deepMerge } from '@plumeria/utils';
+import { transformSource } from '../src/transform';
+import { optimizer } from '../src/optimizer';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+import { getStyleRecords, deepMerge } from '../src/index';
 import { genBase36Hash } from 'zss-engine';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 type Style = Record<string, any>;
 
@@ -142,14 +156,12 @@ const VARS = [
 let fixtureCount = 0;
 
 const compile = async (styleExpr: string) => {
-  const plugin = unpluginFactory(undefined, {
-    framework: 'vite',
-  } as never) as any;
   const id = `${__dirname}/fixture-${fixtureCount++}.tsx`;
-  const result = await plugin.transform.call(
-    { addWatchFile: () => {} },
-    `${HEAD}export const A = ({ ${VARS.join(', ')} }: any) => <div classStyle={${styleExpr}} />;\n`,
-    id,
+  const result = await transformSource(
+    env(
+      `${HEAD}export const A = ({ ${VARS.join(', ')} }: any) => <div classStyle={${styleExpr}} />;\n`,
+      id,
+    ),
   );
   const code = typeof result === 'string' ? result : (result?.code ?? '');
 
@@ -159,12 +171,7 @@ const compile = async (styleExpr: string) => {
   if (!dynamic && !literal) throw new Error(`no className in:\n${code}`);
   const expr = dynamic ? dynamic[1] : JSON.stringify(literal![1]);
 
-  const cssId = code.match(/import "([^"]*\.zero\.css)"/)?.[1];
-  const resolved = cssId ? await plugin.resolveId?.call({}, cssId) : undefined;
-  const loaded = resolved
-    ? await plugin.load?.call({}, resolved?.id ?? resolved)
-    : undefined;
-  const css = typeof loaded === 'string' ? loaded : (loaded?.code ?? '');
+  const css = await optimizer(result.sheets.join(''));
 
   return { expr, css };
 };
@@ -719,13 +726,8 @@ describe('a key that needs escaping', () => {
 const escaped = css.create(${decl});
 export const B = ({ k }: any) => <div classStyle={escaped[k]} />;
 `;
-    const plugin = unpluginFactory(undefined, {
-      framework: 'vite',
-    } as never) as any;
-    const result = await plugin.transform.call(
-      { addWatchFile: () => {} },
-      source,
-      `${__dirname}/fixture-escape-${fixtureCount++}.tsx`,
+    const result = await transformSource(
+      env(source, `${__dirname}/fixture-escape-${fixtureCount++}.tsx`),
     );
     const code = typeof result === 'string' ? result : (result?.code ?? '');
     const dynamic = code.match(/className=\{([\s\S]*?)\}(?= style=| \/>)/);
