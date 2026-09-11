@@ -1,16 +1,22 @@
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
-import { unpluginFactory } from '../src/core';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const run = async (source: string) => {
-  const plugin = unpluginFactory(undefined, {
-    framework: 'vite',
-  } as never) as any;
-  return plugin.transform.call(
-    { addWatchFile() {} },
-    source,
-    `${__dirname}/fixture.tsx`,
-  );
+  return transformSource(env(source, `${__dirname}/fixture.tsx`));
 };
 
 const definitions = [
