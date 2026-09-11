@@ -1,7 +1,7 @@
 ---
-title: 'Plumeria 19.0'
-description: 'Update: a style prop can name the properties it accepts, and an inline object no longer type-checks'
-date: '2026-09-09'
+title: 'Plumeria 19.1'
+description: 'Update: a style prop can name the properties it accepts, and a component can read one style back'
+date: '2026-09-11'
 ---
 
 import { GitHubUser } from 'component/GitHubUser'
@@ -10,16 +10,20 @@ import { GitHubUser } from 'component/GitHubUser'
 <GitHubUser username="refirst11" subtext="Core team members" />
 </div>
 
-Plumeria v19.0 moves the guarantees the compiler already enforced forward to the call site.
+Plumeria v19.1 tightens the type constraints v19.0 introduced and adds a type for the prop that takes a single style.
 
-The 18.5 patches spent four releases closing the paths where a style expression compiled to nothing. What they could not change is when you find out. A build error arrives after you have written the file; a type error arrives while you are writing it. Four things land together:
+The 18.5 patches spent four releases closing the paths where a style expression compiled to nothing. What they could not change is when you find out. A build error arrives after you have written the file; a type error arrives while you are writing it. That is the move 19.0 made, in four parts:
 
-1. **`Style` accepts only created styles** — an inline object is now a type error, not a build error.
+1. **`Style` accepts only created styles** — an inline object is a type error, not a build error.
 2. **`StyleProps`, `WithoutProperties` and `StaticStyles`** — a component can state which properties it accepts through a style prop.
 3. **`StaticStyles` rejects a dynamic style** — the one thing `css.use()` cannot carry, said at the call site.
-4. **`validate-at-rules`** — a new lint rule for the one key the type system cannot reach.
+4. **`validate-at-rules`** — a lint rule for the one key the type system cannot reach.
 
-Let's walk through each.
+19.1 adds a fifth, and makes the first two hold in the cases 19.0 let through:
+
+5. **`AtomicStyle`** — a prop that takes a single style can say what has to be in it, and read it back.
+
+Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5 and [Upgrading](#upgrading) are what is new.
 
 ---
 
@@ -125,13 +129,38 @@ It accepts `@media`, `@container`, `@supports`, `@layer` and `@scope`, each with
 
 The rule is scoped to `css.create` because that is where the gap is. `createTheme` takes its selector as a plain parameter rather than a key inside an inferred object, so the type already rejects an unrecognised at-rule there.
 
+## 5. A component can look inside one style
+
+The four types above all describe a style *list*. A prop typed with one of them can be handed an array, a conditional or nothing at all, which is what a styling prop wants — and it is also why such a prop cannot be indexed. There is no single style there to read a property off.
+
+`AtomicStyle` is the other shape. It names one created style by the rule object it was created from, so its type argument is a requirement rather than a permission:
+
+```tsx
+function Glyph({ glyphStyle }: { glyphStyle: css.AtomicStyle<{ color: string }> }) {
+  return <svg fill="currentColor" className={glyphStyle.color} />;
+}
+```
+
+```tsx
+<Glyph glyphStyle={styles.tinted} />  // ok
+<Glyph glyphStyle={styles.padded} />  // Type error, there is no color to read
+```
+
+Requiring the property is what makes it readable. `glyphStyle.color` is the atomic class name generated for that property, so a component can hand one property of a caller's style to something that takes a `className` and nothing else.
+
+Because an atomic class name carries the value it was generated for, a literal in the type argument holds the style to it. `css.AtomicStyle<{ display: 'flex' }>` takes a style that sets `display: flex` and rejects one that sets `display: grid`. `AtomicDynamicStyle` is the same thing for a style defined as a function, once it has been called.
+
+This is the reverse of what `StyleProps` and `WithoutProperties` do. Those say which properties a prop will *accept*; `AtomicStyle` says which ones have to be *there*. A styling prop still wants `Style` or one of its narrowed forms — `AtomicStyle` is for the prop a component looks inside.
+
+The two names are also what TypeScript writes when it emits a declaration for an exported style, so a package that ships styles now compiles with `declaration: true`. Before 19.1 that emit failed: the symbol that tags a created style had no name outside the package.
+
 ## Upgrading
 
-An inline object in a style prop stops the build. It was already a build error, so a codebase that compiles today compiles on 19.0 — the change is that the editor now says it first. Move the object into `css.create` and pass the created style.
+**From 18.5.** An inline object in a style prop is a type error. It was already a build error, so a codebase that built on 18.5 still builds — the change is that the editor says it first. Move the object into `css.create` and pass the created style. The prop types are additive: `Style` still accepts every property, and a component that does not need to constrain anything needs no change.
 
-The new types are additive. `Style` still accepts every property, and a component that does not need to constrain anything needs no change.
+**From 19.0.** Three shapes that used to type-check no longer do, all of them things 19.0 set out to reject and missed: the object `css.create` returns passed whole, an object assembled by hand out of atomic class names, and an object with no style properties at all. Nothing that runs changes — the compiler already refused to resolve any of the three — so the work is in the editor, not in the output. `AtomicStyle` and `AtomicDynamicStyle` are additive on top.
 
-`@plumeria/codemod` learned about these types in the same release. The export removes the `@plumeria/core` import, so any reference to `Style` or to one of the three new types is left without the import that declares it — a component prop, a type alias, a variable annotation alike. Those modules are now left in place and reported:
+`@plumeria/codemod` knows every one of these types, the two `Atomic` ones included. The export removes the `@plumeria/core` import, so a reference left behind has nothing to declare it — a component prop, a type alias, a variable annotation alike. Those modules are now left in place and reported:
 
 ```text
 component/Badge.tsx
@@ -145,6 +174,14 @@ Before, the export rewrote such a component's call sites to `className` while it
 ---
 
 ## Release notes
+
+## 19.1.0 (Sep 11, 2026)
+- Fix: a style type accepts only a namespace `css.create` returned, so the object that holds the styles, and an object that came from anywhere else, are type errors
+- Fix: key `Marker` by the pseudo class it emits, so a style built from `css.marker()` passes a constrained style prop type
+- Fix: accept an at-rule prelude that follows the keyword without a space, both in the type and in `validate-at-rules`
+- Feat: add `AtomicStyle` and `AtomicDynamicStyle`, which name one created style by the rule object it was created from, so a prop can require a property and pin its value
+- Fix: a declaration file can name the type of an exported style through those exports, instead of failing on the symbol that tags it
+- Fix: the export reports a reference to `AtomicStyle` or `AtomicDynamicStyle` as well, instead of migrating a module that still needs the import
 
 ## 19.0.0 (Sep 9, 2026)
 - Feat: add `StyleProps` and `WithoutProperties` for constraining the properties a style prop accepts
