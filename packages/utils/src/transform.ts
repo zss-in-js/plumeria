@@ -1505,7 +1505,6 @@ export const transformSource = async (
       dynamicStyleTables,
       providedParams,
     );
-    if (!resolved) return null;
     const { style, varGroups } = resolved;
 
     const vars: DynamicVar[] = [];
