@@ -100,8 +100,6 @@ interface StyleConditional {
   valueName?: string;
   varName?: string;
   ownKeys?: boolean;
-  // Position among the sources of one styling prop. Later sources win, so the
-  // conflict table has to merge them in this order and not by kind.
   order?: number;
 }
 
@@ -186,10 +184,6 @@ const resolveLocalStyleAlias = (
   return current;
 };
 
-// A named argument folds into the style only when its value is written out in
-// full. Anything the parser can only read in part -- a template literal with an
-// interpolation, an expression -- has to reach the element as a custom property
-// instead, or the missing piece is silently baked into the rule.
 const isStaticArgValue = (node: Expression): boolean =>
   node.type === 'StringLiteral' ||
   node.type === 'NumericLiteral' ||
@@ -231,13 +225,6 @@ const foldDynamicVars = (vars: DynamicVar[]): string[] => {
   });
 };
 
-/**
- * What one compiled module needs from the bundler that is compiling it.
- *
- * `moduleId` is the specifier the bundler asked for and may carry a query;
- * `filePath` is that same module on disk. Vite tells them apart, the Turbopack
- * loader does not, and both spellings reach the places that need them.
- */
 export type TransformEnv = {
   source: string;
   moduleId: string;
@@ -356,9 +343,6 @@ export const transformSource = async (
     }
   }
 
-  // Reverse edges child -> parents: this file's compiled lookup map
-  // depends on prop entries discovered while scanning the parents that
-  // render it, so editing a parent must re-transform this file.
   if (scannedTables.componentPropsTable) {
     const parentFiles = new Set<string>();
     for (const compKey of Object.keys(scannedTables.componentPropsTable)) {
@@ -494,8 +478,6 @@ export const transformSource = async (
       if (actualPath) {
         node.specifiers.forEach((specifier: ImportSpecifier) => {
           if (specifier.type === 'ImportNamespaceSpecifier') {
-            // `import * as Icons` carries no export name of its own;
-            // `<Icons.Foo />` resolves from the module it points at.
             localImports[specifier.local.value] = {
               actualPath,
               importedName: '*',
@@ -1403,10 +1385,6 @@ export const transformSource = async (
       );
   };
 
-  // A dynamic call reached through a component prop cannot fold a written-out
-  // argument into the rule: the file that only sees the prop has no way to
-  // read that value, so both sides have to agree that every parameter travels
-  // as a custom property.
   const resolveDynamicCall = (
     expr: Expression,
     forceRuntime = false,
@@ -1589,9 +1567,6 @@ export const transformSource = async (
     const dynamicVars: DynamicVar[] = [];
     const propVarSpreads: string[] = [];
     let groupIdCounter = 0;
-    // Every source of this styling prop gets a slot, in the order it was
-    // written, so the conflict table can merge them the way the author
-    // stacked them.
     let sourceOrder = 0;
     const baseChunks: Array<{ order: number; style: CSSObject }> = [];
     let baseStyle: CSSObject = {};
@@ -1609,8 +1584,6 @@ export const transformSource = async (
       return null;
     };
 
-    // `s[k]` with a non-literal key: a set of alternatives selected by one
-    // runtime expression.
     const resolveBracketGroup = (
       node: Expression,
     ): { varName: string; keyExpr: Expression; obj: CSSObject } | null => {
@@ -1618,7 +1591,6 @@ export const transformSource = async (
         !t.isMemberExpression(node) ||
         !t.isIdentifier(node.object) ||
         node.property.type !== 'Computed' ||
-        // A literal key names one style, not the whole set.
         t.isStringLiteral(node.property.expression)
       ) {
         return null;
@@ -1636,14 +1608,6 @@ export const transformSource = async (
       hasGroup: boolean;
     }
 
-    // One argument is one decision tree, and its branches are mutually
-    // exclusive: only ever one of them applies. So they belong in a single
-    // lookup keyed by which branch won -- not one dimension each, which
-    // would enumerate combinations that can never occur.
-    //
-    // `prefix` names the branches that resolve to a fixed style; `off` is
-    // the key a false `&&` yields, which no branch claims so the result
-    // falls through to the surrounding styles.
     const buildDecision = (
       node: Expression,
       prefix: string,
@@ -1724,8 +1688,6 @@ export const transformSource = async (
     };
 
     const resolveDecision = (node: Expression): Decision | null => {
-      // Branch names share the lookup with the groups' own keys, so pick a
-      // prefix no key starts with and they can never be confused.
       const groupKeys = new Map<string, Set<unknown>>();
       collectGroupKeys(node, groupKeys);
       let prefix = '#';
@@ -1926,9 +1888,6 @@ export const transformSource = async (
         );
       }
 
-      // A style that reached the prop with values beside it arrives as a
-      // pair. The key still picks the rule; the values have to be spread on
-      // the element, which only the styling prop has room for.
       const carriesVars = possibilities.some((entry) => entry.hasVars);
       if (carriesVars && !isStyleProp) {
         throwCompilationError(
@@ -2166,8 +2125,6 @@ export const transformSource = async (
         }
       }
 
-      // Fold the branches into one dimension when the flat form would cost
-      // more: a group, or more than the two branches a plain ternary emits.
       const decision = resolveDecision(expr);
       if (decision && (decision.hasGroup || decision.leaves > 2)) {
         const groupId = ++groupIdCounter;
@@ -2347,7 +2304,6 @@ export const transformSource = async (
         getSource(options[0].test);
       const lookupMap: Record<string, string> = {};
       options.forEach((opt) => {
-        // `''` is the off slot of a gated group, a real key -- not absence.
         if (opt.valueName !== undefined && opt.truthy) {
           const className = processStyleRecords(opt.truthy, stateWeights)
             .map((r) => r.hash)
@@ -2377,13 +2333,8 @@ export const transformSource = async (
         testExpr?: string;
         ownKeys?: boolean;
       }
-      // Ordered by where each source was written, so `recurse` merges them
-      // the way the author stacked them rather than grouping by kind.
       const ordered: Array<{ order: number; dimension: Dimension }> = [];
 
-      // An unconditional style is a source with a single outcome. Giving it
-      // a slot of its own is what lets a later one override an earlier
-      // condition; having one outcome, it never widens the table.
       baseChunks.forEach(({ order, style }) => {
         const conflicting: CSSObject = {};
         Object.entries(style).forEach(([key, value]) => {
@@ -2422,9 +2373,6 @@ export const transformSource = async (
           conflictVarGroups[c.groupId].push(c);
         }
       });
-      // A gated group's off slot can carry no style at all, so the split
-      // above drops it. The dimension still needs its key, or combinations
-      // where the gate is false have no entry to land on.
       Object.keys(conflictVarGroups).forEach((id) => {
         const groupId = Number(id);
         const opts = conflictVarGroups[groupId];
@@ -2484,16 +2432,12 @@ export const transformSource = async (
           recurse(
             dimIndex + 1,
             deepMerge(currentStyle, opt.style),
-            // A constant offers no runtime choice, so it claims no part of
-            // the key -- it only fixes where its style lands in the merge.
             dimension.type === 'const'
               ? keyParts
               : [...keyParts, String(opt.value)],
           ),
         );
       };
-      // The constants are dimensions of their own now, so the merge starts
-      // from nothing and picks them up in written order.
       recurse(0, {}, []);
 
       const baseConflictClass =
@@ -2526,7 +2470,6 @@ export const transformSource = async (
     };
   };
 
-  // Pass 2: Confirm reference replacement
   traverse(ast, {
     JSXOpeningElement({ node }: { node: JSXOpeningElement }) {
       jsxOpeningElementMap.set(node.span.start, {
@@ -2582,7 +2525,6 @@ export const transformSource = async (
 
         const propName = node.property.value;
 
-        // Check localCreateStyles first to ensure HMR updates correctly for local styles
         const localStyle = localCreateStyles[varName];
         if (localStyle && localStyle.type === 'create') {
           const atomMap = localStyle.hashMap[propName];
@@ -2604,7 +2546,6 @@ export const transformSource = async (
         if (hash) {
           let atomMap: Record<string, string> | undefined;
 
-          // Check atomic map first
           if (scannedTables.createAtomicMapTable[hash]) {
             atomMap = scannedTables.createAtomicMapTable[hash][propName];
           }
@@ -2618,8 +2559,6 @@ export const transformSource = async (
           }
         }
 
-        // Check createTheme - prioritize import-resolved table over scannedTables uniqueKey
-        // because scannedTables[uniqueKey] may contain stale cached data from the importing file
         let themeHash = mergedCreateThemeHashTable[varName];
         if (!themeHash) {
           themeHash = scannedTables.createThemeHashTable[uniqueKey];
@@ -2643,7 +2582,6 @@ export const transformSource = async (
           }
         }
 
-        // Check createStatic - same priority: import-resolved table first
         let staticHash = mergedCreateStaticHashTable[varName];
         if (!staticHash) {
           staticHash = scannedTables.createStaticHashTable[uniqueKey];
@@ -2696,7 +2634,6 @@ export const transformSource = async (
         const atomicMap = scannedTables.createAtomicMapTable[hash];
 
         if (obj && atomicMap) {
-          // Reconstruct hashMap from createObjectTable + createAtomicMapTable
           const hashMap: Record<string, Record<string, string>> = {};
           Object.keys(obj).forEach((key) => {
             if (atomicMap[key]) {
@@ -2708,14 +2645,12 @@ export const transformSource = async (
         }
       }
 
-      // Check createTheme using atomic map
       let themeHash = mergedCreateThemeHashTable[varName];
       if (!themeHash) {
         themeHash = scannedTables.createThemeHashTable[uniqueKey];
       }
 
       if (themeHash) {
-        // Use createAtomicMapTable to get resolved CSS variables
         const atomicMap = scannedTables.createAtomicMapTable[themeHash];
         if (atomicMap) {
           pushReplacement(`(${JSON.stringify(atomicMap)})`);
@@ -2723,7 +2658,6 @@ export const transformSource = async (
         }
       }
 
-      // Check createStatic
       let staticHash = mergedCreateStaticHashTable[varName];
       if (!staticHash) {
         staticHash = scannedTables.createStaticHashTable[uniqueKey];
@@ -2762,11 +2696,6 @@ export const transformSource = async (
             node.value.type === 'JSXExpressionContainer'
           ) {
             const expr = node.value.expression;
-            // The key alone names a rule the child already knows. What
-            // it cannot know is what the caller put in the variables, so the
-            // key travels with them under names no compiled style can answer
-            // to -- a Style array the scan could not read still reaches the
-            // same prop, and must not be read as a carrier.
             const carrierFor = (
               subNode: Expression,
               calls?: Expression[],
@@ -3081,7 +3010,6 @@ export const transformSource = async (
     );
   };
 
-  // Confirm the replacement of the styles declaration
   Object.values(localCreateStyles).forEach((info) => {
     if (info.isExported) {
       replacements.push({
@@ -3137,7 +3065,6 @@ export const transformSource = async (
       );
   }
 
-  // Apply replacements
   const buffer = Buffer.from(source);
   let offset = 0;
   const parts: Buffer[] = [];
