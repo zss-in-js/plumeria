@@ -57,10 +57,10 @@ type AtomicClassNameFor<P extends string, V> = string & {
 
 declare const StyleTag: unique symbol;
 
-type MapNamespace<T> = Readonly<{
+type AtomicStyle<T> = Readonly<{
   [key in keyof T]: T[key] extends Record<string, unknown>
     ? key extends NestedKey
-      ? MapNamespace<T[key]>
+      ? AtomicStyle<T[key]>
       : AtomicClassNameFor<key & string, T[key]>
     : key extends string
       ? AtomicClassNameFor<key, T[key]>
@@ -71,14 +71,14 @@ type MapNamespace<T> = Readonly<{
 
 declare const DynamicTag: unique symbol;
 
-type DynamicNamespace<T> = MapNamespace<T> & {
+type AtomicDynamicStyle<T> = AtomicStyle<T> & {
   readonly [DynamicTag]: true;
 };
 
 type CreateReturnType<T> = Readonly<{
   [K in keyof T]: T[K] extends (...args: infer A) => infer R
-    ? (...args: A) => DynamicNamespace<R>
-    : MapNamespace<T[K]>;
+    ? (...args: A) => AtomicDynamicStyle<R>
+    : AtomicStyle<T[K]>;
 }>;
 type FlatNamespace<K extends StyleKey> = {
   readonly [P in StyleKey]?: P extends K
@@ -147,6 +147,8 @@ type Marker = Readonly<Record<ColonString, CSSVariableProperty>>;
 
 export type {
   AtomicClassNameFor,
+  AtomicStyle,
+  AtomicDynamicStyle,
   Style,
   StyleProps,
   StaticStyles,
