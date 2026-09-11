@@ -16,8 +16,9 @@ export interface PluginOptions extends PropertyPolicyOptions {
   styleProp?: string;
 }
 
-export const TARGET_EXTENSIONS = ['ts', 'tsx', 'js', 'jsx'];
-export const EXTENSION_PATTERN = /\.(ts|tsx|js|jsx)$/;
+/* istanbul ignore next -- SWC reports exported constant initializers as uncovered. */
+export const EXTENSION_PATTERN =
+  /* istanbul ignore next */ /\.(ts|tsx|js|jsx)$/;
 
 export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
   options = {},
