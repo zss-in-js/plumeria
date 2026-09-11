@@ -54,6 +54,20 @@ const styles = css.create({
 });
 ```
 
+## A marker sets no property
+
+[css.marker()](/docs/api-reference/javascript/marker) writes a custom property behind a pseudo class rather than a CSS property, so a style built from one carries nothing for the enumeration to reject and passes through any of these types:
+
+```tsx
+const styles = css.create({
+  badge: css.marker('badge', ':hover'),
+});
+
+<Text classStyle={styles.badge} />  // ok under any enumeration
+```
+
+The block `css.extended()` guards is checked as usual. The at-rule it returns is a nested block like any other, and the properties inside it are enumerated the same way.
+
 <Callout title="Good to know">
 When a component only needs to protect a few properties, [WithoutProperties](/docs/api-reference/types/WithoutProperties) is the shorter way to say the same thing.
 </Callout>
