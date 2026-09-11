@@ -584,6 +584,30 @@ const styles = css.create({ card: { color: theme.color } });`,
     ).toEqual(['style-type-reference']);
   });
 
+  it('reports a prop typed with an atomic style type', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ card: { color: 'red' } });\ntype CardProps = { glyphStyle: css.AtomicStyle<{ color: string }> };\nexport const Card = ({ glyphStyle }: CardProps) => <div classStyle={styles.card}><svg className={glyphStyle.color} /></div>;`,
+    );
+
+    expect(
+      planRelease([dir]).stylesheets[0].reports.map((report) => report.kind),
+    ).toEqual(['style-type-reference']);
+  });
+
+  it('reports a called dynamic style held by its type', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import type { AtomicDynamicStyle } from '@plumeria/core';\nimport * as css from '@plumeria/core';\nconst styles = css.create({ sized: (width: number) => ({ width }) });\nexport const Card = ({ s }: { s: AtomicDynamicStyle<{ width: number }> }) => <div classStyle={styles.sized(8)}><i className={s.width} /></div>;`,
+    );
+
+    expect(
+      planRelease([dir]).stylesheets[0].reports.map((report) => report.kind),
+    ).toContain('style-type-reference');
+  });
+
   it('does not treat CSSProperties as a style prop type', () => {
     const source = path.join(dir, 'Card.tsx');
     fs.writeFileSync(
