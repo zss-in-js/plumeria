@@ -259,10 +259,10 @@ together with every file whose definitions they still need. A target
 overwritten.
 
 The export removes the `@plumeria/core` import, so a reference to `Style`,
-`StyleProps`, `WithoutProperties`, `StaticStyles` or `AtomicClassNameFor` is left
-without the import that declares it. Those are reported as
-`style-type-reference`, whether the type names a component prop, a type alias or
-a variable annotation.
+`StyleProps`, `WithoutProperties`, `StaticStyles`, `AtomicStyle`,
+`AtomicDynamicStyle` or `AtomicClassNameFor` is left without the import that
+declares it. Those are reported as `style-type-reference`, whether the type
+names a component prop, a type alias or a variable annotation.
 
 A module that declares nothing but style prop types is the one shape this does
 not reach: it defines no styles, so there is no stylesheet for the report to hold
