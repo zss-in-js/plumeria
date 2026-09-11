@@ -5,7 +5,20 @@
 // className, which the transform removes to fold into the generated one.
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
-import { unpluginFactory } from '../src/core';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const wrap = (body: string) => `
 import * as css from '@plumeria/core';
@@ -19,13 +32,8 @@ ${body}
 `;
 
 const run = async (body: string): Promise<string> => {
-  const plugin = unpluginFactory(undefined, {
-    framework: 'vite',
-  } as never) as any;
-  const result = await plugin.transform.call(
-    { addWatchFile: () => {} },
-    wrap(body),
-    `${__dirname}/fixture.tsx`,
+  const result = await transformSource(
+    env(wrap(body), `${__dirname}/fixture.tsx`),
   );
   return result.code;
 };
@@ -35,7 +43,7 @@ const P3 = 'xxcejlqg';
 
 const NOTHING = ['undefined', 'null', 'false'] as const;
 
-describe('unplugin: an entry that contributes nothing', () => {
+describe('transform: an entry that contributes nothing', () => {
   it.each(NOTHING)('keeps the styles written beside %s', async (nothing) => {
     const out = await run(
       `export const A = () => <div classStyle={[s.p1, ${nothing}]} />;`,
