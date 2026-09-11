@@ -26,6 +26,7 @@ export function resolveVirtualCssPath(): string {
   // In ESM, __dirname is undefined, so we use createRequire to locate the package
   let packageRoot: string;
 
+  /* istanbul ignore else -- Jest executes this module as CJS. */
   if (typeof __dirname !== 'undefined') {
     // CJS: __dirname = .../packages/unplugin/dist
     packageRoot = path.resolve(__dirname, '..');
