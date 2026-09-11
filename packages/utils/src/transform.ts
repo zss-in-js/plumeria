@@ -1942,37 +1942,6 @@ export const transformSource = async (
 
       if (pushPropPossibilities(expr, [])) continue;
 
-      if (t.isIdentifier(expr)) {
-        const varName = expr.value;
-        let variantObj: CSSObject | undefined;
-
-        if (isVisibleReference(expr) && localCreateStyles[varName]?.obj)
-          variantObj = localCreateStyles[varName].obj;
-
-        if (variantObj) {
-          Object.entries(variantObj).forEach(([groupName, groupVariants]) => {
-            if (!groupVariants) return;
-            const currentGroupId = ++groupIdCounter;
-            const currentOrder = sourceOrder++;
-            Object.entries(groupVariants).forEach(([optionName, style]) => {
-              conditionals.push({
-                test: expr,
-                testLHS: `props["${groupName}"]`,
-                testString: `props["${groupName}"] === '${optionName}'`,
-                truthy: style as CSSObject,
-                falsy: {},
-                groupId: currentGroupId,
-                order: currentOrder,
-                groupName,
-                valueName: optionName,
-                varName,
-              });
-            });
-          });
-          continue;
-        }
-      }
-
       if (
         t.isMemberExpression(expr) &&
         t.isIdentifier(expr.object) &&
