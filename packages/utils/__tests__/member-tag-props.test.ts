@@ -11,7 +11,20 @@ const PARENT = path.join(DIR, 'Home.tsx');
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 const mockedGlob = jest.requireMock<{ globSync: jest.Mock }>('@rust-gear/glob');
 
-import { unpluginFactory } from '../src/core';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 // `PlumeriaLogo` is declared here and only reachable from the parent through
 // namespace objects, so nothing but the leaf itself names the styling channel.
@@ -49,14 +62,7 @@ export const Home = () => (
 };
 
 const run = (file: string): Promise<{ code: string }> => {
-  const plugin = unpluginFactory(undefined, {
-    framework: 'vite',
-  } as never) as any;
-  return plugin.transform.call(
-    { addWatchFile: () => {} },
-    files[file],
-    file,
-  ) as Promise<{ code: string }>;
+  return transformSource(env(files[file], file)) as Promise<{ code: string }>;
 };
 
 beforeAll(() => {
@@ -66,7 +72,7 @@ beforeAll(() => {
 
 afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
 
-describe('unplugin: styles passed to a member-chain tag', () => {
+describe('transform: styles passed to a member-chain tag', () => {
   it('replaces the parent props with lookup keys', async () => {
     const { code } = await run(PARENT);
     expect(code).toMatch(/<Icons\.Social\.PlumeriaLogo styleArray={"\w+"} \/>/);
