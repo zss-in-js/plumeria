@@ -15,8 +15,21 @@ const SHAPES_PARENT = path.join(DIR, 'ShapesParent.tsx');
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 const mockedGlob = jest.requireMock<{ globSync: jest.Mock }>('@rust-gear/glob');
 
-import loader from '../src/index';
-import { getStyleRecords, deepMerge } from '@plumeria/utils';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+import { getStyleRecords, deepMerge } from '../src/index';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const BASE = { backgroundColor: 'green' };
 const OTHER = { padding: 24 };
@@ -73,17 +86,10 @@ files[ONLY_PARENT] = files[PARENT].replace(
   .replace('    <Leaf styleArray={[on && styles.other, styles.base]} />\n', '')
   .replaceAll('Leaf', 'OnlyLeaf');
 
-const run = (file: string): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const ctx = {
-      resourcePath: file,
-      async: () => (err: Error | null, content?: string) =>
-        err ? reject(err) : resolve(content as string),
-      addDependency: () => {},
-      clearDependencies: () => {},
-    };
-    (loader as any).call(ctx, files[file]);
-  });
+const run = async (file: string): Promise<string> => {
+  const result = await transformSource(env(files[file], file));
+  return result.code;
+};
 
 const classesOf = (style: Record<string, unknown>) =>
   getStyleRecords(style as never)
@@ -164,7 +170,7 @@ beforeAll(() => {
 
 afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
 
-describe('turbopack-loader: conditional arrays passed through a prop', () => {
+describe('transform: conditional arrays passed through a prop', () => {
   it.each([
     ['alongside a static call site', PARENT, LEAF, 3],
     ['as the only call site', ONLY_PARENT, ONLY_LEAF, 1],
