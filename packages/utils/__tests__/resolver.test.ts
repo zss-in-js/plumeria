@@ -4,11 +4,13 @@ import path from 'path';
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
   existsSync: jest.fn(),
+  readFileSync: jest.fn(),
   statSync: jest.fn(),
 }));
 
 describe('resolver', () => {
   let resolveImportPath: typeof import('../src/resolver').resolveImportPath;
+  let resetImportResolutionCache: typeof import('../src/resolver').resetImportResolutionCache;
   let mockedFs: any;
   // Use a subdirectory as root to avoid issues with resolver loop terminating at system root
   const root = path.resolve('/project');
@@ -19,11 +21,8 @@ describe('resolver', () => {
     mockedFs.existsSync.mockImplementation((p: any) =>
       files.includes(path.resolve(p)),
     );
-    mockedFs.statSync.mockImplementation(
-      (p: any) =>
-        ({
-          isFile: () => files.includes(path.resolve(p)),
-        }) as any,
+    mockedFs.statSync.mockImplementation((p: any) =>
+      files.includes(path.resolve(p)) ? { isFile: () => true } : undefined,
     );
   };
 
@@ -38,7 +37,9 @@ describe('resolver', () => {
     // Re-require fs to get the fresh mock instance for this test context
     mockedFs = require('fs');
     // Re-require resolver to ensure fresh module-level caches (tsConfigCache, etc.)
-    resolveImportPath = require('../src/resolver').resolveImportPath;
+    const resolver = require('../src/resolver');
+    resolveImportPath = resolver.resolveImportPath;
+    resetImportResolutionCache = resolver.resetImportResolutionCache;
   });
 
   afterEach(() => {
@@ -67,6 +68,53 @@ describe('resolver', () => {
     it('should return null if file not found', () => {
       setupMockFs([]);
       expect(resolveImportPath('./nonexistent', importer)).toBeNull();
+    });
+  });
+
+  describe('resetImportResolutionCache', () => {
+    it('loads paths relative to the requested config directory', () => {
+      const configRoot = path.resolve(root, 'config');
+      const target = path.resolve(configRoot, 'source/value.ts');
+      setupMockFs([target]);
+      mockedFs.readFileSync.mockReturnValue(
+        JSON.stringify({
+          compilerOptions: { paths: { '@/*': ['source/*'] } },
+        }),
+      );
+
+      resetImportResolutionCache(configRoot);
+
+      expect(mockedFs.readFileSync).toHaveBeenCalledWith(
+        path.join(configRoot, 'tsconfig.json'),
+        'utf8',
+      );
+      expect(resolveImportPath('@/value', importer)).toBe(target);
+    });
+
+    it('uses the current directory by default', () => {
+      setupMockFs([]);
+      mockedFs.readFileSync.mockReturnValue('{}');
+
+      resetImportResolutionCache();
+
+      expect(mockedFs.readFileSync).toHaveBeenCalledWith(
+        path.join(root, 'tsconfig.json'),
+        'utf8',
+      );
+      expect(resolveImportPath('@/value', importer)).toBeNull();
+    });
+
+    it('caches a failed config read as no config', () => {
+      setupMockFs([]);
+      mockedFs.readFileSync.mockImplementation(() => {
+        throw new Error('invalid config');
+      });
+
+      resetImportResolutionCache(root);
+      mockedFs.readFileSync.mockClear();
+
+      expect(resolveImportPath('@/value', importer)).toBeNull();
+      expect(mockedFs.readFileSync).not.toHaveBeenCalled();
     });
   });
 
