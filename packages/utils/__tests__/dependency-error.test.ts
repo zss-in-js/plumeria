@@ -11,7 +11,20 @@ jest.mock('@rust-gear/glob', () => ({
   globSync: jest.fn(() => files),
 }));
 
-import { unpluginFactory } from '../src/core';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 let fixtureCount = 0;
 
@@ -55,15 +68,12 @@ const transform = (
   files.length = 0;
   files.push(stylesPath, barrelPath, appPath);
 
-  const plugin = unpluginFactory(undefined, {
-    framework: 'vite',
-  } as never) as any;
-  return plugin.transform.call({ addWatchFile: () => {} }, source, appPath);
+  return transformSource(env(source, appPath));
 };
 
 afterAll(() => fs.rmSync(FIXTURE_DIR, { recursive: true, force: true }));
 
-describe('unplugin: an error in the file a style comes from', () => {
+describe('transform: an error in the file a style comes from', () => {
   it('reports that error instead of the style that could not be read', async () => {
     await expect(transform(BROKEN)).rejects.toThrow(
       /The style key 1 is a number/,
