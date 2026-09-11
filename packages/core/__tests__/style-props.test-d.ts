@@ -23,6 +23,21 @@ const styles = css.create({
       position: 'sticky',
     },
   },
+  atNoSpaceOk: {
+    '@media(min-width:640px)': {
+      color: 'blue',
+    },
+  },
+  atNoSpaceBanned: {
+    '@media(min-width:640px)': {
+      position: 'sticky',
+    },
+  },
+  marked: css.marker('badge', ':hover'),
+  markedSpread: {
+    ...css.marker('badge', ':defined'),
+    color: 'red',
+  },
   sized: (width: number) => ({
     width,
     color: 'red',
@@ -79,3 +94,13 @@ export const t: NoDynamic = styles.sized(8);
 
 // @ts-expect-error a function key is rejected anywhere in a style list
 export const u: NoDynamic = [styles.ok, [styles.sized(8)]];
+
+export const v: NoPosition = styles.atNoSpaceOk;
+
+// @ts-expect-error a prelude written without a space still reaches the constraint
+export const w: NoPosition = styles.atNoSpaceBanned;
+
+export const x: NoPosition = styles.marked;
+export const y: NoPosition = styles.markedSpread;
+export const z: Enumerated = styles.markedSpread;
+export const aa: EnumeratedStatic = styles.marked;
