@@ -123,12 +123,13 @@ const collectHoistedNames = (n: any, out: Set<string>) => {
     n.forEach((c) => collectHoistedNames(c, out));
     return;
   }
+  if (n.type === 'FunctionDeclaration') {
+    collectPatternNames(n.identifier, out);
+    return;
+  }
   if (FUNCTION_TYPES.has(n.type)) return;
   if (n.type === 'VariableDeclaration' && n.kind === 'var') {
     n.declarations?.forEach((d: any) => collectPatternNames(d.id, out));
-  } else if (n.type === 'FunctionDeclaration') {
-    collectPatternNames(n.identifier, out);
-    return;
   }
   for (const key in n) {
     if (key === 'span') continue;
