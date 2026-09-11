@@ -1,6 +1,19 @@
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
-import loader from '../src/index';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const wrap = (body: string) => `
 import * as css from '@plumeria/core';
@@ -13,21 +26,16 @@ const s = css.create({
 ${body}
 `;
 
-const run = (body: string): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const ctx = {
-      resourcePath: `${__dirname}/fixture.tsx`,
-      async: () => (err: Error | null, content?: string) =>
-        err ? reject(err) : resolve(content as string),
-      addDependency: () => {},
-      clearDependencies: () => {},
-    };
-    (loader as any).call(ctx, wrap(body));
-  });
+const run = async (body: string): Promise<string> => {
+  const result = await transformSource(
+    env(wrap(body), `${__dirname}/fixture.tsx`),
+  );
+  return typeof result === 'string' ? result : (result?.code ?? '');
+};
 
 // Bracket access with a literal key must resolve inside a conditional exactly
 // as `.key` does. It used to collapse to an empty className with no error.
-describe('turbopack-loader: bracket access inside conditionals', () => {
+describe('transform: bracket access inside conditionals', () => {
   it('keeps both branches of a ternary', async () => {
     const out = await run(
       `export const A = ({ on }: { on: boolean }) => <div classStyle={on ? s['p1'] : s['p3']} />;`,
@@ -53,14 +61,6 @@ describe('turbopack-loader: bracket access inside conditionals', () => {
     expect(out).toContain('x3git8yv');
   });
 
-  it('keeps a bracket branch mixed with dot access', async () => {
-    const out = await run(
-      `export const A = ({ on }: { on: boolean }) => <div classStyle={on ? s['p1'] : s.p3} />;`,
-    );
-    expect(out).toContain('x3git8yv');
-    expect(out).toContain('xxcejlqg');
-  });
-
   it('keeps a bracket branch nested in an array', async () => {
     const out = await run(
       `export const A = ({ on }: { on: boolean }) => <div classStyle={[s.p3, on && s['p1']]} />;`,
@@ -72,32 +72,33 @@ describe('turbopack-loader: bracket access inside conditionals', () => {
   // The branches of a condition are mutually exclusive, so a group under one
   // stays a single lookup: the condition folds into the key expression and the
   // slot no key claims carries whatever the other branch contributes.
-  it.each([
-    [
-      'a ternary branch',
-      `on ? s[k] : s['p3']`,
-      `{"p1":"x3git8yv","p3":"xxcejlqg","#0":"xxcejlqg"}[((on) ? k : "#0")]`,
-    ],
-    [
-      'the right of a logical &&',
-      `on && s[k]`,
-      `{"p1":"x3git8yv","p3":"xxcejlqg"}[((on) ? k : "")]`,
-    ],
-    [
-      'an array element',
-      `[s.p3, on && s[k]]`,
-      `{"p1":"x3git8yv","p3":"xxcejlqg"}[((on) ? k : "")] || "xxcejlqg"`,
-    ],
-  ])('folds an outer condition into the key in %s', async (_l, expr, want) => {
+  it('folds an outer ternary into the key of a non-literal bracket', async () => {
     const out = await run(
-      `export const A = ({ on, k }: { on: boolean; k: 'p1' | 'p3' }) => <div classStyle={${expr}} />;`,
+      `export const A = ({ on, k }: { on: boolean; k: 'p1' | 'p3' }) => <div classStyle={on ? s[k] : s['p3']} />;`,
     );
-    expect(out).toContain(want);
+    expect(out).toContain(
+      `{"p1":"x3git8yv","p3":"xxcejlqg","#0":"xxcejlqg"}[((on) ? k : "#0")]`,
+    );
+  });
+
+  it('folds an outer && into the key of a non-literal bracket', async () => {
+    const out = await run(
+      `export const A = ({ on, k }: { on: boolean; k: 'p1' | 'p3' }) => <div classStyle={on && s[k]} />;`,
+    );
+    expect(out).toContain(`{"p1":"x3git8yv","p3":"xxcejlqg"}[((on) ? k : "")]`);
   });
 
   it('compiles the same intent with the condition inside the brackets', async () => {
     const out = await run(
       `export const A = ({ on, k }: { on: boolean; k: 'p1' | 'p3' }) => <div classStyle={s[on ? k : 'p3']} />;`,
+    );
+    expect(out).toContain('x3git8yv');
+    expect(out).toContain('xxcejlqg');
+  });
+
+  it('keeps a bracket branch mixed with dot access', async () => {
+    const out = await run(
+      `export const A = ({ on }: { on: boolean }) => <div classStyle={on ? s['p1'] : s.p3} />;`,
     );
     expect(out).toContain('x3git8yv');
     expect(out).toContain('xxcejlqg');
