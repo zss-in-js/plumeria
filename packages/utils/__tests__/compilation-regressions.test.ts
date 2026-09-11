@@ -2,11 +2,24 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { parseSync } from '@swc/core';
-import { getStyleRecords } from '@plumeria/utils';
+import { getStyleRecords } from '../src/index';
 
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 const mockedGlob = jest.requireMock<{ globSync: jest.Mock }>('@rust-gear/glob');
-import { unpluginFactory } from '../src/core';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const directory = fs.mkdtempSync(
   path.join(os.tmpdir(), 'plumeria-unplugin-regressions-'),
@@ -17,14 +30,7 @@ const run = async (
   source: string,
   resourcePath = path.join(directory, 'fixture.tsx'),
 ): Promise<string> => {
-  const plugin = unpluginFactory(undefined, {
-    framework: 'vite',
-  } as never) as any;
-  const result = await plugin.transform.call(
-    { addWatchFile: () => {} },
-    source,
-    resourcePath,
-  );
+  const result = await transformSource(env(source, resourcePath));
   return result.code;
 };
 const checkSyntax = (source: string) =>
