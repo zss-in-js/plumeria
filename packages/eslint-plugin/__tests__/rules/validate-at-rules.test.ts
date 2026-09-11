@@ -31,6 +31,7 @@ ruleTester.run('validate-at-rules', validateAtRules, {
         css.create({
           box: {
             [query]: { color: 'red' },
+            '@media(width >= 480px)': { color: 'red' },
             '@container card (width > 20rem)': { display: 'grid' },
             '@supports (display: grid)': { display: 'grid' },
             '@layer components': { color: 'blue' },
@@ -109,8 +110,16 @@ describe('isValidAtRule', () => {
     expect(isValidAtRule('@scope (.card)')).toBe(true);
   });
 
+  test('accepts a prelude that follows the keyword without a space', () => {
+    expect(isValidAtRule('@media(min-width:640px)')).toBe(true);
+    expect(isValidAtRule('@supports(display:grid)')).toBe(true);
+  });
+
   test('rejects unknown and incomplete at-rules', () => {
     expect(isValidAtRule('@unknown foo')).toBe(false);
     expect(isValidAtRule('@media')).toBe(false);
+    expect(isValidAtRule('@mediafoo')).toBe(false);
+    expect(isValidAtRule('@media ')).toBe(false);
+    expect(isValidAtRule('@media()')).toBe(false);
   });
 });
