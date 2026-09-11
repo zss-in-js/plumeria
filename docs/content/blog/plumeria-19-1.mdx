@@ -23,7 +23,11 @@ The 18.5 patches spent four releases closing the paths where a style expression 
 
 5. **`AtomicStyle`** — a prop that takes a single style can say what has to be in it, and read it back.
 
-Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5 and [Upgrading](#upgrading) are what is new.
+19.1.1 adds a sixth, and it is not a type. The 18.5 patches kept fixing the same bug in two places because the plugin and the Turbopack loader each carried their own copy of the compiler:
+
+6. **One transform** — both bundler packages compile a file through the same implementation, in `@plumeria/utils`.
+
+Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5, section 6 and [Upgrading](#upgrading) are what is new.
 
 ---
 
@@ -154,6 +158,51 @@ This is the reverse of what `StyleProps` and `WithoutProperties` do. Those say w
 
 The two names are also what TypeScript writes when it emits a declaration for an exported style, so a package that ships styles now compiles with `declaration: true`. Before 19.1 that emit failed: the symbol that tags a created style had no name outside the package.
 
+## 6. One transform, not two
+
+Nothing in 19.1.1 changes what you write. It changes how many copies of the compiler your code passes through.
+
+`@plumeria/unplugin` and `@plumeria/turbopack-loader` each carried their own transform — two implementations of the same three thousand lines, walking the same AST to produce the same class names. They were written together and then drifted, and the 18.5 series spent four releases on that drift. The shape of the fixes says it plainly:
+
+- Fix: apply the same top-level style declaration checks in unplugin and the Turbopack loader
+- Fix: read a destructured props parameter the same way in the compiler, the loader, and the plugin
+- Fix: align style transformation, scope checks, preserved JSX references, and compilation errors with the Turbopack loader
+
+Every one of those is the same bug: a guard that existed in one implementation and not the other. Fixing them one at a time keeps two copies in step by hand, which is a thing you have to keep doing.
+
+19.1.1 removes the second copy. `transformSource` lives in `@plumeria/utils`, and both bundler packages call it with the same argument:
+
+```ts
+const { code, sheets } = await transformSource({
+  source,
+  moduleId: id,
+  filePath: baseId,
+  root,
+  styleProp,
+  propertyPolicy,
+  isDev,
+  collectOndemandSheets,
+  addDependency,
+});
+```
+
+What was 3,188 lines inside the plugin is now 13. The loader went from 3,150 to 14. Each package keeps what is genuinely its own — the plugin keeps its virtual `.zero.css` module and its dev-mode sheet accumulation, the loader keeps its file lock and production CSS file — and hands the compiling to one place.
+
+Twenty regression suites moved with it. They were written against whichever bundler the bug was found in, and they now live in `@plumeria/utils` and run once against the one implementation instead of twice against two. "The plugin and the loader disagree" stops being a category of bug, rather than a category of bug that gets fixed.
+
+The same release fixes a scoping bug in the shared code. A function declaration nested inside a block hoists to the enclosing function scope, and the reference collector was not treating it that way:
+
+```tsx
+function Card() {
+  render();
+  if (ready) {
+    function render() { /* ... */ }
+  }
+}
+```
+
+`render` is local to `Card`. Walking the body, the collector saw a function node and stopped there without first taking its name — the branch that should have taken it sat below a check that already returned for every function, so it had never run once. `render` never entered the scope's bindings, and the call above the declaration was recorded as a reference to something outside the module.
+
 ## Upgrading
 
 **From 18.5.** An inline object in a style prop is a type error. It was already a build error, so a codebase that built on 18.5 still builds — the change is that the editor says it first. Move the object into `css.create` and pass the created style. The prop types are additive: `Style` still accepts every property, and a component that does not need to constrain anything needs no change.
@@ -171,9 +220,16 @@ component/Badge.tsx
 
 Before, the export rewrote such a component's call sites to `className` while its declaration still said `classStyle`, and left the file uncompilable. It now joins `dynamic-value` and the other reasons the export already leaves styles behind, so a migration that meets one is partial rather than broken. One shape is still outside it: a module that declares nothing but style prop types has no stylesheet to hold the report, and its consumer will not compile after the export. Keeping the prop type in the file that defines the styles avoids it, and [the codemod reference](/docs/api-reference/codemod) says so where the other reports are listed.
 
+**From 19.1.0.** Nothing to do. The transform moving into `@plumeria/utils` is internal to the packages — the plugin and the loader are configured exactly as before, and `@plumeria/utils` is already a dependency of both. If you build with the Turbopack loader, the one thing that changes is that you now get the behaviour the plugin had in the places the two still differed.
+
 ---
 
 ## Release notes
+
+## 19.1.1 (Sep 11, 2026)
+- Refactor: share one transform between the plugin and the Turbopack loader, so a file compiles through the same implementation instead of two copies that could drift
+- Fix: hoist a function declaration nested in a block to the enclosing function scope, so a reference to it is no longer collected as a module reference
+- Refactor: drop the unreachable null paths from `resolveDynamicStyle` and the call sites that guarded them
 
 ## 19.1.0 (Sep 11, 2026)
 - Fix: a style type accepts only a namespace `css.create` returned, so the object that holds the styles, and an object that came from anywhere else, are type errors
