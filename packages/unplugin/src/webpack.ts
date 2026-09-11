@@ -154,6 +154,7 @@ export function attachWebpackHooks(plugin: any) {
 }
 
 export default createWebpackPlugin<PluginOptions | undefined>(
+  /* istanbul ignore next -- The callback is exercised through attachWebpackHooks. */
   (options, meta) => {
     return attachWebpackHooks(unpluginFactory(options, meta));
   },
