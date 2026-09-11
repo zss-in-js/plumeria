@@ -2480,7 +2480,6 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
           dynamicStyleTables,
           new Set(),
         );
-        if (!resolved) return null;
 
         const hasVars = runtime.some(
           (param) => (resolved.varGroups.get(param) ?? []).length > 0,
