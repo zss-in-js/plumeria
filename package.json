@@ -14,7 +14,7 @@
     "prepare": "git config core.hooksPath .githooks",
     "build": "turbo run build --filter=./packages/*",
     "build:examples": "turbo run build --filter=./examples/*",
-    "typecheck": "tsc --noEmit --project tsconfig.test.json",
+    "typecheck": "tsc --noEmit --project tsconfig.test.json && node scripts/check-declaration-emit.js",
     "test": "jest --coverage",
     "dev": "cd docs && npm run dev",
     "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
