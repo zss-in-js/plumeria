@@ -27,9 +27,5 @@ module.exports = {
     '<rootDir>/packages/eslint-plugin/dist/',
     '<rootDir>/packages/next-plugin/dist/',
     '<rootDir>/packages/utils/dist/',
-    // The bundler test itself is excluded from measurement because it runs via utils
-    '<rootDir>/packages/unplugin/src/',
-    '<rootDir>/packages/turbopack-loader/src/',
-    '<rootDir>/packages/compiler/src/',
   ],
 };
