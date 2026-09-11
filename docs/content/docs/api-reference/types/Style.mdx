@@ -38,6 +38,12 @@ A style has to come out of `css.create` for the compiler to resolve it. An inlin
 <div classStyle={{ color: 'red' }} />  // Type error
 ```
 
+The object `css.create` returns holds the styles rather than being one of them, so passing it whole is a type error as well:
+
+```tsx
+<div classStyle={styles} />  // Type error
+```
+
 ## Declaring the styling prop
 
 `@plumeria/core` ships no prop declaration of its own. `classStyle` comes from the declaration bundled with the package, which you reference from `plumeria.d.ts`:
