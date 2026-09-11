@@ -15,6 +15,8 @@
 declare module '@plumeria/core' {
   import type {
     AtomicClassNameFor,
+    AtomicStyle,
+    AtomicDynamicStyle,
     Style,
     StyleProps,
     StaticStyles,
@@ -34,6 +36,8 @@ declare module '@plumeria/core' {
 
   export type {
     AtomicClassNameFor,
+    AtomicStyle,
+    AtomicDynamicStyle,
     Style,
     StyleProps,
     StaticStyles,
