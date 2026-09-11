@@ -37,7 +37,6 @@
     "@plumeria/utils": "workspace:^"
   },
   "devDependencies": {
-    "@swc/core": "catalog:",
     "zss-engine": "catalog:"
   },
   "publishConfig": {
