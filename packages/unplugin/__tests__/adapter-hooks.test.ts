@@ -155,3 +155,57 @@ describe('the webpack adapter', () => {
     expect(rules).toHaveLength(1);
   });
 });
+
+// Rollup, esbuild, rspack and bun take the core plugin as it is, with no
+// adapter in front of it, so its own virtual-module hooks are the whole
+// contract for those bundlers. The `/`-rooted spelling is the one the
+// transform writes into the module it compiles; the relative spelling is what
+// a bundler hands back after resolving that import against the importer.
+describe('the core plugin', () => {
+  const core = () => {
+    const plugin = unpluginFactory(undefined, {
+      framework: 'vite',
+    } as never) as any;
+    plugin.__plumeriaInternal.setRoot(DIR);
+    return plugin;
+  };
+
+  it('keeps a rooted virtual stylesheet as written', () => {
+    const plugin = core();
+
+    expect(plugin.resolveId('/Card.zero.css')).toBe('/Card.zero.css');
+    expect(plugin.resolveId('/Card.zero.css?t=1')).toBe('/Card.zero.css?t=1');
+  });
+
+  it('resolves a relative virtual stylesheet against its importer', () => {
+    const plugin = core();
+
+    expect(plugin.resolveId('./Card.zero.css', CARD)).toBe(CARD_CSS);
+    expect(plugin.resolveId('./Card.zero.css?t=1', CARD)).toBe(
+      `${CARD_CSS}?t=1`,
+    );
+  });
+
+  it('passes over anything that is not a virtual stylesheet', () => {
+    const plugin = core();
+
+    expect(plugin.resolveId(CARD, CARD)).toBe(null);
+    expect(plugin.loadInclude(CARD)).toBe(false);
+    expect(plugin.loadInclude(CARD_CSS)).toBe(true);
+    expect(plugin.transformInclude(CARD)).toBe(true);
+  });
+
+  it('serves the stylesheet under both spellings of its module', async () => {
+    const plugin = core();
+    await transform(plugin);
+
+    const rooted = `/${path.relative(DIR, CARD_CSS)}`;
+    expect(plugin.load(CARD_CSS)).toContain('color: teal');
+    expect(plugin.load(rooted)).toContain('color: teal');
+    expect(plugin.load(`${rooted}?t=1`)).toContain('color: teal');
+  });
+
+  it('serves an empty stylesheet for a module it never compiled', () => {
+    expect(core().load(`${DIR}/Absent.zero.css`)).toBe('');
+  });
+});
