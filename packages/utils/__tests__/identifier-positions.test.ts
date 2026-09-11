@@ -1,7 +1,20 @@
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
 import { parseSync } from '@swc/core';
-import { unpluginFactory } from '../src/core';
+import { transformSource } from '../src/transform';
+import { DEFAULT_STYLE_PROP } from '../src/constants';
+
+const env = (source: string, filePath: string) => ({
+  source,
+  moduleId: filePath,
+  filePath,
+  root: process.cwd(),
+  styleProp: DEFAULT_STYLE_PROP,
+  propertyPolicy: undefined,
+  isDev: false,
+  collectOndemandSheets: true,
+  addDependency: () => {},
+});
 
 const HASH = 'xq96bg3w';
 const INLINED = `{"box":{"color":"${HASH}"}}`;
@@ -19,14 +32,8 @@ ${body}
 `;
 
 const run = async (body: string): Promise<string> => {
-  const plugin = unpluginFactory(undefined, {
-    framework: 'vite',
-  } as never) as any;
-  const ctx = { addWatchFile: () => {} };
-  const out = await plugin.transform.call(
-    ctx,
-    wrap(body),
-    `${__dirname}/fixture.tsx`,
+  const out = await transformSource(
+    env(wrap(body), `${__dirname}/fixture.tsx`),
   );
   return out.code as string;
 };
@@ -39,7 +46,7 @@ const expectParsable = (code: string) => {
   ).not.toThrow();
 };
 
-describe('unplugin: identifiers that only look like style references', () => {
+describe('transform: identifiers that only look like style references', () => {
   // Every one of these used to be rewritten into `({"box":...})`, producing a
   // SyntaxError, because any Identifier matching a style name was replaced.
   it.each([
@@ -126,5 +133,11 @@ describe('unplugin: identifiers that only look like style references', () => {
     expectParsable(code);
     expect(code).toContain(`const a = (${INLINED});`);
     expect(code).toContain('{ const styles = 1; g(styles); }');
+  });
+
+  it('still inlines a computed member', async () => {
+    const code = await run('export const v = foo[styles];');
+    expectParsable(code);
+    expect(code).toContain(INLINED);
   });
 });
