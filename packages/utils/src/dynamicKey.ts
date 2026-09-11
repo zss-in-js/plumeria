@@ -245,7 +245,7 @@ export const resolveDynamicStyle = (
   staticTable: StaticTable,
   tables: DynamicStyleTables,
   providedParams?: ReadonlySet<string>,
-): DynamicStyleResult | null => {
+): DynamicStyleResult => {
   if (func.unsupportedParams)
     throw new Error(
       '[plumeria] Dynamic styles require named parameters or object destructuring; array and rest parameters are not supported.',
@@ -277,7 +277,7 @@ export const resolveDynamicStyle = (
   if (varParams.length > 0) {
     varParams.forEach((param) => (tempStaticTable[param] = param));
 
-    const hash = genBase36Hash(resolveBody() ?? {}, 1, 8);
+    const hash = genBase36Hash(resolveBody(), 1, 8);
 
     varParams.forEach((param) => {
       const cssVar = `--${hash}-${param}`;
@@ -287,12 +287,11 @@ export const resolveDynamicStyle = (
   }
 
   const style = resolveBody();
-  if (!style) return null;
 
   const varGroups = new Map<string, Array<{ cssVar: string; prop: string }>>();
   varParams.forEach((param) => {
     const cssVar = cssVars[param];
-    if (cssVar) varGroups.set(param, splitVarByUnit(style, cssVar));
+    varGroups.set(param, splitVarByUnit(style, cssVar));
   });
 
   withDefault.forEach(([param, expr]) => {
@@ -324,9 +323,9 @@ export const resolveDynamicStyle = (
     );
     const literal = resolved.value;
     if (typeof literal !== 'string' && typeof literal !== 'number') return;
-    (varGroups.get(param) ?? []).forEach(({ cssVar }) =>
-      applyVarFallback(style, cssVar, literal),
-    );
+    varGroups
+      .get(param)!
+      .forEach(({ cssVar }) => applyVarFallback(style, cssVar, literal));
   });
 
   return { style, varGroups };
