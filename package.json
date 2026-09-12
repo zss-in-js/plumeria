@@ -33,6 +33,7 @@
     "@playwright/test": "^1.60.0",
     "@plumeria/codemod": "workspace:^",
     "@plumeria/eslint-plugin": "workspace:^",
+    "@plumeria/init": "workspace:^",
     "@swc/core": "catalog:",
     "@swc/jest": "^0.2.39",
     "@types/jest": "^30.0.0",
