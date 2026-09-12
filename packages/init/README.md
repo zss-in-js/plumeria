@@ -22,9 +22,10 @@ writes. Nothing is installed or patched before you say so.
 
 ## What it detects
 
-The package manager comes from `packageManager` or the lockfile. The bundler
-comes from the dependencies, and from the config files when nothing is
-installed yet: `next`, `vite`, `astro`, `webpack`, `rspack`, `rollup`,
+The package manager comes from `packageManager` or the lockfile, both looked for
+upwards from the directory init runs in, so a package inside a workspace is
+installed with the manager the workspace root uses. The bundler comes from the
+dependencies, and from the config files when nothing is installed yet: `next`, `vite`, `astro`, `webpack`, `rspack`, `rollup`,
 `rolldown`, `esbuild`, `farm` and `bun`. Pass `--bundler <name>` to decide it
 yourself.
 
@@ -48,7 +49,9 @@ outcome depend on order.
 
 **Which JSX prop carries styles?** — `classStyle` by default. A renamed prop is
 written into the plugin as `styleProp` and declared in `plumeria.d.ts`, so the
-two cannot disagree.
+two cannot disagree. It has to be an identifier TypeScript can declare, and a
+name React leaves free; `className`, `style`, `key`, `ref` and `children` are
+refused, from the prompt and from `--style-prop` alike.
 
 **Set up `@plumeria/eslint-plugin` and the `plumerialint` build guard?** — adds
 the plugin and `oxlint`, writes or extends the flat config, and prefixes the
@@ -63,12 +66,21 @@ the plugin and `oxlint`, writes or extends the flat config, and prefixes the
   wrapped in `withPlumeria`.
 - `eslint.config.ts` — `plumeria.configs.recommended` plus the rules that were
   asked for. An existing flat config is extended rather than replaced.
-- `package.json` — `plumerialint --` in front of the `build` script.
+- `package.json` — `plumerialint --` in front of the `build` script, and on
+  Next.js `rimraf .next` as `predev` and `prebuild`, so a version change is not
+  read as a compile error. A `pre` script the project already wrote is left
+  alone.
 
-A file that already names Plumeria is skipped, so a second run writes nothing.
-Where the plugin cannot be placed safely — a build script rather than a config,
-a config with no `plugins` array, a legacy `.eslintrc` — nothing is touched and
-the snippet is printed instead.
+What counts as already set up is the plugin being *called*, not merely imported:
+an import nothing uses is completed rather than skipped, and the binding the file
+already named is the one that gets called. A second run writes nothing; a
+half-finished one is finished.
+
+The `plugins` array it extends is the one the config object owns — a `plugins`
+belonging to a nested key, such as `test` for Vitest, is never written into.
+Where the plugin cannot be placed safely — a config whose own object has no
+`plugins` array, a build script rather than a config, a legacy `.eslintrc` —
+nothing is touched and the snippet is printed instead.
 
 ## Options
 
