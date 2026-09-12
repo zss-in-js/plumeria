@@ -10,6 +10,7 @@ import { formatDate } from 'lib/formatDate';
 export const metadata: Metadata = generateSEOData({
   title: 'Blog',
   subtitle: 'Latest updates and news from our team.',
+  path: '/blog',
 });
 
 export default function Page(): JSX.Element {
