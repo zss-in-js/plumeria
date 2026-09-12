@@ -43,7 +43,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
   const devCssSheets = new Map<string, Set<string>>();
   let isDev = false;
-  let skipCssImport = false;
   let cssImport: CssImportFormatter | null = null;
   let viteRoot: string = process.cwd();
 
@@ -63,9 +62,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       },
       setRoot(root: string) {
         viteRoot = root;
-      },
-      setSkipCssImport(value: boolean) {
-        skipCssImport = value;
       },
       setCssImport(formatter: CssImportFormatter | null) {
         cssImport = formatter;
@@ -171,9 +167,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
               cssFilename,
               css: cssLookup.get(cssFilename) ?? '',
             })
-          : skipCssImport
-            ? null
-            : `\nimport ${JSON.stringify(cssId)};`;
+          : `\nimport ${JSON.stringify(cssId)};`;
 
         return {
           code: statement ? transformedSource + statement : transformedSource,
