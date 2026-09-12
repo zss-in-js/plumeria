@@ -2,9 +2,13 @@ import {
   addImport,
   appendToArray,
   appendToConfigList,
+  callsName,
   closerOf,
+  directProperty,
+  importedFrom,
   importsModule,
   moduleKindOf,
+  pluginsArrayOf,
   wrapDefaultExport,
 } from '../src/source';
 
@@ -176,5 +180,126 @@ describe('moduleKindOf', () => {
     ).toBe('cjs');
     expect(moduleKindOf('a.js', "import a from 'a';")).toBe('esm');
     expect(moduleKindOf('a.js', 'const a = 1;')).toBe('esm');
+  });
+});
+
+describe('pluginsArrayOf', () => {
+  const at = (source: string): string | undefined => {
+    const found = pluginsArrayOf(source);
+    if (found === undefined) return undefined;
+    return source.slice(found, source.indexOf(']', found) + 1);
+  };
+
+  it('takes the array the config owns, not one a nested key owns', () => {
+    const source = `export default defineConfig({
+  test: {
+    plugins: [],
+  },
+  plugins: [react()],
+});
+`;
+    expect(at(source)).toBe('[react()]');
+  });
+
+  it('takes nothing when only a nested key has one', () => {
+    const source = `export default defineConfig({
+  test: {
+    plugins: [],
+  },
+});
+`;
+    expect(pluginsArrayOf(source)).toBeUndefined();
+  });
+
+  it('reads through an object the config exports directly', () => {
+    const source = `export default {
+  module: { rules: [{ test: /\\.css$/ }] },
+  plugins: [new HtmlWebpackPlugin()],
+};
+`;
+    expect(at(source)).toBe('[new HtmlWebpackPlugin()]');
+  });
+
+  it('reads through module.exports', () => {
+    const source = `module.exports = {\n  plugins: [one()],\n};\n`;
+    expect(at(source)).toBe('[one()]');
+  });
+
+  it('reads the vite block of an Astro config', () => {
+    const source = `export default defineConfig({
+  vite: {
+    plugins: [],
+  },
+  integrations: [react()],
+});
+`;
+    expect(at(source)).toBe('[]');
+  });
+
+  it('reads the object a build script passes to a call', () => {
+    const source = `await Bun.build({\n  outdir: './dist',\n  plugins: [],\n});\n`;
+    expect(at(source)).toBe('[]');
+  });
+});
+
+describe('directProperty', () => {
+  const source = `{
+  a: 1,
+  nested: { b: 2 },
+  list: [{ b: 3 }],
+  b: 4,
+}`;
+
+  it('finds a key the object owns', () => {
+    expect(source.slice(directProperty(source, 0, 'b'))).toMatch(/^4/);
+  });
+
+  it('does not find a key only a nested value owns', () => {
+    expect(directProperty(source, 0, 'c')).toBeUndefined();
+  });
+
+  it('does not mistake a key that ends with the name', () => {
+    expect(directProperty('{ myPlugins: [] }', 0, 'plugins')).toBeUndefined();
+  });
+});
+
+describe('importedFrom', () => {
+  it('names a default import and drops its line from the rest', () => {
+    const source = `import plumeria from '@plumeria/unplugin';\n\nplugins: [plumeria.vite()];\n`;
+    const { names, rest } = importedFrom(source, '@plumeria/unplugin');
+    expect(names).toEqual(['plumeria']);
+    expect(rest).not.toContain('import');
+    expect(callsName(rest, 'plumeria')).toBe(true);
+  });
+
+  it('names a renamed binding', () => {
+    const { names } = importedFrom(
+      `import { withPlumeria as wrap } from '@plumeria/next-plugin';`,
+      '@plumeria/next-plugin',
+    );
+    expect(names).toEqual(['wrap']);
+  });
+
+  it('names a require binding', () => {
+    const { names } = importedFrom(
+      `const plumeria = require('@plumeria/unplugin').default;`,
+      '@plumeria/unplugin',
+    );
+    expect(names).toEqual(['plumeria']);
+  });
+
+  it('reports an import nothing calls', () => {
+    const source = `import plumeria from '@plumeria/unplugin';\n\nexport default { plugins: [react()] };\n`;
+    const { names, rest } = importedFrom(source, '@plumeria/unplugin');
+    expect(names).toEqual(['plumeria']);
+    expect(callsName(rest, 'plumeria')).toBe(false);
+  });
+
+  it('finds nothing when the module is absent', () => {
+    const { names } = importedFrom(
+      `import react from 'react';`,
+      '@plumeria/unplugin',
+    );
+    expect(names).toEqual([]);
   });
 });
