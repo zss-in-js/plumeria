@@ -27,7 +27,11 @@ The 18.5 patches spent four releases closing the paths where a style expression 
 
 6. **One transform** — both bundler packages compile a file through the same implementation, in `@plumeria/utils`.
 
-Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5, section 6 and [Upgrading](#upgrading) are what is new.
+19.1.2 adds a seventh, and it is not in the library at all. Everything above is about the moment a mistake is caught; this one is about the moment before any of it, when a project has eight packages to choose between and has not written a style yet:
+
+7. **`npx @plumeria/init`** — one command reads the project and writes the setup, and one answer configures the compiler and the linter together.
+
+Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5, section 6, section 7 and [Upgrading](#upgrading) are what is new.
 
 ---
 
@@ -203,6 +207,74 @@ function Card() {
 
 `render` is local to `Card`. Walking the body, the collector saw a function node and stopped there without first taking its name — the branch that should have taken it sat below a check that already returned for every function, so it had never run once. `render` never entered the scope's bindings, and the call above the declaration was recorded as a reference to something outside the module.
 
+## 7. One command to set it up
+
+Nothing in 19.1.2 changes what you write either. It changes what stands between installing Plumeria and writing the first style.
+
+There are eight packages. Which ones a project needs is not a judgement — Next.js takes `@plumeria/next-plugin`, every other bundler takes `@plumeria/unplugin` with the factory that matches — but it is something you have to know, and someone meeting the library has no way to know it. The same is true of `plumeria.d.ts`, which has to name the styling prop before you have seen a style to put in it.
+
+`npx @plumeria/init` reads the project rather than asking:
+
+```sh title="Terminal"
+npx @plumeria/init
+```
+
+```sh title="Terminal"
+✔ detected  next  pnpm  typescript
+
+  ➡︎ install  @plumeria/core @plumeria/next-plugin @plumeria/eslint-plugin oxlint
+  + write    plumeria.d.ts     classStyle
+  ~ patch    next.config.ts    withPlumeria(...)
+  ~ patch    eslint.config.ts  plumeria.configs.recommended
+  ~ patch    package.json      build: plumerialint -- next build
+
+Apply? (Y/n)
+```
+
+The package manager comes from `packageManager` or the lockfile, both looked for upwards, so a package inside a workspace is installed with the manager the workspace root uses. The bundler comes from the dependencies, and from the config files when nothing is installed yet. The plan is printed before anything is written, and `--dry-run` stops at the plan.
+
+### One answer, two layers
+
+The one thing detection cannot settle is a decision, and it is the decision this release is really about.
+
+A property that carries both a logical and a physical name can be written twice under two spellings, and specificity cannot rank that pair. Two mechanisms already remove it: `withoutLogicalProperties` and `withoutPhysicalProperties` on the bundler plugin, and `no-logical-properties` and `no-physical-properties` in ESLint. They are one decision made at two levels — and because you set them separately, you could set them in opposite directions, and the build would then reject what the editor had just told you to write.
+
+init asks once:
+
+```sh title="Terminal"
+Which spelling of a two-named property does this project write?
+  1: logical   marginBlockStart, insetInlineStart
+  2: physical  marginTop, left
+  3: both      no policy
+```
+
+and writes both sides from the one answer — the plugin option into the bundler config, the matching rule into the flat config, `{ sizes: true }` into both if you extend the policy to the size axis. Their directions cannot disagree, because there is only one direction to give.
+
+That is section 1's problem standing somewhere else. There, a type and a compiler disagreed about an inline object, and the gap was covered by a lint rule you had to remember to run. Here, a linter and a compiler could be configured into contradiction. Both fixes have the same shape: stop letting two layers be told different things.
+
+On an existing codebase, answer `3`. The rule offers a rename on every occurrence, which is what a migration needs, and the build option belongs after that — [Optional rules](/docs/api-reference/plugins/eslint-plugin/optional-rules) says which way round.
+
+### What counts as already set up
+
+Running it a second time writes nothing. What it checks for is the plugin being *called*, not imported: a bare `plumeria.version`, and a call inside a comment, a string or a regex literal, all read as not set up, because none of them registers anything. An import nothing calls is therefore completed rather than skipped, and the binding the file already named is the one that gets called.
+
+The `plugins` array it extends is the one the config object owns:
+
+```ts title="vite.config.ts"
+export default defineConfig({
+  test: {
+    plugins: [],                      // not this one
+  },
+  plugins: [react(), plumeria.vite()], // this one
+});
+```
+
+A config whose own object has no `plugins` array is not guessed at. Nothing is touched, the snippet is printed, and the command exits with `1` — which is also what happens for a build script rather than a config, and for a legacy `.eslintrc`.
+
+On Next.js it adds `rimraf .next` before `dev` and before `build`, since a version change read as a compile error is the first thing a cache outlives. A `pre` script is added only for a script the project has, and one you already wrote is left alone.
+
+The output is marked by kind through `node:util`'s `styleText`, which leaves the text alone when it is not writing to a terminal, so a piped or logged run carries no escape codes.
+
 ## Upgrading
 
 **From 18.5.** An inline object in a style prop is a type error. It was already a build error, so a codebase that built on 18.5 still builds — the change is that the editor says it first. Move the object into `css.create` and pass the created style. The prop types are additive: `Style` still accepts every property, and a component that does not need to constrain anything needs no change.
@@ -222,9 +294,22 @@ Before, the export rewrote such a component's call sites to `className` while it
 
 **From 19.1.0.** Nothing to do. The transform moving into `@plumeria/utils` is internal to the packages — the plugin and the loader are configured exactly as before, and `@plumeria/utils` is already a dependency of both. If you build with the Turbopack loader, the one thing that changes is that you now get the behaviour the plugin had in the places the two still differed.
 
+**From 19.1.1.** Nothing to do. `@plumeria/init` is a new package you run rather than depend on, and it writes the same configuration this documentation has always described. Running it on a project that is already set up is safe — every file it would touch reads as done, and it writes nothing.
+
 ---
 
 ## Release notes
+
+## 19.1.2 (Sep 12, 2026)
+- Feat: add `@plumeria/init`, one command that sets Plumeria up in an existing project. It is run with `npx @plumeria/init`, and installed it is `plumeria-init`, alongside `plumeria-codemod` and `plumerialint`. It detects the package manager and the bundler, installs the packages that are missing, writes `plumeria.d.ts` and the bundler config, extends the ESLint flat config, and puts `plumerialint --` in front of the `build` script
+- Feat: ask which spelling of a two-named property the project writes and set both levels from the one answer — `withoutLogicalProperties` or `withoutPhysicalProperties` on the bundler plugin, and `no-logical-properties` or `no-physical-properties` in ESLint — so their directions cannot disagree
+- Feat: ask whether to turn on `expand-border-shorthands`, and which JSX prop carries styles, writing a renamed prop into the plugin and into `plumeria.d.ts` at once
+- Feat: patch an existing config rather than replace it, and extend only the `plugins` array the config object owns, so a nested one such as Vitest's `test.plugins` is never written into. Where the plugin cannot be placed safely, print the snippet and touch nothing
+- Feat: treat a config as set up only once the plugin is called, not merely imported — a bare property read, and a call inside a comment, a string or a regex literal, all read as not set up — so an import nothing calls is completed rather than skipped, and call the binding the file already named. An import spanning several lines is read as one statement, so it is never duplicated
+- Feat: on Next.js add `rimraf .next` before `dev` and before `build`, so a version change is not read as a compile error. A `pre` script is added only for a script the project has, and one it already wrote is left alone
+- Feat: look for `packageManager` and the lockfile upwards from the directory init runs in, so a package inside a workspace is installed with the manager the workspace root uses
+- Feat: mark each planned action by kind — install, write, patch, manual, skip — with `node:util`'s `styleText`, which leaves the text alone when the output is not a terminal
+- Feat: refuse a styling prop that is not an identifier, or that React already handles, from `--style-prop` as well as from the prompt
 
 ## 19.1.1 (Sep 11, 2026)
 - Refactor: share one transform between the plugin and the Turbopack loader, so a file compiles through the same implementation instead of two copies that could drift
