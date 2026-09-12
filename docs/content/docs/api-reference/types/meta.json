@@ -7,8 +7,9 @@
     "StaticStyles",
     "WithoutProperties",
     "AtomicStyle",
-    "AtomicDynamicStyle",
+    "AtomicClassStyle",
     "AtomicClassNameFor",
+    "AtomicClassStyleFor",
     "CSSProperties"
   ]
 }
