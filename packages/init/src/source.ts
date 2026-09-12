@@ -329,24 +329,70 @@ const bindingNames = (binding: string): string[] => {
 
 export const importedFrom = (source: string, specifier: string): Imported => {
   const escaped = specifier.replace(/[/@.]/g, '\\$&');
-  const pattern = new RegExp(
-    `^.*(?:from\\s*['"]${escaped}['"]|require\\(\\s*['"]${escaped}['"]).*$`,
-    'gm',
-  );
-  const statements = source.match(pattern) ?? [];
+  const quoted = `['"]${escaped}['"]`;
+
+  const patterns = [
+    new RegExp(`\\bimport\\s+([^;'"]*?)\\s+from\\s*${quoted}`, 'g'),
+    new RegExp(
+      `\\b(?:const|let|var)\\s+([^;'"=]*?)\\s*=\\s*require\\(\\s*${quoted}`,
+      'g',
+    ),
+    new RegExp(`\\bimport\\s*()${quoted}`, 'g'),
+  ];
 
   let rest = source;
   const names: string[] = [];
-  for (const statement of statements) {
-    rest = rest.replace(statement, '');
-    const binding =
-      /\bimport\s+([\s\S]*?)\s+from\b/.exec(statement)?.[1] ??
-      /\b(?:const|let|var)\s+([\s\S]*?)=/.exec(statement)?.[1] ??
-      '';
-    names.push(...bindingNames(binding));
+
+  for (const pattern of patterns) {
+    for (
+      let match = pattern.exec(source);
+      match;
+      match = pattern.exec(source)
+    ) {
+      rest = rest.replace(match[0], '');
+      names.push(...bindingNames(match[1] ?? ''));
+    }
   }
-  return { names, rest };
+  return { names: [...new Set(names)], rest };
 };
 
-export const callsName = (source: string, name: string): boolean =>
-  new RegExp(`\\b${name}\\s*[.(]`).test(source);
+export const stripNoise = (source: string): string => {
+  let out = '';
+  for (let i = 0; i < source.length; i++) {
+    const char = source[i];
+    if (char === '/' && source[i + 1] === '/') {
+      const line = source.indexOf('\n', i);
+      if (line === -1) break;
+      i = line - 1;
+      continue;
+    }
+    if (char === '/' && source[i + 1] === '*') {
+      const end = source.indexOf('*/', i + 2);
+      if (end === -1) break;
+      i = end + 1;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === '`') {
+      i = endOfString(source, i);
+      out += '""';
+      continue;
+    }
+    out += char;
+  }
+  return out;
+};
+
+export const callsMethod = (source: string, name: string): boolean =>
+  new RegExp(`\\b${name}\\s*\\.\\s*[A-Za-z_$][\\w$]*\\s*\\(`).test(
+    stripNoise(source),
+  );
+
+export const callsFunction = (source: string, name: string): boolean =>
+  new RegExp(`\\b${name}\\s*\\(`).test(stripNoise(source));
+
+export const readsMember = (
+  source: string,
+  name: string,
+  member: string,
+): boolean =>
+  new RegExp(`\\b${name}\\s*\\.\\s*${member}\\b`).test(stripNoise(source));
