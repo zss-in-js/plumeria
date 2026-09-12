@@ -100,7 +100,9 @@ npx @plumeria/init --cwd packages/app
 ```
 
 Without a TTY it never asks — every unanswered question takes its default,
-which is what makes it usable in CI.
+which is what makes it usable in CI. Colour comes from `node:util`'s
+`styleText`, which leaves the text alone when the output is not a terminal, so a
+piped or logged run carries no escape codes.
 
 Installed rather than fetched, the command is `plumeria-init`.
 
