@@ -1,12 +1,22 @@
 import { createWebpackPlugin } from 'unplugin';
-import { unpluginFactory, type PluginOptions } from './core';
+import {
+  unpluginFactory,
+  type PluginOptions,
+  type CssImportContext,
+} from './core';
 import * as path from 'path';
 
 const ZERO_CSS_SUFFIX = '(?:$|\\?|%3F)';
 const VIRTUAL_CSS_PATH = new RegExp(`\\.zero\\.css${ZERO_CSS_SUFFIX}`);
 
 export function attachWebpackHooks(plugin: any) {
-  const { setDev, setRoot } = plugin.__plumeriaInternal;
+  const { setDev, setRoot, setCssImport } = plugin.__plumeriaInternal;
+
+  setCssImport(({ id, cssFilename }: CssImportContext) => {
+    let rel = path.relative(path.dirname(id), cssFilename).replace(/\\/g, '/');
+    if (!rel.startsWith('.')) rel = `./${rel}`;
+    return `\nimport "${rel}?t=${Date.now()}";`;
+  });
 
   plugin.transformInclude = (id: string) => {
     const [pathId] = id.split('?', 1);
@@ -20,27 +30,6 @@ export function attachWebpackHooks(plugin: any) {
   plugin.loadInclude = (id: string) => {
     const [pathId] = id.split('?', 1);
     return pathId.endsWith('.zero.css');
-  };
-
-  const originalTransform = plugin.transform;
-  plugin.transform = async function (this: any, code: string, id: string) {
-    const result = await originalTransform.call(this, code, id);
-    if (result && typeof result === 'object' && result.code) {
-      const { cssFileLookup } = plugin.__plumeriaInternal;
-      result.code = result.code.replace(
-        /import\s+"(\/[^"]+\.zero\.css)";/g,
-        (_match: string, cssPath: string) => {
-          const absoluteCssPath = cssFileLookup.get(cssPath);
-          if (!absoluteCssPath) return _match;
-          let rel = path
-            .relative(path.dirname(id), absoluteCssPath)
-            .replace(/\\/g, '/');
-          if (!rel.startsWith('.')) rel = `./${rel}`;
-          return `import "${rel}?t=${Date.now()}";`;
-        },
-      );
-    }
-    return result;
   };
 
   plugin.resolveId = function (id: string, importer?: string) {
