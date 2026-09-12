@@ -1,5 +1,17 @@
 # @plumeria/unplugin
 
+## 19.1.3
+
+### Patch Changes
+
+- ee9fd3d: - Fix: keep the query when the Vite plugin resolves a virtual CSS id, so Vite's `?direct` stylesheet request answers with CSS instead of the module wrapper. A `<link rel="stylesheet">` rendered by an RSC framework used to load JavaScript, and the styles of every server component were dropped.
+  - Fix: invalidate the virtual CSS module in the client environment when the owning module was transformed in a server environment, and push a `css-update` so the rendered link refetches. A server component's styles used to stay at the value they held when the dev server started, even across a full reload.
+  - Fix: record the last pushed CSS per environment, so the client transform still reloads its own CSS module after a server environment has already seen the same edit. A client component's styles used to stop updating once the `rsc` environment ran first.
+  - Fix: emit the app's atomic CSS as one sheet in an RSC build, instead of letting it follow the chunks. The per-file CSS import is not written in the first place, rather than written and then stripped back out. `build.cssCodeSplit` is no longer forced off for the whole app, which used to leave the client references without CSS and strip every client component of its styles in production. The sheet is emitted once from the `rsc` environment, and every chunk of that environment resolves to that same file, so whichever server module renders the browser fetches the one sheet. Code-split CSS repeats a shared declaration once per chunk it reaches, which is the one thing atomic CSS exists to avoid.
+  - Refactor: the host decides what a module's CSS import says, through one formatter on the plugin's internal surface, rather than the core writing a statement that three bundler adapters then rewrite with a regex. Those rewrites depended on the exact spelling the core happened to produce, and a change to it would have gone unnoticed until the wrong stylesheet loaded; the disk-emitting form is now written once and shared by Vite and Farm instead of living twice.
+- Updated dependencies [ee9fd3d]
+  - @plumeria/utils@19.1.3
+
 ## 19.1.2
 
 ### Patch Changes
