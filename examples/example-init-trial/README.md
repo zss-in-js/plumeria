@@ -5,15 +5,16 @@ A bare Vite + React + TypeScript app with no Plumeria in it, kept for trying
 
 ## Running it from this repository
 
-`npx @plumeria/init` fetches the package from npm, so inside this repository use
-the workspace binary instead — it is the build in `packages/init/dist`:
+`@plumeria/init` is a devDependency of the repository root, so npx resolves it
+there and runs the build in `packages/init/dist` rather than fetching anything:
 
 ```sh
-pnpm exec plumeria-init --dry-run   # show the plan, write nothing
-pnpm exec plumeria-init             # ask, then write
+npx @plumeria/init --dry-run   # show the plan, write nothing
+npx @plumeria/init             # ask, then write
 ```
 
-Run `pnpm --filter @plumeria/init build` first if you changed the source.
+`pnpm exec plumeria-init` is the same binary by name. Either way, run
+`pnpm --filter @plumeria/init build` first if you changed the source.
 
 ## Starting over
 
