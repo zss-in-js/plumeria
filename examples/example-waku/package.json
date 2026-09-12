@@ -1,0 +1,26 @@
+{
+  "name": "example-waku",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "waku dev",
+    "build": "waku build",
+    "start": "waku start"
+  },
+  "dependencies": {
+    "hono": "^4.12.14",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-server-dom-webpack": "^19.2.8",
+    "waku": "1.0.0-rc.0"
+  },
+  "devDependencies": {
+    "@plumeria/core": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "^6.0.2",
+    "typescript": "~6.0.3"
+  }
+}
