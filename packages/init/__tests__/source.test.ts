@@ -11,7 +11,7 @@ import {
   moduleKindOf,
   pluginsArrayOf,
   readsMember,
-  stripNoise,
+  codeMask,
   wrapDefaultExport,
 } from '../src/source';
 
@@ -360,23 +360,45 @@ describe('what counts as using the import', () => {
   });
 });
 
-describe('stripNoise', () => {
-  it('empties a string without moving what surrounds it', () => {
-    expect(stripNoise(`const a = 'x';`)).toBe('const a = "";');
-  });
-
-  it('drops a line comment and keeps the newline', () => {
-    expect(stripNoise('a; // b\nc;')).toBe('a; \nc;');
-  });
-
-  it('drops a block comment', () => {
-    expect(stripNoise('a; /* b */ c;')).toBe('a;  c;');
-  });
-
-  it('leaves a regex literal in place', () => {
-    expect(stripNoise('include: /\\.[jt]sx?$/,')).toBe(
+describe('codeMask', () => {
+  it('holds every offset where the source had it', () => {
+    for (const source of [
+      `const a = 'x';`,
+      'a; // b\nc;',
+      'a; /* b */ c;',
       'include: /\\.[jt]sx?$/,',
-    );
+      `const flag = '\u{1F680}';\nimport a from 'b';`,
+      'const q = /[\'"]/;\nplumeria.vite();',
+    ]) {
+      expect(codeMask(source)).toHaveLength(source.length);
+    }
+  });
+
+  it('blanks a string but keeps its quotes where they were', () => {
+    expect(codeMask(`const a = 'xy';`)).toBe('const a =     ;');
+  });
+
+  it('blanks a comment and keeps the newline', () => {
+    expect(codeMask('a; // b\nc;')).toBe('a;     \nc;');
+    expect(codeMask('a; /* b */ c;')).toBe('a;         c;');
+  });
+
+  it('blanks a regex literal rather than reading into it', () => {
+    const source = `const q = /['"]/;\nplumeria.vite();`;
+    expect(codeMask(source)).toHaveLength(source.length);
+    expect(codeMask(source)).toContain('plumeria.vite();');
+    expect(codeMask(source)).not.toContain('"');
+  });
+
+  it('reads a regex a keyword introduces', () => {
+    const source = `function f() { return /['"]/; }\nplumeria.vite();`;
+    expect(codeMask(source)).toHaveLength(source.length);
+    expect(codeMask(source)).toContain('plumeria.vite();');
+    expect(codeMask(source)).not.toContain('"');
+  });
+
+  it('leaves a division alone', () => {
+    expect(codeMask('const r = w / h;')).toBe('const r = w / h;');
   });
 });
 
@@ -413,5 +435,88 @@ import {
     expect(
       importedFrom(`import '@plumeria/core';`, '@plumeria/core').names,
     ).toEqual([]);
+  });
+});
+
+describe('import-like text outside code', () => {
+  it.each([
+    `// import plumeria from '@plumeria/unplugin';`,
+    `/* import plumeria from '@plumeria/unplugin'; */`,
+    `const example = "import plumeria from '@plumeria/unplugin'";`,
+    "const example = `import plumeria from '@plumeria/unplugin'`;",
+    `const example = /import plumeria from '@plumeria\\/unplugin'/;`,
+  ])('ignores %s', (source) => {
+    expect(importedFrom(source, '@plumeria/unplugin').names).toEqual([]);
+  });
+
+  it('still reads a real import after comment and string noise', () => {
+    const source = `// import fake from '@plumeria/unplugin';
+const example = "import fake from '@plumeria/unplugin'";
+import real from '@plumeria/unplugin';
+`;
+    expect(importedFrom(source, '@plumeria/unplugin').names).toEqual(['real']);
+  });
+
+  it('still reads a require declaration', () => {
+    const source = `const plumeria = require('@plumeria/unplugin').default;`;
+    expect(importedFrom(source, '@plumeria/unplugin').names).toEqual([
+      'plumeria',
+    ]);
+  });
+});
+
+describe('a regex literal the config holds', () => {
+  it('does not hide the registration that follows it', () => {
+    const source = `import plumeria from '@plumeria/unplugin';
+
+const quoted = /[^"]+/;
+
+export default defineConfig({
+  plugins: [plumeria.vite()],
+  define: { __Q__: quoted.source },
+});
+`;
+    expect(callsMethod(source, 'plumeria')).toBe(true);
+  });
+
+  it('does not hide a registration behind an apostrophe class', () => {
+    expect(callsMethod(`const q = /['"]/;\nplumeria.vite();`, 'plumeria')).toBe(
+      true,
+    );
+  });
+});
+
+describe('a character outside the basic plane', () => {
+  it('leaves every later offset where the mask expects it', () => {
+    const source = `const banner = '\u{1F680} build';
+// import plumeria from '@plumeria/unplugin';
+export default { plugins: [] };
+`;
+    expect(codeMask(source)).toHaveLength(source.length);
+    expect(importedFrom(source, '@plumeria/unplugin').names).toEqual([]);
+  });
+
+  it('does not move the mask off a real import', () => {
+    const source = `const banner = '\u{1F680}\u{1F525}\u{1F41B}';
+import plumeria from '@plumeria/unplugin';
+export default { plugins: [plumeria.vite()] };
+`;
+    expect(importedFrom(source, '@plumeria/unplugin').names).toEqual([
+      'plumeria',
+    ]);
+    expect(callsMethod(source, 'plumeria')).toBe(true);
+  });
+});
+
+describe('the rest an import leaves behind', () => {
+  it('cuts the real statement, not a commented copy of it', () => {
+    const source = `// import plumeria from '@plumeria/unplugin';
+import plumeria from '@plumeria/unplugin';
+export default { plugins: [] };
+`;
+    const { names, rest } = importedFrom(source, '@plumeria/unplugin');
+    expect(names).toEqual(['plumeria']);
+    expect(rest).toContain("// import plumeria from '@plumeria/unplugin';");
+    expect(rest.match(/^import plumeria/m)).toBeNull();
   });
 });
