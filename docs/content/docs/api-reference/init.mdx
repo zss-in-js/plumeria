@@ -95,7 +95,7 @@ export default defineConfig({
 });
 ```
 
-On Next.js the two `pre` scripts clear the build cache, which is what keeps a version change from being read as a compile error:
+On Next.js a `pre` script clears the build cache, which is what keeps a version change from being read as a compile error. One is added for each of `dev` and `build` that the project actually has, so a project with no scripts gets none — and `rimraf` is only installed when one is added:
 
 ```json title="package.json"
   "scripts": {
@@ -106,9 +106,9 @@ On Next.js the two `pre` scripts clear the build cache, which is what keeps a ve
   }
 ```
 
-A `predev` or `prebuild` the project already wrote is left as it is.
+A `predev` or `prebuild` the project already wrote is left as it is. Clearing the cache is a Next.js concern rather than a lint one, so `--no-eslint` leaves it in place and drops only `plumerialint`.
 
-What counts as already set up is the plugin being *called*, not merely imported — an import nothing uses is completed rather than skipped, and the binding the file already named is the one that gets called. So a second run writes nothing, and a half-finished one is finished.
+What counts as already set up is the plugin being *called*, not merely imported. A bare `plumeria.version`, a call inside a comment, and a call inside a string all read as not set up, because none of them registers anything; an import nothing calls is completed rather than skipped, and the binding the file already named is the one that gets called. An import spanning several lines is read as one statement, so it is never duplicated. A second run writes nothing, and a half-finished one is finished.
 
 The `plugins` array it extends is the one the config object owns. A `plugins` belonging to a nested key — `test` for Vitest, say — is never written into. Where the plugin cannot be placed safely — a config whose own object has no `plugins` array, a build script rather than a config, a legacy `.eslintrc` — nothing is touched, the snippet is printed, and the command exits with `1`.
 
@@ -120,7 +120,7 @@ npx @plumeria/init --yes                # take every default, ask nothing
 npx @plumeria/init --physical --sizes   # answer the spelling question up front
 npx @plumeria/init --style-prop sx
 npx @plumeria/init --bundler rollup
-npx @plumeria/init --no-eslint          # leave ESLint and the build script alone
+npx @plumeria/init --no-eslint          # leave ESLint and the plumerialint guard out
 npx @plumeria/init --no-install         # write the configs, print the command
 npx @plumeria/init --cwd packages/app
 ```
