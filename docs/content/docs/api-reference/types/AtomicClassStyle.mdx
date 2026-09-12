@@ -1,0 +1,74 @@
+---
+title: 'AtomicClassStyle'
+description: 'API reference for the AtomicClassStyle type'
+---
+
+```ts
+type AtomicClassStyle<T>;
+export type { AtomicClassStyle };
+```
+
+`AtomicClassStyle` is the type of one style a function produced, which is a style defined as a function in [css.create](/docs/api-reference/javascript/create) and then called. It reads the same as [AtomicStyle](/docs/api-reference/types/AtomicStyle) — the type argument names the properties the style has to set, and a call names them with what it produced — and adds that a static style will not do.
+
+The name says where such a style has to go. The values the caller computed reach the element as custom properties, so the style is applied through `classStyle` rather than as a bare class name, and that is the whole reason a prop has to be able to tell the two apart.
+
+## Example
+
+```tsx title="TypeScript"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  sized: (width: number) => ({ width }),
+  fixed: { width: '120px' },
+});
+
+type Sized = css.AtomicClassStyle<{ width: number }>;
+
+const a: Sized = styles.sized(120); // ok
+const b: Sized = styles.sized;      // Type error, the function has to be called
+const c: Sized = styles.fixed;      // Type error, no function produced this style
+```
+
+The property is still required. A style a function produced that sets something else is rejected the same way a static one would be:
+
+```tsx
+const styles = css.create({
+  offset: (top: number) => ({ top }),
+});
+
+const a: css.AtomicClassStyle<{ width: number }> = styles.offset(8); // Type error
+```
+
+## What a called style shows
+
+A call gives the map of what it produced, and each entry is an [atomic class style](/docs/api-reference/types/AtomicClassStyleFor):
+
+```ts title="TypeScript"
+const styles = css.create({
+  palette: (color: string) => ({ padding: 4, background: color }),
+});
+
+// styles.palette('red')
+Readonly<{
+  padding: css.AtomicClassStyleFor<'padding', number>;
+  background: css.AtomicClassStyleFor<'background', string>;
+}>;
+```
+
+The mark is on each entry rather than on the style that holds them, so reading one property off the style carries it too. That is what [StaticStyles](/docs/api-reference/types/StaticStyles) reads to reject a style a function produced. It records where the entry came from, not that its value is computed: `padding` is written with a literal and is marked all the same, because the map reaches the element as one thing.
+
+## Choosing between the three
+
+A style a function produced reaches the element as a custom property, so whether a prop can carry one is a real distinction rather than a stylistic one. Three types divide it up:
+
+| Type | A static style | A called style |
+| --- | --- | --- |
+| [AtomicStyle](/docs/api-reference/types/AtomicStyle) | accepted | accepted |
+| `AtomicClassStyle` | rejected | accepted |
+| [StaticStyles](/docs/api-reference/types/StaticStyles) | accepted | rejected |
+
+`StaticStyles` is the one a component reaches for most, because [css.use()](/docs/api-reference/javascript/use) returns only a class name and cannot carry one of these. `AtomicClassStyle` is the opposite case: a component that exists to apply a caller's computed value.
+
+<Callout title="Good to know">
+`StaticStyles` is a style list, so it accepts arrays and the falsy members. `AtomicClassStyle` is one style, the same as `AtomicStyle`. See [Style](/docs/api-reference/types/Style) for the list forms.
+</Callout>
