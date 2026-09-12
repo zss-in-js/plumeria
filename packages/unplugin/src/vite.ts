@@ -1,7 +1,7 @@
 import { createVitePlugin } from 'unplugin';
 import { unpluginFactory, EXTENSION_PATTERN } from './core';
 import type { PluginOptions } from './core';
-import { scanAll } from '@plumeria/utils';
+import { scanAll, optimizer } from '@plumeria/utils';
 import * as path from 'path';
 import type {
   ViteDevServer,
@@ -18,10 +18,26 @@ import {
   rewriteImportPath,
 } from './disk-css';
 
+function isRscConfig(userConfig: UserConfig): boolean {
+  if ((userConfig as any).environments?.rsc) return true;
+
+  const plugins = ((userConfig.plugins ?? []) as unknown[])
+    .flat(Infinity)
+    .filter((p): p is { name?: string } => !!p && typeof p === 'object');
+
+  return plugins.some((p) => p.name === 'rsc' || !!p.name?.startsWith('rsc:'));
+}
+
 function attachViteHooks(plugin: any, options?: VitePluginOptions) {
   let devServer: ViteDevServer | undefined;
-  const { cssLookup, cssFileLookup, targets, setDev, setRoot } =
-    plugin.__plumeriaInternal;
+  const {
+    cssLookup,
+    cssFileLookup,
+    targets,
+    setDev,
+    setRoot,
+    setSkipCssImport,
+  } = plugin.__plumeriaInternal;
 
   const useDiskEmit = options?.devEmitToDisk ?? false;
   let isDev = false;
@@ -49,6 +65,50 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
 
   // Last CSS text pushed per virtual CSS module, to skip no-op reloads.
   const lastServedCss = new Map<string, string>();
+
+  let isRsc = false;
+  let isBuild = false;
+  let sheetRef: string | undefined;
+
+  const clientCssModules = (cssFilename: string) => {
+    const clientEnv = (devServer as any)?.environments?.client;
+    const graph = clientEnv?.moduleGraph;
+    if (!graph) return null;
+
+    const mods = new Set<any>(graph.getModulesByFile(cssFilename) ?? []);
+    const byId = graph.getModuleById(cssFilename);
+    if (byId) mods.add(byId);
+    return { clientEnv, graph, mods };
+  };
+
+  const invalidateClientCss = (cssFilename: string) => {
+    const found = clientCssModules(cssFilename);
+    if (!found || found.mods.size === 0) return;
+
+    found.mods.forEach((m) => found.graph.invalidateModule(m));
+
+    const cssId = `/${path.relative(viteRoot, cssFilename).replace(/\\/g, '/')}`;
+    found.clientEnv.hot.send({
+      type: 'update',
+      updates: [
+        {
+          type: 'css-update',
+          timestamp: Date.now(),
+          path: cssId,
+          acceptedPath: cssId,
+        },
+      ],
+    });
+  };
+
+  const reloadClientCss = (cssFilename: string) => {
+    const found = clientCssModules(cssFilename);
+    if (found && found.mods.size > 0) {
+      found.mods.forEach((m) => found.clientEnv.reloadModule(m));
+      return true;
+    }
+    return false;
+  };
 
   const baseTransform = plugin.transform;
   plugin.transform = async function (this: any, code: string, id: string) {
@@ -93,12 +153,24 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
       // but only when its content actually changed (avoids repaint flicker).
       const baseId = id.replace(EXTENSION_PATTERN, '');
       const cssFilename = `${baseId}.zero.css`;
-      const mod = devServer.moduleGraph.getModuleById(cssFilename);
-      if (mod) {
-        const cssContent = cssLookup.get(cssFilename) ?? '';
-        if (lastServedCss.get(cssFilename) !== cssContent) {
-          lastServedCss.set(cssFilename, cssContent);
-          devServer.reloadModule(mod);
+      const cssContent = cssLookup.get(cssFilename) ?? '';
+      const envName = (this as any).environment?.name;
+      const seenKey = `${envName ?? ''}:${cssFilename}`;
+
+      if (envName && envName !== 'client') {
+        if (lastServedCss.get(seenKey) !== cssContent) {
+          lastServedCss.set(seenKey, cssContent);
+          invalidateClientCss(cssFilename);
+        }
+      } else if (lastServedCss.get(seenKey) !== cssContent) {
+        if (reloadClientCss(cssFilename)) {
+          lastServedCss.set(seenKey, cssContent);
+        } else {
+          const mod = devServer.moduleGraph.getModuleById(cssFilename);
+          if (mod) {
+            lastServedCss.set(seenKey, cssContent);
+            devServer.reloadModule(mod);
+          }
         }
       }
     }
@@ -120,14 +192,54 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
         },
       };
 
-      if (command === 'build') {
+      isBuild = command === 'build';
+      isRsc = isRscConfig(userConfig);
+      setSkipCssImport(isBuild && isRsc);
+
+      if (isBuild && !isRsc) {
         configToReturn.build = {
           ...(userConfig.build ?? {}),
           cssCodeSplit: false,
         };
       }
 
+      if (isBuild && isRsc) {
+        configToReturn.environments = {
+          rsc: { build: { cssCodeSplit: false } },
+        };
+      }
+
       return configToReturn;
+    },
+
+    buildStart() {
+      sheetRef = undefined;
+    },
+
+    async buildEnd(this: any) {
+      if (!isRsc || !isBuild) return;
+      if (this.environment?.name !== 'rsc') return;
+
+      const source = await optimizer(
+        [...cssLookup.keys()]
+          .sort()
+          .map((key) => cssLookup.get(key))
+          .join(''),
+      );
+      if (!source.trim()) return;
+
+      sheetRef = this.emitFile({
+        type: 'asset',
+        name: 'plumeria.css',
+        source,
+      });
+    },
+
+    renderChunk(this: any, _code: string, chunk: any) {
+      if (!sheetRef) return null;
+      if (this.environment?.name !== 'rsc') return null;
+      chunk.viteMetadata.importedCss.add(this.getFileName(sheetRef));
+      return null;
     },
 
     configResolved(config: ResolvedConfig) {
@@ -202,13 +314,16 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
   // since CSS is served from a real file on disk
   if (!useDiskEmit) {
     vitePlugin.resolveId = function (importeeUrl: string) {
-      const [id] = importeeUrl.split('?', 1);
+      const queryIndex = importeeUrl.indexOf('?');
+      const id =
+        queryIndex === -1 ? importeeUrl : importeeUrl.slice(0, queryIndex);
+      const query = queryIndex === -1 ? '' : importeeUrl.slice(queryIndex);
       if (cssLookup.has(id)) {
-        return id;
+        return id + query;
       }
       const resolved = cssFileLookup.get(id);
       if (resolved) {
-        return resolved;
+        return resolved + query;
       }
       return null;
     };
