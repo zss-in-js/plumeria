@@ -129,21 +129,40 @@ export const installed = (manifest: Manifest): Record<string, string> => ({
   ...manifest.devDependencies,
 });
 
+const named = (value: string | undefined): PackageManager | undefined =>
+  value === 'pnpm' || value === 'yarn' || value === 'bun' || value === 'npm'
+    ? value
+    : undefined;
+
+const declaredIn = (dir: string): PackageManager | undefined => {
+  const file = path.join(dir, 'package.json');
+  if (!fs.existsSync(file)) return undefined;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8')) as Manifest;
+    return named(parsed.packageManager?.split('@')[0]);
+  } catch {
+    return undefined;
+  }
+};
+
 export const detectPackageManager = (
   root: string,
   manifest: Manifest,
 ): PackageManager => {
-  const declared = manifest.packageManager?.split('@')[0];
-  if (
-    declared === 'pnpm' ||
-    declared === 'yarn' ||
-    declared === 'bun' ||
-    declared === 'npm'
-  ) {
-    return declared;
-  }
-  for (const [lockfile, manager] of LOCKFILES) {
-    if (fs.existsSync(path.join(root, lockfile))) return manager;
+  const own = named(manifest.packageManager?.split('@')[0]);
+  if (own) return own;
+
+  for (let dir = root; ; ) {
+    for (const [lockfile, manager] of LOCKFILES) {
+      if (fs.existsSync(path.join(dir, lockfile))) return manager;
+    }
+    if (dir !== root) {
+      const declared = declaredIn(dir);
+      if (declared) return declared;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
   }
   return 'npm';
 };
