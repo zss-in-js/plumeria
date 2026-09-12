@@ -95,12 +95,12 @@ By incorporating it into your build pipeline, you can proactively detect style w
       const eslint = require('@eslint/js');
       const tseslint = require('typescript-eslint');
       const { defineConfig } = require('eslint/config');
-      const { plumeria } = require('@plumeria/eslint-plugin');
+      const plumeria = require('@plumeria/eslint-plugin');
 
       module.exports = defineConfig(
         eslint.configs.recommended,
         tseslint.configs.recommended,
-        plumeria.flatConfigs.recommended,  // [!code ++]
+        plumeria.configs.recommended,  // [!code ++]
 
         {
           files: ['**/*.{ts,tsx}'],
