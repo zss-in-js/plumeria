@@ -1,0 +1,42 @@
+{
+  "name": "@plumeria/init",
+  "version": "19.1.1",
+  "description": "One command that sets up Plumeria: detects the bundler, installs the packages, writes the configs",
+  "author": "Refirst 11",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/refirst11",
+  "homepage": "https://plumeria.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/init"
+  },
+  "bugs": {
+    "url": "https://github.com/zss-in-js/plumeria/issues"
+  },
+  "keywords": [
+    "plumeria",
+    "init",
+    "setup",
+    "cli",
+    "css-in-js"
+  ],
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "init": "bin/init.js"
+  },
+  "files": [
+    "dist/",
+    "bin/"
+  ],
+  "scripts": {
+    "build": "rimraf dist && pnpm cjs",
+    "cjs": "tsc --project tsconfig.cjs.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
