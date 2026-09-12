@@ -1,0 +1,138 @@
+---
+title: '@plumeria/init'
+description: 'Learn more about @plumeria/init.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`@plumeria/init`](https://www.npmjs.com/package/@plumeria/init) sets Plumeria up in a project that already exists. There are eight packages and a plugin per bundler; the choice between them is not a judgement, it is a detection, so the command makes it.
+
+```sh title="Terminal"
+npx @plumeria/init
+```
+
+It reads the project, asks what it cannot read, shows the plan, and only then writes. Nothing is installed or patched before you answer.
+
+```sh title="Terminal"
+✔ detected  next  pnpm  typescript
+
+  ➡︎ install  @plumeria/core @plumeria/next-plugin @plumeria/eslint-plugin oxlint
+  + write    plumeria.d.ts     classStyle
+  ~ patch    next.config.ts    withPlumeria(...)
+  ~ patch    eslint.config.ts  plumeria.configs.recommended
+  ~ patch    package.json      build: plumerialint -- next build
+
+Apply? (Y/n)
+```
+
+Commit before running, so the writes can be reverted with `git checkout`.
+
+## What it detects
+
+The package manager comes from `packageManager`, or from the lockfile when that field is absent.
+
+The bundler comes from the dependencies, and from the config files when nothing is installed yet — `next`, `vite`, `astro`, `webpack`, `rspack`, `rollup`, `rolldown`, `esbuild`, `farm` and `bun`. Next.js is read before the bundler Next.js carries, so a Next project gets [`@plumeria/next-plugin`](/docs/api-reference/plugins/next-plugin); everything else gets [`@plumeria/unplugin`](/docs/api-reference/plugins/unplugin) with the factory that matches. Pass `--bundler <name>` to decide it yourself.
+
+## What it asks
+
+### Which spelling of a two-named property does this project write?
+
+```sh title="Terminal"
+  1) logical   marginBlockStart, insetInlineStart — follows the writing mode
+  2) physical  marginTop, left
+  3) both      no policy
+```
+
+One answer reaches both levels. The bundler plugin receives `withoutPhysicalProperties` or `withoutLogicalProperties`, so the counterpart cannot compile, and ESLint receives `@plumeria/no-physical-properties` or `@plumeria/no-logical-properties`, so it is reported while you type. They are the same choice made twice, and setting them from one answer is what keeps their directions from disagreeing.
+
+`--sizes` extends both to the size axis, where `width` and `inlineSize` are the pair.
+
+On a codebase that already has styles, answer `3` and follow [Optional rules](/docs/api-reference/plugins/eslint-plugin/optional-rules) instead: the rule offers a rename on every occurrence, which is what a migration needs, and the build option belongs afterwards.
+
+### Expand a border shorthand into the three declarations it sets?
+
+Turns on `@plumeria/expand-border-shorthands`. A `border` shorthand crosses the axis shorthands without either containing the other, so specificity cannot rank the pair and the outcome depends on the order it was written in. Expanding removes the shape. On by default.
+
+### Which JSX prop carries styles?
+
+`classStyle` unless you name another. A renamed prop is written into the plugin as `styleProp` and declared in `plumeria.d.ts` at the same time, so the two cannot disagree — a mismatch type-checks but is never compiled away.
+
+### Set up `@plumeria/eslint-plugin` and the `plumerialint` build guard?
+
+Adds the plugin and `oxlint`, writes or extends the flat config, and puts `plumerialint --` in front of the `build` script, so a style error stops the build before the bundler runs.
+
+## What it writes
+
+| File | What lands in it |
+| --- | --- |
+| `plumeria.d.ts` | the styling prop TypeScript reads |
+| the bundler config | the plugin, and the options the answers chose |
+| `eslint.config.ts` | `plumeria.configs.recommended` and the rules that were asked for |
+| `package.json` | `plumerialint --` in front of the `build` script |
+
+An existing file is patched, not replaced. The import lands after the last import, the plugin joins the `plugins` array, and a Next config has its default export wrapped:
+
+```ts title="next.config.ts"
+import type { NextConfig } from 'next';
+import { withPlumeria } from '@plumeria/next-plugin'; // [!code ++]
+
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+};
+
+export default nextConfig; // [!code --]
+export default withPlumeria(nextConfig, { withoutLogicalProperties: true }); // [!code ++]
+```
+
+```ts title="vite.config.ts"
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import plumeria from '@plumeria/unplugin'; // [!code ++]
+
+export default defineConfig({
+  plugins: [react(), plumeria.vite({ withoutLogicalProperties: true })], // [!code ++]
+});
+```
+
+A file that already names Plumeria is skipped, so a second run writes nothing. Where the plugin cannot be placed safely — a build script rather than a config, a config with no `plugins` array, a legacy `.eslintrc` — nothing is touched, the snippet is printed, and the command exits with `1`.
+
+## Options
+
+```sh title="Terminal"
+npx @plumeria/init --dry-run            # show the plan, write nothing
+npx @plumeria/init --yes                # take every default, ask nothing
+npx @plumeria/init --physical --sizes   # answer the spelling question up front
+npx @plumeria/init --style-prop sx
+npx @plumeria/init --bundler rollup
+npx @plumeria/init --no-eslint          # leave ESLint and the build script alone
+npx @plumeria/init --no-install         # write the configs, print the command
+npx @plumeria/init --cwd packages/app
+```
+
+Without a TTY it never asks — every unanswered question takes its default, which is what makes it usable in CI.
+
+## Installation
+
+None. Run it with `npx` and it is gone again afterwards. Install it only if you want it pinned in the repo:
+
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i --save-dev @plumeria/init
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/init
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i --save-dev @plumeria/init
+```
+</Tab>
+</Tabs>
+
+<Cards>
+  <Card title="Set it up by hand instead" href="/docs/getting-started/installation" />
+  <Card title="Move an existing codebase onto Plumeria" href="/docs/api-reference/codemod" />
+</Cards>
