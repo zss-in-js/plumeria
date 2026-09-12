@@ -1,8 +1,6 @@
 import readline from 'node:readline/promises';
-import { DEFAULT_ANSWERS, DEFAULT_STYLE_PROP } from './setup';
+import { DEFAULT_ANSWERS, DEFAULT_STYLE_PROP, assertStyleProp } from './setup';
 import type { Answers, Spelling } from './setup';
-
-const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
 
 const SPELLINGS: Record<string, Spelling> = {
   '1': 'logical',
@@ -96,10 +94,7 @@ Which spelling of a two-named property does this project write?
       )
     ).trim();
     if (answer !== '') {
-      if (!IDENTIFIER.test(answer)) {
-        throw new Error(`"${answer}" is not a valid identifier`);
-      }
-      answers.styleProp = answer;
+      answers.styleProp = assertStyleProp(answer);
     }
   }
 
