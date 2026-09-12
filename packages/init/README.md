@@ -67,13 +67,17 @@ the plugin and `oxlint`, writes or extends the flat config, and prefixes the
 - `eslint.config.ts` — `plumeria.configs.recommended` plus the rules that were
   asked for. An existing flat config is extended rather than replaced.
 - `package.json` — `plumerialint --` in front of the `build` script, and on
-  Next.js `rimraf .next` as `predev` and `prebuild`, so a version change is not
-  read as a compile error. A `pre` script the project already wrote is left
-  alone.
+  Next.js `rimraf .next` before `dev` and before `build`, so a version change is
+  not read as a compile error. A `pre` script is added only for a script the
+  project actually has, and one it already wrote is left alone. Clearing the
+  cache is a Next.js concern rather than a lint one, so `--no-eslint` keeps it.
 
-What counts as already set up is the plugin being *called*, not merely imported:
-an import nothing uses is completed rather than skipped, and the binding the file
-already named is the one that gets called. A second run writes nothing; a
+What counts as already set up is the plugin being *called*, not merely imported.
+A bare `plumeria.version`, a call inside a comment and a call inside a string all
+read as not set up, because none of them registers anything; an import nothing
+calls is completed rather than skipped, and the binding the file already named is
+the one that gets called. An import spanning several lines is read as one
+statement, so it is never duplicated. A second run writes nothing; a
 half-finished one is finished.
 
 The `plugins` array it extends is the one the config object owns — a `plugins`
@@ -90,7 +94,7 @@ npx @plumeria/init --yes                # take every default, ask nothing
 npx @plumeria/init --physical --sizes   # answer the spelling question up front
 npx @plumeria/init --style-prop sx
 npx @plumeria/init --bundler rollup
-npx @plumeria/init --no-eslint          # leave ESLint and the build script alone
+npx @plumeria/init --no-eslint          # leave ESLint and the plumerialint guard out
 npx @plumeria/init --no-install         # write the configs, print the command
 npx @plumeria/init --cwd packages/app
 ```
