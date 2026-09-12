@@ -37,9 +37,9 @@ The bundler comes from the dependencies, and from the config files when nothing 
 ### Which spelling of a two-named property does this project write?
 
 ```sh title="Terminal"
-  1) logical   marginBlockStart, insetInlineStart — follows the writing mode
-  2) physical  marginTop, left
-  3) both      no policy
+  1: logical   marginBlockStart, insetInlineStart — follows the writing mode
+  2: physical  marginTop, left
+  3: both      no policy
 ```
 
 One answer reaches both levels. The bundler plugin receives `withoutPhysicalProperties` or `withoutLogicalProperties`, so the counterpart cannot compile, and ESLint receives `@plumeria/no-physical-properties` or `@plumeria/no-logical-properties`, so it is reported while you type. They are the same choice made twice, and setting them from one answer is what keeps their directions from disagreeing.
@@ -125,7 +125,7 @@ npx @plumeria/init --no-install         # write the configs, print the command
 npx @plumeria/init --cwd packages/app
 ```
 
-Without a TTY it never asks — every unanswered question takes its default, which is what makes it usable in CI.
+Without a TTY it never asks — every unanswered question takes its default, which is what makes it usable in CI. Colour comes from `node:util`'s `styleText`, which leaves the text alone when the output is not a terminal, so a piped or logged run carries no escape codes.
 
 ## Installation
 
