@@ -1,52 +1,18 @@
 import { createFarmPlugin } from 'unplugin';
 import { unpluginFactory, EXTENSION_PATTERN } from './core';
 import type { PluginOptions } from './core';
-import * as path from 'path';
-import {
-  resolveVirtualCssPath,
-  ensureVirtualCssFile,
-  writeCssBlock,
-  rewriteImportPath,
-} from './disk-css';
+import { createDiskCssImport } from './disk-css';
 
 function attachFarmHooks(plugin: any) {
-  const { targets } = plugin.__plumeriaInternal;
+  const { targets, setCssImport } = plugin.__plumeriaInternal;
   let isDev = false;
   let farmRoot = process.cwd();
 
-  const virtualCssPath = resolveVirtualCssPath();
+  const diskCssImport = createDiskCssImport(() => farmRoot);
 
-  const baseTransform = plugin.transform;
-
-  plugin.transform = async function (this: any, code: string, id: string) {
-    const result = await baseTransform.call(this, code, id);
-
-    if (isDev && result && typeof result === 'object' && result.code) {
-      const { cssLookup, cssFileLookup } = plugin.__plumeriaInternal;
-
-      result.code = result.code.replace(
-        /import\s+["'](\/[^"']+\.zero\.css)["'];/g,
-        (_match: string, cssPath: string) => {
-          const absolutePath = cssFileLookup.get(cssPath);
-          if (!absolutePath) return _match;
-
-          const cssContent = cssLookup.get(absolutePath);
-          if (cssContent == null) return _match;
-
-          ensureVirtualCssFile(virtualCssPath);
-
-          const filePathKey = path
-            .relative(farmRoot, absolutePath)
-            .replace(/\\/g, '/');
-          writeCssBlock(virtualCssPath, filePathKey, cssContent);
-
-          const importPath = rewriteImportPath(id, virtualCssPath);
-          return `import "${importPath}";`;
-        },
-      );
-    }
-    return result;
-  };
+  setCssImport((ctx: any) =>
+    isDev ? diskCssImport(ctx) : `\nimport ${JSON.stringify(ctx.cssId)};`,
+  );
 
   plugin.farm = {
     config(config: any) {
