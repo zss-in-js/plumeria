@@ -84,8 +84,15 @@ export const appendToArray = (
   const pattern = new RegExp(`\\b${key}\\s*:\\s*\\[`);
   const match = pattern.exec(source);
   if (!match) return undefined;
+  return appendAtArray(source, match.index + match[0].length - 1, entry);
+};
 
-  const open = match.index + match[0].length - 1;
+export const appendAtArray = (
+  source: string,
+  open: number,
+  entry: string,
+): string | undefined => {
+  if (source[open] !== '[') return undefined;
   const close = closerOf(source, open);
   if (close === -1) return undefined;
 
@@ -222,3 +229,124 @@ export const moduleKindOf = (file: string, source: string): ModuleKind => {
   if (/\brequire\s*\(|\bmodule\.exports\b/.test(source)) return 'cjs';
   return 'esm';
 };
+
+export const directProperty = (
+  source: string,
+  open: number,
+  key: string,
+): number | undefined => {
+  if (source[open] !== '{') return undefined;
+  const close = closerOf(source, open);
+  if (close === -1) return undefined;
+
+  const pattern = new RegExp(`^${key}\\s*:\\s*`);
+
+  for (let i = open + 1; i < close; i++) {
+    const char = source[i];
+    if (char === '/' && source[i + 1] === '/') {
+      const line = source.indexOf('\n', i);
+      if (line === -1) return undefined;
+      i = line;
+      continue;
+    }
+    if (char === '/' && source[i + 1] === '*') {
+      const end = source.indexOf('*/', i + 2);
+      if (end === -1) return undefined;
+      i = end + 1;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === '`') {
+      i = endOfString(source, i);
+      continue;
+    }
+    if (char === '(' || char === '[' || char === '{') {
+      const inner = closerOf(source, i);
+      if (inner === -1) return undefined;
+      i = inner;
+      continue;
+    }
+    if (/[A-Za-z0-9_$]/.test(source[i - 1] ?? '')) continue;
+
+    const match = pattern.exec(source.slice(i, close));
+    if (match) return i + match[0].length;
+  }
+  return undefined;
+};
+
+export const configObjects = (source: string): number[] => {
+  const found: number[] = [];
+  const exported = defaultExportOf(source);
+  if (exported && source[exported.start] === '{') found.push(exported.start);
+
+  const pattern = /(?:\(|=>)\s*\(?\s*\{/g;
+  for (let match = pattern.exec(source); match; match = pattern.exec(source)) {
+    const at = match.index + match[0].length - 1;
+    if (!found.includes(at)) found.push(at);
+  }
+  return found;
+};
+
+export const pluginsArrayOf = (source: string): number | undefined => {
+  const objects = configObjects(source);
+
+  for (const open of objects) {
+    const at = directProperty(source, open, 'plugins');
+    if (at !== undefined && source[at] === '[') return at;
+  }
+  for (const open of objects) {
+    const vite = directProperty(source, open, 'vite');
+    if (vite === undefined || source[vite] !== '{') continue;
+    const at = directProperty(source, vite, 'plugins');
+    if (at !== undefined && source[at] === '[') return at;
+  }
+  return undefined;
+};
+
+export interface Imported {
+  names: string[];
+  rest: string;
+}
+
+const bindingNames = (binding: string): string[] => {
+  const names: string[] = [];
+  const braced = /\{([^}]*)\}/.exec(binding);
+
+  for (const part of binding.replace(/\{[^}]*\}/g, ' ').split(',')) {
+    const name = /([A-Za-z_$][\w$]*)/.exec(
+      part.replace(/^\s*\*\s*as\s+/, '').replace(/^\s*type\s+/, ''),
+    );
+    if (name) names.push(name[1]);
+  }
+  if (braced) {
+    for (const part of braced[1].split(',')) {
+      const pieces = part.trim().split(/\s+as\s+/);
+      const name = /([A-Za-z_$][\w$]*)/.exec(pieces[pieces.length - 1] ?? '');
+      if (name) names.push(name[1]);
+    }
+  }
+  return names;
+};
+
+export const importedFrom = (source: string, specifier: string): Imported => {
+  const escaped = specifier.replace(/[/@.]/g, '\\$&');
+  const pattern = new RegExp(
+    `^.*(?:from\\s*['"]${escaped}['"]|require\\(\\s*['"]${escaped}['"]).*$`,
+    'gm',
+  );
+  const statements = source.match(pattern) ?? [];
+
+  let rest = source;
+  const names: string[] = [];
+  for (const statement of statements) {
+    rest = rest.replace(statement, '');
+    const binding =
+      /\bimport\s+([\s\S]*?)\s+from\b/.exec(statement)?.[1] ??
+      /\b(?:const|let|var)\s+([\s\S]*?)=/.exec(statement)?.[1] ??
+      '';
+    names.push(...bindingNames(binding));
+  }
+  return { names, rest };
+};
+
+export const callsName = (source: string, name: string): boolean =>
+  new RegExp(`\\b${name}\\s*[.(]`).test(source);
