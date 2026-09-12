@@ -3,12 +3,14 @@ import path from 'node:path';
 import { defaultConfigName, installed } from './detect';
 import {
   addImport,
+  appendAtArray,
   appendInside,
-  appendToArray,
   appendToConfigList,
+  callsName,
   closerOf,
-  importsModule,
+  importedFrom,
   moduleKindOf,
+  pluginsArrayOf,
   wrapDefaultExport,
 } from './source';
 import type { ModuleKind } from './source';
@@ -57,6 +59,18 @@ export type Action =
   | { kind: 'skip'; label: string; note: string; file: string };
 
 export const DEFAULT_STYLE_PROP = 'classStyle';
+
+const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
+
+const RESERVED = new Set(['className', 'key', 'ref', 'children', 'style']);
+
+export const assertStyleProp = (value: string): string => {
+  if (!IDENTIFIER.test(value))
+    throw new Error(`"${value}" is not a valid identifier`);
+  if (RESERVED.has(value))
+    throw new Error(`"${value}" is already used by React`);
+  return value;
+};
 
 export const DEFAULT_ANSWERS: Answers = {
   spelling: 'both',
@@ -125,8 +139,11 @@ export const pluginOptions = (answers: Answers): string => {
   return entries.length === 0 ? '' : `{ ${entries.join(', ')} }`;
 };
 
-export const pluginCall = (bundler: Bundler, answers: Answers): string =>
-  `plumeria.${UNPLUGIN_METHOD[bundler]}(${pluginOptions(answers)})`;
+export const pluginCall = (
+  bundler: Bundler,
+  answers: Answers,
+  local = 'plumeria',
+): string => `${local}.${UNPLUGIN_METHOD[bundler]}(${pluginOptions(answers)})`;
 
 export const declarationSource = (answers: Answers): string => {
   if (answers.styleProp === DEFAULT_STYLE_PROP) {
@@ -279,6 +296,12 @@ export const packages = (detected: Detected, answers: Answers): string[] => {
       if (detected.typescript) wanted.push('typescript-eslint');
     }
   }
+  if (
+    detected.bundler === 'next' &&
+    Object.keys(cleanScripts(detected.manifest.scripts ?? {})).length > 0
+  ) {
+    wanted.push('rimraf');
+  }
 
   return wanted.filter((name) => !(name in present));
 };
@@ -328,10 +351,9 @@ export const plan = (detected: Detected, answers: Answers): Action[] => {
   }
 
   actions.push(bundlerAction(detected, answers));
-  if (answers.eslint) {
-    actions.push(eslintAction(detected, answers));
-    actions.push(scriptAction(detected));
-  }
+  if (answers.eslint) actions.push(eslintAction(detected, answers));
+  if (answers.eslint || detected.bundler === 'next')
+    actions.push(scriptAction(detected, answers));
 
   return actions;
 };
@@ -368,9 +390,12 @@ const bundlerAction = (detected: Detected, answers: Answers): Action => {
   }
 
   const source = read(detected, bundlerConfig);
+  const kind = moduleKindOf(bundlerConfig, source);
 
   if (bundler === 'next') {
-    if (importsModule(source, '@plumeria/next-plugin')) {
+    const { names, rest } = importedFrom(source, '@plumeria/next-plugin');
+    const local = names.find((name) => callsName(rest, name));
+    if (local) {
       return {
         kind: 'skip',
         label: 'skip',
@@ -378,22 +403,23 @@ const bundlerAction = (detected: Detected, answers: Answers): Action => {
         file: bundlerConfig,
       };
     }
+
+    const bound = names[0];
     const wrapped = wrapDefaultExport(
-      addImport(
-        source,
-        NAMED_IMPORTS[moduleKindOf(bundlerConfig, source)](
-          'withPlumeria',
-          '@plumeria/next-plugin',
-        ),
-      ),
-      'withPlumeria',
+      bound
+        ? source
+        : addImport(
+            source,
+            NAMED_IMPORTS[kind]('withPlumeria', '@plumeria/next-plugin'),
+          ),
+      bound ?? 'withPlumeria',
       nextOptions(answers),
     );
     return wrapped
       ? {
           kind: 'patch',
           label: 'patch',
-          note: 'withPlumeria(...)',
+          note: `${bound ?? 'withPlumeria'}(...)`,
           file: bundlerConfig,
           contents: wrapped,
         }
@@ -406,7 +432,9 @@ const bundlerAction = (detected: Detected, answers: Answers): Action => {
         };
   }
 
-  if (importsModule(source, '@plumeria/unplugin')) {
+  const { names, rest } = importedFrom(source, '@plumeria/unplugin');
+  const used = names.find((name) => callsName(rest, name));
+  if (used) {
     return {
       kind: 'skip',
       label: 'skip',
@@ -415,28 +443,28 @@ const bundlerAction = (detected: Detected, answers: Answers): Action => {
     };
   }
 
-  const imported = addImport(
-    source,
-    IMPORTS[moduleKindOf(bundlerConfig, source)](
-      'plumeria',
-      '@plumeria/unplugin',
-    ),
-  );
+  const bound = names[0];
+  const entry = pluginCall(bundler, answers, bound ?? 'plumeria');
+  const imported = bound
+    ? source
+    : addImport(source, IMPORTS[kind]('plumeria', '@plumeria/unplugin'));
+
+  const at = pluginsArrayOf(imported);
   const patched =
-    appendToArray(imported, 'plugins', call) ??
-    (bundler === 'astro' ? addViteBlock(imported, call) : undefined);
+    (at === undefined ? undefined : appendAtArray(imported, at, entry)) ??
+    (bundler === 'astro' ? addViteBlock(imported, entry) : undefined);
   return patched
     ? {
         kind: 'patch',
         label: 'patch',
-        note: call,
+        note: entry,
         file: bundlerConfig,
         contents: patched,
       }
     : {
         kind: 'manual',
         label: 'manual',
-        note: 'no plugins array to extend',
+        note: 'no plugins array of its own to extend',
         file: bundlerConfig,
         snippet: snippetFor(bundler, call),
       };
@@ -502,7 +530,9 @@ const eslintAction = (detected: Detected, answers: Answers): Action => {
   }
 
   const source = read(detected, eslintConfig);
-  if (importsModule(source, '@plumeria/eslint-plugin')) {
+  const { names, rest } = importedFrom(source, '@plumeria/eslint-plugin');
+  const used = names.find((name) => callsName(rest, name));
+  if (used) {
     return {
       kind: 'skip',
       label: 'skip',
@@ -511,20 +541,25 @@ const eslintAction = (detected: Detected, answers: Answers): Action => {
     };
   }
 
+  const bound = names[0] ?? 'plumeria';
   const patched = appendToConfigList(
-    addImport(
-      source,
-      moduleKindOf(eslintConfig, source) === 'cjs'
-        ? `const plumeria = require('@plumeria/eslint-plugin');`
-        : `import plumeria from '@plumeria/eslint-plugin';`,
+    names.length > 0
+      ? source
+      : addImport(
+          source,
+          moduleKindOf(eslintConfig, source) === 'cjs'
+            ? `const plumeria = require('@plumeria/eslint-plugin');`
+            : `import plumeria from '@plumeria/eslint-plugin';`,
+        ),
+    entries.map((entry) =>
+      entry.replace(/^plumeria\.configs\b/, `${bound}.configs`),
     ),
-    entries,
   );
   return patched
     ? {
         kind: 'patch',
         label: 'patch',
-        note: 'plumeria.configs.recommended',
+        note: `${bound}.configs.recommended`,
         file: eslintConfig,
         contents: patched,
       }
@@ -537,34 +572,55 @@ const eslintAction = (detected: Detected, answers: Answers): Action => {
       };
 };
 
-const scriptAction = (detected: Detected): Action => {
+export const CLEAN_SCRIPT = 'rimraf .next';
+
+export const cleanScripts = (
+  scripts: Record<string, string>,
+): Record<string, string> => {
+  const added: Record<string, string> = {};
+  for (const name of ['predev', 'prebuild'] as const) {
+    if (scripts[name] === undefined) added[name] = CLEAN_SCRIPT;
+  }
+  return added;
+};
+
+const scriptAction = (detected: Detected, answers: Answers): Action => {
   const source = read(detected, 'package.json');
   const manifest = JSON.parse(source) as { scripts?: Record<string, string> };
-  const existing = manifest.scripts?.build;
+  const scripts = { ...manifest.scripts };
+  const notes: string[] = [];
 
-  if (!existing) {
+  const existing = scripts.build;
+  if (answers.eslint && existing && !existing.includes('plumerialint')) {
+    scripts.build = buildScript(existing);
+    notes.push(`build: ${scripts.build}`);
+  }
+
+  if (detected.bundler === 'next') {
+    const added = cleanScripts(scripts);
+    for (const [name, script] of Object.entries(added)) {
+      scripts[name] = script;
+      notes.push(`${name}: ${script}`);
+    }
+  }
+
+  if (notes.length === 0) {
     return {
       kind: 'skip',
       label: 'skip',
-      note: 'no build script to guard',
-      file: 'package.json',
-    };
-  }
-  if (existing.includes('plumerialint')) {
-    return {
-      kind: 'skip',
-      label: 'skip',
-      note: 'the build already runs plumerialint',
+      note:
+        answers.eslint && !existing
+          ? 'no build script to guard'
+          : 'the scripts already carry it',
       file: 'package.json',
     };
   }
 
-  manifest.scripts!.build = buildScript(existing);
   return {
     kind: 'patch',
     label: 'patch',
-    note: `build: ${manifest.scripts!.build}`,
+    note: notes.join(', '),
     file: 'package.json',
-    contents: `${JSON.stringify(manifest, null, indentOfJson(source))}\n`,
+    contents: `${JSON.stringify({ ...manifest, scripts }, null, indentOfJson(source))}\n`,
   };
 };
