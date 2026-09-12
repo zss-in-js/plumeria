@@ -48,6 +48,7 @@ type CSSProperties =
 type CreateStyleValue = CSSProperties | ((...args: any[]) => CSSProperties);
 
 declare const ClassNameTag: unique symbol;
+declare const ClassStyleTag: unique symbol;
 
 type AtomicClassNameFor<P extends string, V> = string & {
   readonly _ident: typeof ClassNameTag;
@@ -55,45 +56,59 @@ type AtomicClassNameFor<P extends string, V> = string & {
   readonly _value: V;
 };
 
-declare const StyleTag: unique symbol;
+type AtomicClassStyleFor<P extends string, V> = AtomicClassNameFor<P, V> & {
+  readonly _classStyle: typeof ClassStyleTag;
+};
 
 type AtomicStyle<T> = Readonly<{
-  [key in keyof T]: T[key] extends Record<string, unknown>
-    ? key extends NestedKey
-      ? AtomicStyle<T[key]>
-      : AtomicClassNameFor<key & string, T[key]>
-    : key extends string
-      ? AtomicClassNameFor<key, T[key]>
-      : never;
-}> & {
-  readonly [StyleTag]: true;
-};
+  [key in keyof T]: key extends string
+    ? T[key] extends AtomicClassNameFor<string, infer V>
+      ? AtomicClassNameFor<key, V>
+      : T[key] extends Record<string, unknown>
+        ? key extends NestedKey
+          ? AtomicStyle<T[key]>
+          : AtomicClassNameFor<key, T[key]>
+        : AtomicClassNameFor<key, T[key]>
+    : T[key];
+}>;
 
-declare const DynamicTag: unique symbol;
+type ClassStyled<T> = Readonly<{
+  readonly [key in keyof T]: T[key] extends AtomicClassNameFor<infer P, infer V>
+    ? AtomicClassStyleFor<P, V>
+    : ClassStyled<T[key]>;
+}>;
 
-type AtomicDynamicStyle<T> = AtomicStyle<T> & {
-  readonly [DynamicTag]: true;
-};
+type AtomicClassStyle<T> = ClassStyled<AtomicStyle<T>>;
+
+type StyleMap<T> = [T] extends [unknown]
+  ? Readonly<{
+      readonly [key in keyof T]: T[key] extends Record<string, unknown>
+        ? key extends NestedKey
+          ? StyleMap<T[key]>
+          : AtomicClassNameFor<key & string, T[key]>
+        : key extends string
+          ? AtomicClassNameFor<key, T[key]>
+          : never;
+    }>
+  : never;
 
 type CreateReturnType<T> = Readonly<{
   [K in keyof T]: T[K] extends (...args: infer A) => infer R
-    ? (...args: A) => AtomicDynamicStyle<R>
-    : AtomicStyle<T[K]>;
+    ? (...args: A) => ClassStyled<StyleMap<R>>
+    : StyleMap<T[K]>;
 }>;
-type FlatNamespace<K extends StyleKey> = {
+type FlatNamespace<K extends StyleKey, M = unknown> = {
   readonly [P in StyleKey]?: P extends K
-    ? AtomicClassNameFor<P & string, unknown>
+    ? AtomicClassNameFor<P & string, unknown> & M
     : never;
 };
 
-interface NestedNamespace<K extends StyleKey> {
-  readonly [P: NestedKey]: AllowedNamespace<K> | undefined;
+interface NestedNamespace<K extends StyleKey, M> {
+  readonly [P: NestedKey]: AllowedNamespace<K, M> | undefined;
 }
 
-type AllowedNamespace<K extends StyleKey> = FlatNamespace<K> &
-  NestedNamespace<K> & {
-    readonly [StyleTag]: true;
-  };
+type AllowedNamespace<K extends StyleKey, M = unknown> = FlatNamespace<K, M> &
+  NestedNamespace<K, M>;
 
 type StyleList<T> = T | false | null | undefined | StyleList<T>[];
 
@@ -104,9 +119,10 @@ type StyleProps<K extends StyleKey> = StyleList<AllowedNamespace<K>>;
 
 type WithoutProperties<K extends StyleKey> = StyleProps<Exclude<StyleKey, K>>;
 
-type StaticNamespace<K extends StyleKey> = AllowedNamespace<K> & {
-  readonly [DynamicTag]?: never;
-};
+type StaticNamespace<K extends StyleKey> = AllowedNamespace<
+  K,
+  { readonly _classStyle?: never }
+>;
 
 type StaticStyles<K extends StyleKey = StyleKey> = StyleList<
   StaticNamespace<K>
@@ -147,8 +163,9 @@ type Marker = Readonly<Record<ColonString, CSSVariableProperty>>;
 
 export type {
   AtomicClassNameFor,
+  AtomicClassStyleFor,
   AtomicStyle,
-  AtomicDynamicStyle,
+  AtomicClassStyle,
   Style,
   StyleProps,
   StaticStyles,
