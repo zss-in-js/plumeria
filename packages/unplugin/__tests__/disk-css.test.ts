@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {
+  createDiskCssImport,
   ensureVirtualCssFile,
   resolveVirtualCssPath,
   rewriteImportPath,
@@ -85,4 +86,27 @@ it('rewrites disk imports as relative module paths', () => {
       path.join(directory, 'zero-virtual.css'),
     ),
   ).toBe('./zero-virtual.css');
+});
+
+it('writes the module block and imports the shared file', () => {
+  const cssImport = createDiskCssImport(() => directory, cssFile);
+
+  const statement = cssImport({
+    id: path.join(directory, 'src', 'Card.tsx'),
+    cssId: '/src/Card.zero.css',
+    cssFilename: path.join(directory, 'src', 'Card.zero.css'),
+    css: '.card {}',
+  });
+
+  expect(statement).toBe('\nimport "../zero-virtual.css";');
+  expect(fs.readFileSync(cssFile, 'utf-8')).toContain(
+    '/* ---start:src/Card.zero.css */',
+  );
+  expect(fs.readFileSync(cssFile, 'utf-8')).toContain('.card {}');
+});
+
+it('resolves the shared file itself when no path is given', () => {
+  const cssImport = createDiskCssImport(() => directory);
+  expect(typeof cssImport).toBe('function');
+  expect(resolveVirtualCssPath()).toMatch(/zero-virtual\.css$/);
 });
