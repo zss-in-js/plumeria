@@ -73,8 +73,8 @@ the plugin and `oxlint`, writes or extends the flat config, and prefixes the
   cache is a Next.js concern rather than a lint one, so `--no-eslint` keeps it.
 
 What counts as already set up is the plugin being *called*, not merely imported.
-A bare `plumeria.version`, a call inside a comment and a call inside a string all
-read as not set up, because none of them registers anything; an import nothing
+A bare `plumeria.version`, and a call inside a comment, a string or a regex
+literal, all read as not set up, because none of them registers anything; an import nothing
 calls is completed rather than skipped, and the binding the file already named is
 the one that gets called. An import spanning several lines is read as one
 statement, so it is never duplicated. A second run writes nothing; a
