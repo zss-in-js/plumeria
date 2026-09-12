@@ -47,6 +47,53 @@ The core JavaScript APIs for defining styles, themes, and animations.
   />
 </Cards>
 
+## Types
+
+The type-level surface behind the styling prop and the style objects.
+
+<Cards>
+  <Card
+    href="/docs/api-reference/types/Style"
+    title="Style"
+    description="The type of the classStyle prop and of every css.use() argument."
+  />
+  <Card
+    href="/docs/api-reference/types/StyleProps"
+    title="StyleProps"
+    description="Enumerate the properties a component accepts through a style prop."
+  />
+  <Card
+    href="/docs/api-reference/types/StaticStyles"
+    title="StaticStyles"
+    description="Reject a dynamic style where a component can only carry a class name."
+  />
+  <Card
+    href="/docs/api-reference/types/WithoutProperties"
+    title="WithoutProperties"
+    description="Accept every property except the ones named."
+  />
+  <Card
+    href="/docs/api-reference/types/AtomicStyle"
+    title="AtomicStyle"
+    description="The type of one created style, down to the values it sets."
+  />
+  <Card
+    href="/docs/api-reference/types/AtomicDynamicStyle"
+    title="AtomicDynamicStyle"
+    description="The type of a style a dynamic style produced, where a static one will not do."
+  />
+  <Card
+    href="/docs/api-reference/types/AtomicClassNameFor"
+    title="AtomicClassNameFor"
+    description="The type of one atomic class name, tied to the property it was generated for."
+  />
+  <Card
+    href="/docs/api-reference/types/CSSProperties"
+    title="CSSProperties"
+    description="The shape of the style objects handed to css.create."
+  />
+</Cards>
+
 ## Components
 
 Ready-made components built on Plumeria's styling model.
@@ -91,6 +138,11 @@ Integrate Plumeria with your favorite tools and frameworks.
 Command line tools for maintaining a Plumeria codebase.
 
 <Cards>
+  <Card
+    href="/docs/api-reference/init"
+    title="@plumeria/init"
+    description="Set Plumeria up in an existing project in one command."
+  />
   <Card
     href="/docs/api-reference/codemod"
     title="@plumeria/codemod"
