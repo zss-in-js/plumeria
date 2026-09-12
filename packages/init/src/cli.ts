@@ -4,6 +4,7 @@ import path from 'node:path';
 import { BUNDLERS, detect } from './detect';
 import { ask, terminal } from './prompt';
 import { DEFAULT_ANSWERS, assertStyleProp, plan } from './setup';
+import { style } from './style';
 import type { Bundler } from './detect';
 import type { Asker } from './prompt';
 import type { Action, Answers } from './setup';
@@ -141,13 +142,31 @@ const MARKS: Record<Action['kind'], string> = {
   skip: '·',
 };
 
+const PAINT: Record<Action['kind'], (text: string) => string> = {
+  install: style.install,
+  write: style.write,
+  patch: style.patch,
+  manual: style.manual,
+  skip: style.skip,
+};
+
 function show(actions: Action[]): void {
-  const width = Math.max(...actions.map((action) => action.label.length));
+  const label = Math.max(...actions.map((action) => action.label.length));
+  const named = actions.filter((action) => action.kind !== 'install');
+  const file = Math.max(0, ...named.map((action) => action.file.length));
+
+  const pad = (text: string, width: number) =>
+    ' '.repeat(Math.max(0, width - text.length));
+
   for (const action of actions) {
-    const target = action.kind === 'install' ? '' : `  ${action.file}`;
-    console.log(
-      `  ${MARKS[action.kind]} ${action.label.padEnd(width)}${target}  ${action.note}`,
-    );
+    const head =
+      PAINT[action.kind](`${MARKS[action.kind]} ${action.label}`) +
+      pad(action.label, label);
+    const target =
+      action.kind === 'install'
+        ? ''
+        : `  ${style.strong(action.file)}${pad(action.file, file)}`;
+    console.log(`  ${head}${target}  ${action.note}`);
   }
 }
 
@@ -176,7 +195,7 @@ export async function main(argv: string[]): Promise<number> {
     options = parseArgs(argv);
   } catch (error) {
     if (!(error instanceof UsageError)) throw error;
-    console.error(`✖ ${error.message}\n`);
+    console.error(`${style.failure('✖')} ${error.message}\n`);
     console.error(USAGE);
     return 1;
   }
@@ -184,9 +203,14 @@ export async function main(argv: string[]): Promise<number> {
   if (!options) return 0;
 
   const detected = detect(options.cwd, options.bundler);
-  console.log(
-    `\n✔ detected  ${detected.bundler}  ${detected.packageManager}  ${detected.typescript ? 'typescript' : 'javascript'}`,
-  );
+  const found = [
+    detected.bundler,
+    detected.packageManager,
+    detected.typescript ? 'typescript' : 'javascript',
+  ]
+    .map((name) => style.strong(name))
+    .join('  ');
+  console.log(`\n${style.ok('✔')} detected  ${found}`);
 
   const interactive = !options.yes && process.stdin.isTTY === true;
   let asker: Asker | undefined;
@@ -205,13 +229,13 @@ export async function main(argv: string[]): Promise<number> {
     show(actions);
 
     if (options.dryRun) {
-      console.log('\nRun without --dry-run to apply.');
+      console.log(`\n${style.faint('Run without --dry-run to apply.')}`);
       return 0;
     }
     if (interactive && asker) {
       const go = (await asker.question('\nApply? (Y/n) ')).trim().toLowerCase();
       if (go !== '' && go !== 'y' && go !== 'yes') {
-        console.log('Nothing was written.');
+        console.log(style.faint('Nothing was written.'));
         return 0;
       }
     }
@@ -224,24 +248,27 @@ export async function main(argv: string[]): Promise<number> {
       const status = install(detected.root, wanted);
       if (status !== 0) {
         console.error(
-          `\n✖ ${wanted.command} failed. Run it yourself and try again.`,
+          `\n${style.failure('✖')} ${wanted.command} failed. Run it yourself and try again.`,
         );
         return status;
       }
     } else if (wanted) {
-      console.log(`\n➡︎ run: ${wanted.command}`);
+      console.log(`\n${style.install('➡︎')} run: ${wanted.command}`);
     }
 
-    console.log('\n✔ Plumeria is set up.');
+    console.log(`\n${style.ok('✔')} Plumeria is set up.`);
 
     const manual = actions.filter((action) => action.kind === 'manual');
     if (manual.length === 0) return 0;
 
-    console.log('\nLeft to you — these could not be written safely:\n');
+    console.log(
+      `\n${style.manual('Left to you — these could not be written safely:')}\n`,
+    );
     for (const action of manual) {
       if (action.kind !== 'manual') continue;
-      console.log(`  ${action.file}  ${action.note}`);
-      for (const line of action.snippet.split('\n')) console.log(`    ${line}`);
+      console.log(`  ${style.strong(action.file)}  ${action.note}`);
+      for (const line of action.snippet.split('\n'))
+        console.log(style.faint(`    ${line}`));
       console.log('');
     }
     return 1;
