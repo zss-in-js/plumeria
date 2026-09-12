@@ -6,11 +6,13 @@ import {
   appendAtArray,
   appendInside,
   appendToConfigList,
-  callsName,
+  callsFunction,
+  callsMethod,
   closerOf,
   importedFrom,
   moduleKindOf,
   pluginsArrayOf,
+  readsMember,
   wrapDefaultExport,
 } from './source';
 import type { ModuleKind } from './source';
@@ -394,7 +396,7 @@ const bundlerAction = (detected: Detected, answers: Answers): Action => {
 
   if (bundler === 'next') {
     const { names, rest } = importedFrom(source, '@plumeria/next-plugin');
-    const local = names.find((name) => callsName(rest, name));
+    const local = names.find((name) => callsFunction(rest, name));
     if (local) {
       return {
         kind: 'skip',
@@ -433,7 +435,7 @@ const bundlerAction = (detected: Detected, answers: Answers): Action => {
   }
 
   const { names, rest } = importedFrom(source, '@plumeria/unplugin');
-  const used = names.find((name) => callsName(rest, name));
+  const used = names.find((name) => callsMethod(rest, name));
   if (used) {
     return {
       kind: 'skip',
@@ -531,7 +533,7 @@ const eslintAction = (detected: Detected, answers: Answers): Action => {
 
   const source = read(detected, eslintConfig);
   const { names, rest } = importedFrom(source, '@plumeria/eslint-plugin');
-  const used = names.find((name) => callsName(rest, name));
+  const used = names.find((name) => readsMember(rest, name, 'configs'));
   if (used) {
     return {
       kind: 'skip',
@@ -578,8 +580,9 @@ export const cleanScripts = (
   scripts: Record<string, string>,
 ): Record<string, string> => {
   const added: Record<string, string> = {};
-  for (const name of ['predev', 'prebuild'] as const) {
-    if (scripts[name] === undefined) added[name] = CLEAN_SCRIPT;
+  for (const name of ['dev', 'build'] as const) {
+    if (scripts[name] === undefined) continue;
+    if (scripts[`pre${name}`] === undefined) added[`pre${name}`] = CLEAN_SCRIPT;
   }
   return added;
 };
