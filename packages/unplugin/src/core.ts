@@ -34,6 +34,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
   const devCssSheets = new Map<string, Set<string>>();
   let isDev = false;
+  let skipCssImport = false;
   let viteRoot: string = process.cwd();
 
   return {
@@ -52,6 +53,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       },
       setRoot(root: string) {
         viteRoot = root;
+      },
+      setSkipCssImport(value: boolean) {
+        skipCssImport = value;
       },
     },
 
@@ -148,7 +152,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         }
 
         return {
-          code: transformedSource + `\nimport ${JSON.stringify(cssId)};`,
+          code: skipCssImport
+            ? transformedSource
+            : transformedSource + `\nimport ${JSON.stringify(cssId)};`,
           map: null,
         };
       } else {
