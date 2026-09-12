@@ -534,3 +534,141 @@ describe('the Next cache', () => {
     expect(patched.scripts.build).toBe('plumerialint -- vite build');
   });
 });
+
+describe('an import the config only mentions', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = fs.realpathSync(
+      fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-mention-')),
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  const vite = (config: string) => {
+    add(
+      dir,
+      'package.json',
+      `${JSON.stringify({ name: 'app', devDependencies: { vite: '^8.0.13' } }, null, 2)}\n`,
+    );
+    add(dir, 'tsconfig.json', '{}');
+    add(dir, 'vite.config.ts', config);
+  };
+
+  it('registers the plugin when only a property of it is read', () => {
+    vite(`import plumeria from '@plumeria/unplugin';
+
+console.log(plumeria.version);
+
+export default defineConfig({
+  plugins: [react()],
+});
+`);
+
+    const action = on(plan(detect(dir), answers()), 'vite.config.ts');
+    expect(action.kind).toBe('patch');
+    expect(contentsOf(action)).toContain('plumeria.vite()');
+  });
+
+  it('registers the plugin when the call is only in a comment', () => {
+    vite(`import plumeria from '@plumeria/unplugin';
+
+export default defineConfig({
+  // plugins: [plumeria.vite()],
+  plugins: [react()],
+});
+`);
+
+    expect(on(plan(detect(dir), answers()), 'vite.config.ts').kind).toBe(
+      'patch',
+    );
+  });
+
+  it('wraps a Next config whose withPlumeria import spans lines', () => {
+    add(
+      dir,
+      'package.json',
+      `${JSON.stringify({ name: 'app', scripts: { build: 'next build' }, dependencies: { next: '^16.3.1' } }, null, 2)}\n`,
+    );
+    add(dir, 'tsconfig.json', '{}');
+    add(
+      dir,
+      'next.config.ts',
+      `import {
+  withPlumeria,
+} from '@plumeria/next-plugin';
+
+const nextConfig = {};
+
+export default nextConfig;
+`,
+    );
+
+    const patched = contentsOf(
+      on(plan(detect(dir), answers()), 'next.config.ts'),
+    );
+    expect(patched).toContain('export default withPlumeria(nextConfig);');
+    expect(patched.match(/@plumeria\/next-plugin/g)).toHaveLength(1);
+  });
+});
+
+describe('the pre scripts', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = fs.realpathSync(
+      fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-pre-')),
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  const next = (scripts: Record<string, string>) => {
+    add(
+      dir,
+      'package.json',
+      `${JSON.stringify({ name: 'app', scripts, dependencies: { next: '^16.3.1' } }, null, 2)}\n`,
+    );
+    add(dir, 'tsconfig.json', '{}');
+  };
+
+  it('adds nothing when there is no script to run before', () => {
+    next({});
+
+    const actions = plan(detect(dir), answers());
+    expect(on(actions, 'package.json').kind).toBe('skip');
+    const install = actions.find((action) => action.kind === 'install');
+    if (install?.kind !== 'install')
+      throw new Error('expected an install action');
+    expect(install.packages).not.toContain('rimraf');
+  });
+
+  it('adds only the one whose script exists', () => {
+    next({ build: 'next build' });
+
+    const patched = JSON.parse(
+      contentsOf(on(plan(detect(dir), answers()), 'package.json')),
+    ) as { scripts: Record<string, string> };
+
+    expect(patched.scripts.prebuild).toBe('rimraf .next');
+    expect(patched.scripts.predev).toBeUndefined();
+  });
+
+  it('clears the cache even when ESLint is left out', () => {
+    next({ dev: 'next dev', build: 'next build' });
+
+    const patched = JSON.parse(
+      contentsOf(
+        on(plan(detect(dir), answers({ eslint: false })), 'package.json'),
+      ),
+    ) as { scripts: Record<string, string> };
+
+    expect(patched.scripts.predev).toBe('rimraf .next');
+    expect(patched.scripts.build).toBe('next build');
+  });
+});
