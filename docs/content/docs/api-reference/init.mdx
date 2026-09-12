@@ -28,7 +28,7 @@ Commit before running, so the writes can be reverted with `git checkout`.
 
 ## What it detects
 
-The package manager comes from `packageManager`, or from the lockfile when that field is absent.
+The package manager comes from `packageManager`, or from the lockfile when that field is absent. Both are looked for upwards from the directory init runs in, so a package inside a workspace is installed with the manager the workspace root uses rather than with `npm`.
 
 The bundler comes from the dependencies, and from the config files when nothing is installed yet — `next`, `vite`, `astro`, `webpack`, `rspack`, `rollup`, `rolldown`, `esbuild`, `farm` and `bun`. Next.js is read before the bundler Next.js carries, so a Next project gets [`@plumeria/next-plugin`](/docs/api-reference/plugins/next-plugin); everything else gets [`@plumeria/unplugin`](/docs/api-reference/plugins/unplugin) with the factory that matches. Pass `--bundler <name>` to decide it yourself.
 
@@ -60,6 +60,8 @@ Turns on `@plumeria/expand-border-shorthands`. A `border` shorthand crosses the 
 
 Adds the plugin and `oxlint`, writes or extends the flat config, and puts `plumerialint --` in front of the `build` script, so a style error stops the build before the bundler runs.
 
+A renamed prop is rejected unless it is an identifier TypeScript can declare, and unless React leaves the name free — `className`, `style`, `key`, `ref` and `children` are refused, from the prompt and from `--style-prop` alike.
+
 ## What it writes
 
 | File | What lands in it |
@@ -67,7 +69,7 @@ Adds the plugin and `oxlint`, writes or extends the flat config, and puts `plume
 | `plumeria.d.ts` | the styling prop TypeScript reads |
 | the bundler config | the plugin, and the options the answers chose |
 | `eslint.config.ts` | `plumeria.configs.recommended` and the rules that were asked for |
-| `package.json` | `plumerialint --` in front of the `build` script |
+| `package.json` | `plumerialint --` in front of the `build` script, and `rimraf .next` before `dev` and `build` on Next.js |
 
 An existing file is patched, not replaced. The import lands after the last import, the plugin joins the `plugins` array, and a Next config has its default export wrapped:
 
@@ -93,7 +95,22 @@ export default defineConfig({
 });
 ```
 
-A file that already names Plumeria is skipped, so a second run writes nothing. Where the plugin cannot be placed safely — a build script rather than a config, a config with no `plugins` array, a legacy `.eslintrc` — nothing is touched, the snippet is printed, and the command exits with `1`.
+On Next.js the two `pre` scripts clear the build cache, which is what keeps a version change from being read as a compile error:
+
+```json title="package.json"
+  "scripts": {
+    "predev": "rimraf .next",
+    "prebuild": "rimraf .next",
+    "dev": "next dev",
+    "build": "plumerialint -- next build"
+  }
+```
+
+A `predev` or `prebuild` the project already wrote is left as it is.
+
+What counts as already set up is the plugin being *called*, not merely imported — an import nothing uses is completed rather than skipped, and the binding the file already named is the one that gets called. So a second run writes nothing, and a half-finished one is finished.
+
+The `plugins` array it extends is the one the config object owns. A `plugins` belonging to a nested key — `test` for Vitest, say — is never written into. Where the plugin cannot be placed safely — a config whose own object has no `plugins` array, a build script rather than a config, a legacy `.eslintrc` — nothing is touched, the snippet is printed, and the command exits with `1`.
 
 ## Options
 
