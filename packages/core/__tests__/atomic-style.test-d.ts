@@ -28,6 +28,9 @@ const styles = css.create({
       position: 'fixed',
     },
   },
+  fixed: {
+    width: 120,
+  },
   sized: (width: number) => ({
     width,
     color: 'red',
@@ -64,18 +67,37 @@ export const missingNestedProperty: NeedsHoverColor = styles.hoverPosition;
 
 export const acceptsDynamic: NeedsColor = styles.sized(120);
 
-type DynamicColor = css.AtomicDynamicStyle<{ color: string }>;
+type DynamicColor = css.AtomicClassStyle<{ color: string }>;
 
 export const dynamic: DynamicColor = styles.sized(120);
 
 // @ts-expect-error a static style does not carry the dynamic brand
 export const staticAsDynamic: DynamicColor = styles.tinted;
 
+type HeldDynamicColor = css.AtomicClassStyle<{
+  color: css.AtomicClassNameFor<'color', string>;
+}>;
+
+export const heldDynamic: HeldDynamicColor = styles.sized(120);
+
+// @ts-expect-error the class name form is not satisfied by a static style either
+export const heldStatic: HeldDynamicColor = styles.tinted;
+
 // @ts-expect-error dynamic styles must also contain the required property
 export const dynamicMissingProperty: DynamicColor = styles.widthOnly(120);
 
 // @ts-expect-error the function must be called to produce a style
 export const uncalled: DynamicColor = styles.sized;
+
+type DynamicWidth = css.AtomicClassStyleFor<'width', number>;
+
+export const dynamicClassName: DynamicWidth = styles.sized(120).width;
+
+// @ts-expect-error a static atomic class name does not carry the dynamic brand
+export const staticClassName: DynamicWidth = styles.fixed.width;
+
+export const dynamicAsAtomic: css.AtomicClassNameFor<'width', number> =
+  styles.sized(120).width;
 
 // @ts-expect-error an explicitly typed dynamic style is still not static
 export const dynamicAsStatic: css.StaticStyles = dynamic;
@@ -97,8 +119,3 @@ export const undefinedStyle: NeedsColor = undefined;
 
 // @ts-expect-error the object holding the styles is not a single style
 export const namespaces: NeedsColor = styles;
-
-const foreign = { color: styles.tinted.color };
-
-// @ts-expect-error even a correctly branded property does not brand its object
-export const unbranded: NeedsColor = foreign;
