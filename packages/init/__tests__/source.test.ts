@@ -2,13 +2,16 @@ import {
   addImport,
   appendToArray,
   appendToConfigList,
-  callsName,
+  callsFunction,
+  callsMethod,
   closerOf,
   directProperty,
   importedFrom,
   importsModule,
   moduleKindOf,
   pluginsArrayOf,
+  readsMember,
+  stripNoise,
   wrapDefaultExport,
 } from '../src/source';
 
@@ -269,7 +272,7 @@ describe('importedFrom', () => {
     const { names, rest } = importedFrom(source, '@plumeria/unplugin');
     expect(names).toEqual(['plumeria']);
     expect(rest).not.toContain('import');
-    expect(callsName(rest, 'plumeria')).toBe(true);
+    expect(callsMethod(rest, 'plumeria')).toBe(true);
   });
 
   it('names a renamed binding', () => {
@@ -292,7 +295,7 @@ describe('importedFrom', () => {
     const source = `import plumeria from '@plumeria/unplugin';\n\nexport default { plugins: [react()] };\n`;
     const { names, rest } = importedFrom(source, '@plumeria/unplugin');
     expect(names).toEqual(['plumeria']);
-    expect(callsName(rest, 'plumeria')).toBe(false);
+    expect(callsMethod(rest, 'plumeria')).toBe(false);
   });
 
   it('finds nothing when the module is absent', () => {
@@ -301,5 +304,114 @@ describe('importedFrom', () => {
       '@plumeria/unplugin',
     );
     expect(names).toEqual([]);
+  });
+});
+
+describe('what counts as using the import', () => {
+  it('reads a member call as using it', () => {
+    expect(callsMethod('plugins: [plumeria.vite()]', 'plumeria')).toBe(true);
+  });
+
+  it('does not read a bare property as using it', () => {
+    expect(callsMethod('console.log(plumeria.version);', 'plumeria')).toBe(
+      false,
+    );
+  });
+
+  it('does not read a mention in a comment as using it', () => {
+    expect(
+      callsMethod('// plumeria.vite()\nexport default {};', 'plumeria'),
+    ).toBe(false);
+    expect(
+      callsMethod(
+        '/* plugins: [plumeria.vite()] */\nexport default {};',
+        'plumeria',
+      ),
+    ).toBe(false);
+  });
+
+  it('does not read a mention in a string as using it', () => {
+    expect(callsMethod(`const hint = 'plumeria.vite()';`, 'plumeria')).toBe(
+      false,
+    );
+    expect(callsMethod('const hint = `plumeria.vite()`;', 'plumeria')).toBe(
+      false,
+    );
+  });
+
+  it('reads a plain call for a named import', () => {
+    expect(
+      callsFunction('export default withPlumeria(config);', 'withPlumeria'),
+    ).toBe(true);
+    expect(callsFunction('export default config;', 'withPlumeria')).toBe(false);
+  });
+
+  it('reads a member the config passes as a value', () => {
+    expect(
+      readsMember(
+        'export default [plumeria.configs.recommended];',
+        'plumeria',
+        'configs',
+      ),
+    ).toBe(true);
+    expect(
+      readsMember('export default [plumeria.rules];', 'plumeria', 'configs'),
+    ).toBe(false);
+  });
+});
+
+describe('stripNoise', () => {
+  it('empties a string without moving what surrounds it', () => {
+    expect(stripNoise(`const a = 'x';`)).toBe('const a = "";');
+  });
+
+  it('drops a line comment and keeps the newline', () => {
+    expect(stripNoise('a; // b\nc;')).toBe('a; \nc;');
+  });
+
+  it('drops a block comment', () => {
+    expect(stripNoise('a; /* b */ c;')).toBe('a;  c;');
+  });
+
+  it('leaves a regex literal in place', () => {
+    expect(stripNoise('include: /\\.[jt]sx?$/,')).toBe(
+      'include: /\\.[jt]sx?$/,',
+    );
+  });
+});
+
+describe('a multi-line import', () => {
+  const source = `import {
+  withPlumeria,
+} from '@plumeria/next-plugin';
+
+export default config;
+`;
+
+  it('is recognised across its lines', () => {
+    const { names } = importedFrom(source, '@plumeria/next-plugin');
+    expect(names).toEqual(['withPlumeria']);
+  });
+
+  it('is dropped from the rest so its own line never counts as use', () => {
+    const { rest } = importedFrom(source, '@plumeria/next-plugin');
+    expect(callsFunction(rest, 'withPlumeria')).toBe(false);
+  });
+
+  it('does not swallow the imports before it', () => {
+    const many = `import react from 'react';
+import {
+  withPlumeria,
+} from '@plumeria/next-plugin';
+`;
+    expect(importedFrom(many, '@plumeria/next-plugin').names).toEqual([
+      'withPlumeria',
+    ]);
+  });
+
+  it('names a side-effect import as carrying no binding', () => {
+    expect(
+      importedFrom(`import '@plumeria/core';`, '@plumeria/core').names,
+    ).toEqual([]);
   });
 });
