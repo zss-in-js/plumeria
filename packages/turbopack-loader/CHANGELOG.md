@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 19.1.3
+
+### Patch Changes
+
+- ee9fd3d: Bump version to 19.1.3
+- Updated dependencies [ee9fd3d]
+  - @plumeria/compiler@19.1.3
+  - @plumeria/utils@19.1.3
+
 ## 19.1.2
 
 ### Patch Changes
