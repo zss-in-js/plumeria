@@ -13,6 +13,7 @@ jest.mock('../src/disk-css', () => ({
   resolveVirtualCssPath: () => '/package/zero-virtual.css',
   rewriteImportPath: jest.fn(() => './zero-virtual.css'),
   writeCssBlock: jest.fn(),
+  createDiskCssImport: jest.fn(() => () => '\nimport "./zero-virtual.css";'),
 }));
 
 import vite from '../src/vite';
@@ -20,14 +21,8 @@ import vite from '../src/vite';
 const { scanAll: mockScanAll } = jest.requireMock<{ scanAll: jest.Mock }>(
   '@plumeria/utils',
 );
-const {
-  ensureVirtualCssFile: mockEnsureVirtualCssFile,
-  rewriteImportPath: mockRewriteImportPath,
-  writeCssBlock: mockWriteCssBlock,
-} = jest.requireMock<{
-  ensureVirtualCssFile: jest.Mock;
-  rewriteImportPath: jest.Mock;
-  writeCssBlock: jest.Mock;
+const { createDiskCssImport: mockCreateDiskCssImport } = jest.requireMock<{
+  createDiskCssImport: jest.Mock;
 }>('../src/disk-css');
 
 const SOURCE = `import '@plumeria/core';`;
@@ -78,45 +73,24 @@ it('reloads a changed virtual stylesheet only when it exists', async () => {
   expect(plugin.load('/missing.zero.css')).toBeNull();
 });
 
-it('rewrites generated imports when development CSS is emitted to disk', async () => {
+it('imports the shared disk file when development CSS is emitted to disk', async () => {
   const plugin = vite({ devEmitToDisk: true }) as any;
   plugin.configResolved({ root: '/project', command: 'serve' });
 
   const result = await plugin.transform(SOURCE, ID);
 
   expect(result.code).toContain('import "./zero-virtual.css";');
-  expect(mockEnsureVirtualCssFile).toHaveBeenCalledWith(
-    '/package/zero-virtual.css',
-  );
-  expect(mockWriteCssBlock).toHaveBeenCalledWith(
-    '/package/zero-virtual.css',
-    'src/Card.zero.css',
-    '.box {}',
-  );
-  expect(mockRewriteImportPath).toHaveBeenCalledWith(
-    ID,
-    '/package/zero-virtual.css',
-  );
+  expect(result.code).not.toContain('/src/Card.zero.css');
+  expect(mockCreateDiskCssImport).toHaveBeenCalled();
 });
 
-it('leaves disk imports unchanged when their lookup is unavailable', async () => {
-  const withoutFile = vite({ devEmitToDisk: true }) as any;
-  withoutFile.configResolved({ root: '/project', command: 'serve' });
-  jest
-    .spyOn(withoutFile.__plumeriaInternal.cssFileLookup, 'get')
-    .mockReturnValue(undefined);
-  expect((await withoutFile.transform(SOURCE, ID)).code).toContain(
-    '/src/Card.zero.css',
-  );
+it('imports the virtual module when CSS is not emitted to disk', async () => {
+  const plugin = vite() as any;
+  plugin.configResolved({ root: '/project', command: 'serve' });
 
-  const withoutCss = vite({ devEmitToDisk: true }) as any;
-  withoutCss.configResolved({ root: '/project', command: 'serve' });
-  jest
-    .spyOn(withoutCss.__plumeriaInternal.cssLookup, 'get')
-    .mockReturnValue(undefined);
-  expect((await withoutCss.transform(SOURCE, ID)).code).toContain(
-    '/src/Card.zero.css',
-  );
+  const result = await plugin.transform(SOURCE, ID);
+
+  expect(result.code).toContain('import "/src/Card.zero.css";');
 });
 
 it('adds affected components and dependent targets to a hot update', () => {
