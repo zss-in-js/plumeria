@@ -1,0 +1,71 @@
+---
+title: 'AtomicClassStyleFor'
+description: 'API reference for the AtomicClassStyleFor type'
+---
+
+```ts
+type AtomicClassStyleFor<P extends string, V>;
+export type { AtomicClassStyleFor };
+```
+
+`AtomicClassStyleFor` is the type of one entry of a style a function produced, which is a style defined as a function in [css.create](/docs/api-reference/javascript/create) and then called. It reads the same as [AtomicClassNameFor](/docs/api-reference/types/AtomicClassNameFor) — a `string` that carries the property it was generated for — and adds where the value has to go.
+
+A static atomic class name is a class name and nothing more, so it can be handed to `className`. A style a function produced reaches the element through `classStyle`, because the values the caller computed ride along as custom properties, and a class name has no room for them. The two types say which is which.
+
+## Example
+
+```ts title="TypeScript"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  sized: (width: number) => ({ width }),
+  fixed: { width: 120 },
+});
+
+const a: css.AtomicClassStyleFor<'width', number> = styles.sized(120).width; // ok
+const b: css.AtomicClassStyleFor<'width', number> = styles.fixed.width;      // Type error, no function produced it
+```
+
+## Which way the assignment goes
+
+A class style is an atomic class name with something added, so it satisfies both types. A static one satisfies only its own:
+
+| Type | A static class name | A class style |
+| --- | --- | --- |
+| [AtomicClassNameFor](/docs/api-reference/types/AtomicClassNameFor) | accepted | accepted |
+| `AtomicClassStyleFor` | rejected | accepted |
+
+A component that only reads the value types the property as `AtomicClassNameFor`, or as `string`, and takes either kind. Naming this type says the value has to have come from a call.
+
+## What a called style shows
+
+Calling a style defined as a function gives the map of what it produced, one entry per property:
+
+```ts title="TypeScript"
+const styles = css.create({
+  palette: (color: string) => ({ padding: 4, background: color }),
+});
+
+// styles.palette('red')
+Readonly<{
+  padding: css.AtomicClassStyleFor<'padding', number>;
+  background: css.AtomicClassStyleFor<'background', string>;
+}>;
+```
+
+Every entry is marked, `padding` included. What the mark records is where the entry came from, not that its value is computed — the whole map reaches the element together, so a property written with a literal inside the function travels the same way as one the caller passed.
+
+A literal written inside the function is widened, because TypeScript infers the return type of a function expression before `css.create` sees it. Writing `as const` on the returned object keeps it, the same way it would anywhere else:
+
+```ts
+const styles = css.create({
+  palette: (color: string) => ({ padding: 4, background: color }) as const,
+});
+
+// styles.palette('red').padding
+css.AtomicClassStyleFor<'padding', 4>;
+```
+
+<Callout title="Good to know">
+[AtomicClassStyle](/docs/api-reference/types/AtomicClassStyle) names the whole style rather than one of its entries, and is what a prop usually wants. Reach for `AtomicClassStyleFor` when a prop takes a single entry of one.
+</Callout>
