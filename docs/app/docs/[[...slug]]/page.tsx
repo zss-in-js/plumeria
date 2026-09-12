@@ -12,6 +12,7 @@ export async function generateMetadata(props: { params: Promise<{ slug?: Array<s
   return generateSEOData({
     title: page?.data.title as string,
     subtitle: page?.data.description,
+    path: page?.url,
   });
 }
 
