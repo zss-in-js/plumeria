@@ -61,6 +61,14 @@ export default function App({ cond }) {
 }
 ```
 
+## Getting started
+
+```sh
+npx @plumeria/init
+```
+
+It detects the bundler and the package manager, asks the two questions it cannot detect — which spelling of a two-named property the project writes, and what the styling prop is called — then installs the packages and writes the configs. It shows the plan before writing anything.
+
 ## Benchmark
 
 For how Plumeria compares with StyleX, see the [side-by-side benchmark](https://github.com/refirst11/stylex-plumeria-benchmark).
@@ -102,6 +110,7 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 
 | Package                   | Stability |           |
 | --------------------------| --------- | --------- |
+| `@plumeria/init`          | ★★★☆☆     | Candidate |
 | `@plumeria/codemod`       | ★★★☆☆     | Candidate |
 | `@plumeria/eslint-plugin` | ★★★★☆     | Stable    |
 | `@plumeria/headlessui`    | ★★★★☆     | Stable    |
@@ -132,6 +141,7 @@ Versioning: All versions are standardized for consistency.
   - [core](https://github.com/zss-in-js/plumeria/tree/main/packages/core)
   - [eslint-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/eslint-plugin)
   - [headlessui](https://github.com/zss-in-js/plumeria/tree/main/packages/headlessui)
+  - [init](https://github.com/zss-in-js/plumeria/tree/main/packages/init)
   - [inspector](https://github.com/zss-in-js/plumeria/tree/main/packages/inspector)
   - [next-plugin](https://github.com/zss-in-js/plumeria/tree/main/packages/next-plugin)
   - [turbopack-loader](https://github.com/zss-in-js/plumeria/tree/main/packages/turbopack-loader)
