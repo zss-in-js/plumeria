@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { BUNDLERS, detect } from './detect';
 import { ask, terminal } from './prompt';
-import { DEFAULT_ANSWERS, plan } from './setup';
+import { DEFAULT_ANSWERS, assertStyleProp, plan } from './setup';
 import type { Bundler } from './detect';
 import type { Asker } from './prompt';
 import type { Action, Answers } from './setup';
@@ -96,7 +96,7 @@ export function parseArgs(argv: string[]): Options | null {
         options.bundler = read(argv, ++i, '--bundler') as Bundler;
         break;
       case '--style-prop':
-        options.preset.styleProp = read(argv, ++i, '--style-prop');
+        options.preset.styleProp = styleProp(read(argv, ++i, '--style-prop'));
         break;
       case '--cwd':
         options.cwd = path.resolve(read(argv, ++i, '--cwd'));
@@ -116,6 +116,14 @@ export function parseArgs(argv: string[]): Options | null {
   }
 
   return options;
+}
+
+function styleProp(value: string): string {
+  try {
+    return assertStyleProp(value);
+  } catch (error) {
+    throw new UsageError((error as Error).message);
+  }
 }
 
 function read(argv: string[], index: number, flag: string): string {
