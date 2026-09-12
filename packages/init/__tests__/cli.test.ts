@@ -53,3 +53,21 @@ describe('parseArgs', () => {
     expect(() => parseArgs(['--style-prop'])).toThrow(/needs a value/);
   });
 });
+
+describe('--style-prop', () => {
+  it('takes an identifier', () => {
+    expect(parseArgs(['--style-prop', 'sx'])?.preset.styleProp).toBe('sx');
+  });
+
+  it('refuses a name TypeScript cannot declare', () => {
+    expect(() => parseArgs(['--style-prop', 'foo-bar'])).toThrow(
+      /not a valid identifier/,
+    );
+  });
+
+  it('refuses a name React already handles', () => {
+    expect(() => parseArgs(['--style-prop', 'className'])).toThrow(
+      /already used by React/,
+    );
+  });
+});
