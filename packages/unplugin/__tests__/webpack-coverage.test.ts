@@ -11,6 +11,7 @@ const createBase = () => ({
     targets: [{ id: '/project/Card.tsx', dependencies: [] }],
     setDev: jest.fn(),
     setRoot: jest.fn(),
+    setCssImport: jest.fn(),
   },
   transform: jest.fn(async (code: string) => {
     if (code === 'null') return null;
@@ -25,20 +26,30 @@ const compilerWith = (rules: unknown, mode = 'development') => ({
   options: { mode, module: { rules } },
 });
 
-it('rewrites mapped CSS imports and passes through other transform results', async () => {
-  const plugin = attachWebpackHooks(createBase()) as any;
+it('imports the stylesheet by a relative path with a cache-busting query', async () => {
+  const base = createBase();
+  const plugin = attachWebpackHooks(base) as any;
 
-  expect((await plugin.transform('css', '/project/Card.tsx')).code).toMatch(
-    /import "\.\/Card\.zero\.css\?t=\d+";/,
-  );
-  expect((await plugin.transform('css', '/project/src/Card.tsx')).code).toMatch(
-    /import "\.\.\/Card\.zero\.css\?t=\d+";/,
-  );
+  const [cssImport] = base.__plumeriaInternal.setCssImport.mock.calls[0];
 
-  plugin.__plumeriaInternal.cssFileLookup.clear();
-  expect((await plugin.transform('css', '/project/Card.tsx')).code).toBe(
-    `import "${VIRTUAL_CSS}";`,
-  );
+  expect(
+    cssImport({
+      id: '/project/Card.tsx',
+      cssId: VIRTUAL_CSS,
+      cssFilename: ABSOLUTE_CSS,
+      css: '.card {}',
+    }),
+  ).toMatch(/^\nimport "\.\/Card\.zero\.css\?t=\d+";$/);
+
+  expect(
+    cssImport({
+      id: '/project/src/Card.tsx',
+      cssId: VIRTUAL_CSS,
+      cssFilename: ABSOLUTE_CSS,
+      css: '.card {}',
+    }),
+  ).toMatch(/^\nimport "\.\.\/Card\.zero\.css\?t=\d+";$/);
+
   await expect(
     plugin.transform('null', '/project/Card.tsx'),
   ).resolves.toBeNull();
