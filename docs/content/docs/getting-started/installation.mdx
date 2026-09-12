@@ -8,6 +8,23 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 
 <Steps>
 <Step>
+## One command
+
+`npx @plumeria/init` reads the project, asks what it cannot read, and writes the
+rest: the packages, the bundler plugin, `plumeria.d.ts`, the ESLint config and
+the `plumerialint` build guard.
+
+```sh title="Terminal"
+npx @plumeria/init
+```
+
+It shows the plan before it writes anything, and `--dry-run` stops at the plan.
+See [@plumeria/init](/docs/api-reference/init) for every question it asks and
+every file it touches. The rest of this page is the same setup by hand.
+
+</Step>
+
+<Step>
 ## Installing `core`
 The core package is type definitions only. bundle and runtime are not included.  
 Skip to your bundler: [Next.js](/docs/getting-started/installation#nextjs) / [Vite](/docs/getting-started/installation#vite)
@@ -47,12 +64,12 @@ Setting `languageOptions.parserOptions.projectService` to `true` enables `"@plum
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import { defineConfig } from 'eslint/config';
-import { plumeria } from '@plumeria/eslint-plugin';
+import plumeria from '@plumeria/eslint-plugin';
 
 export default defineConfig(
   eslint.configs.recommended,
   tseslint.configs.recommended,
-  plumeria.flatConfigs.recommended,
+  plumeria.configs.recommended,
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
