@@ -31,7 +31,11 @@ The 18.5 patches spent four releases closing the paths where a style expression 
 
 7. **`npx @plumeria/init`** — one command reads the project and writes the setup, and one answer configures the compiler and the linter together.
 
-Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5, section 6, section 7 and [Upgrading](#upgrading) are what is new.
+19.1.3 adds an eighth, and it is about none of the above. Everything so far is about a mistake you make in a file; this one is about a file arriving somewhere it had never been asked to arrive — a build split into three, where a server component's styles reach the browser by a route the plugin had never taken:
+
+8. **React Server Components** — Waku and `@vitejs/plugin-rsc` are supported, and the whole app's atomic CSS ships as one sheet.
+
+Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5, section 6, section 7, section 8 and [Upgrading](#upgrading) are what is new.
 
 ---
 
@@ -275,6 +279,55 @@ On Next.js it adds `rimraf .next` before `dev` and before `build`, since a versi
 
 The output is marked by kind through `node:util`'s `styleText`, which leaves the text alone when it is not writing to a terminal, so a piped or logged run carries no escape codes.
 
+## 8. Styles that reach a server component
+
+Nothing in 19.1.3 changes what you write either. It changes whether what you wrote arrives, once the framework renders on the server.
+
+Waku and [`@vitejs/plugin-rsc`](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-rsc) — Waku is built on it — split a build into three Vite environments. `rsc` serialises the React tree, `ssr` turns that stream into HTML, `client` hydrates it. A module is transformed once per environment, and each environment keeps its own module graph. `@plumeria/unplugin` was written when a Vite build had one of each.
+
+Four things followed from that. The first three are the same mistake at three depths.
+
+The plugin emits a virtual `.zero.css` module per file and lets the importing module pull it in. A server component has no module on the client to pull anything with, so the RSC plugin renders a `<link>` for it instead — and Vite answers a stylesheet request by appending `?direct` to the id. Resolving that id dropped the query, so the link received the JavaScript module wrapper. Every server component was unstyled, from the first render.
+
+In dev the sheet then never changed. The CSS module lives in the client graph; the module that produces it is transformed in the `rsc` graph. Editing a server component rebuilt the CSS and invalidated nothing, so the browser kept the sheet it had fetched when the dev server started — across a full reload, until the server was restarted. The client side had the same problem from the other end: the `rsc` environment transformed a client component first and recorded that its CSS had changed, so when the `client` environment reached the same edit it read as unchanged and no update was sent.
+
+### A declaration written once
+
+The fourth is not a wiring mistake. It is the one that decides whether any of this is still atomic CSS.
+
+For a single-environment build the plugin sets `cssCodeSplit: false`, so every sheet merges into one file. Under RSC that setting removes the mapping the framework needs: the client build records which stylesheet belongs to which client reference, and with the CSS merged there is nothing to record. Every client component lost its styles in production, while the dev server showed them.
+
+Leaving `cssCodeSplit` alone fixes that and costs the thing the library exists for. Code-split CSS is emitted per chunk, and a declaration two chunks both use is written into both:
+
+```css
+/* _layout-*.css */   .x3brsar4{font-weight:700}
+/* pages-*.css */     .x3brsar4{font-weight:700}
+/* pages-*.css */     .x3brsar4{font-weight:700}
+```
+
+Thirty-nine rules for thirty-two declarations, in an app with two pages. The overlap is not a rounding error to be tolerated — it is proportional to how many routes share a style, which in atomic CSS is most of them.
+
+19.1.3 stops handing the atoms to the chunker. They are collected across every environment, deduplicated once, and emitted as a single asset from the `rsc` environment, which every chunk of that environment resolves to. Whichever server component renders, the browser fetches the one sheet:
+
+```html
+<link rel="stylesheet" href="/assets/plumeria-CAePt-BD.css" />
+```
+
+That the sheet rides the server path rather than the client one is deliberate. The RSC plugin injects a client reference's CSS through `ReactDOM.preinit` at the moment the reference resolves, so a component discovered mid-stream brings its own resources; collapsing that into one sheet would work against how it streams. The server path has no module to hang resources on and carries a bulk mapping instead, which is exactly the shape a global sheet needs.
+
+The atom set is complete by the time the `rsc` build ends because the RSC plugin walks the client graph twice before it starts — once to find client references, once to find server ones — and a module imported only by a client component is transformed in that second pass. Nothing has to be persisted between builds to know all of it.
+
+The result is smaller on every axis than letting the chunker do it:
+
+|                | JS raw  | CSS raw | JS + CSS gzip |
+| -------------- | ------- | ------- | ------------- |
+| One sheet      | 244,307 | 1,320   | 77,994        |
+| Code-split CSS | 244,460 | 1,538   | 78,109        |
+
+Your own `.css` imports are untouched by all of this. They keep the asset Vite gives them and the cascade position you put them in — mixing them into the atom sheet would hand their ordering to the plugin, and their content hash would change every time any component's style did.
+
+Two examples are in the repository: [`example-waku`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-waku) and [`example-vite-react-rsc`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-react-rsc). Neither needs a Plumeria option — `plumeria.vite()` is the same call it is everywhere else, and the RSC path turns itself on when an RSC plugin is present.
+
 ## Upgrading
 
 **From 18.5.** An inline object in a style prop is a type error. It was already a build error, so a codebase that built on 18.5 still builds — the change is that the editor says it first. Move the object into `css.create` and pass the created style. The prop types are additive: `Style` still accepts every property, and a component that does not need to constrain anything needs no change.
@@ -296,9 +349,17 @@ Before, the export rewrote such a component's call sites to `className` while it
 
 **From 19.1.1.** Nothing to do. `@plumeria/init` is a new package you run rather than depend on, and it writes the same configuration this documentation has always described. Running it on a project that is already set up is safe — every file it would touch reads as done, and it writes nothing.
 
+**From 19.1.2.** Nothing to do, and nothing to configure. On a build with no RSC plugin the output is byte for byte what it was. On one with an RSC plugin, styles that were silently missing now arrive: a server component was unstyled in dev and in production, and a client component was unstyled in production. If you had worked around either — a hand-written `<link>`, a global stylesheet holding what the plugin dropped — remove it, or the same declarations ship twice.
+
 ---
 
 ## Release notes
+
+## 19.1.3 (Sep 12, 2026)
+- Fix: keep the query when the Vite plugin resolves a virtual CSS id, so Vite's `?direct` stylesheet request answers with CSS instead of the module wrapper. A `<link rel="stylesheet">` rendered by an RSC framework used to load JavaScript, and the styles of every server component were dropped
+- Fix: invalidate the virtual CSS module in the client environment when the owning module was transformed in a server environment, and push a `css-update` so the rendered link refetches. A server component's styles used to stay at the value they held when the dev server started, even across a full reload
+- Fix: record the last pushed CSS per environment, so the client transform still reloads its own CSS module after a server environment has already seen the same edit. A client component's styles used to stop updating once the `rsc` environment ran first
+- Fix: emit the app's atomic CSS as one sheet in an RSC build, instead of letting it follow the chunks. `build.cssCodeSplit` is no longer forced off for the whole app, which used to leave the client references without CSS and strip every client component of its styles in production
 
 ## 19.1.2 (Sep 12, 2026)
 - Feat: add `@plumeria/init`, one command that sets Plumeria up in an existing project. It is run with `npx @plumeria/init`, and installed it is `plumeria-init`, alongside `plumeria-codemod` and `plumerialint`. It detects the package manager and the bundler, installs the packages that are missing, writes `plumeria.d.ts` and the bundler config, extends the ESLint flat config, and puts `plumerialint --` in front of the `build` script
