@@ -88,8 +88,9 @@ const STYLE_TYPES = new Set([
   'WithoutProperties',
   'StaticStyles',
   'AtomicStyle',
-  'AtomicDynamicStyle',
+  'AtomicClassStyle',
   'AtomicClassNameFor',
+  'AtomicClassStyleFor',
 ]);
 
 const memberOf = (node: any): { object: string; key: string } | undefined => {
