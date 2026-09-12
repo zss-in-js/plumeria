@@ -8,7 +8,7 @@ type AtomicStyle<T>;
 export type { AtomicStyle };
 ```
 
-`AtomicStyle` is the type of one style that came out of [css.create](/docs/api-reference/javascript/create), written in terms of the rule object it was created from.
+`AtomicStyle` is the type of one style that came out of [css.create](/docs/api-reference/javascript/create). Its type argument can be written either way: the rule the style was created from, or the [atomic class names](/docs/api-reference/types/AtomicClassNameFor) the style holds. Both resolve to the same type, so a prop names the rule, which is the short form.
 
 Where [StyleProps](/docs/api-reference/types/StyleProps) and [WithoutProperties](/docs/api-reference/types/WithoutProperties) say which properties a prop accepts, `AtomicStyle` says which properties a style has to set, down to the value it sets them to.
 
@@ -69,6 +69,32 @@ const a: MustBeFlex = layouts.flex; // ok
 const b: MustBeFlex = layouts.grid; // Type error, display is grid
 ```
 
+## What a created style shows
+
+A created style is that map of class names, and an editor shows it as one:
+
+```ts title="TypeScript"
+const styles = css.create({
+  header: { padding: '6px 12px', color: 'red' },
+});
+
+// styles.header
+Readonly<{
+  padding: css.AtomicClassNameFor<'padding', '6px 12px'>;
+  color: css.AtomicClassNameFor<'color', 'red'>;
+}>
+```
+
+`styles.header.padding` is the class name generated for `padding: 6px 12px` rather than the string `'6px 12px'`, and the hover says which. Naming the rule describes the same type:
+
+```ts
+type Header = css.AtomicStyle<{ padding: '6px 12px'; color: 'red' }>;
+
+const a: Header = styles.header; // ok
+```
+
+A nested block is a created style of its own, so it reads the same the whole way down.
+
 ## Either kind of style
 
 A style defined as a function satisfies `AtomicStyle` once it is called, as long as it sets the properties named:
@@ -81,7 +107,7 @@ const styles = css.create({
 const a: NeedsColor = styles.sized(120); // ok
 ```
 
-When only a dynamic style will do, [AtomicDynamicStyle](/docs/api-reference/types/AtomicDynamicStyle) says so. When it must not be one, [StaticStyles](/docs/api-reference/types/StaticStyles) does.
+When only a style a function produced will do, [AtomicClassStyle](/docs/api-reference/types/AtomicClassStyle) says so. When it must not be one, [StaticStyles](/docs/api-reference/types/StaticStyles) does.
 
 ## One style, not a list
 
@@ -96,15 +122,19 @@ So a styling prop still wants `Style`, `StyleProps`, `WithoutProperties` or `Sta
 
 ## In a generated declaration file
 
-This is also the name TypeScript writes when it emits a declaration for an exported style, so a package that ships styles compiles with `declaration: true`:
+An exported style carries the same map into a declaration file, so a package that ships styles compiles with `declaration: true`. A called style is written the same way, its entries named by [AtomicClassStyleFor](/docs/api-reference/types/AtomicClassStyleFor) — the mark that keeps them out of [StaticStyles](/docs/api-reference/types/StaticStyles):
 
-```ts
+```ts title="styles.d.ts"
 export declare const styles: Readonly<{
-  readonly base: css.AtomicStyle<{ readonly color: 'red' }>;
-  readonly sized: (width: number) => css.AtomicDynamicStyle<{ width: number }>;
+  readonly base: Readonly<{
+    color: css.AtomicClassNameFor<'color', 'red'>;
+  }>;
+  readonly sized: (width: number) => Readonly<{
+    width: css.AtomicClassStyleFor<'width', number>;
+  }>;
 }>;
 ```
 
 <Callout title="Good to know">
-The type argument is the rule object as it was written, not the style that came back. Reading it off an existing style with `typeof styles.base` says the same thing without restating the rule.
+The type argument is a requirement where you write it, and the class names a style holds are what satisfy it. `typeof styles.base` names one exact style without writing out either form.
 </Callout>
