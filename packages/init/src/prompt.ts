@@ -1,5 +1,6 @@
 import readline from 'node:readline/promises';
 import { DEFAULT_ANSWERS, DEFAULT_STYLE_PROP, assertStyleProp } from './setup';
+import { style } from './style';
 import type { Answers, Spelling } from './setup';
 
 const SPELLINGS: Record<string, Spelling> = {
@@ -36,7 +37,9 @@ const confirm = async (
   fallback: boolean,
 ): Promise<boolean> => {
   const answer = (
-    await asker.question(`${prompt} ${fallback ? '(Y/n)' : '(y/N)'} `)
+    await asker.question(
+      `${prompt} ${style.faint(fallback ? '(Y/n)' : '(y/N)')} `,
+    )
   )
     .trim()
     .toLowerCase();
@@ -51,14 +54,28 @@ export const ask = async (
   const answers: Answers = { ...DEFAULT_ANSWERS, ...preset };
 
   if (preset.spelling === undefined) {
-    console.log(`
-Which spelling of a two-named property does this project write?
-  1) logical   marginBlockStart, insetInlineStart — follows the writing mode
-  2) physical  marginTop, left
-  3) both      no policy
-`);
+    const choices: [string, Spelling, string][] = [
+      [
+        '1',
+        'logical',
+        'marginBlockStart, insetInlineStart — follows the writing mode',
+      ],
+      ['2', 'physical', 'marginTop, left'],
+      ['3', 'both', 'no policy'],
+    ];
+    console.log(
+      `\nWhich spelling of a two-named property does this project write?`,
+    );
+    for (const [key, name, hint] of choices) {
+      console.log(
+        `  ${style.choice(`${key}:`)} ${name.padEnd(9)}${style.faint(hint)}`,
+      );
+    }
+    console.log('');
     for (;;) {
-      const answer = (await asker.question('Spelling (1/2/3) [3] '))
+      const answer = (
+        await asker.question(`Spelling ${style.faint('(1/2/3) [3]')} `)
+      )
         .trim()
         .toLowerCase();
       if (answer === '') break;
@@ -67,7 +84,7 @@ Which spelling of a two-named property does this project write?
         answers.spelling = spelling;
         break;
       }
-      console.log('✖ answer 1, 2 or 3.');
+      console.log(`${style.failure('✖')} answer 1, 2 or 3.`);
     }
   }
 
@@ -90,7 +107,7 @@ Which spelling of a two-named property does this project write?
   if (preset.styleProp === undefined) {
     const answer = (
       await asker.question(
-        `Which JSX prop carries styles? [${DEFAULT_STYLE_PROP}] `,
+        `Which JSX prop carries styles? ${style.faint(`[${DEFAULT_STYLE_PROP}]`)} `,
       )
     ).trim();
     if (answer !== '') {
