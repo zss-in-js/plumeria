@@ -1,0 +1,27 @@
+{
+  "name": "example-vite-react-rsc",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@plumeria/core": "workspace:^",
+    "@plumeria/unplugin": "workspace:^",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitejs/plugin-rsc": "^0.5.34",
+    "rsc-html-stream": "^0.0.8",
+    "typescript": "~6.0.3",
+    "vite": "^8.0.13"
+  }
+}
