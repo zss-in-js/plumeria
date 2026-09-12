@@ -56,6 +56,9 @@ importers:
       '@plumeria/eslint-plugin':
         specifier: workspace:^
         version: link:packages/eslint-plugin
+      '@plumeria/init':
+        specifier: workspace:^
+        version: link:packages/init
       '@swc/core':
         specifier: 'catalog:'
         version: 1.15.47(@swc/helpers@0.5.23)
