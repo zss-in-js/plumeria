@@ -469,7 +469,7 @@ src/Card.tsx
 - Dynamic values, computed properties, or runtime function calls in style objects
 - Object spreads in top-level `css.create` or style definitions, other than `css.marker`
 - Existing `*.module.css` target files are reported as `target-exists` and will not be overwritten
-- References to `Style`, `StyleProps`, `WithoutProperties`, `StaticStyles`, `AtomicStyle`, `AtomicDynamicStyle` or `AtomicClassNameFor`, reported as `style-type-reference`
+- References to `Style`, `StyleProps`, `WithoutProperties`, `StaticStyles`, `AtomicStyle`, `AtomicClassStyle`, `AtomicClassNameFor` or `AtomicClassStyleFor`, reported as `style-type-reference`
 
 The export removes the `@plumeria/core` import, so a reference to one of those types is left without the import that declares it. A component prop, a type alias and a variable annotation are treated alike, and the styles that module reads are held with it.
 
