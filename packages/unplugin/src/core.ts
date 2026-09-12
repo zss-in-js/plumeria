@@ -9,6 +9,15 @@ import {
 } from '@plumeria/utils';
 import type { PropertyPolicyOptions } from '@plumeria/utils';
 
+export type CssImportContext = {
+  id: string;
+  cssId: string;
+  cssFilename: string;
+  css: string;
+};
+
+export type CssImportFormatter = (ctx: CssImportContext) => string | null;
+
 export interface PluginOptions extends PropertyPolicyOptions {
   include?: string | RegExp | Array<string | RegExp>;
   exclude?: string | RegExp | Array<string | RegExp>;
@@ -35,6 +44,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
   const devCssSheets = new Map<string, Set<string>>();
   let isDev = false;
   let skipCssImport = false;
+  let cssImport: CssImportFormatter | null = null;
   let viteRoot: string = process.cwd();
 
   return {
@@ -56,6 +66,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       },
       setSkipCssImport(value: boolean) {
         skipCssImport = value;
+      },
+      setCssImport(formatter: CssImportFormatter | null) {
+        cssImport = formatter;
       },
     },
 
@@ -151,10 +164,19 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           targets.push({ id, dependencies });
         }
 
+        const statement = cssImport
+          ? cssImport({
+              id,
+              cssId,
+              cssFilename,
+              css: cssLookup.get(cssFilename) ?? '',
+            })
+          : skipCssImport
+            ? null
+            : `\nimport ${JSON.stringify(cssId)};`;
+
         return {
-          code: skipCssImport
-            ? transformedSource
-            : transformedSource + `\nimport ${JSON.stringify(cssId)};`,
+          code: statement ? transformedSource + statement : transformedSource,
           map: null,
         };
       } else {
