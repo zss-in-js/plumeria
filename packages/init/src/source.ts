@@ -307,6 +307,87 @@ export interface Imported {
   rest: string;
 }
 
+const REGEX_AFTER = new Set([
+  'return',
+  'typeof',
+  'case',
+  'in',
+  'of',
+  'new',
+  'delete',
+  'void',
+  'do',
+  'else',
+  'yield',
+  'await',
+]);
+
+export const codeMask = (source: string): string => {
+  const masked = source.split('');
+  const blank = (start: number, end: number) => {
+    for (let i = start; i < end; i++) {
+      if (source[i] !== '\n' && source[i] !== '\r') masked[i] = ' ';
+    }
+  };
+  const regexCanStartAfter = (index: number): boolean => {
+    for (let i = index - 1; i >= 0; i--) {
+      if (/\s/.test(source[i])) continue;
+      if (/[([{,:;=!?&|+\-*%^~<>]/.test(source[i])) return true;
+      if (!/[A-Za-z0-9_$]/.test(source[i])) return false;
+      const word = /[A-Za-z0-9_$]+$/.exec(source.slice(0, i + 1))?.[0] ?? '';
+      return REGEX_AFTER.has(word);
+    }
+    return true;
+  };
+
+  for (let i = 0; i < source.length; i++) {
+    const char = source[i];
+
+    if (char === '/' && source[i + 1] === '/') {
+      const end = source.indexOf('\n', i + 2);
+      const close = end === -1 ? source.length : end;
+      blank(i, close);
+      i = close - 1;
+      continue;
+    }
+    if (char === '/' && source[i + 1] === '*') {
+      const end = source.indexOf('*/', i + 2);
+      const close = end === -1 ? source.length : end + 2;
+      blank(i, close);
+      i = close - 1;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === '`') {
+      const close = endOfString(source, i);
+      blank(i, close + 1);
+      i = close;
+      continue;
+    }
+    if (char === '/' && regexCanStartAfter(i)) {
+      let close = i + 1;
+      let inClass = false;
+      for (; close < source.length; close++) {
+        if (source[close] === '\\') {
+          close++;
+          continue;
+        }
+        if (source[close] === '[') inClass = true;
+        else if (source[close] === ']') inClass = false;
+        else if (source[close] === '/' && !inClass) {
+          close++;
+          while (/[A-Za-z]/.test(source[close] ?? '')) close++;
+          break;
+        } else if (source[close] === '\n' || source[close] === '\r') {
+          break;
+        }
+      }
+      blank(i, close);
+      i = close - 1;
+    }
+  }
+  return masked.join('');
+};
+
 const bindingNames = (binding: string): string[] => {
   const names: string[] = [];
   const braced = /\{([^}]*)\}/.exec(binding);
@@ -340,8 +421,9 @@ export const importedFrom = (source: string, specifier: string): Imported => {
     new RegExp(`\\bimport\\s*()${quoted}`, 'g'),
   ];
 
-  let rest = source;
   const names: string[] = [];
+  const cuts: [number, number][] = [];
+  const code = codeMask(source);
 
   for (const pattern of patterns) {
     for (
@@ -349,50 +431,31 @@ export const importedFrom = (source: string, specifier: string): Imported => {
       match;
       match = pattern.exec(source)
     ) {
-      rest = rest.replace(match[0], '');
+      const keyword = /\b(?:import|const|let|var|require)\b/.exec(match[0]);
+      if (!keyword || code[match.index + keyword.index] === ' ') continue;
+      cuts.push([match.index, match.index + match[0].length]);
       names.push(...bindingNames(match[1] ?? ''));
     }
+  }
+
+  let rest = source;
+  for (const [start, end] of cuts.sort((a, b) => b[0] - a[0])) {
+    rest = `${rest.slice(0, start)}${rest.slice(end)}`;
   }
   return { names: [...new Set(names)], rest };
 };
 
-export const stripNoise = (source: string): string => {
-  let out = '';
-  for (let i = 0; i < source.length; i++) {
-    const char = source[i];
-    if (char === '/' && source[i + 1] === '/') {
-      const line = source.indexOf('\n', i);
-      if (line === -1) break;
-      i = line - 1;
-      continue;
-    }
-    if (char === '/' && source[i + 1] === '*') {
-      const end = source.indexOf('*/', i + 2);
-      if (end === -1) break;
-      i = end + 1;
-      continue;
-    }
-    if (char === '"' || char === "'" || char === '`') {
-      i = endOfString(source, i);
-      out += '""';
-      continue;
-    }
-    out += char;
-  }
-  return out;
-};
-
 export const callsMethod = (source: string, name: string): boolean =>
   new RegExp(`\\b${name}\\s*\\.\\s*[A-Za-z_$][\\w$]*\\s*\\(`).test(
-    stripNoise(source),
+    codeMask(source),
   );
 
 export const callsFunction = (source: string, name: string): boolean =>
-  new RegExp(`\\b${name}\\s*\\(`).test(stripNoise(source));
+  new RegExp(`\\b${name}\\s*\\(`).test(codeMask(source));
 
 export const readsMember = (
   source: string,
   name: string,
   member: string,
 ): boolean =>
-  new RegExp(`\\b${name}\\s*\\.\\s*${member}\\b`).test(stripNoise(source));
+  new RegExp(`\\b${name}\\s*\\.\\s*${member}\\b`).test(codeMask(source));
