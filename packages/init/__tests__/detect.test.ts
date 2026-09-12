@@ -139,3 +139,55 @@ describe('detect', () => {
     expect(defaultConfigName('vite', false)).toBe('vite.config.mjs');
   });
 });
+
+describe('a package inside a workspace', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = fs.realpathSync(
+      fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-workspace-')),
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('reads the lockfile of the workspace root', () => {
+    add(dir, 'pnpm-lock.yaml', '');
+    add(dir, 'packages/app/package.json', manifest({}));
+    expect(detectPackageManager(path.join(dir, 'packages/app'), {})).toBe(
+      'pnpm',
+    );
+  });
+
+  it('reads the packageManager field of the workspace root', () => {
+    add(dir, 'package.json', manifest({ packageManager: 'yarn@4.9.1' }));
+    add(dir, 'packages/app/package.json', manifest({}));
+    expect(detectPackageManager(path.join(dir, 'packages/app'), {})).toBe(
+      'yarn',
+    );
+  });
+
+  it('still prefers what the package itself declares', () => {
+    add(dir, 'pnpm-lock.yaml', '');
+    add(
+      dir,
+      'packages/app/package.json',
+      manifest({ packageManager: 'bun@1.2.0' }),
+    );
+    expect(
+      detectPackageManager(path.join(dir, 'packages/app'), {
+        packageManager: 'bun@1.2.0',
+      }),
+    ).toBe('bun');
+  });
+
+  it('takes the nearest lockfile when the package has its own', () => {
+    add(dir, 'pnpm-lock.yaml', '');
+    add(dir, 'packages/app/yarn.lock', '');
+    expect(detectPackageManager(path.join(dir, 'packages/app'), {})).toBe(
+      'yarn',
+    );
+  });
+});
