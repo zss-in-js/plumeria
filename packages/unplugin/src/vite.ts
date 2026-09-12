@@ -11,12 +11,7 @@ import type {
   Plugin,
   UserConfig,
 } from 'vite';
-import {
-  resolveVirtualCssPath,
-  ensureVirtualCssFile,
-  writeCssBlock,
-  rewriteImportPath,
-} from './disk-css';
+import { createDiskCssImport } from './disk-css';
 
 function isRscConfig(userConfig: UserConfig): boolean {
   if ((userConfig as any).environments?.rsc) return true;
@@ -30,20 +25,22 @@ function isRscConfig(userConfig: UserConfig): boolean {
 
 function attachViteHooks(plugin: any, options?: VitePluginOptions) {
   let devServer: ViteDevServer | undefined;
-  const {
-    cssLookup,
-    cssFileLookup,
-    targets,
-    setDev,
-    setRoot,
-    setSkipCssImport,
-  } = plugin.__plumeriaInternal;
+  const { cssLookup, cssFileLookup, targets, setDev, setRoot, setCssImport } =
+    plugin.__plumeriaInternal;
 
   const useDiskEmit = options?.devEmitToDisk ?? false;
   let isDev = false;
   let viteRoot = process.cwd();
 
-  const virtualCssPath = useDiskEmit ? resolveVirtualCssPath() : '';
+  const diskCssImport = useDiskEmit
+    ? createDiskCssImport(() => viteRoot)
+    : null;
+
+  setCssImport((ctx: any) => {
+    if (isRsc && isBuild) return null;
+    if (isDev && diskCssImport) return diskCssImport(ctx);
+    return `\nimport ${JSON.stringify(ctx.cssId)};`;
+  });
 
   // Snapshot of componentPropsTable used to detect which child components'
   // prop possibilities changed on an edit (compKey -> propName -> joined keys).
@@ -115,34 +112,6 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
     const result = await baseTransform.call(this, code, id);
 
     if (
-      isDev &&
-      useDiskEmit &&
-      result &&
-      typeof result === 'object' &&
-      result.code
-    ) {
-      // Disk-based HMR: rewrite virtual CSS imports to point to real file
-      result.code = result.code.replace(
-        /import\s+["'](\/[^"']+\.zero\.css)["'];/g,
-        (_match: string, cssPath: string) => {
-          const absolutePath = cssFileLookup.get(cssPath);
-          if (!absolutePath) return _match;
-
-          const cssContent = cssLookup.get(absolutePath);
-          if (cssContent == null) return _match;
-
-          ensureVirtualCssFile(virtualCssPath);
-
-          const filePathKey = path
-            .relative(viteRoot, absolutePath)
-            .replace(/\\/g, '/');
-          writeCssBlock(virtualCssPath, filePathKey, cssContent);
-
-          const importPath = rewriteImportPath(id, virtualCssPath);
-          return `import "${importPath}";`;
-        },
-      );
-    } else if (
       !useDiskEmit &&
       devServer &&
       result &&
@@ -194,7 +163,6 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
 
       isBuild = command === 'build';
       isRsc = isRscConfig(userConfig);
-      setSkipCssImport(isBuild && isRsc);
 
       if (isBuild && !isRsc) {
         configToReturn.build = {
