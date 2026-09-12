@@ -55,11 +55,7 @@ export const ask = async (
 
   if (preset.spelling === undefined) {
     const choices: [string, Spelling, string][] = [
-      [
-        '1',
-        'logical',
-        'marginBlockStart, insetInlineStart — follows the writing mode',
-      ],
+      ['1', 'logical', 'marginBlockStart, insetInlineStart'],
       ['2', 'physical', 'marginTop, left'],
       ['3', 'both', 'no policy'],
     ];
