@@ -42,6 +42,11 @@ const styles = css.create({
     width,
     color: 'red',
   }),
+  nestedDynamic: (color: string) => ({
+    ':hover': {
+      color,
+    },
+  }),
 });
 
 type Enumerated = css.StyleProps<'color' | 'padding' | 'width'>;
@@ -104,3 +109,9 @@ export const x: NoPosition = styles.marked;
 export const y: NoPosition = styles.markedSpread;
 export const z: Enumerated = styles.markedSpread;
 export const aa: EnumeratedStatic = styles.marked;
+
+// @ts-expect-error a function key is rejected when it sets nothing but a selector
+export const ab: NoDynamic = styles.nestedDynamic('red');
+
+// @ts-expect-error the same holds when the properties are enumerated
+export const ac: EnumeratedStatic = styles.nestedDynamic('red');
