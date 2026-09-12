@@ -283,3 +283,254 @@ describe('plan', () => {
     ).toBe(true);
   });
 });
+
+describe('what a config already carries', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = fs.realpathSync(
+      fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-carry-')),
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  const project = (
+    fields: Record<string, unknown>,
+    files: Record<string, string>,
+  ) => {
+    add(dir, 'package.json', `${JSON.stringify(fields, null, 2)}\n`);
+    for (const [name, content] of Object.entries(files))
+      add(dir, name, content);
+  };
+
+  const vite = (
+    fields: Record<string, unknown>,
+    files: Record<string, string>,
+  ) =>
+    project(
+      { name: 'app', devDependencies: { vite: '^8.0.13' }, ...fields },
+      {
+        'tsconfig.json': '{}',
+        ...files,
+      },
+    );
+
+  it('leaves a sibling plugins array alone', () => {
+    vite(
+      {},
+      {
+        'vite.config.ts': `import { defineConfig } from 'vite';
+
+export default defineConfig({
+  test: {
+    plugins: [],
+  },
+  plugins: [react()],
+});
+`,
+      },
+    );
+
+    const patched = contentsOf(
+      on(plan(detect(dir), answers()), 'vite.config.ts'),
+    );
+    expect(patched).toContain('plugins: [react(), plumeria.vite()],');
+    expect(patched).toContain('    plugins: [],\n');
+  });
+
+  it('hands back a snippet rather than write into a foreign plugins array', () => {
+    vite(
+      {},
+      {
+        'vite.config.ts': `import { defineConfig } from 'vite';
+
+export default defineConfig({
+  test: {
+    plugins: [],
+  },
+});
+`,
+      },
+    );
+
+    const action = on(plan(detect(dir), answers()), 'vite.config.ts');
+    expect(action.kind).toBe('manual');
+  });
+
+  it('registers the plugin when only the import is there', () => {
+    vite(
+      {},
+      {
+        'vite.config.ts': `import { defineConfig } from 'vite';
+import plumeria from '@plumeria/unplugin';
+
+export default defineConfig({
+  plugins: [react()],
+});
+`,
+      },
+    );
+
+    const action = on(plan(detect(dir), answers()), 'vite.config.ts');
+    expect(action.kind).toBe('patch');
+    const patched = contentsOf(action);
+    expect(patched).toContain('plumeria.vite()');
+    expect(patched.match(/@plumeria\/unplugin/g)).toHaveLength(1);
+  });
+
+  it('calls the binding the config already named', () => {
+    vite(
+      {},
+      {
+        'vite.config.ts': `import zero from '@plumeria/unplugin';
+
+export default { plugins: [react()] };
+`,
+      },
+    );
+
+    expect(
+      contentsOf(on(plan(detect(dir), answers()), 'vite.config.ts')),
+    ).toContain('plugins: [react(), zero.vite()]');
+  });
+
+  it('skips only once the plugin is actually called', () => {
+    vite(
+      {},
+      {
+        'vite.config.ts': `import plumeria from '@plumeria/unplugin';
+
+export default { plugins: [plumeria.vite()] };
+`,
+      },
+    );
+
+    expect(on(plan(detect(dir), answers()), 'vite.config.ts').kind).toBe(
+      'skip',
+    );
+  });
+
+  it('wraps a Next config that imports withPlumeria without using it', () => {
+    project(
+      {
+        name: 'app',
+        scripts: { build: 'next build' },
+        dependencies: { next: '^16.3.1' },
+      },
+      {
+        'tsconfig.json': '{}',
+        'next.config.ts': `import { withPlumeria } from '@plumeria/next-plugin';
+
+const nextConfig = {};
+
+export default nextConfig;
+`,
+      },
+    );
+
+    const action = on(plan(detect(dir), answers()), 'next.config.ts');
+    expect(action.kind).toBe('patch');
+    const patched = contentsOf(action);
+    expect(patched).toContain('export default withPlumeria(nextConfig);');
+    expect(patched.match(/@plumeria\/next-plugin/g)).toHaveLength(1);
+  });
+
+  it('extends an ESLint config that imports the plugin without using it', () => {
+    vite(
+      {},
+      {
+        'eslint.config.ts': `import plumeria from '@plumeria/eslint-plugin';
+
+export default [base];
+`,
+      },
+    );
+
+    const action = on(plan(detect(dir), answers()), 'eslint.config.ts');
+    expect(action.kind).toBe('patch');
+    expect(contentsOf(action)).toContain('plumeria.configs.recommended,');
+  });
+});
+
+describe('the Next cache', () => {
+  let dir: string;
+
+  beforeEach(() => {
+    dir = fs.realpathSync(
+      fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-next-')),
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  const next = (
+    scripts: Record<string, string>,
+    extra: Record<string, string> = {},
+  ) => {
+    add(
+      dir,
+      'package.json',
+      `${JSON.stringify({ name: 'app', scripts, dependencies: { next: '^16.3.1' } }, null, 2)}\n`,
+    );
+    add(dir, 'tsconfig.json', '{}');
+    for (const [name, content] of Object.entries(extra))
+      add(dir, name, content);
+  };
+
+  it('clears .next before dev and before build', () => {
+    next({ dev: 'next dev', build: 'next build' });
+
+    const patched = JSON.parse(
+      contentsOf(on(plan(detect(dir), answers()), 'package.json')),
+    ) as { scripts: Record<string, string> };
+
+    expect(patched.scripts).toMatchObject({
+      predev: 'rimraf .next',
+      prebuild: 'rimraf .next',
+      build: 'plumerialint -- next build',
+    });
+  });
+
+  it('installs rimraf for it', () => {
+    next({ dev: 'next dev', build: 'next build' });
+
+    const install = plan(detect(dir), answers()).find(
+      (action) => action.kind === 'install',
+    );
+    if (install?.kind !== 'install')
+      throw new Error('expected an install action');
+    expect(install.packages).toContain('rimraf');
+  });
+
+  it('leaves a pre script the project already wrote', () => {
+    next({ predev: 'del .next', prebuild: 'del .next', build: 'next build' });
+
+    const patched = JSON.parse(
+      contentsOf(on(plan(detect(dir), answers()), 'package.json')),
+    ) as { scripts: Record<string, string> };
+
+    expect(patched.scripts.predev).toBe('del .next');
+    expect(patched.scripts.prebuild).toBe('del .next');
+  });
+
+  it('leaves the scripts of another bundler alone', () => {
+    add(
+      dir,
+      'package.json',
+      `${JSON.stringify({ name: 'app', scripts: { build: 'vite build' }, devDependencies: { vite: '^8.0.13' } }, null, 2)}\n`,
+    );
+    add(dir, 'tsconfig.json', '{}');
+
+    const patched = JSON.parse(
+      contentsOf(on(plan(detect(dir), answers()), 'package.json')),
+    ) as { scripts: Record<string, string> };
+
+    expect(patched.scripts.predev).toBeUndefined();
+    expect(patched.scripts.build).toBe('plumerialint -- vite build');
+  });
+});
