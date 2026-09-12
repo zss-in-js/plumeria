@@ -32,6 +32,16 @@ Because it is a `string`, an atomic class name can be handed anywhere a class na
 <ExternalComponent className={styles.text.color} />
 ```
 
+An entry of a style a function produced is [AtomicClassStyleFor](/docs/api-reference/types/AtomicClassStyleFor), which is this type with the mark that says it reaches the element through `classStyle`. It satisfies `AtomicClassNameFor`, so a prop written this way takes either kind:
+
+```tsx
+const styles = css.create({
+  sized: (width: number) => ({ width }),
+});
+
+const width: css.AtomicClassNameFor<'width', number> = styles.sized(120).width; // ok
+```
+
 <Callout title="Good to know">
 Most code can type these as `string`. Reach for `AtomicClassNameFor` when a prop has to accept one atomic class name rather than a whole style, which [Style](/docs/api-reference/types/Style) and its narrowed forms describe.
 </Callout>
