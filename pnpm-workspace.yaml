@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - examples/*
+  - '!examples/example-init-trial'
   - test-e2e/site
   - docs
 
