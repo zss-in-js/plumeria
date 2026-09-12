@@ -600,7 +600,19 @@ const styles = css.create({ card: { color: theme.color } });`,
     const source = path.join(dir, 'Card.tsx');
     fs.writeFileSync(
       source,
-      `import type { AtomicDynamicStyle } from '@plumeria/core';\nimport * as css from '@plumeria/core';\nconst styles = css.create({ sized: (width: number) => ({ width }) });\nexport const Card = ({ s }: { s: AtomicDynamicStyle<{ width: number }> }) => <div classStyle={styles.sized(8)}><i className={s.width} /></div>;`,
+      `import type { AtomicClassStyle } from '@plumeria/core';\nimport * as css from '@plumeria/core';\nconst styles = css.create({ sized: (width: number) => ({ width }) });\nexport const Card = ({ s }: { s: AtomicClassStyle<{ width: number }> }) => <div classStyle={styles.sized(8)}><i className={s.width} /></div>;`,
+    );
+
+    expect(
+      planRelease([dir]).stylesheets[0].reports.map((report) => report.kind),
+    ).toContain('style-type-reference');
+  });
+
+  it('reports a prop typed with a dynamic atomic class name', () => {
+    const source = path.join(dir, 'Card.tsx');
+    fs.writeFileSync(
+      source,
+      `import * as css from '@plumeria/core';\nconst styles = css.create({ sized: (width: number) => ({ width }) });\ntype CardProps = { widthClass: css.AtomicClassStyleFor<'width', number> };\nexport const Card = ({ widthClass }: CardProps) => <div classStyle={styles.sized(8)}><i className={widthClass} /></div>;`,
     );
 
     expect(
