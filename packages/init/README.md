@@ -102,4 +102,6 @@ npx @plumeria/init --cwd packages/app
 Without a TTY it never asks — every unanswered question takes its default,
 which is what makes it usable in CI.
 
+Installed rather than fetched, the command is `plumeria-init`.
+
 Commit before running, so the writes can be reverted with `git checkout`.
