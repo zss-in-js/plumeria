@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { createRequire } from 'module';
+import type { CssImportContext } from './core';
 
 /**
  * Shared disk-based CSS HMR utility.
@@ -122,4 +123,24 @@ export function rewriteImportPath(
     relativeImportPath = './' + relativeImportPath;
   }
   return relativeImportPath;
+}
+
+/**
+ * Build the CSS import statement for a host that serves the sheet from the
+ * shared file on disk, writing the module's block on the way.
+ */
+export function createDiskCssImport(
+  getRoot: () => string,
+  virtualCssPath: string = resolveVirtualCssPath(),
+) {
+  return ({ id, cssFilename, css }: CssImportContext): string => {
+    ensureVirtualCssFile(virtualCssPath);
+
+    const filePathKey = path
+      .relative(getRoot(), cssFilename)
+      .replace(/\\/g, '/');
+    writeCssBlock(virtualCssPath, filePathKey, css);
+
+    return `\nimport "${rewriteImportPath(id, virtualCssPath)}";`;
+  };
 }
