@@ -8,15 +8,28 @@ const sink = (): NodeJS.WritableStream =>
     },
   }) as unknown as NodeJS.WritableStream;
 
+const unlessColorIsForced =
+  process.env.FORCE_COLOR === undefined ? it : it.skip;
+
 describe('paint', () => {
-  it('adds nothing when the target is not a terminal', () => {
+  unlessColorIsForced('adds nothing when the target is not a terminal', () => {
     expect(paint(sink(), 'green', 'plumeria.d.ts')).toBe('plumeria.d.ts');
     expect(paint(sink(), ['bold', 'cyan'], '1:')).toBe('1:');
   });
 
-  it('never drops the text it is given', () => {
+  unlessColorIsForced('never drops the text it is given', () => {
     expect(paint(sink(), 'red', '')).toBe('');
     expect(paint(sink(), 'dim', 'a\nb')).toBe('a\nb');
+  });
+
+  it('styles text when the target supports colors', () => {
+    const stream = Object.assign(sink(), {
+      isTTY: true,
+      getColorDepth: () => 24,
+    });
+    const painted = paint(stream, 'green', 'ready');
+    expect(painted).toContain('ready');
+    expect(painted).not.toBe('ready');
   });
 });
 
