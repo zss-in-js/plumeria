@@ -1,6 +1,9 @@
 import {
   addImport,
+  appendAtArray,
+  appendInside,
   appendToArray,
+  appendToCall,
   appendToConfigList,
   callsFunction,
   callsMethod,
@@ -12,6 +15,8 @@ import {
   pluginsArrayOf,
   readsMember,
   codeMask,
+  configObjects,
+  defaultExportOf,
   wrapDefaultExport,
 } from '../src/source';
 
@@ -38,6 +43,32 @@ describe('closerOf', () => {
 
   it('reports an unbalanced bracket', () => {
     expect(closerOf('plugins: [a()', 9)).toBe(-1);
+  });
+
+  it('handles escapes, closed block comments, and malformed input', () => {
+    expect(closerOf("['a\\'b']", 0)).toBe(7);
+    expect(closerOf('[/* ] */]', 0)).toBe(8);
+    expect(closerOf('x', 0)).toBe(-1);
+    expect(closerOf('[// no newline', 0)).toBe(-1);
+    expect(closerOf('[/* open', 0)).toBe(-1);
+    expect(closerOf('[`${`', 0)).toBe(-1);
+    expect(codeMask(`'unterminated`)).toHaveLength(13);
+  });
+});
+
+describe('defensive append paths', () => {
+  it('rejects missing arrays, calls, and closing delimiters', () => {
+    expect(appendToArray('{}', 'plugins', 'x')).toBeUndefined();
+    expect(appendAtArray('{}', 0, 'x')).toBeUndefined();
+    expect(appendAtArray('[', 0, 'x')).toBeUndefined();
+    expect(appendInside('(', 0, ['x'])).toBeUndefined();
+    expect(appendToCall('f()', 'x', ['a'])).toBeUndefined();
+  });
+
+  it('appends to empty and multiline containers', () => {
+    expect(appendAtArray('[]', 0, 'x')).toBe('[x]');
+    expect(appendAtArray('[\n  a,\n]', 0, 'b')).toContain('\n  b,\n');
+    expect(appendInside('()', 0, ['a', 'b'])).toBe('(  a,\n  b,\n)');
   });
 });
 
@@ -128,6 +159,12 @@ describe('wrapDefaultExport', () => {
 
   it('reports a file with no default export', () => {
     expect(wrapDefaultExport('const a = 1;\n', 'withPlumeria')).toBeUndefined();
+  });
+
+  it('reads delimiters inside strings as part of the exported expression', () => {
+    expect(defaultExportOf(`export default 'a;b';\n`)?.expression).toBe(
+      `'a;b'`,
+    );
   });
 });
 
@@ -239,9 +276,19 @@ describe('pluginsArrayOf', () => {
     expect(at(source)).toBe('[]');
   });
 
+  it('takes nothing when a vite block has no plugins', () => {
+    expect(
+      pluginsArrayOf('export default defineConfig({ vite: {} });'),
+    ).toBeUndefined();
+  });
+
   it('reads the object a build script passes to a call', () => {
     const source = `await Bun.build({\n  outdir: './dist',\n  plugins: [],\n});\n`;
     expect(at(source)).toBe('[]');
+  });
+
+  it('collects exported and callback config objects only once', () => {
+    expect(configObjects('export default {}; f(() => ({}));')).toHaveLength(2);
   });
 });
 
@@ -263,6 +310,20 @@ describe('directProperty', () => {
 
   it('does not mistake a key that ends with the name', () => {
     expect(directProperty('{ myPlugins: [] }', 0, 'plugins')).toBeUndefined();
+  });
+
+  it('rejects malformed objects and skips comments', () => {
+    expect(directProperty('[]', 0, 'plugins')).toBeUndefined();
+    expect(directProperty('{', 0, 'plugins')).toBeUndefined();
+    expect(directProperty('{ // open', 0, 'plugins')).toBeUndefined();
+    expect(
+      directProperty('{ // hidden\n plugins: [] }', 0, 'plugins'),
+    ).toBeDefined();
+    expect(directProperty('{ /* open', 0, 'plugins')).toBeUndefined();
+    expect(
+      directProperty('{ /* hidden */ plugins: [] }', 0, 'plugins'),
+    ).toBeDefined();
+    expect(directProperty('{ nested: [ }', 0, 'plugins')).toBeUndefined();
   });
 });
 
@@ -304,6 +365,16 @@ describe('importedFrom', () => {
       '@plumeria/unplugin',
     );
     expect(names).toEqual([]);
+  });
+
+  it('removes repeated imports from the end toward the start', () => {
+    const source = `import first from '@plumeria/unplugin';
+import second from '@plumeria/unplugin';
+export default [first, second];`;
+    const { names, rest } = importedFrom(source, '@plumeria/unplugin');
+    expect(names).toEqual(['first', 'second']);
+    expect(rest).not.toContain('import');
+    expect(rest).toContain('export default [first, second]');
   });
 });
 
@@ -381,6 +452,8 @@ describe('codeMask', () => {
   it('blanks a comment and keeps the newline', () => {
     expect(codeMask('a; // b\nc;')).toBe('a;     \nc;');
     expect(codeMask('a; /* b */ c;')).toBe('a;         c;');
+    expect(codeMask('a; /* b\nc */ d;')).toContain('\n');
+    expect(codeMask('a; /* open')).toBe('a;        ');
   });
 
   it('blanks a regex literal rather than reading into it', () => {
@@ -399,6 +472,28 @@ describe('codeMask', () => {
 
   it('leaves a division alone', () => {
     expect(codeMask('const r = w / h;')).toBe('const r = w / h;');
+  });
+
+  it('handles regexes at the start and ones ending at a newline', () => {
+    expect(codeMask('/x/')).toBe('   ');
+    expect(codeMask('/x/gi')).toBe('     ');
+    expect(codeMask('/unterminated\nretain')).toContain('retain');
+    expect(codeMask('value./x/')).toBe('value./x/');
+  });
+});
+
+describe('malformed default exports', () => {
+  it('finds no export and refuses expressions that cannot be extended', () => {
+    expect(defaultExportOf('const config = {}')).toBeUndefined();
+    expect(appendToConfigList('export default config;', ['x'])).toBeUndefined();
+    expect(appendToConfigList('const config = {};', ['x'])).toBeUndefined();
+    expect(wrapDefaultExport('const config = {};', 'wrap')).toBeUndefined();
+  });
+
+  it('leaves an already wrapped export alone', () => {
+    expect(wrapDefaultExport('export default wrap(config);', 'wrap')).toBe(
+      'export default wrap(config);',
+    );
   });
 });
 
