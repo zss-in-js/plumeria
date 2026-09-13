@@ -35,7 +35,11 @@ The 18.5 patches spent four releases closing the paths where a style expression 
 
 8. **React Server Components** — Waku and `@vitejs/plugin-rsc` are supported, and the whole app's atomic CSS ships as one sheet.
 
-Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5, section 6, section 7, section 8 and [Upgrading](#upgrading) are what is new.
+19.1.4 adds a ninth, with no runtime changes:
+
+9. **Clearer created style types** — hovering one shows its atomic class names again.
+
+Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5, section 6, section 7, section 8, section 9 and [Upgrading](#upgrading) are what is new.
 
 ---
 
@@ -160,7 +164,7 @@ function Glyph({ glyphStyle }: { glyphStyle: css.AtomicStyle<{ color: string }> 
 
 Requiring the property is what makes it readable. `glyphStyle.color` is the atomic class name generated for that property, so a component can hand one property of a caller's style to something that takes a `className` and nothing else.
 
-Because an atomic class name carries the value it was generated for, a literal in the type argument holds the style to it. `css.AtomicStyle<{ display: 'flex' }>` takes a style that sets `display: flex` and rejects one that sets `display: grid`. `AtomicDynamicStyle` is the same thing for a style defined as a function, once it has been called.
+Because an atomic class name carries the value it was generated for, a literal in the type argument holds the style to it. `css.AtomicStyle<{ display: 'flex' }>` takes a style that sets `display: flex` and rejects one that sets `display: grid`. `AtomicClassStyle` is the same thing for a style defined as a function, once it has been called.
 
 This is the reverse of what `StyleProps` and `WithoutProperties` do. Those say which properties a prop will *accept*; `AtomicStyle` says which ones have to be *there*. A styling prop still wants `Style` or one of its narrowed forms — `AtomicStyle` is for the prop a component looks inside.
 
@@ -328,11 +332,17 @@ Your own `.css` imports are untouched by all of this. They keep the asset Vite g
 
 Two examples are in the repository: [`example-waku`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-waku) and [`example-vite-react-rsc`](https://github.com/zss-in-js/plumeria/tree/main/examples/example-vite-react-rsc). Neither needs a Plumeria option — `plumeria.vite()` is the same call it is everywhere else, and the RSC path turns itself on when an RSC plugin is present.
 
+## 9. Clearer created style types
+
+19.1.4 refines the type definitions for created styles. Editor hovers once again show the atomic class names a style contains, including styles returned by a function. `AtomicStyle` continues to accept the rule-object form used in prop declarations.
+
+There are no runtime changes. `AtomicDynamicStyle` has been renamed to `AtomicClassStyle`, and the codemod recognizes the new type names.
+
 ## Upgrading
 
 **From 18.5.** An inline object in a style prop is a type error. It was already a build error, so a codebase that built on 18.5 still builds — the change is that the editor says it first. Move the object into `css.create` and pass the created style. The prop types are additive: `Style` still accepts every property, and a component that does not need to constrain anything needs no change.
 
-**From 19.0.** Three shapes that used to type-check no longer do, all of them things 19.0 set out to reject and missed: the object `css.create` returns passed whole, an object assembled by hand out of atomic class names, and an object with no style properties at all. Nothing that runs changes — the compiler already refused to resolve any of the three — so the work is in the editor, not in the output. `AtomicStyle` and `AtomicDynamicStyle` are additive on top.
+**From 19.0.** Three shapes that used to type-check no longer do, all of them things 19.0 set out to reject and missed: the object `css.create` returns passed whole, an object assembled by hand out of atomic class names, and an object with no style properties at all. Nothing that runs changes — the compiler already refused to resolve any of the three — so the work is in the editor, not in the output. `AtomicStyle` and `AtomicClassStyle` are additive on top.
 
 `@plumeria/codemod` knows every one of these types, the two `Atomic` ones included. The export removes the `@plumeria/core` import, so a reference left behind has nothing to declare it — a component prop, a type alias, a variable annotation alike. Those modules are now left in place and reported:
 
@@ -351,9 +361,14 @@ Before, the export rewrote such a component's call sites to `className` while it
 
 **From 19.1.2.** Nothing to do, and nothing to configure. On a build with no RSC plugin the output is byte for byte what it was. On one with an RSC plugin, styles that were silently missing now arrive: a server component was unstyled in dev and in production, and a client component was unstyled in production. If you had worked around either — a hand-written `<link>`, a global stylesheet holding what the plugin dropped — remove it, or the same declarations ship twice.
 
+**From 19.1.3.** Rename any reference to `AtomicDynamicStyle` to `AtomicClassStyle`. Nothing else changes at runtime.
+
 ---
 
 ## Release notes
+
+## 19.1.4 (Sep 13, 2026)
+- Fix created style type definitions so editor hovers show their atomic class names, and rename `AtomicDynamicStyle` to `AtomicClassStyle`
 
 ## 19.1.3 (Sep 12, 2026)
 - Fix: keep the query when the Vite plugin resolves a virtual CSS id, so Vite's `?direct` stylesheet request answers with CSS instead of the module wrapper. A `<link rel="stylesheet">` rendered by an RSC framework used to load JavaScript, and the styles of every server component were dropped
