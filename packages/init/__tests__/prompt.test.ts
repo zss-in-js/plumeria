@@ -1,6 +1,14 @@
-import { ask } from '../src/prompt';
+import readline from 'node:readline/promises';
+import { ask, terminal } from '../src/prompt';
 import { DEFAULT_ANSWERS } from '../src/setup';
 import type { Asker } from '../src/prompt';
+
+jest.mock('node:readline/promises', () => ({
+  __esModule: true,
+  default: { createInterface: jest.fn() },
+}));
+
+const mockedCreateInterface = jest.mocked(readline.createInterface);
 
 const scripted = (replies: string[]): Asker & { asked: string[] } => {
   const asked: string[] = [];
@@ -100,5 +108,24 @@ describe('ask', () => {
   it('turns ESLint off when told to', async () => {
     const answers = await ask(scripted(['3', 'n', '', 'n']), {});
     expect(answers.eslint).toBe(false);
+  });
+});
+
+describe('terminal', () => {
+  it('delegates questions and closing to readline', async () => {
+    const question = jest.fn().mockResolvedValue('yes');
+    const close = jest.fn();
+    mockedCreateInterface.mockReturnValue({ question, close } as never);
+
+    const asker = terminal();
+
+    expect(mockedCreateInterface).toHaveBeenCalledWith({
+      input: process.stdin,
+      output: process.stdout,
+    });
+    await expect(asker.question('Apply? ')).resolves.toBe('yes');
+    expect(question).toHaveBeenCalledWith('Apply? ');
+    asker.close();
+    expect(close).toHaveBeenCalled();
   });
 });
