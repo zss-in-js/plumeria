@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.1.4 (Sep 13, 2026)
+
+- Fix created style type definitions so editor hovers show their atomic class names, and rename `AtomicDynamicStyle` to `AtomicClassStyle`
+
 ## 19.1.3 (Sep 12, 2026)
 
 - Fix: keep the query when the Vite plugin resolves a virtual CSS id, so Vite's `?direct` stylesheet request answers with CSS instead of the module wrapper. A `<link rel="stylesheet">` rendered by an RSC framework used to load JavaScript, and the styles of every server component were dropped.

@@ -1,5 +1,11 @@
 # @plumeria/codemod
 
+## 19.1.4
+
+### Patch Changes
+
+- 829a573: - Fix created style type definitions so editor hovers show their atomic class names, and rename `AtomicDynamicStyle` to `AtomicClassStyle`
+
 ## 19.1.3
 
 ### Patch Changes
