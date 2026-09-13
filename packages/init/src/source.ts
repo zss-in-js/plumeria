@@ -245,13 +245,11 @@ export const directProperty = (
     const char = source[i];
     if (char === '/' && source[i + 1] === '/') {
       const line = source.indexOf('\n', i);
-      if (line === -1) return undefined;
       i = line;
       continue;
     }
     if (char === '/' && source[i + 1] === '*') {
       const end = source.indexOf('*/', i + 2);
-      if (end === -1) return undefined;
       i = end + 1;
       continue;
     }
@@ -265,7 +263,7 @@ export const directProperty = (
       i = inner;
       continue;
     }
-    if (/[A-Za-z0-9_$]/.test(source[i - 1] ?? '')) continue;
+    if (/[A-Za-z0-9_$]/.test(source[i - 1])) continue;
 
     const match = pattern.exec(source.slice(i, close));
     if (match) return i + match[0].length;
@@ -281,7 +279,7 @@ export const configObjects = (source: string): number[] => {
   const pattern = /(?:\(|=>)\s*\(?\s*\{/g;
   for (let match = pattern.exec(source); match; match = pattern.exec(source)) {
     const at = match.index + match[0].length - 1;
-    if (!found.includes(at)) found.push(at);
+    found.push(at);
   }
   return found;
 };
@@ -334,7 +332,7 @@ export const codeMask = (source: string): string => {
       if (/\s/.test(source[i])) continue;
       if (/[([{,:;=!?&|+\-*%^~<>]/.test(source[i])) return true;
       if (!/[A-Za-z0-9_$]/.test(source[i])) return false;
-      const word = /[A-Za-z0-9_$]+$/.exec(source.slice(0, i + 1))?.[0] ?? '';
+      const word = /[A-Za-z0-9_$]+$/.exec(source.slice(0, i + 1))![0];
       return REGEX_AFTER.has(word);
     }
     return true;
@@ -401,7 +399,7 @@ const bindingNames = (binding: string): string[] => {
   if (braced) {
     for (const part of braced[1].split(',')) {
       const pieces = part.trim().split(/\s+as\s+/);
-      const name = /([A-Za-z_$][\w$]*)/.exec(pieces[pieces.length - 1] ?? '');
+      const name = /([A-Za-z_$][\w$]*)/.exec(pieces[pieces.length - 1]);
       if (name) names.push(name[1]);
     }
   }
@@ -434,7 +432,7 @@ export const importedFrom = (source: string, specifier: string): Imported => {
       const keyword = /\b(?:import|const|let|var|require)\b/.exec(match[0]);
       if (!keyword || code[match.index + keyword.index] === ' ') continue;
       cuts.push([match.index, match.index + match[0].length]);
-      names.push(...bindingNames(match[1] ?? ''));
+      names.push(...bindingNames(match[1]));
     }
   }
 
