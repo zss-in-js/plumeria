@@ -3,9 +3,12 @@ import * as os from 'os';
 import * as path from 'path';
 import {
   defaultConfigName,
+  configNames,
   detect,
   detectBundler,
   detectPackageManager,
+  installed,
+  readManifest,
 } from '../src/detect';
 import type { Manifest } from '../src/detect';
 
@@ -138,6 +141,16 @@ describe('detect', () => {
     expect(defaultConfigName('vite', true)).toBe('vite.config.ts');
     expect(defaultConfigName('vite', false)).toBe('vite.config.mjs');
   });
+
+  it('exposes the manifest and config-name helpers', () => {
+    add(
+      dir,
+      'package.json',
+      manifest({ dependencies: { a: '1' }, devDependencies: { b: '2' } }),
+    );
+    expect(installed(readManifest(dir))).toEqual({ a: '1', b: '2' });
+    expect(configNames('next')).toContain('next.config.cjs');
+  });
 });
 
 describe('a package inside a workspace', () => {
@@ -188,6 +201,14 @@ describe('a package inside a workspace', () => {
     add(dir, 'packages/app/yarn.lock', '');
     expect(detectPackageManager(path.join(dir, 'packages/app'), {})).toBe(
       'yarn',
+    );
+  });
+
+  it('ignores an invalid package manifest in an ancestor', () => {
+    add(dir, 'package.json', '{');
+    add(dir, 'packages/app/package.json', manifest({}));
+    expect(detectPackageManager(path.join(dir, 'packages/app'), {})).toBe(
+      'npm',
     );
   });
 });
