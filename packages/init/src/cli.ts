@@ -170,15 +170,19 @@ function show(actions: Action[]): void {
   }
 }
 
-function apply(root: string, action: Action): void {
-  if (action.kind !== 'write' && action.kind !== 'patch') return;
+function apply(
+  root: string,
+  action: Extract<Action, { kind: 'write' | 'patch' }>,
+): void {
   const file = path.join(root, action.file);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, action.contents);
 }
 
-function install(root: string, action: Action): number {
-  if (action.kind !== 'install') return 0;
+function install(
+  root: string,
+  action: Extract<Action, { kind: 'install' }>,
+): number {
   const [command, ...args] = action.command.split(' ');
   const result = spawnSync(command, args, {
     cwd: root,
@@ -240,7 +244,11 @@ export async function main(argv: string[]): Promise<number> {
       }
     }
 
-    for (const action of actions) apply(detected.root, action);
+    for (const action of actions) {
+      if (action.kind === 'write' || action.kind === 'patch') {
+        apply(detected.root, action);
+      }
+    }
 
     const wanted = actions.find((action) => action.kind === 'install');
     if (wanted && answers.install) {
@@ -265,7 +273,6 @@ export async function main(argv: string[]): Promise<number> {
       `\n${style.manual('Left to you — these could not be written safely:')}\n`,
     );
     for (const action of manual) {
-      if (action.kind !== 'manual') continue;
       console.log(`  ${style.strong(action.file)}  ${action.note}`);
       for (const line of action.snippet.split('\n'))
         console.log(style.faint(`    ${line}`));
