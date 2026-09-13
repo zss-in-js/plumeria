@@ -3,10 +3,23 @@ import * as os from 'os';
 import * as path from 'path';
 import { detect } from '../src/detect';
 import {
+  CLEAN_SCRIPT,
   DEFAULT_ANSWERS,
+  DEFAULT_STYLE_PROP,
+  assertStyleProp,
+  buildScript,
+  bundlerSource,
+  cleanScripts,
   compilerOption,
   declarationSource,
+  eslintEntries,
+  eslintSource,
+  installCommand,
+  packages,
   plan,
+  pluginCall,
+  pluginOptions,
+  rejectedSpelling,
   spellingRule,
 } from '../src/setup';
 import type { Action, Answers } from '../src/setup';
@@ -51,6 +64,46 @@ export default defineConfig({
   plugins: [react()],
 });
 `;
+
+describe('source generators', () => {
+  it('accepts identifiers and rejects invalid or reserved style props', () => {
+    expect(assertStyleProp('$style')).toBe('$style');
+    expect(() => assertStyleProp('style-prop')).toThrow(/valid identifier/);
+    expect(() => assertStyleProp('className')).toThrow(/used by React/);
+  });
+
+  it('exposes setup defaults and helpers', () => {
+    expect(DEFAULT_STYLE_PROP).toBe('classStyle');
+    expect(CLEAN_SCRIPT).toBe('rimraf .next');
+    expect(rejectedSpelling('both')).toBeUndefined();
+    expect(packages).toEqual(expect.any(Function));
+  });
+
+  it('covers JavaScript and unsupported fresh bundler forms', () => {
+    expect(bundlerSource('next', answers(), false)).toContain(
+      'withPlumeria({})',
+    );
+    expect(bundlerSource('astro', answers(), true)).toContain('vite:');
+    expect(bundlerSource('webpack', answers(), true)).toBeUndefined();
+    expect(eslintSource(answers(), false)).toContain('**/*.{js,jsx}');
+    expect(
+      eslintEntries(answers({ expandBorderShorthands: false }), false),
+    ).toEqual(['plumeria.configs.recommended']);
+  });
+
+  it('covers plugin, script, and package-manager variants', () => {
+    expect(pluginOptions(answers({ styleProp: 'sx' }))).toContain(
+      "styleProp: 'sx'",
+    );
+    expect(pluginCall('bun', answers(), 'p')).toBe('p.bun()');
+    expect(buildScript('vite build')).toBe('plumerialint -- vite build');
+    expect(installCommand('yarn', ['a'])).toBe('yarn add -D a');
+    expect(installCommand('bun', ['a'])).toBe('bun add -d a');
+    expect(cleanScripts({ dev: 'x', predev: 'y', build: 'z' })).toEqual({
+      prebuild: 'rimraf .next',
+    });
+  });
+});
 
 describe('the spelling answer', () => {
   it('rejects the counterpart on both sides', () => {
@@ -183,6 +236,31 @@ describe('plan', () => {
     expect(manual.snippet).toContain('plugins: [plumeria.esbuild()]');
   });
 
+  it('describes a fresh Bun build as build-script work', () => {
+    project({ name: 'app' }, {});
+
+    const action = plan(detect(dir, 'bun'), answers({ eslint: false })).find(
+      (candidate) => candidate.kind === 'manual',
+    );
+    expect(action).toMatchObject({
+      kind: 'manual',
+      note: 'add the plugin to the build script',
+    });
+  });
+
+  it('reports a missing config for another unsupported bundler', () => {
+    project({ name: 'app' }, {});
+
+    const action = plan(
+      detect(dir, 'webpack'),
+      answers({ eslint: false }),
+    ).find((candidate) => candidate.kind === 'manual');
+    expect(action).toMatchObject({
+      kind: 'manual',
+      note: 'no webpack config found',
+    });
+  });
+
   it('puts the opt-in rules in the ESLint config it writes', () => {
     project(
       { name: 'app', devDependencies: { vite: '^8.0.13' } },
@@ -281,6 +359,130 @@ describe('plan', () => {
         .filter((action) => action.kind !== 'install')
         .every((action) => action.kind === 'skip'),
     ).toBe(true);
+  });
+
+  it('supports CommonJS imports for Next and unplugin configs', () => {
+    project(
+      { dependencies: { next: '1' } },
+      { 'next.config.cjs': 'module.exports = {};\n' },
+    );
+    expect(
+      contentsOf(on(plan(detect(dir), answers()), 'next.config.cjs')),
+    ).toContain("const { withPlumeria } = require('@plumeria/next-plugin');");
+
+    fs.rmSync(path.join(dir, 'next.config.cjs'));
+    project(
+      { devDependencies: { webpack: '1' } },
+      { 'webpack.config.cjs': 'module.exports = { plugins: [] };\n' },
+    );
+    expect(
+      contentsOf(on(plan(detect(dir), answers()), 'webpack.config.cjs')),
+    ).toContain("const plumeria = require('@plumeria/unplugin').default;");
+  });
+
+  it('recognizes an applied Next wrapper and reports an unwrappable config', () => {
+    project(
+      { dependencies: { next: '1' } },
+      {
+        'next.config.ts': `import { withPlumeria } from '@plumeria/next-plugin';\n\nexport default withPlumeria({});\n`,
+      },
+    );
+    expect(on(plan(detect(dir), answers()), 'next.config.ts').kind).toBe(
+      'skip',
+    );
+
+    add(
+      dir,
+      'next.config.ts',
+      `const nextConfig = {};\nconsole.log(nextConfig);\n`,
+    );
+    const action = on(plan(detect(dir), answers()), 'next.config.ts');
+    expect(action.kind).toBe('manual');
+    if (action.kind === 'manual') {
+      expect(action.snippet).toContain('withPlumeria(nextConfig)');
+    }
+  });
+
+  it('adds an Astro vite block and explains malformed configs', () => {
+    project(
+      { devDependencies: { astro: '1' } },
+      { 'astro.config.ts': `export default defineConfig({});\n` },
+    );
+    expect(
+      contentsOf(on(plan(detect(dir), answers()), 'astro.config.ts')),
+    ).toContain('vite: {');
+
+    add(dir, 'astro.config.ts', `export default {};\n`);
+    let action = on(plan(detect(dir), answers()), 'astro.config.ts');
+    expect(action.kind).toBe('manual');
+    if (action.kind === 'manual') expect(action.snippet).toContain('vite: {');
+
+    add(dir, 'astro.config.ts', `export default defineConfig();\n`);
+    action = on(plan(detect(dir), answers()), 'astro.config.ts');
+    expect(action.kind).toBe('manual');
+
+    add(
+      dir,
+      'astro.config.ts',
+      `export default defineConfig();\nconst later = {};\n`,
+    );
+    action = on(plan(detect(dir), answers()), 'astro.config.ts');
+    expect(action.kind).toBe('manual');
+  });
+
+  it('reports legacy and unextendable ESLint configs', () => {
+    project(
+      { devDependencies: { vite: '1' } },
+      { '.eslintrc.json': '{}', 'vite.config.ts': VITE_CONFIG },
+    );
+    expect(on(plan(detect(dir), answers()), '.eslintrc.json').kind).toBe(
+      'manual',
+    );
+
+    fs.rmSync(path.join(dir, '.eslintrc.json'));
+    add(dir, 'eslint.config.cjs', 'module.exports = value;\n');
+    const action = on(plan(detect(dir), answers()), 'eslint.config.cjs');
+    expect(action.kind).toBe('manual');
+    if (action.kind === 'manual') {
+      expect(action.snippet).toContain('plumeria.configs.recommended');
+    }
+  });
+
+  it('writes a JavaScript ESLint config and can skip installation', () => {
+    project(
+      {
+        scripts: { build: 'vite build' },
+        devDependencies: {
+          vite: '1',
+          '@plumeria/core': '1',
+          '@plumeria/unplugin': '1',
+          '@plumeria/eslint-plugin': '1',
+          oxlint: '1',
+          eslint: '1',
+          '@eslint/js': '1',
+        },
+      },
+      { 'vite.config.js': VITE_CONFIG },
+    );
+    const actions = plan(detect(dir), answers());
+    expect(on(actions, 'eslint.config.mjs').kind).toBe('write');
+    expect(actions.some((action) => action.kind === 'install')).toBe(false);
+  });
+
+  it('preserves compact package JSON indentation', () => {
+    add(
+      dir,
+      'package.json',
+      JSON.stringify({
+        scripts: { build: 'vite build' },
+        devDependencies: { vite: '1' },
+      }),
+    );
+    add(dir, 'vite.config.js', VITE_CONFIG);
+    const patched = contentsOf(
+      on(plan(detect(dir), answers()), 'package.json'),
+    );
+    expect(patched).toContain('\n  "scripts"');
   });
 });
 
