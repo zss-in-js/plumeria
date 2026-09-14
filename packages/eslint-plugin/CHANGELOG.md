@@ -1,3 +1,9 @@
+## 19.1.5
+
+### Patch Changes
+
+- 120fa3e: Bump version to 19.1.5
+
 ## 19.1.4
 
 ### Patch Changes

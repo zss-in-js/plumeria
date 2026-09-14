@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 19.1.5
+
+### Patch Changes
+
+- 120fa3e: - Update dependencies
+
 ## 19.1.4
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 19.1.5
+
+### Patch Changes
+
+- 120fa3e: - Update dependencies
+- Updated dependencies [120fa3e]
+  - @plumeria/turbopack-loader@19.1.5
+
 ## 19.1.4
 
 ### Patch Changes
