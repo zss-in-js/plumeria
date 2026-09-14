@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.1.5 (Sep 14, 2026)
+
+- Update dependencies
+
 ## 19.1.4 (Sep 13, 2026)
 
 - Fix created style type definitions so editor hovers show their atomic class names, and rename `AtomicDynamicStyle` to `AtomicClassStyle`

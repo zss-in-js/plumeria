@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 19.1.5
+
+### Patch Changes
+
+- 120fa3e: - Update dependencies
+- Updated dependencies [120fa3e]
+  - @plumeria/utils@19.1.5
+
 ## 19.1.4
 
 ### Patch Changes
