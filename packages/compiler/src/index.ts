@@ -29,10 +29,10 @@ import {
   t,
   unwrapExpression,
   getRootIdentifier,
+  resolveOriginError,
   extractOndemandStyles,
   deepMerge,
   scanAll,
-  resolveFileError,
   resolveImportPath,
   resolveExport,
   themeHashOf,
@@ -770,10 +770,7 @@ export function compileCSS(options: CompilerOptions) {
             (ctx.localCreateStyles[rootId] !== undefined ||
               ctx.mergedCreateTable[rootId] !== undefined);
           if (!isPlumeriaStyle) {
-            const origin = rootId ? localImports[rootId] : undefined;
-            const failure = origin
-              ? resolveFileError(origin.actualPath, origin.importedName)
-              : undefined;
+            const failure = resolveOriginError(node, rootId, localImports);
             throw new Error(
               failure
                 ? `[plumeria] ${failure.message} (${path.basename(failure.filePath)})`
