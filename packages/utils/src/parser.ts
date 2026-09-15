@@ -106,6 +106,40 @@ export const getRootIdentifier = (node: Expression): string | null => {
   return null;
 };
 
+const getNamespaceMember = (
+  node: Expression,
+  rootName: string,
+): string | null => {
+  node = unwrapExpression(node);
+  if (t.isCallExpression(node)) {
+    const callee = node.callee;
+    if (callee.type === 'Super' || callee.type === 'Import') return null;
+    return getNamespaceMember(callee as Expression, rootName);
+  }
+  if (t.isMemberExpression(node)) {
+    const object = unwrapExpression(node.object);
+    if (t.isIdentifier(object) && object.value === rootName) {
+      return t.isIdentifier(node.property) ? node.property.value : null;
+    }
+    return getNamespaceMember(object, rootName);
+  }
+  return null;
+};
+
+export function resolveOriginError(
+  node: Expression,
+  rootName: string | null,
+  localImports: Record<string, { actualPath: string; importedName: string }>,
+): { filePath: string; message: string } | undefined {
+  const origin = rootName ? localImports[rootName] : undefined;
+  if (!origin) return undefined;
+  const exportName =
+    origin.importedName === '*' && rootName
+      ? (getNamespaceMember(node, rootName) ?? '*')
+      : origin.importedName;
+  return resolveFileError(origin.actualPath, exportName);
+}
+
 export function resolveComponentKey(
   nameNode: any,
   filePath: string,
