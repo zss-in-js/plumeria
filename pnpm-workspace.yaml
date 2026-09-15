@@ -2,7 +2,8 @@ packages:
   - packages/*
   - examples/*
   - '!examples/example-init-trial'
-  - test-e2e/site
+  - test-e2e/nextjs
+  - test-e2e/vite-react-rsc
   - docs
 
 allowBuilds:
