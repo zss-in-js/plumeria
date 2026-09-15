@@ -532,6 +532,9 @@ Before, the export rewrote such a component's call sites to `className` while it
 
 ## Release notes
 
+## 19.1.9 (Sep 15, 2026)
+- Fix: accept a length for `outlineWidth` in `validate-values`. The property was grouped with the border widths for its keywords but left out of the length group, so `thin`, `medium` and `thick` passed while `2px`, `calc()` and every other length was reported as invalid
+
 ## 19.1.8 (Sep 15, 2026)
 - Fix: refuse a `css.create`, `css.createTheme` or `css.createStatic` call that is not assigned to a named top-level variable, instead of skipping the declaration and emitting nothing for it
 - Fix: refuse a dynamic function key handed to `css.use()`, which used to emit a rule reading a custom property that only an element can set, so nothing on the page ever defined it
