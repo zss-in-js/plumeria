@@ -5,7 +5,8 @@
   "workspaces": [
     "packages/*",
     "examples/*",
-    "test-e2e/site",
+    "test-e2e/nextjs",
+    "test-e2e/vite-react-rsc",
     "docs"
   ],
   "author": "refirst",
@@ -17,7 +18,8 @@
     "typecheck": "tsc --noEmit --project tsconfig.test.json && node scripts/check-declaration-emit.js",
     "test": "jest --coverage",
     "dev": "cd docs && npm run dev",
-    "dev:e2e": "cd test-e2e/site && npm run dev -- -p 4000",
+    "dev:e2e": "cd test-e2e/nextjs && npm run dev -- -p 4000",
+    "dev:e2e:rsc": "cd test-e2e/vite-react-rsc && npm run dev -- --port 4003",
     "test:e2e": "playwright test",
     "prettier": "prettier --write \"**/*.js\" \"**/*.ts\" \"**/*.tsx\"",
     "prettier:report": "prettier --check \"**/*.js\" \"**/*.ts\" \"**/*.tsx\"",
