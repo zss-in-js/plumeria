@@ -31,6 +31,10 @@ const both = css.create({
   b1: { color: 'red', padding: 1 },
   b2: { color: 'blue', margin: 2 },
 });
+const sparse = css.create({
+  on: { color: 'gray', opacity: 0.5 },
+  off: { opacity: 1 },
+});
 `;
 
 const compile = async (body: string) => {
@@ -45,7 +49,7 @@ const compile = async (body: string) => {
 
 const classExpr = (styleExpr: string) =>
   compile(
-    `export const A = ({ a, b, c, k, j }: any) => <div classStyle={${styleExpr}} />;`,
+    `export const A = ({ a, b, c, k, j, m }: any) => <div classStyle={${styleExpr}} />;`,
   );
 
 const norm = (value: string) =>
@@ -60,8 +64,11 @@ const evaluate = (expr: string, vars: Record<string, unknown>) => {
 
 // Substituting the bracket for a literal key gives a form the compiler already
 // handled before groups could sit under a condition -- the reference output.
-const withKeys = (styleExpr: string, k: string, j: string) =>
-  styleExpr.replace(/s\[k\]/g, `s.${k}`).replace(/d\[j\]/g, `d.${j}`);
+const withKeys = (styleExpr: string, k: string, j: string, m: string) =>
+  styleExpr
+    .replace(/s\[k\]/g, `s.${k}`)
+    .replace(/d\[j\]/g, `d.${j}`)
+    .replace(/sparse\[m\]/g, `sparse.${m}`);
 
 const SPACES: Record<string, unknown[]> = {
   a: [true, false],
@@ -69,6 +76,7 @@ const SPACES: Record<string, unknown[]> = {
   c: [true, false],
   k: ['p1', 'p2', 'p3'],
   j: ['w1', 'w3'],
+  m: ['on', 'off'],
 };
 
 const CASES: Array<[string, string, string[]]> = [
@@ -106,6 +114,18 @@ const CASES: Array<[string, string, string[]]> = [
   ],
   ['partially overlapping properties', `[both.b1, a && both.b2]`, ['a']],
   ['literal bracket keys stay literal', `a ? s['p1'] : s['p3']`, ['a']],
+  [
+    'group whose option drops the shared property',
+    `[s[k], sparse[m]]`,
+    ['k', 'm'],
+  ],
+  ['sparse group first', `[sparse[m], s[k]]`, ['k', 'm']],
+  ['sparse group beside a base', `[s.p2, sparse[m]]`, ['m']],
+  [
+    'sparse group beside a condition',
+    `[s[k], a && d.w1, sparse[m]]`,
+    ['a', 'k', 'm'],
+  ],
 ];
 
 describe.each(CASES)('%s', (_label, styleExpr, varNames) => {
@@ -122,7 +142,12 @@ describe.each(CASES)('%s', (_label, styleExpr, varNames) => {
 
     for (const combo of combos) {
       const reference = await classExpr(
-        withKeys(styleExpr, combo.k as string, combo.j as string),
+        withKeys(
+          styleExpr,
+          combo.k as string,
+          combo.j as string,
+          combo.m as string,
+        ),
       );
       expect(evaluate(actual, combo)).toBe(evaluate(reference, combo));
     }
