@@ -394,6 +394,7 @@ export function compileCSS(options: CompilerOptions) {
       { actualPath: string; importedName: string }
     > = {};
     const localStyleAliases: Record<string, LocalStyleAlias[]> = {};
+    const registeredStyleCalls = new Set<number>();
 
     traverse(ast, {
       ImportDeclaration({ node }) {
@@ -656,6 +657,7 @@ export function compileCSS(options: CompilerOptions) {
     // Common processing for use() and styleProp={}
     const extractAndProcessConditionals = (
       args: Array<{ expression: Expression }>,
+      isStyleProp: boolean,
     ) => {
       args.forEach((arg) => {
         arg.expression = resolveLocalStyleAlias(
@@ -997,6 +999,17 @@ export function compileCSS(options: CompilerOptions) {
         );
       };
 
+      const resolveDynamicStyleHere = (node: Expression): CSSObject | null => {
+        const dynamic = resolveDynamicCall(node);
+        if (dynamic && !isStyleProp) {
+          throw new Error(
+            `[plumeria] css.use(${getSource(node)}) does not support dynamic function keys. ` +
+              `(${path.basename(resourcePath)})`,
+          );
+        }
+        return dynamic;
+      };
+
       const collectConditions = (
         node: Expression,
         currentTestStrings: string[] = [],
@@ -1056,7 +1069,7 @@ export function compileCSS(options: CompilerOptions) {
         if (collectPropStyles(node)) return true;
 
         const staticStyle =
-          resolveStyleObject(node) ?? resolveDynamicCall(node);
+          resolveStyleObject(node) ?? resolveDynamicStyleHere(node);
         if (staticStyle) {
           if (currentTestStrings.length === 0) {
             baseStyle = deepMerge(baseStyle, staticStyle);
@@ -1099,7 +1112,7 @@ export function compileCSS(options: CompilerOptions) {
 
         if (collectPropStyles(expr)) continue;
 
-        const dynamicStyle = resolveDynamicCall(expr);
+        const dynamicStyle = resolveDynamicStyleHere(expr);
         if (dynamicStyle) {
           baseStyle = deepMerge(baseStyle, dynamicStyle);
           continue;
@@ -1147,10 +1160,50 @@ export function compileCSS(options: CompilerOptions) {
       }
 
       if (propName) {
+        if (
+          ['create', 'createTheme', 'createStatic'].includes(propName) &&
+          !registeredStyleCalls.has(node.span.start)
+        ) {
+          throw new Error(
+            `[plumeria] css.${propName} must be assigned to a named top-level variable. ` +
+              `Destructuring, assignment statements, and default-exported calls cannot be compiled. ` +
+              `(${path.basename(resourcePath)})`,
+          );
+        }
         const args = node.arguments;
 
         if (propName === 'use') {
-          extractAndProcessConditionals(args);
+          const namesStyleFunction = (expr: Expression): boolean => {
+            const node = unwrapExpression(expr);
+            if (node.type === 'ArrayExpression') {
+              return (node.elements ?? []).some(
+                (element: { expression: Expression } | undefined) =>
+                  !!element && namesStyleFunction(element.expression),
+              );
+            }
+            if (
+              !t.isMemberExpression(node) ||
+              !t.isIdentifier(node.object) ||
+              !t.isIdentifier(node.property)
+            ) {
+              return false;
+            }
+            return Boolean(
+              ctx.localCreateStyles[node.object.value]?.functions?.[
+                node.property.value
+              ] ??
+              ctx.createFunctionImportMap[node.object.value]?.[
+                node.property.value
+              ],
+            );
+          };
+          if (args.some((arg) => namesStyleFunction(arg.expression))) {
+            throw new Error(
+              `[plumeria] Dynamic or unresolvable style object "${sourceOf(node, sourceBuffer, baseByteOffset)}" is not supported. ` +
+                `(${path.basename(resourcePath)})`,
+            );
+          }
+          extractAndProcessConditionals(args, false);
         } else if (
           propName === 'keyframes' &&
           args.length > 0 &&
@@ -1294,6 +1347,7 @@ export function compileCSS(options: CompilerOptions) {
               ((!isTheme && init.arguments.length === 1) ||
                 (isTheme && init.arguments.length >= 2))
             ) {
+              registeredStyleCalls.add(init.span.start);
               const arg = unwrappedDefinitionArg as ObjectExpression;
               const resolveVariable = (name: string) =>
                 ctx.localCreateStyles[name]?.obj ||
@@ -1481,7 +1535,7 @@ export function compileCSS(options: CompilerOptions) {
         };
         addArgs(expr);
 
-        extractAndProcessConditionals(args);
+        extractAndProcessConditionals(args, true);
       },
     });
     return extractedSheets;
