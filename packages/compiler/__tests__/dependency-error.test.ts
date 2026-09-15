@@ -36,17 +36,20 @@ const compile = (
   through:
     | 'the file itself'
     | 'a re-export'
-    | 'a namespace import' = 'the file itself',
+    | 'a namespace import'
+    | 'a namespace import of a re-export' = 'the file itself',
 ) => {
   const id = fixtureCount++;
   const stylesPath = path.join(FIXTURE_DIR, `styles-${id}.ts`);
   const barrelPath = path.join(FIXTURE_DIR, `barrel-${id}.ts`);
   const appPath = path.join(FIXTURE_DIR, `app-${id}.tsx`);
-  const from = through === 'a re-export' ? `barrel-${id}` : `styles-${id}`;
-  const importLine =
-    through === 'a namespace import'
-      ? `import * as imported from './${from}';`
-      : `import { styles } from './${from}';`;
+  const from =
+    through === 'a re-export' || through === 'a namespace import of a re-export'
+      ? `barrel-${id}`
+      : `styles-${id}`;
+  const importLine = through.startsWith('a namespace import')
+    ? `import * as imported from './${from}';`
+    : `import { styles } from './${from}';`;
 
   fs.writeFileSync(
     stylesPath,
@@ -96,6 +99,19 @@ describe('compiler: an error in the file a style comes from', () => {
   it('names it through a namespace import of the declaring file', () => {
     expect(() =>
       compile(BROKEN, 'imported.styles.good', 'a namespace import'),
+    ).toThrow(/The style key 1 is a number.+\(styles-\d+\.ts\)/);
+  });
+
+  // The namespace names the module, so the export has to be read off the member
+  // that follows it. Left as the namespace itself, the lookup stopped at the
+  // barrel, which is sound, and the file that failed went unnamed.
+  it('names it through a namespace import of a file that only re-exports the style', () => {
+    expect(() =>
+      compile(
+        BROKEN,
+        'imported.styles.good',
+        'a namespace import of a re-export',
+      ),
     ).toThrow(/The style key 1 is a number.+\(styles-\d+\.ts\)/);
   });
 
