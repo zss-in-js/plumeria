@@ -2224,11 +2224,12 @@ export const transformSource = async (
       Object.keys(conflictVarGroups).forEach((id) => {
         const groupId = Number(id);
         const opts = conflictVarGroups[groupId];
-        if (opts.some((c) => c.valueName === '')) return;
-        const off = conditionals.find(
-          (c) => c.groupId === groupId && c.valueName === '',
-        );
-        if (off) opts.push({ ...off, truthy: {}, falsy: {} });
+        const present = new Set(opts.map((c) => c.valueName));
+        conditionals.forEach((c) => {
+          if (c.groupId !== groupId || present.has(c.valueName)) return;
+          present.add(c.valueName);
+          opts.push({ ...c, truthy: {}, falsy: {} });
+        });
       });
       Object.entries(conflictVarGroups).forEach(([, opts]) => {
         ordered.push({
