@@ -75,6 +75,7 @@ const lengthValueProperties = [
   'borderInlineStartWidth',
   'borderInlineEndWidth',
   'columnRuleWidth',
+  'outlineWidth',
   'outlineOffset',
   'perspective',
   'letterSpacing',
