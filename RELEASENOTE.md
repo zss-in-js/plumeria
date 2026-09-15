@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.1.9 (Sep 15, 2026)
+
+- Accept a length for `outlineWidth` in `validate-values`. The property was grouped with the border widths for its keywords but left out of the length group, so `thin`, `medium` and `thick` passed while `2px`, `calc()` and every other length was reported as invalid
+
 ## 19.1.8 (Sep 15, 2026)
 
 - Refuse a `css.create`, `css.createTheme` or `css.createStatic` call that is not assigned to a named top-level variable, instead of skipping the declaration and emitting nothing for it. A default-exported or destructured call used to leave its styles out of the sheet with no diagnostic
