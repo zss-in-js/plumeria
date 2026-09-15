@@ -2577,18 +2577,25 @@ export const transformSource = async (
       if (node.name.type !== 'Identifier') return;
       const attrName = node.name.value;
 
-      if (attrName !== styleProp) {
-        let compKey: string | null = null;
-        for (const [, val] of jsxOpeningElementMap) {
-          const found = val.attributes
-            .filter((a): a is JSXAttribute => a.type === 'JSXAttribute')
-            .find((a) => a.span.start === node.span.start);
-          if (found) {
-            compKey = val.compKey;
-            break;
-          }
+      let compKey: string | null = null;
+      for (const [, val] of jsxOpeningElementMap) {
+        const found = val.attributes
+          .filter((a): a is JSXAttribute => a.type === 'JSXAttribute')
+          .find((a) => a.span.start === node.span.start);
+        if (found) {
+          compKey = val.compKey;
+          break;
         }
+      }
 
+      const receivesStyleProp = Boolean(
+        compKey &&
+        scannedTables.styleReceiverTable?.[compKey]?.includes(attrName),
+      );
+
+      let relayed = false;
+
+      if (attrName !== styleProp || receivesStyleProp) {
         if (compKey) {
           if (node.value?.type === 'JSXExpressionContainer')
             assertNoStyleArraySpread(node.value.expression);
@@ -2656,23 +2663,26 @@ export const transformSource = async (
             traverse(expr, {
               MemberExpression({ node: subNode }) {
                 if (replaceWithKey(subNode)) {
+                  relayed = true;
                   excludeSubtreeSpans(subNode);
                 }
               },
               ArrayExpression({ node: subNode }) {
                 if (replaceWithKey(subNode)) {
+                  relayed = true;
                   excludeSubtreeSpans(subNode);
                 }
               },
               CallExpression({ node: subNode }) {
                 if (replaceWithKey(subNode)) {
+                  relayed = true;
                   excludeSubtreeSpans(subNode);
                 }
               },
             });
           }
         }
-        return;
+        if (attrName !== styleProp || relayed) return;
       }
 
       if (!node.value || node.value.type !== 'JSXExpressionContainer') return;
