@@ -230,6 +230,10 @@ The compiler builds a **property conflict graph** across the styles an element c
 - **Conflicting axes** — two objects that both set `color`, say — are grouped, and only that group becomes a combined decision table. The same two axes now cost `3 × 3`.
 - **Mutually exclusive branches** — the arms of a `?:` or `&&` — are never a product at all. Only one arm applies, so they share one table keyed by which arm won.
 
+Grouping is per conflict, not per element. Two objects competing for `color` and two more competing for `fontSize` are two groups on the same element, costing `3 × 3` plus `3 × 3` rather than one table of `3 × 3 × 3 × 3`.
+
+It is also transitive, because overriding is: an object that sets both `color` and `fontSize` sits between those two groups and folds them into one, which is the answer that table has to give.
+
 The output is therefore bound by the element's local axes of *conflict*, not by how many styles are in play. Stacking variants that never touch the same property stays additive however many you add.
 
 ### 2. Constant $O(1)$ Runtime Cost
