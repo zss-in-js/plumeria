@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { parseSync } from '@swc/core';
+import type { VariableDeclaration } from '@swc/core';
 
 const FIXTURE_DIR = fs.realpathSync(
   fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-')),
@@ -12,7 +14,7 @@ jest.mock('@rust-gear/glob', () => ({
   globSync: jest.fn(() => [STYLES, BARREL]),
 }));
 
-import { scanAll, resolveFileError } from '../src/parser';
+import { scanAll, resolveFileError, resolveOriginError } from '../src/parser';
 
 const BROKEN = `
 import * as css from '@plumeria/core';
@@ -62,6 +64,30 @@ describe('parser: the error a file threw while being scanned', () => {
     scan(BROKEN);
 
     expect(resolveFileError(BARREL, 'styles')?.filePath).toBe(STYLES);
+  });
+
+  it.each([
+    ['namespace.styles()', true],
+    ['namespace', false],
+    ["import('./styles')", false],
+  ])('resolves the namespace origin of %s', (source, hasError) => {
+    scan(BROKEN);
+    const declaration = parseSync(`const value = ${source};`)
+      .body[0] as VariableDeclaration;
+    const error = resolveOriginError(
+      declaration.declarations[0].init!,
+      'namespace',
+      { namespace: { actualPath: BARREL, importedName: '*' } },
+    );
+
+    if (hasError) {
+      expect(error).toEqual({
+        filePath: STYLES,
+        message: expect.stringMatching(/The style key 1 is a number/),
+      });
+    } else {
+      expect(error).toBeUndefined();
+    }
   });
 
   it('is dropped once the file scans', () => {
