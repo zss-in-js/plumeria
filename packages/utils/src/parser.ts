@@ -1496,6 +1496,8 @@ interface CachedData {
 
 const fileCache: Record<string, CachedData> = {};
 
+const receiverKeysByFile = new Map<string, string[]>();
+
 // Global reverse dependency map and known file tracking for incremental updates
 const dependentsMap = new Map<string, Set<string>>();
 let knownFiles = new Set<string>();
@@ -1538,6 +1540,7 @@ const globalAgregatedTables: Tables = {
   createStaticHashTable: {},
   createStaticObjectTable: {},
   componentPropsTable: {},
+  styleReceiverTable: {},
 };
 let hasComputedOnce = false;
 let resolutionConfigStamp: string | undefined;
@@ -1555,7 +1558,7 @@ function snapshotTables(): Tables {
   return Object.fromEntries(
     Object.entries(globalAgregatedTables).map(([key, value]) => [
       key,
-      { ...value },
+      key === 'styleReceiverTable' ? value : { ...value },
     ]),
   ) as Tables;
 }
@@ -1616,12 +1619,19 @@ function releaseObjectOwner(
 // to remove are derived from it.
 function stripFileContributions(filePath: string, cached: CachedData) {
   releaseFileObjects(filePath);
+  const receiverKeys = receiverKeysByFile.get(filePath);
+  if (receiverKeys) {
+    for (const key of receiverKeys)
+      delete globalAgregatedTables.styleReceiverTable![key];
+    receiverKeysByFile.delete(filePath);
+  }
   for (const [name, table] of Object.entries(globalAgregatedTables)) {
     if (
       name.endsWith('ObjectTable') ||
       name === 'createAtomicMapTable' ||
       name === 'createThemeSelectorTable' ||
-      name === 'componentPropsTable'
+      name === 'componentPropsTable' ||
+      name === 'styleReceiverTable'
     )
       continue;
     for (const key of Object.keys(table))
@@ -2803,6 +2813,56 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
           list.push(entry);
         }
       };
+
+      const receiverTable = localTables.styleReceiverTable!;
+      const registerReceiver = (name: string, fn: any) => {
+        if (name[0] !== name[0].toUpperCase()) return;
+        const first = fn?.params?.[0];
+        const pattern = first?.pat ?? first;
+        const inner =
+          pattern?.type === 'AssignmentPattern' ? pattern.left : pattern;
+        if (inner?.type !== 'ObjectPattern') return;
+        for (const property of inner.properties ?? []) {
+          const key =
+            property.type === 'AssignmentPatternProperty'
+              ? property.key
+              : property.type === 'KeyValuePatternProperty'
+                ? property.key
+                : undefined;
+          if (!t.isIdentifier(key)) continue;
+          const compKey = `${filePath}-${name}`;
+          if (!receiverTable[compKey]) {
+            receiverTable[compKey] = [];
+            const owned = receiverKeysByFile.get(filePath);
+            if (owned) owned.push(compKey);
+            else receiverKeysByFile.set(filePath, [compKey]);
+          }
+          const props = receiverTable[compKey];
+          if (!props.includes(key.value)) props.push(key.value);
+        }
+      };
+
+      for (const statement of ast.body) {
+        const declaration =
+          statement.type === 'ExportDeclaration'
+            ? statement.declaration
+            : statement;
+        if (declaration.type === 'FunctionDeclaration') {
+          if (declaration.identifier)
+            registerReceiver(declaration.identifier.value, declaration);
+          continue;
+        }
+        if (declaration.type !== 'VariableDeclaration') continue;
+        for (const declarator of declaration.declarations) {
+          const init = declarator.init;
+          if (!t.isIdentifier(declarator.id) || !init) continue;
+          if (
+            init.type === 'ArrowFunctionExpression' ||
+            init.type === 'FunctionExpression'
+          )
+            registerReceiver(declarator.id.value, init);
+        }
+      }
 
       traverse(ast, {
         JSXOpeningElement({ node }) {
