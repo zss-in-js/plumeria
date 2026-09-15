@@ -1,5 +1,13 @@
 # @plumeria/compiler
 
+## 19.1.6
+
+### Patch Changes
+
+- 5aec304: Bump version to 19.1.6
+- Updated dependencies [5aec304]
+  - @plumeria/utils@19.1.6
+
 ## 19.1.5
 
 ### Patch Changes
