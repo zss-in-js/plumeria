@@ -33,13 +33,20 @@ const SOUND = `export const styles = css.create({
 const compile = (
   definition: string,
   usage = 'styles.good',
-  through: 'the file itself' | 'a re-export' = 'the file itself',
+  through:
+    | 'the file itself'
+    | 'a re-export'
+    | 'a namespace import' = 'the file itself',
 ) => {
   const id = fixtureCount++;
   const stylesPath = path.join(FIXTURE_DIR, `styles-${id}.ts`);
   const barrelPath = path.join(FIXTURE_DIR, `barrel-${id}.ts`);
   const appPath = path.join(FIXTURE_DIR, `app-${id}.tsx`);
   const from = through === 'a re-export' ? `barrel-${id}` : `styles-${id}`;
+  const importLine =
+    through === 'a namespace import'
+      ? `import * as imported from './${from}';`
+      : `import { styles } from './${from}';`;
 
   fs.writeFileSync(
     stylesPath,
@@ -54,7 +61,7 @@ const compile = (
   fs.writeFileSync(
     appPath,
     `import * as css from '@plumeria/core';\n` +
-      `import { styles } from './${from}';\n` +
+      `${importLine}\n` +
       `function Test() { return 'x'; }\n` +
       `export const App = () => <div classStyle={${usage}} />;\n`,
     'utf-8',
@@ -81,6 +88,15 @@ describe('compiler: an error in the file a style comes from', () => {
     expect(() => compile(BROKEN, 'styles.good', 'a re-export')).toThrow(
       /The style key 1 is a number.+\(styles-\d+\.ts\)/,
     );
+  });
+
+  // A namespace import binds the module, not one of its exports, so the root
+  // identifier of `imported.styles.good` is the namespace. It used to carry no
+  // origin, and the file that actually failed went unnamed.
+  it('names it through a namespace import of the declaring file', () => {
+    expect(() =>
+      compile(BROKEN, 'imported.styles.good', 'a namespace import'),
+    ).toThrow(/The style key 1 is a number.+\(styles-\d+\.ts\)/);
   });
 
   it('keeps the unresolvable-style message when that file is sound', () => {
