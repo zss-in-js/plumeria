@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.1.10 (Sep 15, 2026)
+
+- Restore `classStyle` compilation at component call sites so generated classes reach components such as Next.js `Link` and Fumadocs code blocks
+
 ## 19.1.9 (Sep 15, 2026)
 
 - Accept a length for `outlineWidth` in `validate-values`. The property was grouped with the border widths for its keywords but left out of the length group, so `thin`, `medium` and `thick` passed while `2px`, `calc()` and every other length was reported as invalid
