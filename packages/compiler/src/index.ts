@@ -418,6 +418,13 @@ export function compileCSS(options: CompilerOptions) {
 
         if (actualPath) {
           node.specifiers.forEach((specifier: ImportSpecifier) => {
+            if (specifier.type === 'ImportNamespaceSpecifier') {
+              localImports[specifier.local.value] = {
+                actualPath,
+                importedName: '*',
+              };
+              return;
+            }
             if (
               specifier.type === 'ImportSpecifier' ||
               specifier.type === 'ImportDefaultSpecifier'
