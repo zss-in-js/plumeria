@@ -31,5 +31,6 @@ module.exports = {
     '<rootDir>/packages/init/dist/',
     '<rootDir>/packages/next-plugin/dist/',
     '<rootDir>/packages/utils/dist/',
+    '<rootDir>/packages/utils/src/index.ts',
   ],
 };
