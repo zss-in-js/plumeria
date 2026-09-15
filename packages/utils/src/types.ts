@@ -56,6 +56,7 @@ export interface Tables {
   createStaticHashTable: CreateStaticHashTable;
   createStaticObjectTable: CreateStaticObjectTable;
   componentPropsTable?: Record<string, Record<string, TableEntry[]>>;
+  styleReceiverTable?: Record<string, string[]>;
 }
 
 export type CreateTheme = {
