@@ -10,15 +10,15 @@
 
 ## 19.1.7 (Sep 15, 2026)
 
-- Fix a style handed to a component through a prop named the same as the one elements take. It was resolved to class names at the call site and the attribute was renamed, so the component never received it and the style was dropped with no error. This is the spelling the `StyleProps` reference shows
+- Fix: a style handed to a component through a prop named the same as the one elements take. It was resolved to class names at the call site and the attribute was renamed, so the component never received it and the style was dropped with no error. This is the spelling the `StyleProps` reference shows
 
-- Fix the compiler blaming the file being compiled when a style it cannot read came through a namespace import, instead of naming the file that actually failed and the error it raised
+- Fix: the compiler blaming the file being compiled when a style it cannot read came through a namespace import, instead of naming the file that actually failed and the error it raised
 
 - Read the export a namespace binding carries from the member that follows it, so a style imported with `import * as` is traced through a file that only re-exports it. Both the compiler and the bundler plugins stopped at the re-exporting file, which is sound, and reported the generic unresolvable-style message
 
 ## 19.1.6 (Sep 15, 2026)
 
-- Fix a bracket group losing the other groups' styles when the selected key carries none of the conflicting properties, because the combination table had no cell for that key
+- Fix: a bracket group losing the other groups' styles when the selected key carries none of the conflicting properties, because the combination table had no cell for that key
 
 - Split the conflicting-property combination table into connected components, so groups that never override each other no longer multiply into one product
 
@@ -28,7 +28,7 @@
 
 ## 19.1.4 (Sep 13, 2026)
 
-- Fix created style type definitions so editor hovers show their atomic class names, and rename `AtomicDynamicStyle` to `AtomicClassStyle`
+- Fix: created style type definitions so editor hovers show their atomic class names, and rename `AtomicDynamicStyle` to `AtomicClassStyle`
 
 ## 19.1.3 (Sep 12, 2026)
 
@@ -964,7 +964,7 @@ Note: these depths decide how many `:not(#\#)` selectors an atomic class receive
 
 ## 10.1.0 (Apr 5, 2026)
 
-- Fixed the speed of type definition completion
+- Fix: the speed of type definition completion
 
 ## 10.0.8 (Apr 5, 2026)
 
@@ -1046,7 +1046,7 @@ Note: these depths decide how many `:not(#\#)` selectors an atomic class receive
 ## 8.0.1 (Mar 4, 2026)
 
 - Reset timing is now consolidated to when the server is shut down normally
-- Fixed css reset overworking in edge cases eg: when opened in a separate tab
+- Fix: css reset overworking in edge cases eg: when opened in a separate tab
 
 ## 8.0.0 (Mar 4, 2026)
 
@@ -1189,7 +1189,7 @@ Note: these depths decide how many `:not(#\#)` selectors an atomic class receive
 ## 6.3.1 (Jan 16, 2026)
 
 - Variants objects now disappear
-- Fixed issue where keyframes were not inlined in edge cases such as cross-files
+- Fix: issue where keyframes were not inlined in edge cases such as cross-files
 
 ## 6.3.0 (Jan 14, 2026)
 
@@ -1201,7 +1201,7 @@ Note: these depths decide how many `:not(#\#)` selectors an atomic class receive
 
 ## 6.2.0 (Jan 11, 2026)
 
-- Fixed missing hashMap value for styles
+- Fix: missing hashMap value for styles
 - Treat pseudos as atomic, combinators are semantic
 
 ## 6.1.2 (Jan 10, 2026)
@@ -1234,7 +1234,7 @@ Note: these depths decide how many `:not(#\#)` selectors an atomic class receive
 
 ## 5.0.1 (Jan 6, 2026)
 
-- Fixed HMR restoring from the cache table failed.
+- Fix: HMR restoring from the cache table failed.
 
 ## 5.0.0 (Jan 6, 2026)
 
