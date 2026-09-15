@@ -196,18 +196,33 @@ describe('compiler index coverage', () => {
       'App.tsx': `
         import * as css from '@plumeria/core';
         declare const selector: string;
-        css.createTheme(selector, { color: { default: 'red', theme: 'blue' } });
+        const theme = css.createTheme(selector, { color: { default: 'red', theme: 'blue' } });
       `,
     });
 
     expect(() => compile(['App.tsx'])).toThrow(/needs a selector/);
   });
 
-  it('reports an unsupported createTheme call at-rule', () => {
+  // A call that is not assigned cannot be compiled at all, so that is reported
+  // ahead of anything wrong with the selector it was given.
+  it('reports a createTheme call that is not assigned to a variable', () => {
     writeProject({
       'App.tsx': `
         import * as css from '@plumeria/core';
         css.createTheme('@unknown', { color: { default: 'red', theme: 'blue' } });
+      `,
+    });
+
+    expect(() => compile(['App.tsx'])).toThrow(
+      /must be assigned to a named top-level variable/,
+    );
+  });
+
+  it('reports an unsupported createTheme call at-rule', () => {
+    writeProject({
+      'App.tsx': `
+        import * as css from '@plumeria/core';
+        const theme = css.createTheme('@unknown', { color: { default: 'red', theme: 'blue' } });
       `,
     });
 
