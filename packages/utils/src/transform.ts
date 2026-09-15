@@ -2251,62 +2251,118 @@ export const transformSource = async (
       ordered.sort((a, b) => a.order - b.order);
       const dimensions: Dimension[] = ordered.map((o) => o.dimension);
 
-      const joined =
-        dimensions.filter((dim) => dim.type !== 'const').length > 1;
-      dimensions.forEach((dim) => {
-        if (!joined || dim.type !== 'var' || !dim.ownKeys) return;
-        const numbers: Record<string, string> = {};
-        dim.options.forEach((opt, index) => {
-          numbers[String(opt.value)] = String(index);
-          opt.value = String(index);
+      const keysOf = (dim: Dimension) => {
+        const keys = new Set<string>();
+        dim.options.forEach((opt) =>
+          Object.keys(opt.style).forEach((key) => {
+            if (conflictingKeys.has(key)) keys.add(key);
+          }),
+        );
+        return keys;
+      };
+      const dimensionKeys = dimensions.map(keysOf);
+      const parent = dimensions.map((_, index) => index);
+      const find = (index: number): number =>
+        parent[index] === index ? index : (parent[index] = find(parent[index]));
+      const ownerByKey = new Map<string, number>();
+      dimensionKeys.forEach((keys, index) => {
+        keys.forEach((key) => {
+          const owner = ownerByKey.get(key);
+          if (owner === undefined) {
+            ownerByKey.set(key, index);
+            return;
+          }
+          const a = find(owner);
+          const b = find(index);
+          if (a !== b) parent[b] = a;
         });
-        dim.testExpr = `(${JSON.stringify(numbers)}[${dim.testExpr}] || "")`;
+      });
+      const components = new Map<number, number[]>();
+      dimensions.forEach((_, index) => {
+        const root = find(index);
+        const group = components.get(root);
+        if (group) group.push(index);
+        else components.set(root, [index]);
       });
 
-      const results: Record<string, string> = {};
-      const recurse = (
-        dimIndex: number,
-        currentStyle: CSSObject,
-        keyParts: string[],
-      ) => {
-        if (dimIndex >= dimensions.length) {
-          const className = processStyleRecords(currentStyle, stateWeights)
-            .map((r) => r.hash)
-            .join(' ');
-          if (className) results[keyParts.join('__')] = className;
+      const emitComponent = (indexes: number[]) => {
+        const dims = indexes.map((index) => dimensions[index]);
+        const variables = dims.filter((dim) => dim.type !== 'const');
+
+        const joined = variables.length > 1;
+        dims.forEach((dim) => {
+          if (!joined || dim.type !== 'var' || !dim.ownKeys) return;
+          const numbers: Record<string, string> = {};
+          dim.options.forEach((opt, index) => {
+            numbers[String(opt.value)] = String(index);
+            opt.value = String(index);
+          });
+          dim.testExpr = `(${JSON.stringify(numbers)}[${dim.testExpr}] || "")`;
+        });
+
+        const results: Record<string, string> = {};
+        const recurse = (
+          dimIndex: number,
+          currentStyle: CSSObject,
+          keyParts: string[],
+        ) => {
+          if (dimIndex >= dims.length) {
+            const className = processStyleRecords(currentStyle, stateWeights)
+              .map((r) => r.hash)
+              .join(' ');
+            if (className) results[keyParts.join('__')] = className;
+            return;
+          }
+          const dimension = dims[dimIndex];
+          dimension.options.forEach((opt) =>
+            recurse(
+              dimIndex + 1,
+              deepMerge(currentStyle, opt.style),
+              dimension.type === 'const'
+                ? keyParts
+                : [...keyParts, String(opt.value)],
+            ),
+          );
+        };
+        recurse(0, {}, []);
+
+        if (variables.length === 0) {
+          const only = results[''];
+          if (only) classParts.push(JSON.stringify(only));
           return;
         }
-        const dimension = dimensions[dimIndex];
-        dimension.options.forEach((opt) =>
-          recurse(
-            dimIndex + 1,
-            deepMerge(currentStyle, opt.style),
-            dimension.type === 'const'
-              ? keyParts
-              : [...keyParts, String(opt.value)],
-          ),
+
+        const componentKeys = new Set<string>();
+        indexes.forEach((index) =>
+          dimensionKeys[index].forEach((key) => componentKeys.add(key)),
+        );
+        const componentBase: CSSObject = {};
+        Object.entries(baseConflict).forEach(([key, value]) => {
+          if (componentKeys.has(key)) componentBase[key] = value;
+        });
+        const baseConflictClass =
+          Object.keys(componentBase).length > 0
+            ? processStyleRecords(componentBase, stateWeights)
+                .map((r) => r.hash)
+                .join(' ')
+            : '';
+
+        const masterKeyExpr = variables
+          .map((dim) =>
+            dim.type === 'std'
+              ? `(${dim.testExpr} ? "1" : "0")`
+              : dim.testExpr || '""',
+          )
+          .join(' + "__" + ');
+
+        classParts.push(
+          `(${JSON.stringify(results)}[${masterKeyExpr}] || ${baseConflictClass ? JSON.stringify(baseConflictClass) : '""'})`,
         );
       };
-      recurse(0, {}, []);
 
-      const baseConflictClass =
-        Object.keys(baseConflict).length > 0
-          ? processStyleRecords(baseConflict, stateWeights)
-              .map((r) => r.hash)
-              .join(' ')
-          : '';
-      const masterKeyExpr = dimensions
-        .filter((dim) => dim.type !== 'const')
-        .map((dim) =>
-          dim.type === 'std'
-            ? `(${dim.testExpr} ? "1" : "0")`
-            : dim.testExpr || '""',
-        )
-        .join(' + "__" + ');
-
-      classParts.push(
-        `(${JSON.stringify(results)}[${masterKeyExpr || '""'}] || ${baseConflictClass ? JSON.stringify(baseConflictClass) : '""'})`,
-      );
+      [...components.values()]
+        .sort((a, b) => a[0] - b[0])
+        .forEach(emitComponent);
     }
 
     classParts.push(...dynamicClassParts);
