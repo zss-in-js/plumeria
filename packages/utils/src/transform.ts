@@ -2579,22 +2579,26 @@ export const transformSource = async (
       if (node.name.type !== 'Identifier') return;
       const attrName = node.name.value;
 
-      if (attrName !== styleProp) {
-        let compKey: string | null = null;
-        for (const [, val] of jsxOpeningElementMap) {
-          const found = val.attributes
-            .filter((a): a is JSXAttribute => a.type === 'JSXAttribute')
-            .find((a) => a.span.start === node.span.start);
-          if (found) {
-            compKey = val.compKey;
-            break;
-          }
+      let compKey: string | null = null;
+      for (const [, val] of jsxOpeningElementMap) {
+        const found = val.attributes
+          .filter((a): a is JSXAttribute => a.type === 'JSXAttribute')
+          .find((a) => a.span.start === node.span.start);
+        if (found) {
+          compKey = val.compKey;
+          break;
         }
+      }
 
+      const relayed = compKey
+        ? scannedTables.componentPropsTable?.[compKey]?.[attrName]
+        : undefined;
+
+      if (attrName !== styleProp || relayed) {
         if (compKey) {
           if (node.value?.type === 'JSXExpressionContainer')
             assertNoStyleArraySpread(node.value.expression);
-          const list = scannedTables.componentPropsTable?.[compKey]?.[attrName];
+          const list = relayed;
           if (
             list &&
             node.value &&
