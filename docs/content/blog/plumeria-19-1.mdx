@@ -396,6 +396,8 @@ Neither change reaches the stylesheet. A group's atoms are emitted once each how
 
 ## 11. A component's style prop can take the element's name
 
+> **This shipped broken.** The attempt described below decided from a table the call sites themselves filled, so a component forwarding `className` was handed a key it could not read. 19.1.7 through 19.1.9 are affected and 19.1.10 reverts it. [19.2](/blog/plumeria-19-2) reaches the same behaviour by reading what the component declares instead.
+
 A component that accepts a style through a prop applies it to the element it renders, usually under a base of its own. The reference for `StyleProps` writes that prop as `classStyle` — the same name an element takes:
 
 ```tsx
