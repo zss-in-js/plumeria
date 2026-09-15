@@ -1,0 +1,117 @@
+---
+title: 'Plumeria 19.2'
+description: 'Update: a component can take a style through the prop an element takes, decided by what the component declares'
+date: '2026-09-15'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+Plumeria v19.2 lets a component take a style through a prop named the same as the one elements take.
+
+That is the spelling the `StyleProps`, `WithoutProperties` and `StaticStyles` references show, and until now it did not work: the style was resolved at the call site and handed over under a renamed attribute the component never read, so it arrived as nothing. 19.1.7 attempted the same thing and broke three releases doing it. This is the second attempt, and what changed is not the mechanism but where the decision comes from.
+
+---
+
+## The half that already worked
+
+A component that applies a style it received is compiled into a lookup. The key is the style; the value is the classes it resolves to, merged under whatever base the component applies:
+
+```tsx
+const styles = css.create({
+  base: { fontSize: '14px' },
+  tinted: { color: 'teal' },
+});
+
+export function Text({ classStyle }: { classStyle?: css.Style }) {
+  return <span classStyle={[styles.base, classStyle]} />;
+}
+```
+
+**Compiled:**
+```js
+export function Text({ classStyle }) {
+  return <span className={"xbief8v4" + " " + ({"x672n4nd":"xxcejlqg"}[classStyle] || "")} />;
+}
+```
+
+That table is built correctly, and has been all along. A prop of any other name is handed the key it is waiting for:
+
+```js
+<Renamed styleArray={"x672n4nd"} />
+```
+
+Only the prop named the same as the element's was not. It was read as the element's own, resolved on the spot, and renamed:
+
+```js
+<Text className={"xxcejlqg"} />   // before 19.2
+```
+
+`Text` reads `classStyle`, was given `className`, and saw `undefined`. The lookup missed, and the span rendered with its base and nothing else.
+
+## Why the call site cannot decide alone
+
+Two components, written identically at the call site, need opposite treatment:
+
+```tsx
+<Link classStyle={styles.tinted} />   // forwards className to its own element
+<Text classStyle={styles.tinted} />   // reads classStyle and resolves it
+```
+
+`Link` needs the classes. `Text` needs the key. Nothing in either line says which.
+
+19.1.7 decided it from a table of which components had been *passed* a style. That table is filled by call sites — the very thing being classified — so `Link` appeared in it the moment someone wrote `classStyle` on it, and was handed a key it could not read. Every `<Link classStyle={...}>` in this documentation broke, which is what took three releases to surface and revert.
+
+## Decided by what the component declares
+
+19.2 reads the other side. A component that declares a prop is recorded as a receiver for it, from its own parameter list:
+
+```
+Text.tsx-Text   ["classStyle"]
+```
+
+`Link` comes from a dependency, is never scanned, and is therefore absent — so it keeps the element's reading and gets the classes, which is what it needs. No list of exceptions, and nothing to keep up to date.
+
+**Compiled:**
+```js
+<Link href="/blog" className={"xxcejlqg"} />
+<Text classStyle={"x672n4nd"} />
+```
+
+Where a received style is applied does not have to be read. A style taken through a prop is already rejected unless it reaches the style prop or `css.use()`, so a component that declares one and compiles has applied it to one of the two. Both are the same receiver:
+
+```tsx
+export function Chip({ classStyle }: { classStyle?: css.StaticStyles }) {
+  return <span className={css.use(styles.base, classStyle)} />;
+}
+```
+
+A dynamic style travels the same way. The key carries the custom properties with it, and the component spreads them onto the element it renders:
+
+```js
+<Panel classStyle={{ key: "xjbuabpu", vars: { "--x4laf45v-w": "4px" } }} />
+```
+
+## A call site the scan has not seen
+
+The decision rests on the scan having read the component's file. Where it has not, there is no key to hand over, and the call site is read as the element's prop — which is what it compiled to before this release. The styles do not reach the component, exactly as they did not in 19.1, and nothing malformed is emitted. 19.1.7 wrote a raw object into the attribute in that case.
+
+## Upgrading
+
+**From 19.1.** Nothing to do, and nothing to configure. A component taking a style through a prop of its own name is untouched, an element is untouched, and a component the scan does not know keeps the reading it had. What changes is that a component declaring the element's prop name now receives the style instead of losing it, so such an element gains declarations rather than losing any.
+
+If you renamed a prop to work around the loss, the rename is still the clearer spelling and nothing asks you to undo it. If you moved a style to the caller's own element instead, it can move back.
+
+Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1.8 or 19.1.9, which carried the first attempt at this and are superseded by 19.1.10.
+
+---
+
+## Release notes
+
+## 19.2.0 (Sep 15, 2026)
+- Feat: a component can take a style through a prop named the same as the one elements take. The call site is handed the key the component's lookup table is built to resolve, instead of resolving the classes and renaming the attribute to one the component never reads
+- Feat: decide that from the component's own declaration rather than from the call sites that pass to it. A component outside the project is never scanned, so it is absent from the table and keeps the element's reading, which is what one forwarding `className` to its own element needs
+- Fix: fall back to the element's reading for a call site the scan has no entry for, rather than emitting an attribute nothing resolves
