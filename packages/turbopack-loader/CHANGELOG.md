@@ -1,5 +1,18 @@
 # @plumeria/turbopack-loader
 
+## 19.2.0
+
+### Minor Changes
+
+- d14254c: Bump version to 19.2.0
+
+### Patch Changes
+
+- Updated dependencies [d14254c]
+- Updated dependencies [d14254c]
+  - @plumeria/compiler@19.2.0
+  - @plumeria/utils@19.2.0
+
 ## 19.1.10
 
 ### Patch Changes
