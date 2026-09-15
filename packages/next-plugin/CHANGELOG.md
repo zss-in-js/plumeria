@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 19.1.7
+
+### Patch Changes
+
+- dea2ce8: Bump version to 19.1.7
+- Updated dependencies [dea2ce8]
+  - @plumeria/turbopack-loader@19.1.7
+
 ## 19.1.6
 
 ### Patch Changes
