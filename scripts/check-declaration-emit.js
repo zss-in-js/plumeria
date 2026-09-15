@@ -10,7 +10,7 @@ const { execFileSync } = require('child_process');
 // relative import that a consumer could never resolve, and the check passes
 // while the published types do not.
 const root = path.join(__dirname, '..');
-const installed = path.join(root, 'test-e2e/site/node_modules');
+const installed = path.join(root, 'test-e2e/nextjs/node_modules');
 
 const SOURCE = `import * as css from '@plumeria/core';
 
@@ -50,7 +50,7 @@ const TSCONFIG = {
 };
 
 if (!fs.existsSync(installed)) {
-  console.error('✖ declaration emit: test-e2e/site/node_modules is missing');
+  console.error('✖ declaration emit: test-e2e/nextjs/node_modules is missing');
   process.exit(1);
 }
 

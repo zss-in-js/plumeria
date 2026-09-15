@@ -8,7 +8,8 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "site",
+    "nextjs",
+    "vite-react-rsc",
     "plumeria-docs",
     "example-bun",
     "example-esbuild",
