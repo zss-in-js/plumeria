@@ -43,7 +43,17 @@ The 18.5 patches spent four releases closing the paths where a style expression 
 
 10. **A variant table pairs only what collides** — combinations are built per group of colliding properties, and a key that sets none of them no longer drops the other groups.
 
-Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5, section 6, section 7, section 8, section 9, section 10 and [Upgrading](#upgrading) are what is new.
+19.1.7 adds an eleventh and a twelfth. Sections 1 to 5 give a component a type for the style it receives; the transform read the prop carrying that style by its name alone, and the name the reference writes was the one it read as the element's own:
+
+11. **A component's style prop can take the element's name** — the style reaches the component, instead of being resolved at the call site and lost on the way.
+
+12. **An error names the file that failed** — a style read through `import * as` is traced to the file that declared it, even through a file that only re-exports it.
+
+19.1.8 adds a thirteenth, and it closes the last place the two compilers disagreed about what they would accept:
+
+13. **The compiler refuses what the plugins refuse** — a declaration it cannot register, and a dynamic function key handed to `css.use()`, are errors instead of missing rules.
+
+Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; sections 5 through 13 and [Upgrading](#upgrading) are what is new.
 
 ---
 
@@ -384,6 +394,107 @@ const state = css.create({ idle: { opacity: 1 }, muted: { color: 'gray', opacity
 
 Neither change reaches the stylesheet. A group's atoms are emitted once each however the combinations are counted; what shrinks is the lookup in the module.
 
+## 11. A component's style prop can take the element's name
+
+A component that accepts a style through a prop applies it to the element it renders, usually under a base of its own. The reference for `StyleProps` writes that prop as `classStyle` — the same name an element takes:
+
+```tsx
+const s = css.create({
+  base: { color: 'green' },
+  loud: { color: 'crimson', fontWeight: 700 },
+});
+
+const Card = ({ classStyle }: { classStyle?: css.Style }) => (
+  <div classStyle={[s.base, classStyle]} />
+);
+
+export const A = () => <Card classStyle={s.loud} />;
+```
+
+The transform reads a style prop in two ways. On an element it resolves to class names, there and then. On a component it cannot — the styles have to be merged under whatever base that component applies, in the module that declares it — so it emits a key instead, and the component looks the key up in a table built from every style its callers pass.
+
+Which way it went was decided by the attribute's name alone. Anything *not* named `classStyle` took the second path; `classStyle` took the first, whether it sat on a `div` or on a component.
+
+**Compiled before 19.1.7:**
+```js
+export const A = () => <Card className={"xhnqg42x x3brsar4"} />;
+
+const Card = ({ classStyle }) => (
+  <div className={({"xttveuad":"x3brsar4"}[classStyle] || "") + " " + ({"xttveuad":"xhnqg42x"}[classStyle] || "x3git8yv")} />
+);
+```
+
+Both halves are correct on their own. `Card` was given a table keyed `xttveuad`, and the call site was handed the resolved class names under a renamed attribute. `Card` reads `classStyle`, received `className`, and saw `undefined`: the lookup missed, fell through to `x3git8yv`, and the element rendered with its base and nothing else. The two halves were built to meet and never did.
+
+19.1.7 decides by the receiver rather than by the name. A component the scan registered as taking a style through that prop is handed the key:
+
+**Compiled:**
+```js
+export const A = () => <Card classStyle={"xttveuad"} />;
+```
+
+An element is unchanged — nothing registers `div` as taking a style prop, so it still resolves to class names where it stands. A conditional still compiles to a conditional key, and its false branch falls through to the component's base, which is what `on && s.loud` always meant.
+
+## 12. An error names the file that failed
+
+When a style cannot be read at build time, the message worth printing is rarely about the line that could not be read. It is about the file the style came from, which usually failed earlier and for a reason of its own. Both the compiler and the plugins look the origin up and report that instead:
+
+```text
+The style key 1 is a number. Style keys have to be names — quote it as '1' or rename it. (styles.ts)
+```
+
+The lookup starts from the import that bound the name. A namespace import binds the *module*, not one of its exports, so the binding carries a placeholder where an export name would go. One resolver understood the placeholder; the one behind this message did not, and asked for an export literally named `*`.
+
+Directly imported, that still worked — the file in the binding is the file that failed, so the error was found without following anything. Through a file that only re-exports the style, it did not:
+
+```tsx
+import * as imported from './styles';   // a barrel: export { styles } from './card.styles'
+
+<div classStyle={imported.styles.good} />
+```
+
+The lookup stopped at the barrel, which is sound, found no error there, and fell back:
+
+```text
+Dynamic or unresolvable style object "imported.styles.good" is not supported. (app.tsx)
+```
+
+That names the file you are reading and tells you nothing about the one to open. 19.1.7 reads the export from the member that follows the namespace — `styles` — and hands that to the lookup, which then follows the re-export the same way a named import already did. All four combinations of named or namespace, direct or re-exported, now name `card.styles.ts` and the error it raised.
+
+## 13. The compiler refuses what the plugins refuse
+
+`@plumeria/compiler` extracts a project's CSS in one pass, and the Turbopack loader builds its production stylesheet with it. It is a different job from the transform — it decides which rules to emit, not which class names go on an element — but the two have to agree on what a source file is allowed to say.
+
+They did not. Where the plugins raised a build error, the compiler skipped the declaration and carried on:
+
+```tsx
+export default css.create({ a: { color: 'teal' } });
+```
+
+A default-exported call cannot be registered under a name, so nothing could reference it and the compiler emitted nothing for it — no rule, and no reason given. A destructured call behaved the same way, and a call written as a bare statement was reported for whatever was wrong with its selector rather than for not being assigned at all.
+
+The worse one emitted something:
+
+```tsx
+const s = css.create({ box: (w: number) => ({ width: w }) });
+
+export const cls = css.use(s.box(4));
+```
+
+A dynamic style reaches the element as a class name *and* a custom property, which is why `css.use()` — which returns only the class name — has refused one since 18.4.1. The compiler resolved the call anyway and wrote the rule:
+
+```css
+.x2thc9dg { width: var(--x4laf45v-w); }
+```
+
+Nothing on the page ever sets `--x4laf45v-w`, because the element that would have carried it was never told to. The rule is not merely unused; it is unusable, and it shipped.
+
+19.1.8 gives the compiler the same three refusals, with the same wording the plugins use. The same key stays sound where it belongs — on an element, which does carry the property:
+
+```tsx
+<div classStyle={s.box(4)} />   // unchanged
+```
+
 ## Upgrading
 
 **From 18.5.** An inline object in a style prop is a type error. It was already a build error, so a codebase that built on 18.5 still builds — the change is that the editor says it first. Move the object into `css.create` and pass the created style. The prop types are additive: `Style` still accepts every property, and a component that does not need to constrain anything needs no change.
@@ -413,9 +524,23 @@ Before, the export rewrote such a component's call sites to `className` while it
 
 **From 19.1.5.** Nothing to do. Where a `classStyle`'s groups do not collide the class names are unchanged; where they do, the element now gets what the same list written with literal keys always got. If you had kept two bracket groups apart because combining them dropped one of their styles, they can be combined.
 
+**From 19.1.6.** Nothing to do, and nothing to configure. If a component of yours takes its style through a prop named the same as the one elements take, that style now arrives — it was being dropped before, so the element gains declarations rather than losing any. Any other prop name was already working and is untouched. If you had renamed such a prop to work around the loss, or moved the style to the caller's own element, you can put it back. The error messages are the second half: where one used to name the file you were compiling, it now names the file that failed.
+
+**From 19.1.7.** A build that passed may now fail, and that is the point of the release. `@plumeria/compiler` refuses three things the bundler plugins have always refused: a `css.create`, `css.createTheme` or `css.createStatic` call that is not assigned to a named top-level variable, a dynamic function key handed to `css.use()`, and a call written as a bare statement. If only the plugins built your project, nothing changes — you were already being told. If you build with the Turbopack loader, a file the module graph never reached could carry one of these silently; it is now reported, with the same wording the plugins use. Nothing that already compiled emits different CSS.
+
 ---
 
 ## Release notes
+
+## 19.1.8 (Sep 15, 2026)
+- Fix: refuse a `css.create`, `css.createTheme` or `css.createStatic` call that is not assigned to a named top-level variable, instead of skipping the declaration and emitting nothing for it
+- Fix: refuse a dynamic function key handed to `css.use()`, which used to emit a rule reading a custom property that only an element can set, so nothing on the page ever defined it
+- Fix: report a call that is only a statement as one that has to be assigned, ahead of anything wrong with the selector it was given, which is the order the bundler plugins already used
+
+## 19.1.7 (Sep 15, 2026)
+- Fix: hand a component the key for a style passed through a prop named the same as the one elements take, instead of resolving it to class names at the call site and renaming the attribute, which left the component with nothing and dropped the style with no error
+- Fix: name the file that failed rather than the one being compiled, when a style the compiler cannot read came through a namespace import
+- Fix: read the export a namespace binding carries from the member that follows it, so a style imported with `import * as` is traced through a file that only re-exports it
 
 ## 19.1.6 (Sep 15, 2026)
 - Fix: give a bracket group's key a cell in the combination table even when it sets none of the colliding properties, so selecting that key no longer misses the lookup and drops every other group's styles
