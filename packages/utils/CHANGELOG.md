@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 19.1.10
+
+### Patch Changes
+
+- 83c79d5: - Restore `classStyle` compilation at component call sites so generated classes reach components such as Next.js `Link` and Fumadocs code blocks
+
 ## 19.1.9
 
 ### Patch Changes
