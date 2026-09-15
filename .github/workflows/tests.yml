@@ -105,7 +105,7 @@ jobs:
       - name: Export, re-export, and adopt back
         run: |
           pnpm codemod:round-trip docs
-          pnpm codemod:round-trip test-e2e/site
+          pnpm codemod:round-trip test-e2e/nextjs
 
   examples-build:
     runs-on: ubuntu-latest

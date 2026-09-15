@@ -13,7 +13,7 @@ import { test, expect } from '@playwright/test';
 
 const STYLE_FILE = path.join(
   __dirname,
-  '../site/component/hmr-target.styles.ts',
+  '../nextjs/component/hmr-target.styles.ts',
 );
 
 const WITH_BASE_RULE = `import * as css from '@plumeria/core';

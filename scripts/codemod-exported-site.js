@@ -11,7 +11,7 @@ const SKIP = new Set([
   'tsconfig.tsbuildinfo',
 ]);
 const root = path.join(__dirname, '..');
-const source = path.join(root, 'test-e2e/site');
+const source = path.join(root, 'test-e2e/nextjs');
 const target = path.join(root, 'test-e2e/.migrated');
 
 const copy = (from, to) => {
