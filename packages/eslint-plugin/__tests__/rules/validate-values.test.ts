@@ -1327,6 +1327,15 @@ ruleTester.run('validate-values', validateValues, {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { columnRuleWidth: 'thin' } });`,
     },
     {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { outlineWidth: 'thin' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { outlineWidth: '2px' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { outlineWidth: 'calc(1px + 2px)' } });`,
+    },
+    {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { backgroundPositionX: 'left' } });`,
     },
     {
@@ -1344,6 +1353,17 @@ ruleTester.run('validate-values', validateValues, {
   ],
 
   invalid: [
+    // OutlineWidth
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { outlineWidth: '50%' } });`,
+      errors: [
+        {
+          message:
+            "'outlineWidth' has an invalid value '50%'. Valid values: thin, medium, thick",
+        },
+      ],
+    },
+
     // Inline object at second level
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { wrapper: { color: { valueOf() { return 'hello'; } } } } });`,
