@@ -14,6 +14,7 @@ export {
   traverse,
   t,
   getRootIdentifier,
+  resolveOriginError,
   unwrapExpression,
   extractOndemandStyles,
   deepMerge,
