@@ -28,6 +28,7 @@ import {
   traverse,
   t,
   getRootIdentifier,
+  resolveOriginError,
   unwrapExpression,
   extractOndemandStyles,
   deepMerge,
@@ -308,10 +309,7 @@ export const transformSource = async (
           localCreateStyles[rootId].type !== 'constant') ||
           mergedCreateTable[rootId] !== undefined);
       if (!isPlumeriaStyle) {
-        const origin = rootId ? localImports[rootId] : undefined;
-        const failure = origin
-          ? resolveFileError(origin.actualPath, origin.importedName)
-          : undefined;
+        const failure = resolveOriginError(node, rootId, localImports);
         if (failure) {
           throwCompilationError(
             `Plumeria: ${failure.message} (${path.basename(failure.filePath)})`,
