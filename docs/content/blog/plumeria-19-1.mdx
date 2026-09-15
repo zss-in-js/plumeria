@@ -39,7 +39,11 @@ The 18.5 patches spent four releases closing the paths where a style expression 
 
 9. **Clearer created style types** — hovering one shows its atomic class names again.
 
-Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5, section 6, section 7, section 8, section 9 and [Upgrading](#upgrading) are what is new.
+19.1.6 adds a tenth, and it is the first that is about the output rather than the input. Everything above decides what you are allowed to write, or when you are told; this one is about what `styles[key]` turns into once you have written it:
+
+10. **A variant table pairs only what collides** — combinations are built per group of colliding properties, and a key that sets none of them no longer drops the other groups.
+
+Sections 1 to 4 describe what 19.0 shipped and 19.1 keeps; section 5, section 6, section 7, section 8, section 9, section 10 and [Upgrading](#upgrading) are what is new.
 
 ---
 
@@ -338,6 +342,48 @@ Two examples are in the repository: [`example-waku`](https://github.com/zss-in-j
 
 There are no runtime changes. `AtomicDynamicStyle` has been renamed to `AtomicClassStyle`, and the codemod recognizes the new type names.
 
+## 10. A variant table pairs only what collides
+
+`styles[key]` is resolved at build time. Every key of the group is reachable, so the compiler emits a lookup rather than a branch, and the key expression picks from it:
+
+```tsx
+const tone = css.create({ ok: { color: 'green' }, ng: { color: 'red' } });
+
+<div classStyle={tone[t]} />
+```
+
+**Compiled:**
+```js
+({"ok":"x3git8yv","ng":"xq96bg3w"}[t] || "")
+```
+
+Two groups in one list is where a lookup stops being enough. If they set different properties, nothing has to be decided and each keeps its own map. If they set the same one, the later group wins, and the class the element ends up with depends on both keys at once — so the compiler builds a table over the combinations.
+
+19.1 built that table over every group that touched a colliding property, whether or not those groups could collide with *each other*. Four groups — two fighting over `color`, two over `fontSize` — produced a single table of eighty-one entries for a decision that is two independent nine-entry ones.
+
+19.1.6 partitions the groups first. Two groups belong to the same partition when they set a property in common, transitively, and each partition gets its own table:
+
+| `classStyle` | 19.1 | 19.1.6 |
+| --- | --- | --- |
+| two groups over `color`, 3 keys each | 9 entries | 9 entries |
+| the above plus two groups over `fontSize` | 81 entries | 9 + 9 |
+| three such pairs, 2 keys each | 64 entries | 4 + 4 + 4 |
+
+The partitions are transitive because overriding is: a group that sets both `color` and `fontSize` sits between the two pairs above and folds them back into one table, which is the answer that table has to give.
+
+The same table had a hole in it. A group whose selected key sets none of the colliding properties contributed no cell, so the lookup missed and fell through to the empty string — taking every other group's styles with it:
+
+```tsx
+const tone = css.create({ base: { color: 'black' }, danger: { color: 'red' } });
+const state = css.create({ idle: { opacity: 1 }, muted: { color: 'gray', opacity: 0.5 } });
+
+<div classStyle={[tone[t], state[s]]} />
+```
+
+`state.idle` sets no `color`, so `t === 'base' && s === 'idle'` had no entry and the element lost its `color: black` — while the same list written with literal keys, `[tone.base, state.idle]`, kept it. Such a key now contributes a cell that changes nothing, and the two forms agree for every input.
+
+Neither change reaches the stylesheet. A group's atoms are emitted once each however the combinations are counted; what shrinks is the lookup in the module.
+
 ## Upgrading
 
 **From 18.5.** An inline object in a style prop is a type error. It was already a build error, so a codebase that built on 18.5 still builds — the change is that the editor says it first. Move the object into `css.create` and pass the created style. The prop types are additive: `Style` still accepts every property, and a component that does not need to constrain anything needs no change.
@@ -363,9 +409,20 @@ Before, the export rewrote such a component's call sites to `className` while it
 
 **From 19.1.3.** Rename any reference to `AtomicDynamicStyle` to `AtomicClassStyle`. Nothing else changes at runtime.
 
+**From 19.1.4.** Nothing to do. 19.1.5 updates dependencies and changes nothing the packages emit.
+
+**From 19.1.5.** Nothing to do. Where a `classStyle`'s groups do not collide the class names are unchanged; where they do, the element now gets what the same list written with literal keys always got. If you had kept two bracket groups apart because combining them dropped one of their styles, they can be combined.
+
 ---
 
 ## Release notes
+
+## 19.1.6 (Sep 15, 2026)
+- Fix: give a bracket group's key a cell in the combination table even when it sets none of the colliding properties, so selecting that key no longer misses the lookup and drops every other group's styles
+- Perf: partition the groups by the properties they collide over and emit one combination table per partition, instead of one product over every group that touches a colliding property
+
+## 19.1.5 (Sep 14, 2026)
+- Update dependencies
 
 ## 19.1.4 (Sep 13, 2026)
 - Fix created style type definitions so editor hovers show their atomic class names, and rename `AtomicDynamicStyle` to `AtomicClassStyle`
