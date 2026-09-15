@@ -532,16 +532,32 @@ Before, the export rewrote such a component's call sites to `className` while it
 
 ## Release notes
 
+## 19.1.10 (Sep 15, 2026)
+- Fix: revert the 19.1.7 change that attempted to relay a style through a component prop named `classStyle`. This resolves the regression that broke the docs header, code blocks, and other components using `classStyle`
+
 ## 19.1.9 (Sep 15, 2026)
 - Fix: accept a length for `outlineWidth` in `validate-values`. The property was grouped with the border widths for its keywords but left out of the length group, so `thin`, `medium` and `thick` passed while `2px`, `calc()` and every other length was reported as invalid
+
+> **Regression notice:** This release is affected by the `classStyle` regression introduced in 19.1.7. Please use `^19.1.10` or later.
 
 ## 19.1.8 (Sep 15, 2026)
 - Fix: refuse a `css.create`, `css.createTheme` or `css.createStatic` call that is not assigned to a named top-level variable, instead of skipping the declaration and emitting nothing for it
 - Fix: refuse a dynamic function key handed to `css.use()`, which used to emit a rule reading a custom property that only an element can set, so nothing on the page ever defined it
 - Fix: report a call that is only a statement as one that has to be assigned, ahead of anything wrong with the selector it was given, which is the order the bundler plugins already used
 
+> **Regression notice:** This release is affected by the `classStyle` regression introduced in 19.1.7. Please use `^19.1.10` or later.
+
 ## 19.1.7 (Sep 15, 2026)
 - Fix: hand a component the key for a style passed through a prop named the same as the one elements take, instead of resolving it to class names at the call site and renaming the attribute, which left the component with nothing and dropped the style with no error
+
+  > **Regression notice:** Attempting to support this pattern broke the docs header, code blocks, and other components using `classStyle` in versions 19.1.7 through 19.1.9. The change is reverted in 19.1.10. Please use `^19.1.10` or later. I will prevent this from happening again — sorry 🙏
+  >
+  > ```tsx
+  > const Component = ({ classStyle }) => {
+  >   return <div classStyle={classStyle} />;
+  > };
+  > ```
+
 - Fix: name the file that failed rather than the one being compiled, when a style the compiler cannot read came through a namespace import
 - Fix: read the export a namespace binding carries from the member that follows it, so a style imported with `import * as` is traced through a file that only re-exports it
 
