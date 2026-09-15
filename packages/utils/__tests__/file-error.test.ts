@@ -68,6 +68,7 @@ describe('parser: the error a file threw while being scanned', () => {
 
   it.each([
     ['namespace.styles()', true],
+    ['namespace.group.styles', false],
     ['namespace', false],
     ["import('./styles')", false],
   ])('resolves the namespace origin of %s', (source, hasError) => {
