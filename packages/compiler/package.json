@@ -25,7 +25,7 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@plumeria/utils": "workspace:^"
+    "@plumeria/utils": "workspace:*"
   },
   "devDependencies": {
     "@rust-gear/glob": "catalog:",
