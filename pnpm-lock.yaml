@@ -919,7 +919,7 @@ importers:
   packages/compiler:
     dependencies:
       '@plumeria/utils':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../utils
     devDependencies:
       '@rust-gear/glob':
@@ -1052,10 +1052,10 @@ importers:
   packages/inspector:
     devDependencies:
       '@plumeria/core':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../core
       '@plumeria/unplugin':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../unplugin
       '@types/react':
         specifier: 'catalog:'
@@ -1070,7 +1070,7 @@ importers:
   packages/next-plugin:
     dependencies:
       '@plumeria/turbopack-loader':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../turbopack-loader
     devDependencies:
       next:
@@ -1083,10 +1083,10 @@ importers:
   packages/turbopack-loader:
     dependencies:
       '@plumeria/compiler':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../compiler
       '@plumeria/utils':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../utils
     devDependencies:
       zss-engine:
@@ -1096,7 +1096,7 @@ importers:
   packages/unplugin:
     dependencies:
       '@plumeria/utils':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../utils
       '@rollup/pluginutils':
         specifier: ^5.4.0
