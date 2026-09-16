@@ -42,7 +42,7 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@plumeria/turbopack-loader": "workspace:^"
+    "@plumeria/turbopack-loader": "workspace:*"
   },
   "devDependencies": {
     "next": "catalog:",
