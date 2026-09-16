@@ -567,6 +567,8 @@ Before, the export rewrote such a component's call sites to `className` while it
 - Fix: give a bracket group's key a cell in the combination table even when it sets none of the colliding properties, so selecting that key no longer misses the lookup and drops every other group's styles
 - Perf: partition the groups by the properties they collide over and emit one combination table per partition, instead of one product over every group that touches a colliding property
 
+> **Affects earlier releases:** This is not a 19.1 regression. The combination table has built its cells this way since it was introduced on July 30, 2026, so every release before 19.1.6 drops the other groups' styles for a key that sets none of the colliding properties. It fails silently — no error, and no deprecation warning to run into.
+
 ## 19.1.5 (Sep 14, 2026)
 - Update dependencies
 
