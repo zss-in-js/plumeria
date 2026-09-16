@@ -1,5 +1,11 @@
 # Release Notes
 
+## 19.2.1 (Sep 16, 2026)
+
+- Depend on the internal packages by exact version rather than by caret range. `@plumeria/utils` carries the scan tables between the plugins and is not a stable surface; a caret range let an installed plugin float onto a later `utils` whose tables no longer had the shape that plugin reads
+
+- `@plumeria/unplugin` below 18.5.3 reads `variantsHashTable` off the scan result, and 18.5.3 dropped that table. Any of those versions installed today resolves `@plumeria/utils` to 18.5.4 and throws on a table that is no longer there
+
 ## 19.2.0 (Sep 15, 2026)
 
 - A component can take a style through a prop named the same as the one elements take, which is the spelling the `StyleProps`, `WithoutProperties` and `StaticStyles` references show. The call site is handed the key the component's lookup table is built to resolve, instead of resolving the classes and renaming the attribute to one the component never reads
