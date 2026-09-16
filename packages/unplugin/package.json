@@ -97,7 +97,7 @@
     "esm": "tsc --project tsconfig.esm.json && node mjs-extension.ts"
   },
   "dependencies": {
-    "@plumeria/utils": "workspace:^",
+    "@plumeria/utils": "workspace:*",
     "@rollup/pluginutils": "^5.4.0",
     "unplugin": "^3.0.0"
   },
