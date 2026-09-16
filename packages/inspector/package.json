@@ -44,8 +44,8 @@
     "build": "rimraf dist && node scripts/build.js && tsc --emitDeclarationOnly --declarationDir dist"
   },
   "devDependencies": {
-    "@plumeria/core": "workspace:^",
-    "@plumeria/unplugin": "workspace:^",
+    "@plumeria/core": "workspace:*",
+    "@plumeria/unplugin": "workspace:*",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "esbuild": "^0.28.0"
