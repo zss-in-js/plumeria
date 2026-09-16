@@ -1,3 +1,9 @@
+## 19.2.1
+
+### Patch Changes
+
+- fae8ab3: Bump version to 19.2.1
+
 ## 19.2.0
 
 ### Minor Changes
