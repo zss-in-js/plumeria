@@ -16,6 +16,30 @@ That is the spelling the `StyleProps`, `WithoutProperties` and `StaticStyles` re
 
 ---
 
+## An installed plugin no longer follows `@plumeria/utils` forward
+
+19.2.1 changes one thing, and none of it is in the compiler. Every Plumeria package that depends on another one now names an exact version instead of a caret range.
+
+`@plumeria/utils` is not a public surface. It is the seam the bundler packages share — since 19.1.1 the plugin and the Turbopack loader compile a file through the same implementation, and the scan tables travel across that seam. A caret range let a plugin you had already installed resolve `@plumeria/utils` to a version published long after it.
+
+18.5.3 removed the variant tables from the scan result. Every `@plumeria/unplugin`, `@plumeria/compiler` and `@plumeria/turbopack-loader` below that version reads one of them off the result directly, and its caret range resolves `@plumeria/utils` to 18.5.4. Installing one of them today fails before the first file compiles:
+
+```
+TypeError: Cannot convert undefined or null to object
+```
+
+The table it asked for is not there. Nothing in the lockfile changed to cause it; publishing a patch of a different package was enough.
+
+18.0.0 through 18.5.2 of those three packages are deprecated on npm for this. An install that already works is not affected — the resolution it recorded is the one it keeps — but a fresh install of any of them cannot succeed. 18.5.3 and 18.5.4 stopped reading the tables and are unaffected.
+
+Pinning cannot be applied backwards, so the versions published before 19.2.1 keep the ranges they were published with. What it does is end the class of failure going forward: from 19.2.1 on, a Plumeria package can only ever be paired with the `@plumeria/utils` it was released with.
+
+## Two other deprecations
+
+`@plumeria/utils` 19.1.7, 19.1.8 and 19.1.9 are deprecated. They carry the `classStyle` regression described in the [19.1 release notes](/blog/plumeria-19-1), which is reverted in 19.1.10 and solved properly in 19.2.0. The regression is in the transform, so the warning appears on `@plumeria/utils` rather than on the plugin that pulled it in.
+
+There is also a fix worth pointing at that carries no warning at all, because no version of it is deprecated. 19.1.6 gave a bracket group's key a cell in the combination table even when it sets none of the colliding properties; before it, selecting such a key missed the lookup and dropped every other group's styles. That is not a 19.1 regression — the combination table has behaved this way since it was introduced on July 30, 2026, so every release before 19.1.6 is affected. It fails silently, which is why it went unnoticed for six weeks. If you write bracket groups and have seen styles disappear for one combination and not another, this is the one.
+
 ## The half that already worked
 
 A component that applies a style it received is compiled into a lookup. The key is the style; the value is the classes it resolves to, merged under whatever base the component applies:
@@ -110,6 +134,11 @@ Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1
 ---
 
 ## Release notes
+
+## 19.2.1 (Sep 16, 2026)
+- Fix: name an exact version for every dependency on another Plumeria package, instead of a caret range. `@plumeria/utils` carries the scan tables between the bundler packages and is not a stable surface, and a caret range let an already installed plugin resolve it to a version whose tables no longer had the shape that plugin reads
+- Deprecate: `@plumeria/unplugin`, `@plumeria/compiler` and `@plumeria/turbopack-loader` 18.0.0 through 18.5.2 on npm. Each reads a scan table that 18.5.3 removed, and its caret range resolves `@plumeria/utils` to 18.5.4, so a fresh install throws before it compiles anything. 18.5.3 and 18.5.4 are unaffected
+- Deprecate: `@plumeria/utils` 19.1.7, 19.1.8 and 19.1.9 on npm, which carry the `classStyle` regression reverted in 19.1.10
 
 ## 19.2.0 (Sep 15, 2026)
 - Feat: a component can take a style through a prop named the same as the one elements take. The call site is handed the key the component's lookup table is built to resolve, instead of resolving the classes and renaming the attribute to one the component never reads
