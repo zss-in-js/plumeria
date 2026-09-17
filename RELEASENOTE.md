@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.2.3 (Sep 17, 2026)
+
+- Read `svb`, `svi`, `lvb`, `lvi`, `dvb` and `dvi` as a unit the declaration writes itself, the way the rest of their family already was. `vb` and `vi` were read, and so were `svw`, `svh`, `svmin` and `svmax`, but the block and inline axes of the small, large and dynamic viewport were missing from the list: ``height: `${h}dvb` `` still compiled to `height: var(--v)dvb` and was dropped as invalid. No other CSS unit is left out
+
 ## 19.2.2 (Sep 17, 2026)
 
 - Move a unit the declaration writes itself into the value the element sets, instead of leaving it after the variable. ``width: `${pct}%` `` compiled to `width: var(--v)%`, and CSS substitutes a variable as tokens rather than text, so the `%` never joined the number: the declaration was invalid, was dropped, and the element fell back to its unstyled width with nothing reported. It now compiles to `width: var(--v)` with `20%` in the variable. The same applies to a unit written inside `calc()`

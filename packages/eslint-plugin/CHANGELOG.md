@@ -1,3 +1,9 @@
+## 19.2.3
+
+### Patch Changes
+
+- 78cdc59: Bump version to 19.2.3
+
 ## 19.2.2
 
 ### Patch Changes
