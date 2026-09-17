@@ -226,63 +226,46 @@ const writtenUnitAfter = (rest: string): string => {
 
 type VarUnit = { unit: string; written: boolean };
 
-const unitOf = (prop: string, value: string, reference: string): VarUnit => {
-  const at = value.indexOf(reference);
-  const written =
-    at === -1 ? '' : writtenUnitAfter(value.slice(at + reference.length));
+type VarGroup = {
+  cssVar: string;
+  prop: string;
+  unit: string;
+  written: boolean;
+};
+
+const unitAt = (prop: string, rest: string): VarUnit => {
+  const written = writtenUnitAfter(rest);
   if (written) return { unit: written, written: true };
   return { unit: isUnitlessProp(prop) ? '' : 'px', written: false };
 };
 
-const sameUnit = (a: VarUnit, b: VarUnit): boolean =>
-  a.unit === b.unit && a.written === b.written;
+const unitKey = (unit: VarUnit): string =>
+  `${unit.written ? 'written' : 'default'}:${unit.unit}`;
 
-const collectVarProps = (
+const unitSlug = (unit: VarUnit): string =>
+  unit.unit === '%' ? 'percent' : unit.unit || 'unitless';
+
+const rewriteVarOccurrences = (
   style: CSSObject,
   cssVar: string,
-  props: Array<{ prop: string; value: string }>,
-): void => {
-  const reference = `var(${cssVar})`;
-  for (const [prop, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.includes(reference))
-      props.push({ prop, value });
-    else if (value !== null && typeof value === 'object')
-      collectVarProps(value as CSSObject, cssVar, props);
-  }
-};
-
-const retargetVar = (
-  style: CSSObject,
-  cssVar: string,
-  next: string,
-  target: VarUnit,
+  assign: (prop: string, unit: VarUnit) => string,
 ): void => {
   const reference = `var(${cssVar})`;
   for (const [prop, value] of Object.entries(style)) {
     if (typeof value === 'string' && value.includes(reference)) {
-      if (sameUnit(unitOf(prop, value, reference), target))
-        (style as Record<string, unknown>)[prop] = value
-          .split(reference)
-          .join(`var(${next})`);
+      let rewritten = '';
+      let rest = value;
+      let at = rest.indexOf(reference);
+      while (at !== -1) {
+        const after = rest.slice(at + reference.length);
+        const unit = unitAt(prop, after);
+        rewritten += `${rest.slice(0, at)}var(${assign(prop, unit)})`;
+        rest = unit.written ? after.slice(unit.unit.length) : after;
+        at = rest.indexOf(reference);
+      }
+      (style as Record<string, unknown>)[prop] = rewritten + rest;
     } else if (value !== null && typeof value === 'object') {
-      retargetVar(value as CSSObject, cssVar, next, target);
-    }
-  }
-};
-
-const stripWrittenUnit = (
-  style: CSSObject,
-  cssVar: string,
-  unit: string,
-): void => {
-  const reference = `var(${cssVar})`;
-  for (const [prop, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.includes(reference)) {
-      (style as Record<string, unknown>)[prop] = value
-        .split(`${reference}${unit}`)
-        .join(reference);
-    } else if (value !== null && typeof value === 'object') {
-      stripWrittenUnit(value as CSSObject, cssVar, unit);
+      rewriteVarOccurrences(value as CSSObject, cssVar, assign);
     }
   }
 };
@@ -293,31 +276,24 @@ const stripWrittenUnit = (
 export const splitVarByUnit = (
   style: CSSObject,
   cssVar: string,
-): Array<{ cssVar: string; prop: string; unit: string; written: boolean }> => {
-  const reference = `var(${cssVar})`;
-  const props: Array<{ prop: string; value: string }> = [];
-  collectVarProps(style, cssVar, props);
-  if (props.length === 0) return [];
+): VarGroup[] => {
+  const groups = new Map<string, VarGroup>();
+  const taken = new Set<string>();
+  rewriteVarOccurrences(style, cssVar, (prop, unit) => {
+    const key = unitKey(unit);
+    const group = groups.get(key);
+    if (group) return group.cssVar;
 
-  const lead = props[0];
-  const leadUnit = unitOf(lead.prop, lead.value, reference);
-  const split = props.find(
-    (entry) => !sameUnit(unitOf(entry.prop, entry.value, reference), leadUnit),
-  );
-  if (!split) {
-    if (leadUnit.written) stripWrittenUnit(style, cssVar, leadUnit.unit);
-    return [{ cssVar, prop: lead.prop, ...leadUnit }];
-  }
-
-  const splitUnit = unitOf(split.prop, split.value, reference);
-  const splitVar = `${cssVar}-${camelToKebabCase(split.prop).replace(/^-+/, '')}`;
-  retargetVar(style, cssVar, splitVar, splitUnit);
-  if (leadUnit.written) stripWrittenUnit(style, cssVar, leadUnit.unit);
-  if (splitUnit.written) stripWrittenUnit(style, splitVar, splitUnit.unit);
-  return [
-    { cssVar, prop: lead.prop, ...leadUnit },
-    { cssVar: splitVar, prop: split.prop, ...splitUnit },
-  ];
+    let name = cssVar;
+    if (groups.size > 0) {
+      const base = `${cssVar}-${camelToKebabCase(prop).replace(/^-+/, '')}`;
+      name = taken.has(base) ? `${base}-${unitSlug(unit)}` : base;
+    }
+    taken.add(name);
+    groups.set(key, { cssVar: name, prop, ...unit });
+    return name;
+  });
+  return Array.from(groups.values());
 };
 
 export const applyVarFallback = (
