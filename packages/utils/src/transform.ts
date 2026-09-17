@@ -43,11 +43,7 @@ import {
 } from './parser';
 import { getStyleRecords } from './create';
 import type { StyleRecord } from './create';
-import {
-  styleFunctionsOf,
-  isUnitlessProp,
-  resolveDynamicStyle,
-} from './dynamicKey';
+import { styleFunctionsOf, resolveDynamicStyle } from './dynamicKey';
 import type {
   NamedParam,
   StyleFunctions,
@@ -1516,22 +1512,32 @@ export const transformSource = async (
         .toString('utf-8');
       const maybeNumber = Number(argSource);
 
-      groups.forEach(({ cssVar, prop }) => {
+      groups.forEach(({ cssVar, prop, unit, written }) => {
         let valueExpr: string;
         const kebabProp = camelToKebabCase(prop);
-        if (!isNaN(maybeNumber) && argSource.trim() === String(maybeNumber)) {
-          valueExpr = JSON.stringify(applyCssValue(maybeNumber, kebabProp));
-        } else if (
+        const isNumberLiteral =
+          !isNaN(maybeNumber) && argSource.trim() === String(maybeNumber);
+        const isStringLiteral =
           (argSource.startsWith('"') && argSource.endsWith('"')) ||
-          (argSource.startsWith("'") && argSource.endsWith("'"))
-        ) {
+          (argSource.startsWith("'") && argSource.endsWith("'"));
+        if (written) {
+          if (isNumberLiteral) {
+            valueExpr = JSON.stringify(`${maybeNumber}${unit}`);
+          } else if (isStringLiteral) {
+            valueExpr = JSON.stringify(`${argSource.slice(1, -1)}${unit}`);
+          } else {
+            valueExpr = `((${argSource}) + '${unit}')`;
+          }
+        } else if (isNumberLiteral) {
+          valueExpr = JSON.stringify(applyCssValue(maybeNumber, kebabProp));
+        } else if (isStringLiteral) {
           valueExpr = JSON.stringify(
             applyCssValue(argSource.slice(1, -1), kebabProp),
           );
         } else {
-          valueExpr = isUnitlessProp(prop)
-            ? argSource
-            : `(typeof (${argSource}) === 'number' ? (${argSource}) + 'px' : (${argSource}))`;
+          valueExpr = unit
+            ? `(typeof (${argSource}) === 'number' ? (${argSource}) + '${unit}' : (${argSource}))`
+            : argSource;
         }
         vars.push({ cssVar, valueExpr });
       });
