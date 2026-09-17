@@ -16,6 +16,32 @@ That is the spelling the `StyleProps`, `WithoutProperties` and `StaticStyles` re
 
 ---
 
+## A unit the declaration writes itself
+
+A dynamic style can spell its own unit, and that is the natural way to write one:
+
+```tsx
+const styles = css.create({
+  fill: (pct: number = 0) => ({ width: `${pct}%` }),
+});
+```
+
+It compiled to `width: var(--v)%`, and the `%` never reached the number. CSS substitutes a custom property as tokens rather than as text, so the declaration was read as a variable followed by a stray `%`, found invalid, and dropped. The element kept its unstyled width — no error, no warning, and nothing in the sheet that looks wrong. A rating bar written this way rendered at full width.
+
+It now compiles to `width: var(--v)`, and the element sets `--v: 20%`. The unit moves out of the declaration and into the value, which is the only place a variable can carry one. A unit written inside `calc()` moves the same way: `calc(100% - ${gap}px)` compiles to `calc(100% - var(--v))`.
+
+One parameter can land in a declaration that writes the unit and in one that does not, and `4` and `4px` cannot both be the value. Each rule gets its own variable — the split a parameter crossing the unitless rule already got, now made once per unit rather than once per pair:
+
+```tsx
+const styles = css.create({
+  box: (n: number) => ({ width: `${n}px`, margin: `${n}rem`, opacity: n }),
+});
+```
+
+Three units, three variables, one argument read at the call site.
+
+19.2.3 finishes the unit list. `vb` and `vi` were read, and so were `svw`, `svh`, `svmin` and `svmax`, but the block and inline axes of the small, large and dynamic viewport were missing, so a declaration writing `dvb` was still emitted after the variable and dropped. No CSS unit is left out now.
+
 ## An installed plugin no longer follows `@plumeria/utils` forward
 
 19.2.1 changes one thing, and none of it is in the compiler. Every Plumeria package that depends on another one now names an exact version instead of a caret range.
@@ -134,6 +160,13 @@ Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1
 ---
 
 ## Release notes
+
+## 19.2.3 (Sep 17, 2026)
+- Fix: read `svb`, `svi`, `lvb`, `lvi`, `dvb` and `dvi` as a unit the declaration writes itself, the way the rest of their family already was. The block and inline axes of the small, large and dynamic viewport were missing from the unit list, so a declaration writing one of them was still emitted after the variable and dropped as invalid
+
+## 19.2.2 (Sep 17, 2026)
+- Fix: move a unit the declaration writes itself into the value the element sets, instead of leaving it after the variable. `width: ${pct}%` compiled to `width: var(--v)%`, and CSS substitutes a variable as tokens rather than text, so the `%` never joined the number: the declaration was invalid, was dropped, and the element fell back to its unstyled width with nothing reported. The same applies to a unit written inside `calc()`
+- Fix: split the variable when one parameter lands both in a declaration that writes the unit and in one that does not, the way a parameter crossing the unitless rule was already split
 
 ## 19.2.1 (Sep 16, 2026)
 - Fix: name an exact version for every dependency on another Plumeria package, instead of a caret range. `@plumeria/utils` carries the scan tables between the bundler packages and is not a stable surface, and a caret range let an already installed plugin resolve it to a version whose tables no longer had the shape that plugin reads
