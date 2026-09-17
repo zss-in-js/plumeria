@@ -410,7 +410,7 @@ export const Button = ({ children }: { children: React.ReactNode }) => {
 
 ### Pattern 2: Passing a `Style` prop
 
-`classStyle` itself is compiled away at the call site, so it cannot be used as a prop name on a custom component. Instead, define a custom prop (e.g. `styleArray`) typed as `css.Style`. The compiler statically traces it across component boundaries and resolves it into the internal element's `classStyle`. Composing as `[styles.text, styleArray]` lets call-site styles override the component's base styles (right-wins — see Core Usage): below, the call site's `fontSize: '24px'` overrides the internal `fontSize: '12px'`.
+A component takes a style through a prop typed as `css.Style`, named either `classStyle` itself or anything else (e.g. `styleArray`). The compiler reads the component's own parameter list: a prop the component declares is handed the key its lookup table resolves, rather than the class names an element would receive, so the style is traced across the component boundary and applied by the internal element's `classStyle`. A component the build never scans — one from a dependency — declares nothing the compiler can read, so a `classStyle` written on it is still resolved to class names at the call site, which is what a component forwarding `className` to its own element needs. Composing as `[styles.text, styleArray]` lets call-site styles override the component's base styles (right-wins — see Core Usage): below, the call site's `fontSize: '24px'` overrides the internal `fontSize: '12px'`.
 
 ```tsx
 // --- Button.tsx ---
