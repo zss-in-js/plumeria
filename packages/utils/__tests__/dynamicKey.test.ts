@@ -277,6 +277,49 @@ describe('a unit written after the variable', () => {
     expect(style.marginTop).toBe('var(--size-margin-top)');
   });
 
+  test('gives every unit its own variable, not just the first two', () => {
+    const style = {
+      width: 'var(--size)px',
+      margin: 'var(--size)rem',
+      translate: 'var(--size)%',
+      opacity: 'var(--size)',
+    };
+    expect(splitVarByUnit(style, '--size')).toEqual([
+      { cssVar: '--size', prop: 'width', unit: 'px', written: true },
+      { cssVar: '--size-margin', prop: 'margin', unit: 'rem', written: true },
+      {
+        cssVar: '--size-translate',
+        prop: 'translate',
+        unit: '%',
+        written: true,
+      },
+      { cssVar: '--size-opacity', prop: 'opacity', unit: '', written: false },
+    ]);
+    expect(style).toEqual({
+      width: 'var(--size)',
+      margin: 'var(--size-margin)',
+      translate: 'var(--size-translate)',
+      opacity: 'var(--size-opacity)',
+    });
+  });
+
+  test('reads every occurrence in one declaration, not only the first', () => {
+    const style = { width: 'calc(var(--size)px + var(--size)%)' };
+    expect(splitVarByUnit(style, '--size')).toEqual([
+      { cssVar: '--size', prop: 'width', unit: 'px', written: true },
+      { cssVar: '--size-width', prop: 'width', unit: '%', written: true },
+    ]);
+    expect(style.width).toBe('calc(var(--size) + var(--size-width))');
+  });
+
+  test('keeps one variable when the occurrences share a unit', () => {
+    const style = { padding: 'var(--size)px var(--size)px' };
+    expect(splitVarByUnit(style, '--size')).toEqual([
+      { cssVar: '--size', prop: 'padding', unit: 'px', written: true },
+    ]);
+    expect(style.padding).toBe('var(--size) var(--size)');
+  });
+
   test('writes the fallback under the same rule', () => {
     const style = { width: 'var(--size)', marginTop: 'var(--other)%' };
     const [width] = splitVarByUnit(style, '--size');
