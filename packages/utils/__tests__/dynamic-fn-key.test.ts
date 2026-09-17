@@ -42,7 +42,10 @@ export const importedStyles = css.create({
 `,
 );
 
-const run = (code: string, name: string): Promise<{ code: string }> => {
+const run = (
+  code: string,
+  name: string,
+): Promise<{ code: string; sheets: string[] }> => {
   const file = path.join(DIR, name);
   fs.writeFileSync(file, code);
   return transformSource(env(code, file));
@@ -478,5 +481,119 @@ export const J = (p: any) => <div classStyle={s.named(p.c)} />;`,
       'e.tsx',
     );
     expect(code).toContain('styleArray={({"color":"xq96bg3w"})}');
+  });
+});
+
+describe('a unit the declaration already spells out', () => {
+  const styleOf = (code: string) => code.match(/style=\{\{[^\n]*?\}\}/)?.[0];
+
+  it('moves the unit into the value the element sets', async () => {
+    const { code, sheets } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ fill: (pct: number) => ({ width: \`\${pct}%\` }) });
+export const A = ({ r }: { r: number }) => <div classStyle={s.fill(r)} />;`,
+      'unit-percent.tsx',
+    );
+    expect(sheets.join('')).toMatch(/width: var\(--[a-z0-9-]+\);/);
+    expect(styleOf(code)).toMatch(/"--[a-z0-9-]+": \(\(r\) \+ '%'\)/);
+  });
+
+  it('moves a unit written as px the same way', async () => {
+    const { code, sheets } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ box: (w: number) => ({ width: \`\${w}px\` }) });
+export const A = ({ r }: { r: number }) => <div classStyle={s.box(r)} />;`,
+      'unit-px.tsx',
+    );
+    expect(sheets.join('')).toMatch(/width: var\(--[a-z0-9-]+\);/);
+    expect(styleOf(code)).toMatch(/"--[a-z0-9-]+": \(\(r\) \+ 'px'\)/);
+  });
+
+  it('moves a unit written inside calc', async () => {
+    const { code, sheets } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ box: (w: number) => ({ width: \`calc(100% - \${w}px)\` }) });
+export const A = ({ r }: { r: number }) => <div classStyle={s.box(r)} />;`,
+      'unit-calc-suffix.tsx',
+    );
+    expect(sheets.join('')).toMatch(
+      /width: calc\(100% - var\(--[a-z0-9-]+\)\);/,
+    );
+    expect(styleOf(code)).toMatch(/"--[a-z0-9-]+": \(\(r\) \+ 'px'\)/);
+  });
+
+  it('still carries the unit when the declaration writes none', async () => {
+    const bare = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ box: (w: number) => ({ width: w }) });
+export const A = ({ r }: { r: number }) => <div classStyle={s.box(r)} />;`,
+      'unit-bare.tsx',
+    );
+    const inCalc = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ box: (w: number) => ({ width: \`calc(\${w} * 2)\` }) });
+export const A = ({ r }: { r: number }) => <div classStyle={s.box(r)} />;`,
+      'unit-calc-factor.tsx',
+    );
+    expect(bare.sheets.join('')).toMatch(/width: var\(--[a-z0-9-]+\);/);
+    expect(bare.code).toContain("+ 'px'");
+    expect(inCalc.sheets.join('')).toMatch(
+      /width: calc\(var\(--[a-z0-9-]+\) \* 2\);/,
+    );
+    expect(inCalc.code).toContain("+ 'px'");
+  });
+
+  it('writes the default into the sheet with the unit', async () => {
+    const { sheets } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ fill: (pct: number = 0) => ({ width: \`\${pct}%\` }) });
+export const A = ({ r }: { r: number }) => <div classStyle={s.fill(r)} />;`,
+      'unit-default.tsx',
+    );
+    expect(sheets.join('')).toMatch(/width: var\(--[a-z0-9-]+, 0%\);/);
+  });
+
+  it('resolves the rating bar a benchmark lane reported as full width', async () => {
+    const { code, sheets } = await run(
+      `import * as css from '@plumeria/core';
+const styles = css.create({
+  ratingFill: { height: '100%', backgroundColor: '#fbbf24' },
+  fillW: (pct: number = 0) => ({ width: \`\${pct}%\` }),
+});
+export const Bar = ({ p }: { p: { rating: number } }) => (
+  <div classStyle={[styles.ratingFill, styles.fillW((p.rating / 5) * 100)]} />
+);`,
+      'unit-rating-bar.tsx',
+    );
+    expect(sheets.join('')).toMatch(/width: var\(--[a-z0-9-]+, 0%\);/);
+    expect(styleOf(code)).toMatch(
+      /"--[a-z0-9-]+": \(\(\(p\.rating \/ 5\) \* 100\) \+ '%'\)/,
+    );
+  });
+
+  it('writes a literal argument with the unit', async () => {
+    const { code } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ fill: (pct: number) => ({ width: \`\${pct}%\` }) });
+export const A = () => <div classStyle={s.fill(40)} />;`,
+      'unit-literal.tsx',
+    );
+    expect(styleOf(code)).toMatch(/"--[a-z0-9-]+": "40%"/);
+  });
+
+  it('splits one parameter that lands in declarations with different units', async () => {
+    const { code, sheets } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ box: (w: number) => ({ width: w, marginTop: \`\${w}%\` }) });
+export const A = ({ r }: { r: number }) => <div classStyle={s.box(r)} />;`,
+      'unit-split.tsx',
+    );
+    const css = sheets.join('');
+    expect(css).toMatch(/width: var\(--[a-z0-9-]+\);/);
+    expect(css).toMatch(/margin-top: var\(--[a-z0-9-]+-margin-top\);/);
+    expect(styleOf(code)).toContain("+ 'px'");
+    expect(styleOf(code)).toMatch(
+      /"--[a-z0-9-]+-margin-top": \(\(r\) \+ '%'\)/,
+    );
   });
 });
