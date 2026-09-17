@@ -581,6 +581,36 @@ export const A = () => <div classStyle={s.fill(40)} />;`,
     expect(styleOf(code)).toMatch(/"--[a-z0-9-]+": "40%"/);
   });
 
+  it('gives a parameter used in three units three variables', async () => {
+    const { code, sheets } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({
+  k: (n: number) => ({ width: \`\${n}px\`, margin: \`\${n}rem\`, translate: \`\${n}%\` }),
+});
+export const A = ({ r }: { r: number }) => <div classStyle={s.k(r)} />;`,
+      'unit-three.tsx',
+    );
+    const css = sheets.join('');
+    expect(css).toMatch(/width: var\(--[a-z0-9-]+\);/);
+    expect(css).toMatch(/margin: var\(--[a-z0-9-]+-margin\);/);
+    expect(css).toMatch(/translate: var\(--[a-z0-9-]+-translate\);/);
+    expect(styleOf(code)).toMatch(/"--[a-z0-9-]+-margin": \(\(r\) \+ 'rem'\)/);
+    expect(styleOf(code)).toMatch(/"--[a-z0-9-]+-translate": \(\(r\) \+ '%'\)/);
+  });
+
+  it('gives two units in one declaration their own variables', async () => {
+    const { code, sheets } = await run(
+      `import * as css from '@plumeria/core';
+const s = css.create({ k: (n: number) => ({ width: \`calc(\${n}px + \${n}%)\` }) });
+export const A = ({ r }: { r: number }) => <div classStyle={s.k(r)} />;`,
+      'unit-two-in-one.tsx',
+    );
+    expect(sheets.join('')).toMatch(
+      /width: calc\(var\(--[a-z0-9-]+\) \+ var\(--[a-z0-9-]+-width\)\);/,
+    );
+    expect(styleOf(code)).toMatch(/"--[a-z0-9-]+-width": \(\(r\) \+ '%'\)/);
+  });
+
   it('splits one parameter that lands in declarations with different units', async () => {
     const { code, sheets } = await run(
       `import * as css from '@plumeria/core';
