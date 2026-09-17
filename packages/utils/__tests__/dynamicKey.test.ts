@@ -109,7 +109,9 @@ describe('CSS variable unit rules', () => {
     ).toEqual([]);
     expect(
       splitVarByUnit({ width: 'var(--size)', height: 'var(--size)' }, '--size'),
-    ).toEqual([{ cssVar: '--size', prop: 'width' }]);
+    ).toEqual([
+      { cssVar: '--size', prop: 'width', unit: 'px', written: false },
+    ]);
   });
 
   test('splits nested declarations by units and replaces every occurrence', () => {
@@ -125,8 +127,8 @@ describe('CSS variable unit rules', () => {
       other: null as unknown as CSSValue,
     };
     expect(splitVarByUnit(style, '--size')).toEqual([
-      { cssVar: '--size', prop: 'width' },
-      { cssVar: '--size-opacity', prop: 'opacity' },
+      { cssVar: '--size', prop: 'width', unit: 'px', written: false },
+      { cssVar: '--size-opacity', prop: 'opacity', unit: '', written: false },
     ]);
     expect(style[':hover']).toEqual({
       opacity: 'calc(var(--size-opacity) + var(--size-opacity))',
@@ -134,8 +136,8 @@ describe('CSS variable unit rules', () => {
       color: 'red',
       nested: { '--custom': 'var(--size-opacity)' },
     });
-    applyVarFallback(style, '--size', 4);
-    applyVarFallback(style, '--size-opacity', 4);
+    applyVarFallback(style, '--size', 4, { unit: 'px', written: false });
+    applyVarFallback(style, '--size-opacity', 4, { unit: '', written: false });
     expect(style.width).toBe('var(--size, 4px)');
     expect(style[':hover'].opacity).toBe(
       'calc(var(--size-opacity, 4) + var(--size-opacity, 4))',
@@ -145,6 +147,8 @@ describe('CSS variable unit rules', () => {
     expect(splitVarByUnit(reverse, '--x')[1]).toEqual({
       cssVar: '--x-margin-top',
       prop: 'marginTop',
+      unit: 'px',
+      written: false,
     });
   });
 });
@@ -224,5 +228,62 @@ describe('resolveDynamicStyle', () => {
     expect(result.style.color).toBe(
       `var(${result.varGroups.get('color')![0].cssVar}, red)`,
     );
+  });
+});
+
+describe('a unit written after the variable', () => {
+  test.each([
+    ['%', 'var(--size)%', '%'],
+    ['px', 'var(--size)px', 'px'],
+    ['ms', 'var(--size)ms', 'ms'],
+    ['inside calc', 'calc(100% - var(--size)px)', 'px'],
+    ['a container unit', 'var(--size)cqmin', 'cqmin'],
+    ['a flex unit', 'var(--size)fr', 'fr'],
+  ])('moves it into the value: %s', (_name, value, unit) => {
+    const style = { width: value };
+    expect(splitVarByUnit(style, '--size')).toEqual([
+      { cssVar: '--size', prop: 'width', unit, written: true },
+    ]);
+    expect(style.width).toBe(
+      value.replace(`var(--size)${unit}`, 'var(--size)'),
+    );
+  });
+
+  test.each([
+    ['nothing follows', 'var(--size)'],
+    ['a factor follows', 'calc(var(--size) * 2)'],
+    ['a word follows', 'var(--size)solid'],
+    ['a word starting with a unit follows', 'var(--size)pxfoo'],
+    ['a digit follows the unit', 'var(--size)q2'],
+  ])('leaves the declaration alone: %s', (_name, value) => {
+    const style = { width: value };
+    expect(splitVarByUnit(style, '--size')).toEqual([
+      { cssVar: '--size', prop: 'width', unit: 'px', written: false },
+    ]);
+    expect(style.width).toBe(value);
+  });
+
+  test('splits a parameter that both spells the unit out and does not', () => {
+    const style = { width: 'var(--size)', marginTop: 'var(--size)%' };
+    expect(splitVarByUnit(style, '--size')).toEqual([
+      { cssVar: '--size', prop: 'width', unit: 'px', written: false },
+      {
+        cssVar: '--size-margin-top',
+        prop: 'marginTop',
+        unit: '%',
+        written: true,
+      },
+    ]);
+    expect(style.marginTop).toBe('var(--size-margin-top)');
+  });
+
+  test('writes the fallback under the same rule', () => {
+    const style = { width: 'var(--size)', marginTop: 'var(--other)%' };
+    const [width] = splitVarByUnit(style, '--size');
+    const [marginTop] = splitVarByUnit(style, '--other');
+    applyVarFallback(style, width.cssVar, 4, width);
+    applyVarFallback(style, marginTop.cssVar, 4, marginTop);
+    expect(style.width).toBe('var(--size, 4px)');
+    expect(style.marginTop).toBe('var(--other, 4%)');
   });
 });
