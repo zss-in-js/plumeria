@@ -143,15 +143,109 @@ export const styleFunctionsOf = (objExpr: ObjectExpression): StyleFunctions => {
 export const isUnitlessProp = (prop: string): boolean =>
   exceptionCamelCase.includes(prop) || prop.startsWith('--');
 
+const cssUnits = [
+  // AbsoluteCSSUnit
+  'px',
+  'cm',
+  'mm',
+  'q',
+  'in',
+  'pc',
+  'pt',
+  // LocalFontRelativeCSSUnit
+  'cap',
+  'ch',
+  'em',
+  'ex',
+  'ic',
+  'lh',
+  // RootFontRelativeCSSUnit
+  'rcap',
+  'rch',
+  'rem',
+  'rex',
+  'ric',
+  'rlh',
+  // ViewportCSSUnit
+  'vh',
+  'vw',
+  'vmin',
+  'vmax',
+  'vb',
+  'vi',
+  // RespectCSSUnit
+  'svw',
+  'svh',
+  'svmin',
+  'svmax',
+  'lvw',
+  'lvh',
+  'lvmin',
+  'lvmax',
+  'dvw',
+  'dvh',
+  'dvmin',
+  'dvmax',
+  // ContainerCSSUnit
+  'cqw',
+  'cqh',
+  'cqi',
+  'cqb',
+  'cqmin',
+  'cqmax',
+  // AngleCSSUnit
+  'deg',
+  'grad',
+  'rad',
+  'turn',
+  // TimeCSSUnit
+  's',
+  'ms',
+  // FrequencyCSSUnit
+  'hz',
+  'khz',
+  // ResolutionCSSUnit
+  'dpi',
+  'dpcm',
+  'dppx',
+  'x',
+  // FlexCSSUnit
+  'fr',
+];
+
+const UNIT_TOKEN = /^(%|[a-z]+[a-z0-9-]*)/i;
+
+const unitSet = new Set(cssUnits);
+
+const writtenUnitAfter = (rest: string): string => {
+  const token = UNIT_TOKEN.exec(rest)?.[0];
+  if (token === undefined) return '';
+  if (token === '%') return token;
+  return unitSet.has(token.toLowerCase()) ? token : '';
+};
+
+type VarUnit = { unit: string; written: boolean };
+
+const unitOf = (prop: string, value: string, reference: string): VarUnit => {
+  const at = value.indexOf(reference);
+  const written =
+    at === -1 ? '' : writtenUnitAfter(value.slice(at + reference.length));
+  if (written) return { unit: written, written: true };
+  return { unit: isUnitlessProp(prop) ? '' : 'px', written: false };
+};
+
+const sameUnit = (a: VarUnit, b: VarUnit): boolean =>
+  a.unit === b.unit && a.written === b.written;
+
 const collectVarProps = (
   style: CSSObject,
   cssVar: string,
-  props: string[],
+  props: Array<{ prop: string; value: string }>,
 ): void => {
   const reference = `var(${cssVar})`;
   for (const [prop, value] of Object.entries(style)) {
     if (typeof value === 'string' && value.includes(reference))
-      props.push(prop);
+      props.push({ prop, value });
     else if (value !== null && typeof value === 'object')
       collectVarProps(value as CSSObject, cssVar, props);
   }
@@ -161,17 +255,34 @@ const retargetVar = (
   style: CSSObject,
   cssVar: string,
   next: string,
-  unitless: boolean,
+  target: VarUnit,
 ): void => {
   const reference = `var(${cssVar})`;
   for (const [prop, value] of Object.entries(style)) {
     if (typeof value === 'string' && value.includes(reference)) {
-      if (isUnitlessProp(prop) === unitless)
+      if (sameUnit(unitOf(prop, value, reference), target))
         (style as Record<string, unknown>)[prop] = value
           .split(reference)
           .join(`var(${next})`);
     } else if (value !== null && typeof value === 'object') {
-      retargetVar(value as CSSObject, cssVar, next, unitless);
+      retargetVar(value as CSSObject, cssVar, next, target);
+    }
+  }
+};
+
+const stripWrittenUnit = (
+  style: CSSObject,
+  cssVar: string,
+  unit: string,
+): void => {
+  const reference = `var(${cssVar})`;
+  for (const [prop, value] of Object.entries(style)) {
+    if (typeof value === 'string' && value.includes(reference)) {
+      (style as Record<string, unknown>)[prop] = value
+        .split(`${reference}${unit}`)
+        .join(reference);
+    } else if (value !== null && typeof value === 'object') {
+      stripWrittenUnit(value as CSSObject, cssVar, unit);
     }
   }
 };
@@ -182,22 +293,30 @@ const retargetVar = (
 export const splitVarByUnit = (
   style: CSSObject,
   cssVar: string,
-): Array<{ cssVar: string; prop: string }> => {
-  const props: string[] = [];
+): Array<{ cssVar: string; prop: string; unit: string; written: boolean }> => {
+  const reference = `var(${cssVar})`;
+  const props: Array<{ prop: string; value: string }> = [];
   collectVarProps(style, cssVar, props);
   if (props.length === 0) return [];
 
   const lead = props[0];
+  const leadUnit = unitOf(lead.prop, lead.value, reference);
   const split = props.find(
-    (prop) => isUnitlessProp(prop) !== isUnitlessProp(lead),
+    (entry) => !sameUnit(unitOf(entry.prop, entry.value, reference), leadUnit),
   );
-  if (!split) return [{ cssVar, prop: lead }];
+  if (!split) {
+    if (leadUnit.written) stripWrittenUnit(style, cssVar, leadUnit.unit);
+    return [{ cssVar, prop: lead.prop, ...leadUnit }];
+  }
 
-  const splitVar = `${cssVar}-${camelToKebabCase(split).replace(/^-+/, '')}`;
-  retargetVar(style, cssVar, splitVar, isUnitlessProp(split));
+  const splitUnit = unitOf(split.prop, split.value, reference);
+  const splitVar = `${cssVar}-${camelToKebabCase(split.prop).replace(/^-+/, '')}`;
+  retargetVar(style, cssVar, splitVar, splitUnit);
+  if (leadUnit.written) stripWrittenUnit(style, cssVar, leadUnit.unit);
+  if (splitUnit.written) stripWrittenUnit(style, splitVar, splitUnit.unit);
   return [
-    { cssVar, prop: lead },
-    { cssVar: splitVar, prop: split },
+    { cssVar, prop: lead.prop, ...leadUnit },
+    { cssVar: splitVar, prop: split.prop, ...splitUnit },
   ];
 };
 
@@ -205,17 +324,19 @@ export const applyVarFallback = (
   style: CSSObject,
   cssVar: string,
   literal: string | number,
+  unit: VarUnit,
 ): void => {
   const reference = `var(${cssVar})`;
   for (const [prop, value] of Object.entries(style)) {
     if (typeof value === 'string' && value.includes(reference)) {
+      const fallback = unit.written
+        ? `${literal}${unit.unit}`
+        : applyCssValue(literal, camelToKebabCase(prop));
       (style as Record<string, unknown>)[prop] = value
         .split(reference)
-        .join(
-          `var(${cssVar}, ${applyCssValue(literal, camelToKebabCase(prop))})`,
-        );
+        .join(`var(${cssVar}, ${fallback})`);
     } else if (value !== null && typeof value === 'object') {
-      applyVarFallback(value as CSSObject, cssVar, literal);
+      applyVarFallback(value as CSSObject, cssVar, literal, unit);
     }
   }
 };
@@ -232,7 +353,10 @@ export type DynamicStyleTables = {
 
 export type DynamicStyleResult = {
   style: CSSObject;
-  varGroups: Map<string, Array<{ cssVar: string; prop: string }>>;
+  varGroups: Map<
+    string,
+    Array<{ cssVar: string; prop: string; unit: string; written: boolean }>
+  >;
 };
 
 // The class a dynamic key resolves to is decided by which parameters reach the
@@ -288,7 +412,10 @@ export const resolveDynamicStyle = (
 
   const style = resolveBody();
 
-  const varGroups = new Map<string, Array<{ cssVar: string; prop: string }>>();
+  const varGroups = new Map<
+    string,
+    Array<{ cssVar: string; prop: string; unit: string; written: boolean }>
+  >();
   varParams.forEach((param) => {
     const cssVar = cssVars[param];
     varGroups.set(param, splitVarByUnit(style, cssVar));
@@ -325,7 +452,9 @@ export const resolveDynamicStyle = (
     if (typeof literal !== 'string' && typeof literal !== 'number') return;
     varGroups
       .get(param)!
-      .forEach(({ cssVar }) => applyVarFallback(style, cssVar, literal));
+      .forEach(({ cssVar, unit, written }) =>
+        applyVarFallback(style, cssVar, literal, { unit, written }),
+      );
   });
 
   return { style, varGroups };
