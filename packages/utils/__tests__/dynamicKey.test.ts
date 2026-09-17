@@ -249,6 +249,17 @@ describe('a unit written after the variable', () => {
     );
   });
 
+  test.each(['vb', 'vi', 'svb', 'svi', 'lvb', 'lvi', 'dvb', 'dvi'])(
+    'reads a block or inline viewport unit like the rest of its family: %s',
+    (unit) => {
+      const style = { width: `var(--size)${unit}` };
+      expect(splitVarByUnit(style, '--size')).toEqual([
+        { cssVar: '--size', prop: 'width', unit, written: true },
+      ]);
+      expect(style.width).toBe('var(--size)');
+    },
+  );
+
   test.each([
     ['nothing follows', 'var(--size)'],
     ['a factor follows', 'calc(var(--size) * 2)'],
