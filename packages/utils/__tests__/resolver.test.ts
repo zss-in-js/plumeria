@@ -74,6 +74,58 @@ describe('resolver', () => {
     });
   });
 
+  describe('specifiers written for NodeNext', () => {
+    it.each([
+      ['./styles.js', 'app/styles.ts'],
+      ['./styles.js', 'app/styles.tsx'],
+      ['./styles.jsx', 'app/styles.tsx'],
+    ])('should read %s as %s', (specifier, file) => {
+      const dir = project({ 'app/page.ts': SOURCE, [file]: SOURCE });
+      const { resolveImportPath } = load(dir);
+
+      expect(resolveImportPath(specifier, path.join(dir, 'app/page.ts'))).toBe(
+        path.join(dir, file),
+      );
+    });
+
+    it('should prefer the file written on disk over the rewrite', () => {
+      const dir = project({
+        'app/page.ts': SOURCE,
+        'app/styles.js': SOURCE,
+        'app/styles.ts': SOURCE,
+      });
+      const { resolveImportPath } = load(dir);
+
+      expect(
+        resolveImportPath('./styles.js', path.join(dir, 'app/page.ts')),
+      ).toBe(path.join(dir, 'app/styles.js'));
+    });
+
+    it('should leave a specifier that answers no rewrite alone', () => {
+      const dir = project({ 'app/page.ts': SOURCE, 'app/styles.tsx': SOURCE });
+      const { resolveImportPath } = load(dir);
+
+      expect(
+        resolveImportPath('./styles.mjs', path.join(dir, 'app/page.ts')),
+      ).toBeNull();
+    });
+
+    it('should read an aliased specifier as its source file', () => {
+      const dir = project({
+        'tsconfig.json': JSON.stringify({
+          compilerOptions: { paths: { '@/*': ['./src/*'] } },
+        }),
+        'app/page.ts': SOURCE,
+        'src/styles.ts': SOURCE,
+      });
+      const { resolveImportPath } = load(dir);
+
+      expect(
+        resolveImportPath('@/styles.js', path.join(dir, 'app/page.ts')),
+      ).toBe(path.join(dir, 'src/styles.ts'));
+    });
+  });
+
   describe('resetImportResolutionCache', () => {
     it('loads paths relative to the requested config directory', () => {
       const dir = project({
