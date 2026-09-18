@@ -161,6 +161,11 @@ Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1
 
 ## Release notes
 
+## 19.2.4 (Sep 18, 2026)
+- Fix: resolve a `paths` alias from the `tsconfig.json` as it is actually written. The file was read as strict JSON, from the root config alone, so a config carrying comments or a trailing comma, one saved with a byte order mark, one inheriting `paths` through `extends`, and the scaffolded pair that keeps its real config under `references` each left the alias resolving to nothing. Nothing reported it: a `keyframes` or a `create` imported under such an alias was left out of the sheet and the element lost the class, while the build passed. An inherited substitution is anchored to the config that declares it, the way `tsc` anchors it
+- Fix: match the longest alias prefix rather than the first one written. Where `@/*` and `@/lib/*` are both declared, `@/lib/button` was taken under `@/*`, so a file that happened to sit at that path was compiled in place of the real one
+- Fix: keep reading a substitution that is neither relative nor written under a `baseUrl`. `tsc` rejects one, but the resolver has always taken it, so a project that compiles its styles without ever running `tsc` resolves as it did. `baseUrl` itself stays unread: it is deprecated in TypeScript 6 and stops functioning in 7, and a substitution written against one has never resolved here
+
 ## 19.2.3 (Sep 17, 2026)
 - Fix: read `svb`, `svi`, `lvb`, `lvi`, `dvb` and `dvi` as a unit the declaration writes itself, the way the rest of their family already was. The block and inline axes of the small, large and dynamic viewport were missing from the unit list, so a declaration writing one of them was still emitted after the variable and dropped as invalid
 
