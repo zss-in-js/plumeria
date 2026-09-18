@@ -1666,7 +1666,38 @@ function stripFileContributions(filePath: string, cached: CachedData) {
   }
 }
 
+const statMemo = new Map<string, fs.Stats | Error>();
+let scanning = false;
+
+function statFile(filePath: string): fs.Stats {
+  if (!scanning) return fs.statSync(filePath);
+  const memo = statMemo.get(filePath);
+  if (memo) {
+    if (memo instanceof Error) throw memo;
+    return memo;
+  }
+  try {
+    const stats = fs.statSync(filePath);
+    statMemo.set(filePath, stats);
+    return stats;
+  } catch (e) {
+    statMemo.set(filePath, e as Error);
+    throw e;
+  }
+}
+
 export function scanAll(scanCwd: string = process.cwd()): Tables {
+  scanning = true;
+  statMemo.clear();
+  try {
+    return runScan(scanCwd);
+  } finally {
+    scanning = false;
+    statMemo.clear();
+  }
+}
+
+function runScan(scanCwd: string = process.cwd()): Tables {
   const cwd = path.resolve(scanCwd);
   if (
     hasComputedOnce &&
@@ -3101,7 +3132,7 @@ export function resolveExport(
 
   {
     try {
-      const stats = fs.statSync(filePath);
+      const stats = statFile(filePath);
       if (
         (!fileCache[filePath]?.exports ||
           fileCache[filePath].exportsMtimeMs !== stats.mtimeMs) &&
