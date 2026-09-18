@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.2.5 (Sep 18, 2026)
+
+- Read a relative import written for `NodeNext` as the file it names. Under `moduleResolution` set to `node16` or `nodenext` a relative specifier has to carry the `.js` extension TypeScript will emit, so `./styles.js` was looked for on disk exactly as written and never reached `styles.ts`: a `create` or a `keyframes` declared there was left out of the sheet and the element lost the class, while the build still passed. A `.js` specifier now falls back to `.ts` and `.tsx`, and `.jsx` to `.tsx`, only where the file it names is not itself written
+
 ## 19.2.4 (Sep 18, 2026)
 
 - Resolve a `paths` alias from the `tsconfig.json` as it is actually written. A config carrying comments or a trailing comma, one saved with a byte order mark, one inheriting `paths` through `extends`, and the scaffolded pair that keeps its real config under `references` were each read as strict JSON from the root file alone, so the alias resolved to nothing without a word: a `keyframes` or a `create` imported under one was left out of the sheet and the element lost the class, while the build still passed. An inherited substitution is anchored to the config that declares it, the way `tsc` anchors it. `baseUrl` stays unread — it is deprecated in TypeScript 6 and stops functioning in 7
