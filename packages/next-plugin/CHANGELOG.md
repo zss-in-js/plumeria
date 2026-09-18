@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 19.2.6
+
+### Patch Changes
+
+- 26ef466: Bump version to 19.2.6
+- Updated dependencies [26ef466]
+  - @plumeria/turbopack-loader@19.2.6
+
 ## 19.2.5
 
 ### Patch Changes

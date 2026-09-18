@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.2.6 (Sep 18, 2026)
+
+- Remove a changed file's entries from the aggregated tables by name. Every invalidated file searched all of those tables for the keys it had written, so a rescan cost the number of changed files times the size of the project: editing a module that 200 others import spent more than half of the rescan inside that search. The keys a file writes are now recorded as it writes them, including the ones it published before it threw, and a rescan of the same edit takes about half as long
+
 ## 19.2.5 (Sep 18, 2026)
 
 - Read a relative import written for `NodeNext` as the file it names. Under `moduleResolution` set to `node16` or `nodenext` a relative specifier has to carry the `.js` extension TypeScript will emit, so `./styles.js` was looked for on disk exactly as written and never reached `styles.ts`: a `create` or a `keyframes` declared there was left out of the sheet and the element lost the class, while the build still passed. A `.js` specifier now falls back to `.ts` and `.tsx`, and `.jsx` to `.tsx`, only where the file it names is not itself written
