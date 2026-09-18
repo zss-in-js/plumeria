@@ -326,12 +326,24 @@ const extensions = [
   '/index.jsx',
 ];
 
+const rewritten: Record<string, string[]> = {
+  '.js': ['.ts', '.tsx'],
+  '.jsx': ['.tsx'],
+};
+
 function isFile(candidate: string): boolean {
   return fs.statSync(candidate, { throwIfNoEntry: false })?.isFile() ?? false;
 }
 
 function resolveWithExtension(basePath: string): string | null {
   if (isFile(basePath)) return basePath;
+
+  const extension = path.extname(basePath);
+  for (const replacement of rewritten[extension] ?? []) {
+    const candidate = basePath.slice(0, -extension.length) + replacement;
+    if (isFile(candidate)) return candidate;
+  }
+
   for (const ext of extensions) {
     const fullPath = basePath + ext;
     if (isFile(fullPath)) return fullPath;
