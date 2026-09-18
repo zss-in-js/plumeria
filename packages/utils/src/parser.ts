@@ -1554,6 +1554,7 @@ let scannedCwd: string | undefined;
 // live file still relies on.
 const objectTableOwners = new Map<string, Set<string>>();
 const fileObjectContributions = new Map<string, Map<string, Set<string>>>();
+const fileKeyContributions = new Map<string, Map<string, Set<string>>>();
 function snapshotTables(): Tables {
   return Object.fromEntries(
     Object.entries(globalAgregatedTables).map(([key, value]) => [
@@ -1575,6 +1576,15 @@ function releaseFileObjects(filePath: string) {
       );
   }
   fileObjectContributions.delete(filePath);
+}
+
+function registerFileKey(tableName: string, key: string, filePath: string) {
+  let contributions = fileKeyContributions.get(filePath);
+  if (!contributions)
+    fileKeyContributions.set(filePath, (contributions = new Map()));
+  let keys = contributions.get(tableName);
+  if (!keys) contributions.set(tableName, (keys = new Set()));
+  keys.add(key);
 }
 
 function registerObjectOwner(
@@ -1625,99 +1635,17 @@ function stripFileContributions(filePath: string, cached: CachedData) {
       delete globalAgregatedTables.styleReceiverTable![key];
     receiverKeysByFile.delete(filePath);
   }
-  for (const [name, table] of Object.entries(globalAgregatedTables)) {
-    if (
-      name.endsWith('ObjectTable') ||
-      name === 'createAtomicMapTable' ||
-      name === 'createThemeSelectorTable' ||
-      name === 'componentPropsTable' ||
-      name === 'styleReceiverTable'
-    )
-      continue;
-    for (const key of Object.keys(table))
-      if (key.startsWith(`${filePath}-`)) delete (table as any)[key];
-  }
-
-  const localTables = globalAgregatedTables;
-  for (const key of Object.keys(cached.staticTable)) {
-    delete localTables.staticTable[`${filePath}-${key}`];
-  }
-  for (const key of Object.keys(cached.keyframesHashTable)) {
-    delete localTables.keyframesHashTable[`${filePath}-${key}`];
-  }
-  for (const key of Object.keys(cached.viewTransitionHashTable)) {
-    delete localTables.viewTransitionHashTable[`${filePath}-${key}`];
-  }
-  for (const key of Object.keys(cached.createThemeHashTable)) {
-    delete localTables.createThemeHashTable[`${filePath}-${key}`];
-  }
-  for (const key of Object.keys(cached.createStaticHashTable)) {
-    delete localTables.createStaticHashTable[`${filePath}-${key}`];
-  }
-  for (const key of Object.keys(cached.createHashTable)) {
-    delete localTables.createHashTable[`${filePath}-${key}`];
-    delete localTables.createFunctionTable[`${filePath}-${key}`];
-  }
-
-  for (const key of Object.keys(cached.createStaticObjectTable)) {
-    releaseObjectOwner(
-      'createStaticObjectTable',
-      key,
-      filePath,
-      localTables.createStaticObjectTable,
-    );
-  }
-  for (const key of Object.keys(cached.keyframesObjectTable)) {
-    releaseObjectOwner(
-      'keyframesObjectTable',
-      key,
-      filePath,
-      localTables.keyframesObjectTable,
-    );
-  }
-  for (const key of Object.keys(cached.viewTransitionObjectTable)) {
-    releaseObjectOwner(
-      'viewTransitionObjectTable',
-      key,
-      filePath,
-      localTables.viewTransitionObjectTable,
-    );
-  }
-  for (const key of Object.keys(cached.createThemeObjectTable)) {
-    releaseObjectOwner(
-      'createThemeObjectTable',
-      key,
-      filePath,
-      localTables.createThemeObjectTable,
-    );
-  }
-  for (const key of Object.keys(cached.createThemeSelectorTable)) {
-    releaseObjectOwner(
-      'createThemeSelectorTable',
-      key,
-      filePath,
-      localTables.createThemeSelectorTable,
-    );
-  }
-  for (const key of Object.keys(cached.createObjectTable)) {
-    releaseObjectOwner(
-      'createObjectTable',
-      key,
-      filePath,
-      localTables.createObjectTable,
-    );
-  }
-  for (const key of Object.keys(cached.createAtomicMapTable)) {
-    releaseObjectOwner(
-      'createAtomicMapTable',
-      key,
-      filePath,
-      localTables.createAtomicMapTable,
-    );
+  const keyContributions = fileKeyContributions.get(filePath);
+  if (keyContributions) {
+    for (const [tableName, keys] of keyContributions) {
+      const table = (globalAgregatedTables as any)[tableName];
+      for (const key of keys) delete table[key];
+    }
+    fileKeyContributions.delete(filePath);
   }
 
   if (cached.componentPropsTable) {
-    const table = localTables.componentPropsTable!;
+    const table = globalAgregatedTables.componentPropsTable!;
     for (const compKey of Object.keys(cached.componentPropsTable)) {
       const propTable = table[compKey];
       if (!propTable) continue;
@@ -2250,10 +2178,12 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
                 if (method === 'createStatic') {
                   localStaticTable[name] = obj;
                   localTables.staticTable[uniqueKey] = obj;
+                  registerFileKey('staticTable', uniqueKey, filePath);
 
                   const hash = genBase36Hash(obj, 1, 8);
                   localCreateStaticHashTable[name] = hash;
                   localTables.createStaticHashTable[uniqueKey] = hash;
+                  registerFileKey('createStaticHashTable', uniqueKey, filePath);
 
                   localTables.createStaticObjectTable[hash] = obj;
                   localCreateStaticObjectTable[hash] = obj;
@@ -2266,6 +2196,7 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
                   const hash = genBase36Hash(obj, 1, 8);
                   localKeyframesHashTable[name] = hash;
                   localTables.keyframesHashTable[uniqueKey] = hash;
+                  registerFileKey('keyframesHashTable', uniqueKey, filePath);
                   localTables.keyframesObjectTable[hash] = obj;
                   localKeyframesObjectTable[hash] = obj;
                   registerObjectOwner('keyframesObjectTable', hash, filePath);
@@ -2273,6 +2204,11 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
                   const hash = genBase36Hash(obj, 1, 8);
                   localViewTransitionHashTable[name] = hash;
                   localTables.viewTransitionHashTable[uniqueKey] = hash;
+                  registerFileKey(
+                    'viewTransitionHashTable',
+                    uniqueKey,
+                    filePath,
+                  );
                   localTables.viewTransitionObjectTable[hash] = obj;
                   localViewTransitionObjectTable[hash] = obj;
                   registerObjectOwner(
@@ -2297,6 +2233,7 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
                   registerObjectOwner('createThemeObjectTable', hash, filePath);
                   localCreateThemeHashTable[name] = hash;
                   localTables.createThemeHashTable[uniqueKey] = hash;
+                  registerFileKey('createThemeHashTable', uniqueKey, filePath);
                   localTables.createThemeSelectorTable[hash] = selector;
                   localCreateThemeSelectorTable[hash] = selector;
                   registerObjectOwner(
@@ -2321,6 +2258,7 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
                   const hash = genBase36Hash(obj, 1, 8);
                   localCreateHashTable[name] = hash;
                   localTables.createHashTable[uniqueKey] = hash;
+                  registerFileKey('createHashTable', uniqueKey, filePath);
                   localTables.createObjectTable[hash] = obj;
                   localCreateObjectTable[hash] = obj;
                   registerObjectOwner('createObjectTable', hash, filePath);
@@ -2331,7 +2269,7 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
                       (prop.value.type === 'ArrowFunctionExpression' ||
                         prop.value.type === 'FunctionExpression'),
                   );
-                  if (hasFunctionKey)
+                  if (hasFunctionKey) {
                     localTables.createFunctionTable[uniqueKey] =
                       inlineOuterScope(objExpression, (property) =>
                         objectExpressionToObject(
@@ -2350,6 +2288,8 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
                           resolveVariable,
                         ),
                       );
+                    registerFileKey('createFunctionTable', uniqueKey, filePath);
+                  }
 
                   const hashMap: Record<string, Record<string, string>> = {};
 
