@@ -1,5 +1,11 @@
 # Release Notes
 
+## 19.2.8 (Sep 18, 2026)
+
+- Share a file's modification time across one scan while resolving exports. Resolving an export checks the file it names on disk, and a barrel re-exported by every consumer was checked once per consumer. The result now lives for the length of the scan and is dropped when it ends, so a rescan reads each file once: about 5% off a rescan that reparses 201 files, and 2% off a cold scan
+
+- Match a component's prop entries through a key set rather than a scan of the ones already collected. Every entry was compared against each one already held, serializing both sides' conditions to do it, so the work grew with the square of the call sites a component is used from. A component used from 1600 call sites scans about 6% faster; below a few hundred the difference is not measurable
+
 ## 19.2.7 (Sep 18, 2026)
 
 - Read a file's exports once per scan rather than twice. Each parsed file had its imports and exports walked before the scan and again at the end of the first pass, which also resolved every import specifier a second time. A rescan that reparses 201 files drops about 3%, and 400 needless file system lookups go with it

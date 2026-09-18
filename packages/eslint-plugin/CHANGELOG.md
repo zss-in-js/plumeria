@@ -1,3 +1,9 @@
+## 19.2.8
+
+### Patch Changes
+
+- c49a6ae: Bump version to 19.2.8
+
 ## 19.2.7
 
 ### Patch Changes
