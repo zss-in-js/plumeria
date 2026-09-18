@@ -161,6 +161,10 @@ Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1
 
 ## Release notes
 
+## 19.2.7 (Sep 18, 2026)
+- Perf: read a file's exports once per scan rather than twice. Every parsed file had its imports and exports walked before the scan and again at the end of the first pass, resolving each import specifier a second time on the way. A rescan that reparses 201 files drops about 3%, and 400 file system lookups go with it
+- Perf: order the entries a component's prop collects by code unit rather than by locale. `localeCompare` builds the collator the first time it runs, and that landed inside the first scan of every process: about 7 ms, paid once per worker by a build that scans from several. Paths are internal keys and now sort the way the scanned file list already does
+
 ## 19.2.6 (Sep 18, 2026)
 - Perf: remove a changed file's entries from the aggregated scan tables by name, instead of searching every table for them. Each invalidated file searched all of those tables, so a rescan cost the number of changed files times the size of the project: editing a module that 200 others import spent more than half of the rescan inside that search. The keys a file writes are now recorded as it writes them, including the ones it published before it threw, and the same edit rescans in about half the time
 
