@@ -161,6 +161,9 @@ Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1
 
 ## Release notes
 
+## 19.2.9 (Sep 18, 2026)
+- Fix: scan a file again once an import that resolved to nothing names a real file. Deleting a module a component imports its styles from leaves the importer holding a specifier that resolves nowhere, and restoring the file only scanned the file itself: the importer was never visited again, so a style handed to a child through a prop stayed missing and the child kept rendering `className=""`. A scan that finds files it has not seen now revisits whatever was left holding an unresolved specifier
+
 ## 19.2.8 (Sep 18, 2026)
 - Perf: share a file's modification time across one scan while resolving exports. Resolving an export checks on disk whether the file it names has moved on, and a barrel re-exported by every consumer was checked once per consumer. The result now lives for the length of the scan and is dropped when it ends: about 5% off a rescan that reparses 201 files, and 2% off a cold scan
 - Perf: match a component's prop entries through a key set rather than a scan of the ones already collected. Each entry was compared against every entry already held, serializing both sides' conditions on the way, so the work grew with the square of the call sites a component is used from. A component used from 1600 call sites scans about 6% faster; below a few hundred call sites the difference is not measurable
