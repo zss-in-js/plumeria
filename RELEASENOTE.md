@@ -1,5 +1,11 @@
 # Release Notes
 
+## 19.2.7 (Sep 18, 2026)
+
+- Read a file's exports once per scan rather than twice. Each parsed file had its imports and exports walked before the scan and again at the end of the first pass, which also resolved every import specifier a second time. A rescan that reparses 201 files drops about 3%, and 400 needless file system lookups go with it
+
+- Order the entries a component's prop collects by code unit rather than by locale. Comparing two paths with `localeCompare` builds the collator the first time it runs, which cost about 7 ms inside the first scan of every process; a build that scans from several workers paid it once per worker. Paths are internal keys, and they now sort the way the scanned file list already does
+
 ## 19.2.6 (Sep 18, 2026)
 
 - Remove a changed file's entries from the aggregated tables by name. Every invalidated file searched all of those tables for the keys it had written, so a rescan cost the number of changed files times the size of the project: editing a module that 200 others import spent more than half of the rescan inside that search. The keys a file writes are now recorded as it writes them, including the ones it published before it threw, and a rescan of the same edit takes about half as long
