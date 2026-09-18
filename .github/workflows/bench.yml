@@ -1,0 +1,70 @@
+name: bench
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: bench-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  scan-bench:
+    runs-on: ubuntu-latest
+    steps:
+      # The base is measured beside the head on this one runner. Comparing two
+      # separate runs would compare the machines they happened to land on.
+      - uses: actions/checkout@v6
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .bench-base
+          clean: false
+
+      - uses: ./.github/actions/setup-node
+
+      - uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      - name: Build the head
+        run: pnpm build
+
+      - name: Build the base
+        run: |
+          pnpm --dir .bench-base install
+          pnpm --dir .bench-base build
+
+      - name: Measure
+        id: bench
+        run: node scripts/bench-compare.js .bench-base . > bench.md
+
+      - name: Comment on the pull request
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+            --paginate --jq \
+            '.[] | select(.body | startswith("<!-- plumeria-bench -->")) | .id' \
+            | head -1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH \
+              "repos/${GITHUB_REPOSITORY}/issues/comments/${id}" -F body=@bench.md
+          else
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file bench.md
+          fi
+
+      - name: Fail on a wider invalidation
+        if: steps.bench.outputs.regressed == 'true'
+        run: |
+          echo "The scan parses more files than the base does for the same edit." >&2
+          exit 1
