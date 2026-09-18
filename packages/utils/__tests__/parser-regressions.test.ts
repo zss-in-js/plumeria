@@ -354,3 +354,70 @@ it('uses complete path segments and the current working directory for scanning',
     cwd.mockRestore();
   }
 });
+
+it('restores a consumer entry when a deleted file comes back', () => {
+  const leafSource =
+    "import * as css from '@plumeria/core'; export const styles = css.create({box: {color: 'red'}});";
+  const leaf = write('restored-leaf.ts', leafSource);
+  const child = write(
+    'restored-child.tsx',
+    "import * as css from '@plumeria/core'; type P = { classStyle?: css.StaticStyles<'color'> }; export function Child({classStyle}: P) { return <div classStyle={classStyle} />; }",
+  );
+  const parent = write(
+    'restored-parent.tsx',
+    "import * as css from '@plumeria/core'; import {styles} from './restored-leaf'; import {Child} from './restored-child'; export const Parent = () => <Child classStyle={styles.box} />;",
+  );
+  const entriesOf = (tables: any) =>
+    Object.values(tables.componentPropsTable ?? {}).flatMap((props: any) =>
+      Object.values(props).flat(),
+    );
+  jest.isolateModules(() => {
+    (globSync as jest.Mock).mockReturnValue([leaf, child, parent]);
+    const { scanAll } = require('../src/parser');
+    scanAll();
+    const collected = structuredClone(scanAll().componentPropsTable);
+    expect(entriesOf({ componentPropsTable: collected })).toHaveLength(1);
+
+    fs.rmSync(leaf);
+    (globSync as jest.Mock).mockReturnValue([child, parent]);
+    expect(entriesOf(scanAll())).toEqual([]);
+
+    write('restored-leaf.ts', leafSource);
+    (globSync as jest.Mock).mockReturnValue([leaf, child, parent]);
+    expect(scanAll().componentPropsTable).toEqual(collected);
+  });
+});
+
+it('restores a consumer entry behind a star re-export', () => {
+  const leafSource =
+    "import * as css from '@plumeria/core'; export const styles = css.create({box: {color: 'blue'}});";
+  const leaf = write('star-leaf.ts', leafSource);
+  const barrel = write('star-barrel.ts', "export * from './star-leaf';");
+  const child = write(
+    'star-child.tsx',
+    "import * as css from '@plumeria/core'; type P = { classStyle?: css.StaticStyles<'color'> }; export function Child({classStyle}: P) { return <div classStyle={classStyle} />; }",
+  );
+  const parent = write(
+    'star-parent.tsx',
+    "import * as css from '@plumeria/core'; import {styles} from './star-barrel'; import {Child} from './star-child'; export const Parent = () => <Child classStyle={styles.box} />;",
+  );
+  const entriesOf = (tables: any) =>
+    Object.values(tables.componentPropsTable ?? {}).flatMap((props: any) =>
+      Object.values(props).flat(),
+    );
+  jest.isolateModules(() => {
+    (globSync as jest.Mock).mockReturnValue([leaf, barrel, child, parent]);
+    const { scanAll } = require('../src/parser');
+    scanAll();
+    const collected = structuredClone(scanAll().componentPropsTable);
+    expect(entriesOf({ componentPropsTable: collected })).toHaveLength(1);
+
+    fs.rmSync(leaf);
+    (globSync as jest.Mock).mockReturnValue([barrel, child, parent]);
+    expect(entriesOf(scanAll())).toEqual([]);
+
+    write('star-leaf.ts', leafSource);
+    (globSync as jest.Mock).mockReturnValue([leaf, barrel, child, parent]);
+    expect(scanAll().componentPropsTable).toEqual(collected);
+  });
+});
