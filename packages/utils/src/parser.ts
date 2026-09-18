@@ -1831,8 +1831,8 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
     queue.push(fp);
   }
 
-  while (queue.length > 0) {
-    const fp = queue.shift()!;
+  for (let head = 0; head < queue.length; head++) {
+    const fp = queue[head];
     const deps = dependentsMap.get(fp);
     if (deps) {
       for (const dep of deps) {
@@ -1955,13 +1955,12 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
     ordered.push(file);
   };
   parsedFiles.forEach(visitFile);
-  parsedFiles.splice(0, parsedFiles.length, ...ordered);
 
   // 2 pass scanning
   for (let passNumber = 1; passNumber <= 2; passNumber++) {
     const isFirstPass = passNumber === 1;
 
-    for (const { filePath, ast, mtimeMs } of parsedFiles) {
+    for (const { filePath, ast, mtimeMs } of ordered) {
       try {
         delete fileErrors[filePath];
         let localConsts: Record<string, any> | undefined;
