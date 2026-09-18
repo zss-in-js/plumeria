@@ -2308,10 +2308,7 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
           }
         }
 
-        if (isFirstPass) {
-          extractAndCacheExports(filePath, ast, mtimeMs);
-          continue;
-        }
+        if (isFirstPass) continue;
 
         jsxPhaseQueue.push({
           filePath,
