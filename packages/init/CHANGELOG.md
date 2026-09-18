@@ -1,5 +1,11 @@
 # @plumeria/init
 
+## 19.2.7
+
+### Patch Changes
+
+- 5015ddf: Bump version to 19.2.7
+
 ## 19.2.6
 
 ### Patch Changes
