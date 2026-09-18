@@ -161,6 +161,10 @@ Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1
 
 ## Release notes
 
+## 19.2.8 (Sep 18, 2026)
+- Perf: share a file's modification time across one scan while resolving exports. Resolving an export checks on disk whether the file it names has moved on, and a barrel re-exported by every consumer was checked once per consumer. The result now lives for the length of the scan and is dropped when it ends: about 5% off a rescan that reparses 201 files, and 2% off a cold scan
+- Perf: match a component's prop entries through a key set rather than a scan of the ones already collected. Each entry was compared against every entry already held, serializing both sides' conditions on the way, so the work grew with the square of the call sites a component is used from. A component used from 1600 call sites scans about 6% faster; below a few hundred call sites the difference is not measurable
+
 ## 19.2.7 (Sep 18, 2026)
 - Perf: read a file's exports once per scan rather than twice. Every parsed file had its imports and exports walked before the scan and again at the end of the first pass, resolving each import specifier a second time on the way. A rescan that reparses 201 files drops about 3%, and 400 file system lookups go with it
 - Perf: order the entries a component's prop collects by code unit rather than by locale. `localeCompare` builds the collator the first time it runs, and that landed inside the first scan of every process: about 7 ms, paid once per worker by a build that scans from several. Paths are internal keys and now sort the way the scanned file list already does
