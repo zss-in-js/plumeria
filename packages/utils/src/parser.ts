@@ -1491,6 +1491,7 @@ interface CachedData {
   createStaticHashTable: CreateStaticHashTable;
   createStaticObjectTable: CreateStaticObjectTable;
   componentPropsTable?: Record<string, Record<string, TableEntry[]>>;
+  unresolvedImports?: string[];
   hasCssUsage: boolean;
 }
 
@@ -1759,6 +1760,7 @@ function runScan(scanCwd: string = process.cwd()): Tables {
   for (const fp of knownFiles) {
     if (!currentFiles.has(fp)) deletedFiles.push(fp);
   }
+  const appeared = files.some((fp) => !knownFiles.has(fp));
   knownFiles = currentFiles;
 
   // Detect changed files and files affected by them using dependentsMap (BFS)
@@ -1798,6 +1800,26 @@ function runScan(scanCwd: string = process.cwd()): Tables {
   for (const fp of deletedFiles) {
     invalidated.add(fp);
     queue.push(fp);
+  }
+
+  // A file that came back leaves the files that imported it holding a
+  // specifier which resolved to nothing while it was gone.
+  if (appeared) {
+    for (const [filePath, cached] of Object.entries(fileCache)) {
+      if (
+        invalidated.has(filePath) ||
+        !currentFiles.has(filePath) ||
+        !cached.unresolvedImports?.length
+      )
+        continue;
+      const resolves = cached.unresolvedImports.some((specifier) =>
+        resolveImportPath(specifier, filePath),
+      );
+      if (resolves) {
+        invalidated.add(filePath);
+        queue.push(filePath);
+      }
+    }
   }
 
   for (let head = 0; head < queue.length; head++) {
@@ -2902,6 +2924,7 @@ function runScan(scanCwd: string = process.cwd()): Tables {
         dependencies: Array.from(localDependencies),
         exports: fileCache[filePath]?.exports,
         exportsMtimeMs: fileCache[filePath]?.exportsMtimeMs,
+        unresolvedImports: fileCache[filePath]?.unresolvedImports,
         staticTable: localStaticTable,
         keyframesHashTable: localKeyframesHashTable,
         keyframesObjectTable: localKeyframesObjectTable,
@@ -2991,6 +3014,7 @@ function extractAndCacheExports(
   > = {};
   const starExports: string[] = [];
   const localDependencies = new Set<string>();
+  const unresolvedImports: string[] = [];
 
   const imports: Record<string, { source: string; importedName: string }> = {};
   for (const node of ast.body) {
@@ -3014,6 +3038,8 @@ function extractAndCacheExports(
       const actualPath = resolveImportPath(node.source.value, filePath);
       if (actualPath) {
         localDependencies.add(actualPath);
+      } else if (node.source.value !== '@plumeria/core') {
+        unresolvedImports.push(node.source.value);
       }
     } else if (node.type === 'ExportDeclaration') {
       const decl = node.declaration;
@@ -3038,6 +3064,8 @@ function extractAndCacheExports(
         const actualPath = resolveImportPath(source, filePath);
         if (actualPath) {
           localDependencies.add(actualPath);
+        } else if (source !== '@plumeria/core') {
+          unresolvedImports.push(source);
         }
       }
       node.specifiers.forEach((spec) => {
@@ -3065,6 +3093,8 @@ function extractAndCacheExports(
         const actualPath = resolveImportPath(node.source.value, filePath);
         if (actualPath) {
           localDependencies.add(actualPath);
+        } else if (node.source.value !== '@plumeria/core') {
+          unresolvedImports.push(node.source.value);
         }
       }
     } else if (node.type === 'ExportDefaultExpression') {
@@ -3103,6 +3133,7 @@ function extractAndCacheExports(
       mtimeMs: mtimeMs,
       exports: { localExports, reExports, starExports, imports },
       dependencies: newDeps,
+      unresolvedImports,
       staticTable: {},
       keyframesHashTable: {},
       keyframesObjectTable: {},
@@ -3126,6 +3157,7 @@ function extractAndCacheExports(
       imports,
     };
     fileCache[filePath].dependencies = newDeps;
+    fileCache[filePath].unresolvedImports = unresolvedImports;
   }
   fileCache[filePath].exportsMtimeMs = mtimeMs;
 }
