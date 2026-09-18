@@ -2911,7 +2911,8 @@ export function scanAll(scanCwd: string = process.cwd()): Tables {
     for (const entries of Object.values(props))
       entries.sort(
         (a, b) =>
-          a.filePath.localeCompare(b.filePath) || a.spanStart - b.spanStart,
+          (a.filePath < b.filePath ? -1 : a.filePath > b.filePath ? 1 : 0) ||
+          a.spanStart - b.spanStart,
       );
   }
   hasComputedOnce = true;
