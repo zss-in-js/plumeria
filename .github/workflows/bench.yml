@@ -1,0 +1,111 @@
+name: bench
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: bench-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  scan-bench:
+    runs-on: ubuntu-latest
+    steps:
+      # Rebuild both revisions on this runner to avoid comparing past machines.
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          fetch-depth: 0
+
+      - name: Select the benchmark base
+        id: baseline
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          sha="$BASE_SHA"
+          label=''
+          if [ "$HEAD_REF" = 'changeset-release/main' ]; then
+            sha=$(git log "$BASE_SHA" --first-parent -1 --format=%H \
+              --extended-regexp \
+              --grep='^Version Packages \(#[0-9]+\)$' \
+              --grep='^Merge pull request #[0-9]+ from .*/changeset-release/main$')
+            if [ -z "$sha" ]; then
+              echo 'No previous merged Version Packages PR found.' >&2
+              exit 1
+            fi
+            subject=$(git show -s --format=%s "$sha")
+            number=$(printf '%s\n' "$subject" | sed -E 's/.*#([0-9]+).*/\1/')
+            label="$subject"
+            if [[ "$subject" == 'Merge pull request '* ]]; then
+              title=$(git show -s --format=%b "$sha" | sed -n '/[^[:space:]]/{p;q;}')
+              label="${title} (#${number})"
+            fi
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "label=$label" >> "$GITHUB_OUTPUT"
+          echo "Benchmark base: $sha"
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.baseline.outputs.sha }}
+          path: .bench-base
+          clean: false
+
+      - uses: ./.github/actions/setup-node
+
+      - uses: actions/cache@v6
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      - name: Build the head
+        run: pnpm build
+
+      - name: Build the base
+        run: |
+          pnpm --dir .bench-base install
+          pnpm --dir .bench-base build
+
+      - name: Measure
+        id: bench
+        env:
+          BASE_SHA: ${{ steps.baseline.outputs.sha }}
+          BASE_LABEL: ${{ steps.baseline.outputs.label }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          node scripts/bench-compare.js .bench-base . > bench.md
+          printf '\nCompared revisions:\n\n- Base: [%s](%s/%s/commit/%s)\n- PR: [%s (#%s)](%s/%s/commit/%s)\n' \
+            "${BASE_LABEL:-Base commit}" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$BASE_SHA" \
+            "$PR_TITLE" "$PR_NUMBER" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$HEAD_SHA" >> bench.md
+
+      - name: Comment on the pull request
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" \
+            --paginate --jq \
+            '.[] | select(.body | startswith("<!-- plumeria-bench -->")) | .id' \
+            | head -1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH \
+              "repos/${GITHUB_REPOSITORY}/issues/comments/${id}" -F body=@bench.md
+          else
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file bench.md
+          fi
+
+      - name: Fail on a wider invalidation
+        if: steps.bench.outputs.regressed == 'true'
+        run: |
+          echo "The scan parses more files than the base does for the same edit." >&2
+          exit 1
