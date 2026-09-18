@@ -1666,6 +1666,16 @@ function stripFileContributions(filePath: string, cached: CachedData) {
   }
 }
 
+const propEntryKeys = new WeakMap<TableEntry[], Set<string>>();
+
+const propEntryKey = (entry: TableEntry) =>
+  JSON.stringify([
+    entry.filePath,
+    entry.spanStart,
+    entry.key,
+    entry.conditions,
+  ]);
+
 const statMemo = new Map<string, fs.Stats | Error>();
 let scanning = false;
 
@@ -2870,18 +2880,17 @@ function runScan(scanCwd: string = process.cwd()): Tables {
             globalTable[compKey][propName] = [];
           }
           const entries = localComponentPropsTable[compKey][propName];
+          const collected = globalTable[compKey][propName];
+          let taken = propEntryKeys.get(collected);
+          if (!taken) {
+            taken = new Set(collected.map(propEntryKey));
+            propEntryKeys.set(collected, taken);
+          }
           for (const entry of entries) {
-            const exists = globalTable[compKey][propName].some(
-              (x) =>
-                x.spanStart === entry.spanStart &&
-                x.filePath === entry.filePath &&
-                x.key === entry.key &&
-                JSON.stringify(x.conditions) ===
-                  JSON.stringify(entry.conditions),
-            );
-            if (!exists) {
-              globalTable[compKey][propName].push(entry);
-            }
+            const key = propEntryKey(entry);
+            if (taken.has(key)) continue;
+            taken.add(key);
+            collected.push(entry);
           }
         }
       }
