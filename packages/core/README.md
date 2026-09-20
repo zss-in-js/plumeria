@@ -17,7 +17,7 @@
 pnpm add -D @plumeria/core
 ```
 
-See the [installation guide](https://plumeria.dev/docs/getting-started/installation) for full setup, and [`@plumeria/eslint-plugin`](https://www.npmjs.com/package/@plumeria/eslint-plugin) for the linting rules.
+See the [installation guide](https://plumeria.dev/docs/installation) for full setup, and [`@plumeria/eslint-plugin`](https://www.npmjs.com/package/@plumeria/eslint-plugin) for the linting rules.
 
 ## Example
 
