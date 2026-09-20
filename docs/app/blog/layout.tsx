@@ -1,19 +1,30 @@
 import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
 import 'katex/dist/katex.css';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { baseOptions } from 'app/layout.config';
-import { source } from 'lib/source';
+import { blog } from 'lib/source';
 import { DocsSidebarBanner } from 'component/DocsSidebarBanner';
 import { DocsSidebarTrigger } from 'component/DocsSidebarTrigger';
 import { SiteHeader } from 'component/SiteHeader';
-import { plainContainerProps, plainMainStyle } from 'lib/plainLayout';
+
+const containerProps = {
+  style: {
+    '--fd-layout-width': '100%',
+    '--fd-header-height': '56px',
+  } as CSSProperties,
+};
+
+const mainStyle: CSSProperties = {
+  gridArea: 'main',
+  minWidth: 0,
+};
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <DocsLayout
-      tree={source.pageTree}
+      tree={blog.pageTree}
       sidebar={{ collapsible: false, banner: DocsSidebarBanner }}
-      containerProps={plainContainerProps}
+      containerProps={containerProps}
       {...baseOptions}
       links={[]}
       searchToggle={{ enabled: false }}
@@ -29,7 +40,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         ),
       }}
     >
-      <div style={plainMainStyle}>{children}</div>
+      <div style={mainStyle}>{children}</div>
     </DocsLayout>
   );
 }
