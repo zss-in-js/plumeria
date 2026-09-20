@@ -6,8 +6,165 @@
   background: black;
 }
 
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] button[aria-expanded] {
+  cursor: pointer;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] :is(a[data-active], button[aria-expanded]) {
+  padding-block: 6px;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) {
+  --color-fd-primary: #d653bb;
+}
+
+.dark :is(#nd-sidebar, #nd-sidebar-mobile) {
+  --color-fd-primary: #d653bb;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
+  color: var(--color-fd-primary);
+  background-color: #f8f6f9;
+  border-radius: 0;
+}
+
+.dark :is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
+  background-color: #211e22;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile)
+  [data-radix-scroll-area-viewport]
+  :is(a, button):not([data-active='true']):is(:hover, :focus-visible) {
+  color: var(--color-fd-primary);
+  background-color: transparent;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] p {
+  margin-top: 56px;
+  margin-bottom: 16px;
+  color: #808080;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] p:first-child {
+  margin-top: 24px;
+}
+
+.dark :is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] p {
+  color: #807d82;
+}
+
+.docs-article-header {
+  margin-bottom: 24px;
+}
+
+#nd-page > .prose {
+  --tw-prose-body: var(--color-fd-muted-foreground);
+  color: var(--color-fd-muted-foreground);
+}
+
+.docs-article-section {
+  margin: 0 0 10px;
+  color: #808080;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.docs-article-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.docs-article-title-row h1 {
+  min-width: 0;
+  margin: 0;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+.docs-article-header > p:last-child:not(.docs-article-section) {
+  margin: 16px 0 0;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.docs-copy-actions {
+  display: inline-flex;
+  flex-shrink: 0;
+  border: 1px solid var(--color-fd-border);
+}
+
+.docs-copy-button,
+.docs-copy-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 12px;
+  color: var(--color-fd-muted-foreground);
+  font-size: 14px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.docs-copy-toggle {
+  padding-inline: 10px;
+  border-left: 1px solid var(--color-fd-border);
+}
+
+.docs-copy-menu {
+  width: 200px;
+  padding: 6px;
+  border-radius: 0;
+  background: var(--color-fd-background);
+}
+
+.docs-copy-menu > :is(button, a) {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.docs-copy-menu > p {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.docs-copy-button:hover,
+.docs-copy-toggle:hover,
+.docs-copy-menu > :is(button, a):hover {
+  background: var(--color-fd-accent);
+}
+
+.docs-copy-button:disabled,
+.docs-copy-menu > button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+@media (max-width: 640px) {
+  .docs-article-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
 /* Global Dot Pattern Background */
-body::before {
+/* body::before {
   content: '';
   position: fixed;
   top: 0;
@@ -25,11 +182,27 @@ body::before {
 .dark body::before {
   background-image: radial-gradient(#777777 1px, transparent 1px);
   opacity: 0.5;
-}
+} */
 
 /* Body Styling */
 body {
   background: white;
+}
+
+/* Keep the sidebar and table of contents in the layout grid while centering the page body. */
+#nd-notebook-layout #nd-page {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 816px;
+  min-width: 0;
+  padding-top: 24px;
+  padding-inline: 24px;
+  margin-inline: auto;
+}
+
+#nd-notebook-layout #nd-page > * {
+  width: 100%;
+  margin-inline: auto;
 }
 
 .dark body {
