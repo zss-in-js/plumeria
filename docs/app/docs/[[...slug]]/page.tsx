@@ -7,7 +7,7 @@ import generateSEOData from 'lib/generateSEOData';
 import { MarkdownActions } from 'component/MarkdownActions';
 import type { Node } from 'fumadocs-core/page-tree';
 
-function getSection(nodes: Node[], url: string, section = ''): string | undefined {
+const getSection = (nodes: Node[], url: string, section = ''): string | undefined => {
   let current = section;
   for (const node of nodes) {
     if (node.type === 'separator') current = typeof node.name === 'string' ? node.name : section;
@@ -18,7 +18,7 @@ function getSection(nodes: Node[], url: string, section = ''): string | undefine
       if (found !== undefined) return found;
     }
   }
-}
+};
 
 export async function generateMetadata(props: { params: Promise<{ slug?: Array<string> }> }): Promise<Metadata> {
   const params = await props.params;
