@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { breakpoints } from 'lib/mediaQuery';
 import generateSEOData from 'lib/generateSEOData';
+import { latestBlogUrl } from 'lib/source';
 
 const styles = css.create({
   page: {
@@ -130,7 +131,7 @@ const groups = [
     title: 'Explore',
     links: [
       { label: 'Why Plumeria?', href: '/docs/why-plumeria' },
-      { label: 'Blog', href: '/blog' },
+      { label: 'Blog', href: latestBlogUrl },
       { label: 'CSS references', href: '/docs/specificity' },
     ],
   },
