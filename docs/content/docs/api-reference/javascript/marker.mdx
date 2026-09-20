@@ -263,7 +263,7 @@ The marker goes on the element both sides share — for a child that is the pare
 for a sibling their common parent. What separates a child from a sibling is not a
 selector but which element you hand `extended` to.
 
-That last part is why [`migrate --from css-modules`](/docs/api-reference/codemod)
+That last part is why [`migrate --from css-modules`](/docs/codemod)
 writes these pairings for you everywhere except the sibling, which it reports: a
 style query reaches descendants, never siblings, so the relation rests on a choice
 of element rather than on the selector it read, and only you can make it.
@@ -316,4 +316,3 @@ The cost does not grow with the page. Toggling **every** anchor at once is the
 case where it does: 8,000 simultaneous toggles cost 26 ms against 7 ms for a
 selector key. That is not a shape user interfaces take, but it is where the
 difference lives if you go looking for it.
-
