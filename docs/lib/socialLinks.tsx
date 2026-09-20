@@ -13,18 +13,4 @@ export const socialLinks: LinkItemType[] = [
     icon: svg.Github({ width: 20, height: 20 }),
     url: 'https://github.com/zss-in-js/plumeria',
   },
-  {
-    type: 'icon',
-    label: 'Bluesky',
-    text: 'Bluesky',
-    icon: svg.Bluesky({ width: 20, height: 20 }),
-    url: 'https://bsky.app/profile/zss-in-js.bsky.social',
-  },
-  {
-    type: 'icon',
-    label: 'Discord',
-    text: 'Discord',
-    icon: svg.Discord({ width: 20, height: 20 }),
-    url: 'https://discord.gg/pKEBp4wYd8',
-  },
 ];
