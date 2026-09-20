@@ -1,0 +1,55 @@
+---
+title: 'Selector rules'
+description: 'Learn more about Selector rule syntax'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+## Nesting
+Pseudo-elements(class) and media nesting rules.  
+Queries(media・container) can only be pseudo nest once, but pseudo cannot nest queries.
+
+```ts title="TypeScript" {1}
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  list: {
+    '@media (max-width: 768px)': { // [!code ++]
+      ':hover': { // [!code ++]
+        listStyleType: 'none', // [!code ++]
+      }, // [!code ++]
+    }, // [!code ++]
+  },
+});
+```
+
+<Callout type="error" title="error cases">
+   ---
+</Callout>
+Unacceptable examples:
+
+```ts title="TypeScript" {1}
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  list: {
+    ':hover': {
+      '@media (max-width: 768px)': { // [!code --]
+        background: 'skyblue', // [!code --]
+      }, // [!code --]
+    },
+  },
+});
+```
+
+## Reason
+This design intentionally avoids reverse nesting.
+
+- Type system limitations (recursive types)
+- Avoiding reverse nesting complexity
+- Ensuring consistent nesting patterns
+
+
+<Cards>
+  <Card title="See more about API create" href="/docs/api-reference/javascript/create" />
+</Cards>
