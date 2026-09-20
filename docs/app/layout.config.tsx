@@ -2,12 +2,8 @@ import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import * as css from '@plumeria/core';
 
 import { svg } from 'component/svg';
-import { NavDropdown } from 'component/NavDropdown';
-import { latestReleases } from 'lib/latestReleases';
 import { socialLinks } from 'lib/socialLinks';
 import { theme } from 'lib/theme';
-
-const latestReleasePosts = latestReleases(3);
 
 const styles = css.create({
   image: {
@@ -35,126 +31,19 @@ export const baseOptions: BaseLayoutProps = {
 
   links: [
     {
-      type: 'custom',
-      children: (
-        <NavDropdown
-          title={'Documentation'}
-          url={'/docs'}
-          items={[
-            { type: 'header', text: 'Principles' },
-            { text: 'Why Plumeria?', url: '/docs/why-plumeria' },
-            { text: 'Category theory', url: '/docs/category' },
-            { text: 'AI.md', url: '/docs/ai' },
-            { text: 'AI Agent Resources', url: '/docs/ai-agent-resources' },
-            { type: 'divider' },
-            { type: 'header', text: 'Getting Started' },
-            { text: 'Installation', url: '/docs/getting-started/installation' },
-            { text: 'Selector rules', url: '/docs/getting-started/selector-rules' },
-            { text: 'Editor integration', url: '/docs/getting-started/editor-integration' },
-            { type: 'divider' },
-            { text: 'Testing', url: '/docs/testing' },
-          ]}
-        />
-      ),
-      on: 'all',
+      text: 'Docs',
+      url: '/docs',
+      active: 'nested-url',
     },
     {
-      type: 'custom',
-      children: (
-        <NavDropdown
-          title={'API'}
-          url={'/docs/api-reference'}
-          items={[
-            { type: 'header', text: 'JavaScript API' },
-            { text: 'create', url: '/docs/api-reference/javascript/create' },
-            { text: 'createTheme', url: '/docs/api-reference/javascript/createTheme' },
-            { text: 'createStatic', url: '/docs/api-reference/javascript/createStatic' },
-            { text: 'keyframes', url: '/docs/api-reference/javascript/keyframes' },
-            { text: 'viewTransition', url: '/docs/api-reference/javascript/viewTransition' },
-            { text: 'marker & extended', url: '/docs/api-reference/javascript/marker' },
-            { text: 'use() & classStyle', url: '/docs/api-reference/javascript/use' },
-            { type: 'divider' },
-            { type: 'header', text: 'Types' },
-            { text: 'Style', url: '/docs/api-reference/types/Style' },
-            { text: 'StyleProps', url: '/docs/api-reference/types/StyleProps' },
-            { text: 'StaticStyles', url: '/docs/api-reference/types/StaticStyles' },
-            { text: 'WithoutProperties', url: '/docs/api-reference/types/WithoutProperties' },
-            { text: 'AtomicStyle', url: '/docs/api-reference/types/AtomicStyle' },
-            { text: 'AtomicClassStyle', url: '/docs/api-reference/types/AtomicClassStyle' },
-            { text: 'AtomicClassNameFor', url: '/docs/api-reference/types/AtomicClassNameFor' },
-            { text: 'AtomicClassStyleFor', url: '/docs/api-reference/types/AtomicClassStyleFor' },
-            { text: 'CSSProperties', url: '/docs/api-reference/types/CSSProperties' },
-            { type: 'divider' },
-            { type: 'header', text: 'Components' },
-            { text: 'headlessui', url: '/docs/api-reference/components/headlessui' },
-            { text: 'inspector', url: '/docs/api-reference/components/inspector' },
-            { type: 'divider' },
-            { type: 'header', text: 'Plugins' },
-            { text: 'eslint-plugin', url: '/docs/api-reference/plugins/eslint-plugin' },
-            { text: 'next-plugin', url: '/docs/api-reference/plugins/next-plugin' },
-            { text: 'unplugin', url: '/docs/api-reference/plugins/unplugin' },
-            { type: 'divider' },
-            { type: 'header', text: 'Tools' },
-            { text: 'init', url: '/docs/api-reference/init' },
-            { text: 'codemod', url: '/docs/api-reference/codemod' },
-          ]}
-        />
-      ),
-      on: 'all',
+      text: 'API',
+      url: '/docs/api-reference',
+      active: 'nested-url',
     },
     {
-      type: 'custom',
-      children: (
-        <NavDropdown
-          title={'Integrations'}
-          url={'/docs/integration'}
-          items={[
-            { text: 'Bun', url: '/docs/integration/bun' },
-            { text: 'esbuild', url: '/docs/integration/esbuild' },
-            { text: 'Farm', url: '/docs/integration/farm' },
-            { text: 'Next.js', url: '/docs/integration/next' },
-            { text: 'Rollup', url: '/docs/integration/rollup' },
-            { text: 'Rolldown', url: '/docs/integration/rolldown' },
-            { text: 'Rspack', url: '/docs/integration/rspack' },
-            { text: 'Vite', url: '/docs/integration/vite' },
-            { text: 'Webpack', url: '/docs/integration/webpack' },
-            { type: 'divider' },
-            { text: 'Frameworks', url: '/docs/integration/frameworks' },
-            { text: 'Component Library', url: '/docs/integration/component-library' },
-          ]}
-        />
-      ),
-      on: 'all',
-    },
-    {
-      type: 'custom',
-      children: (
-        <NavDropdown
-          title={'References'}
-          url={'/docs/reference'}
-          items={[
-            { text: 'Specificity', url: '/docs/reference/specificity' },
-            { text: 'Color', url: '/docs/reference/color' },
-            { text: 'Pseudo', url: '/docs/reference/pseudo' },
-          ]}
-        />
-      ),
-      on: 'all',
-    },
-    {
-      type: 'custom',
-      children: (
-        <NavDropdown
-          title={'Blog'}
-          url={'/blog'}
-          items={[
-            ...latestReleasePosts,
-            { text: 'Eating up the libraries', url: '/blog/eating-up-the-libraries' },
-            { text: 'How to leave Plumeria', url: '/blog/how-to-leave-plumeria' },
-          ]}
-        />
-      ),
-      on: 'all',
+      text: 'Blog',
+      url: '/blog',
+      active: 'nested-url',
     },
     ...socialLinks,
   ],
