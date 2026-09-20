@@ -3,6 +3,7 @@ import * as css from '@plumeria/core';
 
 import { svg } from 'component/svg';
 import { socialLinks } from 'lib/socialLinks';
+import { latestBlogUrl } from 'lib/source';
 import { theme } from 'lib/theme';
 
 const styles = css.create({
@@ -42,7 +43,7 @@ export const baseOptions: BaseLayoutProps = {
     },
     {
       text: 'Blog',
-      url: '/blog',
+      url: latestBlogUrl,
       active: 'nested-url',
     },
     ...socialLinks,
