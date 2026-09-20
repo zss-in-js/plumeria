@@ -1,4 +1,5 @@
 {
   "title": "@plumeria/eslint-plugin",
+  "defaultOpen": false,
   "pages": ["index", "optional-rules"]
 }
