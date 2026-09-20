@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { blog } from 'lib/source';
 import { JSX } from 'react';
@@ -35,12 +34,6 @@ export default async function Page(props: { params: Promise<{ slug?: Array<strin
 
   return (
     <article classStyle={styles.article}>
-      <div classStyle={styles.backLinkWrapper}>
-        <Link href="/blog" classStyle={styles.backLink}>
-          ← Back to blog
-        </Link>
-      </div>
-
       {page.data.title && <h1 classStyle={styles.title}>{page.data.title}</h1>}
       <p classStyle={styles.date}>
         <time dateTime={page.data.date}>{formatDate(page.data.date)}</time>
