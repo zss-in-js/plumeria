@@ -5,136 +5,26 @@ description: Detailed documentation for Plumeria APIs and plugins.
 
 Plumeria provides a set of powerful APIs and plugins to help you build type-safe, performant styles.
 
-## JavaScript API
-
-The core JavaScript APIs for defining styles, themes, and animations.
-
 <Cards>
   <Card
-    href="/docs/api-reference/javascript/create"
-    title="create"
-    description="Create type-safe CSS-in-JS styles with full TypeScript support."
+    href="/docs/api-reference/javascript"
+    title="JavaScript API"
+    description="The core JavaScript APIs for defining styles, themes, and animations."
   />
   <Card
-    href="/docs/api-reference/javascript/createTheme"
-    title="createTheme"
-    description="Create and manage design tokens and themes using CSS variables."
+    href="/docs/api-reference/types"
+    title="Types"
+    description="The type-level surface behind the styling prop and the style objects."
   />
   <Card
-    href="/docs/api-reference/javascript/createStatic"
-    title="createStatic"
-    description="Create static styles that are extracted at build time."
+    href="/docs/api-reference/components"
+    title="Components"
+    description="Ready-made components built on Plumeria's styling model."
   />
   <Card
-    href="/docs/api-reference/javascript/keyframes"
-    title="keyframes"
-    description="Define CSS keyframes for animations."
-  />
-  <Card
-    href="/docs/api-reference/javascript/viewTransition"
-    title="viewTransition"
-    description="First-class support for the View Transitions API."
-  />
-  <Card
-    href="/docs/api-reference/javascript/marker"
-    title="marker & extended"
-    description="Apply styles based on parent markers or extended selectors."
-  />
-  <Card
-    href="/docs/api-reference/javascript/use"
-    title="classStyle & use()"
-    description="Apply styles to elements using the classStyle and use functions."
-  />
-</Cards>
-
-## Types
-
-The type-level surface behind the styling prop and the style objects.
-
-<Cards>
-  <Card
-    href="/docs/api-reference/types/Style"
-    title="Style"
-    description="The type of the classStyle prop and of every css.use() argument."
-  />
-  <Card
-    href="/docs/api-reference/types/StyleProps"
-    title="StyleProps"
-    description="Enumerate the properties a component accepts through a style prop."
-  />
-  <Card
-    href="/docs/api-reference/types/StaticStyles"
-    title="StaticStyles"
-    description="Reject a dynamic style where a component can only carry a class name."
-  />
-  <Card
-    href="/docs/api-reference/types/WithoutProperties"
-    title="WithoutProperties"
-    description="Accept every property except the ones named."
-  />
-  <Card
-    href="/docs/api-reference/types/AtomicStyle"
-    title="AtomicStyle"
-    description="The type of one created style, down to the values it sets."
-  />
-  <Card
-    href="/docs/api-reference/types/AtomicClassStyle"
-    title="AtomicClassStyle"
-    description="The type of a style a function produced, where a static one will not do."
-  />
-  <Card
-    href="/docs/api-reference/types/AtomicClassNameFor"
-    title="AtomicClassNameFor"
-    description="The type of one atomic class name, tied to the property it was generated for."
-  />
-  <Card
-    href="/docs/api-reference/types/AtomicClassStyleFor"
-    title="AtomicClassStyleFor"
-    description="The type of one entry of a style a function produced."
-  />
-  <Card
-    href="/docs/api-reference/types/CSSProperties"
-    title="CSSProperties"
-    description="The shape of the style objects handed to css.create."
-  />
-</Cards>
-
-## Components
-
-Ready-made components built on Plumeria's styling model.
-
-<Cards>
-  <Card
-    href="/docs/api-reference/components/headlessui"
-    title="@plumeria/headlessui"
-    description="Radix UI primitives wrapped to accept the classStyle prop."
-  />
-  <Card
-    href="/docs/api-reference/components/inspector"
-    title="@plumeria/inspector"
-    description="Inspect elements and their compiled styles in the browser."
-  />
-</Cards>
-
-## Plugins
-
-Integrate Plumeria with your favorite tools and frameworks.
-
-<Cards>
-  <Card
-    href="/docs/api-reference/plugins/next-plugin"
-    title="@plumeria/next-plugin"
-    description="Official plugin for Next.js supporting both Webpack and Turbopack."
-  />
-  <Card
-    href="/docs/api-reference/plugins/unplugin"
-    title="@plumeria/unplugin"
-    description="Universal bundler plugin supporting Vite, Webpack, Rspack, and more."
-  />
-  <Card
-    href="/docs/api-reference/plugins/eslint-plugin"
-    title="@plumeria/eslint-plugin"
-    description="ESLint rules to ensure best practices and prevent common errors."
+    href="/docs/api-reference/plugins"
+    title="Plugins"
+    description="Integrate Plumeria with your favorite tools and frameworks."
   />
 </Cards>
 
@@ -144,12 +34,12 @@ Command line tools for maintaining a Plumeria codebase.
 
 <Cards>
   <Card
-    href="/docs/api-reference/init"
+    href="/docs/init"
     title="@plumeria/init"
     description="Set Plumeria up in an existing project in one command."
   />
   <Card
-    href="/docs/api-reference/codemod"
+    href="/docs/codemod"
     title="@plumeria/codemod"
     description="Rename the styling prop across a codebase in one command."
   />
