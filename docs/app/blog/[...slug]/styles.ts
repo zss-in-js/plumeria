@@ -13,20 +13,6 @@ export const styles = css.create({
       width: '100%',
     },
   },
-  backLinkWrapper: {
-    marginBottom: '24px',
-  },
-  backLink: {
-    display: 'flex',
-    flexDirection: 'row',
-    gap: '8px',
-    fontSize: '14px',
-    textDecoration: 'none',
-    transition: 'color 0.2s',
-    ':hover': {
-      color: 'gray',
-    },
-  },
   title: {
     marginBottom: '12px',
     fontSize: 28,
