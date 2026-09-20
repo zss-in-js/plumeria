@@ -1,0 +1,651 @@
+---
+title: '@plumeria/codemod'
+description: 'Learn more about @plumeria/codemod.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`@plumeria/codemod`](https://www.npmjs.com/package/@plumeria/codemod) rewrites Plumeria APIs across a codebase, and moves a codebase onto Plumeria in the first place.
+
+| Transform | What it does |
+| --- | --- |
+| `migrate --from css-modules` | turns a CSS Modules stylesheet into `css.create` and points its consumers at it |
+| `migrate --from plumeria` | exports `css.create` styles into CSS Modules, writes global styles, and updates JSX to use `className` |
+| `rename-prop` | changes the styling prop everywhere it appears |
+
+## Installation
+
+None. Run it with `npx` and it is gone again afterwards:
+
+```sh title="Terminal"
+npx @plumeria/codemod rename-prop classStyle sx
+```
+
+Install it only if you want it pinned in the repo:
+
+<Tabs items={['npm',  'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i --save-dev @plumeria/codemod
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/codemod
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i --save-dev @plumeria/codemod
+```
+</Tab>
+</Tabs>
+
+The package depends on ESLint and its TypeScript parser, and on nothing from Plumeria. It runs the same on a codebase you have not upgraded yet.
+
+## Migrating from CSS Modules
+
+```sh title="Terminal"
+npx @plumeria/codemod migrate --from css-modules
+```
+
+Every `*.module.css` under the paths becomes a `*.styles.ts` beside it, and the files importing it are rewritten — the import, the `className` prop, the class names, and `composes`.
+
+```css title="Card.module.css"
+.base { font-size: 12px }
+.card { composes: base; padding: 16px }
+.card:hover { background: teal }
+.card .card-title { color: red }
+```
+
+```ts title="Card.styles.ts"
+import * as css from '@plumeria/core';
+
+export const styles = css.create({
+  base: { fontSize: 12 },
+  card: {
+    ...css.marker('card', ':defined'),
+    padding: 16,
+    ':hover': { background: 'teal' },
+  },
+  cardTitle: {
+    [css.extended('card', ':defined')]: { color: 'red' },
+  },
+});
+```
+
+```diff title="Card.tsx"
++ import '@plumeria/core';
+- import styles from './Card.module.css';
++ import { styles } from './Card.styles';
+
+- <div className={styles.card}>
+-   <span className={styles['card-title']} />
++ <div classStyle={[styles.base, styles.card]}>
++   <span classStyle={styles.cardTitle} />
+  </div>
+```
+
+A descendant rule has no combinator to translate into — `no-combinator` rejects one — so it becomes [`css.marker`](/docs/api-reference/javascript/marker) on the parent and `css.extended` on the child. Both class names sit in the same selector, so which is which is read from the stylesheet.
+
+Class names become camel-case keys, and a bare pixel length loses its unit, because `padding: 16` and `padding: '16px'` compile to the same rule.
+
+### Keyframes
+
+A `@keyframes` the stylesheet declares becomes a [`css.keyframes`](/docs/api-reference/javascript/keyframes) binding written above the `css.create`, and `animation-name` reads that binding instead of the name. An `animation` shorthand naming one is split into its longhands:
+
+```css
+/* Spinner.module.css */
+@keyframes spin { from { rotate: 0deg } to { rotate: 360deg } }
+.icon { animation: spin 1s linear infinite }
+```
+
+```ts
+/* Spinner.styles.ts */
+import * as css from '@plumeria/core';
+
+const spin = css.keyframes({
+  from: { rotate: '0deg' },
+  to: { rotate: '360deg' },
+});
+
+export const styles = css.create({
+  icon: {
+    animationName: spin,
+    animationDuration: '1s',
+    animationTimingFunction: 'linear',
+    animationIterationCount: 'infinite',
+  },
+});
+```
+
+An `animation` naming something the stylesheet never declares is left as it was written — the name belongs to a global stylesheet, and nothing in the module can resolve it. A shorthand this cannot read, such as a comma-separated list, is reported as `unsupported-animation` and left alone; a `@keyframes` no rule in the stylesheet reads is reported as `unused-keyframes` and not written.
+
+### What each selector becomes
+
+| CSS Modules | Plumeria |
+| :-- | :-- |
+| `.a .b`, `.a > .b` | `marker` on `a`, `extended` on `b` |
+| `.a .b .c` | one marker per level, each gated by the marker above it |
+| `.a[data-open="true"]` | `':is([data-open="true"])'` |
+| `:global(.dark) .a` | `':is(.dark *)'` — a global class is never hashed, so it survives as written |
+| `.a.b` | the pair rides on `b` |
+| `.a h2` | a key of its own, carried onto the markup |
+
+Three of these are worth reading twice.
+
+**A chain gates each marker by the one above it.** `.a .b .c` writes `b`'s marker inside `a`'s `extended`, so a `.c` under a `.b` that sits outside any `.a` stays untouched — the nesting is reproduced, not flattened.
+
+**A compound rides on the class written last.** `.a.b` only applies where both are present, and Plumeria hashes its classes, so no selector can state the pair. The call site already writes `[styles.a, styles.b]`, which is equivalent wherever the two appear together. Where `b` is also used on its own, it now carries what the pair set.
+
+**A tag needs markup to land on.** `.a h2` has no class to hash, so the rule takes a key of its own and the consumer rewrite puts it on every `h2` it can see under an `a` in that file. A tag arriving through `children` is not visible there and is reported instead.
+
+A sibling is the one relation nothing here states, and it is reported rather than converted. A style query reaches descendants, never siblings, so no marker carries the signal sideways. An ordinal is the usual replacement, but `:not(:first-child)` counts children of the parent while `+` reads the one element before it — the two agree only where every sibling carries the class. A header row or a separator in the list is enough to part them, and the stylesheet cannot see either. The rule is left where it is, named by file and line, because the markup that settles it is yours.
+
+### Previewing the migration
+
+Start with `-d` or `--dry-run` to inspect the complete migration without creating any `*.styles.ts` files or rewriting their consumers:
+
+```sh title="Terminal"
+npx @plumeria/codemod migrate --from css-modules --dry-run
+```
+
+```
+  src/Card.module.css  ->  src/Card.styles.ts
+
+1 stylesheet(s) would be converted, 1 consumer(s) rewritten.
+Run without --dry-run to apply.
+```
+
+Paths can follow the flag as usual. Rules that cannot be converted are reported in the same run, and the exit code remains 1 while any such rules are present. Remove `--dry-run` to generate the modules and rewrite their consumers.
+
+### What it reports instead of converting
+
+```
+src/Card.module.css
+  9:3   composes-external  composes: base from './shared.module.css'
+        A class composed from another file is not resolved. Convert that
+        stylesheet too, then pass both at the call site as an array.
+  12:1  sibling-combinator  .item + .item
+        A container query reaches descendants, never siblings, so no marker
+        states this. Whether an ordinal such as `:not(:first-child)` is
+        equivalent depends on the markup.
+```
+
+A `composes` reaching into another file, a sibling combinator, and a selector naming no local class — an id, an element on its own — are named rather than guessed at, and the original rule is left where it is. The exit code is 1 while anything remains, so the command composes with a script.
+
+### The order the array is written in
+
+A class list carries no order. These two render the same page:
+
+```tsx
+<div className={`${styles.b} ${styles.a}`} />
+<div className={`${styles.a} ${styles.b}`} />
+```
+
+Where two classes of equal specificity set one property, the stylesheet decides and not the element. The styling prop is the other way round: the merge reads the array, and the entry written last wins.
+
+So the array is written in stylesheet order rather than in the order the class list happened to carry:
+
+```css title="Card.module.css"
+.a { color: red }
+.b { color: blue }
+```
+
+```diff title="Card.tsx"
+- <div className={`${styles.b} ${styles.a}`} />
++ <div classStyle={[styles.a, styles.b]} />
+```
+
+`blue` wins on both sides. Reading the class list instead would have handed it to `red`.
+
+Two stylesheets have no order between them that one file can be sure of — that is the bundler's — so reads of different modules keep the slots they were given, and only the reads of one module are sorted among themselves.
+
+A class written twice with another one between the two is the case a single place cannot answer: the merged key would take the later position for every declaration it holds, including the ones the class between them outranks. Where the two share a property, that is reported as `split-order` rather than guessed at.
+
+### Where the order cannot be carried across
+
+An at-rule carries no specificity in CSS, so a plain rule written after a conditional one wins wherever the condition holds. Plumeria reads it the other way: a declaration under an at-rule [outranks a plain one](/docs/specificity), whichever at-rule it is and however deeply they nest. No array can put that back.
+
+Only an element carrying both classes is affected by it, which is a fact about the call site rather than the stylesheet — a print rule sitting beside a screen rule settles nothing until something wears both. So the pairs are read where the class list is:
+
+```css title="Card.module.css"
+@media print {
+  .printOnly { color: black }
+}
+
+.screenOnly { color: purple }
+```
+
+Nothing is reported for that on its own, and both classes convert. An element carrying the two together is what cannot be answered, and there the stylesheet is held for its consumers.
+
+A class that does it to itself needs no call site to show it — one key holds both declarations and has no array to settle them with — so `@media print { .a { color } }` followed by `.a { color }`, or `padding-top` followed by `padding` inside one rule, is reported as `rank-order` when the stylesheet is read. Both are the same shape, and writing the higher-ranked declaration last settles either.
+
+The at-rule is one of two things Plumeria ranks by. The other is the shorthand graph: a longhand [outranks the shorthand that writes it](/docs/specificity), so `.a { padding-top }` followed by `.b { padding }` reads the same way — CSS lets the later shorthand reset the longhand, and Plumeria does not. Both are the one rank, counted in steps: one for being written, one more under an at-rule, one per step down the graph. Two declarations Plumeria ranks alike are level, and there the array carries their order.
+
+The pair is read one declaration at a time rather than by where the class ended up. A class that writes `color` first and `margin` last sits late in the stylesheet on account of the `margin`, which says nothing about the `color` that disagrees. A `composes` goes through the same reading, because the composed class lands on the element beside the one that named it.
+
+### When a consumer reads what was refused
+
+A refusal leaves the rule in the stylesheet, which is harmless until a component reads the class it was written for. Half of that class would arrive as a Plumeria key and half would stay behind in a file the component no longer imports — a rule that silently stops applying, or a key that does not exist at all.
+
+Rather than write that, the migration holds the stylesheet back whole:
+
+```
+src/Card.module.css
+  12:1  sibling-combinator  .row + .row
+        A container query reaches descendants, never siblings, so no marker
+        states this.
+  0:0   held-for-consumer
+        `row` is read by a consumer, so nothing was written and no consumer
+        was moved. Settle the rules above and run again.
+```
+
+No `*.styles.ts` is written and no call site is touched, so the component keeps reading the stylesheet it always read and the project still builds. Other stylesheets in the same run convert as usual — the hold is per stylesheet, not per run.
+
+Nothing being written is what makes the second attempt work. A module left on disk would be reported as `target-exists` on the next run and never picked up again; because the hold writes nothing, settling the rule it named and running again converts the file.
+
+<Callout type="info">
+  A class the migration converted in full is never held. The hold reads the
+  rules that were refused, so a stylesheet converts as soon as no component
+  depends on one of them.
+</Callout>
+
+## Migrating from Plumeria
+
+```sh title="Terminal"
+npx @plumeria/codemod migrate --from plumeria
+```
+
+Exports styles written with `css.create` to CSS Modules, moves theme tokens and animation definitions into global CSS, and updates component files to use `className`.
+
+Run `eslint --fix` with the recommended config before exporting, so shorthand and property-overlap rules have settled the styles first.
+
+```tsx title="Card.tsx"
+import * as css from '@plumeria/core';
+
+export const styles = css.create({
+  base: { fontSize: 12 },
+  card: {
+    padding: 16,
+    ':hover': { background: 'teal' },
+  },
+  size: (width: number) => ({ width }),
+});
+
+export function Card({ width }: { width: number }) {
+  return <div classStyle={[styles.base, styles.card, styles.size(width)]} />;
+}
+```
+
+```css title="Card.module.css"
+.base {
+  font-size: 12px;
+}
+
+.card {
+  padding: 16px;
+}
+
+.card:hover {
+  background: teal;
+}
+
+.size {
+  width: var(--styles-size-width);
+}
+```
+
+```diff title="Card.tsx"
+- import * as css from '@plumeria/core';
++ import styles from './Card.module.css';
++ export { styles };
+
+- export const styles = css.create({
+-   base: { fontSize: 12 },
+-   card: {
+-     padding: 16,
+-     ':hover': { background: 'teal' },
+-   },
+-   size: (width: number) => ({ width }),
+- });
+
+  export function Card({ width }: { width: number }) {
+-   return <div classStyle={[styles.base, styles.card, styles.size(width)]} />;
++   return (
++     <div
++       className={[styles.base, styles.card, styles.size].join(' ')}
++       style={{ ['--styles-size-width' as string]: width }}
++     />
++   );
+  }
+```
+
+### Global styles: themes and animations
+
+Definitions created with `css.createTheme` and `css.viewTransition` are extracted and appended to the stylesheet the project already loads — `app/global.css` or `styles/global.css`, under `src` or not, spelled `global` or `globals` — and to a new `src/styles/global.css` (or `styles/global.css`) when it finds none:
+
+- **`css.createTheme`**: Emits root CSS variables (`:where(:root)`) and selector/at-rule scoped variables (e.g. `.dark`, `@media (prefers-color-scheme: dark)`). References across modules become `var(--hash-tokenName)`.
+- **`css.keyframes`**: Emits `@keyframes kf-xxxx` at the top of each CSS Module that reads it, not in global CSS — a CSS Module renames the value of `animation-name` the way it renames a class, so a global definition never matches the renamed reference. One a `css.viewTransition` names is written globally as well, since a `::view-transition-*` rule is not scoped.
+- **`css.viewTransition`**: Emits `::view-transition-*` pseudo-element rules in global CSS and assigns `view-transition-name: vt-xxxx`.
+- **`css.createStatic`**: Constant values are statically evaluated and inlined directly into generated CSS rules.
+
+Only the `css.keyframes` and `css.viewTransition` definitions an exported style reaches are written out. One that nothing reads, or that only a file the migration held back reads, stays in the TypeScript file that declares it.
+
+### Where definitions may live
+
+Definitions do not have to sit in the file that uses them. Import specifiers are resolved through `tsconfig.json` `paths`, directory `index` files, and filenames that carry a dot, so a `css.createTheme`, `css.keyframes`, or `css.createStatic` reached under an alias is inlined rather than reported as dynamic.
+
+An import that only existed to feed the styles is removed. A binding read outside the exported styles — `window.matchMedia(breakpoints.lg)`, for instance — is replaced by the value it resolved to, because a theme token, a static, and a keyframe name are all plain strings once the migration is done.
+
+A file that only defines styles and never uses them is left exactly as it is, the way `--from css-modules` leaves the original stylesheet in place. Its consumers are pointed at the generated `*.module.css` instead:
+
+```diff title="Card.tsx"
+- import { styles } from './Card.styles';
++ import styles from './Card.module.css';
+
+  export const Card = () => (
+-   <div classStyle={styles.card} />
++   <div className={styles.card} />
+  );
+```
+
+### Markers and extended styles
+
+`css.marker` and `css.extended` are expanded into the custom property and the `@container style()` rule they compile to, using the same variable name the compiler generates:
+
+```css title="MarkerExtended.module.css"
+.grand:hover {
+  --xl0a2l54-grand-hover: 1;
+}
+
+@container style(--xl0a2l54-grand-hover: 1) {
+  .child {
+    color: #0066cc;
+  }
+}
+```
+
+### Several `css.create` calls in one file
+
+Every `css.create` in a file is written to the same stylesheet, and the later bindings are read from the shared module. A key an earlier call already claimed is renamed to `<binding>-<key>`:
+
+```diff title="Button.tsx"
+- const styles = css.create({ base: { color: 'red' } });
+- const hoverStyles = css.create({ base: { color: 'blue' } });
++ import styles from './Button.module.css';
+
+  export const Button = () => (
+-   <a classStyle={[styles.base, hoverStyles.base]} />
++   <a className={styles.baseHoverStylesBase} />
+  );
+```
+
+### A style read by a named key
+
+A variant is often picked with a bracket, not a dot. The key is resolved to the class it names, in the same file or through an import, and a constant left naming nothing is removed with it:
+
+```diff title="Variant.tsx"
+- const size = 'small';
+- const color = 'primary';
+
+- <div classStyle={[styles[size], styles[color]]} />
++ <div className={[styles.small, styles.primary].join(' ')} />
+```
+
+Only a `const` initialised with a string literal is followed, and a name declared twice in one file is left alone rather than guessed at. A key the call site computes at runtime has no class to name, so it is reported as `dynamic-style-access` and its definitions stay in Plumeria.
+
+### Dynamic function styles
+
+Function styles such as `(width) => ({ width })` are converted into CSS custom properties (e.g. `--<binding>-<key>-<param>`). In JSX, the codemod passes argument values through the inline `style` prop:
+
+```diff
+- <div classStyle={styles.size(width, color)} />
++ <div className={styles.size} style={{ ['--styles-size-width' as string]: width, ['--styles-size-color' as string]: color }} />
+```
+
+The key is written as a computed string because React's `CSSProperties` has no room for a custom property.
+
+If an existing `style` prop is present, the CSS variables are merged into it.
+
+### Style composition
+
+An array with no condition in it collapses into a single class that `composes` its members, so the call site reads as one name:
+
+```diff
+- <div classStyle={[styles.button, styles.base, sizeStyles.medium]} />
++ <div className={styles.buttonBaseMedium} />
+```
+
+```css title="ButtonLink.module.css"
+.buttonBaseMedium {
+  composes: button base medium;
+}
+```
+
+`composes` copies nothing, so the stylesheet does not grow, and the reverse migration reads it straight back into an array.
+
+Any other array is joined as it stands. `filter` is added only where a condition
+can make a member falsy, so that branch drops out at runtime:
+
+```diff
+- <div classStyle={[styles.base, styles.card, styles.size(width)]} />
++ <div className={[styles.base, styles.card, styles.size].join(' ')} style={{ … }} />
+
+- <div classStyle={[styles.base, active && styles.active]} />
++ <div className={[styles.base, active && styles.active].filter(Boolean).join(' ')} />
+```
+
+### Previewing the migration
+
+Start with `-d` or `--dry-run` to inspect the exported style modules and rewritten sources without writing files:
+
+```sh title="Terminal"
+npx @plumeria/codemod migrate --from plumeria --dry-run
+```
+
+```
+  src/Card.tsx  ->  src/Card.module.css
+  global styles  ->  src/styles/global.css
+
+1 style module(s) would be exported, 1 source file(s) rewritten.
+Run without --dry-run to apply.
+```
+
+### What it reports instead of converting
+
+Constructs that cannot be statically resolved or exported without changing runtime behavior are reported, and the original Plumeria definitions are left in place:
+
+```
+src/Card.tsx
+  8:5  dynamic-value
+        The value of `color` cannot be represented statically.
+  12:3  spread-create
+        Top-level spreads cannot name a CSS Module class.
+  19:16  style-type-reference
+        `css.StaticStyles` has no CSS Modules equivalent, and the import that
+        declares it does not survive the export of Card.tsx.
+```
+
+- Dynamic values, computed properties, or runtime function calls in style objects
+- Object spreads in top-level `css.create` or style definitions, other than `css.marker`
+- Existing `*.module.css` target files are reported as `target-exists` and will not be overwritten
+- References to `Style`, `StyleProps`, `WithoutProperties`, `StaticStyles`, `AtomicStyle`, `AtomicClassStyle`, `AtomicClassNameFor` or `AtomicClassStyleFor`, reported as `style-type-reference`
+
+The export removes the `@plumeria/core` import, so a reference to one of those types is left without the import that declares it. A component prop, a type alias and a variable annotation are treated alike, and the styles that module reads are held with it.
+
+<Callout title="A type-only module is not reported">
+A module that declares nothing but style prop types is not reached by this. It defines no styles of its own, so there is no stylesheet for the report to hold, and the component importing the type refers to it by a local name the export does not recognise as a Plumeria type. Its consumer will not compile after the export.
+
+```ts title="props.ts"
+import type { StyleProps } from '@plumeria/core';
+
+export type CardProps = {
+  classStyle?: StyleProps<'color'>;
+};
+```
+
+Keep the prop type in the file that defines the styles, and the export reports it rather than breaking the consumer. This predates the prop types themselves — a module declaring only `classStyle?: Style` behaves the same way.
+</Callout>
+
+### Composition order after the export
+
+`classStyle={[styles.b, styles.a]}` resolves `color` to `styles.a`: the rightmost style wins the merge. A stylesheet has no array to read — both classes land on the element and the cascade decides — so the export reproduces the array order by three means, in order of cost.
+
+**Declaration order.** Every composition in the project is read as a constraint, and the classes are emitted in an order that satisfies all of them at once. Most projects need nothing else, and nothing is duplicated.
+
+A constraint is only recorded where the two classes actually disagree, measured per at-rule and per selector. `.wide { width }` and `.narrow { @media (…) { width } }` name the same property but never contend — an at-rule declaration already outranks a base one — so they impose no order.
+
+Not every disagreement is the array's to settle. Where one property covers another — `padding` against `padding-top` — Plumeria gives the longhand more specificity, so it wins wherever the two meet and the call site order never enters into it. The export writes the shorthand first instead, inside a rule and between rules alike, which reaches the same answer without the array. Only a partial overlap, `borderColor` against `borderTop`, is left for the call site to decide.
+
+**A composed class.** When two call sites compose the same pair in opposite orders, no declaration order satisfies both. If either call site has no condition in it, it collapses into a class of its own and stops asking.
+
+**An override class.** What is left is a call site whose members are decided at runtime. It carries an extra class holding only the disputed declarations, applied under the same condition as the style that has to win:
+
+```diff title="Panel.tsx"
+- <div classStyle={[styles.raised, flat && styles.surface]} />
++ <div className={[styles.raised, flat && styles.surface, flat && styles.surfaceOverRaised].filter(Boolean).join(' ')} />
+```
+
+```css title="Panel.module.css"
+.surfaceOverRaised:not(#\#) {
+  padding: 8px;
+  color: black;
+}
+```
+
+`:not(#\#)` matches no element and adds an id to the specificity, so the override outranks both classes wherever it lands. It is named after the call site that needs it, so two call sites never fight over one.
+
+Anything none of the three settles is reported as `composition-order` and left in Plumeria.
+
+### Running it twice
+
+The migration is idempotent. The first run converts; every run after it is a fixed point:
+
+$$f(f(x)) = f(x)$$
+
+A second run finds no `css.create` to export, reports `target-exists` for the definition files it deliberately left behind, and writes nothing. The generated block in `global.css` is fenced by a marker comment and replaced rather than appended, so it does not grow. This holds even when the first run left styles behind: clear a report, run again, and only the newly resolvable files move.
+
+Plumeria's own documentation site and end-to-end site go through the whole cycle on every CI run — exported, exported again, adopted back, adopted back again, and exported once more. Each pass has something to prove: the export must not leave a type error behind or name a class it never wrote, the second export must move nothing, the adoption must not leave a consumer reading a `*.module.css`, the second adoption must move nothing, and the project that came back must export again without a new report or a new type error.
+
+Byte equality with the first export is not the claim. A round trip folds a constant that only named a style key and gives a merged class a name, and exporting that reaches further than the first export did — the point is that nothing breaks and nothing new is refused. The exported site is also served and compared against the Plumeria one screenshot by screenshot, so the cycle is measured on the rendered page and not only in the source.
+
+## Renaming the styling prop
+
+```sh title="Terminal"
+npx @plumeria/codemod rename-prop <from> <to> [paths...]
+```
+
+`paths` default to the current directory. `dist`, `build`, `out`, `.next` and `coverage` are always skipped, and the transform reads `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts` and `.cts`.
+
+| Option | Description |
+| --- | --- |
+| `-d`, `--dry-run` | report what would change without writing |
+| `--no-types` | leave TypeScript declarations untouched |
+| `-h`, `--help` | show usage |
+| `-v`, `--version` | show the version |
+
+Start with `--dry-run`:
+
+```sh title="Terminal"
+npx @plumeria/codemod rename-prop classStyle sx --dry-run
+```
+
+```
+  src/Card.tsx  3
+  src/page.tsx  1
+
+4 occurrence(s) in 2 file(s) would become "sx".
+Run without --dry-run to apply.
+
+2 occurrence(s) need a manual rename — "classStyle" is bound to a local name there:
+  src/Card.tsx:8:24
+  src/Card.tsx:12:71
+```
+
+Drop the flag to apply. The report is the same, with the count confirmed rather than predicted:
+
+```
+✔ renamed 4 occurrence(s) of "classStyle" to "sx" in 2 file(s).
+```
+
+If the git working tree is dirty, it says so before writing — the rewrite is much easier to undo from a clean tree.
+
+## What it rewrites
+
+**JSX attributes.**
+
+```diff
+- <div classStyle={styles.card} />
++ <div sx={styles.card} />
+```
+
+**Property signatures annotated with `Style`.** That covers your `plumeria.d.ts` as well as the props of your own components:
+
+```diff
+  interface CardProps {
+-   classStyle?: Style;
++   sx?: Style;
+  }
+```
+
+The annotation has to be `Style` or `Plumeria.Style`, so an unrelated interface that happens to use the same key is left alone. Pass `--no-types` to skip declarations entirely.
+
+## What it reports instead of rewriting
+
+Where the prop is destructured, or read off an object, the name is a local binding and not only a prop:
+
+```tsx
+const Card = ({ classStyle }: CardProps) => <div classStyle={classStyle} />;
+
+const Panel = (props: CardProps) => <section classStyle={props.classStyle} />;
+```
+
+The attribute is safe to rewrite; the binding is a judgement call about the surrounding code. Those sites are listed with their positions so you can finish them by hand:
+
+```diff
+  const Card = ({ classStyle, title }: CardProps) => (
+-   <div classStyle={classStyle}>{title}</div>
++   <div sx={classStyle}>{title}</div>
+  );
+```
+
+Renaming the parameter as well is the usual next step — the codemod just will not guess it for you.
+
+## Names it refuses
+
+`<to>` has to be a valid identifier, has to differ from `<from>`, and cannot be a prop React already handles — `className`, `key`, `ref`, `children` or `style`:
+
+```
+✖ "style" is already used by React
+```
+
+Files that fail to parse are reported at the end and the command exits with `1`, so a broken file cannot be mistaken for a file with nothing to rename.
+
+## After the rewrite
+
+The codemod changes your source; it does not change your configuration. Point the toolchain at the new name:
+
+```ts title="next.config.ts"
+export default withPlumeria({}, { styleProp: 'sx' });
+```
+
+```ts title="eslint.config.ts"
+export default [
+  {
+    settings: { plumeria: { styleProp: 'sx' } },
+  },
+];
+```
+
+And point the type declaration at the same name — see [classStyle & use()](/docs/api-reference/javascript/use) for the reference that declares the prop.
+
+One practical note: the codemod does not reformat. If the new name is longer than the old one, lines that were near your print width can cross it. Run your formatter afterwards.
+
+## It is not only for migrations
+
+The names are arguments, so the transform is not tied to any particular release. Renaming the prop to whatever suits your codebase is the same command:
+
+```sh title="Terminal"
+npx @plumeria/codemod rename-prop styleName classStyle
+npx @plumeria/codemod rename-prop classStyle sx
+```
