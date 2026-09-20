@@ -5,6 +5,20 @@ import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
 import { MarkdownActions } from 'component/MarkdownActions';
+import type { Node } from 'fumadocs-core/page-tree';
+
+function getSection(nodes: Node[], url: string, section = ''): string | undefined {
+  let current = section;
+  for (const node of nodes) {
+    if (node.type === 'separator') current = typeof node.name === 'string' ? node.name : section;
+    if (node.type === 'page' && node.url === url) return current;
+    if (node.type === 'folder') {
+      if (node.index?.url === url) return current;
+      const found = getSection(node.children, url, current);
+      if (found !== undefined) return found;
+    }
+  }
+}
 
 export async function generateMetadata(props: { params: Promise<{ slug?: Array<string> }> }): Promise<Metadata> {
   const params = await props.params;
@@ -22,6 +36,7 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
   if (!page) notFound();
 
   const MDX = page.data.body;
+  const section = getSection(source.pageTree.children, page.url);
 
   return (
     <DocsPage
@@ -38,10 +53,15 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
         single: true,
       }}
     >
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription hidden>{page.data.description}</DocsDescription>
+      <header className="docs-article-header">
+        {section && <p className="docs-article-section">{section}</p>}
+        <div className="docs-article-title-row">
+          <DocsTitle>{page.data.title}</DocsTitle>
+          <MarkdownActions markdownUrl={`${page.url}.md`} />
+        </div>
+        {page.data.description && <DocsDescription>{page.data.description}</DocsDescription>}
+      </header>
       <DocsBody>
-        <MarkdownActions markdownUrl={`${page.url}.md`} />
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>
     </DocsPage>
