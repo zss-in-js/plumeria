@@ -17,7 +17,7 @@ Read the [documentation](https://plumeria.dev/docs/api-reference/components/head
 pnpm i @plumeria/headlessui
 ```
 
-> **Note:** `@plumeria/core` and a bundler plugin are required. See the [Installation guide](https://plumeria.dev/docs/getting-started/installation).
+> **Note:** `@plumeria/core` and a bundler plugin are required. See the [Installation guide](https://plumeria.dev/docs/installation).
 
 ## Example
 
