@@ -1,5 +1,5 @@
 {
-  "defaultOpen": true,
+  "defaultOpen": false,
   "title": "Plugins",
   "pages": [
     "eslint-plugin",
