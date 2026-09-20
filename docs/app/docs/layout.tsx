@@ -7,11 +7,9 @@ import { DocsSidebarBanner } from 'component/DocsSidebarBanner';
 import { DocsSidebarTrigger } from 'component/DocsSidebarTrigger';
 import { SiteHeader } from 'component/SiteHeader';
 
-// Grid width follows shiki's --vp-layout-max-width; the header height is what every sticky
-// offset below the bar (sidebar, toc) is measured from, so it has to match SiteHeader.
 const containerProps = {
   style: {
-    '--fd-layout-width': '1440px',
+    '--fd-layout-width': '100%',
     '--fd-header-height': '56px',
   } as CSSProperties,
 };
