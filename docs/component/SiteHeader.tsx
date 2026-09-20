@@ -226,7 +226,9 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showS
     };
   }, [open]);
 
-  const navLinks = links.filter((link): link is Extract<LinkItemType, { url: string }> => 'url' in link && !('icon' in link));
+  const navLinks = links.filter(
+    (link): link is Extract<LinkItemType, { url: string }> => 'url' in link && !('icon' in link),
+  );
   const menus = links.filter((link) => link.type === 'custom');
   const icons = links.filter((link) => link.type === 'icon');
 
@@ -242,11 +244,10 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showS
         <Link
           key={idx}
           href={item.url}
-          classStyle={
-            isDrawer
-              ? [styles.drawerNavLink, active && styles.drawerNavLinkActive]
-              : [styles.navLink, active && styles.navLinkActive]
-          }
+          classStyle={[
+            isDrawer ? styles.drawerNavLink : styles.navLink,
+            active && (isDrawer ? styles.drawerNavLinkActive : styles.navLinkActive),
+          ]}
         >
           {item.text}
         </Link>
@@ -311,9 +312,11 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showS
         )}
         <nav classStyle={styles.navLinks}>{renderNavLinks()}</nav>
         <div classStyle={styles.actions}>
-          {showSearch && <div classStyle={styles.searchSlot}>
-            <FullSearchTrigger hideIfDisabled className={css.use(styles.searchButton)} />
-          </div>}
+          {showSearch && (
+            <div classStyle={styles.searchSlot}>
+              <FullSearchTrigger hideIfDisabled className={css.use(styles.searchButton)} />
+            </div>
+          )}
           <nav classStyle={styles.wide}>{renderMenus()}</nav>
           <div classStyle={styles.wide}>{renderIcons()}</div>
           <div classStyle={styles.wide}>
