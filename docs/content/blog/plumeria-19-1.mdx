@@ -512,7 +512,7 @@ component/Badge.tsx
         declares it does not survive the export of Badge.tsx.
 ```
 
-Before, the export rewrote such a component's call sites to `className` while its declaration still said `classStyle`, and left the file uncompilable. It now joins `dynamic-value` and the other reasons the export already leaves styles behind, so a migration that meets one is partial rather than broken. One shape is still outside it: a module that declares nothing but style prop types has no stylesheet to hold the report, and its consumer will not compile after the export. Keeping the prop type in the file that defines the styles avoids it, and [the codemod reference](/docs/api-reference/codemod) says so where the other reports are listed.
+Before, the export rewrote such a component's call sites to `className` while its declaration still said `classStyle`, and left the file uncompilable. It now joins `dynamic-value` and the other reasons the export already leaves styles behind, so a migration that meets one is partial rather than broken. One shape is still outside it: a module that declares nothing but style prop types has no stylesheet to hold the report, and its consumer will not compile after the export. Keeping the prop type in the file that defines the styles avoids it, and [the codemod reference](/docs/codemod) says so where the other reports are listed.
 
 **From 19.1.0.** Nothing to do. The transform moving into `@plumeria/utils` is internal to the packages — the plugin and the loader are configured exactly as before, and `@plumeria/utils` is already a dependency of both. If you build with the Turbopack loader, the one thing that changes is that you now get the behaviour the plugin had in the places the two still differed.
 
