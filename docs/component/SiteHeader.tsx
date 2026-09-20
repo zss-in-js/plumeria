@@ -30,15 +30,57 @@ const styles = css.create({
     display: 'flex',
     gap: 8,
     alignItems: 'center',
-    maxWidth: 1440,
+    width: '100%',
     height: 56,
-    paddingInline: 16,
-    marginInline: 'auto',
+    paddingInline: 24,
   },
   title: {
     display: 'inline-flex',
     alignItems: 'center',
     textDecoration: 'none',
+  },
+  navLinks: {
+    display: 'none',
+    [breakpoints.lgUp]: {
+      display: 'flex',
+      gap: 2,
+      alignItems: 'center',
+      marginLeft: 16,
+    },
+  },
+  navLink: {
+    padding: '6px 10px',
+    fontSize: '15px',
+    fontWeight: 500,
+    color: theme.textSecondary,
+    textDecoration: 'none',
+    borderRadius: '8px',
+    transition: 'color 0.15s ease, background-color 0.15s ease',
+    ':hover': {
+      color: theme.textPrimary,
+      background: theme.iconBg,
+    },
+  },
+  navLinkActive: {
+    color: theme.textPrimary,
+  },
+  drawerNavLink: {
+    display: 'block',
+    padding: '10px 16px',
+    fontSize: '15px',
+    fontWeight: 500,
+    color: theme.textSecondary,
+    textDecoration: 'none',
+    borderRadius: '8px',
+    transition: 'color 0.15s ease, background-color 0.15s ease',
+    ':hover': {
+      color: theme.textPrimary,
+      background: theme.iconBg,
+    },
+  },
+  drawerNavLinkActive: {
+    color: theme.textPrimary,
+    background: theme.iconBg,
   },
   searchSlot: {
     display: 'none',
@@ -46,7 +88,6 @@ const styles = css.create({
       display: 'block',
       width: '100%',
       maxWidth: 140,
-      marginLeft: 12,
     },
   },
   searchButton: {
@@ -154,12 +195,13 @@ const MenuIcon = () => (
 );
 
 interface SiteHeaderProps {
+  showSearch?: boolean;
   title: NavOptions['title'];
   links: LinkItemType[];
   sidebarTrigger?: React.ComponentType;
 }
 
-export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger }: SiteHeaderProps) => {
+export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showSearch = true }: SiteHeaderProps) => {
   const [open, setOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
   const pathname = usePathname();
@@ -184,8 +226,32 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger }: Sit
     };
   }, [open]);
 
+  const navLinks = links.filter((link): link is Extract<LinkItemType, { url: string }> => 'url' in link && !('icon' in link));
   const menus = links.filter((link) => link.type === 'custom');
   const icons = links.filter((link) => link.type === 'icon');
+
+  const isLinkActive = (url: string) => {
+    if (url === '/') return pathname === '/';
+    return pathname.startsWith(url);
+  };
+
+  const renderNavLinks = (isDrawer = false) =>
+    navLinks.map((item, idx) => {
+      const active = isLinkActive(item.url);
+      return (
+        <Link
+          key={idx}
+          href={item.url}
+          classStyle={
+            isDrawer
+              ? [styles.drawerNavLink, active && styles.drawerNavLinkActive]
+              : [styles.navLink, active && styles.navLinkActive]
+          }
+        >
+          {item.text}
+        </Link>
+      );
+    });
 
   const renderMenus = () => menus.map((item, idx) => <React.Fragment key={idx}>{item.children}</React.Fragment>);
 
@@ -225,7 +291,10 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger }: Sit
             <SidebarIcon />
           </button>
         </div>
-        <div classStyle={styles.drawerBody}>{renderMenus()}</div>
+        <div classStyle={styles.drawerBody}>
+          {renderNavLinks(true)}
+          {renderMenus()}
+        </div>
       </aside>
     </>
   );
@@ -240,17 +309,18 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger }: Sit
             {title}
           </Link>
         )}
-        <div classStyle={styles.searchSlot}>
-          <FullSearchTrigger hideIfDisabled className={css.use(styles.searchButton)} />
-        </div>
+        <nav classStyle={styles.navLinks}>{renderNavLinks()}</nav>
         <div classStyle={styles.actions}>
+          {showSearch && <div classStyle={styles.searchSlot}>
+            <FullSearchTrigger hideIfDisabled className={css.use(styles.searchButton)} />
+          </div>}
           <nav classStyle={styles.wide}>{renderMenus()}</nav>
           <div classStyle={styles.wide}>{renderIcons()}</div>
           <div classStyle={styles.wide}>
             <ThemeSwitch classStyle={navStyles.themeToggle} />
           </div>
           <div classStyle={styles.compact}>
-            <SearchTrigger hideIfDisabled />
+            {showSearch && <SearchTrigger hideIfDisabled />}
             {SidebarTrigger ? (
               <SidebarTrigger />
             ) : (
