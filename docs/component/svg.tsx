@@ -1,8 +1,7 @@
 import { theme } from 'lib/theme';
-import * as css from '@plumeria/core';
 
 export const svg = {
-  PlumeriaLogo({ size = 220, styleArray }: { size?: number; styleArray?: css.Style }) {
+  PlumeriaLogo({ size = 220 }: { size?: number }) {
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -12,7 +11,6 @@ export const svg = {
         height={size}
         aria-label="Plumeria logo"
         role="img"
-        classStyle={styleArray}
       >
         <defs>
           <linearGradient id="plumeria" x1="18" y1="18" x2="182" y2="182" gradientUnits="userSpaceOnUse">
