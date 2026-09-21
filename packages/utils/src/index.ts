@@ -17,6 +17,7 @@ export {
   resolveOriginError,
   unwrapExpression,
   extractOndemandStyles,
+  appendSheet,
   deepMerge,
   scanAll,
   resolveFileError,
