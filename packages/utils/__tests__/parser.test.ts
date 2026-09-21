@@ -6,6 +6,7 @@ import {
   collectLocalConsts,
   scanAll,
   extractOndemandStyles,
+  appendSheet,
   deepMerge,
 } from '../src/parser';
 import { parseSync, ObjectExpression } from '@swc/core';
@@ -2401,7 +2402,7 @@ describe('extractOndemandStyles (integration)', () => {
       },
     };
 
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
 
     // transpile の戻りは parser 側で共通の styleSheet を返すため
     // transpile の戻りは parser 側で共通の styleSheet を返すため
@@ -2416,7 +2417,11 @@ describe('extractOndemandStyles (integration)', () => {
       s2: { color: 'red' },
     };
 
-    extractOndemandStyles({ x: `cr-${createHash}` }, extracted, tables);
+    extractOndemandStyles(
+      { x: `cr-${createHash}` },
+      appendSheet(extracted),
+      tables,
+    );
     expect(extracted.length).toBeDefined();
   });
 
@@ -2435,21 +2440,29 @@ describe('extractOndemandStyles (integration)', () => {
     };
     tables.createObjectTable['myhash'] = { color: 'red' };
 
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
     expect(extracted.length).toBeGreaterThan(0);
   });
 
   it('should find a reference sitting in the middle of a shorthand', () => {
     const extracted: string[] = [];
 
-    extractOndemandStyles({ animation: 'kf-abc 1s ease' }, extracted, tables);
+    extractOndemandStyles(
+      { animation: 'kf-abc 1s ease' },
+      appendSheet(extracted),
+      tables,
+    );
     expect(extracted.join('')).toContain('@keyframes kf-abc');
   });
 
   it('should ignore text that only reads like a reference', () => {
     const extracted: string[] = [];
 
-    extractOndemandStyles({ content: '"kf-nothing"' }, extracted, tables);
+    extractOndemandStyles(
+      { content: '"kf-nothing"' },
+      appendSheet(extracted),
+      tables,
+    );
     expect(extracted).toHaveLength(0);
   });
 
@@ -2460,7 +2473,7 @@ describe('extractOndemandStyles (integration)', () => {
       b: 'var(--invalid', // Missing closing paren
       c: 'var(not-a-var)', // Missing prefix
     };
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
     expect(extracted).toBeDefined();
   });
 
@@ -2470,7 +2483,11 @@ describe('extractOndemandStyles (integration)', () => {
     tables.createThemeHashTable['T2'] = 'hash-invalid';
     tables.createThemeObjectTable['hash-invalid'] = 'not-an-object' as any;
 
-    extractOndemandStyles({ color: 'var(--any)' }, extracted, tables);
+    extractOndemandStyles(
+      { color: 'var(--any)' },
+      appendSheet(extracted),
+      tables,
+    );
     expect(extracted).toBeDefined();
   });
 
@@ -2479,7 +2496,7 @@ describe('extractOndemandStyles (integration)', () => {
     const obj: any = { a: 'val' };
     obj.b = obj; // Circular reference
 
-    extractOndemandStyles(obj, extracted, tables);
+    extractOndemandStyles(obj, appendSheet(extracted), tables);
     expect(extracted).toHaveLength(0);
   });
 
@@ -2501,7 +2518,7 @@ describe('extractOndemandStyles (integration)', () => {
       8,
     );
     const style = { color: `var(--${atomicHash}-primary)` };
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
 
     // Should have theme styles extracted
     expect(extracted.length).toBe(1);
@@ -2509,9 +2526,9 @@ describe('extractOndemandStyles (integration)', () => {
   it('should ignore invalid input', () => {
     const extracted: string[] = [];
 
-    extractOndemandStyles(null, extracted, tables);
-    extractOndemandStyles('string', extracted, tables);
-    extractOndemandStyles(123, extracted, tables);
+    extractOndemandStyles(null, appendSheet(extracted), tables);
+    extractOndemandStyles('string', appendSheet(extracted), tables);
+    extractOndemandStyles(123, appendSheet(extracted), tables);
 
     expect(extracted).toHaveLength(0);
   });
