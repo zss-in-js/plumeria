@@ -48,7 +48,7 @@ const delta = (base, head) => {
 function main() {
   const [baseDir, headDir] = process.argv.slice(2);
   if (!baseDir || !headDir) {
-    console.error('usage: bench-compare.js <base-dir> <head-dir>');
+    console.error('usage: bench-compare-scan.js <base-dir> <head-dir>');
     process.exit(2);
   }
 
