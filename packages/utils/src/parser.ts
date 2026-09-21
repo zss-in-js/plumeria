@@ -17,6 +17,7 @@ import type {
   CreateStaticObjectTable,
   CreateTheme,
   TableEntry,
+  SheetSink,
 } from './types';
 
 import { createTheme, themeHashOf } from './createTheme';
@@ -3235,9 +3236,18 @@ const REFERENCE_MARKER = /(kf|vt|cr)-([0-9a-z]+)/g;
 // with it, and finds the wrong parenthesis whenever a var() holds another.
 const CUSTOM_PROPERTY = /var\(\s*(--[^\s,)]+)/g;
 
+export const appendSheet = (sheets: string[]): SheetSink => {
+  const existingSheets = new Set(sheets);
+  return (sheet: string) => {
+    if (existingSheets.has(sheet)) return;
+    existingSheets.add(sheet);
+    sheets.push(sheet);
+  };
+};
+
 export function extractOndemandStyles(
   obj: any,
-  extractedSheets: string[],
+  addSheet: SheetSink,
   t: Tables,
 ): void {
   if (!obj || typeof obj !== 'object') return;
@@ -3251,7 +3261,6 @@ export function extractOndemandStyles(
   function walk(n: any) {
     if (!n || typeof n !== 'object' || visited.has(n)) return;
     visited.add(n);
-
     Object.values(n).forEach((val) => {
       if (typeof val === 'string') {
         // A shorthand carries the reference alongside the rest of the value,
@@ -3290,14 +3299,6 @@ export function extractOndemandStyles(
     });
   }
   walk(obj);
-
-  const existingSheets = new Set(extractedSheets);
-  const addSheet = (sheet: string) => {
-    if (!existingSheets.has(sheet)) {
-      existingSheets.add(sheet);
-      extractedSheets.push(sheet);
-    }
-  };
 
   if (keyframesHashes.size > 0) {
     for (const hash of keyframesHashes) {
