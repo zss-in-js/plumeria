@@ -189,7 +189,7 @@ export const sortProperties: Rule.RuleModule = {
           node: prop.key,
           messageId: 'sortProperties',
           data: {
-            position: String(sorted.indexOf(prop) + 1),
+            position: String(propertyToIndexInSorted.get(prop)! + 1),
             property: getPropertyName(prop),
           },
           fix(fixer) {
