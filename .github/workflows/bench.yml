@@ -82,10 +82,29 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          node scripts/bench-compare.js .bench-base . > bench.md
+          node scripts/bench-compare-scan.js .bench-base . > bench.md
           printf '\nCompared revisions:\n\n- Base: [%s](%s/%s/commit/%s)\n- PR: [%s (#%s)](%s/%s/commit/%s)\n' \
             "${BASE_LABEL:-Base commit}" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$BASE_SHA" \
             "$PR_TITLE" "$PR_NUMBER" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$HEAD_SHA" >> bench.md
+
+      - name: Measure production transforms
+        id: transform-production
+        run: |
+          node scripts/bench-compare-transform.js .bench-base . > bench-transform-production.md
+          printf '\n' >> bench.md
+          cat bench-transform-production.md >> bench.md
+
+      - name: Measure dev transforms
+        id: transform-dev
+        env:
+          BENCH_DEV: '1'
+        run: |
+          node scripts/bench-compare-transform.js .bench-base . > bench-transform-dev.md
+          printf '\n' >> bench.md
+          cat bench-transform-dev.md >> bench.md
+
+      - name: Publish job summary
+        run: cat bench.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment on the pull request
         continue-on-error: true
@@ -105,7 +124,7 @@ jobs:
           fi
 
       - name: Fail on a wider invalidation
-        if: steps.bench.outputs.regressed == 'true'
+        if: steps.bench.outputs.regressed == 'true' || steps.transform-production.outputs.regressed == 'true' || steps.transform-dev.outputs.regressed == 'true'
         run: |
-          echo "The scan parses more files than the base does for the same edit." >&2
+          echo "The scan or transform makes more SWC parse calls than the base." >&2
           exit 1
