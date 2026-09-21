@@ -31,6 +31,7 @@ import {
   getRootIdentifier,
   resolveOriginError,
   extractOndemandStyles,
+  appendSheet,
   deepMerge,
   scanAll,
   resolveImportPath,
@@ -649,7 +650,7 @@ export function compileCSS(options: CompilerOptions) {
       )?.name;
 
     const processStyle = (style: CSSObject) => {
-      extractOndemandStyles(style, extractedSheets, scannedTables);
+      extractOndemandStyles(style, appendSheet(extractedSheets), scannedTables);
       const records = getStyleRecords(style as CSSProperties);
       records.forEach((r: StyleRecord) => extractedSheets.push(r.sheet));
     };
