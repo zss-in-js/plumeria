@@ -72,3 +72,5 @@ export type ViewTransition = {
   new?: CSSProperties;
   old?: CSSProperties;
 };
+
+export type SheetSink = (sheet: string) => void;
