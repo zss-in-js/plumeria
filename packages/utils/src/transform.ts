@@ -413,11 +413,9 @@ export const transformSource = async (
     }
   };
 
-  const extractedSheets: string[] = [];
+  const extractedSheets = new Set<string>();
   const addSheet = (sheet: string) => {
-    if (!extractedSheets.includes(sheet)) {
-      extractedSheets.push(sheet);
-    }
+    extractedSheets.add(sheet);
   };
 
   const processStyleRecords = (
@@ -426,7 +424,7 @@ export const transformSource = async (
   ) => {
     const records = getStyleRecords(style as CSSProperties, weights);
     if (collectOndemandSheets) {
-      extractOndemandStyles(style, extractedSheets, scannedTables);
+      extractOndemandStyles(style, addSheet, scannedTables);
       records.forEach((r: StyleRecord) => {
         addSheet(r.sheet);
       });
@@ -2999,5 +2997,5 @@ export const transformSource = async (
   parts.push(buffer.subarray(offset));
   const transformedSource = Buffer.concat(parts).toString();
 
-  return { code: transformedSource, sheets: extractedSheets };
+  return { code: transformedSource, sheets: [...extractedSheets] };
 };
