@@ -2962,12 +2962,12 @@ export const transformSource = async (
     }
   });
 
+  replacements.sort((a, b) => a.start - b.start || b.end - a.end);
+
   for (const deferred of deferredSources) {
     let cursor = deferred.start;
     const pieces: string[] = [];
-    for (const replacement of [...replacements].sort(
-      (a, b) => a.start - b.start || b.end - a.end,
-    )) {
+    for (const replacement of replacements) {
       if (replacement.start < cursor || replacement.end > deferred.end)
         continue;
       pieces.push(
@@ -2989,14 +2989,12 @@ export const transformSource = async (
   let offset = 0;
   const parts: Buffer[] = [];
 
-  replacements
-    .sort((a, b) => a.start - b.start || b.end - a.end)
-    .forEach((r) => {
-      if (r.start < offset) return;
-      parts.push(buffer.subarray(offset, r.start));
-      parts.push(Buffer.from(r.content));
-      offset = r.end;
-    });
+  replacements.forEach((r) => {
+    if (r.start < offset) return;
+    parts.push(buffer.subarray(offset, r.start));
+    parts.push(Buffer.from(r.content));
+    offset = r.end;
+  });
   parts.push(buffer.subarray(offset));
   const transformedSource = Buffer.concat(parts).toString();
 
