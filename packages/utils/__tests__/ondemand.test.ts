@@ -1,6 +1,6 @@
 /* Testing createTheme's on-demand style generation */
 
-import { extractOndemandStyles } from '../src/parser';
+import { appendSheet, extractOndemandStyles } from '../src/parser';
 import { genBase36Hash } from 'zss-engine';
 
 describe('extractOndemandStyles (On-Demand Filtering)', () => {
@@ -42,7 +42,7 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
     // Simulate usage of ONLY primary
     const style = { color: `var(--${primaryHash}-primary)` };
 
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
 
     const output = extracted.join('');
 
@@ -88,7 +88,7 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
       background: `var(--${accentHash}-accent)`,
     };
 
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
 
     const output = extracted.join('');
 
@@ -112,7 +112,7 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
 
     const style = { color: 'red' }; // No var usage
 
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
 
     expect(extracted).toHaveLength(0);
   });
@@ -138,7 +138,7 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
     // the fallback with it, and the inner one closes first.
     const style = { color: `var(--override, var(--${primaryHash}-primary))` };
 
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
 
     expect(extracted.join('')).toContain(`--${primaryHash}-primary: blue`);
   });
@@ -162,7 +162,7 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
 
     const style = { color: `var(--${primaryHash}-primary, red)` };
 
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
 
     expect(extracted.join('')).toContain(`--${primaryHash}-primary: white`);
   });
@@ -190,7 +190,7 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
       color: `var( --override,\n  var(\t--${primaryHash}-primary))`,
     };
 
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
 
     expect(extracted.join('')).toContain(`--${primaryHash}-primary: blue`);
   });
@@ -202,7 +202,7 @@ describe('extractOndemandStyles (On-Demand Filtering)', () => {
     // This triggers the `break` in the loop to avoid infinite loop
     const style = { color: 'var(--primary  ignored stuff' };
 
-    extractOndemandStyles(style, extracted, tables);
+    extractOndemandStyles(style, appendSheet(extracted), tables);
 
     const output = extracted.join('');
     // Should NOT extract anything because it's invalid
