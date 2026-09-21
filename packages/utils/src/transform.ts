@@ -541,9 +541,10 @@ export const transformSource = async (
     mergedStaticTable[key] = importMap[key];
   }
 
-  const mergedKeyframesTable: KeyframesHashTable = {};
+  const mergedKeyframesTable: KeyframesHashTable = Object.create(
+    scannedTables.keyframesHashTable,
+  );
   for (const key of Object.keys(scannedTables.keyframesHashTable)) {
-    mergedKeyframesTable[key] = scannedTables.keyframesHashTable[key];
     if (key.startsWith(`${resourcePath}-`)) {
       const varName = key.slice(resourcePath.length + 1);
       mergedKeyframesTable[varName] = scannedTables.keyframesHashTable[key];
@@ -553,9 +554,10 @@ export const transformSource = async (
     mergedKeyframesTable[key] = keyframesImportMap[key];
   }
 
-  const mergedViewTransitionTable: ViewTransitionHashTable = {};
+  const mergedViewTransitionTable: ViewTransitionHashTable = Object.create(
+    scannedTables.viewTransitionHashTable,
+  );
   for (const key of Object.keys(scannedTables.viewTransitionHashTable)) {
-    mergedViewTransitionTable[key] = scannedTables.viewTransitionHashTable[key];
     if (key.startsWith(`${resourcePath}-`)) {
       const varName = key.slice(resourcePath.length + 1);
       mergedViewTransitionTable[varName] =
@@ -566,9 +568,10 @@ export const transformSource = async (
     mergedViewTransitionTable[key] = viewTransitionImportMap[key];
   }
 
-  const mergedCreateTable: CreateHashTable = {};
+  const mergedCreateTable: CreateHashTable = Object.create(
+    scannedTables.createHashTable,
+  );
   for (const key of Object.keys(scannedTables.createHashTable)) {
-    mergedCreateTable[key] = scannedTables.createHashTable[key];
     if (key.startsWith(`${resourcePath}-`)) {
       const varName = key.slice(resourcePath.length + 1);
       mergedCreateTable[varName] = scannedTables.createHashTable[key];
@@ -578,9 +581,10 @@ export const transformSource = async (
     mergedCreateTable[key] = createImportMap[key];
   }
 
-  const mergedCreateThemeHashTable: CreateThemeHashTable = {};
+  const mergedCreateThemeHashTable: CreateThemeHashTable = Object.create(
+    scannedTables.createThemeHashTable,
+  );
   for (const key of Object.keys(scannedTables.createThemeHashTable)) {
-    mergedCreateThemeHashTable[key] = scannedTables.createThemeHashTable[key];
     if (key.startsWith(`${resourcePath}-`)) {
       const varName = key.slice(resourcePath.length + 1);
       mergedCreateThemeHashTable[varName] =
@@ -591,9 +595,10 @@ export const transformSource = async (
     mergedCreateThemeHashTable[key] = createThemeImportMap[key];
   }
 
-  const mergedCreateStaticHashTable: CreateStaticHashTable = {};
+  const mergedCreateStaticHashTable: CreateStaticHashTable = Object.create(
+    scannedTables.createStaticHashTable,
+  );
   for (const key of Object.keys(scannedTables.createStaticHashTable)) {
-    mergedCreateStaticHashTable[key] = scannedTables.createStaticHashTable[key];
     if (key.startsWith(`${resourcePath}-`)) {
       const varName = key.slice(resourcePath.length + 1);
       mergedCreateStaticHashTable[varName] =
