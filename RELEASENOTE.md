@@ -1,5 +1,11 @@
 # Release Notes
 
+## 19.2.10 (Sep 21, 2026)
+
+- Read a misordered property's reported position from the index `sort-properties` already builds. The rule mapped every property to its sorted position to decide what was out of order, then scanned the sorted list again once per report
+
+- Collect a file's extracted stylesheets in a set. Every sheet was matched against the growing array, and the on-demand pass rebuilt its own lookup from that array on each call; both now write through one insertion-ordered set, and `extractOndemandStyles` takes the collector rather than the array
+
 ## 19.2.9 (Sep 18, 2026)
 
 - Scan a file again once an import that resolved to nothing names a real file. Deleting a module a component imports its styles from leaves the importer holding a specifier that resolves nowhere, and restoring the file only scanned the file itself, so the importer was never visited again: a style handed to a child through a prop stayed missing and the child kept rendering `className=""`. A scan that finds files it has not seen now revisits whatever was left holding an unresolved specifier
