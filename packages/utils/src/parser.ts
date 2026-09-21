@@ -1580,6 +1580,13 @@ function releaseFileObjects(filePath: string) {
   fileObjectContributions.delete(filePath);
 }
 
+export function fileTableKeys(
+  filePath: string,
+  tableName: string,
+): ReadonlySet<string> | undefined {
+  return fileKeyContributions.get(filePath)?.get(tableName);
+}
+
 function registerFileKey(tableName: string, key: string, filePath: string) {
   let contributions = fileKeyContributions.get(filePath);
   if (!contributions)
