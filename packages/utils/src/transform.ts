@@ -1206,7 +1206,7 @@ export const transformSource = async (
     },
   });
 
-  const jsxOpeningElementMap = new Map<
+  const jsxAttributeOwnerMap = new Map<
     number,
     { compKey: string | null; attributes: JSXAttributeOrSpread[] }
   >();
@@ -2379,10 +2379,13 @@ export const transformSource = async (
 
   traverse(ast, {
     JSXOpeningElement({ node }: { node: JSXOpeningElement }) {
-      jsxOpeningElementMap.set(node.span.start, {
+      const owner = {
         compKey: resolveComponentKey(node.name, resourcePath, localImports),
         attributes: node.attributes,
-      });
+      };
+      for (const attribute of node.attributes)
+        if (attribute.type === 'JSXAttribute')
+          jsxAttributeOwnerMap.set(attribute.span.start, owner);
     },
     MemberExpression({ node }: { node: MemberExpression }) {
       if (!isVisibleReference(node)) return;
@@ -2581,16 +2584,8 @@ export const transformSource = async (
       if (node.name.type !== 'Identifier') return;
       const attrName = node.name.value;
 
-      let compKey: string | null = null;
-      for (const [, val] of jsxOpeningElementMap) {
-        const found = val.attributes
-          .filter((a): a is JSXAttribute => a.type === 'JSXAttribute')
-          .find((a) => a.span.start === node.span.start);
-        if (found) {
-          compKey = val.compKey;
-          break;
-        }
-      }
+      const compKey =
+        jsxAttributeOwnerMap.get(node.span.start)?.compKey ?? null;
 
       const receivesStyleProp = Boolean(
         compKey &&
@@ -2709,16 +2704,8 @@ export const transformSource = async (
       const dynamicClassParts: string[] = [];
       const existingStyleParts: string[] = [];
 
-      let attributes: Array<JSXAttribute | SpreadElement> = [];
-      for (const [, val] of jsxOpeningElementMap) {
-        const found = val.attributes
-          .filter((a): a is JSXAttribute => a.type === 'JSXAttribute')
-          .find((a) => a.span.start === node.span.start);
-        if (found) {
-          attributes = val.attributes;
-          break;
-        }
-      }
+      const attributes: Array<JSXAttribute | SpreadElement> =
+        jsxAttributeOwnerMap.get(node.span.start)?.attributes ?? [];
 
       const classNameAttr = attributes.find(
         (attr): attr is JSXAttribute =>
