@@ -65,6 +65,7 @@ import type {
   CreateThemeHashTable,
   CreateStaticHashTable,
   CSSObject,
+  TableEntry,
 } from './types';
 
 type CreateStyleValue = {
@@ -1210,6 +1211,22 @@ export const transformSource = async (
     number,
     { compKey: string | null; attributes: JSXAttributeOrSpread[] }
   >();
+
+  const propEntryIndexes = new Map<TableEntry[], Map<number, TableEntry[]>>();
+  const localPropEntries = (list: TableEntry[], spanStart: number) => {
+    let index = propEntryIndexes.get(list);
+    if (!index) {
+      index = new Map();
+      for (const entry of list) {
+        if (entry.filePath !== resourcePath) continue;
+        const bucket = index.get(entry.spanStart);
+        if (bucket) bucket.push(entry);
+        else index.set(entry.spanStart, [entry]);
+      }
+      propEntryIndexes.set(list, index);
+    }
+    return index.get(spanStart);
+  };
 
   const componentParamNames = new Set<string>();
   const addFirstParamName = (fn: { params: unknown[] }) => {
@@ -2627,12 +2644,11 @@ export const transformSource = async (
               return `{ ${foldDynamicVars(vars).join(', ')} }`;
             };
             const replaceWithKey = (subNode: Expression) => {
-              const entries = list.filter(
-                (entry) =>
-                  entry.spanStart === (subNode as HasSpan).span.start &&
-                  entry.filePath === resourcePath,
+              const entries = localPropEntries(
+                list,
+                (subNode as HasSpan).span.start,
               );
-              if (!entries.length) return false;
+              if (!entries) return false;
               let content = '""';
               for (const entry of [...entries].reverse()) {
                 let value = JSON.stringify(entry.key);
