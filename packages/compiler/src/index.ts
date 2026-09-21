@@ -34,6 +34,7 @@ import {
   appendSheet,
   deepMerge,
   scanAll,
+  fileTableKeys,
   resolveImportPath,
   resolveExport,
   themeHashOf,
@@ -484,66 +485,59 @@ export function compileCSS(options: CompilerOptions) {
       mergedStaticTable[key] = importMap[key];
     }
 
-    const mergedKeyframesTable: KeyframesHashTable = {};
-    for (const key of Object.keys(scannedTables.keyframesHashTable)) {
-      mergedKeyframesTable[key] = scannedTables.keyframesHashTable[key];
-      if (key.startsWith(`${resourcePath}-`)) {
-        const varName = key.slice(resourcePath.length + 1);
-        mergedKeyframesTable[varName] = scannedTables.keyframesHashTable[key];
-      }
+    const mergedKeyframesTable: KeyframesHashTable = Object.create(
+      scannedTables.keyframesHashTable,
+    );
+    for (const key of fileTableKeys(resourcePath, 'keyframesHashTable') ?? []) {
+      mergedKeyframesTable[key.slice(resourcePath.length + 1)] =
+        scannedTables.keyframesHashTable[key];
     }
     for (const key of Object.keys(keyframesImportMap)) {
       mergedKeyframesTable[key] = keyframesImportMap[key];
     }
 
-    const mergedViewTransitionTable: ViewTransitionHashTable = {};
-    for (const key of Object.keys(scannedTables.viewTransitionHashTable)) {
-      mergedViewTransitionTable[key] =
+    const mergedViewTransitionTable: ViewTransitionHashTable = Object.create(
+      scannedTables.viewTransitionHashTable,
+    );
+    for (const key of fileTableKeys(resourcePath, 'viewTransitionHashTable') ??
+      []) {
+      mergedViewTransitionTable[key.slice(resourcePath.length + 1)] =
         scannedTables.viewTransitionHashTable[key];
-      if (key.startsWith(`${resourcePath}-`)) {
-        const varName = key.slice(resourcePath.length + 1);
-        mergedViewTransitionTable[varName] =
-          scannedTables.viewTransitionHashTable[key];
-      }
     }
     for (const key of Object.keys(viewTransitionImportMap)) {
       mergedViewTransitionTable[key] = viewTransitionImportMap[key];
     }
 
-    const mergedCreateThemeHashTable: CreateThemeHashTable = {};
-    for (const key of Object.keys(scannedTables.createThemeHashTable)) {
-      mergedCreateThemeHashTable[key] = scannedTables.createThemeHashTable[key];
-      if (key.startsWith(`${resourcePath}-`)) {
-        const varName = key.slice(resourcePath.length + 1);
-        mergedCreateThemeHashTable[varName] =
-          scannedTables.createThemeHashTable[key];
-      }
+    const mergedCreateThemeHashTable: CreateThemeHashTable = Object.create(
+      scannedTables.createThemeHashTable,
+    );
+    for (const key of fileTableKeys(resourcePath, 'createThemeHashTable') ??
+      []) {
+      mergedCreateThemeHashTable[key.slice(resourcePath.length + 1)] =
+        scannedTables.createThemeHashTable[key];
     }
     for (const key of Object.keys(createThemeImportMap)) {
       mergedCreateThemeHashTable[key] = createThemeImportMap[key];
     }
 
-    const mergedCreateStaticHashTable: CreateStaticHashTable = {};
-    for (const key of Object.keys(scannedTables.createStaticHashTable)) {
-      mergedCreateStaticHashTable[key] =
+    const mergedCreateStaticHashTable: CreateStaticHashTable = Object.create(
+      scannedTables.createStaticHashTable,
+    );
+    for (const key of fileTableKeys(resourcePath, 'createStaticHashTable') ??
+      []) {
+      mergedCreateStaticHashTable[key.slice(resourcePath.length + 1)] =
         scannedTables.createStaticHashTable[key];
-      if (key.startsWith(`${resourcePath}-`)) {
-        const varName = key.slice(resourcePath.length + 1);
-        mergedCreateStaticHashTable[varName] =
-          scannedTables.createStaticHashTable[key];
-      }
     }
     for (const key of Object.keys(createStaticImportMap)) {
       mergedCreateStaticHashTable[key] = createStaticImportMap[key];
     }
 
-    const mergedCreateTable: CreateHashTable = {};
-    for (const key of Object.keys(scannedTables.createHashTable)) {
-      mergedCreateTable[key] = scannedTables.createHashTable[key];
-      if (key.startsWith(`${resourcePath}-`)) {
-        const varName = key.slice(resourcePath.length + 1);
-        mergedCreateTable[varName] = scannedTables.createHashTable[key];
-      }
+    const mergedCreateTable: CreateHashTable = Object.create(
+      scannedTables.createHashTable,
+    );
+    for (const key of fileTableKeys(resourcePath, 'createHashTable') ?? []) {
+      mergedCreateTable[key.slice(resourcePath.length + 1)] =
+        scannedTables.createHashTable[key];
     }
     for (const key of Object.keys(createImportMap)) {
       mergedCreateTable[key] = createImportMap[key];
