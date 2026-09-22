@@ -25,8 +25,15 @@ function isRscConfig(userConfig: UserConfig): boolean {
 
 function attachViteHooks(plugin: any, options?: VitePluginOptions) {
   let devServer: ViteDevServer | undefined;
-  const { cssLookup, cssFileLookup, targets, setDev, setRoot, setCssImport } =
-    plugin.__plumeriaInternal;
+  const {
+    cssLookup,
+    cssFileLookup,
+    targets,
+    setDev,
+    setRoot,
+    setCssImport,
+    setClassProp,
+  } = plugin.__plumeriaInternal;
 
   const useDiskEmit = options?.devEmitToDisk ?? false;
   let isDev = false;
@@ -216,6 +223,9 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
     configResolved(config: ResolvedConfig) {
       viteRoot = config.root;
       setRoot(config.root);
+      if (config.plugins?.some((entry) => entry?.name === 'solid')) {
+        setClassProp('class');
+      }
       if (config.command === 'serve') {
         isDev = true;
         setDev(true);
