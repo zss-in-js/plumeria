@@ -161,6 +161,12 @@ Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1
 
 ## Release notes
 
+## 19.2.11 (Sep 21, 2026)
+- Perf: index a JSX attribute by its owning element. Resolving the component behind an attribute walked every opening element in the file and re-filtered its attribute list, twice per attribute; the opening-element pass now records each attribute as it goes
+- Perf: index a component's prop entries by call site. Every style expression filtered the project-wide entry list for the component and the prop it was written on; the entries belonging to the current file are now bucketed by position once per list
+- Perf: order the replacements once before resolving deferred sources. Each deferred expression copied and re-sorted the whole replacement list, and the final splice sorted it a second time
+- Perf: overlay the file-local aliases on the scanned tables. Transforming one file copied every keyframes, view transition, create, theme and static-create entry in the project before adding its own aliases; the aliases now sit on top of the scanned table instead
+
 ## 19.2.10 (Sep 21, 2026)
 - Perf: collect a file's extracted stylesheets in a set. Every sheet was matched against the growing array, and the on-demand pass rebuilt its own lookup from that array on each call, so a file's own sheets were scanned once more for every style it compiled. Both now write through one insertion-ordered set, and `extractOndemandStyles` takes the collector rather than the array it was expected to stay in step with
 - Perf: read a misordered property's reported position from the index `sort-properties` already builds. The rule maps every property to its sorted position to decide what is out of order, then scanned the sorted list again once per report
