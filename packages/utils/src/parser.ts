@@ -1559,7 +1559,7 @@ let scannedCwd: string | undefined;
 const objectTableOwners = new Map<string, Set<string>>();
 const fileObjectContributions = new Map<string, Map<string, Set<string>>>();
 const fileKeyContributions = new Map<string, Map<string, Set<string>>>();
-const enumeratedSnapshotTables = new Set([
+const detachedTables = new Set([
   'staticTable',
   'keyframesHashTable',
   'viewTransitionHashTable',
@@ -1569,14 +1569,17 @@ const enumeratedSnapshotTables = new Set([
   'createThemeHashTable',
   'componentPropsTable',
 ]);
+const detachedOverlayTables = new Set(['componentPropsTable']);
+let overlayScan = false;
 
 function snapshotTables(): Tables {
+  const detached = overlayScan ? detachedOverlayTables : detachedTables;
   return Object.fromEntries(
     Object.entries(globalAgregatedTables).map(([key, value]) => [
       key,
       key === 'styleReceiverTable'
         ? value
-        : enumeratedSnapshotTables.has(key)
+        : detached.has(key)
           ? { ...value }
           : Object.create(value as object),
     ]),
@@ -1719,6 +1722,15 @@ function statFile(filePath: string): fs.Stats {
   } catch (e) {
     statMemo.set(filePath, e as Error);
     throw e;
+  }
+}
+
+export function scanOverlay(scanCwd: string = process.cwd()): Tables {
+  overlayScan = true;
+  try {
+    return scanAll(scanCwd);
+  } finally {
+    overlayScan = false;
   }
 }
 
