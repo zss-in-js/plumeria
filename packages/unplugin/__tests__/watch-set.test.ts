@@ -75,7 +75,7 @@ const run = async (file: string): Promise<string> => {
   const plugin = unpluginFactory(undefined, {
     framework: 'vite',
   } as never) as any;
-  const result = await plugin.transform.call(
+  const result = await plugin.transform.handler.call(
     { addWatchFile: (p: string) => seen.push(p) },
     files[file],
     file,
