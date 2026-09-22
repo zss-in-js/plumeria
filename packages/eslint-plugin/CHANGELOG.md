@@ -1,3 +1,9 @@
+## 19.2.12
+
+### Patch Changes
+
+- 85bb229: Bump version to 19.2.12
+
 ## 19.2.11
 
 ### Patch Changes
