@@ -356,7 +356,7 @@ export const resolveDynamicStyle = (
     throw new Error(
       '[plumeria] Dynamic styles require named parameters or object destructuring; array and rest parameters are not supported.',
     );
-  const tempStaticTable: StaticTable = { ...staticTable };
+  const tempStaticTable: StaticTable = Object.create(staticTable);
   const resolveBody = () =>
     objectExpressionToObject(
       func.body,
