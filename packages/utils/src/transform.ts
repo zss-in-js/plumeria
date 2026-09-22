@@ -531,10 +531,9 @@ export const transformSource = async (
     },
   });
 
-  const mergedStaticTable: StaticTable = {};
-  for (const key of Object.keys(scannedTables.staticTable)) {
-    mergedStaticTable[key] = scannedTables.staticTable[key];
-  }
+  const mergedStaticTable: StaticTable = Object.create(
+    scannedTables.staticTable,
+  );
   for (const key of Object.keys(localConsts)) {
     mergedStaticTable[key] = localConsts[key];
   }
