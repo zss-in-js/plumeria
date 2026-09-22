@@ -2,6 +2,10 @@ name: bench
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - 'packages/**'
+      - 'scripts/bench-*'
+      - '.github/workflows/bench.yml'
 
 permissions:
   contents: read
@@ -12,10 +16,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  bench:
+  baseline:
     runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.baseline.outputs.sha }}
+      label: ${{ steps.baseline.outputs.label }}
     steps:
-      # Rebuild both revisions on this runner to avoid comparing past machines.
       - uses: actions/checkout@v6
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/head
@@ -50,9 +56,29 @@ jobs:
           echo "label=$label" >> "$GITHUB_OUTPUT"
           echo "Benchmark base: $sha"
 
+  measure:
+    needs: baseline
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # One runner per suite. Suites never share a machine: a benchmark that
+      # runs beside another measures the contention, and the base/PR
+      # alternation cancels drift rather than a neighbour's load.
+      matrix:
+        include:
+          - id: scan
+            script: bench-compare-scan.js
+          - id: transform
+            script: bench-compare-transform.js
+    steps:
+      # Rebuild both revisions on this runner to avoid comparing past machines.
       - uses: actions/checkout@v6
         with:
-          ref: ${{ steps.baseline.outputs.sha }}
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.baseline.outputs.sha }}
           path: .bench-base
           clean: false
 
@@ -75,33 +101,44 @@ jobs:
 
       - name: Measure
         id: bench
-        run: |
-          node scripts/bench-compare-scan.js .bench-base . > bench.md
+        run: node "scripts/${{ matrix.script }}" .bench-base . > "bench-${{ matrix.id }}.md"
 
-      - name: Measure production transforms
-        id: transform-production
-        run: |
-          node scripts/bench-compare-transform.js .bench-base . > bench-transform-production.md
-          printf '\n' >> bench.md
-          cat bench-transform-production.md >> bench.md
+      - name: Record the parse call verdict
+        run: printf '%s' '${{ steps.bench.outputs.regressed }}' > "regressed-${{ matrix.id }}.txt"
 
-      - name: Measure dev transforms
-        id: transform-dev
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench-${{ matrix.id }}
+          path: |
+            bench-${{ matrix.id }}.md
+            regressed-${{ matrix.id }}.txt
+
+  report:
+    needs: [baseline, measure]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bench-*
+          merge-multiple: true
+
+      - name: Assemble the report
         env:
-          BENCH_DEV: '1'
-        run: |
-          node scripts/bench-compare-transform.js .bench-base . > bench-transform-dev.md
-          printf '\n' >> bench.md
-          cat bench-transform-dev.md >> bench.md
-
-      - name: Append compared revisions
-        env:
-          BASE_SHA: ${{ steps.baseline.outputs.sha }}
-          BASE_LABEL: ${{ steps.baseline.outputs.label }}
+          BASE_SHA: ${{ needs.baseline.outputs.sha }}
+          BASE_LABEL: ${{ needs.baseline.outputs.label }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          # The scan report carries the marker the comment lookup matches, so
+          # it stays first.
+          : > bench.md
+          for suite in scan transform; do
+            [ -f "bench-$suite.md" ] || continue
+            if [ -s bench.md ]; then printf '\n' >> bench.md; fi
+            cat "bench-$suite.md" >> bench.md
+          done
           printf '\nCompared revisions:\n\n- Base: [%s](%s/%s/commit/%s)\n- PR: [%s (#%s)](%s/%s/commit/%s)\n' \
             "${BASE_LABEL:-Base commit}" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$BASE_SHA" \
             "$PR_TITLE" "$PR_NUMBER" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$HEAD_SHA" >> bench.md
@@ -126,8 +163,15 @@ jobs:
             gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file bench.md
           fi
 
-      - name: Fail on a wider invalidation
-        if: steps.bench.outputs.regressed == 'true' || steps.transform-production.outputs.regressed == 'true' || steps.transform-dev.outputs.regressed == 'true'
+      - name: Fail on a suite that did not finish
+        if: ${{ needs.measure.result != 'success' }}
         run: |
-          echo "The scan or transform makes more SWC parse calls than the base." >&2
+          echo 'A benchmark suite did not finish.' >&2
           exit 1
+
+      - name: Fail on a wider invalidation
+        run: |
+          if grep -qx true regressed-*.txt 2>/dev/null; then
+            echo 'The scan or transform makes more SWC parse calls than the base.' >&2
+            exit 1
+          fi
