@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 19.2.13
+
+### Patch Changes
+
+- da08650: Bump version to 19.2.13
+
 ## 19.2.12
 
 ### Patch Changes
