@@ -39,7 +39,7 @@ afterAll(() => {
 });
 
 const transform = (plugin: any) =>
-  plugin.transform.call({ addWatchFile() {} }, SOURCE, CARD);
+  plugin.transform.handler.call({ addWatchFile() {} }, SOURCE, CARD);
 
 describe('the vite adapter', () => {
   it('carries the resolved root and command into the core plugin', () => {
