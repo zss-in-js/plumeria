@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  scan-bench:
+  bench:
     runs-on: ubuntu-latest
     steps:
       # Rebuild both revisions on this runner to avoid comparing past machines.
