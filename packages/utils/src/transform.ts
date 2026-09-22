@@ -230,6 +230,7 @@ export type TransformEnv = {
   filePath: string;
   root: string;
   styleProp: string;
+  classProp?: string;
   propertyPolicy: PropertyPolicy | undefined;
   isDev: boolean;
   collectOndemandSheets: boolean;
@@ -253,6 +254,7 @@ export const transformSource = async (
     collectOndemandSheets,
     addDependency,
   } = env;
+  const classProp = env.classProp ?? 'className';
   const id = env.moduleId;
   const resourcePath = env.moduleId;
   const baseId = env.filePath;
@@ -2721,7 +2723,7 @@ export const transformSource = async (
         (attr): attr is JSXAttribute =>
           attr.type === 'JSXAttribute' &&
           attr.name.type === 'Identifier' &&
-          attr.name.value === 'className',
+          attr.name.value === classProp,
       );
       let existingClassExpr = '';
 
@@ -2803,11 +2805,11 @@ export const transformSource = async (
         replacements.push({
           start: node.span.start - baseByteOffset,
           end: node.span.end - baseByteOffset,
-          content: `className={${replacement}}${styleAttr}`,
+          content: `${classProp}={${replacement}}${styleAttr}`,
         });
       } else {
         const keptClass = existingClassExpr
-          ? `className={${existingClassExpr}}`
+          ? `${classProp}={${existingClassExpr}}`
           : '';
         replacements.push({
           start: node.span.start - baseByteOffset,
