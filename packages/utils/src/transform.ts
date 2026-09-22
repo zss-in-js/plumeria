@@ -32,7 +32,7 @@ import {
   unwrapExpression,
   extractOndemandStyles,
   deepMerge,
-  scanAll,
+  scanOverlay,
   fileTableKeys,
   resolveFileError,
   getFileDependencies,
@@ -321,7 +321,7 @@ export const transformSource = async (
     }
   };
 
-  const scannedTables = scanAll();
+  const scannedTables = scanOverlay();
   const ownFailure = resolveFileError(baseId, '');
   if (ownFailure) throwCompilationError(`Plumeria: ${ownFailure.message}`);
 
