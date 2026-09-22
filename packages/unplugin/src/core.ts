@@ -98,92 +98,95 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       return filter(id);
     },
 
-    async transform(source, id) {
-      if (id.includes('node_modules')) return null;
-      if (!source.includes('@plumeria/core')) return null;
+    transform: {
+      order: 'pre',
+      async handler(source, id) {
+        if (id.includes('node_modules')) return null;
+        if (!source.includes('@plumeria/core')) return null;
 
-      const [baseId] = id.split('?');
-      if (!filter(baseId)) return null;
+        const [baseId] = id.split('?');
+        if (!filter(baseId)) return null;
 
-      const dependencies: string[] = [];
-      const addDependency = (depPath: string) => {
-        dependencies.push(depPath);
-        if ((this as any).addWatchFile) {
-          (this as any).addWatchFile(depPath);
-        }
-      };
+        const dependencies: string[] = [];
+        const addDependency = (depPath: string) => {
+          dependencies.push(depPath);
+          if ((this as any).addWatchFile) {
+            (this as any).addWatchFile(depPath);
+          }
+        };
 
-      const { code: transformedSource, sheets: extractedSheets } =
-        await transformSource({
-          source,
-          moduleId: id,
-          filePath: baseId,
-          root: viteRoot,
-          styleProp,
-          propertyPolicy,
-          isDev,
-          collectOndemandSheets: true,
-          addDependency,
-        });
-      const optInCSS = await optimizer(extractedSheets.join(''));
+        const { code: transformedSource, sheets: extractedSheets } =
+          await transformSource({
+            source,
+            moduleId: id,
+            filePath: baseId,
+            root: viteRoot,
+            styleProp,
+            propertyPolicy,
+            isDev,
+            collectOndemandSheets: true,
+            addDependency,
+          });
+        const optInCSS = await optimizer(extractedSheets.join(''));
 
-      const cssFilename = `${baseId.replace(EXTENSION_PATTERN, '')}.zero.css`;
-      const cssId = `/${path.relative(viteRoot, cssFilename).replace(/\\/g, '/')}`;
+        const cssFilename = `${baseId.replace(EXTENSION_PATTERN, '')}.zero.css`;
+        const cssId = `/${path.relative(viteRoot, cssFilename).replace(/\\/g, '/')}`;
 
-      if (isDev) {
-        if (!devCssSheets.has(cssFilename)) {
-          devCssSheets.set(cssFilename, new Set());
-        }
-        const acc = devCssSheets.get(cssFilename)!;
+        if (isDev) {
+          if (!devCssSheets.has(cssFilename)) {
+            devCssSheets.set(cssFilename, new Set());
+          }
+          const acc = devCssSheets.get(cssFilename)!;
 
-        // Additive in dev: keep previously emitted sheets so classes still
-        // referenced by not-yet-retransformed modules never flash away.
-        // Re-adding moves a sheet to the end so latest-wins order is kept
-        // for :root/theme rules.
-        extractedSheets.forEach((sheet) => {
-          acc.delete(sheet);
-          acc.add(sheet);
-        });
+          // Additive in dev: keep previously emitted sheets so classes still
+          // referenced by not-yet-retransformed modules never flash away.
+          // Re-adding moves a sheet to the end so latest-wins order is kept
+          // for :root/theme rules.
+          extractedSheets.forEach((sheet) => {
+            acc.delete(sheet);
+            acc.add(sheet);
+          });
 
-        const accCSS = await optimizer(Array.from(acc).join(''));
-        cssLookup.set(cssFilename, accCSS);
-      } else {
-        cssLookup.set(cssFilename, optInCSS);
-      }
-      cssFileLookup.set(cssId, cssFilename);
-
-      if (extractedSheets.length > 0) {
-        const targetIndex = targets.findIndex((t) => t.id === id);
-        if (targetIndex !== -1) {
-          targets[targetIndex].dependencies = dependencies;
+          const accCSS = await optimizer(Array.from(acc).join(''));
+          cssLookup.set(cssFilename, accCSS);
         } else {
-          targets.push({ id, dependencies });
+          cssLookup.set(cssFilename, optInCSS);
         }
+        cssFileLookup.set(cssId, cssFilename);
 
-        const statement = cssImport
-          ? cssImport({
-              id,
-              cssId,
-              cssFilename,
-              css: cssLookup.get(cssFilename) ?? '',
-            })
-          : `\nimport ${JSON.stringify(cssId)};`;
+        if (extractedSheets.length > 0) {
+          const targetIndex = targets.findIndex((t) => t.id === id);
+          if (targetIndex !== -1) {
+            targets[targetIndex].dependencies = dependencies;
+          } else {
+            targets.push({ id, dependencies });
+          }
 
-        return {
-          code: statement ? transformedSource + statement : transformedSource,
-          map: null,
-        };
-      } else {
-        const targetIndex = targets.findIndex((t) => t.id === id);
-        if (targetIndex !== -1) {
-          targets.splice(targetIndex, 1);
+          const statement = cssImport
+            ? cssImport({
+                id,
+                cssId,
+                cssFilename,
+                css: cssLookup.get(cssFilename) ?? '',
+              })
+            : `\nimport ${JSON.stringify(cssId)};`;
+
+          return {
+            code: statement ? transformedSource + statement : transformedSource,
+            map: null,
+          };
+        } else {
+          const targetIndex = targets.findIndex((t) => t.id === id);
+          if (targetIndex !== -1) {
+            targets.splice(targetIndex, 1);
+          }
+
+          return {
+            code: transformedSource,
+            map: null,
+          };
         }
-
-        return {
-          code: transformedSource,
-          map: null,
-        };
-      }
+      },
     },
   };
 };
