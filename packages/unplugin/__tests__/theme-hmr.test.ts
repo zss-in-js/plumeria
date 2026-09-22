@@ -3,7 +3,9 @@ jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 import type { unpluginFactory as Factory } from '../src/core';
 
 type Plugin = {
-  transform: (this: unknown, code: string, id: string) => Promise<unknown>;
+  transform: {
+    handler: (this: unknown, code: string, id: string) => Promise<unknown>;
+  };
   __plumeriaInternal: {
     cssLookup: Map<string, string>;
     setDev: (value: boolean) => void;
@@ -30,7 +32,7 @@ const devSession = () => {
   plugin.__plumeriaInternal.setRoot(__dirname);
 
   return async (source: string): Promise<string> => {
-    await plugin.transform.call({ addWatchFile: () => {} }, source, ID);
+    await plugin.transform.handler.call({ addWatchFile: () => {} }, source, ID);
     return plugin.__plumeriaInternal.cssLookup.get(CSS_ID) ?? '';
   };
 };
