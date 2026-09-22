@@ -91,10 +91,10 @@ it('reloads a changed virtual stylesheet only when it exists', async () => {
     reloadModule,
   });
 
-  await plugin.transform(SOURCE, ID);
-  await plugin.transform(SOURCE, ID);
-  await plugin.transform(`${SOURCE} blue`, ID);
-  await plugin.transform(SOURCE, `${ID}?raw`);
+  await plugin.transform.handler(SOURCE, ID);
+  await plugin.transform.handler(SOURCE, ID);
+  await plugin.transform.handler(`${SOURCE} blue`, ID);
+  await plugin.transform.handler(SOURCE, `${ID}?raw`);
 
   expect(reloadModule).toHaveBeenCalledTimes(3);
   expect(plugin.resolveId('/src/Card.zero.css')).toBe(CSS_ID);
@@ -103,7 +103,7 @@ it('reloads a changed virtual stylesheet only when it exists', async () => {
     moduleGraph: { getModuleById: jest.fn(() => null) },
     reloadModule,
   });
-  await plugin.transform(SOURCE, ID);
+  await plugin.transform.handler(SOURCE, ID);
 
   expect(plugin.resolveId('/missing.zero.css')).toBeNull();
   expect(plugin.load('/missing.zero.css')).toBeNull();
@@ -130,8 +130,16 @@ it('uses the client environment graph for CSS updates', async () => {
     moduleGraph: { getModuleById: jest.fn(() => null) },
   });
 
-  await plugin.transform.call({ environment: { name: 'rsc' } }, SOURCE, ID);
-  await plugin.transform.call({ environment: { name: 'rsc' } }, SOURCE, ID);
+  await plugin.transform.handler.call(
+    { environment: { name: 'rsc' } },
+    SOURCE,
+    ID,
+  );
+  await plugin.transform.handler.call(
+    { environment: { name: 'rsc' } },
+    SOURCE,
+    ID,
+  );
   expect(invalidateModule).toHaveBeenCalledTimes(1);
   expect(send).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -140,14 +148,22 @@ it('uses the client environment graph for CSS updates', async () => {
     }),
   );
 
-  await plugin.transform.call({ environment: { name: 'client' } }, SOURCE, ID);
-  await plugin.transform.call({ environment: { name: 'client' } }, SOURCE, ID);
+  await plugin.transform.handler.call(
+    { environment: { name: 'client' } },
+    SOURCE,
+    ID,
+  );
+  await plugin.transform.handler.call(
+    { environment: { name: 'client' } },
+    SOURCE,
+    ID,
+  );
   expect(reloadModule).toHaveBeenCalledTimes(1);
   expect(plugin.resolveId(`${CSS_ID}?direct`)).toBe(`${CSS_ID}?direct`);
 
   clientGraph.getModulesByFile.mockReturnValue(undefined);
   clientGraph.getModuleById.mockReturnValue(null);
-  await plugin.transform.call(
+  await plugin.transform.handler.call(
     { environment: { name: 'rsc' } },
     `${SOURCE} blue`,
     ID,
@@ -159,7 +175,7 @@ it('imports the shared disk file when development CSS is emitted to disk', async
   const plugin = vite({ devEmitToDisk: true }) as any;
   plugin.configResolved({ root: '/project', command: 'serve' });
 
-  const result = await plugin.transform(SOURCE, ID);
+  const result = await plugin.transform.handler(SOURCE, ID);
 
   expect(result.code).toContain('import "./zero-virtual.css";');
   expect(result.code).not.toContain('/src/Card.zero.css');
@@ -170,7 +186,7 @@ it('imports the virtual module when CSS is not emitted to disk', async () => {
   const plugin = vite() as any;
   plugin.configResolved({ root: '/project', command: 'serve' });
 
-  const result = await plugin.transform(SOURCE, ID);
+  const result = await plugin.transform.handler(SOURCE, ID);
 
   expect(result.code).toContain('import "/src/Card.zero.css";');
 });
@@ -180,7 +196,7 @@ it('omits CSS imports and emits one sorted stylesheet for an RSC build', async (
   plugin.config({ environments: { rsc: {} } }, { command: 'build' });
   plugin.configResolved({ root: '/project', command: 'build' });
 
-  const result = await plugin.transform(SOURCE, ID);
+  const result = await plugin.transform.handler(SOURCE, ID);
   expect(result.code).toBe('transformed');
 
   plugin.__plumeriaInternal.cssLookup.clear();
