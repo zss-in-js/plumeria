@@ -7,7 +7,8 @@ date: '2026-09-15'
 import { GitHubUser } from 'component/GitHubUser'
 
 <div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
-<GitHubUser username="refirst11" subtext="Core team members" />
+  <GitHubUser username="refirst11" subtext="Core maintainer" />
+  <GitHubUser username="Anionix" subtext="Core member" />
 </div>
 
 Plumeria v19.2 lets a component take a style through a prop named the same as the one elements take.
@@ -185,7 +186,7 @@ Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1
 - Perf: collect a file's extracted stylesheets in a set. Every sheet was matched against the growing array, and the on-demand pass rebuilt its own lookup from that array on each call, so a file's own sheets were scanned once more for every style it compiled. Both now write through one insertion-ordered set, and `extractOndemandStyles` takes the collector rather than the array it was expected to stay in step with
 - Perf: read a misordered property's reported position from the index `sort-properties` already builds. The rule maps every property to its sorted position to decide what is out of order, then scanned the sorted list again once per report
 
-Thanks contribute [@Anionix](https://github.com/Anionix).
+Both contributed by [@Anionix](https://github.com/Anionix).
 
 ## 19.2.9 (Sep 18, 2026)
 - Fix: scan a file again once an import that resolved to nothing names a real file. Deleting a module a component imports its styles from leaves the importer holding a specifier that resolves nowhere, and restoring the file only scanned the file itself: the importer was never visited again, so a style handed to a child through a prop stayed missing and the child kept rendering `className=""`. A scan that finds files it has not seen now revisits whatever was left holding an unresolved specifier
