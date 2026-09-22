@@ -448,88 +448,88 @@ export const transformSource = async (
     { actualPath: string; importedName: string }
   > = {};
 
-  traverse(ast, {
-    ImportDeclaration({ node }: { node: ImportDeclaration }) {
-      const sourcePath = node.source.value;
+  for (const statement of ast.body) {
+    if (statement.type !== 'ImportDeclaration') continue;
+    const node = statement as ImportDeclaration;
+    const sourcePath = node.source.value;
 
-      if (sourcePath === '@plumeria/core') {
-        node.specifiers.forEach((specifier) => {
-          if (specifier.type === 'ImportNamespaceSpecifier') {
-            plumeriaAliases[specifier.local.value] = 'NAMESPACE';
-          } else if (specifier.type === 'ImportDefaultSpecifier') {
-            plumeriaAliases[specifier.local.value] = 'NAMESPACE';
-          } else if (specifier.type === 'ImportSpecifier') {
-            const importedName = specifier.imported
-              ? specifier.imported.value
-              : specifier.local.value;
-            plumeriaAliases[specifier.local.value] = importedName;
-          }
-        });
-      }
+    if (sourcePath === '@plumeria/core') {
+      node.specifiers.forEach((specifier) => {
+        if (specifier.type === 'ImportNamespaceSpecifier') {
+          plumeriaAliases[specifier.local.value] = 'NAMESPACE';
+        } else if (specifier.type === 'ImportDefaultSpecifier') {
+          plumeriaAliases[specifier.local.value] = 'NAMESPACE';
+        } else if (specifier.type === 'ImportSpecifier') {
+          const importedName = specifier.imported
+            ? specifier.imported.value
+            : specifier.local.value;
+          plumeriaAliases[specifier.local.value] = importedName;
+        }
+      });
+    }
 
-      const actualPath = resolveImportPath(sourcePath, resourcePath);
+    const actualPath = resolveImportPath(sourcePath, resourcePath);
 
-      if (actualPath) {
-        node.specifiers.forEach((specifier: ImportSpecifier) => {
-          if (specifier.type === 'ImportNamespaceSpecifier') {
-            localImports[specifier.local.value] = {
-              actualPath,
-              importedName: '*',
-            };
-            return;
-          }
-          if (
-            specifier.type === 'ImportSpecifier' ||
+    if (actualPath) {
+      node.specifiers.forEach((specifier: ImportSpecifier) => {
+        if (specifier.type === 'ImportNamespaceSpecifier') {
+          localImports[specifier.local.value] = {
+            actualPath,
+            importedName: '*',
+          };
+          return;
+        }
+        if (
+          specifier.type === 'ImportSpecifier' ||
+          specifier.type === 'ImportDefaultSpecifier'
+        ) {
+          const importedName =
             specifier.type === 'ImportDefaultSpecifier'
-          ) {
-            const importedName =
-              specifier.type === 'ImportDefaultSpecifier'
-                ? 'default'
-                : specifier.imported
-                  ? specifier.imported.value
-                  : specifier.local.value;
-            const localName = specifier.local.value;
-            let resolvedKey = `${actualPath}-${importedName}`;
-            const resolved = resolveExport(actualPath, importedName);
-            if (resolved) {
-              resolvedKey = `${resolved.filePath}-${resolved.localName}`;
-            }
-            const uniqueKey = resolvedKey;
-            localImports[localName] = { actualPath, importedName };
-
-            if (scannedTables.staticTable[uniqueKey]) {
-              importMap[localName] = scannedTables.staticTable[uniqueKey];
-            }
-            if (scannedTables.keyframesHashTable[uniqueKey]) {
-              keyframesImportMap[localName] =
-                scannedTables.keyframesHashTable[uniqueKey];
-            }
-            if (scannedTables.viewTransitionHashTable[uniqueKey]) {
-              viewTransitionImportMap[localName] =
-                scannedTables.viewTransitionHashTable[uniqueKey];
-            }
-            if (scannedTables.createHashTable[uniqueKey]) {
-              createImportMap[localName] =
-                scannedTables.createHashTable[uniqueKey];
-            }
-            if (scannedTables.createFunctionTable[uniqueKey]) {
-              createFunctionImportMap[localName] = styleFunctionsOf(
-                scannedTables.createFunctionTable[uniqueKey],
-              );
-            }
-            if (scannedTables.createThemeHashTable[uniqueKey]) {
-              createThemeImportMap[localName] =
-                scannedTables.createThemeHashTable[uniqueKey];
-            }
-            if (scannedTables.createStaticHashTable[uniqueKey]) {
-              createStaticImportMap[localName] =
-                scannedTables.createStaticHashTable[uniqueKey];
-            }
+              ? 'default'
+              : specifier.imported
+                ? specifier.imported.value
+                : specifier.local.value;
+          const localName = specifier.local.value;
+          let resolvedKey = `${actualPath}-${importedName}`;
+          const resolved = resolveExport(actualPath, importedName);
+          if (resolved) {
+            resolvedKey = `${resolved.filePath}-${resolved.localName}`;
           }
-        });
-      }
-    },
-  });
+          const uniqueKey = resolvedKey;
+          localImports[localName] = { actualPath, importedName };
+
+          if (scannedTables.staticTable[uniqueKey]) {
+            importMap[localName] = scannedTables.staticTable[uniqueKey];
+          }
+          if (scannedTables.keyframesHashTable[uniqueKey]) {
+            keyframesImportMap[localName] =
+              scannedTables.keyframesHashTable[uniqueKey];
+          }
+          if (scannedTables.viewTransitionHashTable[uniqueKey]) {
+            viewTransitionImportMap[localName] =
+              scannedTables.viewTransitionHashTable[uniqueKey];
+          }
+          if (scannedTables.createHashTable[uniqueKey]) {
+            createImportMap[localName] =
+              scannedTables.createHashTable[uniqueKey];
+          }
+          if (scannedTables.createFunctionTable[uniqueKey]) {
+            createFunctionImportMap[localName] = styleFunctionsOf(
+              scannedTables.createFunctionTable[uniqueKey],
+            );
+          }
+          if (scannedTables.createThemeHashTable[uniqueKey]) {
+            createThemeImportMap[localName] =
+              scannedTables.createThemeHashTable[uniqueKey];
+          }
+          if (scannedTables.createStaticHashTable[uniqueKey]) {
+            createStaticImportMap[localName] =
+              scannedTables.createStaticHashTable[uniqueKey];
+          }
+        }
+      });
+    }
+  }
 
   const mergedStaticTable: StaticTable = Object.create(
     scannedTables.staticTable,
