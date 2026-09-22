@@ -161,6 +161,10 @@ Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1
 
 ## Release notes
 
+## 19.2.14 (Sep 22, 2026)
+- Fix: order the transform ahead of the framework plugins. The plugin declared `enforce: 'pre'`, which only wins against plugins that do not, so a framework plugin that also enforces pre and was listed first compiled the JSX away before Plumeria ever saw the style prop; the transform hook now declares its own `order: 'pre'`, and the Vite adapter keeps that order when it rewraps the hook. Solid was the visible case — the style prop produced no class and no CSS at all
+- Fix: write the class attribute a non-React renderer reads. The style prop rewrite emitted `className`, which only reaches the DOM on renderers that alias it, so on Solid the class silently never landed and the CSS never applied; the Vite adapter now recognises a Solid build from its resolved plugins and writes `class` instead, under the same name it reads an existing attribute to merge with. Dynamic function keys keep their companion `style` attribute either way, and a React build is unchanged
+
 ## 19.2.13 (Sep 22, 2026)
 - Perf: collect a module's imports from its body. Building the alias and import maps ran a full AST walk to reach declarations that can only appear at the top level; the transform now iterates the module body
 - Perf: reuse the source buffer when splicing the replacements. Writing the transformed file encoded the source into a second buffer that the parse step had already built. On a 17 KB module with 26 imports and 240 top-level declarations the two together save about 170 µs, roughly 9% of the SWC parse of the same file; modules the size of the benchmark's fixtures are unchanged
