@@ -64,7 +64,6 @@ function main() {
   }
 
   const scale = reports.head[0].scale;
-  const isDev = reports.head[0].isDev;
   const lines = [];
   let regressed = false;
 
@@ -102,7 +101,7 @@ function main() {
       .replace(/\.\d{3}Z$/, '');
   const measuredAtJst = new Date(measuredAt.getTime() + 9 * 60 * 60 * 1000);
   console.log(`<!-- plumeria-transform-bench -->
-### Transform benchmark (${isDev ? 'dev' : 'production'} output)
+### Transform benchmark
 
 | Scenario | SWC parse calls | Base | PR | Change |
 | --- | ---: | ---: | ---: | ---: |
@@ -118,7 +117,7 @@ Negative change is faster. **Bold** timing changes exceed both ${NOISE}% and ${F
 - Incremental scenarios edit a leaf style module, the hub, or a consumer component, then transform that module (including scan invalidation). They do not measure a full HMR rebuild of affected consumers. File reads, edits, and restoration are outside the timer.
 - SWC parse calls includes repeated parsing of the same file per measurement iteration. An arrow shows base → PR; an increase fails the benchmark.
 - ${ALTERNATIONS} base/PR pairs on the same runner, reversing order each pair. Times summarize each run's lower quartile using the median; change is (PR / Base − 1) × 100, calculated before rounding.
-- NODE_ENV is development in both output modes so scan invalidation remains enabled. This measures transformSource, not a full bundler build.
+- NODE_ENV is development so scan invalidation remains enabled. This measures transformSource, not a full bundler build.
 - Shared-runner noise remains. Compare base and PR within this report; absolute times across runs are not directly comparable.
 
 </details>
