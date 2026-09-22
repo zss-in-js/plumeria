@@ -36,6 +36,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
   const filter = createFilter(options.include, options.exclude);
   const propertyPolicy = resolvePropertyPolicy(options);
   const styleProp = options.styleProp ?? DEFAULT_STYLE_PROP;
+  let classProp: string | undefined;
 
   const cssLookup = new Map<string, string>();
   const cssFileLookup = new Map<string, string>();
@@ -65,6 +66,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       },
       setCssImport(formatter: CssImportFormatter | null) {
         cssImport = formatter;
+      },
+      setClassProp(value: string) {
+        classProp = value;
       },
     },
 
@@ -122,6 +126,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             filePath: baseId,
             root: viteRoot,
             styleProp,
+            classProp,
             propertyPolicy,
             isDev,
             collectOndemandSheets: true,
