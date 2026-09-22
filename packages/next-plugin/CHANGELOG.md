@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 19.2.11
+
+### Patch Changes
+
+- cf51115: Bump version to 19.2.11
+- Updated dependencies [cf51115]
+  - @plumeria/turbopack-loader@19.2.11
+
 ## 19.2.10
 
 ### Patch Changes
