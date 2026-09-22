@@ -5,9 +5,9 @@ const path = require('node:path');
 const LEAVES = 400;
 const HUB_FANIN = 200;
 const COMPONENTS = 200;
-const SAMPLES = Number(process.env.BENCH_SAMPLES || 60);
+const SAMPLES = Number(process.env.BENCH_SAMPLES || 30);
 const WARMUP = Number(process.env.BENCH_WARMUP || 10);
-const COLD_SAMPLES = Number(process.env.BENCH_COLD_SAMPLES || 24);
+const COLD_SAMPLES = Number(process.env.BENCH_COLD_SAMPLES || 12);
 for (const value of [SAMPLES, WARMUP, COLD_SAMPLES]) {
   if (!Number.isInteger(value) || value < 1)
     throw new Error('Sample counts must be positive integers');
