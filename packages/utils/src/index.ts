@@ -20,6 +20,7 @@ export {
   appendSheet,
   deepMerge,
   scanAll,
+  scanOverlay,
   fileTableKeys,
   resolveFileError,
   getFileDependencies,
