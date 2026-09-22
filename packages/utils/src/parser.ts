@@ -1557,11 +1557,26 @@ let scannedCwd: string | undefined;
 const objectTableOwners = new Map<string, Set<string>>();
 const fileObjectContributions = new Map<string, Map<string, Set<string>>>();
 const fileKeyContributions = new Map<string, Map<string, Set<string>>>();
+const enumeratedSnapshotTables = new Set([
+  'staticTable',
+  'keyframesHashTable',
+  'viewTransitionHashTable',
+  'createHashTable',
+  'createObjectTable',
+  'createFunctionTable',
+  'createThemeHashTable',
+  'componentPropsTable',
+]);
+
 function snapshotTables(): Tables {
   return Object.fromEntries(
     Object.entries(globalAgregatedTables).map(([key, value]) => [
       key,
-      key === 'styleReceiverTable' ? value : { ...value },
+      key === 'styleReceiverTable'
+        ? value
+        : enumeratedSnapshotTables.has(key)
+          ? { ...value }
+          : Object.create(value as object),
     ]),
   ) as Tables;
 }
