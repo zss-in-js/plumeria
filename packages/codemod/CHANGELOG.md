@@ -1,5 +1,11 @@
 # @plumeria/codemod
 
+## 19.2.14
+
+### Patch Changes
+
+- cc34f05: Bump version to 19.2.14
+
 ## 19.2.13
 
 ### Patch Changes
