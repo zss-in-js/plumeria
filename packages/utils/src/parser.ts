@@ -358,10 +358,12 @@ export function objectExpressionToObject(
         const root = getRootIdentifier(val);
         const resolved = root ? resolveVariable(root) : undefined;
         if (resolved !== undefined && root) {
-          const member = resolveStaticTableMemberExpression(val, {
-            ...staticTable,
-            [root]: resolved,
-          });
+          const member = resolveStaticTableMemberExpression(
+            val,
+            Object.assign(Object.create(staticTable) as StaticTable, {
+              [root]: resolved,
+            }),
+          );
           if (member === undefined)
             throw new Error(`[plumeria] Unknown style member on ${root}.`);
           obj[key] = member;
