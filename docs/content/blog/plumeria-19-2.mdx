@@ -161,6 +161,12 @@ Read the release notes of [19.1](/blog/plumeria-19-1) if you are on 19.1.7, 19.1
 
 ## Release notes
 
+## 19.2.12 (Sep 22, 2026)
+- Perf: take a file's own table aliases from the scan's contribution index. Building the keyframes, view transition, create, theme and static-create alias maps walked every key of the project-wide table and matched it against the file's path, once per table; the scan already records which keys each file contributed, and the transform and the compiler now read that index
+- Perf: hand back the scanned tables that are only read by key as overlays. Every snapshot copied all of them entry by entry; only the tables a caller enumerates are copied now, and the rest sit on a prototype chain over the scanned table
+- Perf: overlay a file's local values on the scanned static table. Resolving a dynamic style's parameters, a member expression's root identifier and a file's local constants each rebuilt the project-wide static table to add a handful of entries
+- Perf: read a compile pass's tables through one overlay. Each transform took its own copy of the scanned tables before layering the file's entries on top; a compile now layers over a base that is rebuilt only when the scan changes. Transforming 200 components across a 601-file project drops about 20%, and a single edited module about 8%; a hub that reparses 200 files on every edit is unchanged, since the parsing dominates it
+
 ## 19.2.11 (Sep 21, 2026)
 - Perf: index a JSX attribute by its owning element. Resolving the component behind an attribute walked every opening element in the file and re-filtered its attribute list, twice per attribute; the opening-element pass now records each attribute as it goes
 - Perf: index a component's prop entries by call site. Every style expression filtered the project-wide entry list for the component and the prop it was written on; the entries belonging to the current file are now bucketed by position once per list
