@@ -33,7 +33,7 @@ import {
   extractOndemandStyles,
   appendSheet,
   deepMerge,
-  scanAll,
+  scanOverlay,
   fileTableKeys,
   resolveImportPath,
   resolveExport,
@@ -194,7 +194,7 @@ interface TraversalContext {
   mergedCreateThemeHashTable: CreateThemeHashTable;
   mergedCreateStaticHashTable: CreateStaticHashTable;
   mergedCreateTable: CreateHashTable;
-  scannedTables: ReturnType<typeof scanAll>;
+  scannedTables: ReturnType<typeof scanOverlay>;
   createFunctionImportMap: Record<string, StyleFunctions>;
   localCreateStyles: Record<
     string,
@@ -359,7 +359,7 @@ export function compileCSS(options: CompilerOptions) {
     sort: true,
   });
 
-  const scannedTables = scanAll(cwd);
+  const scannedTables = scanOverlay(cwd);
 
   const processFile = (filePath: string): string[] => {
     const resourcePath = path.resolve(cwd, filePath);
