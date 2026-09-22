@@ -86,13 +86,13 @@ it('skips dependencies, unrelated sources, and excluded files', async () => {
   const plugin = createPlugin({ exclude: '**/excluded.ts' });
 
   await expect(
-    plugin.transform(SOURCE, '/project/node_modules/pkg/index.ts'),
+    plugin.transform.handler(SOURCE, '/project/node_modules/pkg/index.ts'),
   ).resolves.toBeNull();
   await expect(
-    plugin.transform('export {};', '/project/source.ts'),
+    plugin.transform.handler('export {};', '/project/source.ts'),
   ).resolves.toBeNull();
   await expect(
-    plugin.transform(SOURCE, '/project/excluded.ts?raw'),
+    plugin.transform.handler(SOURCE, '/project/excluded.ts?raw'),
   ).resolves.toBeNull();
 
   expect(mockTransformSource).not.toHaveBeenCalled();
@@ -102,13 +102,13 @@ it('updates and removes an existing target without a watch callback', async () =
   const plugin = createPlugin();
   const id = '/project/source.ts';
 
-  await plugin.transform.call({}, SOURCE, id);
-  await plugin.transform.call({}, SOURCE, id);
+  await plugin.transform.handler.call({}, SOURCE, id);
+  await plugin.transform.handler.call({}, SOURCE, id);
   expect(plugin.__plumeriaInternal.targets).toEqual([
     { id, dependencies: ['/dependency.ts'] },
   ]);
 
-  await plugin.transform.call({}, `${SOURCE} EMPTY`, id);
+  await plugin.transform.handler.call({}, `${SOURCE} EMPTY`, id);
   expect(plugin.__plumeriaInternal.targets).toEqual([]);
 });
 
@@ -118,7 +118,11 @@ it('stores and loads generated CSS through virtual and filesystem ids', async ()
   const id = '/project/source.tsx?raw';
 
   plugin.__plumeriaInternal.setRoot('/project');
-  const result = await plugin.transform.call({ addWatchFile }, SOURCE, id);
+  const result = await plugin.transform.handler.call(
+    { addWatchFile },
+    SOURCE,
+    id,
+  );
 
   expect(result).toEqual({
     code: 'transformed\nimport "/source.zero.css";',
@@ -147,7 +151,9 @@ it('uses a custom CSS import formatter and permits omitting the import', async (
   plugin.__plumeriaInternal.setRoot('/project');
   plugin.__plumeriaInternal.setCssImport(formatter);
 
-  await expect(plugin.transform(SOURCE, '/project/Card.ts')).resolves.toEqual({
+  await expect(
+    plugin.transform.handler(SOURCE, '/project/Card.ts'),
+  ).resolves.toEqual({
     code: 'transformed',
     map: null,
   });
@@ -159,7 +165,9 @@ it('uses a custom CSS import formatter and permits omitting the import', async (
   });
 
   plugin.__plumeriaInternal.setCssImport(null);
-  await expect(plugin.transform(SOURCE, '/project/Card.ts')).resolves.toEqual(
+  await expect(
+    plugin.transform.handler(SOURCE, '/project/Card.ts'),
+  ).resolves.toEqual(
     expect.objectContaining({ code: 'transformed\nimport "/Card.zero.css";' }),
   );
 });
@@ -170,12 +178,12 @@ it('falls back to empty CSS for a formatter and handles an empty first pass', as
   plugin.__plumeriaInternal.setCssImport(formatter);
   mockOptimizer.mockResolvedValueOnce(undefined);
 
-  await plugin.transform(SOURCE, '/project/Card.ts');
+  await plugin.transform.handler(SOURCE, '/project/Card.ts');
   expect(formatter).toHaveBeenCalledWith(expect.objectContaining({ css: '' }));
 
   const emptyPlugin = createPlugin();
   await expect(
-    emptyPlugin.transform(`${SOURCE} EMPTY`, '/project/Empty.ts'),
+    emptyPlugin.transform.handler(`${SOURCE} EMPTY`, '/project/Empty.ts'),
   ).resolves.toEqual({ code: 'transformed', map: null });
   expect(emptyPlugin.__plumeriaInternal.targets).toEqual([]);
 });
@@ -185,9 +193,9 @@ it('accumulates development CSS and keeps re-added sheets latest', async () => {
   plugin.__plumeriaInternal.setRoot('/project');
   plugin.__plumeriaInternal.setDev(true);
 
-  await plugin.transform(SOURCE, '/project/Card.ts');
-  await plugin.transform(`${SOURCE} SECOND`, '/project/Card.ts');
-  await plugin.transform(SOURCE, '/project/Card.ts');
+  await plugin.transform.handler(SOURCE, '/project/Card.ts');
+  await plugin.transform.handler(`${SOURCE} SECOND`, '/project/Card.ts');
+  await plugin.transform.handler(SOURCE, '/project/Card.ts');
 
   expect(plugin.load('/Card.zero.css')).toBe('.second {}.generated {}');
   expect(
