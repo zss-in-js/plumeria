@@ -1574,11 +1574,13 @@ const detachedOverlayTables = new Set([
   'componentPropsTable',
 ]);
 let overlayScan = false;
+let tablesGeneration = 0;
+let overlayBaseGeneration = -1;
+let overlayBase: Tables | undefined;
 
-function snapshotTables(): Tables {
-  const detached = overlayScan ? detachedOverlayTables : detachedTables;
+function layerTables(source: Tables, detached: ReadonlySet<string>): Tables {
   return Object.fromEntries(
-    Object.entries(globalAgregatedTables).map(([key, value]) => [
+    Object.entries(source).map(([key, value]) => [
       key,
       key === 'styleReceiverTable'
         ? value
@@ -1587,6 +1589,20 @@ function snapshotTables(): Tables {
           : Object.create(value as object),
     ]),
   ) as Tables;
+}
+
+function snapshotTables(): Tables {
+  if (!overlayScan) return layerTables(globalAgregatedTables, detachedTables);
+  if (overlayBaseGeneration !== tablesGeneration) {
+    overlayBase = Object.fromEntries(
+      Object.entries(globalAgregatedTables).map(([key, value]) => [
+        key,
+        key === 'styleReceiverTable' ? value : { ...value },
+      ]),
+    ) as Tables;
+    overlayBaseGeneration = tablesGeneration;
+  }
+  return layerTables(overlayBase!, detachedOverlayTables);
 }
 function releaseFileObjects(filePath: string) {
   const contributions = fileObjectContributions.get(filePath);
@@ -1879,6 +1895,8 @@ function runScan(scanCwd: string = process.cwd()): Tables {
   if (invalidated.size === 0 && hasComputedOnce) {
     return snapshotTables();
   }
+
+  tablesGeneration++;
 
   // Strip deleted files' stale contributions, then clean up cache/dependency edges
   for (const fp of deletedFiles) {
