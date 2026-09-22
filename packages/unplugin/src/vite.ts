@@ -108,43 +108,46 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
   };
 
   const baseTransform = plugin.transform;
-  plugin.transform = async function (this: any, code: string, id: string) {
-    const result = await baseTransform.call(this, code, id);
+  plugin.transform = {
+    order: 'pre',
+    async handler(this: any, code: string, id: string) {
+      const result = await baseTransform.handler.call(this, code, id);
 
-    if (
-      !useDiskEmit &&
-      devServer &&
-      result &&
-      typeof result === 'object' &&
-      result.code.includes('.zero.css')
-    ) {
-      // Virtual module HMR: signal Vite to reload the CSS module,
-      // but only when its content actually changed (avoids repaint flicker).
-      const baseId = id.replace(EXTENSION_PATTERN, '');
-      const cssFilename = `${baseId}.zero.css`;
-      const cssContent = cssLookup.get(cssFilename) ?? '';
-      const envName = (this as any).environment?.name;
-      const seenKey = `${envName ?? ''}:${cssFilename}`;
+      if (
+        !useDiskEmit &&
+        devServer &&
+        result &&
+        typeof result === 'object' &&
+        result.code.includes('.zero.css')
+      ) {
+        // Virtual module HMR: signal Vite to reload the CSS module,
+        // but only when its content actually changed (avoids repaint flicker).
+        const baseId = id.replace(EXTENSION_PATTERN, '');
+        const cssFilename = `${baseId}.zero.css`;
+        const cssContent = cssLookup.get(cssFilename) ?? '';
+        const envName = (this as any).environment?.name;
+        const seenKey = `${envName ?? ''}:${cssFilename}`;
 
-      if (envName && envName !== 'client') {
-        if (lastServedCss.get(seenKey) !== cssContent) {
-          lastServedCss.set(seenKey, cssContent);
-          invalidateClientCss(cssFilename);
-        }
-      } else if (lastServedCss.get(seenKey) !== cssContent) {
-        if (reloadClientCss(cssFilename)) {
-          lastServedCss.set(seenKey, cssContent);
-        } else {
-          const mod = devServer.moduleGraph.getModuleById(cssFilename);
-          if (mod) {
+        if (envName && envName !== 'client') {
+          if (lastServedCss.get(seenKey) !== cssContent) {
             lastServedCss.set(seenKey, cssContent);
-            devServer.reloadModule(mod);
+            invalidateClientCss(cssFilename);
+          }
+        } else if (lastServedCss.get(seenKey) !== cssContent) {
+          if (reloadClientCss(cssFilename)) {
+            lastServedCss.set(seenKey, cssContent);
+          } else {
+            const mod = devServer.moduleGraph.getModuleById(cssFilename);
+            if (mod) {
+              lastServedCss.set(seenKey, cssContent);
+              devServer.reloadModule(mod);
+            }
           }
         }
       }
-    }
 
-    return result;
+      return result;
+    },
   };
 
   const vitePlugin = {
