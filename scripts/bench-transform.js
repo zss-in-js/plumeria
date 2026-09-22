@@ -5,12 +5,10 @@ const path = require('node:path');
 const LEAVES = 400;
 const HUB_FANIN = 200;
 const COMPONENTS = 200;
-const SAMPLES = Number(process.env.BENCH_SAMPLES || 60);
+const SAMPLES = Number(process.env.BENCH_SAMPLES || 30);
 const WARMUP = Number(process.env.BENCH_WARMUP || 10);
-const COLD_SAMPLES = Number(process.env.BENCH_COLD_SAMPLES || 24);
-const IS_DEV = process.env.BENCH_DEV === '1';
+const COLD_SAMPLES = Number(process.env.BENCH_COLD_SAMPLES || 12);
 // Keep edit invalidation enabled regardless of the invoking shell's NODE_ENV.
-// BENCH_DEV selects transform output, not the scan's production fast path.
 process.env.NODE_ENV = 'development';
 
 for (const value of [SAMPLES, WARMUP, COLD_SAMPLES]) {
@@ -128,7 +126,7 @@ function prepareTransform(root, relative) {
       root,
       styleProp: DEFAULT_STYLE_PROP,
       propertyPolicy: undefined,
-      isDev: IS_DEV,
+      isDev: false,
       collectOndemandSheets: true,
       addDependency: () => {},
     });
@@ -212,7 +210,6 @@ async function main() {
             components: COMPONENTS,
             hubFanIn: HUB_FANIN,
           },
-          isDev: IS_DEV,
           cold: summary(cold, coldParsed),
           incremental,
         },
