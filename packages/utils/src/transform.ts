@@ -2979,17 +2979,16 @@ export const transformSource = async (
       );
   }
 
-  const buffer = Buffer.from(source);
   let offset = 0;
   const parts: Buffer[] = [];
 
   replacements.forEach((r) => {
     if (r.start < offset) return;
-    parts.push(buffer.subarray(offset, r.start));
+    parts.push(sourceBuffer.subarray(offset, r.start));
     parts.push(Buffer.from(r.content));
     offset = r.end;
   });
-  parts.push(buffer.subarray(offset));
+  parts.push(sourceBuffer.subarray(offset));
   const transformedSource = Buffer.concat(parts).toString();
 
   return { code: transformedSource, sheets: [...extractedSheets] };
