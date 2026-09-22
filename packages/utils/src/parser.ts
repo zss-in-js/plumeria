@@ -1569,7 +1569,10 @@ const detachedTables = new Set([
   'createThemeHashTable',
   'componentPropsTable',
 ]);
-const detachedOverlayTables = new Set(['componentPropsTable']);
+const detachedOverlayTables = new Set([
+  'createThemeHashTable',
+  'componentPropsTable',
+]);
 let overlayScan = false;
 
 function snapshotTables(): Tables {
