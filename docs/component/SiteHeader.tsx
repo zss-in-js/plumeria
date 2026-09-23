@@ -49,7 +49,7 @@ const styles = css.create({
       display: 'flex',
       gap: 2,
       alignItems: 'center',
-      marginLeft: 16,
+      marginLeft: 4,
     },
   },
   navLink: {
