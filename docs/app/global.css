@@ -8,7 +8,7 @@
 
 @media (min-width: 1280px) {
   #nd-notebook-layout:has(#nd-toc) {
-    --fd-toc-width: 399px;
+    --fd-toc-width: 302px;
   }
 }
 
@@ -77,6 +77,18 @@
 
 .dark :is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
   background-color: #211e22;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] :is(a[data-active='true'], [data-state])::before {
+  content: none;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] [data-state] {
+  animation: none;
+}
+
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] svg[data-icon] {
+  transition: none;
 }
 
 :is(#nd-sidebar, #nd-sidebar-mobile)
