@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
+import generateSEOData from 'lib/generateSEOData';
 import { Playground } from './playground';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = generateSEOData({
   title: 'Playground',
-  description:
-    'Write Plumeria styles in the browser with full type information and every @plumeria/eslint-plugin rule.',
-};
+  subtitle: 'Write Plumeria styles in the browser with full type information and every @plumeria/eslint-plugin rule.',
+  path: '/playground',
+});
 
 export default function Page() {
   return <Playground />;
