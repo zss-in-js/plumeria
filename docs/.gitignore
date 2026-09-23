@@ -6,6 +6,9 @@
 .content-collections
 .source
 
+# playground assets
+/public/playground
+
 # test & build
 /coverage
 /.next/
