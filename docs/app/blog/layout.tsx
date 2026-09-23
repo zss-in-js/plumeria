@@ -10,7 +10,7 @@ import { SiteHeader } from 'component/SiteHeader';
 const containerProps = {
   style: {
     '--fd-layout-width': '100%',
-    '--fd-header-height': '56px',
+    '--fd-header-height': '48px',
   } as CSSProperties,
 };
 
