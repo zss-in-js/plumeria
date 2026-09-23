@@ -57,7 +57,7 @@ const styles = css.create({
     borderBottomStyle: 'solid',
     borderBottomWidth: '2px',
     ':hover': {
-      color: theme.textPrimary
+      color: theme.textPrimary,
     },
   },
   tabActive: {
@@ -154,7 +154,7 @@ const styles = css.create({
     minHeight: 0,
     [breakpoints.lg]: {
       gridTemplateRows: 'minmax(0, 1fr) minmax(0, 1fr)',
-      gridTemplateColumns: 'minmax(0, 1fr)'
+      gridTemplateColumns: 'minmax(0, 1fr)',
     },
   },
   editor: {
@@ -178,7 +178,7 @@ const styles = css.create({
       borderTopColor: theme.cardBorder,
       borderTopStyle: 'solid',
       borderTopWidth: '1px',
-      borderLeftStyle: 'none'
+      borderLeftStyle: 'none',
     },
   },
   status: {
@@ -345,12 +345,7 @@ export function Playground() {
           <span>{counts.warnings} warnings</span>
         </span>
       </div>
-      <div
-        classStyle={styles.split}
-        data-playground="stage"
-        data-ready={ready || failed}
-        aria-busy={!ready && !failed}
-      >
+      <div classStyle={styles.split} data-playground="stage" data-ready={ready || failed} aria-busy={!ready && !failed}>
         <div className="playground-loading" role="status">
           <span className="playground-loading-mark" aria-hidden="true">
             ✳
