@@ -17,7 +17,7 @@ export const styles = css.create({
     marginBottom: '12px',
     fontSize: 28,
     fontWeight: '700',
-    color: '#2aaaca',
+    color: 'var(--plumeria-accent)',
     textAlign: 'center',
   },
   description: {
