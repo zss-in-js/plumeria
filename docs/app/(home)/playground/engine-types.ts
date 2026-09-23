@@ -20,6 +20,15 @@ export type QuickInfo = {
   length: number;
 };
 
+export type Completion = {
+  name: string;
+  kind: string;
+  sortText: string;
+  insertText?: string;
+  start?: number;
+  length?: number;
+};
+
 export type Diagnostic = {
   message: string;
   start: number;
@@ -29,6 +38,7 @@ export type Diagnostic = {
 export type Session = {
   update: (file: string, source: string) => void;
   quickInfo: (file: string, offset: number) => QuickInfo | null;
+  completions: (file: string, offset: number, trigger?: string) => Completion[];
   classifications: (file: string, start: number, length: number) => readonly number[];
   diagnostics: (file: string) => Diagnostic[];
   lint: (file: string, source: string, policy: SpellingPolicy) => LintMessage[];
