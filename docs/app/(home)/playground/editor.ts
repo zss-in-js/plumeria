@@ -36,6 +36,14 @@ const DARK_RULES: monaco.editor.ITokenThemeRule[] = [
   { token: 'enumMember', foreground: '4fc1ff' },
 ];
 
+const TRANSPARENT_COLORS = {
+  'editor.background': '#00000000',
+  'editorGutter.background': '#00000000',
+  'minimap.background': '#00000000',
+  'editorStickyScroll.background': '#00000000',
+  'editorOverviewRuler.background': '#00000000',
+};
+
 declare global {
   interface Window {
     MonacoEnvironment?: { getWorker: () => Worker };
@@ -56,13 +64,13 @@ function defineThemes() {
     base: 'vs',
     inherit: true,
     rules: LIGHT_RULES,
-    colors: {},
+    colors: TRANSPARENT_COLORS,
   });
   monaco.editor.defineTheme('plumeria-dark', {
     base: 'vs-dark',
     inherit: true,
     rules: DARK_RULES,
-    colors: {},
+    colors: TRANSPARENT_COLORS,
   });
 }
 
@@ -86,6 +94,7 @@ export type PlaygroundHandle = {
 
 export async function mount(
   container: HTMLElement,
+  preview: HTMLIFrameElement,
   source: string,
   dark: boolean,
   onCount: (errors: number, warnings: number) => void,
@@ -167,6 +176,35 @@ export async function mount(
 
   let policy: SpellingPolicy = 'off';
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let previewReady = false;
+
+  function sendTheme(nextDark: boolean) {
+    if (!previewReady) return;
+    preview.contentWindow?.postMessage({ type: 'playground:theme', dark: nextDark }, '*');
+  }
+
+  function sendPreview(code: string) {
+    if (!previewReady) return;
+    preview.contentWindow?.postMessage({ type: 'playground:render', code: session.transpile(code) }, '*');
+  }
+
+  const onPreviewMessage = (event: MessageEvent<{ type?: string }>) => {
+    if (event.source !== preview.contentWindow || event.data?.type !== 'playground:ready') return;
+    previewReady = true;
+    sendTheme(document.documentElement.classList.contains('dark'));
+    sendPreview(model.getValue());
+  };
+
+  const onPreviewLoad = () => {
+    previewReady = true;
+    sendTheme(document.documentElement.classList.contains('dark'));
+    sendPreview(model.getValue());
+  };
+
+  window.addEventListener('message', onPreviewMessage);
+  preview.addEventListener('load', onPreviewLoad);
+
+  if (preview.contentDocument?.readyState === 'complete') onPreviewLoad();
 
   function run() {
     const code = model.getValue();
@@ -198,6 +236,8 @@ export async function mount(
     monaco.editor.setModelMarkers(model, 'ts', typeErrors);
     monaco.editor.setModelMarkers(model, 'plumeria', messages.map(toMarker));
     onCount(errors, warnings);
+
+    if (typeErrors.length === 0) sendPreview(code);
   }
 
   const subscription = model.onDidChangeContent(() => {
@@ -214,9 +254,12 @@ export async function mount(
     },
     setTheme(nextDark) {
       monaco.editor.setTheme(nextDark ? 'plumeria-dark' : 'plumeria-light');
+      sendTheme(nextDark);
     },
     dispose() {
       clearTimeout(timer);
+      window.removeEventListener('message', onPreviewMessage);
+      preview.removeEventListener('load', onPreviewLoad);
       subscription.dispose();
       for (const provider of providers) provider.dispose();
       editor.dispose();
