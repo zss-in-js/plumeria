@@ -279,3 +279,70 @@ code {
     font-size: 0.95em;
   }
 }
+
+/* Reveal the editor and slide the preview in from below once their initial render is ready. */
+[data-playground='stage'] {
+  position: relative;
+}
+
+[data-playground='stage'] > :not(.playground-loading) {
+  opacity: 0;
+  transition:
+    opacity 360ms ease,
+    transform 360ms ease;
+}
+
+[data-playground='stage'] > iframe {
+  transform: translateY(16px);
+}
+
+[data-playground='stage'][data-ready='true'] > :not(.playground-loading) {
+  opacity: 1;
+  transform: none;
+}
+
+.playground-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #71717a;
+  font-size: 13px;
+  pointer-events: none;
+  transition:
+    opacity 200ms ease,
+    visibility 200ms;
+}
+
+.playground-loading-mark {
+  font-size: 32px;
+  color: #63a6bb;
+  animation: playground-breathe 1.6s ease-in-out infinite;
+}
+
+[data-playground='stage'][data-ready='true'] > .playground-loading {
+  opacity: 0;
+  visibility: hidden;
+}
+
+@keyframes playground-breathe {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-playground='stage'] > *,
+  .playground-loading-mark {
+    animation: none;
+    transition: none;
+  }
+
+  [data-playground='stage'] > iframe {
+    transform: none;
+  }
+}
