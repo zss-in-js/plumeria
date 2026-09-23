@@ -53,8 +53,11 @@ const styles = css.create({
     },
   },
   navLink: {
-    padding: '6px 10px',
-    fontSize: '14px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    height: 32,
+    paddingInline: 10,
+    fontSize: 13,
     fontWeight: 400,
     color: theme.textSecondary,
     textDecoration: 'none',
@@ -66,7 +69,17 @@ const styles = css.create({
     },
   },
   navLinkActive: {
+    position: 'relative',
     color: theme.textPrimary,
+    '::after': {
+      position: 'absolute',
+      right: 10,
+      bottom: -9,
+      left: 10,
+      height: 2,
+      content: '""',
+      background: 'var(--plumeria-accent)',
+    },
   },
   drawerNavLink: {
     display: 'block',
