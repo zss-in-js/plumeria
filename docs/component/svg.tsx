@@ -14,8 +14,8 @@ export const svg = {
       >
         <defs>
           <linearGradient id="plumeria" x1="18" y1="18" x2="182" y2="182" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#22D3EE" />
-            <stop offset="1" stopColor="#1B5CFF" />
+            <stop offset="0" stopColor="#D65CBD" />
+            <stop offset="1" stopColor="#B8399D" />
           </linearGradient>
         </defs>
         <path d="M102.42 102.59C100.31 72.99 74.93 68.76 60.13 51.84C38.99 28.58 83.39-3.13 110.88 11.67C140.48 28.58 125.68 72.99 102.42 102.59Z" />
