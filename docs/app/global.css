@@ -61,6 +61,8 @@
 :root {
   --plumeria-accent: #d653bb;
   --plumeria-edge: 16px;
+  --plumeria-header-size: 48px;
+  --plumeria-control-size: 32px;
 }
 
 :is(#nd-sidebar, #nd-sidebar-mobile) {
