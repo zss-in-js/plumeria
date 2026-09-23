@@ -4,7 +4,6 @@ import * as css from '@plumeria/core';
 import { svg } from 'component/svg';
 import { socialLinks } from 'lib/socialLinks';
 import { latestBlogUrl } from 'lib/source';
-import { theme } from 'lib/theme';
 
 const styles = css.create({
   image: {
@@ -15,7 +14,7 @@ const styles = css.create({
     alignItems: 'center',
     fontSize: 13,
     fontWeight: 500,
-    color: '#D653BB',
+    color: 'var(--plumeria-accent)',
     letterSpacing: '-0.015em',
   },
 });
