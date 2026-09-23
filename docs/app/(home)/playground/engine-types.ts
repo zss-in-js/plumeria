@@ -27,16 +27,16 @@ export type Diagnostic = {
 };
 
 export type Session = {
-  update: (source: string) => void;
-  quickInfo: (offset: number) => QuickInfo | null;
-  classifications: (start: number, length: number) => readonly number[];
-  diagnostics: () => Diagnostic[];
-  lint: (source: string, policy: SpellingPolicy) => LintMessage[];
-  fix: (source: string, policy: SpellingPolicy) => string;
-  transpile: (source: string) => string;
+  update: (file: string, source: string) => void;
+  quickInfo: (file: string, offset: number) => QuickInfo | null;
+  classifications: (file: string, start: number, length: number) => readonly number[];
+  diagnostics: (file: string) => Diagnostic[];
+  lint: (file: string, source: string, policy: SpellingPolicy) => LintMessage[];
+  fix: (file: string, source: string, policy: SpellingPolicy) => string;
+  transpile: (file: string, source: string) => string;
 };
 
 export type Engine = {
   tokenTypes: readonly string[];
-  createSession: (source: string) => Promise<Session>;
+  createSession: (files: Record<string, string>) => Promise<Session>;
 };
