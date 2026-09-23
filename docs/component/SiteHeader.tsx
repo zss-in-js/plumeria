@@ -32,7 +32,11 @@ const styles = css.create({
     alignItems: 'center',
     width: '100%',
     height: 48,
-    paddingInline: 24,
+    paddingRight: 24,
+    paddingLeft: 24,
+    '@media (min-width: 768px)': {
+      paddingLeft: 15,
+    },
   },
   title: {
     display: 'inline-flex',
