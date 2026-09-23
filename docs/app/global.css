@@ -12,6 +12,25 @@
   }
 }
 
+[data-search-full] > div:last-child {
+  gap: 2px;
+  align-items: center;
+  padding-inline: 6px;
+  border: 1px solid var(--color-fd-border);
+  border-radius: 6px;
+  background: var(--color-fd-background);
+}
+
+[data-search-full] kbd {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+[data-search-full] kbd:last-child {
+  font-size: 0.73em;
+}
+
 :is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] button[aria-expanded] {
   cursor: pointer;
 }
