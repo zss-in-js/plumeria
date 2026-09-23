@@ -54,12 +54,12 @@
   padding-block: 6px;
 }
 
-:is(#nd-sidebar, #nd-sidebar-mobile) {
-  --color-fd-primary: #d653bb;
+:root {
+  --plumeria-accent: #d653bb;
 }
 
-.dark :is(#nd-sidebar, #nd-sidebar-mobile) {
-  --color-fd-primary: #d653bb;
+:is(#nd-sidebar, #nd-sidebar-mobile) {
+  --color-fd-primary: var(--plumeria-accent);
 }
 
 :is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
