@@ -160,6 +160,18 @@ export async function createSession(source: string): Promise<Session> {
       );
     },
 
+    transpile(next: string): string {
+      return ts.transpileModule(next, {
+        fileName: FILE_NAME,
+        compilerOptions: {
+          target: ts.ScriptTarget.ES2022,
+          module: ts.ModuleKind.ESNext,
+          jsx: ts.JsxEmit.ReactJSX,
+          jsxImportSource: 'react',
+        },
+      }).outputText;
+    },
+
     lint(next: string, policy: SpellingPolicy): LintMessage[] {
       const program = service.getProgram();
       if (!program) return [];
