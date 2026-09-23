@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "predev": "rimraf .next",
-    "prebuild": "rimraf .next",
+    "predev": "rimraf .next && node scripts/copy-playground-libs.mjs && node scripts/build-playground-engine.mjs",
+    "prebuild": "rimraf .next && node scripts/copy-playground-libs.mjs && node scripts/build-playground-engine.mjs",
     "build": "plumerialint -- next build",
     "dev": "next dev",
     "start": "next start",
@@ -12,11 +12,14 @@
   },
   "dependencies": {
     "@plumeria/inspector": "workspace:^",
+    "@typescript-eslint/parser": "^8.60.0",
+    "@typescript/vfs": "^1.6.5",
     "@vercel/analytics": "^2.0.1",
     "fumadocs-core": "^16.9.3",
     "fumadocs-mdx": "^15.0.5",
     "fumadocs-ui": "^16.9.3",
     "katex": "^0.17.0",
+    "monaco-editor": "^0.56.0",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
@@ -38,8 +41,10 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "babel-plugin-react-compiler": "^1.0.0",
+    "esbuild": "^0.28.0",
     "eslint": "^10.4.0",
     "eslint-config-next": "16.2.6",
+    "path-browserify": "^1.0.1",
     "typescript": "^6.0.3"
   }
 }
