@@ -103,7 +103,7 @@ const styles = css.create({
     [breakpoints.lgUp]: {
       display: 'block',
       width: '100%',
-      maxWidth: 256,
+      maxWidth: 200,
     },
   },
   searchButton: {
@@ -336,13 +336,13 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showS
         )}
         <nav classStyle={styles.navLinks}>{renderNavLinks()}</nav>
         <div classStyle={styles.actions}>
+          <div classStyle={styles.wide}>{renderIcons()}</div>
           {showSearch && (
             <div classStyle={styles.searchSlot}>
               <FullSearchTrigger hideIfDisabled className={css.use(styles.searchButton)} />
             </div>
           )}
           <nav classStyle={styles.wide}>{renderMenus()}</nav>
-          <div classStyle={styles.wide}>{renderIcons()}</div>
           <div classStyle={styles.wide}>
             <ThemeSwitch classStyle={navStyles.themeToggle} />
           </div>
