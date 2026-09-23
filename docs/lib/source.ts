@@ -53,8 +53,8 @@ function compareBlogNodes(a: Node, b: Node): number {
   const bSpecialIndex = specialBlogSlugs.indexOf(bSlug);
 
   if (aSpecialIndex !== -1 || bSpecialIndex !== -1) {
-    if (aSpecialIndex === -1) return -1;
-    if (bSpecialIndex === -1) return 1;
+    if (aSpecialIndex === -1) return 1;
+    if (bSpecialIndex === -1) return -1;
     return aSpecialIndex - bSpecialIndex;
   }
 
