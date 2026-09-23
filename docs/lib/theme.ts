@@ -41,7 +41,7 @@ export const theme = css.createTheme('.dark', {
   },
   iconBg: {
     default: 'rgba(242, 242, 242, 1)',
-    theme: 'rgba(255, 255, 255, 0.05)',
+    theme: 'rgba(255, 255, 255, 0.09)',
   },
   textPrimary: {
     default: '#0b0b0b',
