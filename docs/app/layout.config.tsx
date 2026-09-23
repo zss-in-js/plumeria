@@ -11,12 +11,12 @@ const styles = css.create({
     position: 'relative',
     display: 'flex',
     flexDirection: 'row',
-    gap: 8,
+    gap: 5,
     alignItems: 'center',
-    fontSize: 16,
-    fontWeight: 450,
+    fontSize: 13,
+    fontWeight: 500,
+    color: '#D653BB',
     letterSpacing: '-0.015em',
-    color: theme.textMainHeaderLine,
   },
 });
 
