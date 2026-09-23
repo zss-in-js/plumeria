@@ -13,8 +13,9 @@ const styles = css.create({
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
-    fontSize: 15,
-    fontWeight: 600,
+    fontSize: 16,
+    fontWeight: 450,
+    letterSpacing: '-0.015em',
     color: theme.textMainHeaderLine,
   },
 });
