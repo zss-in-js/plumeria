@@ -35,7 +35,6 @@ export async function GET(req: NextRequest) {
           height: '100%',
           padding: '200px',
           fontSize: '30px',
-          color: 'rgb(188 188 188)',
           textAlign: 'center',
         }}
       >
@@ -47,6 +46,7 @@ export async function GET(req: NextRequest) {
             bottom: '20px',
             display: 'flex',
             fontSize: '24px',
+            color: 'rgb(188 188 188)',
           }}
         >
           {date}
