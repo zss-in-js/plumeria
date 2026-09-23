@@ -30,6 +30,7 @@ export type Session = {
   classifications: (start: number, length: number) => readonly number[];
   diagnostics: () => Diagnostic[];
   lint: (source: string, policy: SpellingPolicy) => LintMessage[];
+  transpile: (source: string) => string;
 };
 
 export type Engine = {
