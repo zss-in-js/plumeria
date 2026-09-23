@@ -1,6 +1,6 @@
 import type { Engine } from './engine-types';
 
-const ENGINE_URL = '/playground/engine.mjs?v=3';
+const ENGINE_URL = '/playground/engine.mjs?v=4';
 
 let pending: Promise<Engine> | undefined;
 
