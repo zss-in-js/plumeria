@@ -40,7 +40,7 @@ const styles = css.create({
     paddingRight: 24,
     paddingLeft: 24,
     '@media (min-width: 768px)': {
-      paddingLeft: 15,
+      paddingLeft: 'var(--plumeria-edge)',
     },
   },
   title: {
@@ -272,6 +272,7 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showS
         <Link
           key={idx}
           href={item.url}
+          aria-current={active ? 'page' : undefined}
           classStyle={[
             isDrawer ? styles.drawerNavLink : styles.navLink,
             active && (isDrawer ? styles.drawerNavLinkActive : styles.navLinkActive),
