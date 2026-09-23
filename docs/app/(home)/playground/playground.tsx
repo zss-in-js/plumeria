@@ -66,9 +66,24 @@ const styles = css.create({
     fontVariantNumeric: 'tabular-nums',
     color: theme.textSecondary,
   },
-  editor: {
+  split: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 3fr) minmax(0, 2fr)',
     flex: 1,
     minHeight: 0,
+  },
+  editor: {
+    minWidth: 0,
+    minHeight: 0,
+  },
+  preview: {
+    minWidth: 0,
+    minHeight: 0,
+    width: '100%',
+    height: '100%',
+    border: 'none',
+    borderLeft: `1px solid ${theme.cardBorder}`,
+    background: theme.dropdownBg,
   },
   status: {
     padding: '10px 16px',
@@ -86,6 +101,7 @@ function isDark() {
 
 export function Playground() {
   const container = useRef<HTMLDivElement>(null);
+  const preview = useRef<HTMLIFrameElement>(null);
   const handle = useRef<PlaygroundHandle | null>(null);
   const [policy, setPolicy] = useState<SpellingPolicy>('off');
   const [status, setStatus] = useState('Loading TypeScript and the Plumeria rules…');
@@ -96,9 +112,13 @@ export function Playground() {
 
     const load = async () => {
       const { mount } = await import('./editor');
-      if (disposed || !container.current) return;
-      handle.current = await mount(container.current, SAMPLE, isDark(), (errors, warnings) =>
-        setCounts({ errors, warnings }),
+      if (disposed || !container.current || !preview.current) return;
+      handle.current = await mount(
+        container.current,
+        preview.current,
+        SAMPLE,
+        isDark(),
+        (errors, warnings) => setCounts({ errors, warnings }),
       );
       if (disposed) {
         handle.current.dispose();
@@ -147,7 +167,15 @@ export function Playground() {
           <span>{counts.warnings} warnings</span>
         </span>
       </div>
-      <div ref={container} classStyle={styles.editor} />
+      <div classStyle={styles.split}>
+        <div ref={container} classStyle={styles.editor} />
+        <iframe
+          ref={preview}
+          classStyle={styles.preview}
+          src="/playground/preview/index.html"
+          title="Preview"
+        />
+      </div>
       <p classStyle={styles.status}>{status}</p>
     </main>
   );
