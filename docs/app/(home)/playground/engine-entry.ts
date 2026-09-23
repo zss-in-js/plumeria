@@ -49,33 +49,6 @@ const compilerOptions: ts.CompilerOptions = {
   allowNonTsExtensions: true,
 };
 
-const REFERENCE_LIB = /\/\/\/\s*<reference\s+lib="([^"]+)"\s*\/>/g;
-
-async function fetchText(url: string): Promise<string> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`playground: failed to load ${url}`);
-  return response.text();
-}
-
-async function loadLibs(entry: string, available: Set<string>): Promise<Map<string, string>> {
-  const files = new Map<string, string>();
-  const queue = [entry];
-
-  while (queue.length > 0) {
-    const name = queue.pop() as string;
-    if (files.has(`/${name}`) || !available.has(name)) continue;
-
-    const text = await fetchText(`/playground/ts/${name}`);
-    files.set(`/${name}`, text);
-
-    for (const match of text.matchAll(REFERENCE_LIB)) {
-      queue.push(`lib.${match[1]}.d.ts`);
-    }
-  }
-
-  return files;
-}
-
 const linter = new Linter();
 const recommendedRules = plumeria.configs.recommended.rules ?? {};
 
@@ -85,30 +58,8 @@ function spellingRules(policy: SpellingPolicy): Record<string, 'error'> {
   return {};
 }
 
-export async function createSession(files: Record<string, string>): Promise<Session> {
-  const manifest = (await (await fetch('/playground/manifest.json')).json()) as {
-    tsLibs: string[];
-    coreLibs: string[];
-    typeFiles: Record<string, string[]>;
-  };
-
-  const typeEntries = Object.entries(manifest.typeFiles).flatMap(([pkg, names]) =>
-    names.map(
-      async (name) => [`/node_modules/${pkg}/${name}`, await fetchText(`/playground/types/${pkg}/${name}`)] as const,
-    ),
-  );
-
-  const [libs, coreLibs, typeLibs] = await Promise.all([
-    loadLibs(ts.getDefaultLibFileName(compilerOptions), new Set(manifest.tsLibs)),
-    Promise.all(
-      manifest.coreLibs.map(
-        async (name) => [`${CORE_DIR}/lib/${name}`, await fetchText(`/playground/core/${name}`)] as const,
-      ),
-    ),
-    Promise.all(typeEntries),
-  ]);
-
-  const fsMap = new Map<string, string>([...libs, ...coreLibs, ...typeLibs]);
+export async function createSession(files: Record<string, string>, libs: Record<string, string>): Promise<Session> {
+  const fsMap = new Map<string, string>(Object.entries(libs));
   fsMap.set(`${CORE_DIR}/package.json`, CORE_PACKAGE);
   for (const [path, contents] of Object.entries(files)) fsMap.set(path, contents);
 
