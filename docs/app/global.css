@@ -321,7 +321,7 @@ code {
   font-size: 32px;
   line-height: 1;
   color: #63a6bb;
-  animation: playground-spin 1.2s linear infinite;
+  animation: playground-spin 2.4s linear infinite;
 }
 
 .playground-loading-bar {
@@ -352,8 +352,7 @@ code {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-playground='stage'] > *,
-  .playground-loading-mark,
+  [data-playground='stage'] > :not(.playground-loading),
   .playground-loading-fill {
     animation: none;
     transition: none;
