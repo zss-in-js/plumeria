@@ -3,8 +3,7 @@ import 'monaco-editor/features/register.all';
 import 'monaco-editor/languages/definitions/typescript/register';
 import { loadEngine } from './engine';
 import type { LintMessage, SpellingPolicy } from './engine-types';
-
-const FILE_NAME = '/playground.tsx';
+import type { SampleFile } from './sample';
 
 const LIGHT_RULES: monaco.editor.ITokenThemeRule[] = [
   { token: '', foreground: '393a34' },
@@ -131,6 +130,7 @@ function toMarker(message: LintMessage): monaco.editor.IMarkerData {
 export type PlaygroundHandle = {
   reset: () => void;
   getSource: () => string;
+  setFile: (path: string) => void;
   setPolicy: (policy: SpellingPolicy) => void;
   setTheme: (dark: boolean) => void;
   dispose: () => void;
@@ -139,17 +139,22 @@ export type PlaygroundHandle = {
 export async function mount(
   container: HTMLElement,
   preview: HTMLIFrameElement,
-  source: string,
+  files: SampleFile[],
+  entry: string,
   onCount: (errors: number, warnings: number) => void,
 ): Promise<PlaygroundHandle> {
   setupEnvironment();
   defineThemes();
 
   const engine = await loadEngine();
-  const session = await engine.createSession(source);
+  const session = await engine.createSession(Object.fromEntries(files.map(({ path, source }) => [path, source])));
   const tokenTypes = [...engine.tokenTypes];
 
-  const model = monaco.editor.createModel(source, 'typescript', monaco.Uri.file(FILE_NAME));
+  const models = new Map(
+    files.map(({ path, source }) => [path, monaco.editor.createModel(source, 'typescript', monaco.Uri.file(path))]),
+  );
+  const pathOf = new Map([...models].map(([path, target]) => [target, path]));
+  let model = models.get(entry) as monaco.editor.ITextModel;
 
   const hoverLines = new Map<string, monaco.languages.IToken[]>();
   const hoverState: monaco.languages.IState = {
@@ -167,8 +172,9 @@ export async function mount(
     }),
     monaco.languages.registerHoverProvider('typescript', {
       provideHover(target: monaco.editor.ITextModel, position: monaco.Position) {
-        if (target !== model) return null;
-        const info = session.quickInfo(target.getOffsetAt(position));
+        const path = pathOf.get(target);
+        if (!path) return null;
+        const info = session.quickInfo(path, target.getOffsetAt(position));
         if (!info) return null;
 
         hoverLines.clear();
@@ -245,8 +251,9 @@ export async function mount(
 
   function updateSemanticColors() {
     const code = model.getValue();
-    session.update(code);
-    const spans = session.classifications(0, code.length);
+    const path = pathOf.get(model) as string;
+    session.update(path, code);
+    const spans = session.classifications(path, 0, code.length);
     const decorations: monaco.editor.IModelDeltaDecoration[] = [];
     for (let index = 0; index < spans.length; index += 3) {
       const tokenType = (spans[index + 2] >> 8) - 1;
@@ -272,22 +279,24 @@ export async function mount(
     preview.contentWindow?.postMessage({ type: 'playground:theme', dark: nextDark }, '*');
   }
 
-  function sendPreview(code: string) {
+  function sendPreview() {
     if (!previewReady) return;
-    preview.contentWindow?.postMessage({ type: 'playground:render', code: session.transpile(code) }, '*');
+    const transpiled: Record<string, string> = {};
+    for (const [path, target] of models) transpiled[path] = session.transpile(path, target.getValue());
+    preview.contentWindow?.postMessage({ type: 'playground:render', files: transpiled, entry }, '*');
   }
 
   const onPreviewMessage = (event: MessageEvent<{ type?: string }>) => {
     if (event.source !== preview.contentWindow || event.data?.type !== 'playground:ready') return;
     previewReady = true;
     sendTheme(document.documentElement.classList.contains('dark'));
-    sendPreview(model.getValue());
+    sendPreview();
   };
 
   const onPreviewLoad = () => {
     previewReady = true;
     sendTheme(document.documentElement.classList.contains('dark'));
-    sendPreview(model.getValue());
+    sendPreview();
   };
 
   window.addEventListener('message', onPreviewMessage);
@@ -296,42 +305,51 @@ export async function mount(
   if (preview.contentDocument?.readyState === 'complete') onPreviewLoad();
 
   function run() {
-    const code = model.getValue();
-    const typeErrors = session.diagnostics().map((diagnostic) => {
-      const start = model.getPositionAt(diagnostic.start);
-      const end = model.getPositionAt(diagnostic.start + diagnostic.length);
-      return {
-        severity: monaco.MarkerSeverity.Error,
-        message: diagnostic.message,
-        startLineNumber: start.lineNumber,
-        startColumn: start.column,
-        endLineNumber: end.lineNumber,
-        endColumn: end.column,
-        source: 'ts',
-      };
-    });
-
-    const messages = session.lint(code, policy);
     let errors = 0;
     let warnings = 0;
+    let typeErrorCount = 0;
 
-    for (const message of messages) {
-      if (message.severity === 2) errors += 1;
-      else warnings += 1;
+    for (const [path, target] of models) {
+      const code = target.getValue();
+      session.update(path, code);
+
+      const typeErrors = session.diagnostics(path).map((diagnostic) => {
+        const start = target.getPositionAt(diagnostic.start);
+        const end = target.getPositionAt(diagnostic.start + diagnostic.length);
+        return {
+          severity: monaco.MarkerSeverity.Error,
+          message: diagnostic.message,
+          startLineNumber: start.lineNumber,
+          startColumn: start.column,
+          endLineNumber: end.lineNumber,
+          endColumn: end.column,
+          source: 'ts',
+        };
+      });
+      typeErrorCount += typeErrors.length;
+
+      const messages = session.lint(path, code, policy);
+      for (const message of messages) {
+        if (message.severity === 2) errors += 1;
+        else warnings += 1;
+      }
+
+      monaco.editor.setModelMarkers(target, 'ts', typeErrors);
+      monaco.editor.setModelMarkers(target, 'plumeria', messages.map(toMarker));
     }
 
-    monaco.editor.setModelMarkers(model, 'ts', typeErrors);
-    monaco.editor.setModelMarkers(model, 'plumeria', messages.map(toMarker));
     onCount(errors, warnings);
 
-    if (typeErrors.length === 0) sendPreview(code);
+    if (typeErrorCount === 0) sendPreview();
   }
 
-  const subscription = model.onDidChangeContent(() => {
-    updateSemanticColors();
-    clearTimeout(timer);
-    timer = setTimeout(run, 250);
-  });
+  const subscriptions = [...models.values()].map((target) =>
+    target.onDidChangeContent(() => {
+      updateSemanticColors();
+      clearTimeout(timer);
+      timer = setTimeout(run, 250);
+    }),
+  );
 
   function fixOnSave(event: KeyboardEvent) {
     if (!editor.hasTextFocus() || event.isComposing || event.shiftKey || event.getModifierState('AltGraph')) return;
@@ -341,7 +359,7 @@ export async function mount(
     if (event.repeat) return;
 
     const code = model.getValue();
-    const fixed = session.fix(code, policy);
+    const fixed = session.fix(pathOf.get(model) as string, code, policy);
     if (fixed !== code) {
       // Apply only the changed region so cursor tracking and undo remain useful.
       let start = 0;
@@ -371,11 +389,23 @@ export async function mount(
 
   return {
     getSource: () => model.getValue(),
+    setFile(path) {
+      const next = models.get(path);
+      if (!next || next === model) return;
+      model = next;
+      editor.setModel(model);
+      updateSemanticColors();
+      editor.focus();
+    },
     reset() {
       editor.pushUndoStop();
-      editor.executeEdits('reset', [{ range: model.getFullModelRange(), text: source }]);
+      for (const { path, source } of files) {
+        const target = models.get(path);
+        if (target) target.setValue(source);
+      }
       editor.pushUndoStop();
       clearTimeout(timer);
+      updateSemanticColors();
       run();
       editor.setScrollTop(0);
       editor.focus();
@@ -393,7 +423,8 @@ export async function mount(
       window.removeEventListener('keydown', fixOnSave, true);
       window.removeEventListener('message', onPreviewMessage);
       preview.removeEventListener('load', onPreviewLoad);
-      subscription.dispose();
+      for (const subscription of subscriptions) subscription.dispose();
+      for (const target of models.values()) target.dispose();
       semanticDecorations.clear();
       semanticStyles.remove();
       for (const provider of providers) provider?.dispose();
