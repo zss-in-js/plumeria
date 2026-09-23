@@ -57,7 +57,7 @@ const styles = css.create({
     alignItems: 'center',
     height: 'var(--plumeria-control-size)',
     paddingInline: 10,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 400,
     color: theme.textSecondary,
     textDecoration: 'none',
