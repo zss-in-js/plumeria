@@ -1,5 +1,14 @@
 # @plumeria/turbopack-loader
 
+## 19.2.15
+
+### Patch Changes
+
+- 83fa450: - Reject a style value that cannot be known at build time instead of dropping it. A value the build could not resolve produced no declaration at all: the build succeeded, no warning was printed, and the element came out with an empty class, so the only way to notice was to look at the screen. `css.create`, `css.createStatic`, `css.createTheme`, `css.keyframes` and `css.viewTransition` now compare the keys they were given against the keys they resolved and fail on any that went missing, naming the property, the expression behind it, and the function form of `css.create` as the way to pass a value that is only known at runtime. This covers a call, a method chain, a constructor, a tagged template, a ternary and an array literal, whether written at the call site or behind a local `const`, as well as an identifier or member expression that resolves to nothing. Literals, locally resolvable constants, template literals built from them, spreads, computed keys, `null`, and style functions still compile as they did. A property is left unchecked in one situation only: something later in the same object replaced what it was given, either a second use of its key or a spread that carries that key. A property is only rejected where the style still uses it: a later property or a later spread writing the same key replaces it, and then the value it replaced is never looked at. That holds wherever the value was written — at the call site, behind a local `const`, inside a `const` an object spreads in, or in the object a style function returns, where a value that does not come from the parameter is rejected the same way while `width: w` compiles to a variable as it always did
+- Updated dependencies [83fa450]
+  - @plumeria/compiler@19.2.15
+  - @plumeria/utils@19.2.15
+
 ## 19.2.14
 
 ### Patch Changes

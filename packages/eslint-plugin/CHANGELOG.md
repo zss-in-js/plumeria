@@ -1,3 +1,9 @@
+## 19.2.15
+
+### Patch Changes
+
+- 83fa450: Bump version to 19.2.15
+
 ## 19.2.14
 
 ### Patch Changes
