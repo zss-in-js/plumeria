@@ -13,6 +13,11 @@ import { navStyles } from 'component/navStyles';
 import { breakpoints } from 'lib/mediaQuery';
 import { theme } from 'lib/theme';
 
+const bar = css.createStatic({
+  headerHeight: 48,
+  linkHeight: 32,
+});
+
 const styles = css.create({
   header: {
     position: 'sticky',
@@ -31,7 +36,7 @@ const styles = css.create({
     gap: 8,
     alignItems: 'center',
     width: '100%',
-    height: 48,
+    height: bar.headerHeight,
     paddingRight: 24,
     paddingLeft: 24,
     '@media (min-width: 768px)': {
@@ -55,7 +60,7 @@ const styles = css.create({
   navLink: {
     display: 'inline-flex',
     alignItems: 'center',
-    height: 32,
+    height: bar.linkHeight,
     paddingInline: 10,
     fontSize: 13,
     fontWeight: 400,
@@ -73,7 +78,7 @@ const styles = css.create({
     '::after': {
       position: 'absolute',
       right: 10,
-      bottom: -9,
+      bottom: -((bar.headerHeight - bar.linkHeight) / 2 + 1),
       left: 10,
       height: 2,
       content: '""',
@@ -180,7 +185,7 @@ const styles = css.create({
   // Same 48px band and 16px inset as the bar, so the icons and the toggle keep their place
   // when the drawer opens over it.
   drawerTop: {
-    height: 48,
+    height: bar.headerHeight,
     paddingInline: 16,
     marginTop: 8,
   },
