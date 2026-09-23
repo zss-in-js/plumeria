@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { beginStyles, commitStyles, discardStyles } from './core';
 
-type Message = { type: 'playground:render'; code: string } | { type: 'playground:theme'; dark: boolean };
+type Message =
+  | { type: 'playground:render'; files: Record<string, string>; entry: string }
+  | { type: 'playground:theme'; dark: boolean };
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
@@ -26,12 +28,48 @@ function Preview({ component: Component }: { component: ComponentType }) {
   return createElement(Component);
 }
 
-async function render(code: string): Promise<void> {
-  const url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+const RELATIVE_SPECIFIER = /(from\s*|import\s*\(\s*)(['"])(\.[^'"]*)\2/g;
+
+function moduleKey(specifier: string, files: Record<string, string>): string | undefined {
+  const name = specifier.replace(/^\.\//, '').replace(/\.[jt]sx?$/, '');
+  return Object.keys(files).find((path) => path.replace(/^\//, '').replace(/\.[jt]sx?$/, '') === name);
+}
+
+function linkModules(files: Record<string, string>, created: string[]): Record<string, string> {
+  const urls: Record<string, string> = {};
+  const remaining = new Set(Object.keys(files));
+
+  while (remaining.size > 0) {
+    const ready = [...remaining].filter((path) =>
+      [...files[path].matchAll(RELATIVE_SPECIFIER)].every(([, , , specifier]) => {
+        const key = moduleKey(specifier, files);
+        return !key || key in urls;
+      }),
+    );
+    const batch = ready.length > 0 ? ready : [...remaining];
+
+    for (const path of batch) {
+      const linked = files[path].replace(RELATIVE_SPECIFIER, (match, head, quote, specifier: string) => {
+        const key = moduleKey(specifier, files);
+        return key && urls[key] ? `${head}${quote}${urls[key]}${quote}` : match;
+      });
+      const url = URL.createObjectURL(new Blob([linked], { type: 'text/javascript' }));
+      created.push(url);
+      urls[path] = url;
+      remaining.delete(path);
+    }
+  }
+
+  return urls;
+}
+
+async function render(files: Record<string, string>, entry: string): Promise<void> {
+  const created: string[] = [];
+  const urls = linkModules(files, created);
 
   try {
     beginStyles();
-    const module = (await import(/* webpackIgnore: true */ url)) as Record<string, unknown>;
+    const module = (await import(/* webpackIgnore: true */ urls[entry])) as Record<string, unknown>;
     const Component = pickComponent(module);
 
     if (!Component) {
@@ -49,7 +87,7 @@ async function render(code: string): Promise<void> {
     discardStyles();
     status.textContent = error instanceof Error ? error.message : String(error);
   } finally {
-    URL.revokeObjectURL(url);
+    for (const url of created) URL.revokeObjectURL(url);
   }
 }
 
@@ -59,11 +97,12 @@ let revision = 0;
 window.addEventListener('message', (event: MessageEvent<Message>) => {
   if (event.data?.type === 'playground:render') {
     const current = ++revision;
-    const code = event.data.code;
-    renderQueue = renderQueue.then(() => (current === revision ? render(code) : undefined));
+    const { files, entry } = event.data;
+    renderQueue = renderQueue.then(() => (current === revision ? render(files, entry) : undefined));
   }
   if (event.data?.type === 'playground:theme') {
     document.documentElement.style.colorScheme = event.data.dark ? 'dark' : 'light';
+    document.documentElement.classList.toggle('dark', event.data.dark);
   }
 });
 
