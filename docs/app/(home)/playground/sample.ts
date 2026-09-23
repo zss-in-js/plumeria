@@ -119,14 +119,14 @@ const styles = css.create({
     source: `import * as css from '@plumeria/core';
 
 export const theme = css.createTheme('.dark', {
-  surface: { default: '#ffffff', theme: '#202b30' },
-  text: { default: '#20343b', theme: '#e6f0f2' },
-  muted: { default: '#677b82', theme: '#a9bec5' },
-  accent: { default: '#367d87', theme: '#63a6bb' },
-  onAccent: { default: '#ffffff', theme: '#11242b' },
-  accentSoft: { default: '#dbeef1', theme: '#1f4a58' },
-  accentBright: { default: '#2a6b76', theme: '#9fd8e8' },
-  tint: { default: '#eef3f4', theme: '#3a5560' },
+  surface: { default: '#ffffff', theme: '#241d26' },
+  text: { default: '#2e2330', theme: '#f2e9f1' },
+  muted: { default: '#766a78', theme: '#b5a6b4' },
+  accent: { default: '#b23a9b', theme: '#d653bb' },
+  onAccent: { default: '#ffffff', theme: '#2a0f25' },
+  accentSoft: { default: '#f8e4f3', theme: '#4d2346' },
+  accentBright: { default: '#a02c89', theme: '#f3a8e2' },
+  tint: { default: '#f5eff5', theme: '#3d3140' },
 });
 `,
   },
