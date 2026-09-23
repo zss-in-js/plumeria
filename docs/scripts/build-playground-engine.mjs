@@ -141,6 +141,7 @@ await writeFile(
       html, body { margin: 0; height: 100%; background: transparent; }
       body { font: 14px/1.5 ui-sans-serif, system-ui, sans-serif; }
       #root { box-sizing: border-box; min-height: 100%; display: grid; align-items: center; padding: 40px 24px; }
+      @media (max-height: 480px) { #root { padding: 16px; } }
       #status:empty { display: none; }
       #status { padding: 24px; color: #b42318; white-space: pre-wrap; }
     </style>
