@@ -49,7 +49,7 @@ const styles = css.create({
     fontSize: 16,
     fontWeight: 600,
     lineHeight: 1.1,
-    color: '#2aaaca',
+    color: 'var(--plumeria-accent)',
     letterSpacing: '-0.02em',
   },
   company: {
