@@ -17,9 +17,10 @@ import { tokens } from './tokens';
 export const Card = () => (
   <article classStyle={styles.card}>
     <div classStyle={styles.icon} aria-hidden="true">✳</div>
+    <p classStyle={styles.eyebrow}>MADE WITH PLUMERIA</p>
     <h1 classStyle={styles.title}>Less code. More bloom.</h1>
     <p classStyle={styles.description}>
-      Type-safe CSS with zero runtime. Change a color and watch it land.
+      Type-safe CSS, compiled to zero runtime. Edit any color and watch it land live.
     </p>
     <div classStyle={styles.actions}>
       <a classStyle={[styles.button, styles.primary]} href="/docs" target="_blank" rel="noreferrer">Docs ↗</a>
@@ -54,13 +55,20 @@ const styles = css.create({
     height: 56,
     margin: '0 0 28px',
     fontSize: 32,
-    color: theme.accent,
-    background: theme.tint,
+    color: theme.accentBright,
+    background: theme.accentSoft,
     borderRadius: 18,
     animation: \`\${bloom} 2.4s ease-in-out infinite alternate\`,
     '@media (prefers-reduced-motion: reduce)': {
       animation: 'none'
     }
+  },
+  eyebrow: {
+    margin: '0 0 10px',
+    fontSize: 11,
+    fontWeight: 600,
+    color: theme.accent,
+    letterSpacing: '0.16em'
   },
   title: {
     margin: 0,
@@ -116,6 +124,8 @@ export const theme = css.createTheme('.dark', {
   muted: { default: '#677b82', theme: '#a9bec5' },
   accent: { default: '#367d87', theme: '#63a6bb' },
   onAccent: { default: '#ffffff', theme: '#11242b' },
+  accentSoft: { default: '#dbeef1', theme: '#1f4a58' },
+  accentBright: { default: '#2a6b76', theme: '#9fd8e8' },
   tint: { default: '#eef3f4', theme: '#3a5560' },
 });
 `,
