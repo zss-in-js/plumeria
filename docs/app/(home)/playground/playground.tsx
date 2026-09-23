@@ -6,6 +6,7 @@ import { theme } from 'lib/theme';
 import { breakpoints } from 'lib/mediaQuery';
 import { ENTRY, SAMPLE_FILES } from './sample';
 import type { PlaygroundHandle } from './editor';
+import { loadEngine, onEngineProgress } from './engine';
 import type { SpellingPolicy } from './engine-types';
 
 const POLICIES: { value: SpellingPolicy; label: string }[] = [
@@ -201,7 +202,9 @@ export function Playground() {
   const [editorReady, setEditorReady] = useState(false);
   const [previewReady, setPreviewReady] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [downloaded, setDownloaded] = useState(0);
   const ready = editorReady && previewReady;
+  const progress = downloaded * 0.85 + (editorReady ? 0.1 : 0) + (previewReady ? 0.05 : 0);
   const [policy, setPolicy] = useState<SpellingPolicy>('off');
   const [file, setFile] = useState(ENTRY);
   const [status, setStatus] = useState('Loading TypeScript and the Plumeria rules…');
@@ -210,8 +213,10 @@ export function Playground() {
   useEffect(() => {
     let disposed = false;
 
+    const stopProgress = onEngineProgress(setDownloaded);
+
     const load = async () => {
-      const { mount } = await import('./editor');
+      const [{ mount }] = await Promise.all([import('./editor'), loadEngine()]);
       if (disposed || !container.current || !preview.current) return;
       handle.current = await mount(container.current, preview.current, SAMPLE_FILES, ENTRY, (errors, warnings) =>
         setCounts({ errors, warnings }),
@@ -242,6 +247,7 @@ export function Playground() {
 
     return () => {
       disposed = true;
+      stopProgress();
       observer.disconnect();
       window.removeEventListener('message', onPreviewRendered);
       handle.current?.dispose();
@@ -348,6 +354,16 @@ export function Playground() {
         <div className="playground-loading" role="status">
           <span className="playground-loading-mark" aria-hidden="true">
             ✳
+          </span>
+          <span
+            className="playground-loading-bar"
+            role="progressbar"
+            aria-label="Loading progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progress * 100)}
+          >
+            <span className="playground-loading-fill" style={{ transform: `scaleX(${progress})` }} />
           </span>
           <span>Preparing your playground…</span>
         </div>
