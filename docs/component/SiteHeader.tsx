@@ -255,11 +255,13 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showS
   const menus = links.filter((link) => link.type === 'custom');
   const icons = links.filter((link) => link.type === 'icon');
 
+  const section = (url: string) => (url.startsWith('/blog/') ? '/blog' : url);
+
   const isLinkActive = (url: string) => {
     if (url === '/') return pathname === '/';
     return (
-      pathname.startsWith(url) &&
-      !navLinks.some((link) => link.url.length > url.length && pathname.startsWith(link.url))
+      pathname.startsWith(section(url)) &&
+      !navLinks.some((link) => link.url.length > url.length && pathname.startsWith(section(link.url)))
     );
   };
 
