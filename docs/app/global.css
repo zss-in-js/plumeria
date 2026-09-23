@@ -6,6 +6,12 @@
   background: black;
 }
 
+@media (min-width: 1280px) {
+  #nd-notebook-layout:has(#nd-toc) {
+    --fd-toc-width: 384px;
+  }
+}
+
 :is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] button[aria-expanded] {
   cursor: pointer;
 }
