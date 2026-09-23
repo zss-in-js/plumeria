@@ -4,22 +4,34 @@ import { resolveClassStyle } from './class-style';
 type StyleRule = Record<string, unknown>;
 
 let element: HTMLStyleElement | undefined;
-const inserted = new Set<string>();
+let inserted = new Set<string>();
+let pending: Set<string> | undefined;
 
 function styleElement(): HTMLStyleElement {
   element ??= document.head.appendChild(document.createElement('style'));
   return element;
 }
 
-export function resetStyles(): void {
-  inserted.clear();
-  styleElement().textContent = '';
+export function beginStyles(): void {
+  pending = new Set();
+}
+
+export function commitStyles(): void {
+  if (!pending) return;
+  inserted = pending;
+  pending = undefined;
+  styleElement().textContent = [...inserted].join('');
+}
+
+export function discardStyles(): void {
+  pending = undefined;
 }
 
 function insert(sheet: string): void {
-  if (!sheet || inserted.has(sheet)) return;
-  inserted.add(sheet);
-  styleElement().textContent += sheet;
+  const sheets = pending ?? inserted;
+  if (!sheet || sheets.has(sheet)) return;
+  sheets.add(sheet);
+  if (!pending) styleElement().textContent += sheet;
 }
 
 export function create<T extends Record<string, StyleRule>>(rules: T): Record<string, unknown> {
