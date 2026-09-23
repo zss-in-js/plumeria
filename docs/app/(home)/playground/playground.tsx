@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as css from '@plumeria/core';
 import { theme } from 'lib/theme';
 import { breakpoints } from 'lib/mediaQuery';
-import { SAMPLE } from './sample';
+import { ENTRY, SAMPLE_FILES } from './sample';
 import type { PlaygroundHandle } from './editor';
 import type { SpellingPolicy } from './engine-types';
 
@@ -32,6 +32,42 @@ const styles = css.create({
     [breakpoints.lg]: {
       gridTemplateColumns: 'minmax(0, 1fr)',
     },
+  },
+  tabs: {
+    display: 'flex',
+    gap: 4,
+    alignItems: 'center',
+    paddingInline: 12,
+    borderBottomColor: theme.cardBorder,
+    borderBottomStyle: 'solid',
+    borderBottomWidth: '1px',
+  },
+  tab: {
+    padding: '8px 12px',
+    fontFamily: 'var(--font-mono, ui-monospace, monospace)',
+    fontSize: 12,
+    color: theme.textMuted,
+    cursor: 'pointer',
+    background: 'transparent',
+    borderColor: 'currentColor',
+    borderStyle: 'none',
+    borderWidth: 'medium',
+    borderBottomColor: 'transparent',
+    borderBottomStyle: 'solid',
+    borderBottomWidth: '2px',
+    ':hover': {
+      color: theme.textPrimary
+    },
+  },
+  tabActive: {
+    color: theme.textPrimary,
+    borderBottomColor: '#63a6bb',
+  },
+  pane: {
+    display: 'flex',
+    flexDirection: 'column',
+    minWidth: 0,
+    minHeight: 0,
   },
   editorBar: {
     display: 'flex',
@@ -121,6 +157,7 @@ const styles = css.create({
     },
   },
   editor: {
+    flex: 1,
     minWidth: 0,
     minHeight: 0,
   },
@@ -166,6 +203,7 @@ export function Playground() {
   const [failed, setFailed] = useState(false);
   const ready = editorReady && previewReady;
   const [policy, setPolicy] = useState<SpellingPolicy>('off');
+  const [file, setFile] = useState(ENTRY);
   const [status, setStatus] = useState('Loading TypeScript and the Plumeria rules…');
   const [counts, setCounts] = useState({ errors: 0, warnings: 0 });
 
@@ -175,7 +213,7 @@ export function Playground() {
     const load = async () => {
       const { mount } = await import('./editor');
       if (disposed || !container.current || !preview.current) return;
-      handle.current = await mount(container.current, preview.current, SAMPLE, (errors, warnings) =>
+      handle.current = await mount(container.current, preview.current, SAMPLE_FILES, ENTRY, (errors, warnings) =>
         setCounts({ errors, warnings }),
       );
       if (disposed) {
@@ -215,6 +253,10 @@ export function Playground() {
     handle.current?.setPolicy(policy);
   }, [policy]);
 
+  useEffect(() => {
+    handle.current?.setFile(file);
+  }, [file]);
+
   async function copySource() {
     if (!handle.current) return;
     try {
@@ -251,6 +293,7 @@ export function Playground() {
               aria-label="Reset code to the sample"
               onClick={() => {
                 handle.current?.reset();
+                setFile(ENTRY);
                 setStatus('Sample restored. Undo to recover your edits.');
               }}
             >
@@ -308,7 +351,23 @@ export function Playground() {
           </span>
           <span>Preparing your playground…</span>
         </div>
-        <div ref={container} classStyle={styles.editor} />
+        <div classStyle={styles.pane}>
+          <div classStyle={styles.tabs} role="tablist" aria-label="Playground files">
+            {SAMPLE_FILES.map((item) => (
+              <button
+                key={item.path}
+                type="button"
+                role="tab"
+                aria-selected={file === item.path}
+                onClick={() => setFile(item.path)}
+                classStyle={[styles.tab, file === item.path && styles.tabActive]}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div ref={container} classStyle={styles.editor} />
+        </div>
         <iframe ref={preview} classStyle={styles.preview} src="/playground/preview/index.html" title="Preview" />
       </div>
       <p role="status" classStyle={styles.status}>
