@@ -479,8 +479,7 @@ export function objectExpressionToObject(
   return obj;
 }
 
-export function collectLocalConsts(ast: Module): Record<string, any> {
-  const localConsts: Record<string, any> = {};
+export function collectLocalConstNodes(ast: Module): Map<string, any> {
   const decls = new Map<string, any>();
 
   for (const node of ast.body) {
@@ -505,6 +504,13 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
       }
     }
   }
+
+  return decls;
+}
+
+export function collectLocalConsts(ast: Module): Record<string, any> {
+  const localConsts: Record<string, any> = {};
+  const decls = collectLocalConstNodes(ast);
 
   const visiting = new Set<string>();
 
