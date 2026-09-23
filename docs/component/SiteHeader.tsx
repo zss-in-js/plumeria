@@ -70,7 +70,6 @@ const styles = css.create({
   },
   navLinkActive: {
     position: 'relative',
-    color: theme.textPrimary,
     '::after': {
       position: 'absolute',
       right: 10,
