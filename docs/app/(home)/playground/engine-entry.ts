@@ -3,7 +3,7 @@ import { Linter } from 'eslint/universal';
 import * as tsParser from '@typescript-eslint/parser';
 import plumeria from '@plumeria/eslint-plugin';
 import * as ts from 'typescript';
-import type { Diagnostic, LintMessage, QuickInfo, Session, SpellingPolicy } from './engine-types';
+import type { Completion, Diagnostic, LintMessage, QuickInfo, Session, SpellingPolicy } from './engine-types';
 
 const CORE_DIR = '/node_modules/@plumeria/core';
 
@@ -75,6 +75,27 @@ export async function createSession(files: Record<string, string>, libs: Record<
   return {
     update(file: string, next: string) {
       env.updateFile(file, next);
+    },
+
+    completions(file: string, offset: number, trigger?: string): Completion[] {
+      const info = service.getCompletionsAtPosition(file, offset, {
+        triggerCharacter: trigger as ts.CompletionsTriggerCharacter | undefined,
+        includeCompletionsWithInsertText: true,
+        quotePreference: 'single',
+      });
+      if (!info) return [];
+
+      return info.entries.map((entry) => {
+        const span = entry.replacementSpan ?? info.optionalReplacementSpan;
+        return {
+          name: entry.name,
+          kind: entry.kind,
+          sortText: entry.sortText,
+          insertText: entry.insertText,
+          start: span?.start,
+          length: span?.length,
+        };
+      });
     },
 
     quickInfo(file: string, offset: number): QuickInfo | null {
