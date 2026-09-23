@@ -8,7 +8,7 @@
 
 @media (min-width: 1280px) {
   #nd-notebook-layout:has(#nd-toc) {
-    --fd-toc-width: 384px;
+    --fd-toc-width: 399px;
   }
 }
 
