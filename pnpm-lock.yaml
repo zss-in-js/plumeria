@@ -180,6 +180,9 @@ importers:
       '@plumeria/next-plugin':
         specifier: workspace:^
         version: link:../packages/next-plugin
+      '@plumeria/utils':
+        specifier: workspace:^
+        version: link:../packages/utils
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13
