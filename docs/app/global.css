@@ -17,7 +17,6 @@
   align-items: center;
   padding-inline: 6px;
   border: 1px solid var(--color-fd-border);
-  border-radius: 6px;
   background: var(--color-fd-background);
 }
 
