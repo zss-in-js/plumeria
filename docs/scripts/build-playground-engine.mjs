@@ -1,6 +1,6 @@
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, stat, writeFile } from 'node:fs/promises';
 import { join, sep } from 'node:path';
 
 const root = process.cwd();
@@ -105,6 +105,12 @@ if (matches.length !== 1) {
 await writeFile(outfile, bundled.replace(dynamicImport, 'async function $1($2){throw new Error("unsupported: "+$2)}'));
 
 console.log('[playground] engine built');
+
+const sizes = {};
+for (const name of ['engine.mjs', 'libs.json']) {
+  sizes[name] = (await stat(join(root, 'public', 'playground', name))).size;
+}
+await writeFile(join(root, 'public', 'playground', 'manifest.json'), JSON.stringify(sizes));
 
 const previewDir = join(root, 'public', 'playground', 'preview');
 const previewSrc = join(root, 'app', '(home)', 'playground', 'preview');
