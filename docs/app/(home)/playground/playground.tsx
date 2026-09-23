@@ -19,7 +19,7 @@ const styles = css.create({
   root: {
     display: 'flex',
     flexDirection: 'column',
-    height: 'calc(100dvh - 57px)',
+    height: 'calc(100dvh - 49px)',
     overflow: 'hidden',
     color: theme.textPrimary,
   },
