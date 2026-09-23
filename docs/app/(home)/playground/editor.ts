@@ -146,8 +146,8 @@ export async function mount(
   setupEnvironment();
   defineThemes();
 
-  const engine = await loadEngine();
-  const session = await engine.createSession(Object.fromEntries(files.map(({ path, source }) => [path, source])));
+  const { engine, libs } = await loadEngine();
+  const session = await engine.createSession(Object.fromEntries(files.map(({ path, source }) => [path, source])), libs);
   const tokenTypes = [...engine.tokenTypes];
 
   const models = new Map(
