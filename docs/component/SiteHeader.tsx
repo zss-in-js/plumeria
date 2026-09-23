@@ -31,7 +31,7 @@ const styles = css.create({
     gap: 8,
     alignItems: 'center',
     width: '100%',
-    height: 56,
+    height: 48,
     paddingInline: 24,
   },
   title: {
@@ -50,8 +50,8 @@ const styles = css.create({
   },
   navLink: {
     padding: '6px 10px',
-    fontSize: '15px',
-    fontWeight: 500,
+    fontSize: '14px',
+    fontWeight: 400,
     color: theme.textSecondary,
     textDecoration: 'none',
     borderRadius: '8px',
@@ -159,10 +159,10 @@ const styles = css.create({
   drawerOpen: {
     transform: 'translateX(0)',
   },
-  // Same 56px band and 16px inset as the bar, so the icons and the toggle keep their place
+  // Same 48px band and 16px inset as the bar, so the icons and the toggle keep their place
   // when the drawer opens over it.
   drawerTop: {
-    height: 56,
+    height: 48,
     paddingInline: 16,
     marginTop: 8,
   },
