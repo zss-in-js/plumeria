@@ -10,7 +10,7 @@ import { socialLinks } from 'lib/socialLinks';
 
 const styles = css.create({
   banner: {
-    height: 56,
+    height: 48,
     paddingInline: 16,
     marginTop: 8,
     [breakpoints.lgUp]: {
