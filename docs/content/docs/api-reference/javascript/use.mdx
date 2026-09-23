@@ -22,10 +22,9 @@ export type { Style };
 `classStyle` is a special prop for applying styles to components such as React. It is converted to `className` by the plugin at build time.
 
 ### Features
-- Automatically excludes false values (`false`, `null`, `undefined`).
-
-- Supports array format, making conditional branching easy.
-- Subsequent styles take precedence within the array.
+- Accepts a single style, or an array of styles. Arrays can be nested.
+- Ignores `false`, `null`, and `undefined` wherever a style is accepted, which is what makes inline conditional branching work.
+- Within an array, a later style takes precedence over an earlier one.
 
 ### Example
 
@@ -51,7 +50,7 @@ function Component({ active }) {
 export type use = (...rules: Style[]) => string;
 export const use: use;
 ```
-`css.use()` is a function that converts a style object into a string of class names (`string`). Where the `classStyle` prop cannot be used (for example, when passing class names to external libraries).
+`css.use()` converts styles into a string of class names. Use it where the `classStyle` prop is not available, for example when passing a class name to an external component that only accepts `className`.
 
 ### Example
 
