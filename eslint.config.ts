@@ -11,6 +11,12 @@ export default defineConfig(
     ignores: ['**/dist/**', '**/vite-plugin/**', '**/.*/**', '**/*.js'],
   },
   {
+    files: ['**/*.{mjs,cjs}'],
+    languageOptions: {
+      globals: { console: 'readonly', module: 'writable', process: 'readonly' },
+    },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: { projectService: true },
