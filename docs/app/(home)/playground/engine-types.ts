@@ -38,5 +38,5 @@ export type Session = {
 
 export type Engine = {
   tokenTypes: readonly string[];
-  createSession: (files: Record<string, string>) => Promise<Session>;
+  createSession: (files: Record<string, string>, libs: Record<string, string>) => Promise<Session>;
 };
