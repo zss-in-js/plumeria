@@ -1,13 +1,25 @@
-export const SAMPLE = `import * as css from '@plumeria/core';
+export type SampleFile = {
+  path: string;
+  label: string;
+  source: string;
+};
+
+export const ENTRY = '/playground.tsx';
+
+export const SAMPLE_FILES: SampleFile[] = [
+  {
+    path: ENTRY,
+    label: 'Card.tsx',
+    source: `import * as css from '@plumeria/core';
+import { theme } from './theme';
+import { tokens } from './tokens';
 
 export const Card = () => (
   <article classStyle={styles.card}>
     <div classStyle={styles.icon} aria-hidden="true">✳</div>
-    <p classStyle={styles.eyebrow}>MADE WITH PLUMERIA</p>
     <h1 classStyle={styles.title}>Less code. More bloom.</h1>
     <p classStyle={styles.description}>
-      A little style goes a long way. Build something beautiful
-      with type-safe CSS and zero runtime.
+      Type-safe CSS with zero runtime. Change a color and watch it land.
     </p>
     <div classStyle={styles.actions}>
       <a classStyle={[styles.button, styles.primary]} href="/docs" target="_blank" rel="noreferrer">Docs ↗</a>
@@ -16,14 +28,23 @@ export const Card = () => (
   </article>
 );
 
+const bloom = css.keyframes({
+  from: {
+    transform: 'scale(1)'
+  },
+  to: {
+    transform: 'scale(1.12)'
+  },
+});
+
 const styles = css.create({
   card: {
     maxWidth: 360,
-    padding: 28,
+    padding: tokens.space,
     margin: '32px auto',
-    color: 'light-dark(#20343b, #e6f0f2)',
-    background: 'light-dark(#ffffff, #202b30)',
-    borderRadius: 24,
+    color: theme.text,
+    background: theme.surface,
+    borderRadius: tokens.radius,
     boxShadow: '0 16px 48px rgb(0 0 0 / 0.08)'
   },
   icon: {
@@ -31,17 +52,15 @@ const styles = css.create({
     placeItems: 'center',
     width: 56,
     height: 56,
+    margin: '0 0 28px',
     fontSize: 32,
-    color: 'light-dark(#377c86, #a3dedc)',
-    background: 'light-dark(#e8f4f3, #30494d)',
-    borderRadius: 18
-  },
-  eyebrow: {
-    margin: '28px 0 8px',
-    fontSize: 11,
-    fontWeight: 600,
-    color: 'light-dark(#58818a, #a0bec5)',
-    letterSpacing: '0.16em'
+    color: theme.accent,
+    background: theme.tint,
+    borderRadius: 18,
+    animation: \`\${bloom} 2.4s ease-in-out infinite alternate\`,
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none'
+    }
   },
   title: {
     margin: 0,
@@ -53,42 +72,63 @@ const styles = css.create({
   description: {
     margin: '14px 0 28px',
     lineHeight: 1.7,
-    color: 'light-dark(#677b82, #a9bec5)',
+    color: theme.muted,
   },
   actions: {
     display: 'flex',
-    gap: 10,
+    gap: tokens.gap,
   },
   button: {
     flex: 1,
     padding: '11px 16px',
     fontSize: 13,
     fontWeight: 600,
-    color: 'light-dark(#34515a, #d0e4e8)',
+    color: theme.text,
     textAlign: 'center',
     textDecoration: 'none',
-    background: 'light-dark(#eef3f4, #31454c)',
-    borderRadius: 12,
-    transition: 'transform 160ms, opacity 160ms',
+    background: theme.tint,
+    borderRadius: tokens.pill,
+    transition: 'transform 160ms',
     ':hover': {
-      transform: 'translateY(-2px)',
-      opacity: 0.85
+      transform: 'translateY(-2px)'
     },
     ':focus-visible': {
-      outline: '2px solid #63a6bb',
+      outline: \`2px solid \${theme.accent}\`,
       outlineOffset: 3
-    },
-    '@media (prefers-reduced-motion: reduce)': {
-      transition: 'none',
-      ':hover': {
-        transform: 'none'
-      },
     }
   },
   primary: {
     color: '#ffffff',
-    background: '#367d87',
+    background: theme.accent,
   },
 });
+`,
+  },
+  {
+    path: '/theme.ts',
+    label: 'theme.ts',
+    source: `import * as css from '@plumeria/core';
 
-`;
+export const theme = css.createTheme('.dark', {
+  surface: { default: '#ffffff', theme: '#202b30' },
+  text: { default: '#20343b', theme: '#e6f0f2' },
+  muted: { default: '#677b82', theme: '#a9bec5' },
+  accent: { default: '#367d87', theme: '#63a6bb' },
+  tint: { default: '#eef3f4', theme: '#31454c' },
+});
+`,
+  },
+  {
+    path: '/tokens.ts',
+    label: 'tokens.ts',
+    source: `import * as css from '@plumeria/core';
+
+export const tokens = css.createStatic({
+  radius: 24,
+  pill: 12,
+  space: 28,
+  gap: 10,
+});
+`,
+  },
+];
