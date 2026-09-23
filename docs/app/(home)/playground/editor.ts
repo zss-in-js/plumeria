@@ -100,6 +100,25 @@ function setupEnvironment() {
   };
 }
 
+const COMPLETION_KINDS: Record<string, monaco.languages.CompletionItemKind> = {
+  string: monaco.languages.CompletionItemKind.Value,
+  keyword: monaco.languages.CompletionItemKind.Keyword,
+  property: monaco.languages.CompletionItemKind.Property,
+  method: monaco.languages.CompletionItemKind.Method,
+  function: monaco.languages.CompletionItemKind.Function,
+  var: monaco.languages.CompletionItemKind.Variable,
+  let: monaco.languages.CompletionItemKind.Variable,
+  const: monaco.languages.CompletionItemKind.Constant,
+  'local var': monaco.languages.CompletionItemKind.Variable,
+  alias: monaco.languages.CompletionItemKind.Module,
+  module: monaco.languages.CompletionItemKind.Module,
+  class: monaco.languages.CompletionItemKind.Class,
+  interface: monaco.languages.CompletionItemKind.Interface,
+  type: monaco.languages.CompletionItemKind.TypeParameter,
+  enum: monaco.languages.CompletionItemKind.Enum,
+  parameter: monaco.languages.CompletionItemKind.Variable,
+};
+
 function defineThemes() {
   monaco.editor.defineTheme('plumeria-light', {
     base: 'vs',
@@ -218,6 +237,40 @@ export async function mount(
         };
       },
     }),
+    monaco.languages.registerCompletionItemProvider('typescript', {
+      triggerCharacters: ['.', "'", '"', '`'],
+      provideCompletionItems(target, position, context) {
+        const path = pathOf.get(target);
+        if (!path) return null;
+        session.update(path, target.getValue());
+
+        const word = target.getWordUntilPosition(position);
+        const fallback = new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn);
+
+        return {
+          suggestions: session
+            .completions(path, target.getOffsetAt(position), context.triggerCharacter)
+            .map((entry) => ({
+              entry,
+              range:
+                entry.start === undefined || entry.length === undefined
+                  ? fallback
+                  : monaco.Range.fromPositions(
+                      target.getPositionAt(entry.start),
+                      target.getPositionAt(entry.start + entry.length),
+                    ),
+            }))
+            .filter(({ entry, range }) => entry.kind !== 'string' || target.getValueInRange(range) !== entry.name)
+            .map(({ entry, range }) => ({
+              label: entry.name,
+              kind: COMPLETION_KINDS[entry.kind] ?? monaco.languages.CompletionItemKind.Text,
+              sortText: entry.sortText,
+              insertText: entry.insertText ?? entry.name,
+              range,
+            })),
+        };
+      },
+    }),
   ];
 
   const editor = monaco.editor.create(container, {
@@ -231,6 +284,8 @@ export async function mount(
     scrollBeyondLastLine: false,
     padding: { top: 16, bottom: 16 },
     'semanticHighlighting.enabled': false,
+    quickSuggestions: { other: true, comments: false, strings: true },
+    wordBasedSuggestions: 'off',
   });
 
   // Decorations retain semantic colors while Monaco retokenizes after a theme change.
