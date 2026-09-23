@@ -105,3 +105,63 @@ if (matches.length !== 1) {
 await writeFile(outfile, bundled.replace(dynamicImport, 'async function $1($2){throw new Error("unsupported: "+$2)}'));
 
 console.log('[playground] engine built');
+
+const previewDir = join(root, 'public', 'playground', 'preview');
+const previewSrc = join(root, 'app', '(home)', 'playground', 'preview');
+
+await build({
+  entryPoints: [
+    join(previewSrc, 'react.ts'),
+    join(previewSrc, 'react-dom-client.ts'),
+    join(previewSrc, 'jsx-runtime.ts'),
+    join(previewSrc, 'jsx-dev-runtime.ts'),
+    join(previewSrc, 'core.ts'),
+    join(previewSrc, 'boot.ts'),
+  ],
+  outdir: previewDir,
+  outExtension: { '.js': '.mjs' },
+  bundle: true,
+  splitting: true,
+  format: 'esm',
+  minify: true,
+  platform: 'browser',
+  target: 'es2022',
+  plugins: [stubPlugin],
+  define: { 'process.env.NODE_ENV': '"production"' },
+  logLevel: 'error',
+});
+
+await writeFile(
+  join(previewDir, 'index.html'),
+  `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; height: 100%; background: transparent; }
+      body { font: 14px/1.5 ui-sans-serif, system-ui, sans-serif; }
+      #root { padding: 24px; }
+      #status { padding: 24px; color: #b42318; white-space: pre-wrap; }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "/playground/preview/react.mjs",
+          "react/jsx-runtime": "/playground/preview/jsx-runtime.mjs",
+          "react/jsx-dev-runtime": "/playground/preview/jsx-dev-runtime.mjs",
+          "react-dom/client": "/playground/preview/react-dom-client.mjs",
+          "@plumeria/core": "/playground/preview/core.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="status"></div>
+    <script type="module" src="/playground/preview/boot.mjs"></script>
+  </body>
+</html>
+`,
+);
+
+console.log('[playground] preview runtime built');
