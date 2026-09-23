@@ -319,8 +319,25 @@ code {
 
 .playground-loading-mark {
   font-size: 32px;
+  line-height: 1;
   color: #63a6bb;
-  animation: playground-breathe 1.6s ease-in-out infinite;
+  animation: playground-spin 1.2s linear infinite;
+}
+
+.playground-loading-bar {
+  width: 160px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(113 113 122 / 20%);
+}
+
+.playground-loading-fill {
+  display: block;
+  height: 100%;
+  background: #63a6bb;
+  transform-origin: left;
+  transition: transform 200ms ease;
 }
 
 [data-playground='stage'][data-ready='true'] > .playground-loading {
@@ -328,16 +345,16 @@ code {
   visibility: hidden;
 }
 
-@keyframes playground-breathe {
-  50% {
-    opacity: 0.35;
-    transform: scale(0.9);
+@keyframes playground-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   [data-playground='stage'] > *,
-  .playground-loading-mark {
+  .playground-loading-mark,
+  .playground-loading-fill {
     animation: none;
     transition: none;
   }
