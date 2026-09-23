@@ -87,7 +87,7 @@ const styles = css.create({
     [breakpoints.lgUp]: {
       display: 'block',
       width: '100%',
-      maxWidth: 140,
+      maxWidth: 256,
     },
   },
   searchButton: {
