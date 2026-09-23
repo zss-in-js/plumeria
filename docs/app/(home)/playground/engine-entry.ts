@@ -21,6 +21,9 @@ export const tokenTypes = [
   'property',
   'function',
   'member',
+  'tag',
+  'attribute',
+  'jsxText',
 ] as const;
 
 const CORE_PACKAGE = JSON.stringify({
@@ -130,6 +133,7 @@ export async function createSession(source: string): Promise<Session> {
 
       return {
         signature: ts.displayPartsToString(info.displayParts),
+        displayParts: info.displayParts ?? [],
         documentation: ts.displayPartsToString(info.documentation),
         tags: (info.tags ?? [])
           .map((tag) => {
@@ -143,11 +147,33 @@ export async function createSession(source: string): Promise<Session> {
     },
 
     classifications(start: number, length: number) {
-      return service.getEncodedSemanticClassifications(
+      const spans = service.getEncodedSemanticClassifications(
         FILE_NAME,
         { start, length },
         ts.SemanticClassificationFormat.TwentyTwenty,
       ).spans;
+      // TypeScript's semantic classifications omit JSX tags, attributes, and text.
+      const sourceFile = service.getProgram()?.getSourceFile(FILE_NAME);
+      if (!sourceFile) return spans;
+      function add(node: ts.Node, kind: 'tag' | 'attribute' | 'jsxText') {
+        const offset = node.getStart(sourceFile);
+        const end = node.getEnd();
+        if (offset < start + length && end > start) {
+          spans.push(offset, end - offset, (tokenTypes.indexOf(kind) + 1) << 8);
+        }
+      }
+      function visit(node: ts.Node) {
+        if (ts.isJsxOpeningElement(node) || ts.isJsxClosingElement(node) || ts.isJsxSelfClosingElement(node)) {
+          if (ts.isIdentifier(node.tagName) && /^[a-z]/.test(node.tagName.text)) add(node.tagName, 'tag');
+        } else if (ts.isJsxAttribute(node)) {
+          add(node.name, 'attribute');
+        } else if (ts.isJsxText(node)) {
+          add(node, 'jsxText');
+        }
+        ts.forEachChild(node, visit);
+      }
+      visit(sourceFile);
+      return spans;
     },
 
     diagnostics(): Diagnostic[] {
@@ -170,6 +196,32 @@ export async function createSession(source: string): Promise<Session> {
           jsxImportSource: 'react',
         },
       }).outputText;
+    },
+
+    fix(this: Session, next: string, policy: SpellingPolicy): string {
+      let output = next;
+      try {
+        for (let pass = 0; pass < 10; pass += 1) {
+          env.updateFile(FILE_NAME, output);
+          const fixes = this.lint(output, policy)
+            .flatMap((message) => (message.fix ? [message.fix] : []))
+            .sort((a, b) => a.range[0] - b.range[0] || a.range[1] - b.range[1]);
+          let end = -1;
+          let result = '';
+          for (const fix of fixes) {
+            if (fix.range[0] <= end) continue;
+            result += output.slice(Math.max(0, end), fix.range[0]) + fix.text;
+            end = fix.range[1];
+          }
+          if (end < 0) break;
+          result += output.slice(end);
+          if (result === output) break;
+          output = result;
+        }
+        return output;
+      } finally {
+        env.updateFile(FILE_NAME, next);
+      }
     },
 
     lint(next: string, policy: SpellingPolicy): LintMessage[] {
