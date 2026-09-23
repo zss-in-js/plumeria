@@ -12,10 +12,14 @@ const styles = css.create({
     flexDirection: 'row',
     gap: 5,
     alignItems: 'center',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 500,
     color: 'var(--plumeria-accent)',
     letterSpacing: '-0.015em',
+  },
+  mark: {
+    display: 'flex',
+    marginTop: -2,
   },
 });
 
@@ -24,7 +28,9 @@ export const baseOptions: BaseLayoutProps = {
     transparentMode: 'top',
     title: (
       <span classStyle={styles.image}>
-        <svg.PlumeriaLogo size={20} />
+        <span classStyle={styles.mark}>
+          <svg.PlumeriaLogo size={22} />
+        </span>
         Plumeria
       </span>
     ),
