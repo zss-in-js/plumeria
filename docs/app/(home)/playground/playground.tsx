@@ -62,7 +62,7 @@ const styles = css.create({
   },
   tabActive: {
     color: theme.textPrimary,
-    borderBottomColor: '#63a6bb',
+    borderBottomColor: 'var(--plumeria-accent)',
   },
   pane: {
     display: 'flex',
@@ -131,7 +131,7 @@ const styles = css.create({
       opacity: 0.4,
     },
     ':focus-visible': {
-      outline: '2px solid #63a6bb',
+      outline: '2px solid var(--plumeria-accent)',
       outlineOffset: 2,
     },
   },
