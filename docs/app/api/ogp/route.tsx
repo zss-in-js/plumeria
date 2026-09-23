@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const hasTitle = searchParams.has('title');
   const title = hasTitle && searchParams.get('title')?.slice(0, 100);
   const hasDate = searchParams.has('date');
-  const date = hasDate && searchParams.get('date')?.slice(0, 50);
+  const date = hasDate && searchParams.get('date')?.slice(0, 50).replaceAll('-', '/');
   const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/' : process.env.PROD_URL;
 
   return new ImageResponse(
