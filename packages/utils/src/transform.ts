@@ -41,7 +41,64 @@ import {
   resolveThemeSelector,
   objectExpressionToObject,
   collectLocalConsts,
+  collectLocalConstNodes,
 } from './parser';
+import { assertNoDroppedValues } from './unresolvableValue';
+
+const spreadValues = (
+  tables: Parameters<typeof objectExpressionToObject> extends [
+    unknown,
+    ...infer Rest,
+  ]
+    ? Rest
+    : never,
+  constNodes: Map<string, any>,
+) => {
+  const spread = (prop: any) => {
+    let values: Record<string, unknown>;
+    try {
+      values = objectExpressionToObject(
+        { properties: [prop] } as unknown as ObjectExpression,
+        ...tables,
+      ) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+
+    const argument = prop.arguments;
+    const declared =
+      argument?.type === 'Identifier'
+        ? constNodes.get(argument.value)
+        : undefined;
+    const source =
+      declared && t.isObjectExpression(declared) ? declared : undefined;
+
+    return { values, source };
+  };
+
+  const resolvesValue = (value: any) => {
+    try {
+      const probe = objectExpressionToObject(
+        {
+          properties: [
+            {
+              type: 'KeyValueProperty',
+              key: { type: 'Identifier', value: '__probe' },
+              value,
+            },
+          ],
+        } as unknown as ObjectExpression,
+        ...tables,
+      ) as Record<string, unknown>;
+      return '__probe' in probe;
+    } catch {
+      return false;
+    }
+  };
+
+  return { spread, resolvesValue };
+};
+
 import { getStyleRecords } from './create';
 import type { StyleRecord } from './create';
 import { styleFunctionsOf, resolveDynamicStyle } from './dynamicKey';
@@ -437,6 +494,7 @@ export const transformSource = async (
   };
 
   const localConsts = collectLocalConsts(ast);
+  const localConstNodes = collectLocalConstNodes(ast);
   const importMap: StaticTable = {};
   const keyframesImportMap: KeyframesHashTable = {};
   const viewTransitionImportMap: ViewTransitionHashTable = {};
@@ -807,6 +865,23 @@ export const transformSource = async (
           mergedCreateStaticHashTable,
           scannedTables.createStaticObjectTable,
         );
+        assertNoDroppedValues(
+          init.arguments[0].expression as ObjectExpression,
+          obj,
+          spreadValues(
+            [
+              mergedStaticTable,
+              mergedKeyframesTable,
+              mergedViewTransitionTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
+              mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
+            ],
+            localConstNodes,
+          ),
+        );
 
         if (obj) {
           const hashMap: Record<string, Record<string, string>> = {};
@@ -888,6 +963,23 @@ export const transformSource = async (
           mergedCreateStaticHashTable,
           scannedTables.createStaticObjectTable,
         );
+        assertNoDroppedValues(
+          init.arguments[1].expression as ObjectExpression,
+          obj,
+          spreadValues(
+            [
+              mergedStaticTable,
+              mergedKeyframesTable,
+              mergedViewTransitionTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
+              mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
+            ],
+            localConstNodes,
+          ),
+        );
 
         const hash = themeHashOf(selector, obj);
         if (t.isIdentifier(node.id)) {
@@ -945,6 +1037,23 @@ export const transformSource = async (
           mergedCreateTable,
           mergedCreateStaticHashTable,
           scannedTables.createStaticObjectTable,
+        );
+        assertNoDroppedValues(
+          init.arguments[0].expression as ObjectExpression,
+          obj,
+          spreadValues(
+            [
+              mergedStaticTable,
+              mergedKeyframesTable,
+              mergedViewTransitionTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
+              mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
+            ],
+            localConstNodes,
+          ),
         );
         const hash = genBase36Hash(obj, 1, 8);
         if (t.isIdentifier(node.id)) {
@@ -1088,6 +1197,23 @@ export const transformSource = async (
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
             );
+            assertNoDroppedValues(
+              expr,
+              obj,
+              spreadValues(
+                [
+                  mergedStaticTable,
+                  mergedKeyframesTable,
+                  mergedViewTransitionTable,
+                  mergedCreateThemeHashTable,
+                  scannedTables.createThemeObjectTable,
+                  mergedCreateTable,
+                  mergedCreateStaticHashTable,
+                  scannedTables.createStaticObjectTable,
+                ],
+                localConstNodes,
+              ),
+            );
             const hash = genBase36Hash(obj, 1, 8);
             scannedTables.keyframesObjectTable[hash] = obj;
             replacements.push({
@@ -1111,6 +1237,23 @@ export const transformSource = async (
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
+          );
+          assertNoDroppedValues(
+            args[0].expression as ObjectExpression,
+            obj,
+            spreadValues(
+              [
+                mergedStaticTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
+                mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
+              ],
+              localConstNodes,
+            ),
           );
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.viewTransitionObjectTable[hash] = obj;
@@ -1157,6 +1300,23 @@ export const transformSource = async (
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
           );
+          assertNoDroppedValues(
+            args[1].expression as ObjectExpression,
+            obj,
+            spreadValues(
+              [
+                mergedStaticTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
+                mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
+              ],
+              localConstNodes,
+            ),
+          );
           const hash = themeHashOf(selector, obj);
           scannedTables.createThemeObjectTable[hash] = obj;
           if (scannedTables.createThemeSelectorTable) {
@@ -1177,6 +1337,23 @@ export const transformSource = async (
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
+          );
+          assertNoDroppedValues(
+            args[0].expression as ObjectExpression,
+            obj,
+            spreadValues(
+              [
+                mergedStaticTable,
+                mergedKeyframesTable,
+                mergedViewTransitionTable,
+                mergedCreateThemeHashTable,
+                scannedTables.createThemeObjectTable,
+                mergedCreateTable,
+                mergedCreateStaticHashTable,
+                scannedTables.createStaticObjectTable,
+              ],
+              localConstNodes,
+            ),
           );
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.createStaticObjectTable[hash] = obj;
