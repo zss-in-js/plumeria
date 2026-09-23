@@ -24,7 +24,7 @@ const styles = css.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 'calc(100svh - 57px)',
+    minHeight: 'calc(100svh - 49px)',
     paddingBlock: 48,
     textAlign: 'center',
     [breakpoints.md]: {
