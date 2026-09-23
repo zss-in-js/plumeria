@@ -253,7 +253,10 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showS
 
   const isLinkActive = (url: string) => {
     if (url === '/') return pathname === '/';
-    return pathname.startsWith(url);
+    return (
+      pathname.startsWith(url) &&
+      !navLinks.some((link) => link.url.length > url.length && pathname.startsWith(link.url))
+    );
   };
 
   const renderNavLinks = (isDrawer = false) =>
