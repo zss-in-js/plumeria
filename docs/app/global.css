@@ -12,6 +12,22 @@
   }
 }
 
+#nd-sidebar {
+  border-right: 1px solid var(--color-fd-border);
+}
+
+#nd-toc {
+  background: linear-gradient(var(--color-fd-border), var(--color-fd-border)) 1px 0 / 1px 100% no-repeat;
+}
+
+#nd-toc .border-s {
+  border-color: transparent;
+}
+
+#nd-toc > h3 {
+  padding-left: 14px;
+}
+
 [data-search-full] > div:last-child {
   gap: 2px;
   align-items: center;
