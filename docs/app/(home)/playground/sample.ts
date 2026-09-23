@@ -73,6 +73,7 @@ const styles = css.create({
     margin: '14px 0 28px',
     lineHeight: 1.7,
     color: theme.muted,
+    textWrap: 'balance',
   },
   actions: {
     display: 'flex',
@@ -98,7 +99,7 @@ const styles = css.create({
     }
   },
   primary: {
-    color: '#ffffff',
+    color: theme.onAccent,
     background: theme.accent,
   },
 });
@@ -114,7 +115,8 @@ export const theme = css.createTheme('.dark', {
   text: { default: '#20343b', theme: '#e6f0f2' },
   muted: { default: '#677b82', theme: '#a9bec5' },
   accent: { default: '#367d87', theme: '#63a6bb' },
-  tint: { default: '#eef3f4', theme: '#31454c' },
+  onAccent: { default: '#ffffff', theme: '#11242b' },
+  tint: { default: '#eef3f4', theme: '#3a5560' },
 });
 `,
   },
