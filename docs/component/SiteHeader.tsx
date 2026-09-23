@@ -92,7 +92,9 @@ const styles = css.create({
   },
   searchButton: {
     width: '100%',
-    borderRadius: 10,
+    height: 32,
+    paddingBlock: 0,
+    borderRadius: 0,
   },
   actions: {
     display: 'flex',
