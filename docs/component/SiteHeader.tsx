@@ -66,6 +66,7 @@ const styles = css.create({
     ':hover': {
       color: theme.textPrimary,
       background: theme.iconBg,
+      transition: 'none',
     },
   },
   navLinkActive: {
