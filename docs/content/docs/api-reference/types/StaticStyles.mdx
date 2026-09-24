@@ -8,7 +8,7 @@ type StaticStyles<K extends StyleKey = StyleKey> = StyleList<StaticNamespace<K>>
 export type { StaticStyles };
 ```
 
-`StaticStyles` rejects the result of a dynamic style, which is a style defined as a function in [css.create](/docs/api-reference/javascript/create). A dynamic style has to reach the element as a custom property, so a component that turns its styles into a class name string with [css.use()](/docs/api-reference/javascript/use) cannot carry one.
+`StaticStyles` rejects a dynamic style, which is what calling a [function key](/docs/api-reference/javascript/create#dynamic-values) gives. A dynamic style has to reach the element as a custom property, so a component that turns its styles into a class name string with [css.use()](/docs/api-reference/javascript/use) cannot carry one.
 
 ## Without a type argument
 
