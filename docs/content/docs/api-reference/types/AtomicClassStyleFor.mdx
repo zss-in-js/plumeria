@@ -8,9 +8,9 @@ type AtomicClassStyleFor<P extends string, V>;
 export type { AtomicClassStyleFor };
 ```
 
-`AtomicClassStyleFor` is the type of one entry of a style a function produced, which is a style defined as a function in [css.create](/docs/api-reference/javascript/create) and then called. It reads the same as [AtomicClassNameFor](/docs/api-reference/types/AtomicClassNameFor) — a `string` that carries the property it was generated for — and adds where the value has to go.
+`AtomicClassStyleFor` is the type of one entry of a dynamic style, which is what calling a [function key](/docs/api-reference/javascript/create#dynamic-values) gives. It reads the same as [AtomicClassNameFor](/docs/api-reference/types/AtomicClassNameFor) — a `string` that carries the property it was generated for — and adds where the value has to go.
 
-A static atomic class name is a class name and nothing more, so it can be handed to `className`. A style a function produced reaches the element through `classStyle`, because the values the caller computed ride along as custom properties, and a class name has no room for them. The two types say which is which.
+A static atomic class name is a class name and nothing more, so it can be handed to `className`. A dynamic style reaches the element through `classStyle`, because the values the caller computed ride along as custom properties, and a class name has no room for them. The two types say which is which.
 
 ## Example
 
@@ -39,7 +39,7 @@ A component that only reads the value types the property as `AtomicClassNameFor`
 
 ## What a called style shows
 
-Calling a style defined as a function gives the map of what it produced, one entry per property:
+Calling a function key gives the map of what it produced, one entry per property:
 
 ```ts title="TypeScript"
 const styles = css.create({
