@@ -32,7 +32,7 @@ Because it is a `string`, an atomic class name can be handed anywhere a class na
 <ExternalComponent className={styles.text.color} />
 ```
 
-An entry of a style a function produced is [AtomicClassStyleFor](/docs/api-reference/types/AtomicClassStyleFor), which is this type with the mark that says it reaches the element through `classStyle`. It satisfies `AtomicClassNameFor`, so a prop written this way takes either kind:
+An entry of a dynamic style is [AtomicClassStyleFor](/docs/api-reference/types/AtomicClassStyleFor), which is this type with the mark that says it reaches the element through `classStyle`. It satisfies `AtomicClassNameFor`, so a prop written this way takes either kind:
 
 ```tsx
 const styles = css.create({
