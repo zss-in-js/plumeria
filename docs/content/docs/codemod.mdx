@@ -12,6 +12,8 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 | `migrate --from plumeria` | exports `css.create` styles into CSS Modules, writes global styles, and updates JSX to use `className` |
 | `rename-prop` | changes the styling prop everywhere it appears |
 
+Every transform has a `--dry-run` and reports what it cannot convert instead of guessing. Before `--from css-modules`, read **What each selector becomes** and **What it reports instead of converting**; the other sections cover edge cases.
+
 ## Installation
 
 None. Run it with `npx` and it is gone again afterwards:
