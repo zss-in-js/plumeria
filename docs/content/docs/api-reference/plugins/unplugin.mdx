@@ -69,28 +69,7 @@ Renaming the prop takes two steps, and they have to agree. Tell the plugin:
 plumeria.vite({ styleProp: 'sx' });
 ```
 
-and declare the same name for TypeScript. `@plumeria/core` ships no prop declaration of its own, so add one file to your project:
-
-```ts title="plumeria.d.ts"
-import type { Style } from '@plumeria/core';
-
-declare global {
-  namespace React {
-    interface HTMLAttributes<T> {
-      sx?: Style;
-    }
-    interface SVGAttributes<T> {
-      sx?: Style;
-    }
-  }
-}
-```
-
-For the default name, reference the declaration that ships with the package instead:
-
-```ts title="plumeria.d.ts"
-/// <reference types="@plumeria/core/class-style" />
-```
+and declare the same name for TypeScript; see [Declaring the styling prop](/docs/api-reference/types/Style#declaring-the-styling-prop).
 
 If the two disagree, the prop type-checks but is never compiled away. [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) reads the same name from `settings.plumeria.styleProp`.
 
