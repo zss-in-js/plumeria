@@ -1,48 +1,64 @@
 ---
-title: 'Category theory'
-description: 'Why composing styles in Plumeria always converges to a single class list.'
+title: 'Composition laws'
+description: 'The four laws a style array obeys, and what each one lets you do.'
 ---
 
-A category is a mathematical structure consisting of objects and morphisms.
-If there are objects and morphisms, and the following two conditions are met, it is a category:
+A `classStyle` array merges its styles property by property. Written as an
+operation, where $\oplus$ merges the style on its right into the one on its left,
+that merge obeys four laws. Each one is something you can rely on when you
+restructure styles.
 
-- Identity morphism
-
-- Associativity
-
-## First Condition (Identity morphism)
-`create` is a monoid because it has a single object that satisfies the Identity morphism.
-
-- `create -> create`
-
-- `keyname -> keyname`
-
-- `css-property -> css-property`
-
-$$A \circ A = A$$
-
-$$A \oplus I = A$$
-
-Where the first expresses idempotency and the second expresses identity.
-
-## Second Condition (Associativity)
-The law of associativity states that the result is the same regardless of the order in which the expressions are calculated.
-
-Given `[A, B, C]`:
-- `(A + B) + C`
-- `A + (B + C)`
-
-result in the same result, thus satisfying the compositional condition of the associative law.
+## Associativity
 
 $$(A \oplus B) \oplus C = A \oplus (B \oplus C)$$
 
-## Composition of Monoids
-When this is assigned to styling,
+Grouping does not change the result. Arrays can be nested, so these are the
+same:
 
-{`[styles.A, styles.B, styles.C]`}
-Then, the monoid `create` is a category with objects in composition.  
-This is proof that a styling system closed to static analysis satisfies the axioms of category theory.
+```tsx
+<div classStyle={[[styles.a, styles.b], styles.c]} />
+<div classStyle={[styles.a, [styles.b, styles.c]]} />
+```
 
-Ultimately, it always converges to a single result.  
+That is what lets you pull part of an array into a variable, or a prop, and put
+it back anywhere in the same position.
+
+## Identity
+
+$$A \oplus I = I \oplus A = A$$
+
+`false`, `null` and `undefined` merge into nothing, so each of them is the
+identity $I$. That is why a condition can sit in the array:
+
+```tsx
+<div classStyle={[styles.base, isActive && styles.active]} />
+```
+
+When `isActive` is false, the array is `styles.base` alone.
+
+## Idempotency
+
+$$A \oplus A = A$$
+
+Merging a style with itself changes nothing, so a style that reaches an element
+twice, through a shared base and a prop, say, does no harm.
+
+## No commutativity
+
+$$A \oplus B \neq B \oplus A$$
+
+Order is the one thing that does matter. When two styles set the same property,
+the one on the right wins, so swapping them swaps the winner. Styles that set
+different properties never compete, and their order makes no difference.
+
+A shorthand against its longhand is the exception: the longhand wins in either
+order. See [Specificity](/docs/specificity).
+
+## What the laws add up to
+
+Together, associativity and identity make the merge a **monoid**: any array,
+however it is nested or wherever its conditions fall, reduces to one style. The
+compiler does that reduction at build time, so the element receives a single
+class list:
+
 $$parse(A \oplus B \oplus C) \to \text{"classA classB classC"}$$
-
