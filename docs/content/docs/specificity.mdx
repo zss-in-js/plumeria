@@ -4,6 +4,8 @@ description: 'How Plumeria decides which atomic class wins when styles conflict.
 ---
 import { Step, Steps } from "fumadocs-ui/components/steps";
 
+In short: a longhand beats its shorthand, a condition or a nested selector beats its base, and in a `classStyle` array the right side wins. Four pairs have nothing to rank them by, and [What source order still decides](#what-source-order-still-decides) covers them.
+
 <Steps>
 <Step>
 ## Property priority
