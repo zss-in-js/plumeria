@@ -72,7 +72,7 @@ Compiles each style CSS property into a unique, **atomic**, and **hashed** class
 
 ## Dynamic values
 
-You can use functions to define dynamic styles. These are processed as dynamic values at build time.
+A key whose value is a function is a **function key**. Calling it gives a **dynamic style**: the class names are fixed at build time, and the values reach the element as CSS variables.
 
 ```tsx
 const styles = css.create({
@@ -128,7 +128,7 @@ export const Button = ({ size }: { size: Size }) => {
 ```
 
 <Callout type="warn" title="Function keys are ignored">
-  Function keys (dynamic styles) within the style object are ignored during bracket notation lookup table compilation.
+  Function keys within the style object are ignored during bracket notation lookup table compilation.
 </Callout>
 
 ### The last source wins
