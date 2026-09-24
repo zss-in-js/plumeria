@@ -97,7 +97,7 @@ A nested block is a created style of its own, so it reads the same the whole way
 
 ## Either kind of style
 
-A style defined as a function satisfies `AtomicStyle` once it is called, as long as it sets the properties named:
+A dynamic style satisfies `AtomicStyle` too, as long as it sets the properties named:
 
 ```tsx
 const styles = css.create({
@@ -107,7 +107,7 @@ const styles = css.create({
 const a: NeedsColor = styles.sized(120); // ok
 ```
 
-When only a style a function produced will do, [AtomicClassStyle](/docs/api-reference/types/AtomicClassStyle) says so. When it must not be one, [StaticStyles](/docs/api-reference/types/StaticStyles) does.
+When only a dynamic style will do, [AtomicClassStyle](/docs/api-reference/types/AtomicClassStyle) says so. When it must not be one, [StaticStyles](/docs/api-reference/types/StaticStyles) does.
 
 ## One style, not a list
 
