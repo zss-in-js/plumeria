@@ -1,5 +1,7 @@
 export type SpellingPolicy = 'off' | 'logical' | 'physical';
 
+export type LintFix = { range: [number, number]; text: string };
+
 export type LintMessage = {
   ruleId: string | null;
   message: string;
@@ -8,7 +10,8 @@ export type LintMessage = {
   column: number;
   endLine?: number;
   endColumn?: number;
-  fix?: { range: [number, number]; text: string };
+  fix?: LintFix;
+  suggestions?: { desc: string; fix: LintFix }[];
 };
 
 export type QuickInfo = {
