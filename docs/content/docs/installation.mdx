@@ -27,7 +27,6 @@ every file it touches. The rest of this page is the same setup by hand.
 <Step>
 ## Installing `core`
 The core package is type definitions only. No bundle or runtime is included.  
-Skip to your bundler: [Next.js](/docs/installation#nextjs) / [Vite](/docs/installation#vite)
 <Tabs items={['npm', 'yarn', 'pnpm']}>
   {/* prettier-ignore */}
   <Tab>
@@ -49,16 +48,23 @@ Skip to your bundler: [Next.js](/docs/installation#nextjs) / [Vite](/docs/instal
   </Tab>
 </Tabs>
 
+### plumeria.d.ts
+`@plumeria/core` ships no prop declaration of its own. At the application root, reference the one for the default `classStyle` prop:
+```ts title="plumeria.d.ts"
+/// <reference types="@plumeria/core/class-style" />
+```
+To use another name, see [Declaring the styling prop](/docs/api-reference/types/Style#declaring-the-styling-prop).
+
+ESLint is optional. Skip to your bundler: [Next.js](/docs/installation#nextjs) / [Vite](/docs/installation#vite)
+
 </Step>
 
 <Step>
 
 ## ESLint Setup
 
-By implementing `ESLint`, you can automatically organize the order of CSS properties and format line breaks, creating a more efficient environment than manual maintenance.
-
-The `plumerialint` command ships with [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) and runs its rules through `oxlint`.   
-Setting `languageOptions.parserOptions.projectService` to `true` lets `no-invalid-selector`, `validate-pseudos` and `validate-at-rules` use TypeScript type information to check selectors that are not string literals.
+[`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) sorts and formats style properties and reports invalid values and selectors.
+`projectService` lets the selector rules use TypeScript type information; the [plugin reference](/docs/api-reference/plugins/eslint-plugin) lists every rule.
 
 ```ts
 import eslint from '@eslint/js';
@@ -79,14 +85,13 @@ export default defineConfig(
 );
 ```
 
-`oxlint` is required to run the `plumerialint` command.  
-Integrating `plumerialint` into your build pipeline allows for proactive error detection.
+The `plumerialint` command ships with the plugin and runs its rules through `oxlint`, so a style error stops the build. Install the plugin and `oxlint`, plus `rimraf` for Next.js:
 
 ```sh
-pnpm i -D oxlint rimraf
+pnpm i -D @plumeria/eslint-plugin oxlint rimraf
 ```
 
-For `Next`, we recommend running rimraf to clean up the cache to accommodate the differences between versions:
+On Next.js, clearing the build cache before `dev` and `build` keeps a version change from being read as a compile error:
 <Tabs items={["Next.js", "Vite"]}>
 <Tab>
 ```json title="package.json"
@@ -137,13 +142,6 @@ For `Next`, we recommend running rimraf to clean up the cache to accommodate the
     ```
   </Tab>
 </Tabs>
-
-### plumeria.d.ts
-`@plumeria/core` ships no prop declaration of its own, so name the styling prop your project compiles with.
-```ts title="plumeria.d.ts"
-/* application root */
-/// <reference types="@plumeria/core/class-style" />
-```
 
 ### next.config.ts
 It works with both Turbopack and Webpack.
