@@ -2,7 +2,7 @@ import * as monaco from 'monaco-editor/editor';
 import 'monaco-editor/features/register.all';
 import 'monaco-editor/languages/definitions/typescript/register';
 import { loadEngine } from './engine';
-import type { LintMessage, SpellingPolicy } from './engine-types';
+import type { LintFix, LintMessage, SpellingPolicy } from './engine-types';
 import type { SampleFile } from './sample';
 
 const LIGHT_RULES: monaco.editor.ITokenThemeRule[] = [
@@ -180,8 +180,58 @@ export async function mount(
     clone: () => hoverState,
     equals: (other) => other === hoverState,
   };
+  const linted = new Map<monaco.editor.ITextModel, { version: number; messages: LintMessage[] }>();
   const providers = [
     monaco.languages.register({ id: 'plumeria-hover' }),
+    monaco.languages.registerCodeActionProvider('typescript', {
+      provideCodeActions(target, _range, context) {
+        const result = linted.get(target);
+        const actions: monaco.languages.CodeAction[] = [];
+        if (!result || result.version !== target.getVersionId()) return { actions, dispose() {} };
+
+        const action = (marker: monaco.editor.IMarkerData, fix: LintFix, title: string, isPreferred: boolean) => ({
+          title,
+          kind: 'quickfix',
+          diagnostics: [marker],
+          isPreferred,
+          edit: {
+            edits: [
+              {
+                resource: target.uri,
+                versionId: result.version,
+                textEdit: {
+                  range: monaco.Range.fromPositions(
+                    target.getPositionAt(fix.range[0]),
+                    target.getPositionAt(fix.range[1]),
+                  ),
+                  text: fix.text,
+                },
+              },
+            ],
+          },
+        });
+
+        for (const marker of context.markers) {
+          if (marker.source !== 'plumeria') continue;
+          const message = result.messages.find((candidate) => {
+            const expected = toMarker(candidate);
+            return (
+              expected.message === marker.message &&
+              expected.startLineNumber === marker.startLineNumber &&
+              expected.startColumn === marker.startColumn &&
+              expected.endLineNumber === marker.endLineNumber &&
+              expected.endColumn === marker.endColumn
+            );
+          });
+          if (!message) continue;
+          if (message.fix)
+            actions.push(action(marker, message.fix, `Fix this ${message.ruleId ?? 'ESLint'} problem`, true));
+          for (const suggestion of message.suggestions ?? [])
+            actions.push(action(marker, suggestion.fix, suggestion.desc, false));
+        }
+        return { actions, dispose() {} };
+      },
+    }),
     monaco.languages.setTokensProvider('plumeria-hover', {
       getInitialState: () => hoverState,
       tokenize: (line) => ({
@@ -384,6 +434,7 @@ export async function mount(
       typeErrorCount += typeErrors.length;
 
       const messages = session.lint(path, code, policy);
+      linted.set(target, { version: target.getVersionId(), messages });
       for (const message of messages) {
         if (message.severity === 2) errors += 1;
         else warnings += 1;
