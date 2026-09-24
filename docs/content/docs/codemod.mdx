@@ -394,9 +394,9 @@ A variant is often picked with a bracket, not a dot. The key is resolved to the 
 
 Only a `const` initialised with a string literal is followed, and a name declared twice in one file is left alone rather than guessed at. A key the call site computes at runtime has no class to name, so it is reported as `dynamic-style-access` and its definitions stay in Plumeria.
 
-### Dynamic function styles
+### Function keys
 
-Function styles such as `(width) => ({ width })` are converted into CSS custom properties (e.g. `--<binding>-<key>-<param>`). In JSX, the codemod passes argument values through the inline `style` prop:
+Function keys such as `(width) => ({ width })` are converted into CSS custom properties (e.g. `--<binding>-<key>-<param>`). In JSX, the codemod passes argument values through the inline `style` prop:
 
 ```diff
 - <div classStyle={styles.size(width, color)} />
