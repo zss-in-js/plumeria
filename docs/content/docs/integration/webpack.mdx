@@ -54,6 +54,20 @@ export default {
 };
 ```
 </Step>
+
+<Step>
+## plumeria.d.ts
+
+`@plumeria/core` ships no prop declaration of its own, so name the styling prop your project compiles with.
+
+For the default name (`classStyle`), reference the declaration that ships with the package:
+
+```ts title="plumeria.d.ts"
+/// <reference types="@plumeria/core/class-style" />
+```
+
+If you set a custom `styleProp` (such as `'sx'`), declare that name instead, and keep it the same as the one passed to the plugin; see [Declaring the styling prop](/docs/api-reference/types/Style#declaring-the-styling-prop).
+</Step>
 </Steps>
 
 <Cards>
