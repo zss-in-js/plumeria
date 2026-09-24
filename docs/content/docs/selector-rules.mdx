@@ -7,7 +7,7 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ## Nesting
 Pseudo-elements(class) and media nesting rules.  
-Queries(media・container) can only be pseudo nest once, but pseudo cannot nest queries.
+A query (media or container) can nest a pseudo-selector once, but a pseudo-selector cannot nest a query.
 
 ```ts title="TypeScript" {1}
 import * as css from '@plumeria/core';
