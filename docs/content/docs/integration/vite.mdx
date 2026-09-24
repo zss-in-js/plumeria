@@ -69,24 +69,7 @@ For the default name (`classStyle`), reference the declaration that ships with t
 /// <reference types="@plumeria/core/class-style" />
 ```
 
-If you set a custom `styleProp` (such as `'sx'`), declare the same name for TypeScript instead:
-
-```ts title="plumeria.d.ts"
-import type { Style } from '@plumeria/core';
-
-declare global {
-  namespace React {
-    interface HTMLAttributes<T> {
-      sx?: Style;
-    }
-    interface SVGAttributes<T> {
-      sx?: Style;
-    }
-  }
-}
-```
-
-The `styleProp` in `vite.config.ts` and the property name in `plumeria.d.ts` must match. If they disagree, the prop type-checks but is never compiled away.
+If you set a custom `styleProp` (such as `'sx'`), declare that name instead, and keep it the same as the one in `vite.config.ts`; see [Declaring the styling prop](/docs/api-reference/types/Style#declaring-the-styling-prop).
 
 <Cards>
   <Card title="Shipping this as a component library" href="/docs/integration/component-library" />
