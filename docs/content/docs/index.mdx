@@ -68,7 +68,7 @@ const styles = css.create({
 classStyle={[styles.base, isActive && styles.active]}
 ```
 
-Because the compiler controls the merge, the cascade specificity problem disappears entirely. Writing the merge as an operation, where $\oplus$ combines styles left to right, disjoint styles simply concatenate:
+Because the compiler controls the merge, it settles specificity instead of the cascade, apart from the few pairs listed in [Specificity](/docs/specificity). Writing the merge as an operation, where $\oplus$ combines styles left to right, disjoint styles simply concatenate:
 
 $$parse(A \oplus B \oplus C) \to \text{"classA classB classC"}$$
 
@@ -76,7 +76,7 @@ And when two styles set the same property, the losing atom on the left is filter
 
 $$parse(A_{color} \oplus B_{color}) \to \text{"classB"}$$
 
-A shorthand against a longhand is the exception: the longhand wins wherever the two meet, in either order. See [Specificity](/docs/specificity).
+A shorthand against a longhand is the exception: the longhand wins wherever the two meet, in either order. The laws this merge obeys are in [Composition laws](/docs/category).
 
 ## Types all the way down
 
