@@ -23,8 +23,9 @@ The complete rule set, distilled. Each rule is explained with examples in the se
 - Pass a raw object to `classStyle`, e.g. `classStyle={{ color: 'red' }}`. (→ Forbidden Patterns)
 - Call `css.create()` inside a component body. (→ Forbidden Patterns)
 - Use the `&` self-reference character. (→ Selector Rules)
-- Use `:has()`, `:is()`, or `:where()` — use `css.marker()` / `css.extended()` instead. (→ Selector Rules, Advanced APIs)
-- Use child or descendant selectors (`.title`, `> div`) — style child elements directly. (→ Selector Rules)
+- Use a combinator (`>`, `+`, `~`, a space) outside a functional pseudo-class. For parent-state or descendant styling, reach for `css.marker()` / `css.extended()` first. (→ Selector Rules, Advanced APIs)
+- Use class-name keys such as `.title` — style child elements directly. (→ Selector Rules)
+- Nest a pseudo-selector inside another pseudo-selector — write `':hover::before'` as one key. (→ Selector Rules)
 - Nest a media/container query inside a pseudo-selector. The reverse (pseudo inside media) is allowed once. (→ Selector Rules)
 - Mix `className` and `classStyle` on the same element. (→ Forbidden Patterns)
 - Merge `css.use()` output with the inline `style` prop. (→ Dynamic Styling)
@@ -105,8 +106,9 @@ Plumeria supports nesting for pseudo-classes, pseudo-elements, and attribute sel
 
 - **NO `&`.** Plumeria does not use the `&` self-reference character.
 - **Nested keys MUST start with `:` or `[`.** Pseudo-classes/elements start with `:`; attribute selectors start with `[`.
-- **NO `:has()`, `:is()`, `:where()`.** These are strictly forbidden. Use the paired `css.marker()` / `css.extended()` APIs (see Advanced APIs) for context-aware, parent-state, or descendant styling — they cover every use case of these pseudo-classes without breaking CSS atomicity.
-- **NO child selectors.** Keys like `.title` or `> div` are not supported. Apply Plumeria styles directly to child elements instead.
+- **Combinators only inside a functional pseudo-class.** `>`, `+`, `~` and the descendant space are rejected anywhere else. `:has()`, `:is()` and `:where()` are accepted, and a combinator inside one (e.g. `':has(> img)'`) is the escape hatch for markup you do not write. For parent-state or descendant styling, prefer the paired `css.marker()` / `css.extended()` APIs (see Advanced APIs): they name no DOM path, so moving an element does not break them.
+- **NO class-name keys.** Keys like `.title` are not supported. Apply Plumeria styles directly to child elements instead.
+- **NO pseudo inside pseudo.** Write a compound pseudo-selector as one key, e.g. `':hover::before'`.
 - **Declare overlapping states explicitly.** Pseudo-classes such as `:hover`, `:focus`, and `:active` can match simultaneously. When two states set the same property, declare their compound selector with the value the intersection should take. If they set different properties, no compound selector is needed.
 - **Media/container query nesting is one-directional.** A pseudo-selector may be nested inside a media/container query exactly once. The reverse — a media/container query inside a pseudo-selector — is forbidden and causes compiler/type errors.
 
@@ -220,7 +222,7 @@ Best practices:
 
 ### `css.marker()` and `css.extended()` (paired descendant styling)
 
-These paired APIs enable context-aware styling (e.g. styling a child when the parent is hovered) without DOM combinators or `:has()`/`:is()`/`:where()`:
+These paired APIs enable context-aware styling (e.g. styling a child when the parent is hovered) without naming a DOM path:
 
 - **`css.marker(id, pseudo)`** — sets a CSS variable marker on the parent when the pseudo state is active. MUST be spread into the parent style: `...css.marker(...)`.
 - **`css.extended(id, pseudo)`** — applies styles to descendants while the linked marker is active. Used as a computed key: `[css.extended(...)]`.
@@ -607,7 +609,7 @@ const styles = css.create({
 |---|---|---|
 | `hover:`, `focus:` | `&:hover { @media (hover: hover) { … } }` | `':hover': { … }`, dropping the `@media (hover: hover)` wrapper — Plumeria forbids a query inside a pseudo. The styles then apply on touch devices too. |
 | `group-*`, `peer-*` | `&:is(:where(.group):hover *)` | `css.marker()` on the parent and `css.extended()` on the descendant. The `.group` / `.peer` class disappears. |
-| `space-x-*`, `divide-*` | `:where(& > :not(:last-child))` | The margin or border applied to the children directly — Plumeria has no child selectors. |
+| `space-x-*`, `divide-*` | `:where(& > :not(:last-child))` | The margin or border applied to the children directly — a child combinator is only accepted inside a functional pseudo-class. |
 
 ### `tv()` and `twMerge()`
 
@@ -731,7 +733,7 @@ export default defineConfig({
 
 **Compiler expectations.** The SWC compiler statically extracts `css.create()` calls, which is why they MUST sit at module top level. Prefer direct, clearly defined references — indirect variable references may be unanalyzable.
 
-**ESLint guarantees.** `@plumeria/eslint-plugin` strictly enforces Plumeria's rules; code that satisfies it is safe to ship. It guarantees:
+**ESLint guarantees.** `@plumeria/eslint-plugin` enforces Plumeria's rules. Treat its errors as blocking, and its warnings (such as `no-order-dependent-overlap`) as defects to resolve rather than noise. It checks:
 
 - **CSS property value validation** — invalid values are caught at lint time.
 - **Property sort order** — a specific ordering is enforced.
