@@ -3,11 +3,12 @@ title: 'Selector rules'
 description: 'How pseudo-classes, pseudo-elements and queries nest inside each other, and why.'
 ---
 
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-
 ## Nesting
-Pseudo-elements(class) and media nesting rules.  
-A query (media or container) can nest a pseudo-selector once, but a pseudo-selector cannot nest a query.
+A style nests one level of selectors, and only in one direction:
+
+- A query (`@media` or `@container`) can hold a pseudo-selector.
+- A pseudo-selector cannot hold a query, and a query cannot hold another query.
+- A pseudo-selector cannot hold another pseudo-selector. Write the pair as one key, such as `':hover::before'`.
 
 ```ts title="TypeScript" {1}
 import * as css from '@plumeria/core';
@@ -23,10 +24,7 @@ const styles = css.create({
 });
 ```
 
-<Callout type="error" title="error cases">
-   ---
-</Callout>
-Unacceptable examples:
+Not allowed:
 
 ```ts title="TypeScript" {1}
 import * as css from '@plumeria/core';
@@ -41,6 +39,11 @@ const styles = css.create({
   },
 });
 ```
+
+## Combinators
+A key cannot contain a combinator (`>`, `+`, `~` or a space) except inside a functional pseudo-class such as `:has()`. To style a child from its parent's state, use [marker and extended](/docs/api-reference/javascript/marker).
+
+`no-invalid-selector` and `no-combinator` in [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) report each of these.
 
 ## Reason
 This design intentionally avoids reverse nesting.
