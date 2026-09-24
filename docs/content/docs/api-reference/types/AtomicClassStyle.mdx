@@ -8,7 +8,7 @@ type AtomicClassStyle<T>;
 export type { AtomicClassStyle };
 ```
 
-`AtomicClassStyle` is the type of one style a function produced, which is a style defined as a function in [css.create](/docs/api-reference/javascript/create) and then called. It reads the same as [AtomicStyle](/docs/api-reference/types/AtomicStyle) — the type argument names the properties the style has to set, and a call names them with what it produced — and adds that a static style will not do.
+`AtomicClassStyle` is the type of one dynamic style, which is what calling a [function key](/docs/api-reference/javascript/create#dynamic-values) gives. It reads the same as [AtomicStyle](/docs/api-reference/types/AtomicStyle) — the type argument names the properties the style has to set, and a call names them with what it produced — and adds that a static style will not do.
 
 The name says where such a style has to go. The values the caller computed reach the element as custom properties, so the style is applied through `classStyle` rather than as a bare class name, and that is the whole reason a prop has to be able to tell the two apart.
 
@@ -29,7 +29,7 @@ const b: Sized = styles.sized;      // Type error, the function has to be called
 const c: Sized = styles.fixed;      // Type error, no function produced this style
 ```
 
-The property is still required. A style a function produced that sets something else is rejected the same way a static one would be:
+The property is still required. A dynamic style that sets something else is rejected the same way a static one would be:
 
 ```tsx
 const styles = css.create({
@@ -55,11 +55,11 @@ Readonly<{
 }>;
 ```
 
-The mark is on each entry rather than on the style that holds them, so reading one property off the style carries it too. That is what [StaticStyles](/docs/api-reference/types/StaticStyles) reads to reject a style a function produced. It records where the entry came from, not that its value is computed: `padding` is written with a literal and is marked all the same, because the map reaches the element as one thing.
+The mark is on each entry rather than on the style that holds them, so reading one property off the style carries it too. That is what [StaticStyles](/docs/api-reference/types/StaticStyles) reads to reject a dynamic style. It records where the entry came from, not that its value is computed: `padding` is written with a literal and is marked all the same, because the map reaches the element as one thing.
 
 ## Choosing between the three
 
-A style a function produced reaches the element as a custom property, so whether a prop can carry one is a real distinction rather than a stylistic one. Three types divide it up:
+A dynamic style reaches the element as a custom property, so whether a prop can carry one is a real distinction rather than a stylistic one. Three types divide it up:
 
 | Type | A static style | A called style |
 | --- | --- | --- |
