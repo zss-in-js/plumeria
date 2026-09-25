@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { breakpoints } from 'lib/mediaQuery';
 import generateSEOData from 'lib/generateSEOData';
-import { latestBlogUrl } from 'lib/source';
+import { latestBlogUrl } from 'lib/latestBlogUrl';
 
 const styles = css.create({
   page: {
