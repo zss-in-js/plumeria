@@ -4,7 +4,6 @@ import './global.css';
 import { Analytics } from '@vercel/analytics/next';
 import { Inter } from 'next/font/google';
 import type { ReactNode } from 'react';
-import { Inspector } from '@plumeria/inspector';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -23,7 +22,6 @@ export default function Layout({ children }: { children: ReactNode }) {
         <link rel="icon" href="/logo.svg" sizes="any" />
       </head>
       <body>
-        <Inspector initial={false} />
         <RootProvider>{children}</RootProvider>
         <Analytics mode="production" />
       </body>
