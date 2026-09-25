@@ -120,8 +120,17 @@
 }
 
 #nd-page > .prose {
-  --tw-prose-body: var(--color-fd-muted-foreground);
-  color: var(--color-fd-muted-foreground);
+  --tw-prose-body: #454144;
+  color: #454144;
+}
+
+.dark #nd-page > .prose {
+  --tw-prose-body: #a5a0a4;
+  color: #a5a0a4;
+}
+
+#nd-page > .prose p {
+  font-weight: 350;
 }
 
 .docs-article-section {
@@ -143,7 +152,7 @@
   min-width: 0;
   margin: 0;
   font-size: clamp(32px, 4vw, 48px);
-  font-weight: 600;
+  font-weight: 550;
   line-height: 1.15;
   letter-spacing: -0.04em;
   overflow-wrap: anywhere;
