@@ -3,7 +3,7 @@ import 'katex/dist/katex.css';
 import type { CSSProperties, ReactNode } from 'react';
 import { baseOptions } from 'app/layout.config';
 import { blog } from 'lib/source';
-import { DocsSidebarBanner } from 'component/DocsSidebarBanner';
+import { EmptySidebarSlot } from 'component/EmptySidebarSlot';
 import { DocsSidebarTrigger } from 'component/DocsSidebarTrigger';
 import { SiteHeader } from 'component/SiteHeader';
 
@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <DocsLayout
       tree={blog.pageTree}
-      sidebar={{ collapsible: false, banner: DocsSidebarBanner }}
+      sidebar={{ collapsible: false, banner: EmptySidebarSlot, footer: EmptySidebarSlot }}
       containerProps={containerProps}
       {...baseOptions}
       links={[]}
