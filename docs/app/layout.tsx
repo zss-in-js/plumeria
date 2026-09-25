@@ -1,8 +1,8 @@
-import { RootProvider } from 'fumadocs-ui/provider/next';
 import 'fumadocs-ui/style.css';
 import './global.css';
 import { Analytics } from '@vercel/analytics/next';
 import { Inter } from 'next/font/google';
+import { Provider } from 'component/Provider';
 import type { ReactNode } from 'react';
 
 const inter = Inter({
@@ -21,7 +21,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <link rel="icon" href="/logo.svg" sizes="any" />
       </head>
       <body>
-        <RootProvider>{children}</RootProvider>
+        <Provider>{children}</Provider>
         <Analytics mode="production" />
       </body>
     </html>
