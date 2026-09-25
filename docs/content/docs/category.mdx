@@ -62,3 +62,20 @@ compiler does that reduction at build time, so the element receives a single
 class list:
 
 $$parse(A \oplus B \oplus C) \to \text{"classA classB classC"}$$
+
+Here `classA` and the rest are not each style's classes laid side by side. The
+reduction is a merge, so a property overridden from the right leaves no class
+behind:
+
+```tsx
+const styles = css.create({
+  a: { color: 'red', padding: 4 },
+  b: { color: 'blue' },
+});
+
+<div classStyle={[styles.a, styles.b]} />
+```
+
+The element receives two classes, `padding: 4px` and `color: blue`; the class
+for `color: red` is not among them. Two classes for the same property never
+reach one element, so the cascade is never left to pick the winner.
