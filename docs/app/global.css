@@ -129,8 +129,9 @@
   color: #a5a0a4;
 }
 
-#nd-page > .prose p {
-  font-weight: 350;
+#nd-page > .prose {
+  font-size: 16px;
+  line-height: 1.75;
 }
 
 .docs-article-section {
@@ -151,11 +152,18 @@
 .docs-article-title-row h1 {
   min-width: 0;
   margin: 0;
-  font-size: clamp(32px, 4vw, 48px);
-  font-weight: 550;
-  line-height: 1.15;
-  letter-spacing: -0.04em;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 36px;
+  letter-spacing: -0.025em;
   overflow-wrap: anywhere;
+}
+
+@media (min-width: 640px) {
+  .docs-article-title-row h1 {
+    font-size: 36px;
+    line-height: 40px;
+  }
 }
 
 .docs-article-header > p:last-child:not(.docs-article-section) {
