@@ -335,14 +335,14 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showS
           </Link>
         )}
         <div classStyle={styles.actions}>
+          <nav classStyle={styles.navLinks}>{renderNavLinks()}</nav>
+          <div classStyle={styles.wide}>{renderIcons()}</div>
           {showSearch && (
             <div classStyle={styles.searchSlot}>
               <FullSearchTrigger hideIfDisabled className={css.use(styles.searchButton)} />
             </div>
           )}
-          <nav classStyle={styles.navLinks}>{renderNavLinks()}</nav>
           <nav classStyle={styles.wide}>{renderMenus()}</nav>
-          <div classStyle={styles.wide}>{renderIcons()}</div>
           <div classStyle={styles.wide}>
             <ThemeSwitch classStyle={navStyles.themeToggle} />
           </div>
