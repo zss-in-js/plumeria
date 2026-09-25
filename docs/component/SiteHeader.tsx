@@ -57,7 +57,7 @@ const styles = css.create({
     height: 'var(--plumeria-control-size)',
     paddingInline: 10,
     fontSize: 14,
-    fontWeight: 350,
+    fontWeight: 500,
     color: theme.textNav,
     textDecoration: 'none',
     borderRadius: '8px',
