@@ -80,7 +80,7 @@ const styles = css.create({
     },
   },
   searchSlot: {
-    flex: '0 1 140px',
+    flex: '1 1 140px',
     minWidth: 0,
     [breakpoints.lgUp]: {
       flex: '0 1 auto',
