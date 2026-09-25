@@ -63,23 +63,25 @@ The type is `Style`. A name the package does not export is not reported here, so
 
 ## Single-file components
 
-The transform parses TypeScript and TSX. A `.vue`, `.svelte` or `.astro` file is neither, so `css.create` goes in a `.ts` module the component imports from:
+The transform parses TypeScript and TSX. A `.vue`, `.svelte` or `.astro` file is neither, so `css.create` goes in a `.ts` module the component imports from. The template is not JSX either, so the module also resolves the class name with `css.use` and exports the string:
 
 ```ts title="src/components/style.ts"
 import * as css from '@plumeria/core';
 
-export const styles = css.create({
+const styles = css.create({
   main: { color: 'teal' },
 });
+
+export const mainClass = css.use(styles.main);
 ```
 
 ```html title="src/components/Card.vue"
 <script setup lang="ts">
-import { styles } from './style';
+import { mainClass } from './style';
 </script>
 
 <template>
-  <div :class="styles.main">card</div>
+  <div :class="mainClass">card</div>
 </template>
 ```
 
