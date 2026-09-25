@@ -69,6 +69,23 @@
   --color-fd-primary: var(--plumeria-accent);
 }
 
+#nd-sidebar-mobile {
+  --fd-sidebar-drawer-offset: calc(-100% - 8px);
+  top: calc(var(--plumeria-header-size) + 8px);
+  right: auto;
+  bottom: 8px;
+  left: 8px;
+  width: 75%;
+  max-width: 300px;
+  border-width: 1px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+div:has(+ #nd-sidebar-mobile) {
+  backdrop-filter: none;
+}
+
 :is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
   color: var(--color-fd-primary);
   background-color: #f8f6f9;
@@ -451,5 +468,11 @@ code {
 
   [data-playground='stage'] > iframe {
     transform: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  #nd-nav [data-search-full] > div {
+    font-size: 12px;
   }
 }
