@@ -51,6 +51,10 @@ export const theme = css.createTheme('.dark', {
     default: '#69676cff',
     theme: '#a09ea4ff',
   },
+  textNav: {
+    default: '#454144',
+    theme: '#A5A0A4',
+  },
   textMuted: {
     default: '#71717a',
     theme: '#71717a',
