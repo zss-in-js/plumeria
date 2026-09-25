@@ -115,6 +115,15 @@
   color: #807d82;
 }
 
+.docs-article-description {
+  color: #454144;
+  font-weight: 400;
+}
+
+.dark .docs-article-description {
+  color: #a5a0a4;
+}
+
 .docs-article-header {
   margin-bottom: 24px;
 }
