@@ -69,9 +69,3 @@ function compareBlogNodes(a: Node, b: Node): number {
 
   return aSlug.localeCompare(bSlug);
 }
-
-export const latestBlogUrl =
-  blog
-    .getPages()
-    .slice()
-    .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())[0]?.url ?? '/blog';
