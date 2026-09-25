@@ -58,7 +58,7 @@ const styles = css.create({
     paddingInline: 10,
     fontSize: 14,
     fontWeight: 400,
-    color: theme.textSecondary,
+    color: 'var(--color-fd-muted-foreground)',
     textDecoration: 'none',
     borderRadius: '8px',
     transition: 'color 0.15s ease, background-color 0.15s ease',
