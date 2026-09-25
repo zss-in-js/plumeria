@@ -117,7 +117,12 @@
 
 .docs-article-description {
   color: #454144;
-  font-weight: 400;
+  font-weight: 320;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .dark .docs-article-description {
@@ -140,6 +145,7 @@
 
 #nd-page > .prose {
   font-size: 16px;
+  font-weight: 320;
   line-height: 1.75;
 }
 
