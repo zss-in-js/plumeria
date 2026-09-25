@@ -3,7 +3,7 @@ import * as css from '@plumeria/core';
 
 import { svg } from 'component/svg';
 import { socialLinks } from 'lib/socialLinks';
-import { latestBlogUrl } from 'lib/source';
+import { latestBlogUrl } from 'lib/latestBlogUrl';
 
 const styles = css.create({
   image: {
