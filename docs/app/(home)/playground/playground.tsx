@@ -43,6 +43,11 @@ const styles = css.create({
     borderBottomStyle: 'solid',
     borderBottomWidth: '1px',
   },
+  tabList: {
+    display: 'flex',
+    gap: 4,
+    alignItems: 'center',
+  },
   tab: {
     padding: '8px 12px',
     fontFamily: 'var(--font-mono, ui-monospace, monospace)',
@@ -290,55 +295,6 @@ export function Playground() {
               </button>
             ))}
           </div>
-          <div classStyle={styles.actions}>
-            <button
-              type="button"
-              classStyle={styles.action}
-              disabled={!editorReady}
-              title="Reset to the sample"
-              aria-label="Reset code to the sample"
-              onClick={() => {
-                handle.current?.reset();
-                setFile(ENTRY);
-                setStatus('Sample restored. Undo to recover your edits.');
-              }}
-            >
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                aria-hidden="true"
-              >
-                <path d="M20 7v5h-5M20 12a8 8 0 1 0-2 5M20 7v5" />
-              </svg>
-              Reset
-            </button>
-            <button
-              type="button"
-              classStyle={styles.action}
-              disabled={!editorReady}
-              onClick={copySource}
-              title="Copy code"
-              aria-label="Copy code"
-            >
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                aria-hidden="true"
-              >
-                <rect x="8" y="8" width="12" height="12" rx="2" />
-                <path d="M16 8V4H4v12h4" />
-              </svg>
-              Copy
-            </button>
-          </div>
         </div>
         <span classStyle={styles.count}>
           <span>{counts.errors} errors</span>
@@ -363,19 +319,70 @@ export function Playground() {
           <span>Preparing your playground…</span>
         </div>
         <div classStyle={styles.pane}>
-          <div classStyle={styles.tabs} role="tablist" aria-label="Playground files">
-            {SAMPLE_FILES.map((item) => (
+          <div classStyle={styles.tabs}>
+            <div classStyle={styles.tabList} role="tablist" aria-label="Playground files">
+              {SAMPLE_FILES.map((item) => (
+                <button
+                  key={item.path}
+                  type="button"
+                  role="tab"
+                  aria-selected={file === item.path}
+                  onClick={() => setFile(item.path)}
+                  classStyle={[styles.tab, file === item.path && styles.tabActive]}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <div classStyle={styles.actions}>
               <button
-                key={item.path}
                 type="button"
-                role="tab"
-                aria-selected={file === item.path}
-                onClick={() => setFile(item.path)}
-                classStyle={[styles.tab, file === item.path && styles.tabActive]}
+                classStyle={styles.action}
+                disabled={!editorReady}
+                title="Reset to the sample"
+                aria-label="Reset code to the sample"
+                onClick={() => {
+                  handle.current?.reset();
+                  setFile(ENTRY);
+                  setStatus('Sample restored. Undo to recover your edits.');
+                }}
               >
-                {item.label}
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  aria-hidden="true"
+                >
+                  <path d="M20 7v5h-5M20 12a8 8 0 1 0-2 5M20 7v5" />
+                </svg>
+                Reset
               </button>
-            ))}
+              <button
+                type="button"
+                classStyle={styles.action}
+                disabled={!editorReady}
+                onClick={copySource}
+                title="Copy code"
+                aria-label="Copy code"
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  aria-hidden="true"
+                >
+                  <rect x="8" y="8" width="12" height="12" rx="2" />
+                  <path d="M16 8V4H4v12h4" />
+                </svg>
+                Copy
+              </button>
+            </div>
           </div>
           <div ref={container} classStyle={styles.editor} />
         </div>
