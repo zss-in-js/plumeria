@@ -96,7 +96,9 @@ div:has(+ #nd-sidebar-mobile) {
   background-color: #211e22;
 }
 
-:is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] :is(a[data-active='true'], [data-state])::before {
+:is(#nd-sidebar, #nd-sidebar-mobile)
+  [data-radix-scroll-area-viewport]
+  :is(a[data-active='true'], [data-state])::before {
   content: none;
 }
 
@@ -168,7 +170,9 @@ body {
 
 #nd-page > .prose strong {
   color: #000;
-  text-decoration: underline;
+}
+
+#nd-page > .prose a {
   text-decoration-color: var(--plumeria-accent);
   text-decoration-thickness: 1px;
   text-underline-offset: 5px;
@@ -176,6 +180,27 @@ body {
 
 .dark #nd-page > .prose strong {
   color: #fff;
+}
+
+#nd-page > .prose :not(pre) > code {
+  font-size: 12px;
+  color: #a8358f;
+  background-color: rgb(214 83 187 / 5%);
+  border-color: rgb(214 83 187 / 14%);
+}
+
+.dark #nd-page > .prose :not(pre) > code {
+  color: var(--plumeria-accent);
+  background-color: rgb(214 83 187 / 8%);
+  border-color: rgb(214 83 187 / 16%);
+}
+
+#nd-page > .prose a:has(> code) {
+  text-decoration: none;
+}
+
+#nd-page > .prose a:is(:hover, :focus-visible) > code {
+  border-color: var(--plumeria-accent);
 }
 
 .docs-article-section {
@@ -282,27 +307,6 @@ body {
     gap: 16px;
   }
 }
-
-/* Global Dot Pattern Background */
-/* body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background-image: radial-gradient(#bababa 1px, transparent 1px);
-  background-size: 24px 24px;
-  mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-  pointer-events: none;
-}
-
-.dark body::before {
-  background-image: radial-gradient(#777777 1px, transparent 1px);
-  opacity: 0.5;
-} */
 
 /* Body Styling */
 body {
