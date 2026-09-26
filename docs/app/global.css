@@ -182,24 +182,24 @@ body {
   color: #fff;
 }
 
-#nd-page > .prose :not(pre) > code {
+#nd-page > .prose li > a:only-child > code {
   font-size: 12px;
   color: #a8358f;
   background-color: rgb(214 83 187 / 5%);
   border-color: rgb(214 83 187 / 14%);
 }
 
-.dark #nd-page > .prose :not(pre) > code {
+.dark #nd-page > .prose li > a:only-child > code {
   color: #c272b2;
   background-color: rgb(214 83 187 / 8%);
   border-color: rgb(214 83 187 / 16%);
 }
 
-#nd-page > .prose a:has(> code) {
+#nd-page > .prose li > a:only-child:has(> code) {
   text-decoration: none;
 }
 
-#nd-page > .prose a:is(:hover, :focus-visible) > code {
+#nd-page > .prose li > a:only-child:is(:hover, :focus-visible) > code {
   border-color: var(--plumeria-accent);
 }
 
