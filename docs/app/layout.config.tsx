@@ -4,7 +4,6 @@ import * as css from '@plumeria/core';
 
 import { socialLinks } from 'lib/socialLinks';
 import { latestBlogUrl } from 'lib/latestBlogUrl';
-import { theme } from 'lib/theme';
 
 const styles = css.create({
   image: {
@@ -14,8 +13,7 @@ const styles = css.create({
     gap: 5,
     alignItems: 'center',
     fontSize: 14,
-    fontWeight: 500,
-    color: theme.textPrimary,
+    fontWeight: 400,
     letterSpacing: '-0.015em',
   },
   mark: {
@@ -30,7 +28,7 @@ export const baseOptions: BaseLayoutProps = {
     title: (
       <span classStyle={styles.image}>
         <span classStyle={styles.mark}>
-          <Image src="/logo.svg" alt="" width={22} height={22} preload />
+          <Image src="/logo.svg" alt="logo" width={20} height={20} preload />
         </span>
         Plumeria
       </span>
