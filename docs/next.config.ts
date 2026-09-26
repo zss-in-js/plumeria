@@ -36,6 +36,10 @@ const config: NextConfig = withPlumeria(
     reactCompiler: true,
     reactStrictMode: true,
 
+    async redirects() {
+      return [{ source: '/blog/plumeria-19-0', destination: '/blog/plumeria-19-1', permanent: true }];
+    },
+
     async rewrites() {
       return [{ source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*' }];
     },
