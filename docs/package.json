@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@plumeria/inspector": "workspace:^",
+    "@shikijs/monaco": "^4.1.0",
     "@typescript-eslint/parser": "^8.60.0",
     "@typescript/vfs": "^1.6.5",
     "@vercel/analytics": "^2.0.1",
