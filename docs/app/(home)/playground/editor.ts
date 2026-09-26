@@ -1,89 +1,88 @@
 import * as monaco from 'monaco-editor/editor';
 import 'monaco-editor/features/register.all';
 import 'monaco-editor/languages/definitions/typescript/register';
+import { shikiToMonaco } from '@shikijs/monaco';
+import { createHighlighterCore, type HighlighterCore, type ThemeRegistration } from 'shiki/core';
+import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
+import tsx from 'shiki/langs/tsx.mjs';
+import vitesseDark from 'shiki/themes/vitesse-dark.mjs';
+import vitesseLight from 'shiki/themes/vitesse-light.mjs';
 import { loadEngine } from './engine';
 import type { LintFix, LintMessage, SpellingPolicy } from './engine-types';
 import type { SampleFile } from './sample';
 
-const LIGHT_RULES: monaco.editor.ITokenThemeRule[] = [
-  { token: '', foreground: '393a34' },
-  { token: 'comment', foreground: 'a0ada0' },
-  { token: 'keyword', foreground: '1e754f' },
-  { token: 'string', foreground: 'b56959' },
-  { token: 'number', foreground: '2f798a' },
-  { token: 'namespace', foreground: '2e8f82' },
-  { token: 'class', foreground: '2e8f82' },
-  { token: 'interface', foreground: '2e8f82' },
-  { token: 'enum', foreground: '2e8f82' },
-  { token: 'type', foreground: '2e8f82' },
-  { token: 'typeParameter', foreground: '2e8f82' },
-  { token: 'identifier', foreground: '2e8f82' },
-  { token: 'function', foreground: '59873a' },
-  { token: 'member', foreground: '59873a' },
-  { token: 'variable', foreground: 'b07d48' },
-  { token: 'parameter', foreground: 'b07d48' },
-  { token: 'property', foreground: '998418' },
-  { token: 'enumMember', foreground: 'a65e2b' },
-  { token: 'constant', foreground: 'a65e2b' },
-  { token: 'tag', foreground: '1e754f' },
-  { token: 'attribute', foreground: 'b07d48' },
-  { token: 'jsxText', foreground: '393a34' },
-];
+const LIGHT_THEME = 'vitesse-light';
+const DARK_THEME = 'vitesse-dark';
 
-const DARK_RULES: monaco.editor.ITokenThemeRule[] = [
-  { token: '', foreground: 'dbd7ca' },
-  { token: 'comment', foreground: '758575' },
-  { token: 'keyword', foreground: '4d9375' },
-  { token: 'string', foreground: 'c98a7d' },
-  { token: 'number', foreground: '4c9a91' },
-  { token: 'namespace', foreground: '5da994' },
-  { token: 'class', foreground: '5da994' },
-  { token: 'interface', foreground: '5da994' },
-  { token: 'enum', foreground: '5da994' },
-  { token: 'type', foreground: '5da994' },
-  { token: 'typeParameter', foreground: '5da994' },
-  { token: 'identifier', foreground: '5da994' },
-  { token: 'function', foreground: '80a665' },
-  { token: 'member', foreground: '80a665' },
-  { token: 'variable', foreground: 'bd976a' },
-  { token: 'parameter', foreground: 'bd976a' },
-  { token: 'property', foreground: 'b8a965' },
-  { token: 'enumMember', foreground: 'c99076' },
-  { token: 'constant', foreground: 'c99076' },
-  { token: 'tag', foreground: '4d9375' },
-  { token: 'attribute', foreground: 'bd976a' },
-  { token: 'jsxText', foreground: 'dbd7ca' },
-];
-
-const LIGHT_COLORS = {
-  'editor.background': '#ffffff',
-  'editorGutter.background': '#ffffff',
-  'minimap.background': '#ffffff',
-  'editorStickyScroll.background': '#ffffff',
-  'editorOverviewRuler.background': '#ffffff',
-  'editorWidget.background': '#ffffff',
-  'editor.lineHighlightBackground': '#f7f7f7',
-  'editor.selectionBackground': '#22222218',
-  'editor.selectionHighlightBackground': '#22222210',
-  'editorLineNumber.foreground': '#393a3450',
-  'editorLineNumber.activeForeground': '#4e4f47',
-  'editorIndentGuide.background': '#00000015',
+const SCOPES: Record<string, string> = {
+  namespace: 'entity.name.type.module',
+  class: 'entity.name.type.class',
+  interface: 'entity.name.type.interface',
+  enum: 'entity.name.type.enum',
+  type: 'entity.name.type',
+  typeParameter: 'entity.name.type.parameter',
+  function: 'entity.name.function',
+  member: 'entity.name.function',
+  method: 'entity.name.function',
+  variable: 'variable.other.readwrite',
+  local: 'variable.other.readwrite',
+  parameter: 'variable.parameter',
+  property: 'variable.other.property',
+  enumMember: 'variable.other.enummember',
+  constant: 'variable.other.constant',
+  keyword: 'keyword',
+  operator: 'keyword.operator',
+  string: 'string',
+  number: 'constant.numeric',
 };
 
-const DARK_COLORS = {
-  'editor.background': '#000000',
-  'editorGutter.background': '#000000',
-  'minimap.background': '#000000',
-  'editorStickyScroll.background': '#000000',
-  'editorOverviewRuler.background': '#000000',
-  'editorWidget.background': '#000000',
-  'editor.lineHighlightBackground': '#121212',
-  'editor.selectionBackground': '#eeeeee33',
-  'editor.selectionHighlightBackground': '#eeeeee18',
-  'editorLineNumber.foreground': '#dedcd550',
-  'editorLineNumber.activeForeground': '#bfbaaa',
-  'editorIndentGuide.background': '#ffffff15',
-};
+const BACKGROUND_KEYS = [
+  'editor.background',
+  'editorGutter.background',
+  'minimap.background',
+  'editorStickyScroll.background',
+  'editorOverviewRuler.background',
+  'editorWidget.background',
+];
+
+function onBackground(theme: ThemeRegistration, background: string): ThemeRegistration {
+  return {
+    ...theme,
+    colors: { ...theme.colors, ...Object.fromEntries(BACKGROUND_KEYS.map((key) => [key, background])) },
+  };
+}
+
+let highlighter: Promise<HighlighterCore> | undefined;
+
+function setupHighlighting() {
+  highlighter ??= createHighlighterCore({
+    themes: [onBackground(vitesseLight, '#ffffff'), onBackground(vitesseDark, '#000000')],
+    langs: [tsx.map((grammar) => (grammar.name === 'tsx' ? { ...grammar, name: 'typescript', aliases: [] } : grammar))],
+    engine: createJavaScriptRegexEngine(),
+  }).then((core) => {
+    shikiToMonaco(core, monaco);
+    return core;
+  });
+  return highlighter;
+}
+
+function colorOf(core: HighlighterCore, themeName: string, scope: string) {
+  const theme = core.getTheme(themeName);
+  let color = theme.fg;
+  let matched = -1;
+  for (const { scope: selectors, settings } of theme.settings) {
+    if (!settings?.foreground) continue;
+    for (const selector of [selectors ?? []].flat().flatMap((entry) => entry.split(','))) {
+      const candidate = selector.trim();
+      if (candidate.includes(' ') || candidate.length <= matched) continue;
+      if (scope === candidate || scope.startsWith(`${candidate}.`)) {
+        color = settings.foreground;
+        matched = candidate.length;
+      }
+    }
+  }
+  return color;
+}
 
 declare global {
   interface Window {
@@ -119,21 +118,6 @@ const COMPLETION_KINDS: Record<string, monaco.languages.CompletionItemKind> = {
   parameter: monaco.languages.CompletionItemKind.Variable,
 };
 
-function defineThemes() {
-  monaco.editor.defineTheme('plumeria-light', {
-    base: 'vs',
-    inherit: true,
-    rules: LIGHT_RULES,
-    colors: LIGHT_COLORS,
-  });
-  monaco.editor.defineTheme('plumeria-dark', {
-    base: 'vs-dark',
-    inherit: true,
-    rules: DARK_RULES,
-    colors: DARK_COLORS,
-  });
-}
-
 function toMarker(message: LintMessage): monaco.editor.IMarkerData {
   return {
     severity: message.severity === 2 ? monaco.MarkerSeverity.Error : monaco.MarkerSeverity.Warning,
@@ -163,7 +147,7 @@ export async function mount(
   onCount: (errors: number, warnings: number) => void,
 ): Promise<PlaygroundHandle> {
   setupEnvironment();
-  defineThemes();
+  const core = await setupHighlighting();
 
   const { engine, libs } = await loadEngine();
   const session = await engine.createSession(Object.fromEntries(files.map(({ path, source }) => [path, source])), libs);
@@ -268,7 +252,7 @@ export async function mount(
               line = '';
               tokens = [];
             }
-            if (lines[index]) tokens.push({ startIndex: line.length, scopes });
+            if (lines[index]) tokens.push({ startIndex: line.length, scopes: SCOPES[scopes] ?? '' });
             line += lines[index];
           }
         }
@@ -325,7 +309,7 @@ export async function mount(
 
   const editor = monaco.editor.create(container, {
     model,
-    theme: document.documentElement.classList.contains('dark') ? 'plumeria-dark' : 'plumeria-light',
+    theme: document.documentElement.classList.contains('dark') ? DARK_THEME : LIGHT_THEME,
     automaticLayout: true,
     minimap: { enabled: false },
     stickyScroll: { enabled: false },
@@ -340,13 +324,12 @@ export async function mount(
 
   // Decorations retain semantic colors while Monaco retokenizes after a theme change.
   const semanticStyles = document.createElement('style');
-  semanticStyles.textContent = [LIGHT_RULES, DARK_RULES]
-    .map((rules, index) =>
-      rules
-        .filter(({ token }) => token)
+  semanticStyles.textContent = [LIGHT_THEME, DARK_THEME]
+    .map((themeName, index) =>
+      Object.entries(SCOPES)
         .map(
-          ({ token, foreground }) =>
-            `${index ? '.dark' : ':root:not(.dark)'} .plumeria-semantic-${token} { color: #${foreground} !important; }`,
+          ([kind, scope]) =>
+            `${index ? '.dark' : ':root:not(.dark)'} .plumeria-semantic-${kind} { color: ${colorOf(core, themeName, scope)} !important; }`,
         )
         .join('\n'),
     )
@@ -521,7 +504,7 @@ export async function mount(
       run();
     },
     setTheme(nextDark) {
-      monaco.editor.setTheme(nextDark ? 'plumeria-dark' : 'plumeria-light');
+      monaco.editor.setTheme(nextDark ? DARK_THEME : LIGHT_THEME);
       sendTheme(nextDark);
     },
     dispose() {
