@@ -76,7 +76,7 @@ The migration is a command, not a rewrite:
 npx @plumeria/codemod migrate --from css-modules
 ```
 
-Each `*.module.css` becomes a `*.styles.ts` beside it and its consumers are pointed at it — including the descendant rules, which have no combinator to translate into and become a [marker and its extended styles](/docs/api-reference/javascript/marker) instead. What cannot be converted is listed by file and line rather than guessed at. See [`@plumeria/codemod`](/docs/codemod).
+Each `*.module.css` becomes a `*.styles.ts` beside it and its consumers are pointed at it — including the descendant rules, which have no combinator to translate into and become a [marker and its extended styles](/docs/api-reference/javascript/marker) instead. What cannot be converted is listed by file and line rather than guessed at. See [`@plumeria/codemod`](/docs/api-reference/tools/codemod).
 
 The command runs the other way as well:
 
