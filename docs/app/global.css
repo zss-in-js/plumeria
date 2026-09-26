@@ -190,7 +190,7 @@ body {
 }
 
 .dark #nd-page > .prose :not(pre) > code {
-  color: var(--plumeria-accent);
+  color: #c272b2;
   background-color: rgb(214 83 187 / 8%);
   border-color: rgb(214 83 187 / 16%);
 }
