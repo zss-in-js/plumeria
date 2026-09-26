@@ -166,6 +166,18 @@ body {
   line-height: 1.75;
 }
 
+#nd-page > .prose strong {
+  color: #000;
+  text-decoration: underline;
+  text-decoration-color: var(--plumeria-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+}
+
+.dark #nd-page > .prose strong {
+  color: #fff;
+}
+
 .docs-article-section {
   margin: 0 0 10px;
   color: #808080;
