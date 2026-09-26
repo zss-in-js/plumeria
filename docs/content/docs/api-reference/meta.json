@@ -1,5 +1,5 @@
 {
   "defaultOpen": false,
   "title": "API Reference",
-  "pages": ["javascript", "types", "components", "plugins", "init", "codemod"]
+  "pages": ["tools", "plugins", "javascript", "types", "components"]
 }
