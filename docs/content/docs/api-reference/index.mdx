@@ -3,44 +3,40 @@ title: API Reference
 description: Detailed documentation for Plumeria APIs and plugins.
 ---
 
-Plumeria provides a set of powerful APIs and plugins to help you build type-safe, performant styles.
+## JavaScript API
 
-<Cards>
-  <Card
-    href="/docs/api-reference/javascript"
-    title="JavaScript API"
-    description="The core JavaScript APIs for defining styles, themes, and animations."
-  />
-  <Card
-    href="/docs/api-reference/types"
-    title="Types"
-    description="The type-level surface behind the styling prop and the style objects."
-  />
-  <Card
-    href="/docs/api-reference/components"
-    title="Components"
-    description="Ready-made components built on Plumeria's styling model."
-  />
-  <Card
-    href="/docs/api-reference/plugins"
-    title="Plugins"
-    description="Integrate Plumeria with your favorite tools and frameworks."
-  />
-</Cards>
+- [`css.create`](/docs/api-reference/javascript/create)
+- [`css.createTheme`](/docs/api-reference/javascript/createTheme)
+- [`css.createStatic`](/docs/api-reference/javascript/createStatic)
+- [`css.keyframes`](/docs/api-reference/javascript/keyframes)
+- [`css.viewTransition`](/docs/api-reference/javascript/viewTransition)
+- [`css.marker` / `css.extended`](/docs/api-reference/javascript/marker)
+- [`css.use`](/docs/api-reference/javascript/use)
+
+## Types
+
+- [`Style`](/docs/api-reference/types/Style)
+- [`StyleProps`](/docs/api-reference/types/StyleProps)
+- [`StaticStyles`](/docs/api-reference/types/StaticStyles)
+- [`WithoutProperties`](/docs/api-reference/types/WithoutProperties)
+- [`AtomicStyle`](/docs/api-reference/types/AtomicStyle)
+- [`AtomicClassStyle`](/docs/api-reference/types/AtomicClassStyle)
+- [`AtomicClassNameFor`](/docs/api-reference/types/AtomicClassNameFor)
+- [`AtomicClassStyleFor`](/docs/api-reference/types/AtomicClassStyleFor)
+- [`CSSProperties`](/docs/api-reference/types/CSSProperties)
+
+## Components
+
+- [`@plumeria/headlessui`](/docs/api-reference/components/headlessui)
+- [`@plumeria/inspector`](/docs/api-reference/components/inspector)
+
+## Plugins
+
+- [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin)
+- [`@plumeria/next-plugin`](/docs/api-reference/plugins/next-plugin)
+- [`@plumeria/unplugin`](/docs/api-reference/plugins/unplugin)
 
 ## Tools
 
-Command line tools for maintaining a Plumeria codebase.
-
-<Cards>
-  <Card
-    href="/docs/init"
-    title="@plumeria/init"
-    description="Set Plumeria up in an existing project in one command."
-  />
-  <Card
-    href="/docs/codemod"
-    title="@plumeria/codemod"
-    description="Migrate between CSS Modules and Plumeria, or rename the styling prop."
-  />
-</Cards>
+- [`@plumeria/init`](/docs/init)
+- [`@plumeria/codemod`](/docs/codemod)
