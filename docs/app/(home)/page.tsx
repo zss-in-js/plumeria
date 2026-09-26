@@ -46,6 +46,15 @@ const styles = css.create({
     color: 'var(--color-fd-muted-foreground)',
     letterSpacing: '-0.02em',
   },
+  doller: {
+    userSelect: 'none',
+  },
+  command: {
+    marginTop: 16,
+    marginBottom: -8,
+    fontFamily: 'ui-monospace, Menlo, Monaco, Consolas, monospace',
+    fontSize: 15,
+  },
   actions: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -158,6 +167,9 @@ export default function Page() {
           <br />
           Compiled to atomic CSS. Zero runtime.
         </p>
+        <code classStyle={styles.command}>
+          <span classStyle={styles.doller}>$ </span>npx @plumeria/init
+        </code>
         <div classStyle={styles.actions}>
           <Link href="/docs" classStyle={[styles.button, styles.primary]}>
             Get started
