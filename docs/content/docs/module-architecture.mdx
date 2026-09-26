@@ -1,0 +1,173 @@
+---
+title: 'Module architecture'
+description: 'Organize styles as exported modules, and refactor them without changing the output.'
+---
+
+Styles are module exports. A style used by one file stays in that file; a style
+used by more than one file moves to a module and is exported, and every file
+that needs it imports it. Each style is defined once, the way a Go package or a
+Java class is the one place its members are declared.
+
+## Layout
+
+```
+app/
+└─ page.tsx
+components/
+└─ Card.tsx
+styles/
+├─ theme.ts
+├─ tokens.ts
+├─ layout.ts
+└─ text.ts
+```
+
+`styles/` only exports. It imports no components and renders nothing, so
+dependencies run one way: `styles/` ← `components/` ← `app/`.
+
+## Values
+
+Values that styles refer to live apart from the styles themselves.
+
+```ts title="styles/theme.ts"
+import * as css from '@plumeria/core';
+
+export const theme = css.createTheme('.dark', {
+  text: {
+    default: '#333',
+    theme: '#eaeaea',
+  },
+});
+```
+
+```ts title="styles/tokens.ts"
+import * as css from '@plumeria/core';
+
+export const breakpoints = css.createStatic({
+  sm: '@media (max-width: 640px)',
+});
+```
+
+## Shared styles
+
+```ts title="styles/layout.ts"
+import * as css from '@plumeria/core';
+import { breakpoints } from './tokens';
+
+export const layout = css.create({
+  stack: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+    [breakpoints.sm]: {
+      gap: 8,
+    },
+  },
+});
+```
+
+```ts title="styles/text.ts"
+import * as css from '@plumeria/core';
+import { theme } from './theme';
+
+export const text = css.create({
+  heading: {
+    fontSize: 24,
+    fontWeight: 700,
+    color: theme.text,
+  },
+});
+```
+
+## Using them
+
+A file that uses styles from another module imports `@plumeria/core` as well;
+that import is how the compiler finds it.
+
+```tsx title="app/page.tsx"
+import '@plumeria/core';
+import { layout } from '../styles/layout';
+import { text } from '../styles/text';
+
+export default function Page() {
+  return (
+    <main classStyle={layout.stack}>
+      <h1 classStyle={text.heading}>Hello</h1>
+    </main>
+  );
+}
+```
+
+A style only one component uses stays in that component's file and is not
+exported:
+
+```tsx title="components/Card.tsx"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  card: {
+    padding: 16,
+    borderRadius: 8,
+  },
+});
+
+export const Card = () => <div classStyle={styles.card} />;
+```
+
+## Refactoring is free
+
+Where a style is written does not reach the output. A class name is derived
+from the property and the value alone, so moving a style into a module
+compiles to the same class names and the same CSS.
+
+Before, in one file:
+
+```tsx title="app/page.tsx"
+import * as css from '@plumeria/core';
+
+const layout = css.create({
+  stack: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+  },
+});
+
+export default function Page() {
+  return <main classStyle={layout.stack}>Hello</main>;
+}
+```
+
+After, moved to a module:
+
+```ts title="styles/layout.ts"
+import * as css from '@plumeria/core';
+
+export const layout = css.create({
+  stack: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+  },
+});
+```
+
+```tsx title="app/page.tsx"
+import '@plumeria/core';
+import { layout } from '../styles/layout';
+
+export default function Page() {
+  return <main classStyle={layout.stack}>Hello</main>;
+}
+```
+
+Both compile to:
+
+```tsx title="app/page.tsx (output)"
+<main className="xxp6epoh xi0vg1kw x2b1m2la">Hello</main>
+```
+
+Moving a style into a module, splitting a module, or merging two of them never
+changes what the browser receives, so the structure can follow the code as it
+grows. Composition across modules is resolved at build time as well; see
+[Composition laws](/docs/composition-laws) for the rules a merge follows.
