@@ -1,9 +1,10 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import Image from 'next/image';
 import * as css from '@plumeria/core';
 
-import { svg } from 'component/svg';
 import { socialLinks } from 'lib/socialLinks';
 import { latestBlogUrl } from 'lib/latestBlogUrl';
+import { theme } from 'lib/theme';
 
 const styles = css.create({
   image: {
@@ -14,7 +15,7 @@ const styles = css.create({
     alignItems: 'center',
     fontSize: 14,
     fontWeight: 500,
-    color: 'var(--plumeria-accent)',
+    color: theme.textPrimary,
     letterSpacing: '-0.015em',
   },
   mark: {
@@ -29,7 +30,7 @@ export const baseOptions: BaseLayoutProps = {
     title: (
       <span classStyle={styles.image}>
         <span classStyle={styles.mark}>
-          <svg.PlumeriaLogo size={22} />
+          <Image src="/logo.svg" alt="" width={22} height={22} preload />
         </span>
         Plumeria
       </span>
