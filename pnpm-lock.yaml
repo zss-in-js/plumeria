@@ -113,6 +113,9 @@ importers:
       '@plumeria/inspector':
         specifier: workspace:^
         version: link:../packages/inspector
+      '@shikijs/monaco':
+        specifier: ^4.1.0
+        version: 4.1.0
       '@typescript-eslint/parser':
         specifier: ^8.60.0
         version: 8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3)
@@ -5045,6 +5048,10 @@ packages:
 
   '@shikijs/langs@4.1.0':
     resolution: {integrity: sha512-nwOMruEkbgdZfQ/b8CgpNBVOpvG1k0N5tbmgiFeqsan401+x3ILqlzZJowSla4Agmq4hG2Uf2wh5jLTEhR8VSg==}
+    engines: {node: '>=20'}
+
+  '@shikijs/monaco@4.1.0':
+    resolution: {integrity: sha512-jnCofD2i7kZa57qX0KOKKyxGmuu9Eb+lVXRRhwqOT3pOo9gLvQquVMVqQymwpbum7Jm7NTsXzEytnJFF/SvXSg==}
     engines: {node: '>=20'}
 
   '@shikijs/primitive@4.1.0':
@@ -15044,6 +15051,12 @@ snapshots:
   '@shikijs/langs@4.1.0':
     dependencies:
       '@shikijs/types': 4.1.0
+
+  '@shikijs/monaco@4.1.0':
+    dependencies:
+      '@shikijs/core': 4.1.0
+      '@shikijs/types': 4.1.0
+      '@shikijs/vscode-textmate': 10.0.2
 
   '@shikijs/primitive@4.1.0':
     dependencies:
