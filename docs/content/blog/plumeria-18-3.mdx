@@ -135,7 +135,7 @@ npx @plumeria/codemod migrate --from plumeria
 
 The reverse migration handles function styles through CSS variables, writes themes and animations to `global.css`, follows aliased and indexed imports, and expands `marker` and `extended` to the CSS they represent. Use `--dry-run` before writing files.
 
-Fixes from 18.2.20 through 18.2.27 closed the round trip. Exporting, adopting, and exporting again now reaches a fixed point on the second pass in each direction. See the [codemod documentation](/docs/codemod) for supported conversions and reports.
+Fixes from 18.2.20 through 18.2.27 closed the round trip. Exporting, adopting, and exporting again now reaches a fixed point on the second pass in each direction. See the [codemod documentation](/docs/api-reference/tools/codemod) for supported conversions and reports.
 
 ### Normalized merging and specificity
 
@@ -185,7 +185,7 @@ File scanning is sorted for reproducible stylesheet output. The dependency updat
 <Cards>
   <Card title="Testing" href="/docs/testing" description="Learn more about testing styles that are resolved at build time" />
   <Card title="unplugin" href="/docs/api-reference/plugins/unplugin" description="Learn more about @plumeria/unplugin" />
-  <Card title="Codemod" href="/docs/codemod" description="Migrate between Plumeria and CSS Modules" />
+  <Card title="Codemod" href="/docs/api-reference/tools/codemod" description="Migrate between Plumeria and CSS Modules" />
   <Card title="Specificity" href="/docs/specificity" description="Understand property, condition, and composition priority" />
   <Card title="Optional ESLint rules" href="/docs/api-reference/plugins/eslint-plugin/optional-rules" description="Remove property pairs that depend on source order" />
 </Cards>
