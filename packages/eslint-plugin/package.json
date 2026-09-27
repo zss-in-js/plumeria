@@ -49,6 +49,7 @@
     "@types/estree": "^1.0.9",
     "@types/estree-jsx": "^1.0.5",
     "@typescript-eslint/parser": "^8.60.0",
+    "@typescript-eslint/utils": "^8.60.0",
     "eslint": "^10.4.0"
   },
   "publishConfig": {
@@ -57,7 +58,6 @@
   },
   "dependencies": {
     "@plumeria/utils": "workspace:*",
-    "@typescript-eslint/utils": "^8.60.0",
     "known-css-properties": "^0.37.0",
     "zss-engine": "catalog:"
   }
