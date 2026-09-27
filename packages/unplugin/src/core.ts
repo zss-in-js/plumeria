@@ -6,6 +6,7 @@ import {
   optimizer,
   transformSource,
   DEFAULT_STYLE_PROP,
+  needsCompile,
 } from '@plumeria/utils';
 import type { PropertyPolicyOptions } from '@plumeria/utils';
 
@@ -106,10 +107,9 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
       order: 'pre',
       async handler(source, id) {
         if (id.includes('node_modules')) return null;
-        if (!source.includes('@plumeria/core')) return null;
-
         const [baseId] = id.split('?');
         if (!filter(baseId)) return null;
+        if (!needsCompile(source, styleProp, baseId)) return null;
 
         const dependencies: string[] = [];
         const addDependency = (depPath: string) => {
