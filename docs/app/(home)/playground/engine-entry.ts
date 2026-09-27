@@ -212,6 +212,7 @@ export async function createSession(files: Record<string, string>, libs: Record<
           plugins: { '@plumeria': plumeria },
           rules: {
             ...recommendedRules,
+            '@plumeria/custom-props-require-import': 'off',
             '@plumeria/expand-border-shorthands': 'warn',
             ...spellingRules(policy),
           },
