@@ -1,5 +1,6 @@
 jest.mock('@plumeria/utils', () => ({
   DEFAULT_STYLE_PROP: 'classStyle',
+  needsCompile: jest.requireActual('@plumeria/utils').needsCompile,
   optimizer: jest.fn(async (css: string) => css),
   resolvePropertyPolicy: () => ({}),
   scanAll: jest.fn(() => ({ componentPropsTable: {} })),
