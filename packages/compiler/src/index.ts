@@ -359,7 +359,7 @@ export function compileCSS(options: CompilerOptions) {
     sort: true,
   });
 
-  const scannedTables = scanOverlay(cwd);
+  const scannedTables = scanOverlay(cwd, styleProp);
 
   const processFile = (filePath: string): string[] => {
     const resourcePath = path.resolve(cwd, filePath);
