@@ -857,7 +857,7 @@ export function compileCSS(options: CompilerOptions) {
             throw new Error(
               `[plumeria] ${getSource(expr)} takes one object argument, because ${
                 callee.property.value
-              } destructures its parameter.\n`,
+              } destructures its parameter. (${path.basename(resourcePath)})\n`,
             );
           }
           const given = new Map<string, Expression>();
@@ -881,7 +881,7 @@ export function compileCSS(options: CompilerOptions) {
             if (!source) {
               if (func.defaults?.[local]) return;
               throw new Error(
-                `[plumeria] ${getSource(expr)} leaves "${key}" unset, and a dynamic style function has no value to fall back on.\n`,
+                `[plumeria] ${getSource(expr)} leaves "${key}" unset, and a dynamic style function has no value to fall back on. (${path.basename(resourcePath)})\n`,
               );
             }
             if (isStaticArgValue(source) && argObj[key] !== undefined) {
