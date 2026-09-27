@@ -2,7 +2,7 @@
  * @fileoverview Validate at-rules inside css.create.
  */
 
-import { TSESTree } from '@typescript-eslint/utils';
+import type { TSESTree } from '@typescript-eslint/utils';
 import { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
 import { staticValueResolver } from '../util/staticValue';
@@ -40,10 +40,7 @@ export const validateAtRules: Rule.RuleModule = {
     const staticValue = staticValueResolver(context);
 
     function getKeyString(node: TSESTree.Node): string | null {
-      if (
-        node.type === TSESTree.AST_NODE_TYPES.Literal &&
-        typeof node.value === 'string'
-      ) {
+      if (node.type === 'Literal' && typeof node.value === 'string') {
         return node.value;
       }
       const value = staticValue(node);
@@ -52,7 +49,7 @@ export const validateAtRules: Rule.RuleModule = {
 
     function checkProperties(node: TSESTree.ObjectExpression): void {
       for (const prop of node.properties) {
-        if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
+        if (prop.type !== 'Property') continue;
         const key = getKeyString(prop.key);
         if (key?.startsWith('@') && !isValidAtRule(key)) {
           context.report({
@@ -61,7 +58,7 @@ export const validateAtRules: Rule.RuleModule = {
             data: { rule: key },
           });
         }
-        if (prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression) {
+        if (prop.value.type === 'ObjectExpression') {
           checkProperties(prop.value);
         }
       }
@@ -72,14 +69,13 @@ export const validateAtRules: Rule.RuleModule = {
         if (node.source.value !== '@plumeria/core') return;
         node.specifiers.forEach((specifier) => {
           if (
-            specifier.type ===
-              TSESTree.AST_NODE_TYPES.ImportNamespaceSpecifier ||
-            specifier.type === TSESTree.AST_NODE_TYPES.ImportDefaultSpecifier
+            specifier.type === 'ImportNamespaceSpecifier' ||
+            specifier.type === 'ImportDefaultSpecifier'
           ) {
             plumeriaAliases[specifier.local.name] = 'NAMESPACE';
           } else {
             const importedName =
-              specifier.imported.type === TSESTree.AST_NODE_TYPES.Identifier
+              specifier.imported.type === 'Identifier'
                 ? specifier.imported.name
                 : String(specifier.imported.value);
             plumeriaAliases[specifier.local.name] = importedName;
@@ -89,27 +85,24 @@ export const validateAtRules: Rule.RuleModule = {
       CallExpression(node) {
         let isCssCreate = false;
         if (
-          node.callee.type === TSESTree.AST_NODE_TYPES.MemberExpression &&
-          node.callee.object.type === TSESTree.AST_NODE_TYPES.Identifier &&
+          node.callee.type === 'MemberExpression' &&
+          node.callee.object.type === 'Identifier' &&
           plumeriaAliases[node.callee.object.name] === 'NAMESPACE' &&
-          node.callee.property.type === TSESTree.AST_NODE_TYPES.Identifier &&
+          node.callee.property.type === 'Identifier' &&
           node.callee.property.name === 'create'
         ) {
           isCssCreate = true;
         } else if (
-          node.callee.type === TSESTree.AST_NODE_TYPES.Identifier &&
+          node.callee.type === 'Identifier' &&
           plumeriaAliases[node.callee.name] === 'create'
         ) {
           isCssCreate = true;
         }
-        if (
-          !isCssCreate ||
-          node.arguments[0]?.type !== TSESTree.AST_NODE_TYPES.ObjectExpression
-        ) {
+        if (!isCssCreate || node.arguments[0]?.type !== 'ObjectExpression') {
           return;
         }
         for (const prop of node.arguments[0].properties) {
-          if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
+          if (prop.type !== 'Property') continue;
           const style = styleObjectFromValue(prop.value);
           if (style) checkProperties(style as TSESTree.ObjectExpression);
         }
