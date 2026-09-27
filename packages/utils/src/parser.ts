@@ -55,6 +55,8 @@ import * as rs from '@rust-gear/glob';
 import { camelToKebabCase, genBase36Hash, transpile } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 import { createViewTransition } from './viewTransition';
+import { DEFAULT_STYLE_PROP } from './constants';
+import { needsCompile } from './stylePropFilter';
 import { getStyleRecords } from './create';
 import { styleFunctionsOf, resolveDynamicStyle } from './dynamicKey';
 import type { DynamicStyleTables } from './dynamicKey';
@@ -1593,6 +1595,7 @@ const globalAgregatedTables: Tables = {
 let hasComputedOnce = false;
 let resolutionConfigStamp: string | undefined;
 let scannedCwd: string | undefined;
+let scannedStyleProp: string | undefined;
 
 // Content-hash-keyed "Object" tables (keyframesObjectTable, createObjectTable,
 // etc.) have keys derived purely from style content, not from the file that
@@ -1788,38 +1791,48 @@ function statFile(filePath: string): fs.Stats {
   }
 }
 
-export function scanOverlay(scanCwd: string = process.cwd()): Tables {
+export function scanOverlay(
+  scanCwd: string = process.cwd(),
+  styleProp: string = DEFAULT_STYLE_PROP,
+): Tables {
   overlayScan = true;
   try {
-    return scanAll(scanCwd);
+    return scanAll(scanCwd, styleProp);
   } finally {
     overlayScan = false;
   }
 }
 
-export function scanAll(scanCwd: string = process.cwd()): Tables {
+export function scanAll(
+  scanCwd: string = process.cwd(),
+  styleProp: string = DEFAULT_STYLE_PROP,
+): Tables {
   scanning = true;
   statMemo.clear();
   try {
-    return runScan(scanCwd);
+    return runScan(scanCwd, styleProp);
   } finally {
     scanning = false;
     statMemo.clear();
   }
 }
 
-function runScan(scanCwd: string = process.cwd()): Tables {
+function runScan(scanCwd: string, styleProp: string): Tables {
   const cwd = path.resolve(scanCwd);
   if (
     hasComputedOnce &&
     process.env.NODE_ENV === 'production' &&
-    scannedCwd === cwd
+    scannedCwd === cwd &&
+    scannedStyleProp === styleProp
   ) {
     return snapshotTables();
   }
 
   const localTables = globalAgregatedTables;
   scannedCwd = cwd;
+  const stylePropChanged =
+    scannedStyleProp !== undefined && scannedStyleProp !== styleProp;
+  scannedStyleProp = styleProp;
 
   const configPath = path.join(cwd, 'tsconfig.json');
   let configStamp = configPath;
@@ -1871,7 +1884,12 @@ function runScan(scanCwd: string = process.cwd()): Tables {
     try {
       const stats = fs.statSync(filePath);
       const cached = fileCache[filePath];
-      if (resolutionChanged || !cached || cached.mtimeMs !== stats.mtimeMs) {
+      if (
+        resolutionChanged ||
+        stylePropChanged ||
+        !cached ||
+        cached.mtimeMs !== stats.mtimeMs
+      ) {
         invalidated.add(filePath);
         queue.push(filePath);
       }
@@ -1968,7 +1986,7 @@ function runScan(scanCwd: string = process.cwd()): Tables {
     try {
       const stats = fs.statSync(filePath);
       const source = fs.readFileSync(filePath, 'utf8');
-      if (!source.includes('@plumeria/core')) {
+      if (!needsCompile(source, styleProp, filePath)) {
         // Store an empty record in the cache and clear old dependency edges
         updateDependencyEdges(
           filePath,
