@@ -5,6 +5,7 @@
 import { TSESTree } from '@typescript-eslint/utils';
 import { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
+import { staticValueResolver } from '../util/staticValue';
 
 const VALID_STATIC_PSEUDOS = new Set([
   // Pseudo-Classes
@@ -163,8 +164,7 @@ export const validatePseudos: Rule.RuleModule = {
   },
   create(context) {
     const plumeriaAliases: Record<string, string> = {};
-    const parserServices = context.sourceCode.parserServices;
-    const checker = parserServices?.program?.getTypeChecker();
+    const staticValue = staticValueResolver(context);
 
     function getSelectorString(node: TSESTree.Node): string | null {
       if (
@@ -184,20 +184,8 @@ export const validatePseudos: Rule.RuleModule = {
         return node.name;
       }
 
-      if (checker && parserServices?.esTreeNodeToTSNodeMap) {
-        try {
-          const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
-          const type = checker.getTypeAtLocation(tsNode);
-
-          if (type.isStringLiteral()) {
-            return type.value;
-          }
-        } catch (error) {
-          // Ignore
-        }
-      }
-
-      return null;
+      const value = staticValue(node);
+      return typeof value === 'string' ? value : null;
     }
 
     function checkProperties(node: TSESTree.ObjectExpression) {
