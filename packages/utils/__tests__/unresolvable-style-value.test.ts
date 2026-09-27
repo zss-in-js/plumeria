@@ -145,7 +145,7 @@ describe('css.create: a value the build cannot resolve', () => {
   it('names the property and the expression it could not resolve', async () => {
     await expect(
       run(`const s = css.create({ a: { letterSpacing: read() } });`),
-    ).rejects.toThrow(/"letterSpacing".*CallExpression/);
+    ).rejects.toThrow(/"letterSpacing".*\(read\(\)\)/);
   });
 
   it('points at the function form as the way to pass a runtime value', async () => {
