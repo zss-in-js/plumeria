@@ -512,7 +512,7 @@ This pattern cannot carry a function key. The call site's value reaches the elem
 ```
 
 ```
-Plumeria: "styleArray" carries a dynamic function key, and css.use() returns
+[plumeria] "styleArray" carries a dynamic function key, and css.use() returns
 only a class name. Apply it to classStyle on the element instead.
 ```
 
@@ -543,7 +543,7 @@ export const Layout = ({ headerStyle }: { headerStyle?: css.Style }) => {
 ```
 
 ```
-Plumeria: "headerStyle" is a style received through a prop but is never applied
+[plumeria] "headerStyle" is a style received through a prop but is never applied
 to classStyle or css.use() here. Apply it on an element this component renders;
 a style prop cannot be passed on to another component.
 ```
