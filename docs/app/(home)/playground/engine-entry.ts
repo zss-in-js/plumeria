@@ -3,6 +3,7 @@ import { Linter } from 'eslint/universal';
 import * as tsParser from '@typescript-eslint/parser';
 import plumeria from '@plumeria/eslint-plugin';
 import * as ts from 'typescript';
+import { setPlaygroundFiles } from './utils-shim';
 import type { Completion, Diagnostic, LintMessage, QuickInfo, Session, SpellingPolicy } from './engine-types';
 
 const CORE_DIR = '/node_modules/@plumeria/core';
@@ -71,6 +72,7 @@ export async function createSession(files: Record<string, string>, libs: Record<
   );
 
   const service = env.languageService;
+  setPlaygroundFiles((path) => (env.sys.fileExists(path) ? env.sys.readFile(path) : undefined));
 
   return {
     update(file: string, next: string) {
