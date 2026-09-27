@@ -6,7 +6,7 @@ const isIdentifierStart = (c: number) =>
 const isNameChar = (c: number) =>
   isIdentifierStart(c) || (c >= 48 && c <= 57) || c === 46 || c === 45;
 
-const isSpace = (c: number) => c === 32 || c === 9 || c === 10 || c === 13;
+const isSpace = (c: number) => c === 32 || (c >= 9 && c <= 13);
 
 const EXPRESSION_BEFORE = new Set(
   Array.from('(,=:[!&|?{};+-*%<>~^', (c) => c.charCodeAt(0)),
@@ -33,13 +33,32 @@ const MODE_CODE = 0;
 const MODE_TAG = 1;
 const MODE_CHILDREN = 2;
 
+const skipTrivia = (source: string, start: number) => {
+  let i = start;
+  while (i < source.length) {
+    const c = source.charCodeAt(i);
+    if (isSpace(c)) {
+      i++;
+    } else if (c === 47 && source.charCodeAt(i + 1) === 42) {
+      const end = source.indexOf('*/', i + 2);
+      if (end === -1) return source.length;
+      i = end + 2;
+    } else if (c === 47 && source.charCodeAt(i + 1) === 47) {
+      const end = source.indexOf('\n', i + 2);
+      if (end === -1) return source.length;
+      i = end + 1;
+    } else {
+      break;
+    }
+  }
+  return i;
+};
+
 const attributeAt = (source: string, index: number, name: string) => {
   if (index > 0 && isNameChar(source.charCodeAt(index - 1))) return false;
-  let i = index + name.length;
-  while (i < source.length && isSpace(source.charCodeAt(i))) i++;
+  let i = skipTrivia(source, index + name.length);
   if (source.charCodeAt(i) !== 61) return false;
-  i++;
-  while (i < source.length && isSpace(source.charCodeAt(i))) i++;
+  i = skipTrivia(source, i + 1);
   return source.charCodeAt(i) === 123;
 };
 
@@ -116,7 +135,15 @@ const writesAttribute = (source: string, name: string): boolean => {
       return true;
 
     if (mode === MODE_TAG) {
-      if (c === 47 && source.charCodeAt(i + 1) === 62) {
+      if (c === 47 && source.charCodeAt(i + 1) === 42) {
+        const end = source.indexOf('*/', i + 2);
+        if (end === -1) return true;
+        i = end + 1;
+      } else if (c === 47 && source.charCodeAt(i + 1) === 47) {
+        const end = source.indexOf('\n', i + 2);
+        if (end === -1) return true;
+        i = end;
+      } else if (c === 47 && source.charCodeAt(i + 1) === 62) {
         i++;
         leaveElement();
       } else if (c === 62) {
