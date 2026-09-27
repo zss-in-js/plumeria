@@ -1,5 +1,15 @@
 # Release Notes
 
+## 19.4.0 (Sep 27, 2026)
+
+- `no-invalid-selector`, `validate-pseudos` and `validate-at-rules` resolve a computed key by following it back to where it is declared instead of asking the TypeScript type checker, so they check the same keys under ESLint and `plumerialint` and no longer need `projectService`. A key resolves when it is a `const` string, a member of a `const` object or a `css.createStatic` object, or an import of one of these; `as const`, `satisfies` and type annotations make no difference
+
+- `validate-pseudos` and `validate-at-rules` report as warnings, like `validate-values`. `plumerialint` still stops the build on them
+
+- `@typescript-eslint/utils` is no longer a dependency of `@plumeria/eslint-plugin`
+
+- `@plumeria/utils` adds `resolveExportValue`, which reads the value an export holds, following re-exports, imports and `createStatic` objects
+
 ## 19.3.0 (Sep 27, 2026)
 
 - Compile a file that writes the styling prop without importing `@plumeria/core`. The scan, the Turbopack and unplugin transforms, and the file condition `withPlumeria` hands to Turbopack used to skip every file that did not mention `@plumeria/core`, so a component handed `classStyle={styles.a}` from such a file received an empty class. They now also compile a file that writes the styling prop as a JSX attribute, and a lightweight reader keeps a mention in a comment, a string or JSX text from pulling a file in
