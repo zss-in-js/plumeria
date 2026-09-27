@@ -69,7 +69,7 @@ export const MyComponent = ({ isActive }) => {
 
 **Right-wins composition.** `classStyle` accepts arrays, ternaries, and conditional expressions. The right-most style always takes precedence: above, `styles.active` overrides `styles.container` when `isActive` is true. `css.use()` follows the same rule. Within a single style, do not rely on source order to resolve overlapping pseudo-class states; declare their compound selector explicitly (see Selector Rules).
 
-**Cross-file imports.** Styles can be imported across files, but the consuming component file MUST contain `import "@plumeria/core";` — the import is how the compiler finds the file.
+**Cross-file imports.** Styles can be imported across files. A file that applies them with `classStyle` is compiled without further setup, but a file that passes them to a component through any other prop MUST contain `import "@plumeria/core";` — the import is how the compiler finds the file.
 
 ## Forbidden Patterns
 
