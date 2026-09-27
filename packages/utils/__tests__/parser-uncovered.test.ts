@@ -40,7 +40,7 @@ it('reports a missing member on a resolved style variable', () => {
       {},
       () => ({ present: 'red' }),
     ),
-  ).toThrow('Unknown style member on theme');
+  ).toThrow('Unknown style member: theme.missing does not exist.');
 });
 const scan = (source: string) => {
   const file = path.join(directory, 'App.tsx');
