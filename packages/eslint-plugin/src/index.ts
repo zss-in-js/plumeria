@@ -66,8 +66,8 @@ const configs: Configs = {
       '@plumeria/sort-properties': 'warn',
       '@plumeria/format-properties': 'warn',
       '@plumeria/validate-values': 'warn',
-      '@plumeria/validate-pseudos': 'error',
-      '@plumeria/validate-at-rules': 'error',
+      '@plumeria/validate-pseudos': 'warn',
+      '@plumeria/validate-at-rules': 'warn',
     },
   },
 };
