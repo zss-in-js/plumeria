@@ -5,6 +5,7 @@
 import { TSESTree } from '@typescript-eslint/utils';
 import { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
+import { staticValueResolver } from '../util/staticValue';
 
 const VALID_AT_RULES = [
   '@media',
@@ -36,8 +37,7 @@ export const validateAtRules: Rule.RuleModule = {
   },
   create(context) {
     const plumeriaAliases: Record<string, string> = {};
-    const parserServices = context.sourceCode.parserServices;
-    const checker = parserServices?.program?.getTypeChecker();
+    const staticValue = staticValueResolver(context);
 
     function getKeyString(node: TSESTree.Node): string | null {
       if (
@@ -46,16 +46,8 @@ export const validateAtRules: Rule.RuleModule = {
       ) {
         return node.value;
       }
-      if (checker && parserServices?.esTreeNodeToTSNodeMap) {
-        try {
-          const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
-          const type = checker.getTypeAtLocation(tsNode);
-          if (type.isStringLiteral()) return type.value;
-        } catch (error) {
-          // Ignore
-        }
-      }
-      return null;
+      const value = staticValue(node);
+      return typeof value === 'string' ? value : null;
     }
 
     function checkProperties(node: TSESTree.ObjectExpression): void {
