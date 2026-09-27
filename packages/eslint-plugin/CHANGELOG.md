@@ -1,3 +1,9 @@
+## 19.2.16
+
+### Patch Changes
+
+- 225551a: Bump version to 19.2.16
+
 ## 19.2.15
 
 ### Patch Changes
