@@ -210,11 +210,11 @@ const destructuredPropAliases = (fn: {
 };
 
 const propDefaultMessage = (source: string): string =>
-  `Plumeria: A style prop default must be a defined style: "${source}". ` +
+  `[plumeria] A style prop default must be a defined style: "${source}". ` +
   `Apply a conditional or dynamic style where the element is styled.`;
 
 const spreadStyleMessage = (source: string): string =>
-  `Plumeria: Spread elements in a style array are not supported: "...${source}". ` +
+  `[plumeria] Spread elements in a style array are not supported: "...${source}". ` +
   `List each style explicitly.`;
 
 type LocalStyleAlias = { expression: Expression; context: number };
@@ -376,11 +376,11 @@ export const transformSource = async (
         const failure = resolveOriginError(node, rootId, localImports);
         if (failure) {
           throwCompilationError(
-            `Plumeria: ${failure.message} (${path.basename(failure.filePath)})`,
+            `[plumeria] ${failure.message} (${path.basename(failure.filePath)})`,
           );
         }
         throwCompilationError(
-          `Plumeria: Dynamic or unresolvable style object "${getSource(node)}" is not supported.`,
+          `[plumeria] Dynamic or unresolvable style object "${getSource(node)}" is not supported.`,
           node,
         );
       }
@@ -389,7 +389,7 @@ export const transformSource = async (
 
   const scannedTables = scanOverlay();
   const ownFailure = resolveFileError(baseId, '');
-  if (ownFailure) throwCompilationError(`Plumeria: ${ownFailure.message}`);
+  if (ownFailure) throwCompilationError(`[plumeria] ${ownFailure.message}`);
 
   for (const node of ast.body) {
     if (node.type === 'ImportDeclaration') {
@@ -841,7 +841,7 @@ export const transformSource = async (
         !topLevelDeclarators.has(node)
       ) {
         throwCompilationError(
-          `Plumeria: css.${propName} must be assigned to a top-level variable so its styles can be resolved across files. Move this declaration outside the function or block.`,
+          `[plumeria] css.${propName} must be assigned to a top-level variable so its styles can be resolved across files. Move this declaration outside the function or block.`,
           node,
         );
       }
@@ -851,7 +851,7 @@ export const transformSource = async (
         const object = argument && literalObjectArgument(argument.expression);
         if (!object)
           throwCompilationError(
-            `Plumeria: css.${propName} needs a style object it can read at build time. Pass an object literal or a top-level constant containing one.`,
+            `[plumeria] css.${propName} needs a style object it can read at build time. Pass an object literal or a top-level constant containing one.`,
             init,
           );
         argument.expression = object!;
@@ -947,7 +947,7 @@ export const transformSource = async (
 
         if (!selector) {
           throwCompilationError(
-            `Plumeria: createTheme needs a selector it can read at build time. ` +
+            `[plumeria] createTheme needs a selector it can read at build time. ` +
               `Pass a string literal such as ".dark", or a name this file declares as one.`,
             selectorExpr as HasSpan,
           );
@@ -955,7 +955,7 @@ export const transformSource = async (
 
         if (selector.startsWith('@') && !isAtRule(selector)) {
           throwCompilationError(
-            `Plumeria: Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
+            `[plumeria] Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
             selectorExpr as HasSpan,
           );
         }
@@ -1187,7 +1187,7 @@ export const transformSource = async (
           !registeredStyleCalls.has(node.span.start)
         ) {
           throwCompilationError(
-            `Plumeria: css.${propName} must be assigned to a named top-level variable. Destructuring, assignment statements, and default-exported calls cannot be compiled.`,
+            `[plumeria] css.${propName} must be assigned to a named top-level variable. Destructuring, assignment statements, and default-exported calls cannot be compiled.`,
             node,
           );
         }
@@ -1289,7 +1289,7 @@ export const transformSource = async (
 
           if (!selector) {
             throwCompilationError(
-              `Plumeria: createTheme needs a selector it can read at build time. ` +
+              `[plumeria] createTheme needs a selector it can read at build time. ` +
                 `Pass a string literal such as ".dark", or a name this file declares as one.`,
               selectorExpr as HasSpan,
             );
@@ -1297,7 +1297,7 @@ export const transformSource = async (
 
           if (selector.startsWith('@') && !isAtRule(selector)) {
             throwCompilationError(
-              `Plumeria: Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
+              `[plumeria] Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
               selectorExpr as HasSpan,
             );
           }
@@ -1627,7 +1627,7 @@ export const transformSource = async (
         (argExpr && argExpr.type !== 'ObjectExpression')
       ) {
         throwCompilationError(
-          `Plumeria: ${getSource(expr)} takes one object argument, because ${
+          `[plumeria] ${getSource(expr)} takes one object argument, because ${
             callee.property.value
           } destructures its parameter.`,
           expr as HasSpan,
@@ -1653,7 +1653,7 @@ export const transformSource = async (
         if (!source) {
           if (func.defaults?.[local]) return;
           return throwCompilationError(
-            `Plumeria: ${getSource(expr)} leaves "${key}" unset, and a dynamic style function has no value to fall back on.`,
+            `[plumeria] ${getSource(expr)} leaves "${key}" unset, and a dynamic style function has no value to fall back on.`,
             expr as HasSpan,
           );
         }
@@ -1925,7 +1925,7 @@ export const transformSource = async (
         if (dynamic) {
           if (!isStyleProp) {
             throwCompilationError(
-              `Plumeria: css.use(${getSource(
+              `[plumeria] css.use(${getSource(
                 node,
               )}) does not support dynamic function keys.`,
               node as HasSpan,
@@ -2089,7 +2089,7 @@ export const transformSource = async (
       const carriesVars = possibilities.some((entry) => entry.hasVars);
       if (carriesVars && !isStyleProp) {
         throwCompilationError(
-          `Plumeria: "${varName}" carries a dynamic function key, and css.use() returns only a class name. ` +
+          `[plumeria] "${varName}" carries a dynamic function key, and css.use() returns only a class name. ` +
             `Apply it to ${styleProp} on the element instead.`,
           expr as HasSpan,
         );
@@ -2964,7 +2964,7 @@ export const transformSource = async (
 
       if (!isOptimizable) {
         throwCompilationError(
-          `Plumeria: Dynamic or unresolvable style object "${getSource(expr)}" is not supported.`,
+          `[plumeria] Dynamic or unresolvable style object "${getSource(expr)}" is not supported.`,
           expr as HasSpan,
         );
       }
@@ -3048,7 +3048,7 @@ export const transformSource = async (
         const styleInfo = localCreateStyles[varName];
         if (styleInfo?.functions?.[propKey]) {
           throwCompilationError(
-            `Plumeria: css.use(${getSource(
+            `[plumeria] css.use(${getSource(
               expr,
             )}) does not support dynamic function keys.`,
             expr,
@@ -3068,7 +3068,7 @@ export const transformSource = async (
         });
       } else {
         throwCompilationError(
-          `Plumeria: Dynamic or unresolvable style object "${getSource(node)}" is not supported.`,
+          `[plumeria] Dynamic or unresolvable style object "${getSource(node)}" is not supported.`,
           node,
         );
       }
@@ -3083,7 +3083,7 @@ export const transformSource = async (
         continue;
       }
       throwCompilationError(
-        `Plumeria: "${propName}" is a style received through a prop but is never applied ` +
+        `[plumeria] "${propName}" is a style received through a prop but is never applied ` +
           `to ${styleProp} or css.use() here. Apply it on an element this component renders; ` +
           `a style prop cannot be passed on to another component.`,
         node,
@@ -3096,7 +3096,7 @@ export const transformSource = async (
     if (!isDev || keys.length === 0) {
       return JSON.stringify('');
     }
-    const head = JSON.stringify(`Plumeria: "${info.name}.`);
+    const head = JSON.stringify(`[plumeria] "${info.name}.`);
     const tail = JSON.stringify(
       `" was read at runtime. The file that read it was not compiled ` +
         `because it does not reference "@plumeria/core" — add ` +
@@ -3135,7 +3135,7 @@ export const transformSource = async (
     );
     if (!isResolved) {
       throwCompilationError(
-        `Plumeria: ${getSource(call)} is only supported in the ${styleProp} prop. ` +
+        `[plumeria] ${getSource(call)} is only supported in the ${styleProp} prop. ` +
           `A dynamic style function resolves to a class name and a CSS variable on the element itself, ` +
           `so it cannot be passed through another prop or read as a value.`,
         call,
