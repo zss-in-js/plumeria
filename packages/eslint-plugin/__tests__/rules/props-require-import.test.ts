@@ -125,8 +125,89 @@ ruleTester.run('props-require-import', propsRequireImport, {
         `,
       filename: APP,
     },
+    {
+      code: `
+          import { styles } from './styles';
+          function Card({ styles }) {
+            return <div title={styles.a} />;
+          }
+        `,
+      filename: APP,
+    },
+    {
+      code: `
+          import { styles } from './styles';
+          const styles2 = styles;
+          function Card() {
+            const styles2 = { a: 1 };
+            return <Box styleArray={styles2.a} />;
+          }
+        `,
+      filename: APP,
+    },
+    {
+      code: `
+          import { routes } from './plain';
+          const target = routes.home;
+          let picked = target;
+          const el = <Link href={target} to={picked} />;
+        `,
+      filename: APP,
+    },
+    {
+      code: `
+          import { styles } from './styles';
+          const a = b;
+          const b = c;
+          const c = d;
+          const d = e;
+          const e = styles.a;
+          const el = <Card styleArray={a} />;
+        `,
+      filename: APP,
+    },
+    {
+      code: `
+          const el = <Card styleArray={undeclared.a} />;
+        `,
+      filename: APP,
+    },
   ],
   invalid: [
+    {
+      code: `
+          import { styles } from './styles';
+          const selected = styles.a;
+          const el = <Card styleArray={selected} />;
+        `,
+      filename: APP,
+      output: `import "@plumeria/core";\n
+          import { styles } from './styles';
+          const selected = styles.a;
+          const el = <Card styleArray={selected} />;
+        `,
+      errors: [{ messageId: 'requiresImport' }],
+    },
+    {
+      code: `
+          import * as all from './styles';
+          const group = all.styles;
+          const picked = on ? group.a : null;
+          function Page() {
+            return <Card styleArray={picked} />;
+          }
+        `,
+      filename: APP,
+      output: `import "@plumeria/core";\n
+          import * as all from './styles';
+          const group = all.styles;
+          const picked = on ? group.a : null;
+          function Page() {
+            return <Card styleArray={picked} />;
+          }
+        `,
+      errors: [{ messageId: 'requiresImport' }],
+    },
     {
       code: `
           import { styles } from './styles';
