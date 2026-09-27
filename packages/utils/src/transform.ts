@@ -53,6 +53,7 @@ const spreadValues = (
     ? Rest
     : never,
   constNodes: Map<string, any>,
+  sourceOf: (node: any) => string,
 ) => {
   const spread = (prop: any) => {
     let values: Record<string, unknown>;
@@ -96,7 +97,7 @@ const spreadValues = (
     }
   };
 
-  return { spread, resolvesValue };
+  return { spread, resolvesValue, sourceOf };
 };
 
 import { getStyleRecords } from './create';
@@ -327,6 +328,12 @@ export const transformSource = async (
   const sourceBuffer = Buffer.from(source, 'utf-8');
   const leadingBytes = Buffer.byteLength(source.slice(0, leadingLen), 'utf-8');
   const baseByteOffset = ast.span.start - leadingBytes;
+
+  const getSource = (node: Expression): string => {
+    const start = (node as HasSpan).span.start - baseByteOffset;
+    const end = (node as HasSpan).span.end - baseByteOffset;
+    return sourceBuffer.subarray(start, end).toString('utf-8');
+  };
 
   const throwCompilationError = (message: string, node?: HasSpan): never => {
     let suffix = '';
@@ -880,6 +887,7 @@ export const transformSource = async (
               scannedTables.createStaticObjectTable,
             ],
             localConstNodes,
+            getSource,
           ),
         );
 
@@ -978,6 +986,7 @@ export const transformSource = async (
               scannedTables.createStaticObjectTable,
             ],
             localConstNodes,
+            getSource,
           ),
         );
 
@@ -1053,6 +1062,7 @@ export const transformSource = async (
               scannedTables.createStaticObjectTable,
             ],
             localConstNodes,
+            getSource,
           ),
         );
         const hash = genBase36Hash(obj, 1, 8);
@@ -1212,6 +1222,7 @@ export const transformSource = async (
                   scannedTables.createStaticObjectTable,
                 ],
                 localConstNodes,
+                getSource,
               ),
             );
             const hash = genBase36Hash(obj, 1, 8);
@@ -1253,6 +1264,7 @@ export const transformSource = async (
                 scannedTables.createStaticObjectTable,
               ],
               localConstNodes,
+              getSource,
             ),
           );
           const hash = genBase36Hash(obj, 1, 8);
@@ -1315,6 +1327,7 @@ export const transformSource = async (
                 scannedTables.createStaticObjectTable,
               ],
               localConstNodes,
+              getSource,
             ),
           );
           const hash = themeHashOf(selector, obj);
@@ -1353,6 +1366,7 @@ export const transformSource = async (
                 scannedTables.createStaticObjectTable,
               ],
               localConstNodes,
+              getSource,
             ),
           );
           const hash = genBase36Hash(obj, 1, 8);
@@ -1437,12 +1451,6 @@ export const transformSource = async (
       excludedSpans.add(n.span.start);
     }
     Object.values(n).forEach((val) => excludeSubtreeSpans(val));
-  };
-
-  const getSource = (node: Expression): string => {
-    const start = (node as HasSpan).span.start - baseByteOffset;
-    const end = (node as HasSpan).span.end - baseByteOffset;
-    return sourceBuffer.subarray(start, end).toString('utf-8');
   };
 
   const isVisibleReference = (expr: Expression): boolean => {
