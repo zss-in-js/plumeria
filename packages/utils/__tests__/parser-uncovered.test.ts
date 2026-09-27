@@ -104,3 +104,29 @@ it('reports a spread element in a style prop array', () => {
     /Spread elements in a style array are not supported/,
   );
 });
+
+it.each([
+  [
+    "{width: `${a['x']}px`}",
+    "Cannot resolve static member expression: a['x'].",
+  ],
+  ['{width: `${a[0]}px`}', 'Cannot resolve static member expression: a[0].'],
+  [
+    '{width: -true}',
+    'Unsupported unary operand for -: an expression must resolve',
+  ],
+])('names the expression in the error for %s', (source, message) => {
+  expect(() =>
+    objectExpressionToObject(
+      expression(source),
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+    ),
+  ).toThrow(message);
+});
