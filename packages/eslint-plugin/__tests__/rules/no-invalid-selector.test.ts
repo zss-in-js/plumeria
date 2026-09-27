@@ -278,11 +278,19 @@ ruleTesterNoType.run('no-invalid-selector', noInvalidSelector, {
     {
       code: `
         import * as css from '@plumeria/core';
-        
-        // This is invalid but will be skipped because type checker is not available
-        css.create({ list: { [1 + 1]: {} } })
+
+        const styles = (key: string) => css.create({ list: { [key]: {} } });
       `,
     },
   ],
-  invalid: [],
+  invalid: [
+    {
+      code: `
+        import * as css from '@plumeria/core';
+
+        css.create({ list: { [1 + 1]: {} } })
+      `,
+      errors: [{ messageId: 'invalidKeySelector' }],
+    },
+  ],
 });
