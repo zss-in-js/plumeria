@@ -966,9 +966,6 @@ importers:
       '@plumeria/utils':
         specifier: workspace:*
         version: link:../utils
-      '@typescript-eslint/utils':
-        specifier: ^8.60.0
-        version: 8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3)
       known-css-properties:
         specifier: ^0.37.0
         version: 0.37.0
@@ -986,6 +983,9 @@ importers:
         specifier: ^1.0.5
         version: 1.0.5
       '@typescript-eslint/parser':
+        specifier: ^8.60.0
+        version: 8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3)
+      '@typescript-eslint/utils':
         specifier: ^8.60.0
         version: 8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3)
       eslint:
