@@ -461,7 +461,7 @@ export const J = (p: any) => <div classStyle={s.named(p.c)} />;`,
         'c.tsx',
       ),
     ).rejects.toThrow(
-      'Plumeria: s.palette(p.c) is only supported in the classStyle prop.',
+      '[plumeria] s.palette(p.c) is only supported in the classStyle prop.',
     );
   });
 
