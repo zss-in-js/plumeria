@@ -69,11 +69,16 @@ export function withPlumeria(
     },
   ];
 
+  const styleProp = options.styleProp ?? 'classStyle';
+  const content = new RegExp(
+    `@plumeria/core|${styleProp.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')}`,
+  );
+
   const ruleItem = supportsRuleCondition()
     ? {
         loaders: turbopackLoaders,
         condition: {
-          all: [{ not: 'foreign' }, { content: /@plumeria\/core/ }],
+          all: [{ not: 'foreign' }, { content }],
         },
       }
     : { loaders: turbopackLoaders };
