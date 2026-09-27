@@ -107,6 +107,19 @@ export const getRootIdentifier = (node: Expression): string | null => {
   return null;
 };
 
+const EXPRESSION_KINDS: Record<string, string> = {
+  NullLiteral: 'null',
+  ObjectExpression: 'an object literal',
+  ArrayExpression: 'an array literal',
+  CallExpression: 'a function call',
+  NewExpression: 'a new expression',
+  ConditionalExpression: 'a conditional expression',
+  ArrowFunctionExpression: 'a function',
+  FunctionExpression: 'a function',
+  TaggedTemplateExpression: 'a tagged template',
+  AwaitExpression: 'an await expression',
+};
+
 const expressionLabel = (node: Expression): string => {
   node = unwrapExpression(node);
   if (t.isIdentifier(node)) return node.value;
@@ -119,7 +132,7 @@ const expressionLabel = (node: Expression): string => {
     if (property.type === 'Computed')
       return `${expressionLabel(node.object)}[${expressionLabel(property.expression)}]`;
   }
-  return 'an expression';
+  return EXPRESSION_KINDS[node.type] ?? 'an expression';
 };
 
 const getNamespaceMember = (
@@ -381,7 +394,7 @@ export function objectExpressionToObject(
           );
           if (member === undefined)
             throw new Error(
-              `[plumeria] Unknown style member on ${root}: ${expressionLabel(val)} does not exist.`,
+              `[plumeria] Unknown style member: ${expressionLabel(val)} does not exist.`,
             );
           obj[key] = member;
           return;
@@ -957,7 +970,7 @@ function evaluateTemplateLiteral(
       );
       if (evaluatedExpr === null || typeof evaluatedExpr === 'object')
         throw new Error(
-          `[plumeria] Template value cannot be resolved to a primitive: a \${} value resolved to ${evaluatedExpr === null ? 'null' : 'an object'}. It must be a string or number at build time.`,
+          `[plumeria] Template value cannot be resolved to a primitive: ${expressionLabel(expr as Expression)} inside \${} must resolve to a string or number at build time.`,
         );
       result += String(evaluatedExpr);
     }
@@ -1207,7 +1220,7 @@ function evaluateExpression(
     }
 
     throw new Error(
-      `[plumeria] Cannot resolve static value: ${node.value}. Declare it with const in this file or import it from a module plumeria can read.`,
+      `[plumeria] Cannot resolve static value: ${node.value}. It must be a const holding a string or number, declared in this file or imported from a module plumeria can read.`,
     );
   }
 
@@ -1301,7 +1314,7 @@ function evaluateExpression(
   }
 
   throw new Error(
-    `[plumeria] Unsupported expression type: ${node.type}. Style values must be literals, consts, or arithmetic and template expressions of them.`,
+    `[plumeria] Unsupported expression type: ${expressionLabel(node)}. Style values must be literals, consts, or arithmetic and template expressions of them.`,
   );
 }
 
