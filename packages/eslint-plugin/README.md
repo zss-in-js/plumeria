@@ -7,7 +7,7 @@ Below are the available rules and the recommended configuration.
 
 The `plugin:@plumeria/recommended` config enables the following:
 
-- `@plumeria/props-require-import`: **error**
+- `@plumeria/custom-props-require-import`: **error**
 - `@plumeria/no-combinator`: **error**
 - `@plumeria/no-destructure`: **error**
 - `@plumeria/no-inline-object`: **error**
@@ -31,7 +31,7 @@ export default [plumeria.configs.recommended];
 
 ## Configuring the styling prop
 
-Both `props-require-import` and `no-mixed-styling-props` need to know which JSX
+Both `custom-props-require-import` and `no-mixed-styling-props` need to know which JSX
 prop carries styles. It is `classStyle` unless you changed it, so most projects
 configure nothing.
 
@@ -70,7 +70,7 @@ the lint rules report against a prop the compiler never transforms.
 The following rules are enabled by `plumeria.configs.recommended` with the
 severity shown in [Recommended configuration](#recommended-configuration).
 
-### props-require-import
+### custom-props-require-import
 
 Require the `@plumeria/core` import in a file that passes a `css.create` style to a
 component through a prop other than the styling prop. The compiler cannot tell that
