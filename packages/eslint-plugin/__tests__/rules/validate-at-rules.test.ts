@@ -87,12 +87,20 @@ ruleTesterNoType.run(
       {
         code: `
         import * as css from '@plumeria/core';
-        const unknown = '@unknown foo';
+        let unknown = '@unknown foo';
         css.create({ box: { [unknown]: { color: 'red' } } });
       `,
       },
     ],
     invalid: [
+      {
+        code: `
+        import * as css from '@plumeria/core';
+        const unknown = '@unknown foo';
+        css.create({ box: { [unknown]: { color: 'red' } } });
+      `,
+        errors: [{ messageId: 'invalidAtRule' }],
+      },
       {
         code: `
         import * as css from '@plumeria/core';
