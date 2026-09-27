@@ -40,7 +40,7 @@ const nodeBuiltins = [
   'querystring',
 ];
 
-const nodeOnlyPackages = ['jiti', 'file-entry-cache', 'flat-cache', 'keyv', 'fdir', 'tinyglobby'];
+const nodeOnlyPackages = ['jiti', 'file-entry-cache', 'flat-cache', 'keyv', 'fdir', 'tinyglobby', '@plumeria/utils'];
 
 const stubbed = new Set([...nodeBuiltins, ...nodeBuiltins.map((name) => `node:${name}`), ...nodeOnlyPackages]);
 
