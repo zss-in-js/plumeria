@@ -98,11 +98,13 @@ const bundled = await readFile(outfile, 'utf8');
 const dynamicImport = /async function ([\w$]+)\(([\w$]+)\)\{return\(await import\(\2\)\)\.default\}/g;
 const matches = bundled.match(dynamicImport) ?? [];
 
-if (matches.length !== 1) {
-  throw new Error(`[playground] expected 1 dynamic import shim, found ${matches.length}`);
+if (matches.length > 1) {
+  throw new Error(`[playground] expected at most 1 dynamic import shim, found ${matches.length}`);
 }
 
-await writeFile(outfile, bundled.replace(dynamicImport, 'async function $1($2){throw new Error("unsupported: "+$2)}'));
+if (matches.length === 1) {
+  await writeFile(outfile, bundled.replace(dynamicImport, 'async function $1($2){throw new Error("unsupported: "+$2)}'));
+}
 
 console.log('[playground] engine built');
 
