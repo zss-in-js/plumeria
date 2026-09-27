@@ -1,4 +1,4 @@
-import { propsRequireImport } from './rules/props-require-import';
+import { customPropsRequireImport } from './rules/custom-props-require-import';
 import { expandBorderShorthands } from './rules/expand-border-shorthands';
 import { noCombinator } from './rules/no-combinator';
 import { noDestructure } from './rules/no-destructure';
@@ -25,7 +25,7 @@ type Configs = {
 };
 
 const rules: Rules = {
-  'props-require-import': propsRequireImport,
+  'custom-props-require-import': customPropsRequireImport,
   'expand-border-shorthands': expandBorderShorthands,
   'no-combinator': noCombinator,
   'no-destructure': noDestructure,
@@ -53,7 +53,7 @@ const configs: Configs = {
       },
     },
     rules: {
-      '@plumeria/props-require-import': 'error',
+      '@plumeria/custom-props-require-import': 'error',
       '@plumeria/no-combinator': 'error',
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inline-object': 'error',
