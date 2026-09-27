@@ -1,6 +1,6 @@
 ---
 title: 'Recommended'
-description: 'The recommended rules, type-aware selector checks, and the styling prop setting.'
+description: 'The recommended rules, how selector keys are resolved, and the styling prop setting.'
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
@@ -33,28 +33,23 @@ import plumeria from '@plumeria/eslint-plugin';
 export default [plumeria.configs.recommended];
 ```
 
-`no-invalid-selector`, `validate-pseudos`, and `validate-at-rules` read TypeScript's type information to resolve selectors that are not written as string literals — a key that comes from a variable or a `const` object, for example. Without it the rules see nothing to check and skip those keys silently.
+`no-invalid-selector`, `validate-pseudos`, and `validate-at-rules` also check selectors that are not written as string literals. A computed key is followed back to where it is declared, the same way under ESLint and `plumerialint`, with no type information involved:
 
-Turn it on in the root `eslint.config.ts` by giving the TypeScript files a project service:
+```ts
+import * as css from '@plumeria/core';
+import { breakpoints } from './tokens';
 
-```ts title="eslint.config.ts"
-import tseslint from 'typescript-eslint';
-import { defineConfig } from 'eslint/config';
-import plumeria from '@plumeria/eslint-plugin';
+const hover = ':hover' as const;
 
-export default defineConfig(
-  tseslint.configs.recommended,
-  plumeria.configs.recommended,
-  {
-    files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      parserOptions: { projectService: true },
-    },
+export const styles = css.create({
+  link: {
+    [hover]: { color: 'teal' },
+    [breakpoints.md]: { fontSize: 18 },
   },
-);
+});
 ```
 
-Literal selectors are still checked without this, so the rules work either way — the project service only widens what they can see.
+A key resolves when it is a `const` holding a string, a member of a `const` object or a `css.createStatic` object, or an import of one of these. `as const`, `satisfies`, and type annotations make no difference. A key the rules cannot resolve, such as a `let` or a function parameter, is skipped.
 
 ## Rules
 `Rules: recommended`
