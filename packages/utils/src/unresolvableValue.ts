@@ -20,14 +20,16 @@ const keyValue = (key: unknown): string | number | undefined => {
 export type StyleContext = {
   spread: ResolveSpread;
   resolvesValue: (value: unknown) => boolean;
+  sourceOf?: (node: unknown) => string;
 };
 
 const unresolvableValue = (
   key: string | number,
   node: { type: string },
+  context: StyleContext | undefined,
 ): Error =>
   new Error(
-    `[plumeria] Cannot resolve the value of "${key}" at build time (${node.type}). ` +
+    `[plumeria] Cannot resolve the value of "${key}" at build time (${context?.sourceOf?.(node) ?? node.type}). ` +
       `Values in css.create must be statically known; pass a runtime value through the ` +
       `function form, css.create({ name: (value) => ({ ... }) }).`,
   );
@@ -123,14 +125,14 @@ const assertStyleFunction = (
         continue;
       }
       if (RUNTIME_ONLY.has(value.type) && !readsAnyOf(value, params))
-        throw unresolvableValue(key ?? '', value);
+        throw unresolvableValue(key ?? '', value, context);
       if (
         (value.type === 'Identifier' || value.type === 'MemberExpression') &&
         context &&
         !readsAnyOf(value, params) &&
         !context.resolvesValue(value)
       )
-        throw unresolvableValue(key ?? '', value);
+        throw unresolvableValue(key ?? '', value, context);
     }
   };
 
@@ -202,7 +204,7 @@ export const assertNoDroppedValues = (
     }
     if (value.type === 'NullLiteral') continue;
 
-    if (!(key in resolved)) throw unresolvableValue(key, value);
+    if (!(key in resolved)) throw unresolvableValue(key, value, context);
 
     if (value.type === 'ObjectExpression') {
       const nested = resolved[key];
