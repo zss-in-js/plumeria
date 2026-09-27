@@ -1,0 +1,101 @@
+---
+title: 'Plumeria 19.4'
+description: 'Update: the ESLint plugin no longer depends on TypeScript types or typescript-eslint, follows a computed key to its declaration, and reports pseudo-classes and at-rules as warnings'
+date: '2026-09-27'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Core maintainer" />
+  <GitHubUser username="Anionix" subtext="Core member" />
+</div>
+
+Plumeria v19.4 removes the ESLint plugin's dependence on TypeScript types and on typescript-eslint. `no-invalid-selector`, `validate-pseudos` and `validate-at-rules` now follow a computed key back to where it is declared and read the value from the source.
+
+Before 19.4, a computed key was only checked when ESLint was set up for typed linting. Now the same keys are checked under ESLint and under `plumerialint` (oxlint), with no type information involved.
+
+---
+
+## 1. Follow the key to its declaration
+
+```ts
+import * as css from '@plumeria/core';
+import { breakpoints } from './tokens';
+
+const hover = ':hover' as const;
+
+export const styles = css.create({
+  link: {
+    [hover]: { color: 'teal' },
+    [breakpoints.md]: { fontSize: 18 },
+  },
+});
+```
+
+The rule resolves the name through the file's scope and reads what it is bound to:
+
+- **A `const` in the file.** It reads the initializer, following one `const` to another, including a `const` inside a function.
+- **A member of an object.** `breakpoints.md` reads the property from a `const` object or from the object passed to `css.createStatic`.
+- **An import.** It opens the file the import points to, follows re-exports and further imports, and reads the value there. Named, default and namespace imports are followed. Each file is parsed once and kept until it changes.
+
+`as const`, `satisfies` and type annotations only wrap the value, so they make no difference. `const query: string = '@media …'` has the type `string`, which the type checker could not see through; it is now read like any other `const`.
+
+A key the rules cannot pin down is skipped: a `let`, which can be reassigned, a function parameter, or a value built at runtime. `no-invalid-selector` still reports a key that resolves to something other than a string, such as `[1 + 1]`.
+
+### Shared with the compiler
+
+Following an import uses `resolveExportValue` from `@plumeria/utils`. It resolves exports with the same code the compiler uses, and reads a file's constants with the same collector the compiler uses for the keys of `css.create`.
+
+---
+
+## 2. `projectService` is no longer needed
+
+None of the recommended rules read type information now, so the block that turned it on can go:
+
+```diff
+  export default defineConfig(
+    tseslint.configs.recommended,
+    plumeria.configs.recommended,
+-   {
+-     files: ['**/*.{ts,tsx}'],
+-     languageOptions: {
+-       parserOptions: { projectService: true },
+-     },
+-   },
+  );
+```
+
+Keep it if other rules in the project need it; the Plumeria rules no longer look at it.
+
+`@typescript-eslint/utils` is no longer a dependency of `@plumeria/eslint-plugin`. The rules only used it for node type names, which are now plain strings.
+
+---
+
+## 3. Pseudo-classes and at-rules are warnings
+
+`validate-pseudos` and `validate-at-rules` now report as warnings, the same as `validate-values`. All three check what is written inside a style — a value, a pseudo-class, an at-rule — so they now share one severity and show up the same way in the editor.
+
+`plumerialint` runs oxlint with `--deny-warnings`, so a warning from these rules still stops the build.
+
+---
+
+## Upgrading
+
+**From 19.3.** Nothing has to change.
+
+`validate-pseudos` and `validate-at-rules` are warnings in the recommended configuration. A project that runs ESLint with `--max-warnings 0` or `plumerialint` (oxlint) stops on them as before; a project that only fails on errors can set them back to `'error'`.
+
+`plumerialint` (oxlint) may report keys it used to pass. Each one is a computed key that resolves to an invalid selector, an unknown pseudo-class or an invalid at-rule — a key that was never checked there before.
+
+With `projectService`, `no-invalid-selector` used to report a computed key whose type was not a string literal, such as a parameter typed `string`. Such a key cannot be read from the source, so it is now skipped like any other key the rules cannot pin down.
+
+---
+
+## Release notes
+
+## 19.4.0 (Sep 27, 2026)
+- Feat: `no-invalid-selector`, `validate-pseudos` and `validate-at-rules` resolve a computed key by following it to its declaration instead of reading TypeScript type information. They check the same keys under ESLint and `plumerialint` (oxlint), and follow a `const`, a member of a `const` or `css.createStatic` object, and imports of these
+- Feat: `validate-pseudos` and `validate-at-rules` report as warnings, like `validate-values`
+- Feat: `@plumeria/utils` adds `resolveExportValue`, which reads the value an export holds
+- `@typescript-eslint/utils` is no longer a dependency of `@plumeria/eslint-plugin`
