@@ -29,7 +29,7 @@ export const Footer = () => {
 };
 ```
 
-Styles compile to zero across file boundaries, too. You can colocate styles with components or share them across files — structure them to fit your project. The only requirement is that every file using Plumeria imports `@plumeria/core`, which is how the compiler finds it.
+Styles compile to zero across file boundaries, too. You can colocate styles with components or share them across files — structure them to fit your project. A file that applies them with `classStyle` needs nothing else. A file that passes them to a component through any other prop imports `@plumeria/core`, which is how the compiler finds it; importing it in every file that uses Plumeria is always safe and keeps each file on the fastest path.
 
 ```tsx title="styles.ts"
 import * as css from "@plumeria/core";
