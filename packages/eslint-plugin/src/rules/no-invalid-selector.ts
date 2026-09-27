@@ -2,7 +2,7 @@
  * @fileoverview Disallow invalid selector nesting (e.g. Pseudo -> Query, Query -> Query) based on Plumeria rules.
  */
 
-import { TSESTree } from '@typescript-eslint/utils';
+import type { TSESTree } from '@typescript-eslint/utils';
 import { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
 import { staticValueResolver } from '../util/staticValue';
@@ -42,21 +42,15 @@ export const noInvalidSelector: Rule.RuleModule = {
     const staticValue = staticValueResolver(context);
 
     function getSelectorType(node: TSESTree.Node): SelectorType {
-      if (
-        node.type === TSESTree.AST_NODE_TYPES.Literal &&
-        typeof node.value === 'string'
-      ) {
+      if (node.type === 'Literal' && typeof node.value === 'string') {
         if (node.value.startsWith('@')) return 'QUERY';
         if (node.value.startsWith(':')) return 'PSEUDO';
         return 'PROPERTY';
       }
 
       if (
-        node.type === TSESTree.AST_NODE_TYPES.Identifier &&
-        !(
-          node.parent?.type === TSESTree.AST_NODE_TYPES.Property &&
-          node.parent.computed
-        )
+        node.type === 'Identifier' &&
+        !(node.parent?.type === 'Property' && node.parent.computed)
       ) {
         return 'PROPERTY';
       }
@@ -77,7 +71,7 @@ export const noInvalidSelector: Rule.RuleModule = {
       parentType: SelectorType,
     ) {
       for (const prop of node.properties) {
-        if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
+        if (prop.type !== 'Property') continue;
 
         const currentType = getSelectorType(prop.key);
 
@@ -104,7 +98,7 @@ export const noInvalidSelector: Rule.RuleModule = {
           });
         }
 
-        if (prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression) {
+        if (prop.value.type === 'ObjectExpression') {
           checkNesting(
             prop.value,
             currentType === 'PROPERTY' ? parentType : currentType,
@@ -115,7 +109,7 @@ export const noInvalidSelector: Rule.RuleModule = {
 
     function checkOnlyProperties(node: TSESTree.ObjectExpression): void {
       for (const prop of node.properties) {
-        if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
+        if (prop.type !== 'Property') continue;
         const currentType = getSelectorType(prop.key);
 
         if (currentType !== 'PROPERTY') {
@@ -125,20 +119,17 @@ export const noInvalidSelector: Rule.RuleModule = {
           });
         }
 
-        if (prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression) {
+        if (prop.value.type === 'ObjectExpression') {
           checkOnlyProperties(prop.value);
         }
       }
     }
 
     function getKeyString(node: TSESTree.Node): string | null {
-      if (
-        node.type === TSESTree.AST_NODE_TYPES.Literal &&
-        typeof node.value === 'string'
-      ) {
+      if (node.type === 'Literal' && typeof node.value === 'string') {
         return node.value;
       }
-      if (node.type === TSESTree.AST_NODE_TYPES.Identifier) {
+      if (node.type === 'Identifier') {
         return node.name;
       }
       return null;
@@ -146,7 +137,7 @@ export const noInvalidSelector: Rule.RuleModule = {
 
     function checkKeyframesKeys(node: TSESTree.ObjectExpression): void {
       for (const prop of node.properties) {
-        if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
+        if (prop.type !== 'Property') continue;
         const key = getKeyString(prop.key);
         if (key == null) {
           context.report({
@@ -155,7 +146,7 @@ export const noInvalidSelector: Rule.RuleModule = {
           });
         }
 
-        if (prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression) {
+        if (prop.value.type === 'ObjectExpression') {
           checkOnlyProperties(prop.value as TSESTree.ObjectExpression);
         }
 
@@ -173,7 +164,7 @@ export const noInvalidSelector: Rule.RuleModule = {
     function checkViewTransitionKeys(node: TSESTree.ObjectExpression): void {
       const allowed = new Set(['group', 'imagePair', 'new', 'old']);
       for (const prop of node.properties) {
-        if (prop.type !== TSESTree.AST_NODE_TYPES.Property) continue;
+        if (prop.type !== 'Property') continue;
         const key = getKeyString(prop.key);
         if (key == null) {
           context.report({
@@ -182,7 +173,7 @@ export const noInvalidSelector: Rule.RuleModule = {
           });
         }
 
-        if (prop.value.type === TSESTree.AST_NODE_TYPES.ObjectExpression) {
+        if (prop.value.type === 'ObjectExpression') {
           checkOnlyProperties(prop.value as TSESTree.ObjectExpression);
         }
 
@@ -200,14 +191,13 @@ export const noInvalidSelector: Rule.RuleModule = {
         if (node.source.value === '@plumeria/core') {
           node.specifiers.forEach((specifier) => {
             if (
-              specifier.type ===
-                TSESTree.AST_NODE_TYPES.ImportNamespaceSpecifier ||
-              specifier.type === TSESTree.AST_NODE_TYPES.ImportDefaultSpecifier
+              specifier.type === 'ImportNamespaceSpecifier' ||
+              specifier.type === 'ImportDefaultSpecifier'
             ) {
               plumeriaAliases[specifier.local.name] = 'NAMESPACE';
             } else {
               const importedName =
-                specifier.imported.type === TSESTree.AST_NODE_TYPES.Identifier
+                specifier.imported.type === 'Identifier'
                   ? specifier.imported.name
                   : String(specifier.imported.value);
               plumeriaAliases[specifier.local.name] = importedName;
@@ -221,33 +211,30 @@ export const noInvalidSelector: Rule.RuleModule = {
         let isCssKeyframes = false;
         let isCssViewTransition = false;
 
-        if (node.callee.type === TSESTree.AST_NODE_TYPES.MemberExpression) {
+        if (node.callee.type === 'MemberExpression') {
           if (
-            node.callee.object.type === TSESTree.AST_NODE_TYPES.Identifier &&
+            node.callee.object.type === 'Identifier' &&
             plumeriaAliases[node.callee.object.name] === 'NAMESPACE'
           ) {
             const propertyName =
-              node.callee.property.type === TSESTree.AST_NODE_TYPES.Identifier
+              node.callee.property.type === 'Identifier'
                 ? node.callee.property.name
                 : null;
             if (propertyName === 'create') isCssCreate = true;
             if (propertyName === 'keyframes') isCssKeyframes = true;
             if (propertyName === 'viewTransition') isCssViewTransition = true;
           }
-        } else if (node.callee.type === TSESTree.AST_NODE_TYPES.Identifier) {
+        } else if (node.callee.type === 'Identifier') {
           const alias = plumeriaAliases[node.callee.name];
           if (alias === 'create') isCssCreate = true;
           if (alias === 'keyframes') isCssKeyframes = true;
           if (alias === 'viewTransition') isCssViewTransition = true;
         }
 
-        if (
-          isCssCreate &&
-          node.arguments[0]?.type === TSESTree.AST_NODE_TYPES.ObjectExpression
-        ) {
+        if (isCssCreate && node.arguments[0]?.type === 'ObjectExpression') {
           const styleObj = node.arguments[0];
           styleObj.properties.forEach((prop) => {
-            if (prop.type === TSESTree.AST_NODE_TYPES.Property) {
+            if (prop.type === 'Property') {
               const currentType = getSelectorType(prop.key as TSESTree.Node);
               if (currentType !== 'SKIP' && currentType === 'UNKNOWN') {
                 context.report({
@@ -256,23 +243,20 @@ export const noInvalidSelector: Rule.RuleModule = {
                 });
               }
             }
-            if (prop.type !== TSESTree.AST_NODE_TYPES.Property) return;
+            if (prop.type !== 'Property') return;
             const style = styleObjectFromValue(prop.value);
             if (style)
               checkNesting(style as TSESTree.ObjectExpression, 'CLASS');
           });
         }
 
-        if (
-          isCssKeyframes &&
-          node.arguments[0]?.type === TSESTree.AST_NODE_TYPES.ObjectExpression
-        ) {
+        if (isCssKeyframes && node.arguments[0]?.type === 'ObjectExpression') {
           checkKeyframesKeys(node.arguments[0] as TSESTree.ObjectExpression);
         }
 
         if (
           isCssViewTransition &&
-          node.arguments[0]?.type === TSESTree.AST_NODE_TYPES.ObjectExpression
+          node.arguments[0]?.type === 'ObjectExpression'
         ) {
           checkViewTransitionKeys(
             node.arguments[0] as TSESTree.ObjectExpression,
