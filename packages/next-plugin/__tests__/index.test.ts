@@ -294,8 +294,19 @@ describe('withPlumeria', () => {
 
     it('applies a condition on next 16 and up', () => {
       expect(ruleFor(withPlumeria()).condition).toEqual({
-        all: [{ not: 'foreign' }, { content: /@plumeria\/core/ }],
+        all: [{ not: 'foreign' }, { content: /@plumeria\/core|classStyle/ }],
       });
+    });
+
+    it('lets a file that only writes the styling prop reach the loader', () => {
+      const { content } = (
+        ruleFor(withPlumeria({}, { styleProp: '$sx' })).condition as {
+          all: [unknown, { content: RegExp }];
+        }
+      ).all[1];
+      expect(content.test('<div $sx={styles.a} />')).toBe(true);
+      expect(content.test("import '@plumeria/core';")).toBe(true);
+      expect(content.test('<div sx={styles.a} />')).toBe(false);
     });
 
     it('omits the condition when the next version is unreadable', () => {
