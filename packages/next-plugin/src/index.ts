@@ -70,9 +70,8 @@ export function withPlumeria(
   ];
 
   const styleProp = options.styleProp ?? 'classStyle';
-  const content = new RegExp(
-    `@plumeria/core|${styleProp.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')}`,
-  );
+  const escapedStyleProp = styleProp.replaceAll('$', '\\$');
+  const content = new RegExp(`@plumeria/core|${escapedStyleProp}`);
 
   const ruleItem = supportsRuleCondition()
     ? {
