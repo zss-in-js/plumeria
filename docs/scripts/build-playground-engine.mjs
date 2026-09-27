@@ -6,6 +6,7 @@ import { join, sep } from 'node:path';
 const root = process.cwd();
 const stub = join(root, 'lib', 'node-stub.cjs');
 const pathPolyfill = createRequire(import.meta.url).resolve('path-browserify');
+const utilsShim = join(root, 'app', '(home)', 'playground', 'utils-shim.ts');
 
 const nodeBuiltins = [
   'fs',
@@ -40,7 +41,7 @@ const nodeBuiltins = [
   'querystring',
 ];
 
-const nodeOnlyPackages = ['jiti', 'file-entry-cache', 'flat-cache', 'keyv', 'fdir', 'tinyglobby', '@plumeria/utils'];
+const nodeOnlyPackages = ['jiti', 'file-entry-cache', 'flat-cache', 'keyv', 'fdir', 'tinyglobby'];
 
 const stubbed = new Set([...nodeBuiltins, ...nodeBuiltins.map((name) => `node:${name}`), ...nodeOnlyPackages]);
 
@@ -54,6 +55,8 @@ const stubPlugin = {
     });
 
     build.onResolve({ filter: /^(node:)?path$/ }, () => ({ path: pathPolyfill }));
+
+    build.onResolve({ filter: /^@plumeria\/utils$/ }, () => ({ path: utilsShim }));
 
     build.onResolve({ filter: /config-loader$/ }, ({ importer }) => {
       return importer.includes(`${sep}eslint${sep}lib${sep}`) ? { path: stub } : null;
@@ -98,11 +101,16 @@ const bundled = await readFile(outfile, 'utf8');
 const dynamicImport = /async function ([\w$]+)\(([\w$]+)\)\{return\(await import\(\2\)\)\.default\}/g;
 const matches = bundled.match(dynamicImport) ?? [];
 
-if (matches.length !== 1) {
-  throw new Error(`[playground] expected 1 dynamic import shim, found ${matches.length}`);
+if (matches.length > 1) {
+  throw new Error(`[playground] expected at most 1 dynamic import shim, found ${matches.length}`);
 }
 
-await writeFile(outfile, bundled.replace(dynamicImport, 'async function $1($2){throw new Error("unsupported: "+$2)}'));
+if (matches.length === 1) {
+  await writeFile(
+    outfile,
+    bundled.replace(dynamicImport, 'async function $1($2){throw new Error("unsupported: "+$2)}'),
+  );
+}
 
 console.log('[playground] engine built');
 
