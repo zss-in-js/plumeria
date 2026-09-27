@@ -13,7 +13,7 @@ The complete rule set, distilled. Each rule is explained with examples in the se
 
 - Call `css.create()` at module top level, never inside a component. (→ Forbidden Patterns)
 - Bind styles with the `classStyle` prop, not `className`. (→ Mental Model)
-- Import `@plumeria/core` in every file that uses Plumeria styles, including files that only consume imported styles. (→ Core Usage)
+- Import `@plumeria/core` in every file that uses Plumeria styles, including files that only consume imported styles. It is required in a file that passes a style to a component through a prop other than `classStyle`, and safe and fastest everywhere else. (→ Core Usage)
 - Start nested selector keys with `:` (pseudo) or `[` (attribute). (→ Selector Rules)
 - Explicitly declare a compound selector when simultaneous pseudo-class states set the same property. (→ Selector Rules)
 - Compose with arrays; the right side always wins. (→ Core Usage)
@@ -69,7 +69,7 @@ export const MyComponent = ({ isActive }) => {
 
 **Right-wins composition.** `classStyle` accepts arrays, ternaries, and conditional expressions. The right-most style always takes precedence: above, `styles.active` overrides `styles.container` when `isActive` is true. `css.use()` follows the same rule. Within a single style, do not rely on source order to resolve overlapping pseudo-class states; declare their compound selector explicitly (see Selector Rules).
 
-**Cross-file imports.** Styles can be imported across files. A file that applies them with `classStyle` is compiled without further setup, but a file that passes them to a component through any other prop MUST contain `import "@plumeria/core";` — the import is how the compiler finds the file.
+**Cross-file imports.** Styles can be imported across files. A file that applies them with `classStyle` is compiled without further setup, but a file that passes them to a component through any other prop MUST contain `import "@plumeria/core";` — the import is how the compiler finds the file. Keeping the import in every consuming file is always correct and is the fastest path, because the compiler accepts such a file without looking further.
 
 ## Forbidden Patterns
 
