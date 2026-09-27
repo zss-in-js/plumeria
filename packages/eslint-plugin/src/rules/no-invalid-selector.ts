@@ -5,6 +5,7 @@
 import { TSESTree } from '@typescript-eslint/utils';
 import { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
+import { staticValueResolver } from '../util/staticValue';
 
 type SelectorType =
   | 'QUERY'
@@ -38,8 +39,7 @@ export const noInvalidSelector: Rule.RuleModule = {
   },
   create(context) {
     const plumeriaAliases: Record<string, string> = {};
-    const parserServices = context.sourceCode.parserServices;
-    const checker = parserServices?.program?.getTypeChecker();
+    const staticValue = staticValueResolver(context);
 
     function getSelectorType(node: TSESTree.Node): SelectorType {
       if (
@@ -61,21 +61,13 @@ export const noInvalidSelector: Rule.RuleModule = {
         return 'PROPERTY';
       }
 
-      if (checker && parserServices?.esTreeNodeToTSNodeMap) {
-        try {
-          const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node);
-          const type = checker.getTypeAtLocation(tsNode);
-
-          if (type.isStringLiteral()) {
-            if (type.value.startsWith('@')) return 'QUERY';
-            if (type.value.startsWith(':')) return 'PSEUDO';
-            return 'PROPERTY';
-          }
-        } catch (error) {
-          // Ignore
-        }
-        return 'UNKNOWN';
+      const value = staticValue(node);
+      if (typeof value === 'string') {
+        if (value.startsWith('@')) return 'QUERY';
+        if (value.startsWith(':')) return 'PSEUDO';
+        return 'PROPERTY';
       }
+      if (value !== undefined) return 'UNKNOWN';
 
       return 'SKIP';
     }
