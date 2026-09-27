@@ -963,6 +963,9 @@ importers:
 
   packages/eslint-plugin:
     dependencies:
+      '@plumeria/utils':
+        specifier: workspace:*
+        version: link:../utils
       '@typescript-eslint/utils':
         specifier: ^8.60.0
         version: 8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3)
