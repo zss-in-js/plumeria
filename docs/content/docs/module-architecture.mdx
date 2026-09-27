@@ -81,8 +81,9 @@ export const text = css.create({
 
 ## Using them
 
-A file that uses styles from another module imports `@plumeria/core` as well;
-that import is how the compiler finds it.
+A file that writes `classStyle` is compiled whether or not it imports
+`@plumeria/core`. A file that hands a style to a component through any other
+prop has to import it; that import is how the compiler finds the file.
 
 ```tsx title="app/page.tsx"
 import '@plumeria/core';
