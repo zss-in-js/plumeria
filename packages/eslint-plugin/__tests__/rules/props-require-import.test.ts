@@ -1,5 +1,38 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { RuleTester } from 'eslint';
+
+const files: string[] = [];
+jest.mock(
+  require.resolve('@rust-gear/glob', {
+    paths: [require('path').join(__dirname, '../../../utils')],
+  }),
+  () => ({ globSync: jest.fn(() => files) }),
+);
+
 import { propsRequireImport } from '../../src/rules/props-require-import';
+
+const DIR = fs.mkdtempSync(path.join(__dirname, 'fixture-'));
+afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
+
+const write = (name: string, source: string) => {
+  const filePath = path.join(DIR, name);
+  fs.writeFileSync(filePath, source);
+  files.push(filePath);
+};
+
+write(
+  'styles.js',
+  `import * as css from '@plumeria/core';
+export const styles = css.create({ a: { color: 'teal' } });
+export const tokens = css.createStatic({ gap: '8px' });
+const main = css.create({ b: { color: 'crimson' } });
+export default main;`,
+);
+write('index.js', `export { styles } from './styles';`);
+write('plain.js', `export const routes = { home: '/' };`);
+
+const APP = path.join(DIR, 'App.jsx');
 
 const ruleTester = new RuleTester({
   languageOptions: {
@@ -14,91 +47,168 @@ const ruleTester = new RuleTester({
 ruleTester.run('props-require-import', propsRequireImport, {
   valid: [
     {
-      // the default name stops being the styling prop once renamed
-      code: '<div classStyle={[styles.foo]} />;',
+      code: `
+          import { styles } from './styles';
+          const el = <div classStyle={styles.a} />;
+        `,
+      filename: APP,
+    },
+    {
+      code: `
+          import { styles } from './styles';
+          const el = <Box sx={styles.a} />;
+        `,
+      filename: APP,
       settings: { plumeria: { styleProp: 'sx' } },
     },
     {
       code: `
-          import * as css from '@plumeria/core';
-          const el = <div classStyle={[styles.foo]} />;
+          import '@plumeria/core';
+          import { styles } from './styles';
+          const el = <Card styleArray={styles.a} />;
         `,
+      filename: APP,
     },
     {
       code: `
-          import { create } from '@plumeria/core';
-          const el = <div classStyle={[styles.foo]} />;
+          import { tokens } from './styles';
+          const el = <Card gap={tokens.gap} />;
         `,
+      filename: APP,
     },
     {
       code: `
-          import * as css from '@plumeria/core';
-          const el = <div className="foo" />;
+          import { routes } from './plain';
+          const el = <Link href={routes.home} />;
         `,
+      filename: APP,
     },
     {
       code: `
-          import React from 'react';
-          const el = <div className="foo" />;
+          import { styles } from './missing';
+          const el = <Card styleArray={styles.a} />;
         `,
+      filename: APP,
     },
     {
       code: `
-          const el = <div className="foo" />;
+          import { nothing } from './styles';
+          const el = <Card styleArray={nothing.a} />;
         `,
+      filename: APP,
+    },
+    {
+      code: `
+          import * as all from './styles';
+          const el = <Card styleArray={all[key]} />;
+        `,
+      filename: APP,
+    },
+    {
+      code: `
+          import { make } from './styles';
+          const el = <Card styleArray={make().a} />;
+        `,
+      filename: APP,
+    },
+    {
+      code: `
+          const local = {};
+          const el = <Card styleArray={local.a} label="x" {...rest} onClick={() => go()} />;
+        `,
+      filename: APP,
+    },
+    {
+      code: `
+          import { styles } from './styles';
+          const el = <rect xlink:href={styles.a} />;
+        `,
+      filename: APP,
     },
   ],
   invalid: [
     {
       code: `
-          const el = <div classStyle={[styles.foo]} />;
+          import { styles } from './styles';
+          const el = <Card styleArray={styles.a} />;
         `,
-      output: `import "@plumeria/core";\n\n          const el = <div classStyle={[styles.foo]} />;\n        `,
+      filename: APP,
+      output: `import "@plumeria/core";\n
+          import { styles } from './styles';
+          const el = <Card styleArray={styles.a} />;
+        `,
       errors: [
         {
-          messageId: 'requiresImport',
+          message:
+            'styleArray passes a style from "./styles", so this file must import "@plumeria/core".',
         },
       ],
     },
     {
       code: `
-          import React from 'react';
-          const el = <div classStyle={[styles.foo]} />;
+          import { styles as s } from './index';
+          const el = <Card styleArray={[s.a, on ? s.a : null, on && s.a]} />;
+          const other = <Card boxStyle={s.a} />;
         `,
-      output: `import "@plumeria/core";\n\n          import React from 'react';\n          const el = <div classStyle={[styles.foo]} />;\n        `,
+      filename: APP,
+      output: `import "@plumeria/core";\n
+          import { styles as s } from './index';
+          const el = <Card styleArray={[s.a, on ? s.a : null, on && s.a]} />;
+          const other = <Card boxStyle={s.a} />;
+        `,
       errors: [
-        {
-          messageId: 'requiresImport',
-        },
+        { messageId: 'requiresImport' },
+        { messageId: 'requiresImport' },
       ],
     },
     {
       code: `
-          import something from 'other-lib';
-          const el = <div classStyle={[styles.foo]} />;
-          const el2 = <span classStyle={[styles.bar]} />;
+          import { "styles" as named } from './styles';
+          const el = <Card styleArray={[, named.a]} />;
         `,
-      output: `import "@plumeria/core";\n\n          import something from 'other-lib';\n          const el = <div classStyle={[styles.foo]} />;\n          const el2 = <span classStyle={[styles.bar]} />;\n        `,
-      errors: [
-        {
-          messageId: 'requiresImport',
-        },
-        {
-          messageId: 'requiresImport',
-        },
-      ],
+      filename: APP,
+      output: `import "@plumeria/core";\n
+          import { "styles" as named } from './styles';
+          const el = <Card styleArray={[, named.a]} />;
+        `,
+      errors: [{ messageId: 'requiresImport' }],
     },
     {
-      code: '<div sx={[styles.foo]} />;',
+      code: `
+          import * as all from './styles';
+          const el = <Card styleArray={all.styles.a} />;
+        `,
+      filename: APP,
+      output: `import "@plumeria/core";\n
+          import * as all from './styles';
+          const el = <Card styleArray={all.styles.a} />;
+        `,
+      errors: [{ messageId: 'requiresImport' }],
+    },
+    {
+      code: `
+          import main from './styles';
+          const el = <Card styleArray={main?.b} />;
+        `,
+      filename: APP,
+      output: `import "@plumeria/core";\n
+          import main from './styles';
+          const el = <Card styleArray={main?.b} />;
+        `,
+      errors: [{ messageId: 'requiresImport' }],
+    },
+    {
+      code: `
+          import { styles } from './styles';
+          const el = <div classStyle={styles.a} />;
+        `,
+      filename: APP,
       settings: { plumeria: { styleProp: 'sx' } },
+      output: `import "@plumeria/core";\n
+          import { styles } from './styles';
+          const el = <div classStyle={styles.a} />;
+        `,
       errors: [{ messageId: 'requiresImport' }],
-      output: 'import "@plumeria/core";\n<div sx={[styles.foo]} />;',
-    },
-    {
-      code: '<div sx={[styles.foo]} />;',
-      options: [{ styleProp: 'sx' }],
-      errors: [{ messageId: 'requiresImport' }],
-      output: 'import "@plumeria/core";\n<div sx={[styles.foo]} />;',
     },
   ],
 });
