@@ -1,0 +1,96 @@
+---
+title: 'Plumeria 19.3'
+description: 'Update: a lightweight parser identifies styling props before compilation and works within the existing scan and bundler caches'
+date: '2026-09-27'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Core maintainer" />
+  <GitHubUser username="Anionix" subtext="Core member" />
+</div>
+
+Plumeria v19.3 adds a lightweight parser for deciding which files need compilation. It recognizes uses of the configured styling prop before the full JavaScript and TypeScript parser runs, and fits into the existing project-scan and bundler caches.
+
+`styleProp` is the configuration option that names this JSX prop. Its default value is `classStyle`: `<div classStyle={styles.root} />` uses the default, while a project configured with `styleProp: 'sx'` writes `<div sx={styles.root} />`. The new parser uses that configured name throughout the scan and transforms.
+
+Previously, the filter only searched for `@plumeria/core`. A file that imported styles from another module still needed a side-effect import to reach the compiler. The new parser gives those files another way in.
+
+---
+
+## 1. Detect the styling prop before parsing the module
+
+The check keeps the existing `@plumeria/core` substring search. Files that match it go straight to compilation. For the remaining files, it uses two steps:
+
+- **Find a candidate.** An `indexOf` search looks for the configured prop name followed by `=` and `{`, allowing whitespace and comments between them. It rejects matches inside a longer name or immediately after a member-access dot.
+- **Read the surrounding syntax.** A small state machine tracks comments, strings, template literals and their expressions, regular expressions, and JSX. This filters out many occurrences that are only example text or string contents.
+
+This is a compilation filter, not a complete JavaScript parser. Several ambiguous or incomplete inputs are passed to the full parser rather than rejected. The state machine uses limited syntax context, so it does not guarantee correct classification of every valid JavaScript form.
+
+The project scan, Turbopack loader and unplugin transforms share this check. The Next.js plugin also broadens its Turbopack content condition so files containing the configured prop name can reach the loader.
+
+### Reuse the existing caches
+
+The lightweight parser has no separate cache. Its caller determines when it runs.
+
+The project scan caches file records by modification time and revisits files when they or relevant dependencies change. Changing `styleProp` also invalidates the scan's cached classification. Bundlers cache module transforms, allowing unchanged, valid cached results to be reused without running the filter again. Dependency and configuration changes can still trigger another check.
+
+### The added cost
+
+In the reported measurement across 553 repository files, the old core-import check took about 0.17 ms and the new filter took about 0.90 ms in total. No file in that sample reached the state machine; the added time came from searching for attribute candidates.
+
+The state machine runs only for a file that reaches this branch, and costs about 47 µs when it does.
+
+### What this enables
+
+A component that imports styles and applies the configured styling prop no longer needs a side-effect core import just to enter compilation:
+
+```diff
+- import '@plumeria/core';
+  import { styles } from './styles';
+
+  export const Header = () => <header classStyle={styles.header} />;
+```
+
+Use the same configured prop when passing styles to another component. With the default configuration, that means `classStyle` at both the call site and the receiving component. Files that call APIs such as `css.create` still import those APIs from `@plumeria/core`.
+
+---
+
+## 2. `custom-props-require-import` follows the style
+
+```tsx
+import { styles } from './styles';
+import { Card } from './Card';
+
+// custom-props-require-import: styleArray passes a style from "./styles",
+// so this file must import "@plumeria/core".
+export const Page = () => <Card styleArray={styles.panel} />;
+```
+
+A component can take a style through a prop of any name, and apply it with `classStyle` on the element it renders. The call site then writes `styleArray={…}`, not `classStyle`, and nothing in that file tells the compiler the value is a style. The import is still how it finds the file — this is the one place where section 1 cannot help.
+
+The rule used to be called `props-require-import`, and it reported the styling prop in a file without the import. That prop no longer needs it, so the rule has moved to the case that does, and its name now says which props it is about. In a file without the import, it looks at every other JSX attribute, follows each value back to its import, and asks the scan whether the export it lands on was created by `css.create`. It follows named, default and namespace imports, files that only re-export, a local `const` that holds the style, and values inside arrays, ternaries, `&&` and optional chains. Names are resolved by scope, so a parameter that happens to share an imported name is not mistaken for it. Its fix adds the import.
+
+It resolves imports and reads the scan through `@plumeria/utils`, the same code the compiler uses, so the linter and the build agree about what a style is. `@plumeria/eslint-plugin` now depends on it; a project that builds with Plumeria already has it installed.
+
+A value that is not a style — a route, a handler, a `css.createStatic` token — is not reported. Neither is an import the resolver cannot find: a lint rule that is unsure stays quiet.
+
+---
+
+## Upgrading
+
+**From 19.2.** Nothing has to change, and you can remove things. A side-effect `import "@plumeria/core"` in a file that only writes `classStyle` is no longer needed, and an `eslint-disable` for `props-require-import` on such a file can go.
+
+`props-require-import` is now `custom-props-require-import`, and the recommended configuration switches over by itself.
+
+The linter may report files it used to pass. Each one is a file that hands a created style to a component through a prop other than the styling prop without importing `@plumeria/core` — a file whose styles were already missing from the output. `plumerialint --fix` adds the import to all of them.
+
+---
+
+## Release notes
+
+## 19.3.0 (Sep 27, 2026)
+- Feat: add a shared lightweight parser for the configured `styleProp` (default: `classStyle`) to the project scan and bundler transforms. It works within their existing caches and lets files applying that prop compile without a side-effect `@plumeria/core` import
+- Feat: `props-require-import` is renamed to `custom-props-require-import`. It reports a file without the `@plumeria/core` import that passes a `css.create` style to a component through any other prop, following the import to the file that defines the style; its fix adds the import. It no longer reports the styling prop
+- `@plumeria/eslint-plugin` depends on `@plumeria/utils`
