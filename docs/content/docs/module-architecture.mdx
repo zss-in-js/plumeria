@@ -88,7 +88,6 @@ the import in every file that uses Plumeria is always safe, and it is the
 fastest path: the compiler accepts such a file without looking any further.
 
 ```tsx title="app/page.tsx"
-import '@plumeria/core';
 import { layout } from '../styles/layout';
 import { text } from '../styles/text';
 
@@ -156,7 +155,6 @@ export const layout = css.create({
 ```
 
 ```tsx title="app/page.tsx"
-import '@plumeria/core';
 import { layout } from '../styles/layout';
 
 export default function Page() {
