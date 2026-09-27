@@ -244,8 +244,7 @@ ruleTesterNoType.run('validate-pseudos', validatePseudos, {
     {
       code: `
         import * as css from '@plumeria/core';
-        // Checked node starts with ':' is valid, but computed is skipped when no type info
-        const invalidHv = ':hovver' as const;
+        let invalidHv = ':hovver';
         css.create({
           button: {
             [invalidHv]: { color: 'red' }
@@ -255,6 +254,18 @@ ruleTesterNoType.run('validate-pseudos', validatePseudos, {
     },
   ],
   invalid: [
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const invalidHv = ':hovver' as const;
+        css.create({
+          button: {
+            [invalidHv]: { color: 'red' }
+          }
+        });
+      `,
+      errors: [{ messageId: 'invalidPseudo' }],
+    },
     {
       code: `
         import * as css from '@plumeria/core';
