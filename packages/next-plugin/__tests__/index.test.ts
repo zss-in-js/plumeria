@@ -294,8 +294,39 @@ describe('withPlumeria', () => {
 
     it('applies a condition on next 16 and up', () => {
       expect(ruleFor(withPlumeria()).condition).toEqual({
-        all: [{ not: 'foreign' }, { content: /@plumeria\/core|classStyle/ }],
+        all: [
+          { not: 'foreign' },
+          { content: /@plumeria\/core|(?:^|[^\w.])classStyle\b/ },
+        ],
       });
+    });
+
+    it.each([
+      ['an attribute', '<Box sx={a} />', true],
+      ['an attribute at the start of the file', 'sx={a}', true],
+      ['whitespace before the equals sign', '<Box sx = {a} />', true],
+      ['a comment before the equals sign', '<Box sx /* c */={a} />', true],
+      ['the core import', "import '@plumeria/core';", true],
+      ['the name inside a longer word', "import App from './App.tsx';", false],
+      ['a member of the same name', 'box.sx = {};', false],
+      ['a longer name', '<Box sxs={a} />', false],
+    ])('matches %s: %s', (_, source, expected) => {
+      const { content } = (
+        ruleFor(withPlumeria({}, { styleProp: 'sx' })).condition as {
+          all: [unknown, { content: RegExp }];
+        }
+      ).all[1];
+      expect(content.test(source)).toBe(expected);
+    });
+
+    it('keeps a name that ends in a dollar sign without a word boundary', () => {
+      const { content } = (
+        ruleFor(withPlumeria({}, { styleProp: 'sx$' })).condition as {
+          all: [unknown, { content: RegExp }];
+        }
+      ).all[1];
+      expect(content.test('<Box sx$={a} />')).toBe(true);
+      expect(content.test('<Box tsx$={a} />')).toBe(false);
     });
 
     it('lets a file that only writes the styling prop reach the loader', () => {
