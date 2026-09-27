@@ -10,7 +10,7 @@ jest.mock(
   () => ({ globSync: jest.fn(() => files) }),
 );
 
-import { propsRequireImport } from '../../src/rules/props-require-import';
+import { customPropsRequireImport } from '../../src/rules/custom-props-require-import';
 
 const DIR = fs.mkdtempSync(path.join(__dirname, 'fixture-'));
 afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
@@ -44,7 +44,7 @@ const ruleTester = new RuleTester({
   },
 });
 
-ruleTester.run('props-require-import', propsRequireImport, {
+ruleTester.run('custom-props-require-import', customPropsRequireImport, {
   valid: [
     {
       code: `
