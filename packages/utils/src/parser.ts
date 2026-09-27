@@ -381,7 +381,7 @@ export function objectExpressionToObject(
           );
           if (member === undefined)
             throw new Error(
-              `[plumeria] Unknown style member on ${root}: ${expressionLabel(val)} is not defined in ${root}.`,
+              `[plumeria] Unknown style member on ${root}: ${expressionLabel(val)} does not exist.`,
             );
           obj[key] = member;
           return;
@@ -957,7 +957,7 @@ function evaluateTemplateLiteral(
       );
       if (evaluatedExpr === null || typeof evaluatedExpr === 'object')
         throw new Error(
-          `[plumeria] Template value cannot be resolved to a primitive: \${${expressionLabel(expr as Expression)}} must resolve to a string or number at build time.`,
+          `[plumeria] Template value cannot be resolved to a primitive: a \${} value resolved to ${evaluatedExpr === null ? 'null' : 'an object'}. It must be a string or number at build time.`,
         );
       result += String(evaluatedExpr);
     }
