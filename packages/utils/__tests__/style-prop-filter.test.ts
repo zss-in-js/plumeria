@@ -24,6 +24,19 @@ describe('usesStyleProp: an attribute it has to find', () => {
       'a less-than sign that does not open a tag',
       'const x = y = < 3; <div sx={a} />',
     ],
+    ['a block comment before the equals sign', '<div sx /* c */ = {a} />'],
+    ['a block comment after the equals sign', '<div sx= /* c */ {a} />'],
+    ['a line comment before the equals sign', '<div sx // c\n = {a} />'],
+    ['a line comment after the equals sign', '<div sx = // c\n {a} />'],
+    ['a vertical tab before the equals sign', '<div sx\v={a} />'],
+    [
+      'a block comment in a tag holding > and a quote',
+      "<div /* > it's */ sx={a} />",
+    ],
+    [
+      'a line comment in a tag holding > and a quote',
+      "<div // > it's\n sx={a} />",
+    ],
     ['a string holding a brace', "const s = '{'; <div sx={a} />"],
     ['a string holding an escaped quote', "const s = 'it\\'s'; <div sx={a} />"],
     [
@@ -69,6 +82,12 @@ describe('usesStyleProp: text that only looks like the attribute', () => {
     ['a name without an equals sign', 'const sx = 1; sx + {};'],
     ['a line comment at the end', 'const x = 1; // sx={a}'],
     ['a regex holding the attribute', 'const r = /sx={a}/;'],
+    ['an unterminated comment before the equals sign', '<div sx /* = {a} />'],
+    [
+      'an unterminated line comment after the equals sign',
+      '<div sx = // {a} />',
+    ],
+    ['a longer name followed by the equals sign', '<div sxx={a} />'],
   ])('%s', (_, source) => {
     expect(uses(source)).toBe(false);
   });
@@ -93,6 +112,8 @@ describe('usesStyleProp: input it cannot read sends the file to the parser', () 
     ['an unterminated template expression', '`${x}` + `${ sx={a}'],
     ['a closing brace with nothing open', '}; // sx={a}'],
     ['an unterminated attribute string', '<p title="x // sx={a}'],
+    ['an unterminated block comment in a tag', '<p /* sx={a}'],
+    ['an unterminated line comment in a tag', '<p // sx={a}'],
     ['an unterminated closing tag', '<p></p // sx={a}'],
   ])('%s', (_, source) => {
     expect(uses(source)).toBe(true);
