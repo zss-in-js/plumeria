@@ -387,7 +387,7 @@ export const transformSource = async (
     }
   };
 
-  const scannedTables = scanOverlay();
+  const scannedTables = scanOverlay(undefined, styleProp);
   const ownFailure = resolveFileError(baseId, '');
   if (ownFailure) throwCompilationError(`[plumeria] ${ownFailure.message}`);
 
