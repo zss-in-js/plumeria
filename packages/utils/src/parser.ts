@@ -107,6 +107,21 @@ export const getRootIdentifier = (node: Expression): string | null => {
   return null;
 };
 
+const expressionLabel = (node: Expression): string => {
+  node = unwrapExpression(node);
+  if (t.isIdentifier(node)) return node.value;
+  if (t.isStringLiteral(node)) return `'${node.value}'`;
+  if (t.isNumericLiteral(node)) return String(node.value);
+  if (t.isMemberExpression(node)) {
+    const property = node.property;
+    if (property.type === 'Identifier')
+      return `${expressionLabel(node.object)}.${property.value}`;
+    if (property.type === 'Computed')
+      return `${expressionLabel(node.object)}[${expressionLabel(property.expression)}]`;
+  }
+  return 'an expression';
+};
+
 const getNamespaceMember = (
   node: Expression,
   rootName: string,
@@ -365,7 +380,9 @@ export function objectExpressionToObject(
             }),
           );
           if (member === undefined)
-            throw new Error(`[plumeria] Unknown style member on ${root}.`);
+            throw new Error(
+              `[plumeria] Unknown style member on ${root}: ${expressionLabel(val)} is not defined in ${root}.`,
+            );
           obj[key] = member;
           return;
         }
@@ -940,7 +957,7 @@ function evaluateTemplateLiteral(
       );
       if (evaluatedExpr === null || typeof evaluatedExpr === 'object')
         throw new Error(
-          '[plumeria] Template value cannot be resolved to a primitive.',
+          `[plumeria] Template value cannot be resolved to a primitive: \${${expressionLabel(expr as Expression)}} must resolve to a string or number at build time.`,
         );
       result += String(evaluatedExpr);
     }
@@ -1047,7 +1064,9 @@ function evaluateBinaryExpression(
     );
   }
 
-  throw new Error(`[plumeria] Unsupported binary operator: ${node.operator}`);
+  throw new Error(
+    `[plumeria] Unsupported binary operator: ${node.operator}. Use arithmetic, bitwise, &&, ||, or ?? operators, which can be resolved at build time.`,
+  );
 }
 
 /* istanbul ignore next */
@@ -1187,7 +1206,9 @@ function evaluateExpression(
       }
     }
 
-    throw new Error(`[plumeria] Cannot resolve static value: ${node.value}`);
+    throw new Error(
+      `[plumeria] Cannot resolve static value: ${node.value}. Declare it with const in this file or import it from a module plumeria can read.`,
+    );
   }
 
   if (t.isMemberExpression(node)) {
@@ -1213,7 +1234,9 @@ function evaluateExpression(
       return resolvedStatic;
     }
 
-    throw new Error('[plumeria] Cannot resolve static member expression.');
+    throw new Error(
+      `[plumeria] Cannot resolve static member expression: ${expressionLabel(node)}. Its object must be a const or a value created by css.createStatic or css.createTheme.`,
+    );
   }
 
   if (t.isBinaryExpression(node)) {
@@ -1260,7 +1283,7 @@ function evaluateExpression(
       if (node.operator === '~') return ~value;
     }
     throw new Error(
-      `[plumeria] Unsupported unary operand for ${node.operator}`,
+      `[plumeria] Unsupported unary operand for ${node.operator}: ${expressionLabel(node.argument)} must resolve to a number at build time.`,
     );
   }
 
@@ -1277,7 +1300,9 @@ function evaluateExpression(
     );
   }
 
-  throw new Error(`[plumeria] Unsupported expression type: ${node.type}`);
+  throw new Error(
+    `[plumeria] Unsupported expression type: ${node.type}. Style values must be literals, consts, or arithmetic and template expressions of them.`,
+  );
 }
 
 function resolveKeyframesTableMemberExpression(
@@ -2352,7 +2377,7 @@ function runScan(scanCwd: string = process.cwd()): Tables {
                   );
                   if (!selector)
                     throw new Error(
-                      '[plumeria] createTheme requires a statically resolvable non-empty selector.',
+                      '[plumeria] createTheme needs a non-empty selector it can read at build time. Pass a string literal such as ".dark", or a name this file declares as one.',
                     );
                   const hash = themeHashOf(selector, obj);
                   localTables.createThemeObjectTable[hash] = obj;
