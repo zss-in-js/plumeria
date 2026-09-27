@@ -28,6 +28,7 @@ export {
   resolveComponentKey,
   resolveThemeSelector,
 } from './parser';
+export { resolveExportValue } from './constValue';
 export type { StyleRecord } from './create';
 export { getStyleRecords } from './create';
 export type {
