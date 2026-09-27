@@ -1,5 +1,11 @@
 # @plumeria/init
 
+## 19.4.0
+
+### Minor Changes
+
+- f97cb91: Bump version to 19.4.0
+
 ## 19.3.0
 
 ### Minor Changes
