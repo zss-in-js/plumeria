@@ -20,7 +20,7 @@ export async function acquireLock(
         const remaining = timeoutMs - (Date.now() - started);
         if (remaining <= 0) {
           throw new Error(
-            `Plumeria: Timed out waiting for CSS lock "${lockDir}". If no build is running, remove the stale lock directory and retry.`,
+            `[plumeria] Timed out waiting for CSS lock "${lockDir}". If no build is running, remove the stale lock directory and retry.`,
             { cause: err },
           );
         }
