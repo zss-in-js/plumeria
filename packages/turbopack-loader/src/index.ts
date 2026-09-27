@@ -5,6 +5,7 @@ import {
   resolvePropertyPolicy,
   transformSource,
   DEFAULT_STYLE_PROP,
+  needsCompile,
 } from '@plumeria/utils';
 import type { PropertyPolicyOptions } from '@plumeria/utils';
 import { compileCSS } from '@plumeria/compiler';
@@ -97,7 +98,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
   if (
     resourcePath.includes('node_modules') ||
-    !source.includes('@plumeria/core')
+    !needsCompile(source, styleProp, resourcePath)
   ) {
     return callback(null, source);
   }
