@@ -2,7 +2,7 @@
  * @fileoverview Require the @plumeria/core import in files that pass a style through a prop other than the styling prop
  */
 
-import type { Rule } from 'eslint';
+import type { Rule, Scope } from 'eslint';
 import type { ImportDeclaration } from 'estree';
 import type { JSXAttribute } from 'estree-jsx';
 import { resolveExport, resolveImportPath, scanAll } from '@plumeria/utils';
@@ -62,6 +62,7 @@ const styleRoots = (node: unknown, roots: StyleRoot[]): StyleRoot[] => {
 };
 
 const SCAN_REUSE_MS = 1000;
+const MAX_ALIAS_DEPTH = 4;
 let recentScan:
   | { key: string; at: number; tables: ReturnType<typeof scanAll> }
   | undefined;
@@ -97,13 +98,49 @@ export const propsRequireImport: Rule.RuleModule = {
     const styleProp = resolveStyleProp(context);
     const filename = context.filename;
     const imports = new Map<string, ImportedBinding>();
-    const candidates: { node: Rule.Node; prop: string; roots: StyleRoot[] }[] =
-      [];
+    const candidates: {
+      node: Rule.Node;
+      prop: string;
+      roots: StyleRoot[];
+      scope: Scope.Scope;
+    }[] = [];
     let hasPlumeriaImport = false;
 
+    const findVariable = (scope: Scope.Scope | null, name: string) => {
+      for (let current = scope; current; current = current.upper) {
+        const variable = current.set.get(name);
+        if (variable) return variable;
+      }
+      return undefined;
+    };
+
+    const importedRoots = (
+      roots: StyleRoot[],
+      scope: Scope.Scope,
+      depth: number,
+    ): StyleRoot[] =>
+      roots.flatMap((root) => {
+        const definition = findVariable(scope, root.name)?.defs[0];
+        if (!definition) return [];
+        if (definition.type === 'ImportBinding') return [root];
+        const declarator = definition.node as { init?: unknown };
+        if (
+          definition.type === 'Variable' &&
+          definition.parent?.kind === 'const' &&
+          declarator.init &&
+          depth < MAX_ALIAS_DEPTH
+        ) {
+          return importedRoots(
+            styleRoots(declarator.init, []),
+            context.sourceCode.getScope(definition.node),
+            depth + 1,
+          );
+        }
+        return [];
+      });
+
     const isStyle = (root: StyleRoot) => {
-      const binding = imports.get(root.name);
-      if (!binding) return null;
+      const binding = imports.get(root.name)!;
       const exportName = binding.importedName ?? root.member;
       if (!exportName) return null;
       const actualPath = resolveImportPath(binding.source, filename);
@@ -148,13 +185,21 @@ export const propsRequireImport: Rule.RuleModule = {
         if (prop === styleProp) return;
         if (node.value?.type !== 'JSXExpressionContainer') return;
         const roots = styleRoots(node.value.expression, []);
-        if (roots.length > 0) candidates.push({ node, prop, roots });
+        if (roots.length > 0)
+          candidates.push({
+            node,
+            prop,
+            roots,
+            scope: context.sourceCode.getScope(node),
+          });
       },
       'Program:exit'() {
         if (hasPlumeriaImport || candidates.length === 0) return;
         let fixed = false;
-        for (const { node, prop, roots } of candidates) {
-          const source = roots.map(isStyle).find((found) => found !== null);
+        for (const { node, prop, roots, scope } of candidates) {
+          const source = importedRoots(roots, scope, 0)
+            .map(isStyle)
+            .find((found) => found !== null);
           if (!source) continue;
           const first = !fixed;
           fixed = true;
