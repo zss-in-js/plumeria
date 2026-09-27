@@ -83,7 +83,9 @@ export const text = css.create({
 
 A file that writes `classStyle` is compiled whether or not it imports
 `@plumeria/core`. A file that hands a style to a component through any other
-prop has to import it; that import is how the compiler finds the file.
+prop has to import it; that import is how the compiler finds the file. Keeping
+the import in every file that uses Plumeria is always safe, and it is the
+fastest path: the compiler accepts such a file without looking any further.
 
 ```tsx title="app/page.tsx"
 import '@plumeria/core';
