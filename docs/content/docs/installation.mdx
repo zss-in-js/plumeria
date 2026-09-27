@@ -64,7 +64,7 @@ ESLint is optional. Skip to your bundler: [Next.js](/docs/installation#nextjs) /
 ## ESLint Setup
 
 [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) sorts and formats style properties and reports invalid values and selectors.
-`projectService` lets the selector rules use TypeScript type information; the [plugin reference](/docs/api-reference/plugins/eslint-plugin) lists every rule.
+The [plugin reference](/docs/api-reference/plugins/eslint-plugin) lists every rule.
 
 ```ts
 import eslint from '@eslint/js';
@@ -76,12 +76,6 @@ export default defineConfig(
   eslint.configs.recommended,
   tseslint.configs.recommended,
   plumeria.configs.recommended,
-  {
-    files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      parserOptions: { projectService: true },
-    },
-  }
 );
 ```
 
