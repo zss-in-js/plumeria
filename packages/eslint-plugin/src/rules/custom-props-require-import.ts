@@ -80,7 +80,7 @@ const scanTables = (cwd: string, styleProp: string) => {
   return recentScan.tables;
 };
 
-export const propsRequireImport: Rule.RuleModule = {
+export const customPropsRequireImport: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
