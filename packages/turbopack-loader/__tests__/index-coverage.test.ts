@@ -12,6 +12,7 @@ let mockTemporaryCss: string | undefined;
 jest.mock('@plumeria/compiler', () => ({ compileCSS: mockCompileCSS }));
 jest.mock('@plumeria/utils', () => ({
   DEFAULT_STYLE_PROP: 'classStyle',
+  needsCompile: jest.requireActual('@plumeria/utils').needsCompile,
   optimizer: async (css: string) => css,
   resolvePropertyPolicy: () => ({}),
   transformSource: mockTransformSource,
