@@ -72,7 +72,11 @@ severity shown in [Recommended configuration](#recommended-configuration).
 
 ### props-require-import
 
-Disallow the styling prop in files without a `@plumeria/core` import.
+Require the `@plumeria/core` import in a file that passes a `css.create` style to a
+component through a prop other than the styling prop. The compiler cannot tell that
+such a prop carries a style, so it compiles the file only when the file imports
+`@plumeria/core`. A file that writes the styling prop itself is compiled without
+the import.
 
 Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-styling-prop).
 
