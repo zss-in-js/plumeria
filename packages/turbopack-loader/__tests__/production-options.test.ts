@@ -4,7 +4,10 @@ import * as path from 'path';
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
 const mockCompileCSS = jest.fn(() => '');
-jest.mock('@plumeria/compiler', () => ({ compileCSS: mockCompileCSS }));
+jest.mock('@plumeria/compiler', () => ({
+  ...jest.requireActual('@plumeria/compiler'),
+  compileCSS: mockCompileCSS,
+}));
 
 // The production path writes the shared zero-virtual.css and takes its lock.
 // Other suites drive the same file, so this one keeps away from both: only the
