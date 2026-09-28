@@ -13,7 +13,7 @@ ignore = "0.4"
 indexmap = "2"
 lightningcss = { version = "=1.0.0-alpha.72", default-features = false }
 napi = { version = "3", features = ["napi8", "serde-json"] }
-napi-derive = "3"
+napi-derive = "=3.6.0"
 oxc_allocator = "0.146.0"
 oxc_ast = "0.146.0"
 oxc_ast_visit = "0.146.0"
@@ -27,7 +27,7 @@ ryu-js = "1"
 serde_json = { version = "1", features = ["preserve_order"] }
 
 [build-dependencies]
-napi-build = "2"
+napi-build = "=2.3.2"
 
 [profile.release]
 lto = "fat"
