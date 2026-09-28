@@ -1,10 +1,10 @@
 jest.mock('@plumeria/compiler', () => ({
   DEFAULT_STYLE_PROP: 'classStyle',
   needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
-  optimizer: jest.fn(async (css: string) => css),
+  optimizer: jest.fn((css: string) => css),
   resolvePropertyPolicy: jest.fn(() => ({ policy: true })),
   transformSource: jest.fn(
-    async ({
+    ({
       source,
       addDependency,
     }: {
@@ -177,7 +177,7 @@ it('falls back to empty CSS for a formatter and handles an empty first pass', as
   const plugin = createPlugin();
   const formatter = jest.fn(() => '');
   plugin.__plumeriaInternal.setCssImport(formatter);
-  mockOptimizer.mockResolvedValueOnce(undefined);
+  mockOptimizer.mockReturnValueOnce(undefined);
 
   await plugin.transform.handler(SOURCE, '/project/Card.ts');
   expect(formatter).toHaveBeenCalledWith(expect.objectContaining({ css: '' }));
@@ -203,4 +203,5 @@ it('accumulates development CSS and keeps re-added sheets latest', async () => {
     plugin.__plumeriaInternal.devCssSheets.get('/project/Card.zero.css'),
   ).toEqual(new Set(['.second {}', '.generated {}']));
   expect(mockOptimizer).toHaveBeenLastCalledWith('.second {}.generated {}');
+  expect(mockOptimizer).toHaveBeenCalledTimes(3);
 });
