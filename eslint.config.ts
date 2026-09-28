@@ -8,7 +8,14 @@ export default defineConfig(
   tseslint.configs.recommended,
   plumeria.configs.recommended,
   {
-    ignores: ['**/dist/**', '**/vite-plugin/**', '**/.*/**', '**/*.js'],
+    ignores: [
+      '**/dist/**',
+      '**/vite-plugin/**',
+      '**/.*/**',
+      '**/*.js',
+      'packages/compiler/index.d.ts',
+      'packages/compiler/wasi-worker*.mjs',
+    ],
   },
   {
     files: ['**/*.{mjs,cjs}'],
