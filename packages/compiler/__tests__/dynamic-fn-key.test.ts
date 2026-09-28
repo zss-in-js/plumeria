@@ -5,19 +5,15 @@ import * as path from 'path';
 const FIXTURE_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-'));
 const FIXTURE_PATH = path.join(FIXTURE_DIR, 'fixture.tsx');
 
-jest.mock('@rust-gear/glob', () => ({
-  globSync: jest.fn((pattern: string | string[]) =>
-    (Array.isArray(pattern) ? pattern : [pattern]).includes('fixture.tsx')
-      ? [FIXTURE_PATH]
-      : [],
-  ),
-}));
-
-import { compileCSS } from '../src/index';
+import { compileCSS } from '../index';
 
 const compile = (body: string) => {
   fs.writeFileSync(FIXTURE_PATH, body, 'utf-8');
-  return compileCSS({ include: ['fixture.tsx'], exclude: ['**'] });
+  return compileCSS({
+    cwd: FIXTURE_DIR,
+    include: ['fixture.tsx'],
+    exclude: [],
+  });
 };
 
 afterAll(() => fs.rmSync(FIXTURE_DIR, { recursive: true, force: true }));
