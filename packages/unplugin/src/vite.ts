@@ -200,7 +200,7 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
       if (!isRsc || !isBuild) return;
       if (this.environment?.name !== 'rsc') return;
 
-      const source = await optimizer(
+      const source = optimizer(
         [...cssLookup.keys()]
           .sort()
           .map((key) => cssLookup.get(key))
