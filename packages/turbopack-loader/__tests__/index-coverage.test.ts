@@ -9,10 +9,10 @@ const mockWriteFileSync = jest.fn();
 let mockSharedCss: string | undefined;
 let mockTemporaryCss: string | undefined;
 
-jest.mock('@plumeria/compiler', () => ({ compileCSS: mockCompileCSS }));
-jest.mock('@plumeria/utils', () => ({
+jest.mock('@plumeria/compiler', () => ({
+  compileCSS: mockCompileCSS,
   DEFAULT_STYLE_PROP: 'classStyle',
-  needsCompile: jest.requireActual('@plumeria/utils').needsCompile,
+  needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
   optimizer: async (css: string) => css,
   resolvePropertyPolicy: () => ({}),
   transformSource: mockTransformSource,
