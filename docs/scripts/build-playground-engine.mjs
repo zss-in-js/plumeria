@@ -56,7 +56,7 @@ const stubPlugin = {
 
     build.onResolve({ filter: /^(node:)?path$/ }, () => ({ path: pathPolyfill }));
 
-    build.onResolve({ filter: /^@plumeria\/utils$/ }, () => ({ path: utilsShim }));
+    build.onResolve({ filter: /^@plumeria\/(utils|compiler)$/ }, () => ({ path: utilsShim }));
 
     build.onResolve({ filter: /config-loader$/ }, ({ importer }) => {
       return importer.includes(`${sep}eslint${sep}lib${sep}`) ? { path: stub } : null;
