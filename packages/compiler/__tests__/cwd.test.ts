@@ -6,18 +6,7 @@ const FIXTURE_DIR = fs.realpathSync(
   fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-')),
 );
 
-// `rs.globSync` returns paths relative to `cwd`, so the mock does too. Reading
-// one of them without resolving it against `cwd` only works while `cwd` is
-// also the process directory, which is the case this file is here to rule out.
-jest.mock('@rust-gear/glob', () => ({
-  globSync: jest.fn((pattern: string | string[]) =>
-    (Array.isArray(pattern) ? pattern : [pattern]).includes('fixture.tsx')
-      ? ['fixture.tsx']
-      : [],
-  ),
-}));
-
-import { compileCSS } from '../src/index';
+import { compileCSS } from '../index';
 
 const SOURCE = `
 import * as css from '@plumeria/core';
@@ -38,7 +27,7 @@ describe('compiler: cwd', () => {
 
     const css = compileCSS({
       include: ['fixture.tsx'],
-      exclude: ['**'],
+      exclude: [],
       cwd: FIXTURE_DIR,
     });
 
