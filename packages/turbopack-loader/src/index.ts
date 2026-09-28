@@ -6,9 +6,9 @@ import {
   transformSource,
   DEFAULT_STYLE_PROP,
   needsCompile,
-} from '@plumeria/utils';
-import type { PropertyPolicyOptions } from '@plumeria/utils';
-import { compileCSS } from '@plumeria/compiler';
+  compileCSS,
+} from '@plumeria/compiler';
+import type { PropertyPolicyOptions } from '@plumeria/compiler';
 import { splitCssRules } from './split-css-rules';
 import { acquireLock, releaseLockSync } from './file-lock';
 
