@@ -2,12 +2,29 @@ jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 // The loader compiles to `__importStar(require('fs'))`, so it captures a copy of
 // the namespace: jest.spyOn(fs, ...) from here would patch a different object.
 // Mocking the module keeps one shared jest.fn that both sides call through.
+// Every path under the package's zero-virtual.css (the file, its lock and temp
+// files) is also redirected into a private directory, so suites writing the
+// shared file from parallel workers cannot change what this suite reads back.
 jest.mock('fs', () => {
   const actual = jest.requireActual('fs');
-  return { ...actual, writeFileSync: jest.fn(actual.writeFileSync) };
+  const through =
+    (fn: Function) =>
+    (p: unknown, ...rest: unknown[]) =>
+      fn(mockPrivatePath(p), ...rest);
+  return {
+    ...actual,
+    existsSync: through(actual.existsSync),
+    mkdirSync: through(actual.mkdirSync),
+    readFileSync: through(actual.readFileSync),
+    rmdirSync: through(actual.rmdirSync),
+    renameSync: (from: unknown, to: unknown) =>
+      actual.renameSync(mockPrivatePath(from), mockPrivatePath(to)),
+    writeFileSync: jest.fn(through(actual.writeFileSync)),
+  };
 });
 
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import loader from '../src/index';
 
@@ -24,6 +41,14 @@ import loader from '../src/index';
 
 const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
 const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
+const mockPrivateDir = fs.mkdtempSync(
+  path.join(os.tmpdir(), 'plumeria-write-failure-'),
+);
+const mockPrivatePath = (p: unknown) =>
+  typeof p === 'string' && p.startsWith(VIRTUAL_FILE_PATH)
+    ? path.join(mockPrivateDir, 'zero-virtual.css') +
+      p.slice(VIRTUAL_FILE_PATH.length)
+    : p;
 
 const moduleUsing = (color: string) => `import * as css from '@plumeria/core';
 const styles = css.create({ box: { color: '${color}' } });
@@ -31,6 +56,7 @@ export const Box = () => <div classStyle={styles.box} />;
 `;
 
 const writeFileSyncMock = fs.writeFileSync as unknown as jest.Mock;
+const writeThrough = writeFileSyncMock.getMockImplementation()!;
 
 /** Resolves with the error the loader reported, or null on success. */
 const runLoader = (source: string): Promise<Error | null> =>
@@ -56,19 +82,17 @@ const failNextWrite = (code: string) => {
 };
 
 describe('shared virtual CSS write failure', () => {
-  let backup: string;
+  afterAll(() => {
+    fs.rmSync(mockPrivateDir, { recursive: true, force: true });
+  });
 
   beforeEach(() => {
-    backup = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
     jest.replaceProperty(process.env, 'NODE_ENV', 'development');
   });
 
   afterEach(() => {
     writeFileSyncMock.mockReset();
-    writeFileSyncMock.mockImplementation(
-      jest.requireActual('fs').writeFileSync,
-    );
-    fs.writeFileSync(VIRTUAL_FILE_PATH, backup, 'utf-8');
+    writeFileSyncMock.mockImplementation(writeThrough);
   });
 
   it('restores the file and surfaces the error', async () => {
