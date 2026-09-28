@@ -1,9 +1,38 @@
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
+// Every path under the package's zero-virtual.css (the file, its lock and temp
+// files) is redirected into a private directory, so suites writing the shared
+// file from parallel workers cannot change what this suite reads back.
+jest.mock('fs', () => {
+  const actual = jest.requireActual('fs');
+  const through =
+    (fn: Function) =>
+    (p: unknown, ...rest: unknown[]) =>
+      fn(mockPrivatePath(p), ...rest);
+  return {
+    ...actual,
+    existsSync: through(actual.existsSync),
+    mkdirSync: through(actual.mkdirSync),
+    readFileSync: through(actual.readFileSync),
+    rmdirSync: through(actual.rmdirSync),
+    renameSync: (from: unknown, to: unknown) =>
+      actual.renameSync(mockPrivatePath(from), mockPrivatePath(to)),
+    writeFileSync: through(actual.writeFileSync),
+  };
+});
 
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
 const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
+const mockPrivateDir = fs.mkdtempSync(
+  path.join(os.tmpdir(), 'plumeria-theme-hmr-'),
+);
+const mockPrivatePath = (p: unknown) =>
+  typeof p === 'string' && p.startsWith(VIRTUAL_FILE_PATH)
+    ? path.join(mockPrivateDir, 'zero-virtual.css') +
+      p.slice(VIRTUAL_FILE_PATH.length)
+    : p;
 
 type Loader = (this: unknown, source: string) => Promise<void>;
 
@@ -74,17 +103,14 @@ const expectOneSelectorPerVariable = (css: string): void => {
 };
 
 describe('createTheme edits in the shared dev CSS file', () => {
-  let backup: string;
+  afterAll(() => {
+    fs.rmSync(mockPrivateDir, { recursive: true, force: true });
+  });
 
   beforeEach(() => {
     jest.resetModules();
-    backup = fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8');
     fs.writeFileSync(VIRTUAL_FILE_PATH, '', 'utf-8');
     jest.replaceProperty(process.env, 'NODE_ENV', 'development');
-  });
-
-  afterEach(() => {
-    fs.writeFileSync(VIRTUAL_FILE_PATH, backup, 'utf-8');
   });
 
   it('gives the new selector a variable of its own', async () => {
