@@ -26,7 +26,7 @@ function getLibc(platform: string): string[] | undefined {
   const parts = platform.split('-');
   if (parts.length !== 3) return undefined;
   if (parts[2] === 'musl') return ['musl'];
-  if (parts[2] === 'gnu') return ['glibc'];
+  if (parts[2].startsWith('gnu')) return ['glibc'];
   return undefined;
 }
 
