@@ -1,12 +1,13 @@
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
-import { readFile, stat, writeFile } from 'node:fs/promises';
-import { join, sep } from 'node:path';
+import { copyFile, readFile, stat, writeFile } from 'node:fs/promises';
+import { dirname, join, sep } from 'node:path';
 
 const root = process.cwd();
 const stub = join(root, 'lib', 'node-stub.cjs');
 const pathPolyfill = createRequire(import.meta.url).resolve('path-browserify');
 const utilsShim = join(root, 'app', '(home)', 'playground', 'utils-shim.ts');
+const compilerWasm = dirname(createRequire(import.meta.url).resolve('@plumeria/compiler-wasm32-wasi/package.json'));
 
 const nodeBuiltins = [
   'fs',
@@ -142,6 +143,20 @@ await build({
   target: 'es2022',
   plugins: [stubPlugin],
   define: { 'process.env.NODE_ENV': '"production"' },
+  logLevel: 'error',
+});
+
+await copyFile(join(compilerWasm, 'compiler.wasm32-wasi.wasm'), join(previewDir, 'compiler.wasm32-wasi.wasm'));
+
+await build({
+  entryPoints: [join(compilerWasm, 'wasi-worker-browser.mjs')],
+  outfile: join(previewDir, 'wasi-worker-browser.mjs'),
+  bundle: true,
+  format: 'esm',
+  minify: true,
+  platform: 'browser',
+  target: 'es2022',
+  plugins: [stubPlugin],
   logLevel: 'error',
 });
 
