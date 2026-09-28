@@ -1,10 +1,10 @@
 jest.mock('@plumeria/compiler', () => ({
   DEFAULT_STYLE_PROP: 'classStyle',
   needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
-  optimizer: jest.fn(async (css: string) => css),
+  optimizer: jest.fn((css: string) => css),
   resolvePropertyPolicy: () => ({}),
   scanAll: jest.fn(() => ({ componentPropsTable: {} })),
-  transformSource: async ({ source }: { source: string }) => ({
+  transformSource: ({ source }: { source: string }) => ({
     code: 'transformed',
     sheets: [source.includes('blue') ? '.box { color: blue; }' : '.box {}'],
   }),
@@ -240,7 +240,7 @@ it('does not emit an empty RSC stylesheet or run build hooks outside RSC', async
 
   const rscPlugin = vite() as any;
   rscPlugin.config({ plugins: [{ name: 'rsc' }] }, { command: 'build' });
-  mockOptimizer.mockResolvedValueOnce('');
+  mockOptimizer.mockReturnValueOnce('');
   await rscPlugin.buildEnd.call({ environment: { name: 'rsc' }, emitFile });
   expect(emitFile).not.toHaveBeenCalled();
 });
