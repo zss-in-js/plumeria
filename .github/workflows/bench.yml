@@ -106,7 +106,7 @@ jobs:
       - name: Record the parse call verdict
         run: printf '%s' '${{ steps.bench.outputs.regressed }}' > "regressed-${{ matrix.id }}.txt"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: bench-${{ matrix.id }}
           path: |
@@ -118,7 +118,7 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: bench-*
           merge-multiple: true
