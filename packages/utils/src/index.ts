@@ -62,3 +62,4 @@ export { resolvePropertyPolicy, assertPropertyPolicy } from './propertyPolicy';
 export type { TransformEnv, TransformOutput } from './transform';
 export { transformSource } from './transform';
 export { needsCompile } from './stylePropFilter';
+export { compileCSS } from './compile';
