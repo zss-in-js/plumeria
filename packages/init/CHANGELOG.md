@@ -1,5 +1,11 @@
 # @plumeria/init
 
+## 19.5.1
+
+### Patch Changes
+
+- 037b7d9: Bump version to 19.5.1
+
 ## 19.5.0
 
 ### Minor Changes
