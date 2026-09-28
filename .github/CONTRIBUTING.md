@@ -14,7 +14,7 @@ Our project uses `pnpm`. Here's how you can set it up:
 
 ## Package Structure
 
-- **@plumeria/compiler**: This package uses `@plumeria/utils` to compile Plumeria.
+- **@plumeria/compiler**: The Rust (napi-rs) scanner, transformer and compiler that the bundler integrations use.
 - **@plumeria/core**: This package is the core package that defines types only.
 - **@plumeria/eslint-plugin**: This package contains the eslint rules to keep Plumeria code clean.
 - **@plumeria/next-plugin**: This package contains the Next.js plugin for integrating Plumeria.
