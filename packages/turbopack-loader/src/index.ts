@@ -42,7 +42,7 @@ async function generateProductionCss(
       withoutLogicalProperties: options.withoutLogicalProperties,
       withoutPhysicalProperties: options.withoutPhysicalProperties,
     });
-    const optimized = await optimizer(css);
+    const optimized = optimizer(css);
 
     const tempPath = `${virtualFilePath}.${process.pid}.tmp`;
     fs.writeFileSync(tempPath, `${GENERATED_MARKER}\n${optimized}`, 'utf-8');
@@ -108,7 +108,7 @@ export default async function loader(this: LoaderContext, source: string) {
     this.addDependency(resourcePath);
 
     const { code: transformedSource, sheets: extractedSheets } =
-      await transformSource({
+      transformSource({
         source,
         moduleId: resourcePath,
         filePath: resourcePath,
@@ -119,7 +119,6 @@ export default async function loader(this: LoaderContext, source: string) {
         collectOndemandSheets: !isProduction,
         addDependency: (depPath: string) => this.addDependency(depPath),
       });
-    const optInCSS = await optimizer(extractedSheets.join(''));
 
     let relativeImportPath = path.relative(
       path.dirname(resourcePath),
@@ -140,6 +139,7 @@ export default async function loader(this: LoaderContext, source: string) {
     }
 
     if (extractedSheets.length > 0 && process.env.NODE_ENV === 'development') {
+      const optInCSS = optimizer(extractedSheets.join(''));
       const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
       await acquireLock(LOCK_DIR_PATH);
 
@@ -165,7 +165,7 @@ export default async function loader(this: LoaderContext, source: string) {
         }
 
         if (hasNewRule) {
-          const nextCss = await optimizer(Array.from(ruleSet).join('\n\n'));
+          const nextCss = optimizer(Array.from(ruleSet).join('\n\n'));
           fs.writeFileSync(VIRTUAL_FILE_PATH, nextCss, 'utf-8');
         }
       } catch (innerError) {
