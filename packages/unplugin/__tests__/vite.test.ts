@@ -1,6 +1,6 @@
-jest.mock('@plumeria/utils', () => ({
+jest.mock('@plumeria/compiler', () => ({
   DEFAULT_STYLE_PROP: 'classStyle',
-  needsCompile: jest.requireActual('@plumeria/utils').needsCompile,
+  needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
   optimizer: jest.fn(async (css: string) => css),
   resolvePropertyPolicy: () => ({}),
   scanAll: jest.fn(() => ({ componentPropsTable: {} })),
@@ -23,10 +23,10 @@ jest.mock('../src/disk-css', () => ({
 import vite from '../src/vite';
 
 const { scanAll: mockScanAll } = jest.requireMock<{ scanAll: jest.Mock }>(
-  '@plumeria/utils',
+  '@plumeria/compiler',
 );
 const { optimizer: mockOptimizer } = jest.requireMock<{ optimizer: jest.Mock }>(
-  '@plumeria/utils',
+  '@plumeria/compiler',
 );
 const { createDiskCssImport: mockCreateDiskCssImport } = jest.requireMock<{
   createDiskCssImport: jest.Mock;
