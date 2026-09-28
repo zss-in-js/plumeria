@@ -1,10 +1,13 @@
 import * as path from 'path';
 
 const mockCompileCSS = jest.fn(() => '.production {}');
-const mockTransformSource = jest.fn(async () => ({
-  code: 'transformed',
-  sheets: ['.generated {}'],
-}));
+const mockTransformSource = jest.fn(
+  ({ collectOndemandSheets }: { collectOndemandSheets: boolean }) => ({
+    code: 'transformed',
+    sheets: collectOndemandSheets ? ['.generated {}'] : [],
+  }),
+);
+const mockOptimizer = jest.fn((css: string) => css);
 const mockWriteFileSync = jest.fn();
 let mockSharedCss: string | undefined;
 let mockTemporaryCss: string | undefined;
@@ -13,7 +16,7 @@ jest.mock('@plumeria/compiler', () => ({
   compileCSS: mockCompileCSS,
   DEFAULT_STYLE_PROP: 'classStyle',
   needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
-  optimizer: async (css: string) => css,
+  optimizer: mockOptimizer,
   resolvePropertyPolicy: () => ({}),
   transformSource: mockTransformSource,
 }));
@@ -78,6 +81,7 @@ afterEach(() => {
   setNodeEnv(originalNodeEnv);
   mockCompileCSS.mockClear();
   mockTransformSource.mockClear();
+  mockOptimizer.mockClear();
   mockWriteFileSync.mockClear();
   mockSharedCss = undefined;
   mockTemporaryCss = undefined;
@@ -136,4 +140,18 @@ it('reuses the completed production generation', async () => {
   await runLoader(loader, SOURCE);
 
   expect(mockCompileCSS).toHaveBeenCalledTimes(1);
+  expect(mockOptimizer.mock.calls).toEqual([['.production {}']]);
+});
+
+it('does not optimize when a development module emits no sheets', async () => {
+  setNodeEnv('development');
+  mockTransformSource.mockReturnValueOnce({
+    code: 'transformed',
+    sheets: [],
+  });
+
+  await runLoader(freshLoader(), SOURCE);
+
+  expect(mockOptimizer).not.toHaveBeenCalled();
+  expect(mockWriteFileSync).not.toHaveBeenCalled();
 });
