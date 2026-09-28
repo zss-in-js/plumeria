@@ -4,18 +4,13 @@ import * as path from 'path';
 
 const FIXTURE_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-'));
 
-jest.mock('@rust-gear/glob', () => ({
-  globSync: jest.fn(() =>
-    fs.readdirSync(FIXTURE_DIR).map((name) => path.join(FIXTURE_DIR, name)),
-  ),
-}));
-
-import { compileCSS } from '../src/index';
+import { compileCSS } from '../index';
 
 const write = (name: string, body: string) =>
   fs.writeFileSync(path.join(FIXTURE_DIR, name), body, 'utf-8');
 
-const compile = () => compileCSS({ include: ['**'], exclude: [] });
+const compile = () =>
+  compileCSS({ cwd: FIXTURE_DIR, include: ['**'], exclude: [] });
 
 beforeEach(() => {
   for (const name of fs.readdirSync(FIXTURE_DIR)) {
