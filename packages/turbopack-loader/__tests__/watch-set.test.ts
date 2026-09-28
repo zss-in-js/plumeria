@@ -15,7 +15,9 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-'));
+const DIR = fs.realpathSync(
+  fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-')),
+);
 const TOKENS = path.join(DIR, 'tokens.ts');
 const STYLES = path.join(DIR, 'styles.ts');
 const LEAF = path.join(DIR, 'Leaf.tsx');
@@ -23,8 +25,7 @@ const CARD = path.join(DIR, 'Card.tsx');
 const PARENT = path.join(DIR, 'Parent.tsx');
 const UNRELATED = path.join(DIR, 'Unrelated.tsx');
 
-jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
-const mockedGlob = jest.requireMock<{ globSync: jest.Mock }>('@rust-gear/glob');
+const originalCwd = process.cwd();
 
 import loader from '../src/index';
 
@@ -87,12 +88,15 @@ const watchedBy = async (file: string) => {
 
 beforeAll(async () => {
   for (const [p, src] of Object.entries(files)) fs.writeFileSync(p, src);
-  mockedGlob.globSync.mockReturnValue(Object.keys(files));
+  process.chdir(DIR);
   // The reverse edges only exist once the parent has been scanned.
   await run(PARENT);
 });
 
-afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
+afterAll(() => {
+  process.chdir(originalCwd);
+  fs.rmSync(DIR, { recursive: true, force: true });
+});
 
 describe('turbopack-loader: watch set', () => {
   it('watches itself and the parents that pass it a style prop', async () => {
