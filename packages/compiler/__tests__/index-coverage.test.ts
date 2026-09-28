@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-import { compileCSS } from '../src/index';
+import { compileCSS } from '../index';
 
 const directory = fs.realpathSync(
   fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-compiler-coverage-')),
