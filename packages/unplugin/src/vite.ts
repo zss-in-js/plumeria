@@ -1,7 +1,7 @@
 import { createVitePlugin } from 'unplugin';
 import { unpluginFactory, EXTENSION_PATTERN } from './core';
 import type { PluginOptions } from './core';
-import { scanAll, optimizer } from '@plumeria/utils';
+import compiler from '@plumeria/compiler';
 import * as path from 'path';
 import type {
   ViteDevServer,
@@ -12,6 +12,8 @@ import type {
   UserConfig,
 } from 'vite';
 import { createDiskCssImport } from './disk-css';
+
+const { scanAll, optimizer } = compiler;
 
 function isRscConfig(userConfig: UserConfig): boolean {
   if ((userConfig as any).environments?.rsc) return true;
