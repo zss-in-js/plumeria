@@ -16,6 +16,8 @@ function platformSuffix(triple: string): string {
 
   if (triple.includes('apple-darwin')) return `darwin-${arch}`;
   if (triple.includes('windows')) return `win32-${arch}-msvc`;
+  if (triple.includes('android')) return `android-${arch}`;
+  if (triple.includes('freebsd')) return `freebsd-${arch}`;
   return `linux-${arch}-${parts[parts.length - 1]}`;
 }
 
