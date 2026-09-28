@@ -5,7 +5,7 @@
 import type { Rule, Scope } from 'eslint';
 import type { ImportDeclaration } from 'estree';
 import type { JSXAttribute } from 'estree-jsx';
-import { resolveExport, resolveImportPath, scanAll } from '@plumeria/utils';
+import { resolveExport, resolveImportPath, scanAll } from '@plumeria/compiler';
 import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
 
 type ImportedBinding = {
