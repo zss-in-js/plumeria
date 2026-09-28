@@ -3,19 +3,8 @@ import * as os from 'os';
 import * as path from 'path';
 
 const FIXTURE_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-'));
-const files: string[] = [];
 
-// The definition file is the one compiled; the caller file is only scanned, so
-// the style it hands over has to be found through componentPropsTable.
-jest.mock('@rust-gear/glob', () => ({
-  globSync: jest.fn((pattern: string | string[]) =>
-    (Array.isArray(pattern) ? pattern : [pattern]).includes('definition.tsx')
-      ? [files[0]]
-      : files,
-  ),
-}));
-
-import { compileCSS } from '../src/index';
+import { compileCSS } from '../index';
 
 let fixtureCount = 0;
 
@@ -41,10 +30,11 @@ const compile = (definition: string, importLine: string) => {
     'utf-8',
   );
 
-  files.length = 0;
-  files.push(defPath, callerPath);
-
-  return compileCSS({ include: ['definition.tsx'], exclude: ['**'] });
+  return compileCSS({
+    cwd: FIXTURE_DIR,
+    include: [path.basename(defPath)],
+    exclude: [],
+  });
 };
 
 afterAll(() => fs.rmSync(FIXTURE_DIR, { recursive: true, force: true }));
