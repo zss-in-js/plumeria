@@ -190,6 +190,7 @@ jobs:
           version: pnpm changeset:version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pnpm_config_verify_deps_before_run: 'false'
 
       - name: Group the release PR body by entry
         if: steps.changesets.outputs.pullRequestNumber != ''
