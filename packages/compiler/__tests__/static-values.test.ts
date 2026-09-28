@@ -5,11 +5,7 @@ import * as path from 'path';
 const FIXTURE_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-'));
 let fixturePath = '';
 
-jest.mock('@rust-gear/glob', () => ({
-  globSync: jest.fn(() => [fixturePath]),
-}));
-
-import { compileCSS } from '../src/index';
+import { compileCSS } from '../index';
 
 let fixtureCount = 0;
 
@@ -23,7 +19,11 @@ const compile = (body: string) => {
     `import * as css from '@plumeria/core';\n${body}\n`,
     'utf-8',
   );
-  return compileCSS({ include: ['fixture.tsx'], exclude: ['**'] });
+  return compileCSS({
+    cwd: FIXTURE_DIR,
+    include: [path.basename(fixturePath)],
+    exclude: [],
+  });
 };
 
 afterAll(() => fs.rmSync(FIXTURE_DIR, { recursive: true, force: true }));
