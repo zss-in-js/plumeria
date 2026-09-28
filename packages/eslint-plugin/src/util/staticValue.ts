@@ -1,5 +1,5 @@
 import type { Rule, Scope } from 'eslint';
-import { resolveExportValue, resolveImportPath } from '@plumeria/utils';
+import { resolveExportValue, resolveImportPath } from '@plumeria/compiler';
 
 const CORE = '@plumeria/core';
 
