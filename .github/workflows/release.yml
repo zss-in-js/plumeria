@@ -8,10 +8,132 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    outputs:
+      publishing: ${{ steps.gate.outputs.publishing }}
+      first: ${{ steps.gate.outputs.first }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Decide whether this push publishes
+        id: gate
+        shell: bash
+        run: |
+          pending=$(find .changeset -name '*.md' ! -name 'README.md' | wc -l)
+          name=$(node -p "require('./packages/compiler/package.json').name")
+          version=$(node -p "require('./packages/compiler/package.json').version")
+          if npm view "$name-darwin-arm64" version >/dev/null 2>&1; then
+            echo "first=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "first=true" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "$pending" -eq 0 ] && ! npm view "$name@$version" version >/dev/null 2>&1; then
+            echo "publishing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publishing=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  binaries:
+    name: Binary ${{ matrix.target }}
+    needs: check
+    if: needs.check.outputs.publishing == 'true' || needs.check.outputs.first == 'true'
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            flags: "--use-napi-cross"
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            flags: "--cross-compile"
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            flags: "--use-napi-cross"
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            flags: "--cross-compile"
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: ubuntu-latest
+            target: wasm32-wasip1-threads
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Zig
+        if: contains(matrix.target, 'linux-musl')
+        run: pip3 install ziglang
+
+      - name: Build the binary
+        shell: bash
+        working-directory: packages/compiler
+        run: pnpm build --target ${{ matrix.target }} ${{ matrix.flags }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compiler-${{ matrix.target }}
+          path: |
+            packages/compiler/compiler.*.node
+            packages/compiler/compiler.wasm32-wasi.wasm
+            packages/compiler/compiler.wasi.cjs
+            packages/compiler/compiler.wasi-browser.js
+            packages/compiler/wasi-worker.mjs
+            packages/compiler/wasi-worker-browser.mjs
+          retention-days: 1
+
+  first-release-packages:
+    name: First release packages
+    needs: [check, binaries]
+    if: needs.check.outputs.first == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-node
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: compiler-*
+          path: artifacts/
+          merge-multiple: true
+
+      - name: Lay out the platform packages
+        shell: bash
+        run: |
+          for file in artifacts/compiler.*.node; do
+            platform=$(basename "$file" | sed -E 's/^compiler\.(.+)\.node$/\1/')
+            mkdir -p "packages/compiler/npm/$platform"
+            cp "$file" "packages/compiler/npm/$platform/"
+          done
+          mkdir -p packages/compiler/npm/wasm32-wasi
+          cp artifacts/compiler.wasm32-wasi.wasm artifacts/compiler.wasi.cjs artifacts/compiler.wasi-browser.js artifacts/wasi-worker.mjs artifacts/wasi-worker-browser.mjs packages/compiler/npm/wasm32-wasi/
+          (cd packages/compiler && pnpm packages && pnpm readme)
+          ls -R packages/compiler/npm
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compiler-npm-packages
+          path: packages/compiler/npm/
+          retention-days: 7
+
   release:
     name: Release
+    needs: [check, binaries]
+    if: always() && needs.check.result == 'success' && needs.check.outputs.first != 'true' && (needs.binaries.result == 'success' || needs.binaries.result == 'skipped')
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
       id-token: write
@@ -23,6 +145,28 @@ jobs:
 
       - name: Build Packages
         run: pnpm build
+
+      - name: Download the binaries
+        if: needs.check.outputs.publishing == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: compiler-*
+          path: artifacts/
+          merge-multiple: true
+
+      - name: Publish the platform packages
+        if: needs.check.outputs.publishing == 'true'
+        shell: bash
+        run: |
+          for file in artifacts/compiler.*.node; do
+            platform=$(basename "$file" | sed -E 's/^compiler\.(.+)\.node$/\1/')
+            mkdir -p "packages/compiler/npm/$platform"
+            cp "$file" "packages/compiler/npm/$platform/"
+          done
+          mkdir -p packages/compiler/npm/wasm32-wasi
+          cp artifacts/compiler.wasm32-wasi.wasm artifacts/compiler.wasi.cjs artifacts/compiler.wasi-browser.js artifacts/wasi-worker.mjs artifacts/wasi-worker-browser.mjs packages/compiler/npm/wasm32-wasi/
+          (cd packages/compiler && pnpm packages && pnpm readme && pnpm update:main)
+          bash packages/compiler/scripts/publish.sh compiler
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
