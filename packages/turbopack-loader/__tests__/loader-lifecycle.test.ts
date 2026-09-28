@@ -1,6 +1,9 @@
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 const mockCompileCSS = jest.fn(() => '');
-jest.mock('@plumeria/compiler', () => ({ compileCSS: mockCompileCSS }));
+jest.mock('@plumeria/compiler', () => ({
+  ...jest.requireActual('@plumeria/compiler'),
+  compileCSS: mockCompileCSS,
+}));
 jest.mock('../src/file-lock', () => ({
   acquireLock: async () => {},
   releaseLockSync: () => {},
