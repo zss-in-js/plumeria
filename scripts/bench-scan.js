@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { loadTarget } = require('./bench-target');
 
 const LEAVES = 400;
 const HUB_FANIN = 200;
@@ -64,25 +65,12 @@ function fixture() {
 
 const target = path.resolve(process.argv[2] || path.join(__dirname, '..'));
 
-const swc = require(
-  require.resolve('@swc/core', {
-    paths: [path.join(target, 'packages/utils')],
-  }),
-);
+const { implementation, scanAll, countParses } = loadTarget(target);
 
-function parses(fn) {
-  const parseSync = swc.parseSync;
-  let seen = 0;
-  swc.parseSync = (...args) => {
-    seen++;
-    return parseSync(...args);
-  };
-  try {
-    fn();
-  } finally {
-    swc.parseSync = parseSync;
-  }
-  return seen;
+async function parses(fn) {
+  if (countParses) return countParses(fn);
+  fn();
+  return null;
 }
 
 // Timed without the counting wrapper in place, so nothing but the scan is on
@@ -107,11 +95,7 @@ const summary = (values, parsed) => ({
   parsed,
 });
 
-function main() {
-  const { scanAll } = require(
-    path.join(target, 'packages/utils/dist/parser.js'),
-  );
-
+async function main() {
   const cold = [];
   let coldParsed = 0;
   let uncached = fixture();
@@ -123,7 +107,7 @@ function main() {
     fs.renameSync(uncached, renamed);
     uncached = renamed;
     process.chdir(uncached);
-    if (i === 0) coldParsed = parses(() => scanAll(uncached));
+    if (i === 0) coldParsed = await parses(() => scanAll(uncached));
     else {
       const elapsed = time(() => scanAll(uncached));
       if (i > WARMUP) cold.push(elapsed);
@@ -137,7 +121,7 @@ function main() {
   scanAll(root);
 
   let stamp = Math.floor(Date.now() / 1000);
-  const edit = (relative, measure) => {
+  const edit = async (relative, measure) => {
     const file = path.join(root, relative);
     const source = fs.readFileSync(file, 'utf8');
     fs.writeFileSync(
@@ -146,7 +130,7 @@ function main() {
       'utf8',
     );
     fs.utimesSync(file, ++stamp, stamp);
-    const result = measure(() => scanAll(root));
+    const result = await measure(() => scanAll(root));
     fs.writeFileSync(file, source, 'utf8');
     fs.utimesSync(file, ++stamp, stamp);
     scanAll(root);
@@ -159,10 +143,10 @@ function main() {
     ['hub', 'styles/hub.ts'],
     ['component', componentName(0)],
   ]) {
-    const parsed = edit(relative, parses);
-    for (let i = 0; i < WARMUP; i++) edit(relative, time);
+    const parsed = await edit(relative, parses);
+    for (let i = 0; i < WARMUP; i++) await edit(relative, time);
     const values = [];
-    for (let i = 0; i < SAMPLES; i++) values.push(edit(relative, time));
+    for (let i = 0; i < SAMPLES; i++) values.push(await edit(relative, time));
     incremental[label] = summary(values, parsed);
   }
 
@@ -172,6 +156,7 @@ function main() {
   console.log(
     JSON.stringify(
       {
+        implementation,
         scale: { leaves: LEAVES, components: COMPONENTS, hubFanIn: HUB_FANIN },
         cold: summary(cold, coldParsed),
         incremental,
@@ -182,4 +167,7 @@ function main() {
   );
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
