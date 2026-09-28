@@ -57,7 +57,7 @@
     "provenance": true
   },
   "dependencies": {
-    "@plumeria/utils": "workspace:*",
+    "@plumeria/compiler": "workspace:*",
     "known-css-properties": "^0.37.0",
     "zss-engine": "catalog:"
   }
