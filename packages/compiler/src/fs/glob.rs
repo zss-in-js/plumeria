@@ -292,13 +292,13 @@ fn load_gitignore(
     }
 }
 
-fn ancestor_gitignores(base: &Path, search_root: &Path) -> Option<Arc<IgnoreNode>> {
+fn ancestor_gitignores(base: &Path, search_root: &Path, floor: &Path) -> Option<Arc<IgnoreNode>> {
     let relative = search_root.strip_prefix(base).ok()?;
     let mut chain: Option<Arc<IgnoreNode>> = None;
     let mut dir = base.to_path_buf();
     let mut rel = PathBuf::new();
     for component in relative.components() {
-        if dir.join(".gitignore").is_file() {
+        if dir.starts_with(floor) && dir.join(".gitignore").is_file() {
             chain = load_gitignore(&dir, &rel, chain);
         }
         dir.push(component);
@@ -506,7 +506,7 @@ pub fn glob_sync(patterns: &[String], options: GlobOptions) -> Result<Vec<String
         .to_path_buf();
     let (gitignore_root, in_git_repo) = gitignore_base(&search_root);
     let ancestors = if in_git_repo {
-        ancestor_gitignores(&gitignore_root, &search_root)
+        ancestor_gitignores(&gitignore_root, &search_root, &walk.cwd)
     } else {
         None
     };
