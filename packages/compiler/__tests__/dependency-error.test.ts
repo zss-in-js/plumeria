@@ -5,19 +5,8 @@ import * as path from 'path';
 const FIXTURE_DIR = fs.realpathSync(
   fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-')),
 );
-const files: string[] = [];
 
-// The consuming file is the one compiled; the file that declares the styles is
-// only scanned, so an error it throws is caught there and never reaches here.
-jest.mock('@rust-gear/glob', () => ({
-  globSync: jest.fn((pattern: string | string[]) =>
-    (Array.isArray(pattern) ? pattern : [pattern]).includes('app.tsx')
-      ? [files[2]]
-      : files,
-  ),
-}));
-
-import { compileCSS } from '../src/index';
+import { compileCSS } from '../index';
 
 let fixtureCount = 0;
 
@@ -70,10 +59,11 @@ const compile = (
     'utf-8',
   );
 
-  files.length = 0;
-  files.push(stylesPath, barrelPath, appPath);
-
-  return compileCSS({ include: ['app.tsx'], exclude: ['**'] });
+  return compileCSS({
+    cwd: FIXTURE_DIR,
+    include: [path.basename(appPath)],
+    exclude: [],
+  });
 };
 
 afterAll(() => fs.rmSync(FIXTURE_DIR, { recursive: true, force: true }));
