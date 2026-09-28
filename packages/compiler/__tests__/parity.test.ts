@@ -2,18 +2,13 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const DIRECTORY = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-parity-'));
+const DIRECTORY = fs.realpathSync(
+  fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-parity-')),
+);
 let fixturePath = '';
 
-// Both passes glob: compileCSS for its `include`, scanAll for the project. The
-// parity claim only holds if they see the same project, so both answer with the
-// fixture under test.
-jest.mock('@rust-gear/glob', () => ({
-  globSync: jest.fn(() => [fixturePath]),
-}));
-
-import { compileCSS } from '../src/index';
-import { transformSource, DEFAULT_STYLE_PROP } from '@plumeria/utils';
+import { compileCSS } from '../index';
+import { transformSource, DEFAULT_STYLE_PROP } from '../index';
 
 const definedClasses = (css: string) =>
   new Set([...css.matchAll(/\.(x[0-9a-z]{4,})/g)].map((match) => match[1]));
@@ -43,11 +38,11 @@ const both = async (source: string) => {
 
   const compiled = compileCSS({
     include: [path.basename(fixturePath)],
-    exclude: ['**'],
+    exclude: [],
     cwd: DIRECTORY,
   });
 
-  const transformed = await transformSource({
+  const transformed = transformSource({
     source,
     moduleId: fixturePath,
     filePath: fixturePath,
@@ -56,6 +51,7 @@ const both = async (source: string) => {
     propertyPolicy: undefined,
     isDev: false,
     collectOndemandSheets: true,
+    cwd: DIRECTORY,
     addDependency: () => {},
   });
 
