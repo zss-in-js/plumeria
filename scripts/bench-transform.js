@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { loadTarget } = require('./bench-target');
 
 const LEAVES = 400;
 const HUB_FANIN = 200;
@@ -67,33 +68,18 @@ function fixture() {
 
 const target = path.resolve(process.argv[2] || path.join(__dirname, '..'));
 
-const swc = require(
-  require.resolve('@swc/core', {
-    paths: [path.join(target, 'packages/utils')],
-  }),
-);
-
-const { scanAll } = require(path.join(target, 'packages/utils/dist/parser.js'));
-const { transformSource } = require(
-  path.join(target, 'packages/utils/dist/transform.js'),
-);
-const { DEFAULT_STYLE_PROP } = require(
-  path.join(target, 'packages/utils/dist/constants.js'),
-);
+const {
+  implementation,
+  scanAll,
+  transformSource,
+  DEFAULT_STYLE_PROP,
+  countParses,
+} = loadTarget(target);
 
 async function parses(fn) {
-  const parseSync = swc.parseSync;
-  let seen = 0;
-  swc.parseSync = (...args) => {
-    seen++;
-    return parseSync(...args);
-  };
-  try {
-    await fn();
-  } finally {
-    swc.parseSync = parseSync;
-  }
-  return seen;
+  if (countParses) return countParses(fn);
+  await fn();
+  return null;
 }
 
 async function time(fn) {
@@ -205,6 +191,7 @@ async function main() {
     console.log(
       JSON.stringify(
         {
+          implementation,
           scale: {
             leaves: LEAVES,
             components: COMPONENTS,
