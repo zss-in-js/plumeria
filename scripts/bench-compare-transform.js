@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
+const { describeImplementations } = require('./bench-target');
 
 const ALTERNATIONS = Number(process.env.BENCH_ALTERNATIONS || 6);
 if (!Number.isInteger(ALTERNATIONS) || ALTERNATIONS < 2 || ALTERNATIONS % 2) {
@@ -64,6 +65,13 @@ function main() {
   }
 
   const scale = reports.head[0].scale;
+  const implementations = describeImplementations(
+    reports.base[0].implementation,
+    reports.head[0].implementation,
+  );
+  const counted =
+    reports.base[0].cold.parsed !== null &&
+    reports.head[0].cold.parsed !== null;
   const lines = [];
   let regressed = false;
 
@@ -78,18 +86,20 @@ function main() {
     ) {
       throw new Error(`Inconsistent parse counts for ${key}`);
     }
-    if (headParsed > baseParsed) regressed = true;
+    const baseMs = median(base.map((one) => one.p25));
+    const headMs = median(head.map((one) => one.p25));
+    const timing = `${ms(baseMs)} | ${ms(headMs)} | ${delta(baseMs, headMs)}`;
 
+    if (!counted) {
+      lines.push(`| ${label} | ${timing} |`);
+      continue;
+    }
+    if (headParsed > baseParsed) regressed = true;
     const parsed =
       baseParsed === headParsed
         ? `${headParsed}`
         : `**${baseParsed} → ${headParsed}**`;
-    const baseMs = median(base.map((one) => one.p25));
-    const headMs = median(head.map((one) => one.p25));
-
-    lines.push(
-      `| ${label} | ${parsed} | ${ms(baseMs)} | ${ms(headMs)} | ${delta(baseMs, headMs)} |`,
-    );
+    lines.push(`| ${label} | ${parsed} | ${timing} |`);
   }
 
   const total = scale.leaves + scale.components + 1;
@@ -103,8 +113,13 @@ function main() {
   console.log(`<!-- plumeria-transform-bench -->
 ### Transform benchmark
 
-| Scenario | SWC parse calls | Base | PR | Change |
-| --- | ---: | ---: | ---: | ---: |
+${implementations}
+
+${
+  counted
+    ? '| Scenario | SWC parse calls | Base | PR | Change |\n| --- | ---: | ---: | ---: | ---: |'
+    : '| Scenario | Base | PR | Change |\n| --- | ---: | ---: | ---: |'
+}
 ${lines.join('\n')}
 
 Negative change is faster. **Bold** timing changes exceed both ${NOISE}% and ${FLOOR} ms thresholds; smaller changes may be noise.
@@ -115,7 +130,11 @@ Negative change is faster. **Bold** timing changes exceed both ${NOISE}% and ${F
 - Fixture: ${total} files (${scale.leaves} leaf modules, 1 hub, ${scale.components} components). The hub re-exports ${scale.hubFanIn} leaves.
 - Cold transform measures transformSource across all ${scale.components} components with fresh path-keyed caches, including the initial scan. OS file cache and runtime are warm.
 - Incremental scenarios edit a leaf style module, the hub, or a consumer component, then transform that module (including scan invalidation). They do not measure a full HMR rebuild of affected consumers. File reads, edits, and restoration are outside the timer.
-- SWC parse calls includes repeated parsing of the same file per measurement iteration. An arrow shows base → PR; an increase fails the benchmark.
+- ${
+    counted
+      ? 'SWC parse calls includes repeated parsing of the same file per measurement iteration. An arrow shows base → PR; an increase fails the benchmark.'
+      : 'Parse counts appear only when both sides run `@plumeria/utils`: the Rust compiler parses with oxc inside the native module, where the harness cannot count the calls.'
+  }
 - ${ALTERNATIONS} base/PR pairs on the same runner, reversing order each pair. Times summarize each run's lower quartile using the median; change is (PR / Base − 1) × 100, calculated before rounding.
 - NODE_ENV is development so scan invalidation remains enabled. This measures transformSource, not a full bundler build.
 - Shared-runner noise remains. Compare base and PR within this report; absolute times across runs are not directly comparable.
