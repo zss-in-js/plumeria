@@ -3,7 +3,8 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "outputs": ["*.node", "index.js", "index.d.ts", "browser.js"]
+      "outputs": ["*.node", "index.js", "index.d.ts", "browser.js"],
+      "passThroughEnv": ["CARGO_TARGET_DIR"]
     }
   }
 }
