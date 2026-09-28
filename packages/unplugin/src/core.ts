@@ -122,7 +122,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         };
 
         const { code: transformedSource, sheets: extractedSheets } =
-          await transformSource({
+          transformSource({
             source,
             moduleId: id,
             filePath: baseId,
@@ -134,7 +134,6 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             collectOndemandSheets: true,
             addDependency,
           });
-        const optInCSS = await optimizer(extractedSheets.join(''));
 
         const cssFilename = `${baseId.replace(EXTENSION_PATTERN, '')}.zero.css`;
         const cssId = `/${path.relative(viteRoot, cssFilename).replace(/\\/g, '/')}`;
@@ -154,10 +153,10 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
             acc.add(sheet);
           });
 
-          const accCSS = await optimizer(Array.from(acc).join(''));
+          const accCSS = optimizer(Array.from(acc).join(''));
           cssLookup.set(cssFilename, accCSS);
         } else {
-          cssLookup.set(cssFilename, optInCSS);
+          cssLookup.set(cssFilename, optimizer(extractedSheets.join('')));
         }
         cssFileLookup.set(cssId, cssFilename);
 
