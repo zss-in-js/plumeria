@@ -2,6 +2,16 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
+// A profiling copy registers exit and signal listeners and a flush interval.
+// Left in place, they write the destination again after a test has deleted
+// it, so every copy's listeners and interval are removed after each test.
+const PROCESS_EVENTS = ['exit', 'SIGTERM', 'SIGINT'];
+const unloads: Array<() => void> = [];
+
+afterEach(() => {
+  for (const unload of unloads.splice(0)) unload();
+});
+
 // The module reads PLUMERIA_PROFILE once at import time, so every case loads a
 // fresh copy with the environment already set the way it wants it.
 const loadProfiler = (outPath?: string) => {
@@ -9,9 +19,29 @@ const loadProfiler = (outPath?: string) => {
   if (outPath) process.env.PLUMERIA_PROFILE = outPath;
   else delete process.env.PLUMERIA_PROFILE;
 
+  const listenersBefore = PROCESS_EVENTS.map((event) =>
+    process.listeners(event),
+  );
+  const setIntervalSpy = jest.spyOn(global, 'setInterval');
   let mod: typeof import('../src/profiler');
   jest.isolateModules(() => {
     mod = require('../src/profiler');
+  });
+  const intervals = setIntervalSpy.mock.results.map((r) => r.value);
+  setIntervalSpy.mockRestore();
+  const added = PROCESS_EVENTS.map((event, i) => ({
+    event,
+    listeners: process
+      .listeners(event)
+      .filter((l) => !listenersBefore[i].includes(l)),
+  }));
+  unloads.push(() => {
+    for (const interval of intervals) clearInterval(interval);
+    for (const { event, listeners } of added) {
+      for (const listener of listeners) {
+        process.removeListener(event, listener as (...args: unknown[]) => void);
+      }
+    }
   });
 
   if (previous === undefined) delete process.env.PLUMERIA_PROFILE;
