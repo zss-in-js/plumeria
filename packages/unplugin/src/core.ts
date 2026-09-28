@@ -1,14 +1,16 @@
 import type { UnpluginFactory } from 'unplugin';
 import { createFilter } from '@rollup/pluginutils';
 import * as path from 'path';
-import {
+import compiler from '@plumeria/compiler';
+import type { PropertyPolicyOptions } from '@plumeria/compiler';
+
+const {
   resolvePropertyPolicy,
   optimizer,
   transformSource,
   DEFAULT_STYLE_PROP,
   needsCompile,
-} from '@plumeria/utils';
-import type { PropertyPolicyOptions } from '@plumeria/utils';
+} = compiler;
 
 export type CssImportContext = {
   id: string;
