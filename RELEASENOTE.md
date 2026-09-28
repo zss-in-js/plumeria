@@ -1,5 +1,15 @@
 # Release Notes
 
+## 19.5.0 (Sep 28, 2026)
+
+- `@plumeria/compiler` is now written in Rust with napi-rs. One native module scans the project, transforms each file, compiles the production sheet and minifies it with lightningcss, and replaces the TypeScript compiler built on `@swc/core`, `@rust-gear/glob`, `zss-engine`, `postcss` and `lightningcss`. Prebuilt binaries ship for macOS, Linux (glibc, musl and armv7), Windows, Android, FreeBSD and `wasm32-wasi`, and the package requires Node.js 20 or later
+
+- `@plumeria/turbopack-loader`, `@plumeria/unplugin` and `@plumeria/eslint-plugin` scan, transform and resolve through `@plumeria/compiler` instead of `@plumeria/utils`
+
+- `@plumeria/compiler` also exports `transformSource`, `scanAll`, `optimizer`, `needsCompile`, `resolvePropertyPolicy`, `resolveImportPath`, `resolveExport`, `resolveExportValue`, `getStyleRecords`, `themeHashOf`, `createTheme` and `DEFAULT_STYLE_PROP`
+
+- `@plumeria/utils` keeps the TypeScript implementation and adds `compileCSS`, the previous `@plumeria/compiler` entry point
+
 ## 19.4.0 (Sep 27, 2026)
 
 - `no-invalid-selector`, `validate-pseudos` and `validate-at-rules` resolve a computed key by following it back to where it is declared instead of asking the TypeScript type checker, so they check the same keys under ESLint and `plumerialint` and no longer need `projectService`. A key resolves when it is a `const` string, a member of a `const` object or a `css.createStatic` object, or an import of one of these; `as const`, `satisfies` and type annotations make no difference
