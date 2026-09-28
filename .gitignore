@@ -19,3 +19,13 @@ test-e2e/test/exported-parity.test.ts-snapshots
 .mdx-previewrc.json
 .agents/
 skills-lock.json
+packages/compiler/target/
+packages/compiler/npm/
+packages/compiler/*.node
+packages/compiler/*.wasm
+packages/compiler/*.wasi.cjs
+packages/compiler/*.wasi-browser.js
+packages/compiler/wasi-worker*.mjs
+packages/compiler/index.js
+packages/compiler/index.d.ts
+packages/compiler/browser.js
