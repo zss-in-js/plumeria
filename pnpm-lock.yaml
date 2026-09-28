@@ -174,6 +174,9 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.4.1(jiti@2.7.0))
+      '@plumeria/compiler-wasm32-wasi':
+        specifier: ^19.5.0
+        version: 19.5.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
       '@plumeria/core':
         specifier: workspace:^
         version: link:../packages/core
@@ -186,9 +189,6 @@ importers:
       '@plumeria/next-plugin':
         specifier: workspace:^
         version: link:../packages/next-plugin
-      '@plumeria/utils':
-        specifier: workspace:^
-        version: link:../packages/utils
       '@types/mdx':
         specifier: ^2.0.13
         version: 2.0.13
@@ -3928,6 +3928,11 @@ packages:
     resolution: {integrity: sha512-O71yZIbAh/PxDMNGns37GHBIfrVkEVyn+AXyIa5dOTfb4/xNvRWV+Vv/NMbNCtODB/pO7vLlF2OTmMVLhmr7Ag==}
     engines: {node: '>=18'}
     hasBin: true
+
+  '@plumeria/compiler-wasm32-wasi@19.5.0':
+    resolution: {integrity: sha512-g1h07Ve/Vxp7a+Ia0Oew+q1kFWNzDO0+KG0j2fR0LH/RPZkA2WYaSgFf2ijyYN5c3oipttC9aOHOCJljgDjHOg==}
+    engines: {node: '>=14.0.0'}
+    cpu: [wasm32]
 
   '@pmmmwh/react-refresh-webpack-plugin@0.6.2':
     resolution: {integrity: sha512-IhIAD5n4XvGHuL9nAgWfsBR0TdxtjrUWETYKCBHxauYXEv+b+ctEbs9neEgPC7Ecgzv4bpZTBwesAoGDeFymzA==}
@@ -14622,6 +14627,13 @@ snapshots:
   '@playwright/test@1.60.0':
     dependencies:
       playwright: 1.60.0
+
+  '@plumeria/compiler-wasm32-wasi@19.5.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
+    dependencies:
+      '@napi-rs/wasm-runtime': 1.2.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
 
   '@pmmmwh/react-refresh-webpack-plugin@0.6.2(react-refresh@0.18.0)(type-fest@4.41.0)(webpack-dev-server@5.2.4)(webpack@5.109.2)':
     dependencies:
