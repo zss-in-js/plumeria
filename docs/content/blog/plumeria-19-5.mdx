@@ -1,0 +1,93 @@
+---
+title: 'Plumeria 19.5'
+description: 'Update: the compiler is rewritten in Rust with napi-rs and ships prebuilt binaries for twelve platforms, including wasm32-wasi'
+date: '2026-09-29'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Core maintainer" />
+  <GitHubUser username="Anionix" subtext="Core member" />
+</div>
+
+Plumeria v19.5 replaces the compiler with a native module written in Rust. `@plumeria/compiler` now scans the project, transforms each file, compiles the production sheet and minifies it in one process, with no JavaScript between the steps.
+
+The Turbopack loader, the unplugin integrations and the ESLint plugin all call into it. Nothing in the way styles are written or configured changes.
+
+---
+
+## 1. One native compiler
+
+Before 19.5 the work was split across several packages: `@swc/core` parsed each file, `@rust-gear/glob` walked the project, `zss-engine` turned style objects into rules, and `postcss` and `lightningcss` merged and minified the result. Each step handed its output to the next through JavaScript.
+
+The Rust compiler keeps the same stages in one place:
+
+- **Scan.** It walks the project in parallel, respects `.gitignore`, and keeps what each file defined between calls. A rebuild only re-reads files whose modification time changed, and the files that depend on them.
+- **Transform.** It parses a file with oxc, resolves every style against the scanned tables, and rewrites `css.create`, `css.use` and the styling prop into class names.
+- **Compile and optimize.** It collects every sheet the production build needs, orders conditions so a narrower media or container query follows a wider one, and minifies with lightningcss built into the module.
+
+The class names, the CSS and the error messages are the same as 19.4. The compiler was checked against the TypeScript implementation on every example project, the docs site and the end-to-end suite, and produced identical output.
+
+### Where it is faster
+
+Scanning and transforming take less time. On the project benchmarks, a cold scan dropped from 63 ms to 44 ms and a cold transform pass from 695 ms to 438 ms. Transforming a single file takes about half as long.
+
+In a full `next build` of a small project, the difference is within noise: the bundler's own work dominates, and Plumeria's part was already a few hundred milliseconds. The gain shows up as projects grow and during development, where every edit re-runs a scan and a transform.
+
+---
+
+## 2. Prebuilt for twelve platforms
+
+`@plumeria/compiler` installs a prebuilt binary through an optional dependency, so no Rust toolchain is needed:
+
+| OS | Architectures |
+| --- | --- |
+| Android | arm64 |
+| macOS | arm64, x64 |
+| Linux (glibc) | arm64, x64, armv7 |
+| Linux (musl) | arm64, x64 |
+| FreeBSD | x64 |
+| Windows | arm64, x64 |
+| WebAssembly | `wasm32-wasi` |
+
+The `wasm32-wasi` build runs where a native module cannot load, such as StackBlitz and other browser-based environments. It is the same compiler, including lightningcss.
+
+`@plumeria/compiler` requires Node.js 20 or later.
+
+---
+
+## 3. What the compiler exports
+
+`compileCSS` stays the entry point it was. The package now also exports what the integrations use, so a custom integration can reach the same functions:
+
+- `transformSource`, `scanAll`, `needsCompile` and `optimizer` for building
+- `resolvePropertyPolicy`, `resolveImportPath`, `resolveExport` and `resolveExportValue` for resolving
+- `getStyleRecords`, `themeHashOf` and `createTheme` for turning a style or a theme into rules
+- `DEFAULT_STYLE_PROP`
+
+`transformSource` and `optimizer` return their result directly instead of a promise. Code that already awaits them keeps working.
+
+### `@plumeria/utils`
+
+`@plumeria/utils` keeps the TypeScript implementation and adds `compileCSS`, the entry point `@plumeria/compiler` used to have. The Plumeria packages no longer depend on it.
+
+---
+
+## Upgrading
+
+**From 19.4.** Update the Plumeria packages together. Nothing in the project has to change.
+
+The new optional dependencies are installed for the current platform only. A lockfile created on one platform and installed on another, such as macOS locally and Linux in CI, picks up the matching binary as long as the package manager installs optional dependencies.
+
+---
+
+## Release notes
+
+## 19.5.0 (Sep 29, 2026)
+- Feat: `@plumeria/compiler` is written in Rust with napi-rs. One native module scans, transforms, compiles and minifies, replacing the TypeScript compiler built on `@swc/core`, `@rust-gear/glob`, `zss-engine`, `postcss` and `lightningcss`
+- Feat: prebuilt binaries for macOS, Linux (glibc, musl and armv7), Windows, Android, FreeBSD and `wasm32-wasi`
+- Feat: `@plumeria/turbopack-loader`, `@plumeria/unplugin` and `@plumeria/eslint-plugin` use `@plumeria/compiler` instead of `@plumeria/utils`
+- Feat: `@plumeria/compiler` exports `transformSource`, `scanAll`, `optimizer`, `needsCompile`, the resolvers, `getStyleRecords`, `themeHashOf`, `createTheme` and `DEFAULT_STYLE_PROP`
+- Feat: `@plumeria/utils` adds `compileCSS`, the previous `@plumeria/compiler` entry point
+- `@plumeria/compiler` requires Node.js 20 or later
