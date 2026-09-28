@@ -1,5 +1,4 @@
-import { getStyleRecords } from '@plumeria/utils/dist/create';
-import { createTheme as themeStyles, themeHashOf } from '@plumeria/utils/dist/createTheme';
+import { createTheme as themeStyles, getStyleRecords, themeHashOf } from '@plumeria/compiler-wasm32-wasi';
 import { camelToKebabCase, genBase36Hash, transpile } from 'zss-engine';
 import { resolveClassStyle } from './class-style';
 
@@ -42,7 +41,7 @@ export function create<T extends Record<string, StyleRule>>(rules: T): Record<st
   for (const [name, rule] of Object.entries(rules)) {
     const entry: Record<string, string> = {};
 
-    for (const record of getStyleRecords(rule as never)) {
+    for (const record of getStyleRecords(rule)) {
       insert(record.sheet);
       entry[record.key] = record.hash;
     }
