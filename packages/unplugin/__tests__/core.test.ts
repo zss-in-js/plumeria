@@ -1,6 +1,6 @@
-jest.mock('@plumeria/utils', () => ({
+jest.mock('@plumeria/compiler', () => ({
   DEFAULT_STYLE_PROP: 'classStyle',
-  needsCompile: jest.requireActual('@plumeria/utils').needsCompile,
+  needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
   optimizer: jest.fn(async (css: string) => css),
   resolvePropertyPolicy: jest.fn(() => ({ policy: true })),
   transformSource: jest.fn(
@@ -28,12 +28,12 @@ import { unpluginFactory } from '../src/core';
 
 const { transformSource: mockTransformSource } = jest.requireMock<{
   transformSource: jest.Mock;
-}>('@plumeria/utils');
+}>('@plumeria/compiler');
 const { optimizer: mockOptimizer, resolvePropertyPolicy: mockPolicy } =
   jest.requireMock<{
     optimizer: jest.Mock;
     resolvePropertyPolicy: jest.Mock;
-  }>('@plumeria/utils');
+  }>('@plumeria/compiler');
 
 const SOURCE = `import '@plumeria/core';`;
 const createPlugin = (options?: Parameters<typeof unpluginFactory>[0]) =>
