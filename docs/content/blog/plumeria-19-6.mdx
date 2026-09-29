@@ -1,0 +1,84 @@
+---
+title: 'Plumeria 19.6'
+description: 'Update: the ESLint plugin reports css.use() results composed outside one call'
+date: '2026-09-30'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Core maintainer" />
+  <GitHubUser username="Anionix" subtext="Core member" />
+</div>
+
+Plumeria v19.6 adds `no-unresolved-composition` to `@plumeria/eslint-plugin`. It reports class names built from `css.use()` results outside a single `css.use()` call, where the order they are written in no longer decides which style wins.
+
+The rule is enabled as a warning in `recommended` and in plumerialint.
+
+---
+
+## 1. Why composition belongs in one call
+
+`css.use()` resolves conflicts between the styles passed to it: a later argument takes precedence. Once its result is a string, that guarantee ends. Two strings joined together are two sets of class names, and which rule wins depends on the order of the stylesheet, not on the order of the strings.
+
+```tsx
+// Box.tsx
+export const Box = ({ className }: { className?: string }) => (
+  <div className={css.use(styles.base) + ' ' + className} />
+);
+
+// Parent.tsx
+<Box className={css.use(styles.blue)} />
+```
+
+Nothing fails here. The page renders, and `styles.blue` may or may not override `styles.base` depending on where each rule ended up in the sheet.
+
+---
+
+## 2. Three reports, one action each
+
+The rule reports each composition with a message that names one fix.
+
+**Separate `css.use()` results.** Two or more results joined together are reported with a message to merge them into one call. Conditional styles move inside it:
+
+```tsx
+css.use(styles.base) + ' ' + (active ? css.use(styles.active) : '')
+// becomes
+css.use(styles.base, active && styles.active)
+```
+
+**Results passed to a function.** A result passed to `clsx`, `cn`, `twMerge` or any other function, including `css.use()` itself, is reported with a message to pass the styles directly. `css.use()` accepts nested arrays, so a list of styles can be passed as it is:
+
+```tsx
+clsx(css.use(styles.base), className)
+css.use(css.use(styles.base), styles.active)
+// becomes
+css.use(styles.base, [active && styles.active, styles.external])
+```
+
+**External class names.** A result joined with other class names is reported with the names it found, as written in the source, and a message to rewrite them as styles with `css.create()` and pass them to the same call.
+
+```
+css.use() cannot order external class names ("a b c", props.className); their precedence is left to the CSS cascade. Rewrite them as styles with css.create() and pass them into the same css.use() call.
+```
+
+When a composition has more than one problem, the rule reports the first in this order, so each report asks for a single change.
+
+The rule follows results through local variables, `+=` assignments, arrays joined through a variable and object properties. It does not follow values returned from functions or imported from other modules, so ESLint and plumerialint report the same code.
+
+---
+
+## Upgrading
+
+**From 19.5.** Update the Plumeria packages together. Projects that compose `css.use()` results outside one call see new warnings; projects that bind styles with `classStyle` see none.
+
+plumerialint runs oxlint with `--deny-warnings`, so a new warning fails the lint and aborts a build it wraps. To adopt the rule gradually, turn off `@plumeria/no-unresolved-composition` until the reported code is rewritten.
+
+---
+
+## Release notes
+
+## 19.6.0 (Sep 30, 2026)
+
+- Feat: `@plumeria/eslint-plugin` adds `no-unresolved-composition`, `warn` in `recommended` and plumerialint, which reports `css.use()` results joined with `+`, a template literal or `.join()`, or passed to a function, including through local variables, `+=` assignments and object properties
+- Feat: separate results are reported with a message to merge them, results passed to a function with a message to pass the styles directly, and external class names with a message that lists them and asks to rewrite them with `css.create()`
