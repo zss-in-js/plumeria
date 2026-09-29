@@ -932,9 +932,16 @@ impl Project {
                 }
             }
         }
-        let exports = self.files.get(file)?.exports.clone()?;
+        let re_export = self
+            .files
+            .get(file)?
+            .exports
+            .as_ref()?
+            .re_exports
+            .get(export_name)
+            .cloned();
 
-        if let Some(re_export) = exports.re_exports.get(export_name) {
+        if let Some(re_export) = re_export {
             match &re_export.source {
                 Some(source) => {
                     if let Some(actual) = self.resolve_import_path(source, file) {
@@ -953,6 +960,7 @@ impl Project {
             }
         }
 
+        let exports = self.files.get(file)?.exports.as_ref()?;
         if exports.local_exports.iter().any(|name| name == export_name) {
             return Some(Site {
                 file: file.to_string(),
@@ -960,7 +968,8 @@ impl Project {
             });
         }
 
-        for source in &exports.star_exports {
+        let star_exports = exports.star_exports.clone();
+        for source in &star_exports {
             if let Some(actual) = self.resolve_import_path(source, file)
                 && let Some(site) = self.resolve_export_inner(&actual, export_name, visited)
             {
