@@ -19,6 +19,7 @@
     "@plumeria/no-order-dependent-overlap": "warn",
     "@plumeria/no-unknown-css-properties": "error",
     "@plumeria/no-unused-keys": "warn",
+    "@plumeria/no-unresolved-composition": "warn",
     "@plumeria/sort-properties": "warn",
     "@plumeria/format-properties": "warn",
     "@plumeria/validate-values": "warn",
