@@ -52,6 +52,8 @@ export const use: use;
 ```
 `css.use()` converts styles into a string of class names. Use it where the `classStyle` prop is not available, for example when passing a class name to an external component that only accepts `className`.
 
+Pass every style to one `css.use()` call; a later argument takes precedence. Strings from separate calls are not merged when joined, so which rule wins depends on stylesheet order.
+
 ### Example
 
 ```ts
