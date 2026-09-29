@@ -11,8 +11,11 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@emnapi/core": "1.11.3",
+    "@emnapi/runtime": "1.11.3",
     "@plumeria/inspector": "workspace:^",
     "@shikijs/monaco": "^4.1.0",
+    "@tybys/wasm-util": "^0.10.4",
     "@typescript-eslint/parser": "^8.60.0",
     "@typescript/vfs": "^1.6.5",
     "@vercel/analytics": "^2.0.1",
