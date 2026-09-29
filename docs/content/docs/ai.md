@@ -5,6 +5,8 @@ description: System instructions and mental models for AI assistants working wit
 
 This document is for AI assistants (Claude, Gemini, ChatGPT, and others) generating code with Plumeria. When writing Plumeria code, **always** follow the rules and patterns described here.
 
+Write Plumeria code with `@plumeria/eslint-plugin` enabled (`plumeria.configs.recommended`), and resolve every warning it reports.
+
 ## Critical Rules (Quick Reference)
 
 The complete rule set, distilled. Each rule is explained with examples in the sections below.
@@ -31,6 +33,7 @@ The complete rule set, distilled. Each rule is explained with examples in the se
 - Merge `css.use()` output with the inline `style` prop. (→ Dynamic Styling)
 - Route a function key through `css.use()`, inline or through a `Style` prop. (→ Dynamic Styling)
 - Pass a received `Style` prop on to another component. Apply it on the element the component renders. (→ Styling Custom Components)
+- Join `css.use()` output with other class names, including another `css.use()` result passed through `className`, or pass it to a function such as `clsx` or `css.use()`. Pass every style to one `css.use()` call. (→ Forbidden Patterns)
 
 ## Mental Model
 
@@ -97,6 +100,20 @@ export const BadComponent = ({ dynamicColor }) => {
 ```tsx
 <span className="global-class" classStyle={styles.base}>Text</span>
 ```
+
+❌ **Joining `css.use()` output with other class names:**
+
+```tsx
+// Box.tsx
+export const Box = ({ className }: { className?: string }) => (
+  <div className={css.use(styles.base) + ' ' + className} />
+);
+
+// Parent.tsx
+<Box className={css.use(styles.blue)} />
+```
+
+Strings from separate calls are not merged, so which rule wins depends on stylesheet order. Receive a `css.Style` prop and pass it to the same call instead, e.g. `css.use(styles.base, style)`. (→ Styling Custom Components)
 
 ❌ **Complex JS expressions in style values.** Only simple ternary operators are allowed, and only when necessary. Never put complex logic or function calls inside style values.
 
