@@ -49,18 +49,27 @@ const styles = css.create({
   doller: {
     userSelect: 'none',
   },
+  setup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  setupLabel: {
+    fontSize: 12,
+    color: 'var(--color-fd-muted-foreground)',
+  },
   command: {
-    marginTop: 16,
-    marginBottom: -8,
-    fontFamily: 'ui-monospace, Menlo, Monaco, Consolas, monospace',
-    fontSize: 15,
+    fontFamily: 'inter-monospace, Menlo, Monaco, Consolas, monospace',
+    fontSize: 12,
   },
   actions: {
     display: 'flex',
     flexWrap: 'wrap',
     gap: 16,
     justifyContent: 'center',
-    marginTop: 36,
+    marginTop: 32,
   },
   button: {
     display: 'inline-flex',
@@ -167,9 +176,6 @@ export default function Page() {
           <br />
           Compiled to atomic CSS. Zero runtime.
         </p>
-        <code classStyle={styles.command}>
-          <span classStyle={styles.doller}>$ </span>npx @plumeria/init
-        </code>
         <div classStyle={styles.actions}>
           <Link href="/docs" classStyle={[styles.button, styles.primary]}>
             Get started
@@ -177,6 +183,12 @@ export default function Page() {
           <Link href="/docs/why-plumeria" classStyle={styles.button}>
             Why Plumeria?
           </Link>
+        </div>
+        <div classStyle={styles.setup}>
+          <span classStyle={styles.setupLabel}>In your project</span>
+          <code classStyle={styles.command}>
+            <span classStyle={styles.doller}>$ </span>npx @plumeria/init
+          </code>
         </div>
       </main>
       <footer classStyle={styles.footer}>
