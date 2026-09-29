@@ -1,5 +1,11 @@
 # @plumeria/codemod
 
+## 19.5.2
+
+### Patch Changes
+
+- 674b065: Bump version to 19.5.2
+
 ## 19.5.1
 
 ### Patch Changes

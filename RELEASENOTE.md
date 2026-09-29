@@ -1,5 +1,11 @@
 # Release Notes
 
+## 19.5.2 (Sep 29, 2026)
+
+- Scan a project whose imports go through a module that re-exports many names without slowing down as the project grows. Every import resolved through such a module copied its whole export list, so editing that module, a cold scan and the scan behind each transform cost more than linear time: in a project of 4,000 files around one barrel, a rescan after editing the barrel took about 300 ms and now takes about 55 ms, and a cold scan went from about 390 ms to about 110 ms. The scan now reads only the name it resolves
+
+- Read the files a scan has to parse again in parallel once there are 512 or more of them, as the scan already does for their timestamps
+
 ## 19.5.1 (Sep 28, 2026)
 
 - Compile a project that sits inside another Git repository whose `.gitignore` ignores it. The file walk behind `compileCSS` and the project scan applied every `.gitignore` from the repository root down, so a parent `.gitignore` such as `*` in a home directory hid every source file: development styles appeared, but the production stylesheet came out empty. When a parent `.gitignore` ignores the project directory itself, the walk now leaves out every `.gitignore` above the project and still honors the ones inside it. A repository `.gitignore` keeps applying to an app inside a monorepo. `@plumeria/utils` 19.4 and earlier behaved the same way
