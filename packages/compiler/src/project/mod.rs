@@ -527,16 +527,25 @@ impl Project {
             }
         }
 
+        let load = |file: &String| stat(file).map(|stat| (stat, std::fs::read_to_string(file)));
+        let loaded: Vec<Option<(Stat, std::io::Result<String>)>> = if uncached.len() < 512 {
+            uncached.iter().map(load).collect()
+        } else {
+            use rayon::prelude::*;
+            crate::fs::glob::pool(uncached.len())
+                .install(|| uncached.par_iter().map(load).collect())
+        };
+
         let mut sources: Vec<(String, String, Stamp)> = Vec::new();
-        for file in &uncached {
-            let Some(stat) = stat(file) else {
+        for (file, loaded) in uncached.iter().zip(loaded) {
+            let Some((stat, source)) = loaded else {
                 self.record_file_error(
                     file,
                     format!("ENOENT: no such file or directory, stat '{file}'"),
                 );
                 continue;
             };
-            let source = match std::fs::read_to_string(file) {
+            let source = match source {
                 Ok(source) => source,
                 Err(error) => {
                     self.record_file_error(file, error.to_string());
