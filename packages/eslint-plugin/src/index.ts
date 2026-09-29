@@ -10,6 +10,7 @@ import { noMixedStylingProps } from './rules/no-mixed-styling-props';
 import { noPhysicalProperties } from './rules/no-physical-properties';
 import { noOrderDependentOverlap } from './rules/no-order-dependent-overlap';
 import { noUnknownCssProperties } from './rules/no-unknown-css-properties';
+import { noUnresolvedComposition } from './rules/no-unresolved-composition';
 import { noUnusedKeys } from './rules/no-unused-keys';
 import { sortProperties } from './rules/sort-properties';
 import { formatProperties } from './rules/format-properties';
@@ -38,6 +39,7 @@ const rules: Rules = {
   'no-order-dependent-overlap': noOrderDependentOverlap,
   'no-unknown-css-properties': noUnknownCssProperties,
   'no-unused-keys': noUnusedKeys,
+  'no-unresolved-composition': noUnresolvedComposition,
   'sort-properties': sortProperties,
   'format-properties': formatProperties,
   'validate-values': validateValues,
@@ -63,6 +65,7 @@ const configs: Configs = {
       '@plumeria/no-order-dependent-overlap': 'warn',
       '@plumeria/no-unknown-css-properties': 'error',
       '@plumeria/no-unused-keys': 'warn',
+      '@plumeria/no-unresolved-composition': 'warn',
       '@plumeria/sort-properties': 'warn',
       '@plumeria/format-properties': 'warn',
       '@plumeria/validate-values': 'warn',
