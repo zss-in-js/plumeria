@@ -32,7 +32,6 @@ const flattenablePseudos = new Set([
   'current',
   'past',
   'future',
-  'has',
   'host',
   'host-context',
   'lang',
