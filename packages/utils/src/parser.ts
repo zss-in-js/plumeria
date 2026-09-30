@@ -390,7 +390,10 @@ export function objectExpressionToObject(
     );
     if (!key) return;
 
-    if (typeof key === 'string' && /^[:[]/.test(key)) {
+    if (
+      typeof key === 'string' &&
+      (key.startsWith(':') || key.startsWith('['))
+    ) {
       const name = findSameNameNesting(key);
       if (name)
         throw new Error(
