@@ -307,6 +307,7 @@ ruleTesterNoType.run(
     valid: [
       { code: pseudoNesting(':is(:where(:not(:has(.a))))') },
       { code: pseudoNesting(':is(.a, .b)') },
+      { code: pseudoNesting('[data-a]:is(:hover, :focus-visible)') },
       { code: pseudoNesting('[data-x=":is(:is(a))"]') },
       { code: pseudoNesting(':is(') },
       { code: pseudoNesting(':is(.a]') },
@@ -365,6 +366,16 @@ ruleTesterNoType.run(
       },
       {
         code: pseudoNesting(':nth-child(2 of :nth-child(1 of .a))'),
+        output: null,
+        errors: [{ messageId: 'noSameNamePseudoNesting' }],
+      },
+      {
+        code: pseudoNesting('[data-a]:is(:is(.a), .b)'),
+        output: pseudoNesting('[data-a]:is(.a, .b)'),
+        errors: [{ messageId: 'flattenSameNamePseudo' }],
+      },
+      {
+        code: pseudoNesting('[data-a]:is(:where(:is(.a)))'),
         output: null,
         errors: [{ messageId: 'noSameNamePseudoNesting' }],
       },
