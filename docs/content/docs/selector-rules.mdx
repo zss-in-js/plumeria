@@ -55,7 +55,7 @@ A functional pseudo-class cannot appear inside another one of the same name, at 
 ':not(:not(.a), .b)' // [!code --]
 ```
 
-The compiler stops the build on such a key. `no-invalid-selector` flattens it with a fix when the nested call is a whole argument, as in the first line; any other shape, and every `:not()` or `:has()`, has to be rewritten by hand, because flattening would change what the selector matches.
+The compiler stops the build on such a key. `no-invalid-selector` flattens it with a fix when the nested call is a whole argument, as in the first line; any other shape, and every `:not()`, has to be rewritten by hand, because flattening would change what the selector matches.
 
 ## Reason
 This design intentionally avoids reverse nesting.
