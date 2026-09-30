@@ -205,4 +205,91 @@ describe('staticValueResolver', () => {
       `),
     ).toEqual(Array(15).fill(null));
   });
+
+  it('reads createStatic through the default import of the core package', () => {
+    expect(
+      resolveKeys(`
+        import css from '@plumeria/core';
+        const bp = css.createStatic({ md: '@media (width >= 768px)' });
+        ({ [bp.md]: {} });
+      `),
+    ).toEqual(['@media (width >= 768px)']);
+  });
+
+  it('follows an import whose name is written as a string', () => {
+    expect(
+      resolveKeys(`
+        import { 'query' as q } from './tokens';
+        ({ [q]: {} });
+      `),
+    ).toEqual(['@media (width >= 640px)']);
+  });
+
+  it('reads a member of an object that is not a name', () => {
+    expect(
+      resolveKeys(`
+        const obj = { inner: { a: ':hover' } };
+        ({
+          [({ a: ':focus' }).a]: {},
+          [obj.inner.a]: {},
+          [obj['inner']['a']]: {},
+        });
+      `),
+    ).toEqual([':focus', ':hover', ':hover']);
+  });
+
+  it('reads a boolean literal and leaves other literals unresolved', () => {
+    expect(
+      resolveKeys(`
+        ({
+          [true]: {},
+          [null]: {},
+          [/x/]: {},
+        });
+      `),
+    ).toEqual([true, null, null]);
+  });
+
+  it('leaves a member unresolved when its key is not a string', () => {
+    expect(
+      resolveKeys(`
+        const obj = { a: ':hover', 1: ':focus' };
+        ({
+          [obj[1]]: {},
+          [obj[notDeclared]]: {},
+        });
+      `),
+    ).toEqual([null, null]);
+  });
+
+  it('leaves an expression unresolved when one side is', () => {
+    expect(
+      resolveKeys(`
+        ({
+          [1 + notDeclared]: {},
+          [notDeclared * 2]: {},
+        });
+      `),
+    ).toEqual([null, null]);
+  });
+
+  it('leaves a constant that names itself unresolved', () => {
+    expect(
+      resolveKeys(`
+        const a = b;
+        const b = a;
+        ({ [a]: {} });
+      `),
+    ).toEqual([null]);
+  });
+
+  it('leaves a createStatic call without an argument unresolved', () => {
+    expect(
+      resolveKeys(`
+        import * as css from '@plumeria/core';
+        const empty = css.createStatic();
+        ({ [empty.md]: {} });
+      `),
+    ).toEqual([null]);
+  });
 });
