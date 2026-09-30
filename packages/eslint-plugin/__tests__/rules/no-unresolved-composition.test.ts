@@ -22,6 +22,10 @@ ruleTester.run('no-unresolved-composition', noUnresolvedComposition, {
       'const x = css.use(a); createElement("div", { className: x })',
       'const x = css.use(a); const y = x;',
       'let x = ""; x += " b"',
+      'const styles = css.create({ a: {} }); css.use(styles.a)',
+      'const styles = css.create({ a: {} }); css.use(styles.a, active && styles.b)',
+      'css.use(other.palette(color))',
+      'const styles = css.create({ p: (c) => ({ color: c }) }); createElement("div", { classStyle: styles.p(c) })',
     ].map((code) => prefix + code),
     'css.use(a) + " b"',
     'import * as css from "other"; css.use(a) + " b"',
@@ -86,6 +90,40 @@ ruleTester.run('no-unresolved-composition', noUnresolvedComposition, {
       errors: [{ messageId: 'external', data: { values } }],
       output: null,
     })),
+    ...[
+      'css.use(styles.p(c))',
+      'css.use(styles["p"](c))',
+      'css.use(a, active && styles.p(c))',
+      'css.use(a, [b, [styles.p(c)]])',
+      'css.use(active ? styles.p(c) : a)',
+      'const d = styles.p(c); css.use(a, d)',
+      'const o = { d: styles.p(c) }; css.use(o.d)',
+    ].map((code) => ({
+      code:
+        prefix +
+        'const styles = css.create({ p: (c) => ({ color: c }) }); ' +
+        code,
+      errors: [{ messageId: 'dynamic' }],
+      output: null,
+    })),
+    {
+      code:
+        prefix +
+        'const styles = css.create({ p: (c) => ({ color: c }) }); css.use(styles.p(c))',
+      options: [{ styleProp: 'sx' }],
+      errors: [
+        {
+          messageId: 'dynamic',
+          data: { source: 'styles.p(c)', styleProp: 'sx' },
+        },
+      ],
+      output: null,
+    },
+    {
+      code: 'import { create, use } from "@plumeria/core"; const styles = create({ p: (c) => ({ color: c }) }); use(styles.p(c))',
+      errors: [{ messageId: 'dynamic' }],
+      output: null,
+    },
     ...[
       'import css from "@plumeria/core"; css.use(a) + " b"',
       'import { use as apply } from "@plumeria/core"; apply(a) + " b"',
