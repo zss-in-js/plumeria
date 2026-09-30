@@ -27,6 +27,7 @@ module.exports = {
   coveragePathIgnorePatterns: [
     '<rootDir>/packages/codemod/dist/',
     '<rootDir>/packages/compiler/dist/',
+    '<rootDir>/packages/compiler/index.js',
     '<rootDir>/packages/eslint-plugin/dist/',
     '<rootDir>/packages/init/dist/',
     '<rootDir>/packages/next-plugin/dist/',
