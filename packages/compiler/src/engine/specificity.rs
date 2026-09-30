@@ -14,11 +14,25 @@ fn at(chars: &[char], index: usize) -> Option<char> {
     chars.get(index).copied()
 }
 
+fn escape_end(chars: &[char], start: usize) -> usize {
+    let mut end = start + 1;
+    while end < chars.len() && end - start <= 6 && chars[end].is_ascii_hexdigit() {
+        end += 1;
+    }
+    if end == start + 1 {
+        return (start + 2).min(chars.len());
+    }
+    if end < chars.len() && chars[end].is_ascii_whitespace() {
+        end += 1;
+    }
+    end
+}
+
 fn skip_name(chars: &[char], from: usize) -> usize {
     let mut index = from;
     while index < chars.len() {
         if chars[index] == '\\' {
-            index += 2;
+            index = escape_end(chars, index);
             continue;
         }
         if !is_name_char(chars[index]) {
@@ -290,4 +304,16 @@ pub fn get_pseudo_element(selector: &str) -> String {
         }
     }
     String::new()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::get_specificity;
+
+    #[test]
+    fn hex_escapes_end_at_their_whitespace() {
+        assert_eq!(get_specificity(".\\31 0"), [0, 1, 0]);
+        assert_eq!(get_specificity("#\\31 x"), [1, 0, 0]);
+        assert_eq!(get_specificity("a.\\31 0:hover"), [0, 2, 1]);
+    }
 }
