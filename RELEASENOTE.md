@@ -1,5 +1,15 @@
 # Release Notes
 
+## 19.6.2 (Sep 30, 2026)
+
+- Ask "Which spelling should lint enforce?" and rename the `both` answer to `none`
+
+- Remove the `--both` flag
+
+- Add `no-style-prop-relay`, enabled as an error in `recommended` and plumerialint, which reports a style prop that a component only passes on
+
+- Report function keys passed to `css.use()` in `no-unresolved-composition`
+
 ## 19.6.1 (Sep 30, 2026)
 
 - Shorten the `no-unresolved-composition` section of the README and place it in alphabetical order
