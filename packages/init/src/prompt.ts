@@ -6,13 +6,13 @@ import type { Answers, Spelling } from './setup';
 const SPELLINGS: Record<string, Spelling> = {
   '1': 'logical',
   '2': 'physical',
-  '3': 'both',
+  '3': 'none',
   l: 'logical',
   logical: 'logical',
   p: 'physical',
   physical: 'physical',
-  b: 'both',
-  both: 'both',
+  n: 'none',
+  none: 'none',
 };
 
 export interface Asker {
@@ -57,11 +57,9 @@ export const ask = async (
     const choices: [string, Spelling, string][] = [
       ['1', 'logical', 'marginBlockStart, insetInlineStart'],
       ['2', 'physical', 'marginTop, left'],
-      ['3', 'both', 'no policy'],
+      ['3', 'none', 'no policy'],
     ];
-    console.log(
-      `\nWhich spelling of a two-named property does this project write?`,
-    );
+    console.log(`\nWhich spelling should lint enforce?`);
     for (const [key, name, hint] of choices) {
       console.log(
         `  ${style.choice(`${key}:`)} ${name.padEnd(9)}${style.faint(hint)}`,
@@ -84,7 +82,7 @@ export const ask = async (
     }
   }
 
-  if (answers.spelling !== 'both' && preset.sizes === undefined) {
+  if (answers.spelling !== 'none' && preset.sizes === undefined) {
     answers.sizes = await confirm(
       asker,
       'Reject the size axis too (width/height ↔ inlineSize/blockSize)?',
