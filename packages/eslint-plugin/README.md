@@ -16,8 +16,8 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/no-mixed-styling-props`: **error**
 - `@plumeria/no-order-dependent-overlap`: **warn**
 - `@plumeria/no-unknown-css-properties`: **error**
-- `@plumeria/no-unused-keys`: **warn**
 - `@plumeria/no-unresolved-composition`: **warn**
+- `@plumeria/no-unused-keys`: **warn**
 - `@plumeria/sort-properties`: **warn**
 - `@plumeria/format-properties`: **warn**
 - `@plumeria/validate-values`: **warn**
@@ -131,6 +131,10 @@ is known to be vertical.
 
 Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, and `css.viewTransition`.
 
+### no-unresolved-composition
+
+A safety net for `css.use()`. Warns when its result is combined with other class names or passed to another function; pass every style to one `css.use()` call instead.
+
 ### no-unused-keys
 
 Warns when object keys are defined but not used, mainly in component files.
@@ -157,49 +161,6 @@ Validates CSS pseudo-classes and pseudo-elements inside `css.create()`. It check
 ### validate-at-rules
 
 Validates at-rules inside `css.create()`. It accepts `@media`, `@container`, `@supports`, `@layer`, and `@scope`, each with a prelude, whether or not a space separates it from the keyword, and supports validation of computed keys when TypeScript is available.
-
-### no-unresolved-composition
-
-Warns when a `css.use()` result is combined with other class names using `+`,
-a template literal, or an inline array's `.join()`, or passed to a function such
-as `clsx` or `css.use()` itself. Enabled by `recommended` as `warn`:
-
-```js
-'@plumeria/no-unresolved-composition': 'warn'
-```
-
-```js
-// Warns: merge separate css.use() calls.
-`${css.use(styles.base)} ${css.use(styles.active)}`
-css.use(styles.base) + ' ' + (active ? css.use(styles.active) : '')
-
-// Warns: pass styles, not css.use() results, to one call.
-clsx(css.use(styles.base), className)
-css.use(css.use(styles.base), styles.active)
-
-// Warns: rewrite external classes with css.create().
-css.use(styles.base) + ' external'
-[css.use(styles.base), 'external'].join(' ')
-
-// Compose everything in one call; nested arrays are allowed.
-css.use(styles.base, [active && styles.active, styles.external])
-```
-
-When a `css.use()` result is a function argument, directly, inside an array or
-spread, or in a conditional branch, the rule reports that the styles should be
-passed to one `css.use()` call instead; this is reported before the other two.
-When two or more `css.use()` results are combined, the rule reports that they
-should be merged into one call; this is reported first, even if external classes
-are also present. When a `css.use()` result is combined with external class
-names, it lists them as written in the source and reports that their precedence is left to the CSS cascade and that they
-should be rewritten as styles with `css.create()` and passed into the same
-`css.use()` call. It offers no automatic fix. Whitespace-only
-additions are allowed. Imports and their aliases are resolved with scope, so
-unrelated or shadowed `use` functions are ignored. Detection covers calls within
-these expressions, including conditional branches, and follows results through
-local variables, `+=` assignments, arrays joined through a variable, and object
-properties. It does not follow values returned from functions or imported from
-other modules.
 
 ## Optional rules
 
