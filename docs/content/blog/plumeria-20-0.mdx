@@ -46,7 +46,6 @@ Deeper nesting is flattened in one pass, so `':where(:where(:where(.a)))'` becom
 The rule reports without a fix when flattening would change the selector:
 
 - `:not()`: `:not(:not(.a), .b)` matches `.a` without `.b`, while `:not(.a, .b)` matches neither.
-- `:has()`: `:has(:has(.a))` is invalid CSS, and even read literally it needs `.a` two levels down, while `:has(.a)` also matches a child. Flattening would turn a dropped rule into one that applies to different elements.
 - A nested call that is only part of an argument, such as `:where(.x:where(.a))`.
 - A name repeated through another function, such as `:is(:where(:is(.a)))`.
 
@@ -69,4 +68,4 @@ Each case gets its own message, so a report either says it will be flattened or 
 ## 20.0.0 (Oct 1, 2026)
 
 - Breaking: the compiler rejects a functional pseudo-class nested inside one of the same name at any depth
-- Feat: `no-invalid-selector` reports same-name nesting and flattens it with a fix when the nested call is a whole argument; `:not()`, `:has()` and other shapes are reported without a fix
+- Feat: `no-invalid-selector` reports same-name nesting and flattens it with a fix when the nested call is a whole argument; `:not()` and other shapes are reported without a fix
