@@ -34,12 +34,12 @@ The bundler comes from the dependencies, and from the config files when nothing 
 
 ## What it asks
 
-### Which spelling of a two-named property does this project write?
+### Which spelling should lint enforce?
 
 ```sh title="Terminal"
   1: logical   marginBlockStart, insetInlineStart
   2: physical  marginTop, left
-  3: both      no policy
+  3: none      no policy
 ```
 
 One answer reaches both levels. The bundler plugin receives `withoutPhysicalProperties` or `withoutLogicalProperties`, so the counterpart cannot compile, and ESLint receives `@plumeria/no-physical-properties` or `@plumeria/no-logical-properties`, so it is reported while you type. They are the same choice made twice, and setting them from one answer is what keeps their directions from disagreeing.
