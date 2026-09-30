@@ -24,7 +24,7 @@ catalog:
   react: ^19.2.8
   react-dom: ^19.2.8
   webpack: 5.109.2
-  zss-engine: 2.8.0
+  zss-engine: 2.8.2
 
 minimumReleaseAge: 0
 
