@@ -15,6 +15,209 @@ type SelectorType =
   | 'SKIP'
   | 'UNKNOWN';
 
+type PseudoCall = {
+  prefix: string;
+  name: string;
+  start: number;
+  end: number;
+  args: string;
+};
+
+const flattenablePseudos = new Set([
+  'is',
+  'where',
+  'matches',
+  '-webkit-any',
+  '-moz-any',
+  'current',
+  'past',
+  'future',
+  'has',
+  'host',
+  'host-context',
+  'lang',
+  'dir',
+  'state',
+  'part',
+  'slotted',
+  'nth-child',
+  'nth-last-child',
+  'nth-of-type',
+  'nth-last-of-type',
+  'nth-col',
+  'nth-last-col',
+  'heading',
+  'active-view-transition-type',
+  'highlight',
+  'view-transition-group',
+  'view-transition-image-pair',
+  'view-transition-old',
+  'view-transition-new',
+  'cue',
+  'cue-region',
+  'picker',
+  'scroll-button',
+]);
+
+function skipString(text: string, i: number): number {
+  const quote = text[i];
+  let j = i + 1;
+  while (j < text.length && text[j] !== quote) {
+    j += text[j] === '\\' ? 2 : 1;
+  }
+  return j + 1;
+}
+
+function matchClose(text: string, i: number): number {
+  const close = text[i] === '(' ? ')' : ']';
+  let depth = 0;
+  let j = i;
+  while (j < text.length) {
+    const ch = text[j];
+    if (ch === '\\') {
+      j += 2;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      j = skipString(text, j);
+      continue;
+    }
+    if (ch === '(' || ch === '[') depth++;
+    else if (ch === ')' || ch === ']') {
+      depth--;
+      if (depth === 0) return ch === close ? j : -1;
+    }
+    j++;
+  }
+  return -1;
+}
+
+function findPseudoCalls(text: string): PseudoCall[] | null {
+  const calls: PseudoCall[] = [];
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === '\\') {
+      i += 2;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      i = skipString(text, i);
+      continue;
+    }
+    if (ch === '(' || ch === '[') {
+      const close = matchClose(text, i);
+      if (close < 0) return null;
+      i = close + 1;
+      continue;
+    }
+    if (ch === ':') {
+      const match = /^(::?)(-?[a-zA-Z][\w-]*)\(/.exec(text.slice(i));
+      if (match) {
+        const open = i + match[0].length - 1;
+        const close = matchClose(text, open);
+        if (close < 0) return null;
+        calls.push({
+          prefix: match[1],
+          name: match[2].toLowerCase(),
+          start: i,
+          end: close + 1,
+          args: text.slice(open + 1, close),
+        });
+        i = close + 1;
+        continue;
+      }
+    }
+    i++;
+  }
+  return calls;
+}
+
+function splitTopLevel(text: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let last = 0;
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === '\\') {
+      i += 2;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      i = skipString(text, i);
+      continue;
+    }
+    if (ch === '(' || ch === '[') depth++;
+    else if (ch === ')' || ch === ']') depth--;
+    else if (ch === ',' && depth === 0) {
+      parts.push(text.slice(last, i));
+      last = i + 1;
+    }
+    i++;
+  }
+  parts.push(text.slice(last));
+  return parts;
+}
+
+function findSameNameNesting(
+  text: string,
+  ancestors: string[],
+): PseudoCall | null {
+  const calls = findPseudoCalls(text);
+  if (!calls) return null;
+  for (const call of calls) {
+    const key = call.prefix + call.name;
+    if (ancestors.includes(key)) return call;
+    const nested = findSameNameNesting(call.args, [...ancestors, key]);
+    if (nested) return nested;
+  }
+  return null;
+}
+
+function flattenSelector(text: string): string {
+  const calls = findPseudoCalls(text);
+  if (!calls) return text;
+  let result = '';
+  let last = 0;
+  for (const call of calls) {
+    const args = flattenArgs(call);
+    result += text.slice(last, call.start);
+    result +=
+      args === call.args
+        ? text.slice(call.start, call.end)
+        : `${call.prefix}${call.name}(${args})`;
+    last = call.end;
+  }
+  return result + text.slice(last);
+}
+
+function flattenArgs(call: PseudoCall): string {
+  let changed = false;
+  const items: string[] = [];
+  for (const part of splitTopLevel(call.args)) {
+    const flattened = flattenSelector(part);
+    if (flattened !== part) changed = true;
+    const item = flattened.trim();
+    const inner = flattenablePseudos.has(call.name)
+      ? findPseudoCalls(item)
+      : null;
+    if (
+      inner?.length === 1 &&
+      inner[0].start === 0 &&
+      inner[0].end === item.length &&
+      inner[0].prefix === call.prefix &&
+      inner[0].name === call.name
+    ) {
+      items.push(...splitTopLevel(inner[0].args).map((s) => s.trim()));
+      changed = true;
+    } else {
+      items.push(item);
+    }
+  }
+  return changed ? items.join(', ') : call.args;
+}
+
 export const noInvalidSelector: Rule.RuleModule = {
   meta: {
     type: 'problem',
@@ -30,11 +233,16 @@ export const noInvalidSelector: Rule.RuleModule = {
         'Media/Container queries cannot be nested inside other queries.',
       noPseudoInsidePseudo:
         'Pseudo-selectors cannot be nested inside other pseudo-selectors.',
+      flattenSameNamePseudo:
+        'Flatten nested "{{name}}()" into a single "{{name}}()".',
+      noSameNamePseudoNesting:
+        '"{{name}}()" cannot be nested inside another "{{name}}()"; rewrite it without nesting.',
       invalidKeyframesKey:
         'Keyframes keys must be "from", "to", or a percentage value (e.g. "0%", "50%", "100%").',
       invalidViewTransitionKey:
         'ViewTransition keys must be one of: "group", "imagePair", "new", "old".',
     },
+    fixable: 'code',
     schema: [],
   },
   create(context) {
@@ -66,6 +274,40 @@ export const noInvalidSelector: Rule.RuleModule = {
       return 'SKIP';
     }
 
+    function checkPseudoNesting(node: TSESTree.Node): void {
+      const selector =
+        node.type === 'Literal' && typeof node.value === 'string'
+          ? node.value
+          : staticValue(node);
+      if (typeof selector !== 'string') return;
+      const nested = findSameNameNesting(selector, []);
+      if (!nested) return;
+      const flattened = flattenSelector(selector);
+      const raw = node.type === 'Literal' ? node.raw : '';
+      const quote = raw[0];
+      const fixable =
+        flattened !== selector &&
+        (quote === '"' || quote === "'") &&
+        raw.slice(1, -1) === selector &&
+        !flattened.includes(quote) &&
+        !flattened.includes('\\');
+      context.report({
+        node,
+        messageId:
+          fixable && !findSameNameNesting(flattened, [])
+            ? 'flattenSameNamePseudo'
+            : 'noSameNamePseudoNesting',
+        data: { name: nested.prefix + nested.name },
+        fix: fixable
+          ? (fixer) =>
+              fixer.replaceText(
+                node as Rule.Node,
+                `${quote}${flattened}${quote}`,
+              )
+          : null,
+      });
+    }
+
     function checkNesting(
       node: TSESTree.ObjectExpression,
       parentType: SelectorType,
@@ -76,6 +318,8 @@ export const noInvalidSelector: Rule.RuleModule = {
         const currentType = getSelectorType(prop.key);
 
         if (currentType === 'SKIP') continue;
+
+        if (currentType === 'PSEUDO') checkPseudoNesting(prop.key);
 
         if (currentType === 'UNKNOWN') {
           context.report({
