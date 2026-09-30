@@ -78,6 +78,16 @@ plumerialint runs oxlint with `--deny-warnings`, so a new warning fails the lint
 
 ## Release notes
 
+## 19.6.2 (Sep 30, 2026)
+
+- Report a style prop that a component only passes on with `no-style-prop-relay`, `error` in `recommended` and plumerialint. The compiler already rejects it; the rule shows it in the editor
+- Report a function key passed to `css.use()` in `no-unresolved-composition`. The compiler already rejects it; apply the function key to `classStyle` instead
+- `@plumeria/init` asks "Which spelling should lint enforce?" and names the answer that sets no policy `none` instead of `both`. The `--both` flag is removed
+
+## 19.6.1 (Sep 30, 2026)
+
+- Shorten the `no-unresolved-composition` section of the `@plumeria/eslint-plugin` README and place it in alphabetical order
+
 ## 19.6.0 (Sep 30, 2026)
 
 - Feat: `@plumeria/eslint-plugin` adds `no-unresolved-composition`, `warn` in `recommended` and plumerialint, which reports `css.use()` results joined with `+`, a template literal or `.join()`, or passed to a function, including through local variables, `+=` assignments and object properties
