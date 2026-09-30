@@ -279,7 +279,7 @@ export const noInvalidSelector: Rule.RuleModule = {
         node.type === 'Literal' && typeof node.value === 'string'
           ? node.value
           : staticValue(node);
-      if (typeof selector !== 'string') return;
+      if (typeof selector !== 'string' || !/^[:[]/.test(selector)) return;
       const nested = findSameNameNesting(selector, []);
       if (!nested) return;
       const flattened = flattenSelector(selector);
@@ -319,7 +319,12 @@ export const noInvalidSelector: Rule.RuleModule = {
 
         if (currentType === 'SKIP') continue;
 
-        if (currentType === 'PSEUDO') checkPseudoNesting(prop.key);
+        if (
+          currentType === 'PSEUDO' ||
+          (currentType === 'PROPERTY' &&
+            (prop.computed || prop.key.type !== 'Identifier'))
+        )
+          checkPseudoNesting(prop.key);
 
         if (currentType === 'UNKNOWN') {
           context.report({
