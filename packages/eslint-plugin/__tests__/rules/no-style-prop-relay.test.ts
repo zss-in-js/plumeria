@@ -75,7 +75,7 @@ const ruleTester = new RuleTester({
   languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
 });
 
-const valid = (name: string, settings?: object) => ({
+const valid = (name: string, settings?: Record<string, unknown>) => ({
   code: fs.readFileSync(paths[name], 'utf8'),
   filename: paths[name],
   ...(settings ? { settings } : {}),
