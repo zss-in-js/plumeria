@@ -9,7 +9,7 @@ const isNameChar = (c: number) =>
 const isSpace = (c: number) => c === 32 || (c >= 9 && c <= 13);
 
 const EXPRESSION_BEFORE = new Set(
-  Array.from('(,=:[!&|?{};+-*%<>~^', (c) => c.charCodeAt(0)),
+  Array.from('(,=:[!&|?{};+-*%<>~^/', (c) => c.charCodeAt(0)),
 );
 
 const EXPRESSION_WORDS = new Set([
@@ -205,7 +205,7 @@ const writesAttribute = (source: string, name: string): boolean => {
       const end = templateEnd(i + 1);
       if (end === -1) return true;
       i = end;
-      previous = 96;
+      previous = source.charCodeAt(i) === 123 ? 123 : 96;
       continue;
     }
     if (c === 123) {
@@ -219,7 +219,7 @@ const writesAttribute = (source: string, name: string): boolean => {
         const end = templateEnd(i + 1);
         if (end === -1) return true;
         i = end;
-        previous = 96;
+        previous = source.charCodeAt(i) === 123 ? 123 : 96;
         continue;
       }
       if (kind === 'attribute') {
@@ -241,6 +241,7 @@ const writesAttribute = (source: string, name: string): boolean => {
     const expressionStart =
       previous === 0 ||
       (EXPRESSION_BEFORE.has(previous) && !afterUpdate) ||
+      (previous === 46 && source.startsWith('...', previousEnd - 3)) ||
       (isNameChar(previous) &&
         EXPRESSION_WORDS.has(wordBefore(source, previousEnd)));
 
