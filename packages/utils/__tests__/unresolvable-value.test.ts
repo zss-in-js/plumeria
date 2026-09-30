@@ -315,3 +315,78 @@ describe('assertNoDroppedValues: style functions', () => {
     ).not.toThrow();
   });
 });
+
+describe('assertNoDroppedValues: a node that leaves a part out', () => {
+  const property = (name: string, value?: unknown) => ({
+    type: 'KeyValueProperty',
+    key: { type: 'Identifier', value: name },
+    ...(value === undefined ? {} : { value }),
+  });
+  const source = (...properties: unknown[]) =>
+    ({ type: 'ObjectExpression', properties }) as unknown as ObjectExpression;
+  const arrow = (body: unknown) => ({ type: 'ArrowFunctionExpression', body });
+
+  it('passes over a property without a value', () => {
+    expect(() =>
+      assertNoDroppedValues(source(property('color')), {}),
+    ).not.toThrow();
+  });
+
+  it('reads a function without a parameter list whose body is the object', () => {
+    expect(() =>
+      assertNoDroppedValues(
+        source(
+          property(
+            'box',
+            arrow(source(property('color', { type: 'CallExpression' }))),
+          ),
+        ),
+        {},
+      ),
+    ).toThrow(
+      'Cannot resolve the value of "color" at build time (CallExpression).',
+    );
+  });
+
+  it('passes over a returned object without a property list', () => {
+    expect(() =>
+      assertNoDroppedValues(
+        source(property('box', arrow({ type: 'ObjectExpression' }))),
+        {},
+      ),
+    ).not.toThrow();
+  });
+
+  it('passes over a returned property without a value', () => {
+    expect(() =>
+      assertNoDroppedValues(
+        source(property('box', arrow(source(property('color'))))),
+        {},
+      ),
+    ).not.toThrow();
+  });
+});
+
+describe('assertNoDroppedValues: an object nested in a style function', () => {
+  it('names the value it cannot resolve inside the nested object', () => {
+    expect(() =>
+      assertNoDroppedValues(
+        object(`{ box: (w) => ({ width: w, ':hover': { color: read() } }) }`),
+        {},
+      ),
+    ).toThrow(
+      'Cannot resolve the value of "color" at build time (CallExpression).',
+    );
+  });
+
+  it('goes on to the keys after the nested object', () => {
+    expect(() =>
+      assertNoDroppedValues(
+        object(`{ box: (w) => ({ ':hover': { width: w }, color: read() }) }`),
+        {},
+      ),
+    ).toThrow(
+      'Cannot resolve the value of "color" at build time (CallExpression).',
+    );
+  });
+});
