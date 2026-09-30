@@ -33,6 +33,7 @@ export const styles = css.create({
       ':is(:where(:not(:has(.a))))',
       ':is(.a):is(.b)',
       ':not([data-x=":not(:not(a))"])',
+      '[data-a]:is(:hover, :focus-visible)',
     ])('compiles %s', (selector) => {
       expect(() => compile(selector)).not.toThrow();
     });
@@ -42,6 +43,7 @@ export const styles = css.create({
       [':is(:where(:is(.a)))', ':is'],
       [':not(.x, :not(.a))', ':not'],
       ['::part(::part(label))', '::part'],
+      ['[data-a]:is(:is(.a), .b)', ':is'],
     ])('rejects %s', (selector, name) => {
       expect(() => compile(selector)).toThrow(
         `"${name}()" cannot be nested inside another "${name}()"`,
