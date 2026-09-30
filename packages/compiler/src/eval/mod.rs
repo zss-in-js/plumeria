@@ -147,7 +147,7 @@ impl<'e, 'r> Evaluator<'e, 'r> {
                     return Ok(());
                 }
                 let key = key.to_js_string();
-                if key.starts_with(':')
+                if (key.starts_with(':') || key.starts_with('['))
                     && let Some(name) = find_same_name_nesting(&key)
                 {
                     return Err(format!(
