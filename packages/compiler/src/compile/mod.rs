@@ -11,7 +11,7 @@ use rustc_hash::{FxBuildHasher, FxHashMap, FxHashSet};
 use crate::engine::{camel_to_kebab_case, hash_object, is_at_rule};
 use crate::eval::consts::collect_local_consts;
 use crate::eval::functions::{
-    StyleFunction, StyleFunctions, resolve_dynamic_style, style_functions_of,
+    StyleFunction, StyleFunctions, is_defined_argument, resolve_dynamic_style, style_functions_of,
 };
 use crate::eval::{Env, Evaluator, argument_expr, resolve_theme_selector};
 use crate::fs::glob::{GlobOptions, glob_sync};
@@ -789,6 +789,7 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
         let mut temp = self.merged_static.clone();
         let mut provided: FxHashSet<String> = FxHashSet::default();
         let mut runtime: Vec<String> = Vec::new();
+        let mut definite: Vec<String> = Vec::new();
         if let Some(named) = &func.named {
             let first = call.arguments.first().map(argument_expr);
             if call.arguments.len() > 1 || first.is_some_and(|arg| arg.object_expr().is_none()) {
@@ -845,6 +846,9 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                     continue;
                 }
                 runtime.push(param.local.clone());
+                if is_defined_argument(source) {
+                    definite.push(param.local.clone());
+                }
             }
         } else if call.arguments.len() == 1
             && argument_expr(&call.arguments[0]).object_expr().is_some()
@@ -858,9 +862,12 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                 }
             }
         } else {
-            for index in 0..call.arguments.len() {
+            for (index, argument) in call.arguments.iter().enumerate() {
                 if let Some(param) = func.params.get(index) {
                     runtime.push(param.clone());
+                    if is_defined_argument(argument_expr(argument)) {
+                        definite.push(param.clone());
+                    }
                 }
             }
         }
@@ -874,7 +881,8 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
             statics: &crate::eval::NOTHING,
             ..parts.env()
         };
-        let resolved = resolve_dynamic_style(func, &runtime, &statics, tables, Some(&provided))?;
+        let resolved =
+            resolve_dynamic_style(func, &runtime, &statics, tables, Some(&provided), &definite)?;
         Ok(Some(resolved.style))
     }
 
