@@ -1,0 +1,164 @@
+// The branches of one argument are mutually exclusive, so they compile to a
+// single lookup rather than one dimension each. Whatever shape that takes, it
+// must produce -- for every runtime input -- exactly the class list the
+// equivalent literal-key form produces.
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { DEFAULT_STYLE_PROP } from '@plumeria/utils';
+import { implementations } from '../compiler-implementations';
+
+describe.each(implementations)('$name', ({ transformSource }) => {
+  const DIR = fs.realpathSync(
+    fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-')),
+  );
+  afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
+
+  const env = (source: string, filePath: string) => ({
+    source,
+    moduleId: filePath,
+    filePath,
+    root: DIR,
+    cwd: DIR,
+    styleProp: DEFAULT_STYLE_PROP,
+    propertyPolicy: undefined,
+    isDev: false,
+    collectOndemandSheets: true,
+    addDependency: () => {},
+  });
+
+  const HEAD = `
+import * as css from '@plumeria/core';
+const s = css.create({
+  p1: { color: 'green' },
+  p2: { color: 'olive' },
+  p3: { color: 'teal' },
+});
+const d = css.create({ w1: { width: 10 }, w3: { width: 30 } });
+const both = css.create({
+  b1: { color: 'red', padding: 1 },
+  b2: { color: 'blue', margin: 2 },
+});
+const sparse = css.create({
+  on: { color: 'gray', opacity: 0.5 },
+  off: { opacity: 1 },
+});
+`;
+
+  const compile = async (body: string) => {
+    const result = await transformSource(
+      env(HEAD + body, `${DIR}/fixture.tsx`),
+    );
+    const code = typeof result === 'string' ? result : (result?.code ?? '');
+    const found = code.match(/className=\{([\s\S]*?)\} \/>/);
+    if (!found) throw new Error(`no className in:\n${code}`);
+    return found[1];
+  };
+
+  const classExpr = (styleExpr: string) =>
+    compile(
+      `export const A = ({ a, b, c, k, j, m }: any) => <div classStyle={${styleExpr}} />;`,
+    );
+
+  const norm = (value: string) =>
+    value.trim().split(/\s+/).filter(Boolean).sort().join(' ');
+
+  const evaluate = (expr: string, vars: Record<string, unknown>) => {
+    const names = Object.keys(vars);
+
+    const fn = new Function(...names, `return (${expr});`);
+    return norm(fn(...names.map((n) => vars[n])));
+  };
+
+  // Substituting the bracket for a literal key gives a form the compiler already
+  // handled before groups could sit under a condition -- the reference output.
+  const withKeys = (styleExpr: string, k: string, j: string, m: string) =>
+    styleExpr
+      .replace(/s\[k\]/g, `s.${k}`)
+      .replace(/d\[j\]/g, `d.${j}`)
+      .replace(/sparse\[m\]/g, `sparse.${m}`);
+
+  const SPACES: Record<string, unknown[]> = {
+    a: [true, false],
+    b: [true, false],
+    c: [true, false],
+    k: ['p1', 'p2', 'p3'],
+    j: ['w1', 'w3'],
+    m: ['on', 'off'],
+  };
+
+  const CASES: Array<[string, string, string[]]> = [
+    ['ternary over a group', `a ? s[k] : s.p3`, ['a', 'k']],
+    ['&& over a group', `a && s[k]`, ['a', 'k']],
+    ['group merged with a conflicting base', `[s.p1, a && s[k]]`, ['a', 'k']],
+    ['group merged with a disjoint base', `[d.w1, a && s[k]]`, ['a', 'k']],
+    ['group in both branches', `a ? s[k] : d[j]`, ['a', 'k', 'j']],
+    [
+      'nested ternary reaching a group',
+      `a ? (b ? s[k] : s.p1) : s.p3`,
+      ['a', 'b', 'k'],
+    ],
+    [
+      'group nested two levels deep',
+      `a ? (b ? (c ? s[k] : s.p2) : s.p1) : s.p3`,
+      ['a', 'b', 'c', 'k'],
+    ],
+    ['&& nested inside a ternary', `a ? (b && s[k]) : s.p3`, ['a', 'b', 'k']],
+    [
+      'plain nested ternary, no group',
+      `a ? (b ? s.p2 : s.p1) : s.p3`,
+      ['a', 'b'],
+    ],
+    [
+      'deep plain ternary, no group',
+      `a ? (b ? s.p2 : (c ? s.p1 : s.p3)) : s.p3`,
+      ['a', 'b', 'c'],
+    ],
+    ['two independent arguments', `[a && s.p1, b && d.w1]`, ['a', 'b']],
+    [
+      'group beside an independent condition',
+      `[a && d.w1, b ? s[k] : s.p3]`,
+      ['a', 'b', 'k'],
+    ],
+    ['partially overlapping properties', `[both.b1, a && both.b2]`, ['a']],
+    ['literal bracket keys stay literal', `a ? s['p1'] : s['p3']`, ['a']],
+    [
+      'group whose option drops the shared property',
+      `[s[k], sparse[m]]`,
+      ['k', 'm'],
+    ],
+    ['sparse group first', `[sparse[m], s[k]]`, ['k', 'm']],
+    ['sparse group beside a base', `[s.p2, sparse[m]]`, ['m']],
+    [
+      'sparse group beside a condition',
+      `[s[k], a && d.w1, sparse[m]]`,
+      ['a', 'k', 'm'],
+    ],
+  ];
+
+  describe.each(CASES)('%s', (_label, styleExpr, varNames) => {
+    it('matches the literal-key form for every input', async () => {
+      const actual = await classExpr(styleExpr);
+
+      const combos = varNames.reduce<Array<Record<string, unknown>>>(
+        (acc, name) =>
+          acc.flatMap((base) =>
+            SPACES[name].map((value) => ({ ...base, [name]: value })),
+          ),
+        [{}],
+      );
+
+      for (const combo of combos) {
+        const reference = await classExpr(
+          withKeys(
+            styleExpr,
+            combo.k as string,
+            combo.j as string,
+            combo.m as string,
+          ),
+        );
+        expect(evaluate(actual, combo)).toBe(evaluate(reference, combo));
+      }
+    });
+  });
+});
