@@ -5,8 +5,9 @@
 import type { Rule, Scope } from 'eslint';
 import type { ImportDeclaration } from 'estree';
 import type { JSXAttribute } from 'estree-jsx';
-import { resolveExport, resolveImportPath, scanAll } from '@plumeria/compiler';
+import { resolveExport, resolveImportPath } from '@plumeria/compiler';
 import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
+import { scanTables } from '../util/scan';
 
 type ImportedBinding = {
   source: string;
@@ -61,24 +62,7 @@ const styleRoots = (node: unknown, roots: StyleRoot[]): StyleRoot[] => {
   return roots;
 };
 
-const SCAN_REUSE_MS = 1000;
 const MAX_ALIAS_DEPTH = 4;
-let recentScan:
-  | { key: string; at: number; tables: ReturnType<typeof scanAll> }
-  | undefined;
-
-const scanTables = (cwd: string, styleProp: string) => {
-  const key = `${cwd}\0${styleProp}`;
-  const now = Date.now();
-  if (
-    !recentScan ||
-    recentScan.key !== key ||
-    now - recentScan.at > SCAN_REUSE_MS
-  ) {
-    recentScan = { key, at: now, tables: scanAll(cwd, styleProp) };
-  }
-  return recentScan.tables;
-};
 
 export const customPropsRequireImport: Rule.RuleModule = {
   meta: {
