@@ -306,14 +306,90 @@ pub fn get_pseudo_element(selector: &str) -> String {
     String::new()
 }
 
+pub fn find_same_name_nesting(selector: &str) -> Option<String> {
+    let chars: Vec<char> = selector.chars().collect();
+    let mut open: Vec<(String, usize)> = Vec::new();
+    let mut depth = 0usize;
+    let mut index = 0;
+    while index < chars.len() {
+        let c = chars[index];
+        if c == '\\' {
+            index = escape_end(&chars, index);
+            continue;
+        }
+        if c == '"' || c == '\'' {
+            index = skip_string(&chars, c, index + 1);
+            continue;
+        }
+        if c == '[' {
+            index = skip_bracket(&chars, index);
+            continue;
+        }
+        if c == '(' {
+            depth += 1;
+        } else if c == ')' {
+            if open.last().is_some_and(|(_, level)| *level == depth) {
+                open.pop();
+            }
+            depth = depth.saturating_sub(1);
+        } else if c == ':' {
+            let double_colon = at(&chars, index + 1) == Some(':');
+            let name_start = index + if double_colon { 2 } else { 1 };
+            let name_end = skip_name(&chars, name_start);
+            if name_end > name_start && at(&chars, name_end) == Some('(') {
+                let prefix = if double_colon { "::" } else { ":" };
+                let name = format!("{prefix}{}", lower_name(&chars, name_start, name_end));
+                if open.iter().any(|(ancestor, _)| *ancestor == name) {
+                    return Some(name);
+                }
+                depth += 1;
+                open.push((name, depth));
+                index = name_end + 1;
+                continue;
+            }
+            index = name_end;
+            continue;
+        }
+        index += 1;
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
-    use super::get_specificity;
+    use super::{find_same_name_nesting, get_specificity};
 
     #[test]
     fn hex_escapes_end_at_their_whitespace() {
         assert_eq!(get_specificity(".\\31 0"), [0, 1, 0]);
         assert_eq!(get_specificity("#\\31 x"), [1, 0, 0]);
         assert_eq!(get_specificity("a.\\31 0:hover"), [0, 2, 1]);
+    }
+
+    #[test]
+    fn same_name_pseudo_nesting_is_found_through_ancestors() {
+        assert_eq!(find_same_name_nesting(":is(:where(:not(:has(.a))))"), None);
+        assert_eq!(find_same_name_nesting(":is(.a):is(.b)"), None);
+        assert_eq!(find_same_name_nesting("[data-x=\":is(:is(a))\"]"), None);
+        assert_eq!(
+            find_same_name_nesting(":where(:where(.a), .b)"),
+            Some(":where".to_string())
+        );
+        assert_eq!(
+            find_same_name_nesting(":is(:where(:is(.a)))"),
+            Some(":is".to_string())
+        );
+        assert_eq!(
+            find_same_name_nesting(":not(.x, :not(.a))"),
+            Some(":not".to_string())
+        );
+        assert_eq!(
+            find_same_name_nesting("::slotted(::slotted(span))"),
+            Some("::slotted".to_string())
+        );
+        assert_eq!(
+            find_same_name_nesting(":nth-child(2 of :is(.a)):is(.b)"),
+            None
+        );
     }
 }
