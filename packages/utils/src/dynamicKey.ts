@@ -21,7 +21,13 @@ import type {
   CreateStaticHashTable,
   CreateStaticObjectTable,
 } from './types';
-import { objectExpressionToObject, t } from './parser';
+import {
+  expressionLabel,
+  objectExpressionToObject,
+  readsParams,
+  t,
+  unwrapExpression,
+} from './parser';
 
 export type NamedParam = { key: string; local: string };
 
@@ -333,12 +339,172 @@ export type DynamicStyleTables = {
   createStaticObjectTable: CreateStaticObjectTable;
 };
 
+export type DerivedPiece = string | { param: string; fallback?: string };
+
+export type DerivedVar = { name: string; pieces: DerivedPiece[] };
+
 export type DynamicStyleResult = {
   style: CSSObject;
   varGroups: Map<
     string,
     Array<{ cssVar: string; prop: string; unit: string; written: boolean }>
   >;
+  derived: DerivedVar[];
+};
+
+const ARITHMETIC = new Set(['+', '-', '*', '/', '%', '**']);
+
+const isSign = (node: any): boolean =>
+  t.isUnaryExpression(node) && (node.operator === '-' || node.operator === '+');
+
+export const isDefinedArgument = (expression: Expression): boolean => {
+  const node = unwrapExpression(expression);
+  if (
+    t.isStringLiteral(node) ||
+    t.isNumericLiteral(node) ||
+    t.isBooleanLiteral(node) ||
+    t.isNullLiteral(node) ||
+    t.isTemplateLiteral(node)
+  )
+    return true;
+  return isSign(node) && t.isNumericLiteral(unwrapExpression(node.argument));
+};
+
+const defaultError = (
+  param: string,
+  node: Expression,
+  literal: unknown,
+): Error => {
+  const kind =
+    literal === null || t.isNullLiteral(node)
+      ? 'null'
+      : typeof literal === 'boolean'
+        ? 'a boolean'
+        : literal !== undefined
+          ? 'an object'
+          : undefined;
+  return new Error(
+    kind
+      ? `[plumeria] The default of "${param}" is ${kind}, which a dynamic style function cannot fall back on. Use a string or a number, or pass the value from the call.`
+      : `[plumeria] Cannot resolve the default of "${param}" at build time (${expressionLabel(node)}). A dynamic style function falls back on it when the argument is undefined, so it has to be a string or a number plumeria can read. Pass the value from the call instead.`,
+  );
+};
+
+const replaceNodes = (node: any, replacements: Map<unknown, unknown>): any => {
+  if (!node || typeof node !== 'object') return node;
+  const replacement = replacements.get(node);
+  if (replacement) return replacement;
+  if (Array.isArray(node))
+    return node.map((item) => replaceNodes(item, replacements));
+  const copy: Record<string, unknown> = {};
+  for (const key of Object.keys(node))
+    copy[key] =
+      key === 'span' ? node[key] : replaceNodes(node[key], replacements);
+  return copy;
+};
+
+const literalSource = (value: string | number): string => {
+  if (typeof value === 'string') return JSON.stringify(value);
+  const text = String(value);
+  return text.startsWith('-') ? `(${text})` : text;
+};
+
+const deriveArithmetic = (
+  body: ObjectExpression,
+  runtimeParams: ReadonlySet<string>,
+  varParams: ReadonlySet<string>,
+  defaults: ReadonlyMap<string, string | number>,
+  evaluate: (node: Expression) => unknown,
+): { body: ObjectExpression; derived: DerivedVar[] } => {
+  const derived: DerivedVar[] = [];
+  const names = new Map<string, string>();
+  const replacements = new Map<unknown, unknown>();
+
+  const render = (expression: any): DerivedPiece[] | null => {
+    const node = unwrapExpression(expression);
+    if (t.isIdentifier(node) && runtimeParams.has(node.value)) {
+      const fallback = defaults.get(node.value);
+      return [
+        fallback === undefined
+          ? { param: node.value }
+          : { param: node.value, fallback: literalSource(fallback) },
+      ];
+    }
+    if (t.isBinaryExpression(node) && ARITHMETIC.has(node.operator)) {
+      const left = render(node.left);
+      const right = render(node.right);
+      if (!left || !right) return null;
+      return ['(', ...left, ` ${node.operator} `, ...right, ')'];
+    }
+    if (isSign(node)) {
+      const argument = render(node.argument);
+      return argument && ['(', node.operator, '(', ...argument, ')', ')'];
+    }
+    if (readsParams(node, runtimeParams as Set<string>)) return null;
+    const value = evaluate(node);
+    return typeof value === 'number' ? [literalSource(value)] : null;
+  };
+
+  const register = (node: any, pieces: DerivedPiece[]) => {
+    const first = pieces.find(
+      (piece): piece is { param: string } => typeof piece !== 'string',
+    );
+    if (!first) {
+      replacements.set(node, {
+        type: 'NumericLiteral',
+        span: node.span,
+        value: evaluate(node),
+      });
+      return;
+    }
+    const key = JSON.stringify(pieces);
+    let name = names.get(key);
+    if (!name) {
+      name = `${first.param}-${derived.length + 1}`;
+      names.set(key, name);
+      derived.push({ name, pieces });
+    }
+    replacements.set(node, {
+      type: 'Identifier',
+      span: node.span,
+      value: name,
+      optional: false,
+    });
+  };
+
+  const visit = (expression: any): void => {
+    const node = unwrapExpression(expression);
+    if (t.isObjectExpression(node)) {
+      node.properties.forEach((prop) => {
+        if (prop.type === 'KeyValueProperty') visit(prop.value);
+      });
+      return;
+    }
+    if (t.isTemplateLiteral(node)) {
+      node.expressions.forEach(visit);
+      return;
+    }
+    const arithmetic =
+      t.isBinaryExpression(node) && ARITHMETIC.has(node.operator);
+    if (!arithmetic && !isSign(node)) return;
+    if (!readsParams(node, varParams as Set<string>)) return;
+    const pieces = render(node);
+    if (pieces) {
+      register(node, pieces.slice(1, -1));
+      return;
+    }
+    if (arithmetic && node.operator === '+') {
+      visit(node.left);
+      visit(node.right);
+    }
+  };
+
+  visit(body);
+
+  return {
+    body: replacements.size > 0 ? replaceNodes(body, replacements) : body,
+    derived,
+  };
 };
 
 // The class a dynamic key resolves to is decided by which parameters reach the
@@ -351,60 +517,15 @@ export const resolveDynamicStyle = (
   staticTable: StaticTable,
   tables: DynamicStyleTables,
   providedParams?: ReadonlySet<string>,
+  definiteParams?: ReadonlySet<string>,
 ): DynamicStyleResult => {
   if (func.unsupportedParams)
     throw new Error(
       '[plumeria] Dynamic styles require named parameters or object destructuring; array and rest parameters are not supported.',
     );
   const tempStaticTable: StaticTable = Object.create(staticTable);
-  const resolveBody = () =>
+  const evaluate = (expr: Expression, table: StaticTable): unknown =>
     objectExpressionToObject(
-      func.body,
-      tempStaticTable,
-      tables.keyframesHashTable,
-      tables.viewTransitionHashTable,
-      tables.createThemeHashTable,
-      tables.createThemeObjectTable,
-      tables.createHashTable,
-      tables.createStaticHashTable,
-      tables.createStaticObjectTable,
-    );
-
-  const withDefault = Object.entries(func.defaults ?? {}).filter(([param]) =>
-    providedParams
-      ? !providedParams.has(param)
-      : tempStaticTable[param] === undefined,
-  );
-
-  const cssVars: Record<string, string> = {};
-  const varParams = Array.from(
-    new Set([...runtimeParams, ...withDefault.map(([param]) => param)]),
-  );
-  if (varParams.length > 0) {
-    varParams.forEach((param) => (tempStaticTable[param] = param));
-
-    const hash = genBase36Hash(resolveBody(), 1, 8);
-
-    varParams.forEach((param) => {
-      const cssVar = `--${hash}-${param}`;
-      tempStaticTable[param] = `var(${cssVar})`;
-      cssVars[param] = cssVar;
-    });
-  }
-
-  const style = resolveBody();
-
-  const varGroups = new Map<
-    string,
-    Array<{ cssVar: string; prop: string; unit: string; written: boolean }>
-  >();
-  varParams.forEach((param) => {
-    const cssVar = cssVars[param];
-    varGroups.set(param, splitVarByUnit(style, cssVar));
-  });
-
-  withDefault.forEach(([param, expr]) => {
-    const resolved = objectExpressionToObject(
       {
         type: 'ObjectExpression',
         span: func.body.span,
@@ -421,7 +542,72 @@ export const resolveDynamicStyle = (
           },
         ],
       },
-      staticTable,
+      table,
+      tables.keyframesHashTable,
+      tables.viewTransitionHashTable,
+      tables.createThemeHashTable,
+      tables.createThemeObjectTable,
+      tables.createHashTable,
+      tables.createStaticHashTable,
+      tables.createStaticObjectTable,
+    ).value;
+
+  const withDefault = Object.entries(func.defaults ?? {}).filter(([param]) =>
+    providedParams
+      ? !providedParams.has(param)
+      : tempStaticTable[param] === undefined,
+  );
+  const defaultLiterals = new Map<string, string | number>();
+  withDefault.forEach(([param, expr]) => {
+    const node = unwrapExpression(expr);
+    if (t.isIdentifier(node) && node.value === 'undefined') return;
+    const definite =
+      definiteParams?.has(param) || !readsParams(func.body, new Set([param]));
+    let literal: unknown;
+    try {
+      literal = evaluate(expr, staticTable);
+    } catch (error) {
+      if (definite) return;
+      throw error;
+    }
+    if (typeof literal === 'string' || typeof literal === 'number') {
+      defaultLiterals.set(param, literal);
+      return;
+    }
+    if (!definite) throw defaultError(param, node, literal);
+  });
+  const holeDefaults = new Map(
+    [...defaultLiterals].filter(([param]) => !definiteParams?.has(param)),
+  );
+
+  const cssVars: Record<string, string> = {};
+  const varParams = Array.from(
+    new Set([...runtimeParams, ...withDefault.map(([param]) => param)]),
+  );
+
+  const runtimeSet = new Set(runtimeParams);
+  const constantTable: StaticTable = Object.create(staticTable);
+  defaultLiterals.forEach((literal, param) => {
+    if (!runtimeSet.has(param)) constantTable[param] = literal;
+  });
+  const { body, derived } = deriveArithmetic(
+    func.body,
+    runtimeSet,
+    new Set(varParams),
+    holeDefaults,
+    (node) => {
+      try {
+        return evaluate(node, constantTable);
+      } catch {
+        return undefined;
+      }
+    },
+  );
+
+  const resolveBody = () =>
+    objectExpressionToObject(
+      body,
+      tempStaticTable,
       tables.keyframesHashTable,
       tables.viewTransitionHashTable,
       tables.createThemeHashTable,
@@ -430,8 +616,31 @@ export const resolveDynamicStyle = (
       tables.createStaticHashTable,
       tables.createStaticObjectTable,
     );
-    const literal = resolved.value;
-    if (typeof literal !== 'string' && typeof literal !== 'number') return;
+
+  const varNames = [...varParams, ...derived.map(({ name }) => name)];
+  if (varNames.length > 0) {
+    varNames.forEach((name) => (tempStaticTable[name] = name));
+
+    const hash = genBase36Hash(resolveBody(), 1, 8);
+
+    varNames.forEach((name) => {
+      const cssVar = `--${hash}-${name}`;
+      tempStaticTable[name] = `var(${cssVar})`;
+      cssVars[name] = cssVar;
+    });
+  }
+
+  const style = resolveBody();
+
+  const varGroups = new Map<
+    string,
+    Array<{ cssVar: string; prop: string; unit: string; written: boolean }>
+  >();
+  varNames.forEach((name) => {
+    varGroups.set(name, splitVarByUnit(style, cssVars[name]));
+  });
+
+  defaultLiterals.forEach((literal, param) => {
     varGroups
       .get(param)!
       .forEach(({ cssVar, unit, written }) =>
@@ -439,5 +648,5 @@ export const resolveDynamicStyle = (
       );
   });
 
-  return { style, varGroups };
+  return { style, varGroups, derived };
 };
