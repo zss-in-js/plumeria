@@ -81,9 +81,6 @@ export function parseArgs(argv: string[]): Options | null {
       case '--physical':
         options.preset.spelling = 'physical';
         break;
-      case '--both':
-        options.preset.spelling = 'both';
-        break;
       case '--sizes':
         options.preset.sizes = true;
         break;
