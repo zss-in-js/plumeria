@@ -102,7 +102,11 @@ const spreadValues = (
 
 import { getStyleRecords } from './create';
 import type { StyleRecord } from './create';
-import { styleFunctionsOf, resolveDynamicStyle } from './dynamicKey';
+import {
+  styleFunctionsOf,
+  resolveDynamicStyle,
+  isDefinedArgument,
+} from './dynamicKey';
 import type {
   NamedParam,
   StyleFunctions,
@@ -1693,19 +1697,47 @@ export const transformSource = async (
       tempStaticTable,
       dynamicStyleTables,
       providedParams,
+      new Set(
+        runtime
+          .filter(({ source }) => isDefinedArgument(source))
+          .map(({ param }) => param),
+      ),
     );
-    const { style, varGroups } = resolved;
+    const { style, varGroups, derived } = resolved;
 
-    const vars: DynamicVar[] = [];
+    const argSources = new Map<string, string>();
     runtime.forEach(({ param, source }) => {
-      const groups = varGroups.get(param);
-      if (!groups?.length) return;
-
       const argStart = (source as HasSpan).span.start - baseByteOffset;
       const argEnd = (source as HasSpan).span.end - baseByteOffset;
-      const argSource = sourceBuffer
-        .subarray(argStart, argEnd)
-        .toString('utf-8');
+      argSources.set(
+        param,
+        sourceBuffer.subarray(argStart, argEnd).toString('utf-8'),
+      );
+    });
+    const runtimeSources = runtime.map(({ param }) => ({
+      name: param,
+      argSource: argSources.get(param)!,
+    }));
+    derived.forEach(({ name, pieces }) => {
+      runtimeSources.push({
+        name,
+        argSource: pieces
+          .map((piece) => {
+            if (typeof piece === 'string') return piece;
+            const argument = `(${argSources.get(piece.param)})`;
+            return piece.fallback === undefined
+              ? argument
+              : `(${argument} === undefined ? ${piece.fallback} : ${argument})`;
+          })
+          .join(''),
+      });
+    });
+
+    const vars: DynamicVar[] = [];
+    runtimeSources.forEach(({ name, argSource }) => {
+      const groups = varGroups.get(name);
+      if (!groups?.length) return;
+
       const maybeNumber = Number(argSource);
 
       groups.forEach(({ cssVar, prop, unit, written }) => {
