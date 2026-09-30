@@ -47,7 +47,10 @@
   },
   "devDependencies": {
     "@napi-rs/cli": "3.7.3",
-    "@napi-rs/wasm-runtime": "1.2.4"
+    "@napi-rs/wasm-runtime": "1.2.4",
+    "@plumeria/utils": "workspace:*",
+    "@swc/core": "catalog:",
+    "zss-engine": "catalog:"
   },
   "engines": {
     "node": ">=20"
