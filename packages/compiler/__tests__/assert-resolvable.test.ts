@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { implementations } from '../compiler-implementations';
 
-const FIXTURE_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-'));
-const FIXTURE_PATH = path.join(FIXTURE_DIR, 'fixture.tsx');
+describe.each(implementations)('$name', ({ compileCSS }) => {
+  const FIXTURE_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-'));
+  const FIXTURE_PATH = path.join(FIXTURE_DIR, 'fixture.tsx');
 
-import { compileCSS } from '../index';
-
-const wrap = (body: string) => `
+  const wrap = (body: string) => `
 import * as css from '@plumeria/core';
 
 const styles = css.create({
@@ -21,47 +21,48 @@ function Test() {
 ${body}
 `;
 
-const compile = (body: string) => {
-  fs.writeFileSync(FIXTURE_PATH, wrap(body), 'utf-8');
-  return compileCSS({
-    cwd: FIXTURE_DIR,
-    include: ['fixture.tsx'],
-    exclude: [],
-  });
-};
+  const compile = (body: string) => {
+    fs.writeFileSync(FIXTURE_PATH, wrap(body), 'utf-8');
+    return compileCSS({
+      cwd: FIXTURE_DIR,
+      include: ['fixture.tsx'],
+      exclude: [],
+    });
+  };
 
-afterAll(() => fs.rmSync(FIXTURE_DIR, { recursive: true, force: true }));
+  afterAll(() => fs.rmSync(FIXTURE_DIR, { recursive: true, force: true }));
 
-const UNSUPPORTED = /is not supported/;
+  const UNSUPPORTED = /is not supported/;
 
-describe('compiler: assertResolvable', () => {
-  it.each([
-    [
-      'a function call in classStyle',
-      'export const A = () => <div classStyle={[styles.box, Test()]} />;',
-    ],
-    [
-      'a function call nested in a ternary',
-      'export const A = () => <div classStyle={cond ? Test() : styles.box} />;',
-    ],
-    [
-      'an arrow function in classStyle',
-      'export const A = () => <div classStyle={[styles.box, () => styles.box]} />;',
-    ],
-    [
-      'a function call in css.use()',
-      'export const cls = css.use(styles.box, Test());',
-    ],
-  ])('throws on %s', (_label, body) => {
-    expect(() => compile(body)).toThrow(UNSUPPORTED);
-  });
+  describe('compiler: assertResolvable', () => {
+    it.each([
+      [
+        'a function call in classStyle',
+        'export const A = () => <div classStyle={[styles.box, Test()]} />;',
+      ],
+      [
+        'a function call nested in a ternary',
+        'export const A = () => <div classStyle={cond ? Test() : styles.box} />;',
+      ],
+      [
+        'an arrow function in classStyle',
+        'export const A = () => <div classStyle={[styles.box, () => styles.box]} />;',
+      ],
+      [
+        'a function call in css.use()',
+        'export const cls = css.use(styles.box, Test());',
+      ],
+    ])('throws on %s', (_label, body) => {
+      expect(() => compile(body)).toThrow(UNSUPPORTED);
+    });
 
-  // `Conditional` allows undefined, so this must keep compiling.
-  it('accepts undefined as a conditional branch', () => {
-    expect(() =>
-      compile(
-        'export const A = () => <div classStyle={cond ? styles.box : undefined} />;',
-      ),
-    ).not.toThrow();
+    // `Conditional` allows undefined, so this must keep compiling.
+    it('accepts undefined as a conditional branch', () => {
+      expect(() =>
+        compile(
+          'export const A = () => <div classStyle={cond ? styles.box : undefined} />;',
+        ),
+      ).not.toThrow();
+    });
   });
 });
