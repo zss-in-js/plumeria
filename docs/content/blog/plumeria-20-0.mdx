@@ -1,0 +1,71 @@
+---
+title: 'Plumeria 20.0'
+description: 'Update: a functional pseudo-class can no longer nest inside one of the same name'
+date: '2026-10-01'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Core maintainer" />
+  <GitHubUser username="Anionix" subtext="Core member" />
+</div>
+
+Plumeria v20.0 rejects a functional pseudo-class nested inside another one of the same name, such as `:where(:where(.a), .b)`. The compiler stops the build on it, and `no-invalid-selector` in `@plumeria/eslint-plugin` reports it and flattens it on save where that keeps the meaning.
+
+A key that compiled in 19.6 can fail in 20.0, which is why this is a major release.
+
+---
+
+## 1. Why same-name nesting is cut off
+
+Nesting the same function adds nothing. `:where(:where(.a, .b), .c)` matches exactly what `:where(.a, .b, .c)` matches, and for some functions, such as `:has()`, `::slotted()` and `:lang()`, the nested form is not valid CSS at all.
+
+It also costs the compiler. Reading a selector descends once per level of nesting, so a key nested deep enough, by hand or by a generator, could exhaust it. Checking every ancestor, not only the direct parent, closes the loophole of alternating two names: `:is(:where(:is(.a)))` is rejected too. With no name repeating on a path, nesting stops at the number of distinct functional pseudo-classes.
+
+Different names still nest freely:
+
+```ts
+':is(:where(:not(:has(.a))))'
+```
+
+---
+
+## 2. What the fix does
+
+`no-invalid-selector` flattens a nested call when it is a whole argument of a call with the same name:
+
+```ts
+':where(:where(.a, .b), .c)'
+// becomes
+':where(.a, .b, .c)'
+```
+
+Deeper nesting is flattened in one pass, so `':where(:where(:where(.a)))'` becomes `':where(.a)'`.
+
+The rule reports without a fix when flattening would change the selector:
+
+- `:not()`: `:not(:not(.a), .b)` matches `.a` without `.b`, while `:not(.a, .b)` matches neither.
+- A nested call that is only part of an argument, such as `:where(.x:where(.a))`.
+- A name repeated through another function, such as `:is(:where(:is(.a)))`.
+
+Each case gets its own message, so a report either says it will be flattened or asks for a rewrite.
+
+---
+
+## Upgrading
+
+**From 19.6.** Update the Plumeria packages together. Run the linter with `--fix` first: most keys are flattened for you, and the rest are reported with a message asking for a rewrite. The compiler error names the function and the key:
+
+```
+[plumeria] ":is()" cannot be nested inside another ":is()": ":is(:where(:is(.a)))". Rewrite the selector without nesting.
+```
+
+---
+
+## Release notes
+
+## 20.0.0 (Oct 1, 2026)
+
+- Breaking: the compiler rejects a functional pseudo-class nested inside one of the same name at any depth
+- Feat: `no-invalid-selector` reports same-name nesting and flattens it with a fix when the nested call is a whole argument; `:not()` and other shapes are reported without a fix
