@@ -52,7 +52,12 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as rs from '@rust-gear/glob';
 
-import { camelToKebabCase, genBase36Hash, transpile } from 'zss-engine';
+import {
+  camelToKebabCase,
+  findSameNameNesting,
+  genBase36Hash,
+  transpile,
+} from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 import { createViewTransition } from './viewTransition';
 import { DEFAULT_STYLE_PROP } from './constants';
@@ -384,6 +389,14 @@ export function objectExpressionToObject(
       createStaticObjectTable,
     );
     if (!key) return;
+
+    if (typeof key === 'string' && key.startsWith(':')) {
+      const name = findSameNameNesting(key);
+      if (name)
+        throw new Error(
+          `[plumeria] "${name}()" cannot be nested inside another "${name}()": "${key}". Rewrite the selector without nesting.`,
+        );
+    }
 
     const val = unwrapExpression(prop.value);
 
