@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { breakpoints } from 'lib/mediaQuery';
 import generateSEOData from 'lib/generateSEOData';
 import { latestBlogUrl } from 'lib/latestBlogUrl';
+import { InitCommand } from './init-command';
 
 const styles = css.create({
   page: {
@@ -45,24 +46,6 @@ const styles = css.create({
     lineHeight: 1.5,
     color: 'var(--color-fd-muted-foreground)',
     letterSpacing: '-0.02em',
-  },
-  doller: {
-    userSelect: 'none',
-  },
-  setup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 8,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  setupLabel: {
-    fontSize: 12,
-    color: 'var(--color-fd-muted-foreground)',
-  },
-  command: {
-    fontFamily: 'inter-monospace, Menlo, Monaco, Consolas, monospace',
-    fontSize: 12,
   },
   actions: {
     display: 'flex',
@@ -184,12 +167,7 @@ export default function Page() {
             Why Plumeria?
           </Link>
         </div>
-        <div classStyle={styles.setup}>
-          <span classStyle={styles.setupLabel}>In your project</span>
-          <code classStyle={styles.command}>
-            <span classStyle={styles.doller}>$ </span>npx @plumeria/init
-          </code>
-        </div>
+        <InitCommand />
       </main>
       <footer classStyle={styles.footer}>
         <nav aria-label="Resources" classStyle={styles.groups}>
