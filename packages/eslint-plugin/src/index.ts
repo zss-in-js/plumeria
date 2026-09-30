@@ -8,6 +8,7 @@ import { noInvalidSelector } from './rules/no-invalid-selector';
 import { noLogicalProperties } from './rules/no-logical-properties';
 import { noMixedStylingProps } from './rules/no-mixed-styling-props';
 import { noPhysicalProperties } from './rules/no-physical-properties';
+import { noStylePropRelay } from './rules/no-style-prop-relay';
 import { noOrderDependentOverlap } from './rules/no-order-dependent-overlap';
 import { noUnknownCssProperties } from './rules/no-unknown-css-properties';
 import { noUnresolvedComposition } from './rules/no-unresolved-composition';
@@ -37,6 +38,7 @@ const rules: Rules = {
   'no-mixed-styling-props': noMixedStylingProps,
   'no-physical-properties': noPhysicalProperties,
   'no-order-dependent-overlap': noOrderDependentOverlap,
+  'no-style-prop-relay': noStylePropRelay,
   'no-unknown-css-properties': noUnknownCssProperties,
   'no-unused-keys': noUnusedKeys,
   'no-unresolved-composition': noUnresolvedComposition,
@@ -63,6 +65,7 @@ const configs: Configs = {
       '@plumeria/no-invalid-selector': 'error',
       '@plumeria/no-mixed-styling-props': 'error',
       '@plumeria/no-order-dependent-overlap': 'warn',
+      '@plumeria/no-style-prop-relay': 'error',
       '@plumeria/no-unknown-css-properties': 'error',
       '@plumeria/no-unused-keys': 'warn',
       '@plumeria/no-unresolved-composition': 'warn',
