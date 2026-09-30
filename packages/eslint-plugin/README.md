@@ -102,7 +102,7 @@ Disallow calling APIs inside functions.
 
 Disallow invalid selector inside `css.create()` and `css.keyframes()` and `css.viewTransition()`.  
 `create()` example: (Pseudo -> Query, Query -> Query)  
-Also reports a functional pseudo-class nested inside one of the same name, such as `:where(:where(.a), .b)`, and flattens it with a fix when the nested call is a whole argument. `:not()` and `:has()` are reported without a fix.
+Also reports a functional pseudo-class nested inside one of the same name, such as `:where(:where(.a), .b)`, and flattens it with a fix when the nested call is a whole argument. `:not()` is reported without a fix.
 
 ### no-mixed-styling-props
 
