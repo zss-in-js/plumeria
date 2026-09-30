@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 19.6.2
+
+### Patch Changes
+
+- 82de66e: Bump version to 19.6.2
+
 ## 19.6.1
 
 ### Patch Changes
