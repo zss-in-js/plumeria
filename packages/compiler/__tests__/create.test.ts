@@ -1,0 +1,167 @@
+import { implementations } from '../compiler-implementations';
+
+describe.each(implementations)('$name', ({ getStyleRecords }) => {
+  describe('getStyleRecords', () => {
+    it('should generate atomic records for simple properties', () => {
+      const result = getStyleRecords({ color: 'red' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('color');
+      // hash depends on zss-engine implementation, checking format or presence
+      expect(result[0].hash).toBeDefined();
+      // sheet should contain the declaration
+      expect(result[0].sheet).toMatch(/color:\s*red/);
+    });
+
+    it('should generate multiple records for multiple properties', () => {
+      const result = getStyleRecords({ color: 'red', fontSize: '16px' });
+
+      expect(result).toHaveLength(2);
+      const keys = result.map((r) => r.key).sort();
+      expect(keys).toEqual(['color', 'fontSize']);
+    });
+
+    it('should handle nested pseudo-classes', () => {
+      const result = getStyleRecords({
+        ':hover': {
+          color: 'blue',
+        },
+      } as any);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toContain(':hover');
+      expect(result[0].sheet).toMatch(/color:\s*blue/);
+      expect(result[0].sheet).toContain(':hover');
+    });
+
+    it('should handle @media queries', () => {
+      const result = getStyleRecords({
+        '@media (min-width: 500px)': {
+          color: 'green',
+        },
+      } as any);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('@media (min-width: 500px):color');
+      expect(result[0].sheet).toContain('@media (min-width: 500px)');
+      expect(result[0].sheet).toMatch(/color:\s*green/);
+    });
+
+    it('should handle complex nested styles', () => {
+      const result = getStyleRecords({
+        color: 'red',
+        ':hover': {
+          background: 'white',
+          '@media (max-width: 400px)': {
+            background: 'gray',
+          },
+        },
+      } as any);
+
+      // 1 atomic (color) + 1 nested (hover background) + 1 nested media (hover media background)
+      expect(result.length).toBeGreaterThanOrEqual(2);
+
+      const sheetContent = result.map((r) => r.sheet).join('\n');
+      expect(sheetContent).toMatch(/color:\s*red/);
+      expect(sheetContent).toMatch(/background:\s*white/);
+      expect(sheetContent).toContain(':hover');
+    });
+    it('should handle non-atomic descendent selectors', () => {
+      const result = getStyleRecords({
+        ':hover': {
+          color: 'red',
+        },
+      } as any);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toContain(':hover');
+      expect(result[0].sheet).toContain(':hover');
+      expect(result[0].sheet).toMatch(/color:\s*red/);
+    });
+
+    it('should handle non-atomic selectors inside queries', () => {
+      const result = getStyleRecords({
+        '@media (min-width: 100px)': {
+          ':hover': {
+            color: 'blue',
+          },
+        },
+      } as any);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toContain('@media');
+      expect(result[0].key).toContain(':hover');
+      expect(result[0].sheet).toContain('@media (min-width: 100px)');
+      expect(result[0].sheet).toContain(':hover');
+      expect(result[0].sheet).toMatch(/color:\s*blue/);
+    });
+
+    it('should handle atomic selectors inside queries', () => {
+      const result = getStyleRecords({
+        '@media (min-width: 100px)': {
+          color: 'yellow',
+          '--color': 'red',
+          '[draggable="true"]': {
+            color: 'blue',
+          },
+          ':hover': {
+            '--primary': 'green',
+          },
+        },
+      });
+
+      expect(result[0].key).toContain('@media');
+      expect(result[0].sheet).toContain('@media (min-width: 100px)');
+      expect(result[0].sheet).toContain(':not(#\\#)');
+    });
+
+    it('should handle @container queries', () => {
+      const result = getStyleRecords({
+        '@container (min-width: 500px)': {
+          color: 'green',
+        },
+      } as any);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].key).toBe('@container (min-width: 500px):color');
+      expect(result[0].sheet).toContain('@container (min-width: 500px)');
+    });
+
+    it('should stack condition depth onto nested selectors', () => {
+      const countNot = (sheet: string) =>
+        (sheet.match(/:not\(#\\#\)/g) || []).length;
+
+      const base = getStyleRecords({
+        ':hover': { color: 'red' },
+      } as any);
+      const inMedia = getStyleRecords({
+        '@media (min-width: 100px)': { ':hover': { color: 'red' } },
+      } as any);
+      const inContainer = getStyleRecords({
+        '@container (min-width: 100px)': { ':hover': { color: 'red' } },
+      } as any);
+
+      expect(countNot(base[0].sheet)).toBe(1);
+      expect(countNot(inMedia[0].sheet)).toBe(2);
+      expect(countNot(inContainer[0].sheet)).toBe(2);
+    });
+
+    it('should not add condition depth to custom properties', () => {
+      const result = getStyleRecords({
+        '@media (min-width: 100px)': { ':hover': { '--primary': 'green' } },
+      } as any);
+
+      expect(result[0].sheet).not.toContain(':not(#\\#)');
+    });
+
+    it('should ignore non-atomic selectors', () => {
+      const result = getStyleRecords({
+        div: {
+          color: 'red',
+        },
+      } as any);
+
+      expect(result).toHaveLength(0);
+    });
+  });
+});
