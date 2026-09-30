@@ -340,4 +340,45 @@ describe('a unit written after the variable', () => {
     expect(style.width).toBe('var(--size, 4px)');
     expect(style.marginTop).toBe('var(--other, 4%)');
   });
+
+  test('names a second unitless rule on one property by that rule', () => {
+    const style = {
+      width: 'var(--size)',
+      lineHeight: 'var(--size)px',
+      ':hover': { lineHeight: 'var(--size)' },
+    };
+    expect(splitVarByUnit(style, '--size')).toEqual([
+      { cssVar: '--size', prop: 'width', unit: 'px', written: false },
+      {
+        cssVar: '--size-line-height',
+        prop: 'lineHeight',
+        unit: 'px',
+        written: true,
+      },
+      {
+        cssVar: '--size-line-height-unitless',
+        prop: 'lineHeight',
+        unit: '',
+        written: false,
+      },
+    ]);
+    expect(style[':hover'].lineHeight).toBe('var(--size-line-height-unitless)');
+  });
+
+  test.each([
+    ['%', 'percent'],
+    ['rem', 'rem'],
+  ])('names a second rule of %s on one property %s', (unit, slug) => {
+    const style = {
+      width: 'var(--size)',
+      lineHeight: 'var(--size)px',
+      ':hover': { lineHeight: `var(--size)${unit}` },
+    };
+    expect(splitVarByUnit(style, '--size')[2]).toEqual({
+      cssVar: `--size-line-height-${slug}`,
+      prop: 'lineHeight',
+      unit,
+      written: true,
+    });
+  });
 });
