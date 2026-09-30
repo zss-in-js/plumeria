@@ -17,6 +17,8 @@ pub type EvalResult<T> = Result<T, String>;
 
 pub type ResolveVariable<'r> = &'r dyn Fn(&str) -> Option<Value>;
 
+pub type Replacements = rustc_hash::FxHashMap<(u32, u32), Value>;
+
 fn to_ident(value: &str) -> String {
     value
         .chars()
@@ -47,6 +49,7 @@ pub fn property_is_plain(prop: &ObjectProperty) -> bool {
 pub struct Evaluator<'e, 'r> {
     pub env: Env<'e>,
     pub resolve_variable: Option<ResolveVariable<'r>>,
+    pub replacements: Option<&'r Replacements>,
 }
 
 impl<'e, 'r> Evaluator<'e, 'r> {
@@ -54,6 +57,7 @@ impl<'e, 'r> Evaluator<'e, 'r> {
         Evaluator {
             env,
             resolve_variable: None,
+            replacements: None,
         }
     }
 
@@ -61,6 +65,15 @@ impl<'e, 'r> Evaluator<'e, 'r> {
         Evaluator {
             env,
             resolve_variable: Some(resolve_variable),
+            replacements: None,
+        }
+    }
+
+    pub fn with_replacements(env: Env<'e>, replacements: &'r Replacements) -> Self {
+        Evaluator {
+            env,
+            resolve_variable: None,
+            replacements: Some(replacements),
         }
     }
 
@@ -68,6 +81,7 @@ impl<'e, 'r> Evaluator<'e, 'r> {
         Evaluator {
             env: self.env,
             resolve_variable: None,
+            replacements: self.replacements,
         }
     }
 
@@ -407,6 +421,12 @@ impl<'e, 'r> Evaluator<'e, 'r> {
 
     pub fn expression(&self, node: E) -> EvalResult<Value> {
         let node = unwrap(node);
+        if let Some(replacements) = self.replacements {
+            let span = node.span();
+            if let Some(value) = replacements.get(&(span.start, span.end)) {
+                return Ok(value.clone());
+            }
+        }
         match node.kind() {
             K::Call(call) => self.call(call),
             K::Str(value) => Ok(Value::str(value.value.as_str())),
