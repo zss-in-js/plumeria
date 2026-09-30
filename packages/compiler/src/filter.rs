@@ -12,7 +12,7 @@ fn is_space(c: u8) -> bool {
     c == b' ' || (9..=13).contains(&c)
 }
 
-const EXPRESSION_BEFORE: &[u8] = b"(,=:[!&|?{};+-*%<>~^";
+const EXPRESSION_BEFORE: &[u8] = b"(,=:[!&|?{};+-*%<>~^/";
 
 const EXPRESSION_WORDS: &[&str] = &[
     "return", "yield", "default", "else", "case", "await", "do", "typeof", "void", "in", "of",
@@ -253,7 +253,7 @@ fn writes_attribute(source: &[u8], name: &[u8]) -> bool {
                 Some(end) => i = end,
                 None => return true,
             }
-            previous = b'`';
+            previous = if at(source, i) == b'{' { b'{' } else { b'`' };
             i += 1;
             continue;
         }
@@ -271,7 +271,7 @@ fn writes_attribute(source: &[u8], name: &[u8]) -> bool {
                         Some(end) => i = end,
                         None => return true,
                     }
-                    previous = b'`';
+                    previous = if at(source, i) == b'{' { b'{' } else { b'`' };
                     i += 1;
                     continue;
                 }
@@ -299,6 +299,9 @@ fn writes_attribute(source: &[u8], name: &[u8]) -> bool {
             && at(source, previous_end - 2) == previous;
         let expression_start = previous == 0
             || (EXPRESSION_BEFORE.contains(&previous) && !after_update)
+            || (previous == b'.'
+                && previous_end >= 3
+                && &source[previous_end - 3..previous_end] == b"...")
             || (is_name_char(previous)
                 && std::str::from_utf8(word_before(source, previous_end))
                     .is_ok_and(|word| EXPRESSION_WORDS.contains(&word)));
