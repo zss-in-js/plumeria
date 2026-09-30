@@ -9,7 +9,9 @@ use super::context::StaticStack;
 use super::{Replacement, StyleKind, TResult, Transformer, is_static_arg_value};
 use crate::engine::hash::hash_str;
 use crate::engine::{apply_css_value, camel_to_kebab_case};
-use crate::eval::functions::{StyleFunction, resolve_dynamic_style};
+use crate::eval::functions::{
+    DerivedPiece, StyleFunction, is_defined_argument, resolve_dynamic_style,
+};
 use crate::eval::{Env, argument_expr};
 use crate::js::json::quote;
 use crate::js::number::{number_to_string, parse_js_number};
@@ -419,6 +421,11 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
         }
 
         let runtime_params: Vec<String> = runtime.iter().map(|(param, _)| param.clone()).collect();
+        let definite: Vec<String> = runtime
+            .iter()
+            .filter(|(_, source)| is_defined_argument(*source))
+            .map(|(param, _)| param.clone())
+            .collect();
         let empty = crate::transform::overlay::Map::<Value>::default();
         let statics = StaticStack {
             own: &temp,
@@ -429,19 +436,52 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 statics: &crate::eval::NOTHING,
                 ..evaluator.env
             };
-            resolve_dynamic_style(func, &runtime_params, &statics, tables, Some(&provided))
+            resolve_dynamic_style(
+                func,
+                &runtime_params,
+                &statics,
+                tables,
+                Some(&provided),
+                &definite,
+            )
         })?;
 
+        let mut sources: Vec<(String, String)> = runtime
+            .iter()
+            .map(|(param, source)| (param.clone(), self.source_of(*source)))
+            .collect();
+        for entry in &resolved.derived {
+            let mut rendered = String::new();
+            for piece in &entry.pieces {
+                match piece {
+                    DerivedPiece::Text(text) => rendered.push_str(text),
+                    DerivedPiece::Param(param, fallback) => {
+                        let argument = sources
+                            .iter()
+                            .find(|(name, _)| name == param)
+                            .map(|(_, source)| source.as_str())
+                            .unwrap_or("undefined");
+                        match fallback {
+                            Some(fallback) => rendered.push_str(&format!(
+                                "(({argument}) === undefined ? {fallback} : ({argument}))"
+                            )),
+                            None => rendered.push_str(&format!("({argument})")),
+                        }
+                    }
+                }
+            }
+            sources.push((entry.name.clone(), rendered));
+        }
+
         let mut vars = Vec::new();
-        for (param, source) in &runtime {
+        for (param, arg_source) in &sources {
             let Some(groups) = resolved.var_groups.get(param) else {
                 continue;
             };
             if groups.is_empty() {
                 continue;
             }
-            let arg_source = self.source_of(*source);
-            let maybe_number = parse_js_number(&arg_source);
+            let maybe_number = parse_js_number(arg_source);
             for group in groups {
                 let kebab_prop = camel_to_kebab_case(&group.prop);
                 let is_number_literal = maybe_number
