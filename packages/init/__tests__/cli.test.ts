@@ -80,20 +80,12 @@ describe('parseArgs', () => {
 
   it('reads aliases and the remaining presets', () => {
     expect(
-      parseArgs([
-        '-y',
-        '-d',
-        '--logical',
-        '--both',
-        '--no-install',
-        '--cwd',
-        '.',
-      ]),
+      parseArgs(['-y', '-d', '--logical', '--no-install', '--cwd', '.']),
     ).toMatchObject({
       yes: true,
       dryRun: true,
       cwd: process.cwd(),
-      preset: { spelling: 'both', install: false },
+      preset: { spelling: 'logical', install: false },
     });
     expect(parseArgs(['--yes', '--dry-run', '--physical'])).toMatchObject({
       yes: true,
