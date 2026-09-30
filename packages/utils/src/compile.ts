@@ -62,6 +62,7 @@ import type {
   StaticTable,
 } from './index';
 import { getLeadingCommentLength } from './index';
+import { isDefinedArgument } from './dynamicKey';
 
 interface CompilerOptions extends PropertyPolicyOptions {
   include: string[];
@@ -827,6 +828,7 @@ export function compileCSS(options: CompilerOptions) {
         const tempStaticTable = { ...ctx.mergedStaticTable };
         const providedParams = new Set<string>();
         const runtime: string[] = [];
+        const definite = new Set<string>();
         const resolveObjectArg = (argExpr: ObjectExpression) =>
           objectExpressionToObject(
             {
@@ -887,7 +889,10 @@ export function compileCSS(options: CompilerOptions) {
             if (isStaticArgValue(source) && argObj[key] !== undefined) {
               tempStaticTable[local] = argObj[key];
               providedParams.add(local);
-            } else runtime.push(local);
+            } else {
+              runtime.push(local);
+              if (isDefinedArgument(source)) definite.add(local);
+            }
           });
         } else if (
           callArgs.length === 1 &&
@@ -901,10 +906,11 @@ export function compileCSS(options: CompilerOptions) {
             }
           });
         } else {
-          callArgs.forEach((_callArg: any, i: number) => {
+          callArgs.forEach((callArg: any, i: number) => {
             const p = func.params[i];
             if (!p) return;
             runtime.push(p);
+            if (isDefinedArgument(callArg.expression)) definite.add(p);
           });
         }
 
@@ -914,6 +920,7 @@ export function compileCSS(options: CompilerOptions) {
           tempStaticTable,
           dynamicTablesOf(ctx),
           providedParams,
+          definite,
         );
         const { style } = resolved;
 
