@@ -34,12 +34,12 @@ Next.js gets `@plumeria/next-plugin`; every other bundler gets
 
 ## What it asks
 
-**Which spelling of a two-named property does this project write?** —
+**Which spelling should lint enforce?** —
 `marginBlockStart` or `marginTop`. The answer reaches both sides at once: the
 bundler plugin gets `withoutLogicalProperties` or `withoutPhysicalProperties`,
 so the counterpart cannot compile, and ESLint gets
 `@plumeria/no-logical-properties` or `@plumeria/no-physical-properties`, so it
-is reported while you type. Answering "both" sets neither. `--sizes` extends
+is reported while you type. Answering "none" sets neither. `--sizes` extends
 the answer to the size axis, where `width` and `inlineSize` are the pair.
 
 **Expand a border shorthand into the three declarations it sets?** — turns on
