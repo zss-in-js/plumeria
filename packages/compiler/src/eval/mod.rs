@@ -8,6 +8,7 @@ use oxc_syntax::operator::{BinaryOperator, LogicalOperator, UnaryOperator};
 pub use env::{Env, Layer, Lookup, NOTHING, Single};
 
 use crate::engine::hash::hash_object;
+use crate::engine::specificity::find_same_name_nesting;
 use crate::js::number::{number_to_string, to_int32, to_uint32};
 use crate::js::{Object, Value};
 use crate::style::theme::theme_var_reference;
@@ -146,6 +147,13 @@ impl<'e, 'r> Evaluator<'e, 'r> {
                     return Ok(());
                 }
                 let key = key.to_js_string();
+                if key.starts_with(':')
+                    && let Some(name) = find_same_name_nesting(&key)
+                {
+                    return Err(format!(
+                        "[plumeria] \"{name}()\" cannot be nested inside another \"{name}()\": \"{key}\". Rewrite the selector without nesting."
+                    ));
+                }
                 if let Some(value) = self.property_value(E::new(&prop.value))? {
                     obj.insert(key, value);
                 }
