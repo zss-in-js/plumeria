@@ -18,7 +18,7 @@ import {
 import type { ModuleKind } from './source';
 import type { Bundler, Detected, PackageManager } from './detect';
 
-export type Spelling = 'logical' | 'physical' | 'both';
+export type Spelling = 'logical' | 'physical' | 'none';
 
 export interface Answers {
   spelling: Spelling;
@@ -75,7 +75,7 @@ export const assertStyleProp = (value: string): string => {
 };
 
 export const DEFAULT_ANSWERS: Answers = {
-  spelling: 'both',
+  spelling: 'none',
   sizes: false,
   styleProp: DEFAULT_STYLE_PROP,
   expandBorderShorthands: true,
@@ -106,7 +106,7 @@ const INSTALL: Record<PackageManager, string> = {
 export const rejectedSpelling = (
   spelling: Spelling,
 ): 'logical' | 'physical' | undefined =>
-  spelling === 'both'
+  spelling === 'none'
     ? undefined
     : spelling === 'logical'
       ? 'physical'
