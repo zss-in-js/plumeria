@@ -663,4 +663,169 @@ export const A = () => <Card cardStyle={s.a} />;`;
       }
     });
   });
+
+  describe('transform: a spread inside a style', () => {
+    const declared = (declaration: string, lead = '') =>
+      transform({
+        'app.tsx': `import * as css from '@plumeria/core';
+${lead}
+const st = css.create(${declaration});
+export const A = () => <div classStyle={st.a} />;`,
+      });
+
+    it.each([
+      [
+        'an object constant, which a later key overrides',
+        `{ a: { ...base, color: 'red' } }`,
+        `const base = { padding: 2, color: 'blue' };`,
+        ['{ padding: 2px; }', '{ color: red; }'],
+      ],
+      [
+        'an object constant, which overrides an earlier key',
+        `{ a: { color: 'red', ...base } }`,
+        `const base = { padding: 2, color: 'blue' };`,
+        ['{ padding: 2px; }', '{ color: blue; }'],
+      ],
+      [
+        'a member of an object constant',
+        `{ a: { ...base.inner, color: 'red' } }`,
+        `const base = { inner: { padding: 2 } };`,
+        ['{ padding: 2px; }', '{ color: red; }'],
+      ],
+      [
+        'a call, which it passes over',
+        `{ a: { ...make(), color: 'red' } }`,
+        '',
+        ['{ color: red; }'],
+      ],
+    ])('reads %s', async (_name, declaration, lead, rules) => {
+      const { css } = await declared(declaration, lead);
+      for (const rule of rules) expect(css).toContain(rule);
+    });
+
+    it.each([
+      [
+        'a name it cannot resolve',
+        `{ a: { ...missing, color: 'red' } }`,
+        '[plumeria] Cannot resolve static value: missing.',
+      ],
+      [
+        'an object literal',
+        `{ a: { ...({ padding: 2 }), color: 'red' } }`,
+        '[plumeria] Unsupported expression type: an object literal.',
+      ],
+      [
+        'a conditional expression',
+        `{ a: { ...(flag ? { padding: 2 } : {}), color: 'red' } }`,
+        '[plumeria] Unsupported expression type: a conditional expression.',
+      ],
+    ])('rejects %s', async (_name, declaration, message) => {
+      await expect(declared(declaration, 'const flag = true;')).rejects.toThrow(
+        message,
+      );
+    });
+  });
+
+  describe('transform: a style object it cannot see', () => {
+    it.each([
+      [
+        'a function key behind two members',
+        `const lib: any = {}; export const A = () => <div classStyle={[s.a, lib.styles.fn(1)]} />;`,
+        'lib.styles.fn(1)',
+      ],
+      [
+        'a function key on the result of a call',
+        `const get = (): any => s; export const A = () => <div classStyle={[s.a, get().fn(1)]} />;`,
+        'get().fn(1)',
+      ],
+      [
+        'a function key on a parameter that shadows the style object',
+        `export const A = ({ s }: any) => <div classStyle={s.fn(1)} />;`,
+        's.fn(1)',
+      ],
+      [
+        'a static key on a parameter that shadows the style object',
+        `export const A = ({ s }: any) => <div classStyle={s.a} />;`,
+        's.a',
+      ],
+    ])('rejects %s', async (_name, body, source) => {
+      await expect(app(body)).rejects.toThrow(
+        `[plumeria] Dynamic or unresolvable style object "${source}" is not supported.`,
+      );
+    });
+  });
+
+  describe('transform: where a component reads the style it receives', () => {
+    const TABLE = `{"xdeb8kup":"${RED}"}`;
+
+    it.each([
+      [
+        'a member of the props object',
+        `(props: { cardStyle?: css.Style }) => <div classStyle={props.cardStyle} />`,
+        `(${TABLE}[props.cardStyle] || "")`,
+      ],
+      [
+        'a name destructured in the body',
+        `(props: { cardStyle?: css.Style }) => { const { cardStyle } = props; return <div classStyle={cardStyle} />; }`,
+        `(${TABLE}[cardStyle] || "")`,
+      ],
+      [
+        'a function nested in the component',
+        `({ cardStyle }: { cardStyle?: css.Style }) => { const inner = () => <div classStyle={cardStyle} />; return inner(); }`,
+        `(${TABLE}[cardStyle] || "")`,
+      ],
+    ])('looks the key up through %s', async (_name, component, lookup) => {
+      const { code } = await app(
+        `const Card = ${component};
+export const A = () => <Card cardStyle={s.a} />;`,
+      );
+      expect(code).toContain(lookup);
+      expect(code).toContain('<Card cardStyle={"xdeb8kup"} />');
+    });
+
+    it('joins a base with a received array that holds a function key', async () => {
+      const { code } = await app(
+        `const Card = ({ cardStyle }: { cardStyle?: css.Style }) => <div classStyle={[s.b, cardStyle]} />;
+export const A = ({ n, on }: any) => <Card cardStyle={[on && s.a, s.fn(n)]} />;`,
+      );
+      expect(code).toMatch(
+        new RegExp(
+          `className=\\{"${PADDING}" \\+ " " \\+ \\(\\{"x[a-z0-9]+":"${RED} x[a-z0-9]+","x[a-z0-9]+":"x[a-z0-9]+"\\}\\[\\(\\(cardStyle && cardStyle\\.key\\) \\|\\| cardStyle\\)\\] \\|\\| ""\\)\\}`,
+        ),
+      );
+    });
+  });
+
+  describe('transform: styles that set the same property', () => {
+    const BLUE = `const t = css.create({ c: { color: 'blue' }, x: { color: 'blue' }, y: { color: 'green' } });\n`;
+
+    it('keeps the later of two styles that are always applied', async () => {
+      const { code, css } = await app(
+        BLUE + `export const A = () => <div classStyle={[s.a, t.c]} />;`,
+      );
+      expect(code).toMatch(/<div className=\{"x[a-z0-9]+"\} \/>/);
+      expect(code).not.toContain(RED);
+      expect(css).toBe('.xgmn1kmt { color: blue; }\n');
+    });
+
+    it('writes a conditional between two of them as it stands', async () => {
+      const { code } = await app(
+        BLUE +
+          `export const A = ({ on }: any) => <div classStyle={[on ? s.a : t.c, s.b]} />;`,
+      );
+      expect(code).toContain(
+        `className={"${PADDING}" + " " + (on ? "${RED}" : "xgmn1kmt")}`,
+      );
+    });
+
+    it('looks a bracket and a condition up together', async () => {
+      const { code } = await app(
+        BLUE +
+          `export const A = ({ k, on }: any) => <div classStyle={[t[k], on && s.a]} />;`,
+      );
+      expect(code).toContain(
+        `[({"c":"0","x":"1","y":"2"}[k] || "") + "__" + ((on) ? "1" : "0")]`,
+      );
+    });
+  });
 });
