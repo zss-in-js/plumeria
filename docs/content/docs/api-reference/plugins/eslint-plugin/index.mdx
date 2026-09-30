@@ -61,6 +61,7 @@ A key resolves when it is a `const` holding a string, a member of a `const` obje
 - `'@plumeria/no-invalid-selector': 'error'`
 - `'@plumeria/no-mixed-styling-props': 'error'`
 - `'@plumeria/no-order-dependent-overlap': 'warn'`
+- `'@plumeria/no-style-prop-relay': 'error'`
 - `'@plumeria/no-unknown-css-properties': 'error'`
 - `'@plumeria/no-unused-keys': 'warn'`
 - `'@plumeria/no-unresolved-composition': 'warn'`
@@ -101,6 +102,12 @@ css.use(styles.base) + ' external'
 
 // Compose everything in one call; nested arrays are allowed.
 css.use(styles.base, [active && styles.active, styles.external])
+
+// Warns: function keys cannot go through css.use().
+css.use(styles.palette(color))
+
+// Apply them to classStyle instead.
+<div classStyle={styles.palette(color)} />
 ```
 
 When a `css.use()` result is a function argument, directly, inside an array or
@@ -118,6 +125,27 @@ these expressions, including conditional branches, and follows results through
 local variables, `+=` assignments, arrays joined through a variable, and object
 properties. It does not follow values returned from functions or imported from
 other modules.
+
+## no-style-prop-relay
+
+Reports a style prop that a component receives but never applies to
+`classStyle` or `css.use()`. Enabled by `recommended` as `error`:
+
+```js
+'@plumeria/no-style-prop-relay': 'error'
+```
+
+```tsx
+// Errors: headerStyle is only passed on.
+const Layout = ({ headerStyle }: { headerStyle?: css.Style }) => (
+  <Header headerStyle={headerStyle} />
+);
+
+// Apply it on an element this component renders.
+const Layout = ({ headerStyle }: { headerStyle?: css.Style }) => (
+  <header classStyle={[styles.base, headerStyle]} />
+);
+```
 
 ## Configuring the styling prop
 
