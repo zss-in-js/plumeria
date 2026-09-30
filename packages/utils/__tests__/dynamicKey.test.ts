@@ -163,6 +163,38 @@ describe('resolveDynamicStyle', () => {
     );
   });
 
+  test('hands arithmetic on a runtime parameter to the element as pieces', () => {
+    const func = styleFunctionsOf(
+      object('{ root: (size) => ({ width: size + GAP, height: -size }) }'),
+    ).root;
+    const { style, derived, varGroups } = resolveDynamicStyle(
+      func,
+      ['size'],
+      { GAP: 4 },
+      tables,
+    );
+    expect(derived).toEqual([
+      { name: 'size-1', pieces: [{ param: 'size' }, ' + ', '4'] },
+      { name: 'size-2', pieces: ['-', '(', { param: 'size' }, ')'] },
+    ]);
+    const width = varGroups.get('size-1')![0].cssVar;
+    const height = varGroups.get('size-2')![0].cssVar;
+    expect(style).toEqual({
+      width: `var(${width})`,
+      height: `var(${height})`,
+    });
+    expect(varGroups.get('size')).toEqual([]);
+  });
+
+  test('leaves an operand it cannot evaluate to the body to report', () => {
+    const func = styleFunctionsOf(
+      object('{ root: (size) => ({ width: size + `${missing}px` }) }'),
+    ).root;
+    expect(() => resolveDynamicStyle(func, ['size'], {}, tables)).toThrow(
+      'Cannot resolve static value: missing.',
+    );
+  });
+
   test('resolves static values without mutating the caller table', () => {
     const func = styleFunctionsOf(
       object('{ root: (size = 2) => ({ width: size }) }'),
@@ -171,6 +203,7 @@ describe('resolveDynamicStyle', () => {
     expect(resolveDynamicStyle(func, [], staticTable, tables)).toEqual({
       style: { width: 10 },
       varGroups: new Map(),
+      derived: [],
     });
     expect(staticTable).toEqual({ size: 10 });
     const plain = { params: [], body: object('{ color: "red" }') };
@@ -207,6 +240,39 @@ describe('resolveDynamicStyle', () => {
     expect(result.varGroups.get('unused')).toEqual([]);
     expect(resolveDynamicStyle(func, ['size'], {}, tables).style).toEqual(
       resolveDynamicStyle(func, [], {}, tables).style,
+    );
+  });
+
+  test('rejects a default it cannot reproduce for a parameter the body reads', () => {
+    const resolve = (source: string, definite?: string[]) => {
+      const func = styleFunctionsOf(object(source)).root;
+      return resolveDynamicStyle(
+        func,
+        ['size'],
+        {},
+        tables,
+        undefined,
+        definite && new Set(definite),
+      );
+    };
+    expect(() =>
+      resolve('{ root: (size = missing) => ({ width: size }) }'),
+    ).toThrow('Cannot resolve the default of "size" at build time (missing).');
+    expect(() =>
+      resolve('{ root: (size = missing + 1) => ({ width: size }) }'),
+    ).toThrow('Cannot resolve static value: missing.');
+    expect(() =>
+      resolve('{ root: (size = null) => ({ width: size }) }'),
+    ).toThrow('The default of "size" is null');
+    expect(() =>
+      resolve('{ root: (size, flag = missing) => ({ width: size }) }'),
+    ).not.toThrow();
+    expect(
+      resolve('{ root: (size = missing) => ({ width: size }) }', ['size'])
+        .style,
+    ).toEqual(
+      resolve('{ root: (size = missing + 1) => ({ width: size }) }', ['size'])
+        .style,
     );
   });
 
