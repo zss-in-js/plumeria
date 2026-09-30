@@ -1,5 +1,6 @@
 import type { Rule } from 'eslint';
 import type { Node, Identifier, MemberExpression } from 'estree';
+import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
 
 const memberName = (node: MemberExpression) =>
   !node.computed && node.property.type === 'Identifier'
@@ -14,7 +15,7 @@ export const noUnresolvedComposition: Rule.RuleModule = {
     docs: {
       description: 'Warn when class names are composed outside css.use()',
     },
-    schema: [],
+    schema: stylePropSchema,
     messages: {
       merge:
         'Separate css.use() results cannot resolve conflicts with each other. Merge them into one css.use(a, b) call, passing conditional styles as css.use(a, active && b).',
@@ -22,9 +23,12 @@ export const noUnresolvedComposition: Rule.RuleModule = {
         'css.use() results cannot be passed to functions, including css.use() itself. Pass the styles directly to one css.use() call, e.g. css.use(a, active && b, [c, d]).',
       external:
         'css.use() cannot order external class names ({{values}}); their precedence is left to the CSS cascade. Rewrite them as styles with css.create() and pass them into the same css.use() call.',
+      dynamic:
+        'Function keys cannot go through css.use(). Apply {{source}} to {{styleProp}} instead.',
     },
   },
   create(context) {
+    const styleProp = resolveStyleProp(context);
     const reported = new Set<Node>();
 
     function variableOf(node: Identifier) {
@@ -113,6 +117,43 @@ export const noUnresolvedComposition: Rule.RuleModule = {
         : callee.type === 'Identifier' && imported(callee, 'use');
     }
 
+    function isCreate(node: Node): boolean {
+      if (node.type !== 'CallExpression') return false;
+      const callee = node.callee;
+      return callee.type === 'MemberExpression'
+        ? memberName(callee) === 'create' && imported(callee.object, '*')
+        : callee.type === 'Identifier' && imported(callee, 'create');
+    }
+
+    function dynamic(node: Node, seen = new Set<Node>()): boolean {
+      if (seen.has(node)) return false;
+      seen.add(node);
+      if (node.type === 'SpreadElement') return dynamic(node.argument, seen);
+      if (node.type === 'ArrayExpression') {
+        return node.elements.some(
+          (element) => element !== null && dynamic(element, seen),
+        );
+      }
+      if (node.type === 'ConditionalExpression') {
+        return dynamic(node.consequent, seen) || dynamic(node.alternate, seen);
+      }
+      if (node.type === 'LogicalExpression') {
+        return dynamic(node.left, seen) || dynamic(node.right, seen);
+      }
+      if (
+        node.type === 'CallExpression' &&
+        node.callee.type === 'MemberExpression' &&
+        memberName(node.callee) !== null
+      ) {
+        const object = node.callee.object;
+        return [object, ...resolve(object, new Set())].some(isCreate);
+      }
+      if (node.type === 'Identifier' || node.type === 'MemberExpression') {
+        return resolve(node, new Set()).some((value) => dynamic(value, seen));
+      }
+      return false;
+    }
+
     function parts(node: Node): Node[] | null {
       if (node.type === 'BinaryExpression' && node.operator === '+') {
         return [node.left, node.right];
@@ -186,6 +227,20 @@ export const noUnresolvedComposition: Rule.RuleModule = {
     }
 
     function check(node: Node) {
+      if (isUse(node) && node.type === 'CallExpression') {
+        node.arguments
+          .filter((argument) => dynamic(argument))
+          .forEach((argument) =>
+            context.report({
+              node: argument,
+              messageId: 'dynamic',
+              data: {
+                source: context.sourceCode.getText(argument),
+                styleProp,
+              },
+            }),
+          );
+      }
       if (node.type === 'CallExpression') {
         const calls = node.arguments.flatMap(passed);
         if (calls.some((call) => !reported.has(call))) {
