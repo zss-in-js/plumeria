@@ -486,7 +486,7 @@ describe('dynamic style props in scanAll', () => {
   test('records an evaluation error in the JSX phase', () => {
     const file = f('dynamic/error.tsx');
     const { mod, tables } = scanFiles({
-      [file]: `import * as css from '@plumeria/core'; export const styles = css.create({ bad: (value) => ({ width: value ** 2 }) }); export const Page = () => <Card styleProp={styles.bad(value)} />;`,
+      [file]: `import * as css from '@plumeria/core'; export const styles = css.create({ bad: (value) => ({ width: value ** 'a' }) }); export const Page = () => <Card styleProp={styles.bad(value)} />;`,
     });
     expect(propEntries(tables)).toEqual([]);
     expect(mod.resolveFileError(file, 'styles')).toEqual({
