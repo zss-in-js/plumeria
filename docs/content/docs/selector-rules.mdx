@@ -45,6 +45,18 @@ A key cannot contain a combinator (`>`, `+`, `~` or a space) except inside a fun
 
 `no-invalid-selector` and `no-combinator` in [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) report each of these.
 
+## Functional pseudo-classes
+A functional pseudo-class cannot appear inside another one of the same name, at any depth. Different names can nest, such as `':is(:where(:not(:has(.a))))'`.
+
+```ts
+':where(:where(.a, .b), .c)' // [!code --]
+':where(.a, .b, .c)' // [!code ++]
+':is(:where(:is(.a)))' // [!code --]
+':not(:not(.a), .b)' // [!code --]
+```
+
+The compiler stops the build on such a key. `no-invalid-selector` flattens it with a fix when the nested call is a whole argument, as in the first line; any other shape, and every `:not()`, has to be rewritten by hand, because flattening would change what the selector matches.
+
 ## Reason
 This design intentionally avoids reverse nesting.
 
