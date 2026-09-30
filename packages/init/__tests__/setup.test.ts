@@ -75,7 +75,7 @@ describe('source generators', () => {
   it('exposes setup defaults and helpers', () => {
     expect(DEFAULT_STYLE_PROP).toBe('classStyle');
     expect(CLEAN_SCRIPT).toBe('rimraf .next');
-    expect(rejectedSpelling('both')).toBeUndefined();
+    expect(rejectedSpelling('none')).toBeUndefined();
     expect(packages).toEqual(expect.any(Function));
   });
 
@@ -131,9 +131,9 @@ describe('the spelling answer', () => {
     );
   });
 
-  it('sets neither side when both spellings are allowed', () => {
-    expect(compilerOption(answers({ spelling: 'both' }))).toBeUndefined();
-    expect(spellingRule(answers({ spelling: 'both' }))).toBeUndefined();
+  it('sets neither side when no spelling is enforced', () => {
+    expect(compilerOption(answers({ spelling: 'none' }))).toBeUndefined();
+    expect(spellingRule(answers({ spelling: 'none' }))).toBeUndefined();
   });
 });
 
