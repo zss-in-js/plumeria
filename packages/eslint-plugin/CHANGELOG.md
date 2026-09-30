@@ -1,3 +1,11 @@
+## 19.6.1
+
+### Patch Changes
+
+- aed69d7: - Shorten the `no-unresolved-composition` section of the README and place it in alphabetical order
+- Updated dependencies [aed69d7]
+  - @plumeria/compiler@19.6.1
+
 ## 19.6.0
 
 ### Minor Changes

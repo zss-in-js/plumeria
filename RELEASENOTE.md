@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.6.1 (Sep 30, 2026)
+
+- Shorten the `no-unresolved-composition` section of the README and place it in alphabetical order
+
 ## 19.6.0 (Sep 30, 2026)
 
 - Add `no-unresolved-composition`, enabled as a warning in `recommended` and plumerialint, which reports `css.use()` results that are joined with `+`, a template literal or `.join()`, or passed to a function such as `clsx` or `css.use()` itself, including through local variables, `+=` assignments and object properties
