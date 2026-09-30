@@ -32,6 +32,22 @@ describe.each(implementations)('$name', ({ needsCompile }) => {
       ],
       ['a block comment before the equals sign', '<div sx /* c */ = {a} />'],
       ['a block comment after the equals sign', '<div sx= /* c */ {a} />'],
+      [
+        'a closing tag inside a template expression on the same line',
+        'const s = `${<A>x</A>}`; <div sx={a} />',
+      ],
+      [
+        'a closing tag after a spread',
+        'const p = {...<A>x</A>, b: <div sx={a} />};',
+      ],
+      [
+        'a closing tag after a division',
+        'const d = x / <A>y</A>; <div sx={a} />',
+      ],
+      [
+        'a closing tag after an increment and a division',
+        'const d = x++ / <A>y</A>; <div sx={a} />',
+      ],
       ['a line comment before the equals sign', '<div sx // c\n = {a} />'],
       ['a line comment after the equals sign', '<div sx = // c\n {a} />'],
       ['a vertical tab before the equals sign', '<div sx\v={a} />'],
