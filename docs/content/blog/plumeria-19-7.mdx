@@ -1,0 +1,118 @@
+---
+title: 'Plumeria 19.7'
+description: 'Update: the Rust compiler is stable, including needsCompile, and one behavior suite keeps the TypeScript implementation in step with it'
+date: '2026-10-01'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Core maintainer" />
+  <GitHubUser username="Anionix" subtext="Core member" />
+</div>
+
+Plumeria v19.7 completes the move to Rust that began in 19.5. The Rust `@plumeria/compiler` is now stable, including `needsCompile`, the check that decides which files the bundler plugins transform. One behavior suite runs each case against both the Rust compiler and the TypeScript implementation in `@plumeria/utils`, so the two cannot drift apart.
+
+`css.create()`, `css.use()`, `classStyle` and the plugins are used the same way as in 19.6. One fix makes the compiler stricter about selectors that never had a meaning; see #626 below.
+
+---
+
+## 1. The Rust compiler is stable
+
+19.5 replaced the TypeScript compiler with a native module written in Rust with napi-rs. One module scans the project, transforms each file, compiles the production sheet and minifies it, and prebuilt binaries cover twelve platforms, including wasm32-wasi.
+
+It is the only compiler the packages use. `@plumeria/turbopack-loader`, `@plumeria/unplugin` and `@plumeria/eslint-plugin` import `@plumeria/compiler`, and `@plumeria/next-plugin` reaches it through the Turbopack loader. No Plumeria package depends on `@plumeria/utils` at runtime.
+
+With 19.7 the last gap is closed. `needsCompile` runs before every transform, and when it answers no, the plugin skips the file without an error. That made it the one place where a mistake stayed silent, and #624 was such a mistake. Its cases run in the shared behavior suite, including the #624 cases added in this release, against both implementations, together with the specificity fixes, so the parts that decide which files are compiled and in which order their rules land behave the same in Rust and in TypeScript.
+
+Measured with the repository's scan and transform benchmarks, comparing 19.4.0, the last release that compiled with TypeScript, against 19.7 on the same machine. The fixture has 601 files: 400 leaf modules, a hub that re-exports 200 of them, and 200 components.
+
+| Scan | 19.4 (TypeScript) | 19.7 (Rust) | Change |
+| --- | ---: | ---: | ---: |
+| cold scan | 56.7 ms | 20.1 ms | **−64.5%** |
+| touch a leaf module | 2.42 ms | 1.73 ms | **−28.4%** |
+| touch the hub | 22.2 ms | 11.1 ms | **−50.3%** |
+| touch a component | 2.25 ms | 1.80 ms | −20.0% |
+
+| Transform | 19.4 (TypeScript) | 19.7 (Rust) | Change |
+| --- | ---: | ---: | ---: |
+| transform all components | 498.9 ms | 339.7 ms | **−31.9%** |
+| transform a leaf style | 2.78 ms | 1.74 ms | **−37.5%** |
+| transform the hub | 24.5 ms | 12.2 ms | **−50.2%** |
+| transform a component | 2.98 ms | 1.92 ms | **−35.5%** |
+
+Negative change is faster. **Bold** changes exceed both 5% and 0.5 ms. Each side ran 6 times, alternating order, and each time is the median of the runs' lower quartiles. The transform benchmark measures `transformSource` with a warm OS file cache, not a full bundler build.
+
+---
+
+## 2. One behavior suite for both implementations
+
+`@plumeria/utils` keeps the TypeScript implementation. It is the reference the Rust compiler is measured and read against, so it stays.
+
+The two are tested together. The compiler's behavior tests describe each case once and run it against both implementations:
+
+```ts
+import { implementations } from '../compiler-implementations';
+
+describe.each(implementations)('$name', ({ compileCSS, transformSource }) => {
+  // every case here runs as `rust` and as `ts`
+});
+```
+
+60 of the 61 test files in `packages/compiler/__tests__` run this way. A change to either implementation that alters a class name, a line of CSS or an error message fails the same case on the other side, so a fix lands in both or in neither. The three fixes below were each written once in the suite and made to pass in Rust and in TypeScript.
+
+---
+
+## 3. Fixes in this release
+
+### #624: files skipped by `needsCompile`
+
+`needsCompile` decides whether a bundler plugin transforms a file. When an earlier JSX element on the same line came right after a division `/`, a spread `...` or the `${` of a template literal, it missed the style prop that followed, so the plugin skipped the file and its styles were never emitted, with no error. The same code split over two lines was found. It is now found on one line too.
+
+### #625: specificity after a CSS hex escape
+
+A hex escape such as `\31 ` ends at the whitespace that follows its digits, and that whitespace belongs to the escape. The specificity calculation ended the escape too early and counted the rest of the name as one more element, so `.\31 0` scored `[0, 1, 1]`. It now scores `[0, 1, 0]`, one class, as lightningcss does.
+
+### #626: deeply nested selectors
+
+The specificity calculation descends once per level of functional pseudo-class nesting. A selector nested deeply enough overflowed the stack and aborted the build, and unlike an error, this could not be caught.
+
+The compiler now rejects a functional pseudo-class nested inside one of the same name, at any depth, before the calculation runs:
+
+```
+[plumeria] ":is()" cannot be nested inside another ":is()": ":is(:where(:is(.a)))". Rewrite the selector without nesting.
+```
+
+Same-name nesting never adds meaning: `:where(:where(.a, .b), .c)` matches what `:where(.a, .b, .c)` matches, and nested forms such as `:has(:has(.a))` or `:lang(:lang(en))` are not valid CSS. The check looks at every ancestor, not only the parent, so alternating two names, as in `:is(:where(:is(.a)))`, is rejected too. Only about ten functions make the calculation descend, so with no name repeated on a path the depth stays bounded. Different names still nest freely, such as `:is(:where(:not(:has(.a))))`.
+
+Keys that start with `:` and keys that start with `[` are both checked. Other keys only pay a first-character comparison.
+
+`no-invalid-selector` in `@plumeria/eslint-plugin` reports the same keys in the editor and flattens a nested call when it is a whole argument:
+
+```ts
+':where(:where(.a, .b), .c)'
+// becomes
+':where(.a, .b, .c)'
+```
+
+It reports without a fix when flattening would change the selector: `:not()`, a nested call that is only part of an argument such as `:where(.x:where(.a))`, and a name repeated through another function.
+
+---
+
+## Upgrading
+
+**From 19.6.** Update the Plumeria packages together. Nothing changes in how styles are written or how the plugins are configured.
+
+The one change that can fail an existing build is #626, and only for a key that nests a functional pseudo-class inside one of the same name. Run the linter with `--fix` first: most keys are flattened for you, and the rest are reported with a message asking for a rewrite.
+
+---
+
+## Release notes
+
+## 19.7.0 (Oct 1, 2026)
+
+- The Rust `@plumeria/compiler` is stable, including `needsCompile`; `@plumeria/utils` keeps the TypeScript implementation as the reference, run through the same behavior suite
+- Fix [#624](https://github.com/zss-in-js/plumeria/issues/624): `needsCompile` finds a style prop after JSX that follows `/`, `...` or `${` earlier on the same line
+- Fix [#625](https://github.com/zss-in-js/plumeria/issues/625): specificity no longer counts an extra element after a CSS hex escape
+- Fix [#626](https://github.com/zss-in-js/plumeria/issues/626): the compiler rejects a functional pseudo-class nested inside one of the same name at any depth, in keys that start with `:` or `[`
+- Feat: `no-invalid-selector` reports same-name nesting and flattens it with a fix when the nested call is a whole argument; `:not()` and other shapes are reported without a fix
