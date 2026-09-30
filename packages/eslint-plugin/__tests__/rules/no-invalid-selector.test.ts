@@ -334,8 +334,8 @@ ruleTesterNoType.run(
       },
       {
         code: pseudoNesting(':has(:has(.a), .b)'),
-        output: pseudoNesting(':has(.a, .b)'),
-        errors: [{ messageId: 'flattenSameNamePseudo' }],
+        output: null,
+        errors: [{ messageId: 'noSameNamePseudoNesting' }],
       },
       {
         code: pseudoNesting(':host(:host(.a))'),
