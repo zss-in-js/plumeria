@@ -13,7 +13,9 @@ use super::{
 use crate::engine::hash::hash_str;
 use crate::engine::hash_object;
 use crate::eval::consts::binding_name;
-use crate::eval::functions::{StyleFunction, resolve_dynamic_style, style_functions_of};
+use crate::eval::functions::{
+    StyleFunction, is_defined_argument, resolve_dynamic_style, style_functions_of,
+};
 use crate::eval::{Env, EvalResult, Evaluator, Lookup, argument_expr, resolve_theme_selector};
 use crate::js::{Object, Value, deep_merge, entries_object};
 use crate::style::records::{atom_class_string, atom_map};
@@ -575,12 +577,13 @@ impl<'p, 'b, 'a> JsxContext<'p, 'b, 'a> {
             return Ok(None);
         }
         let mut runtime: Vec<String> = Vec::new();
+        let mut definite: Vec<String> = Vec::new();
         if let Some(named) = &func.named {
             let first = call.arguments.first().map(argument_expr);
             if call.arguments.len() > 1 || first.is_some_and(|arg| arg.object_expr().is_none()) {
                 return Ok(None);
             }
-            let mut given: FxHashSet<String> = FxHashSet::default();
+            let mut given: FxHashMap<String, E> = FxHashMap::default();
             if let Some(object) = first.and_then(|arg| arg.object_expr()) {
                 for prop in &object.properties {
                     let ObjectPropertyKind::ObjectProperty(p) = prop else {
@@ -588,7 +591,7 @@ impl<'p, 'b, 'a> JsxContext<'p, 'b, 'a> {
                     };
                     if p.shorthand {
                         if let Expression::Identifier(ident) = &p.value {
-                            given.insert(ident.name.to_string());
+                            given.insert(ident.name.to_string(), E::new(&p.value));
                         }
                         continue;
                     }
@@ -597,18 +600,21 @@ impl<'p, 'b, 'a> JsxContext<'p, 'b, 'a> {
                     }
                     match &p.key {
                         PropertyKey::StaticIdentifier(ident) => {
-                            given.insert(ident.name.to_string());
+                            given.insert(ident.name.to_string(), E::new(&p.value));
                         }
                         PropertyKey::StringLiteral(value) => {
-                            given.insert(value.value.to_string());
+                            given.insert(value.value.to_string(), E::new(&p.value));
                         }
                         _ => {}
                     }
                 }
             }
             for param in named {
-                if given.contains(&param.key) {
+                if let Some(source) = given.get(&param.key) {
                     runtime.push(param.local.clone());
+                    if is_defined_argument(*source) {
+                        definite.push(param.local.clone());
+                    }
                 } else if !func.defaults.contains_key(&param.local) {
                     return Ok(None);
                 }
@@ -618,9 +624,12 @@ impl<'p, 'b, 'a> JsxContext<'p, 'b, 'a> {
         {
             return Ok(None);
         } else {
-            for index in 0..call.arguments.len() {
+            for (index, argument) in call.arguments.iter().enumerate() {
                 if let Some(param) = func.params.get(index) {
                     runtime.push(param.clone());
+                    if is_defined_argument(argument_expr(argument)) {
+                        definite.push(param.clone());
+                    }
                 }
             }
         }
@@ -635,14 +644,23 @@ impl<'p, 'b, 'a> JsxContext<'p, 'b, 'a> {
             static_objects: self.static_objects,
         };
         let empty = FxHashSet::default();
-        let resolved =
-            resolve_dynamic_style(func, &runtime, &self.dynamic_statics, tables, Some(&empty))?;
-        let has_vars = runtime.iter().any(|param| {
-            resolved
-                .var_groups
-                .get(param)
-                .is_some_and(|groups| !groups.is_empty())
-        });
+        let resolved = resolve_dynamic_style(
+            func,
+            &runtime,
+            &self.dynamic_statics,
+            tables,
+            Some(&empty),
+            &definite,
+        )?;
+        let has_vars = runtime
+            .iter()
+            .chain(resolved.derived.iter().map(|entry| &entry.name))
+            .any(|param| {
+                resolved
+                    .var_groups
+                    .get(param)
+                    .is_some_and(|groups| !groups.is_empty())
+            });
         Ok(Some((resolved.style, has_vars)))
     }
 
