@@ -96,7 +96,7 @@ export const merged: string = css.use(styles.text, false, null, undefined, [
   styles.hover,
 ]);
 
-export const dynamic: string = css.use(styles.variant(8));
+export const dynamic: string = css.use(styles.variant(8)); // eslint-disable-line @plumeria/no-unresolved-composition
 
 // @ts-expect-error a style list takes created styles, not an inline object
 css.use({ color: 'red' }); // eslint-disable-line @plumeria/no-inline-object
