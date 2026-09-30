@@ -15,6 +15,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/no-invalid-selector`: **error**
 - `@plumeria/no-mixed-styling-props`: **error**
 - `@plumeria/no-order-dependent-overlap`: **warn**
+- `@plumeria/no-style-prop-relay`: **error**
 - `@plumeria/no-unknown-css-properties`: **error**
 - `@plumeria/no-unresolved-composition`: **warn**
 - `@plumeria/no-unused-keys`: **warn**
@@ -127,13 +128,21 @@ properties in a vertical one, which is per element and cannot be read from the
 source. The rule reads them as one property; disable the line where an element
 is known to be vertical.
 
+### no-style-prop-relay
+
+Reports a style prop that a component receives but only passes on. Apply it to the styling prop or `css.use()` on an element the component renders.
+
+Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-styling-prop).
+
 ### no-unknown-css-properties
 
 Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, and `css.viewTransition`.
 
 ### no-unresolved-composition
 
-A safety net for `css.use()`. Warns when its result is combined with other class names or passed to another function; pass every style to one `css.use()` call instead.
+A safety net for `css.use()`. Warns when its result is combined with other class names or passed to another function, or when a function key is passed to it. Pass every style to one `css.use()` call, and apply function keys to the styling prop.
+
+Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-styling-prop).
 
 ### no-unused-keys
 
