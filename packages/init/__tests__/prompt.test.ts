@@ -38,7 +38,7 @@ describe('ask', () => {
     await expect(ask(asker, {})).resolves.toEqual(DEFAULT_ANSWERS);
   });
 
-  it('skips the size question when both spellings are allowed', async () => {
+  it('skips the size question when no spelling is enforced', async () => {
     const asker = scripted(['3']);
     await ask(asker, {});
     expect(asker.asked.some((prompt) => prompt.includes('size axis'))).toBe(
@@ -60,9 +60,9 @@ describe('ask', () => {
   it.each([
     ['1', 'logical'],
     ['2', 'physical'],
-    ['3', 'both'],
+    ['3', 'none'],
     ['p', 'physical'],
-    ['both', 'both'],
+    ['none', 'none'],
   ])('reads %s as %s', async (reply, expected) => {
     const answers = await ask(scripted([reply, 'n']), {});
     expect(answers.spelling).toBe(expected);
