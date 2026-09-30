@@ -1,4 +1,5 @@
 import { RuleTester } from 'eslint';
+import type { Rule } from 'eslint';
 import { noUnresolvedComposition } from '../../src/rules/no-unresolved-composition';
 import plugin from '../../src';
 
@@ -25,6 +26,13 @@ ruleTester.run('no-unresolved-composition', noUnresolvedComposition, {
       'const styles = css.create({ a: {} }); css.use(styles.a)',
       'const styles = css.create({ a: {} }); css.use(styles.a, active && styles.b)',
       'css.use(other.palette(color))',
+      'getCss().use(a) + " b"',
+      'css.use(4)',
+      'const o = { [key]: css.use(a) }; clsx(o.base)',
+      'const o = { base: css.use(a) }; clsx(o[method])',
+      'const o = { base: css.use(a) }; clsx(o.other)',
+      'const list = [a]; list.slice().join(" ")',
+      'let x = x; clsx(x)',
       'const styles = css.create({ p: (c) => ({ color: c }) }); createElement("div", { classStyle: styles.p(c) })',
     ].map((code) => prefix + code),
     'css.use(a) + " b"',
@@ -43,6 +51,8 @@ ruleTester.run('no-unresolved-composition', noUnresolvedComposition, {
       'const x = css.use(a); clsx(x, b)',
       'const x = css.use(a); const y = x; clsx(y)',
       'const o = { base: css.use(a) }; clsx(o.base)',
+      'const o = { "base": css.use(a) }; clsx(o.base)',
+      'const o = { 1: css.use(a) }; clsx(o[1])',
       'const list = [css.use(a)]; clsx(list)',
       'const x = css.use(a); css.use(x)',
     ].map((code) => ({
@@ -96,6 +106,8 @@ ruleTester.run('no-unresolved-composition', noUnresolvedComposition, {
       'css.use(a, active && styles.p(c))',
       'css.use(a, [b, [styles.p(c)]])',
       'css.use(active ? styles.p(c) : a)',
+      'css.use(active ? a : styles.p(c))',
+      'css.use(...[styles.p(c)])',
       'const d = styles.p(c); css.use(a, d)',
       'const o = { d: styles.p(c) }; css.use(o.d)',
     ].map((code) => ({
@@ -144,4 +156,111 @@ test('enabled as a warning in recommended', () => {
   expect(
     plugin.configs.recommended.rules?.['@plumeria/no-unresolved-composition'],
   ).toBe('warn');
+});
+
+const directListener = (variables: Map<string, unknown>) => {
+  const reports: Rule.ReportDescriptor[] = [];
+  const context = {
+    options: [],
+    settings: {},
+    sourceCode: {
+      getScope: () => ({ set: variables, upper: null }),
+      getText: () => '',
+    },
+    report: (descriptor: Rule.ReportDescriptor) => reports.push(descriptor),
+  } as unknown as Rule.RuleContext;
+  return { listener: noUnresolvedComposition.create(context), reports };
+};
+
+const coreImport = {
+  defs: [
+    {
+      type: 'ImportBinding',
+      parent: { source: { value: '@plumeria/core' } },
+      node: { type: 'ImportNamespaceSpecifier' },
+    },
+  ],
+};
+
+test('stops resolving a cyclic variable without ranges', () => {
+  const x = { type: 'Identifier', name: 'x' };
+  const variables = new Map<string, unknown>([
+    ['css', coreImport],
+    ['x', { defs: [{ type: 'Variable' }], references: [{ writeExpr: x }] }],
+  ]);
+  const { listener, reports } = directListener(variables);
+  listener.CallExpression?.({
+    type: 'CallExpression',
+    callee: {
+      type: 'MemberExpression',
+      computed: false,
+      object: { type: 'Identifier', name: 'css' },
+      property: { type: 'Identifier', name: 'use' },
+    },
+    arguments: [x],
+  } as never);
+  expect(reports).toHaveLength(0);
+});
+
+test('ignores an object property with an unsupported key', () => {
+  const object = {
+    type: 'ObjectExpression',
+    properties: [
+      {
+        type: 'Property',
+        computed: false,
+        key: { type: 'Unsupported' },
+        value: { type: 'Identifier', name: 'value' },
+      },
+    ],
+    range: [0, 10],
+  };
+  const variables = new Map<string, unknown>([
+    [
+      'o',
+      { defs: [{ type: 'Variable' }], references: [{ writeExpr: object }] },
+    ],
+  ]);
+  const { listener, reports } = directListener(variables);
+  listener.CallExpression?.({
+    type: 'CallExpression',
+    callee: { type: 'Identifier', name: 'clsx' },
+    arguments: [
+      {
+        type: 'MemberExpression',
+        computed: false,
+        object: { type: 'Identifier', name: 'o', range: [20, 21] },
+        property: { type: 'Identifier', name: 'base' },
+      },
+    ],
+  } as never);
+  expect(reports).toHaveLength(0);
+});
+
+test('uses raw text when a template element has no cooked value', () => {
+  const { listener, reports } = directListener(new Map([['css', coreImport]]));
+  listener.TemplateLiteral?.({
+    type: 'TemplateLiteral',
+    expressions: [
+      {
+        type: 'CallExpression',
+        callee: {
+          type: 'MemberExpression',
+          computed: false,
+          object: { type: 'Identifier', name: 'css' },
+          property: { type: 'Identifier', name: 'use' },
+        },
+        arguments: [],
+      },
+    ],
+    quasis: [
+      { type: 'TemplateElement', value: { cooked: null, raw: 'external' } },
+      { type: 'TemplateElement', value: { cooked: '', raw: '' } },
+    ],
+  } as never);
+  expect(reports).toHaveLength(1);
+  expect(reports[0]).toMatchObject({
+    messageId: 'external',
+    data: { values: '"external"' },
+  });
 });
