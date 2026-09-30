@@ -17,6 +17,7 @@
     "@plumeria/no-invalid-selector": "error",
     "@plumeria/no-mixed-styling-props": "error",
     "@plumeria/no-order-dependent-overlap": "warn",
+    "@plumeria/no-style-prop-relay": "error",
     "@plumeria/no-unknown-css-properties": "error",
     "@plumeria/no-unused-keys": "warn",
     "@plumeria/no-unresolved-composition": "warn",
