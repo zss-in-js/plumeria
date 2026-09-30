@@ -58,7 +58,11 @@ import { createViewTransition } from './viewTransition';
 import { DEFAULT_STYLE_PROP } from './constants';
 import { needsCompile } from './stylePropFilter';
 import { getStyleRecords } from './create';
-import { styleFunctionsOf, resolveDynamicStyle } from './dynamicKey';
+import {
+  styleFunctionsOf,
+  resolveDynamicStyle,
+  isDefinedArgument,
+} from './dynamicKey';
 import type { DynamicStyleTables } from './dynamicKey';
 import type { StyleRecord } from './create';
 import { resolveImportPath, resetImportResolutionCache } from './resolver';
@@ -122,7 +126,7 @@ const EXPRESSION_KINDS: Record<string, string> = {
   AwaitExpression: 'an await expression',
 };
 
-const expressionLabel = (node: Expression): string => {
+export const expressionLabel = (node: Expression): string => {
   node = unwrapExpression(node);
   if (t.isIdentifier(node)) return node.value;
   if (t.isStringLiteral(node)) return `'${node.value}'`;
@@ -626,7 +630,7 @@ function paramNames(func: ArrowFunctionExpression | FunctionExpression) {
 
 // True when the subtree reads one of the function's own parameters, which is
 // the one thing the defining file cannot resolve on the consumer's behalf.
-function readsParams(node: any, params: Set<string>): boolean {
+export function readsParams(node: any, params: Set<string>): boolean {
   if (Array.isArray(node))
     return node.some((item) => readsParams(item, params));
   if (!node || typeof node !== 'object') return false;
@@ -2604,6 +2608,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
         if (callArgs.some((a) => a.spread)) return null;
 
         const runtime: string[] = [];
+        const definite = new Set<string>();
         if (func.named) {
           const argExpr = callArgs[0]?.expression;
           if (
@@ -2611,18 +2616,21 @@ function runScan(scanCwd: string, styleProp: string): Tables {
             (argExpr && argExpr.type !== 'ObjectExpression')
           )
             return null;
-          const given = new Set<string>();
+          const given = new Map<string, Expression>();
           ((argExpr as ObjectExpression)?.properties ?? []).forEach((prop) => {
-            if (prop.type === 'Identifier') given.add(prop.value);
+            if (prop.type === 'Identifier') given.set(prop.value, prop);
             else if (
               prop.type === 'KeyValueProperty' &&
               (t.isIdentifier(prop.key) || t.isStringLiteral(prop.key))
             )
-              given.add(String(prop.key.value));
+              given.set(String(prop.key.value), prop.value);
           });
           for (const { key, local } of func.named) {
-            if (given.has(key)) runtime.push(local);
-            else if (!func.defaults?.[local]) return null;
+            const source = given.get(key);
+            if (source) {
+              runtime.push(local);
+              if (isDefinedArgument(source)) definite.add(local);
+            } else if (!func.defaults?.[local]) return null;
           }
         } else if (
           callArgs.length === 1 &&
@@ -2630,9 +2638,11 @@ function runScan(scanCwd: string, styleProp: string): Tables {
         ) {
           return null;
         } else {
-          callArgs.forEach((_, i) => {
+          callArgs.forEach((callArg, i) => {
             const param = func.params[i];
-            if (param) runtime.push(param);
+            if (!param) return;
+            runtime.push(param);
+            if (isDefinedArgument(callArg.expression)) definite.add(param);
           });
         }
 
@@ -2642,11 +2652,13 @@ function runScan(scanCwd: string, styleProp: string): Tables {
           dynamicStaticTable,
           dynamicStyleTables,
           new Set(),
+          definite,
         );
 
-        const hasVars = runtime.some(
-          (param) => (resolved.varGroups.get(param) ?? []).length > 0,
-        );
+        const hasVars = [
+          ...runtime,
+          ...resolved.derived.map(({ name }) => name),
+        ].some((param) => (resolved.varGroups.get(param) ?? []).length > 0);
         return { style: resolved.style, hasVars };
       };
 
