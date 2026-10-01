@@ -154,7 +154,11 @@ export async function mount(
   const tokenTypes = [...engine.tokenTypes];
 
   const models = new Map(
-    files.map(({ path, source }) => [path, monaco.editor.createModel(source, 'typescript', monaco.Uri.file(path))]),
+    files.map(({ path, source }) => {
+      const uri = monaco.Uri.file(path);
+      monaco.editor.getModel(uri)?.dispose();
+      return [path, monaco.editor.createModel(source, 'typescript', uri)];
+    }),
   );
   const pathOf = new Map([...models].map(([path, target]) => [target, path]));
   let model = models.get(entry) as monaco.editor.ITextModel;
