@@ -2,6 +2,19 @@
 
 We truly value your interest in contributing to Plumeria! Your help is invaluable, and we're grateful for your efforts in improving this project. Here are some guidelines to get you started.
 
+## AI Usage Policy
+
+You may use AI tools to research, write, and review your contributions. You are still responsible for everything you submit.
+
+- **Understand your work:** Review and test AI-generated code before you submit it, and be ready to explain any part of it in your own words.
+- **Write descriptions yourself:** Issue and pull request descriptions must be written by a human. You can use AI to help build a reproduction.
+- **Disclose AI use:** If AI generated your issue or pull request, say so in the AI acknowledgment section.
+- **Reply as a human:** Answer review comments and questions yourself. Do not paste them into an AI and post its reply. Once a maintainer has replied, do not rewrite the description; post updates as new comments.
+- **Open AI-generated pull requests only for confirmed issues:** An AI-generated pull request is reviewed only when it fixes an issue that a maintainer has already confirmed.
+- **Keep it short:** Remove filler so that your submission is easy to review.
+
+Issues and pull requests that do not follow this policy may be closed without review. Repeated violations may lead to a block.
+
 ## Development Setup
 
 Our project uses `pnpm`. Here's how you can set it up:
