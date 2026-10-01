@@ -38,7 +38,7 @@ export function resolveImportPath(importPath: string, importerPath: string): str
 }
 
 export const resolveExport = () => null;
-export const scanAll = () => undefined;
+export const scanAll = () => ({});
 
 function unwrap(node: ts.Expression): ts.Expression {
   while (
