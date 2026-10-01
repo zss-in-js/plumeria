@@ -8,6 +8,7 @@ import type { LinkItemType, NavOptions } from 'fumadocs-ui/layouts/shared';
 import { FullSearchTrigger } from 'fumadocs-ui/layouts/shared/slots/search-trigger';
 import { ThemeSwitch } from 'fumadocs-ui/layouts/shared/slots/theme-switch';
 import { navStyles } from 'component/navStyles';
+import { SidebarIcon } from 'component/DocsSidebarTrigger';
 import { breakpoints } from 'lib/mediaQuery';
 import { theme } from 'lib/theme';
 
@@ -132,6 +133,42 @@ const styles = css.create({
       display: 'none',
     },
   },
+  menu: {
+    position: 'absolute',
+    top: 'calc(100% + 4px)',
+    left: 12,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    minWidth: 200,
+    padding: 6,
+    background: theme.dropdownBg,
+    borderColor: theme.cardBorder,
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    borderRadius: 12,
+    boxShadow: theme.cardBoxShadow,
+    [breakpoints.lgUp]: {
+      display: 'none',
+    },
+  },
+  menuItem: {
+    display: 'block',
+    padding: '8px 12px',
+    fontSize: 14,
+    fontWeight: 500,
+    color: theme.textSecondary,
+    textDecoration: 'none',
+    borderRadius: 8,
+    transition: 'background-color 0.15s ease, color 0.15s ease',
+    ':hover': {
+      color: theme.textPrimary,
+      background: theme.iconBg,
+    },
+  },
+  menuItemActive: {
+    color: theme.textPrimary,
+  },
 });
 
 interface SiteHeaderProps {
@@ -143,6 +180,24 @@ interface SiteHeaderProps {
 
 export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showSearch = true }: SiteHeaderProps) => {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!menuOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [menuOpen]);
 
   const navLinks = links.filter(
     (link): link is Extract<LinkItemType, { url: string }> => 'url' in link && !('icon' in link),
@@ -194,9 +249,40 @@ export const SiteHeader = ({ title, links, sidebarTrigger: SidebarTrigger, showS
   return (
     <header id="nd-nav" classStyle={styles.header}>
       <div data-header-body="" classStyle={styles.body}>
-        {SidebarTrigger && (
+        {SidebarTrigger ? (
           <div classStyle={[styles.compact, styles.trigger]}>
             <SidebarTrigger />
+          </div>
+        ) : (
+          <div ref={menuRef} classStyle={[styles.compact, styles.trigger]}>
+            <button
+              type="button"
+              aria-label="Open menu"
+              aria-expanded={menuOpen}
+              aria-controls="nd-home-menu"
+              classStyle={navStyles.iconButton}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <SidebarIcon />
+            </button>
+            {menuOpen && (
+              <nav id="nd-home-menu" classStyle={styles.menu}>
+                {navLinks.map((item, idx) => {
+                  const active = isLinkActive(item.url);
+                  return (
+                    <Link
+                      key={idx}
+                      href={item.url}
+                      aria-current={active ? 'page' : undefined}
+                      classStyle={[styles.menuItem, active && styles.menuItemActive]}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {item.text}
+                    </Link>
+                  );
+                })}
+              </nav>
+            )}
           </div>
         )}
         {typeof title === 'function' ? (
