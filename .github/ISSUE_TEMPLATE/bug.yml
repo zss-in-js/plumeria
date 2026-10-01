@@ -31,3 +31,11 @@ body:
     id: version
     attributes:
       label: Version
+  - type: checkboxes
+    id: ai
+    attributes:
+      label: AI acknowledgment
+      description: Write this issue yourself. You can use AI to help build a reproduction. See the AI Usage Policy in the contributing guidelines.
+      options:
+        - label: I did not use AI to generate this issue.
+        - label: (If the above is not checked) I have reviewed the AI-generated content before submitting.
