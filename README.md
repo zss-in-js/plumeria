@@ -72,7 +72,7 @@ It detects the bundler and the package manager, asks the two questions it cannot
 
 ## Benchmark
 
-For how Plumeria compares with StyleX, see the [side-by-side benchmark](https://github.com/refirst11/stylex-plumeria-benchmark).
+For how Plumeria compares with other libraries, see the [side-by-side benchmark](https://github.com/refirst11/css-compiler-bench).
 
 ## API Stability
 
