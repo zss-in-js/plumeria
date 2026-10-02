@@ -24,7 +24,7 @@ const styles = css.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 'calc(100svh - 49px)',
+    minHeight: 'calc(100svh - 56px)',
     paddingBlock: 48,
     textAlign: 'center',
     [breakpoints.md]: {
@@ -151,7 +151,7 @@ export const metadata: Metadata = generateSEOData({
 export default function Page() {
   return (
     <div classStyle={styles.page}>
-      <main classStyle={styles.hero}>
+      <div classStyle={styles.hero}>
         <h1 classStyle={styles.title}>Plumeria</h1>
         <p classStyle={styles.description}>
           Type-safe styling for React.
@@ -166,7 +166,7 @@ export default function Page() {
             Why Plumeria?
           </Link>
         </div>
-      </main>
+      </div>
       <footer classStyle={styles.footer}>
         <nav aria-label="Resources" classStyle={styles.groups}>
           {groups.map((group) => (
