@@ -19,7 +19,7 @@ const styles = css.create({
   root: {
     display: 'flex',
     flexDirection: 'column',
-    height: 'calc(100dvh - 49px)',
+    height: 'calc(100dvh - 56px)',
     overflow: 'hidden',
     color: theme.textPrimary,
   },
@@ -279,7 +279,7 @@ export function Playground() {
   }
 
   return (
-    <main classStyle={styles.root}>
+    <div classStyle={styles.root}>
       <div classStyle={styles.bar}>
         <div classStyle={styles.editorBar}>
           <span classStyle={styles.label}>Property spelling</span>
@@ -391,6 +391,6 @@ export function Playground() {
       <p role="status" classStyle={styles.status}>
         {status}
       </p>
-    </main>
+    </div>
   );
 }
