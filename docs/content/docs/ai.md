@@ -126,6 +126,7 @@ Plumeria supports nesting for pseudo-classes, pseudo-elements, and attribute sel
 - **Combinators only inside a functional pseudo-class.** `>`, `+`, `~` and the descendant space are rejected anywhere else. `:has()`, `:is()` and `:where()` are accepted, and a combinator inside one (e.g. `':has(> img)'`) is the escape hatch for markup you do not write. For parent-state or descendant styling, prefer the paired `css.marker()` / `css.extended()` APIs (see Advanced APIs): they name no DOM path, so moving an element does not break them.
 - **NO class-name keys.** Keys like `.title` are not supported. Apply Plumeria styles directly to child elements instead.
 - **NO pseudo inside pseudo.** Write a compound pseudo-selector as one key, e.g. `':hover::before'`.
+- **NO same-name functional pseudo-class nesting.** `':is(:where(:is(.a)))'` and `':not(:not(.a))'` stop the build; different names can nest.
 - **Declare overlapping states explicitly.** Pseudo-classes such as `:hover`, `:focus`, and `:active` can match simultaneously. When two states set the same property, declare their compound selector with the value the intersection should take. If they set different properties, no compound selector is needed.
 - **Media/container query nesting is one-directional.** A pseudo-selector may be nested inside a media/container query exactly once. The reverse — a media/container query inside a pseudo-selector — is forbidden and causes compiler/type errors.
 
