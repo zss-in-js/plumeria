@@ -27,14 +27,17 @@ Our project uses `pnpm`. Here's how you can set it up:
 
 ## Package Structure
 
+- **@plumeria/codemod**: This package contains codemods that migrate CSS Modules in and out and rename the styling prop.
 - **@plumeria/compiler**: The Rust (napi-rs) scanner, transformer and compiler that the bundler integrations use.
 - **@plumeria/core**: This package is the core package that defines types only.
 - **@plumeria/eslint-plugin**: This package contains the eslint rules to keep Plumeria code clean.
+- **@plumeria/headlessui**: This package wraps Radix UI as headless components for Plumeria.
+- **@plumeria/init**: This package sets up Plumeria in a project with one command.
+- **@plumeria/inspector**: This package contains the styled components inspector for development.
 - **@plumeria/next-plugin**: This package contains the Next.js plugin for integrating Plumeria.
 - **@plumeria/turbopack-loader**: This package contains the Turbopack loader for integrating Plumeria.
-- **@plumeria/utils**: This package contains the style parse and transform utils functions.
-- **@plumeria/vite-plugin**: This package contains the Vite plugin for integrating Plumeria.
-- **@plumeria/webpack-plugin**: This package contains the Webpack plugin for integrating Plumeria.
+- **@plumeria/unplugin**: This package contains the plugins for Vite, webpack, Rspack, Rollup, Rolldown, esbuild, Farm and Bun.
+- **@plumeria/utils**: This package contains the TypeScript reference implementation of the style parse and transform utils functions.
 
 ## Adding a changeset
 
