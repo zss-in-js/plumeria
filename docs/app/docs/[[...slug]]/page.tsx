@@ -49,7 +49,7 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
         path: `docs/content/docs/${page.path}`,
       }}
       tableOfContent={{
-        style: 'normal',
+        style: 'clerk',
         single: true,
       }}
     >
