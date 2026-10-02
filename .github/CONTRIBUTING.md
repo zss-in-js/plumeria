@@ -24,6 +24,7 @@ Our project uses `pnpm`. Here's how you can set it up:
 3. To check the test correctly, run `pnpm run test` to unit testing the necessary api.
 4. If you make any modifications, please test your changes. We prefer new features to come with tests.
 5. If you update any files under the `packages/` dir, don't forget to run `pnpm changeset`.
+6. Fork the repository and submit your changes as a pull request against the `main` branch.
 
 ## Package Structure
 
