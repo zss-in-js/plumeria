@@ -1,44 +1,12 @@
-import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
+import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import 'katex/dist/katex.css';
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { baseOptions } from 'app/layout.config';
 import { source } from 'lib/source';
-import { EmptySidebarSlot } from 'component/EmptySidebarSlot';
-import { DocsSidebarTrigger } from 'component/DocsSidebarTrigger';
-import { SiteHeader } from 'component/SiteHeader';
-
-const containerProps = {
-  style: {
-    '--fd-layout-width': '100%',
-    '--fd-header-height': '48px',
-  } as CSSProperties,
-};
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <DocsLayout
-      tree={source.pageTree}
-      // Passing the banner as a component replaces the sidebar header, dropping the close
-      // button row fumadocs puts above it.
-      sidebar={{ collapsible: false, banner: EmptySidebarSlot, footer: EmptySidebarSlot }}
-      containerProps={containerProps}
-      {...baseOptions}
-      // The drawer shows the page tree under an icon row of its own, so fumadocs gets no
-      // links to render: the dropdowns and the search both live in the top bar.
-      links={[]}
-      searchToggle={{ enabled: false }}
-      nav={{
-        ...baseOptions.nav,
-        mode: 'top',
-        component: (
-          <SiteHeader
-            title={baseOptions.nav?.title}
-            links={baseOptions.links ?? []}
-            sidebarTrigger={DocsSidebarTrigger}
-          />
-        ),
-      }}
-    >
+    <DocsLayout tree={source.pageTree} {...baseOptions}>
       {children}
     </DocsLayout>
   );
