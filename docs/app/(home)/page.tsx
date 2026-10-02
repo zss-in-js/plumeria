@@ -46,6 +46,9 @@ const styles = css.create({
     color: 'var(--color-fd-muted-foreground)',
     letterSpacing: '-0.02em',
   },
+  emphasis: {
+    color: 'var(--color-fd-foreground)',
+  },
   actions: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -154,9 +157,9 @@ export default function Page() {
       <div classStyle={styles.hero}>
         <h1 classStyle={styles.title}>Plumeria</h1>
         <p classStyle={styles.description}>
-          Type-safe styling for React.
+          Type-safe styling for <span classStyle={styles.emphasis}>React.</span>
           <br />
-          Compiled to atomic CSS. Zero runtime.
+          <span classStyle={styles.emphasis}>Rust-compiled</span> zero-runtime atomic CSS.
         </p>
         <div classStyle={styles.actions}>
           <Link href="/docs" classStyle={[styles.button, styles.primary]}>
