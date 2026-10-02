@@ -14,6 +14,12 @@
 `@plumeria/core` contains type definitions only. Which JSX prop carries styles is declared in your project — one line for the default `classStyle`, see [Declaring the styling prop](#declaring-the-styling-prop). Styles are compiled away at build time by a bundler integration — [`@plumeria/next-plugin`](https://www.npmjs.com/package/@plumeria/next-plugin) for Next.js, or [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) for Vite, Webpack, and others.
 
 ```sh
+npx @plumeria/init
+```
+
+It detects the bundler and the package manager, installs the packages, and writes the configs. To set up by hand:
+
+```sh
 pnpm add -D @plumeria/core
 ```
 
