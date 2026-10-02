@@ -1,55 +1,3 @@
-#nd-nav > div {
-  background: white;
-}
-
-.dark #nd-nav > div {
-  background: black;
-}
-
-@media (min-width: 1280px) {
-  #nd-notebook-layout:has(#nd-toc) {
-    --fd-toc-width: 302px;
-  }
-}
-
-#nd-sidebar {
-  box-shadow: inset -1px 0 var(--color-fd-border);
-}
-
-#nd-sidebar [data-radix-scroll-area-viewport] {
-  padding-inline: var(--plumeria-edge);
-}
-
-#nd-toc {
-  background: linear-gradient(var(--color-fd-border), var(--color-fd-border)) 1px 0 / 1px 100% no-repeat;
-}
-
-#nd-toc .border-s {
-  border-color: transparent;
-}
-
-#nd-toc > h3 {
-  padding-left: 14px;
-}
-
-[data-search-full] > div:last-child {
-  gap: 2px;
-  align-items: center;
-  padding-inline: 6px;
-  border: 1px solid var(--color-fd-border);
-  background: var(--color-fd-background);
-}
-
-[data-search-full] kbd {
-  padding: 0;
-  border: 0;
-  background: none;
-}
-
-[data-search-full] kbd:last-child {
-  font-size: 0.73em;
-}
-
 :is(#nd-sidebar, #nd-sidebar-mobile) [data-radix-scroll-area-viewport] button[aria-expanded] {
   cursor: pointer;
 }
@@ -60,40 +8,14 @@
 
 :root {
   --plumeria-accent: #d653bb;
-  --plumeria-edge: 16px;
-  --plumeria-header-size: 48px;
-  --plumeria-control-size: 32px;
 }
 
 :is(#nd-sidebar, #nd-sidebar-mobile) {
   --color-fd-primary: var(--plumeria-accent);
 }
 
-#nd-sidebar-mobile {
-  --fd-sidebar-drawer-offset: calc(-100% - 8px);
-  top: calc(var(--plumeria-header-size) + 8px);
-  right: auto;
-  bottom: 8px;
-  left: 8px;
-  width: 75%;
-  max-width: 300px;
-  border-width: 1px;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-div:has(+ #nd-sidebar-mobile) {
-  backdrop-filter: none;
-}
-
 :is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
   color: var(--color-fd-primary);
-  background-color: #f8f6f9;
-  border-radius: 0;
-}
-
-.dark :is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
-  background-color: #211e22;
 }
 
 :is(#nd-sidebar, #nd-sidebar-mobile)
@@ -299,22 +221,6 @@ body {
   background: white;
 }
 
-/* Keep the sidebar and table of contents in the layout grid while centering the page body. */
-#nd-notebook-layout #nd-page {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 816px;
-  min-width: 0;
-  padding-top: 24px;
-  padding-inline: 24px;
-  margin-inline: auto;
-}
-
-#nd-notebook-layout #nd-page > * {
-  width: 100%;
-  margin-inline: auto;
-}
-
 .dark body {
   background: black;
 }
@@ -470,11 +376,5 @@ code {
 
   [data-playground='stage'] > iframe {
     transform: none;
-  }
-}
-
-@media (max-width: 1023px) {
-  #nd-nav [data-search-full] > div {
-    font-size: 12px;
   }
 }
