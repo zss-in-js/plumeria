@@ -13,7 +13,7 @@ const styles = css.create({
     gap: 5,
     alignItems: 'center',
     fontSize: 14,
-    fontWeight: 400,
+    fontWeight: 600,
     letterSpacing: '-0.015em',
   },
   mark: {
