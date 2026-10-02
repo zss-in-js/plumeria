@@ -3,7 +3,6 @@ import Image from 'next/image';
 import * as css from '@plumeria/core';
 
 import { socialLinks } from 'lib/socialLinks';
-import { latestBlogUrl } from 'lib/latestBlogUrl';
 
 const styles = css.create({
   image: {
@@ -39,16 +38,6 @@ export const baseOptions: BaseLayoutProps = {
     {
       text: 'Docs',
       url: '/docs',
-      active: 'nested-url',
-    },
-    {
-      text: 'API',
-      url: '/docs/api-reference',
-      active: 'nested-url',
-    },
-    {
-      text: 'Blog',
-      url: latestBlogUrl,
       active: 'nested-url',
     },
     {
