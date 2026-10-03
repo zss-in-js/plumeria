@@ -46,16 +46,17 @@ A key cannot contain a combinator (`>`, `+`, `~` or a space) except inside a fun
 `no-invalid-selector` and `no-combinator` in [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) report each of these.
 
 ## Functional pseudo-classes
-A functional pseudo-class cannot appear inside another one of the same name, at any depth. Different names can nest, such as `':is(:where(:not(:has(.a))))'`.
+A functional pseudo-class cannot appear inside another one of the same name, at any depth. Different names can nest, such as `':is(:where(:not(:has(.a))))'`. `:not()` is the exception: it may nest inside `:not()`, because `':not(:not(.a), .b)'` has no flat form.
 
 ```ts
 ':where(:where(.a, .b), .c)' // [!code --]
 ':where(.a, .b, .c)' // [!code ++]
 ':is(:where(:is(.a)))' // [!code --]
-':not(:not(.a), .b)' // [!code --]
 ```
 
-The compiler stops the build on such a key. `no-invalid-selector` flattens it with a fix when the nested call is a whole argument, as in the first line; any other shape, and every `:not()`, has to be rewritten by hand, because flattening would change what the selector matches.
+The compiler stops the build on such a key. `no-invalid-selector` flattens it with a fix when the nested call is a whole argument, as in the first line; any other shape has to be rewritten by hand, because flattening would change what the selector matches.
+
+A key can nest at most 16 levels of parentheses, and a quote must open and close a string inside brackets or parentheses. The compiler stops the build on a deeper key or a stray quote such as `':hover":is(.x)'`, and `no-invalid-selector` reports both.
 
 ## Reason
 This design intentionally avoids reverse nesting.
