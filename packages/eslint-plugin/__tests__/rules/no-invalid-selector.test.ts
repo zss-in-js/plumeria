@@ -306,6 +306,10 @@ ruleTesterNoType.run(
   {
     valid: [
       { code: pseudoNesting(':is(:where(:not(:has(.a))))') },
+      { code: pseudoNesting(':not(:not(.a), .b)') },
+      { code: pseudoNesting(':not('.repeat(16) + '.a' + ')'.repeat(16)) },
+      { code: pseudoNesting(':lang("en"):is([data-x="a"], .b)') },
+      { code: pseudoNesting(':is(/* " */.a)') },
       { code: pseudoNesting(':is(.a, .b)') },
       { code: pseudoNesting('[data-a]:is(:hover, :focus-visible)') },
       { code: pseudoNesting('[data-x=":is(:is(a))"]') },
@@ -380,9 +384,25 @@ ruleTesterNoType.run(
         errors: [{ messageId: 'noSameNamePseudoNesting' }],
       },
       {
-        code: pseudoNesting(':not(:not(.a), .b)'),
-        output: null,
-        errors: [{ messageId: 'noSameNamePseudoNesting' }],
+        code: pseudoNesting(':not('.repeat(17) + '.a' + ')'.repeat(17)),
+        errors: [{ messageId: 'tooDeepSelector', data: { max: '16' } }],
+      },
+      {
+        code: pseudoNesting(':is(' + '('.repeat(16) + '.a' + ')'.repeat(17)),
+        errors: [{ messageId: 'tooDeepSelector', data: { max: '16' } }],
+      },
+      {
+        code: pseudoNesting(':hover":is(:is(:is(:is(.x'),
+        errors: [{ messageId: 'strayQuote' }],
+      },
+      {
+        code: pseudoNesting(':lang("en)'),
+        errors: [{ messageId: 'strayQuote' }],
+      },
+      {
+        code: pseudoNesting(':not(:not(:is(:is(.a))))'),
+        output: pseudoNesting(':not(:not(:is(.a)))'),
+        errors: [{ messageId: 'flattenSameNamePseudo' }],
       },
       {
         code: pseudoNesting(':where(.x:where(.a))'),
