@@ -4,6 +4,11 @@
 
 import type { TSESTree } from '@typescript-eslint/utils';
 import { Rule } from 'eslint';
+import {
+  MAX_SELECTOR_NESTING,
+  findInvalidSelector,
+  stripSelectorComments,
+} from 'zss-engine';
 import { styleObjectFromValue } from '../util/styleObject';
 import { staticValueResolver } from '../util/staticValue';
 
@@ -168,7 +173,7 @@ function findSameNameNesting(
   if (!calls) return null;
   for (const call of calls) {
     const key = call.prefix + call.name;
-    if (ancestors.includes(key)) return call;
+    if (key !== ':not' && ancestors.includes(key)) return call;
     const nested = findSameNameNesting(call.args, [...ancestors, key]);
     if (nested) return nested;
   }
@@ -237,6 +242,10 @@ export const noInvalidSelector: Rule.RuleModule = {
         'Flatten nested "{{name}}()" into a single "{{name}}()".',
       noSameNamePseudoNesting:
         '"{{name}}()" cannot be nested inside another "{{name}}()"; rewrite it without nesting.',
+      tooDeepSelector:
+        'A selector key cannot nest parentheses deeper than {{max}} levels.',
+      strayQuote:
+        'A quote must open and close a string inside brackets or parentheses.',
       invalidKeyframesKey:
         'Keyframes keys must be "from", "to", or a percentage value (e.g. "0%", "50%", "100%").',
       invalidViewTransitionKey:
@@ -280,6 +289,19 @@ export const noInvalidSelector: Rule.RuleModule = {
           ? node.value
           : staticValue(node);
       if (typeof selector !== 'string' || !/^[:[]/.test(selector)) return;
+      const invalid = findInvalidSelector(stripSelectorComments(selector));
+      if (invalid?.kind === 'too-deep') {
+        context.report({
+          node,
+          messageId: 'tooDeepSelector',
+          data: { max: String(MAX_SELECTOR_NESTING) },
+        });
+        return;
+      }
+      if (invalid?.kind === 'stray-quote') {
+        context.report({ node, messageId: 'strayQuote' });
+        return;
+      }
       const nested = findSameNameNesting(selector, []);
       if (!nested) return;
       const flattened = flattenSelector(selector);
