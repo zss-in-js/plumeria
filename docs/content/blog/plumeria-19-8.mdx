@@ -1,0 +1,42 @@
+---
+title: 'Plumeria 19.8'
+description: 'Update: selector keys are read in one pass, comments and stray quotes no longer slip through, and :not() can nest again'
+date: '2026-10-03'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v19.8 rewrites how the compiler reads selector keys. The algorithm was proposed by Anionix.
+
+## 1. One pass for specificity
+
+Specificity is computed in a single pass with a stack of frames, without recursion or copies of the selector. It is 3 to 9 times faster on short keys and about twice as fast on a 4 KB key. Valid selectors get the same specificity as in 19.7.
+
+## 2. Fixes
+
+- A comment in a key no longer counts toward specificity, so `'.a/* #b */'` is not ordered as if it held an ID.
+- `:nth-child(2n OF .a)` reads `OF` in any case, as CSS keywords are case-insensitive.
+- A stray or unclosed quote, such as `':hover":is(.x)'`, stops the build.
+
+## 3. Selector rules
+
+`:not()` can nest inside `:not()` again. Unlike `:is()` or `:where()`, a `:not()` inside `:not()` changes what the selector matches, so it cannot be flattened:
+
+```ts
+':not(:not(.a), .b)' // matches .a, but not .b
+':not(.a, .b)'       // matches neither
+```
+
+A key can nest `:not()` and functional pseudo-classes of different names up to 16 levels deep. Any other functional pseudo-class still cannot nest inside one of the same name, as in 19.7:
+
+```ts
+':is(:where(.a))'      // allowed
+':is(:where(:is(.a)))' // stops the build
+```
+
+`no-invalid-selector` reports the same keys the compiler rejects. Neither a person nor an AI agent can write a key past these limits: the lint reports it, and the compiler stops the build. See [selector rules](/docs/selector-rules).
