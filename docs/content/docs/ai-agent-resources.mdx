@@ -33,6 +33,17 @@ https://plumeria.dev/docs/ai.md
 https://plumeria.dev/docs.md
 ```
 
+## Claude Code plugin
+
+In Claude Code, install the Plumeria plugin instead of pasting the prompt. Its skill is generated from [AI.md](/docs/ai), so it stays in sync with these rules, and Claude loads it whenever a task touches Plumeria styles.
+
+```text title="Claude Code"
+/plugin marketplace add zss-in-js/plumeria
+/plugin install plumeria@plumeria
+```
+
+Run `/plugin marketplace update plumeria` to pick up rule changes, or turn on auto-update for the marketplace in `/plugin`.
+
 ## Add context for the task
 
 Keep the three documents above, then append one of these focused sets.
