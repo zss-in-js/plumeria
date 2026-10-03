@@ -1,5 +1,14 @@
 # @plumeria/utils
 
+## 19.8.0
+
+### Minor Changes
+
+- 2cdf7b8: - Compute specificity in one pass, and stop counting comments in selector keys
+  - Read `OF` in `:nth-child()` in any case
+  - Allow `:not()` inside `:not()`, and stop the build on a key nested deeper than 16 levels or holding a stray quote
+  - `no-invalid-selector` reports a key nested deeper than 16 levels or holding a stray quote
+
 ## 19.7.0
 
 ### Minor Changes

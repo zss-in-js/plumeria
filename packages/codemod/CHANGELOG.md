@@ -1,5 +1,11 @@
 # @plumeria/codemod
 
+## 19.8.0
+
+### Minor Changes
+
+- 2cdf7b8: Bump version to 19.8.0
+
 ## 19.7.0
 
 ### Minor Changes
