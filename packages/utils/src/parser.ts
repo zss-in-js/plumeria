@@ -54,7 +54,9 @@ import * as rs from '@rust-gear/glob';
 
 import {
   camelToKebabCase,
-  findSameNameNesting,
+  findInvalidSelector,
+  MAX_SELECTOR_NESTING,
+  stripSelectorComments,
   genBase36Hash,
   transpile,
 } from 'zss-engine';
@@ -378,7 +380,7 @@ export function objectExpressionToObject(
 
     if (!t.isObjectProperty(prop)) return;
 
-    const key = getPropertyKey(
+    const rawKey = getPropertyKey(
       prop.key,
       staticTable,
       keyframesHashTable,
@@ -388,16 +390,26 @@ export function objectExpressionToObject(
       createStaticHashTable,
       createStaticObjectTable,
     );
-    if (!key) return;
+    if (!rawKey) return;
+    const key =
+      typeof rawKey === 'string' ? stripSelectorComments(rawKey) : rawKey;
 
     if (
       typeof key === 'string' &&
       (key.startsWith(':') || key.startsWith('['))
     ) {
-      const name = findSameNameNesting(key);
-      if (name)
+      const nesting = findInvalidSelector(key);
+      if (nesting?.kind === 'same-name')
         throw new Error(
-          `[plumeria] "${name}()" cannot be nested inside another "${name}()": "${key}". Rewrite the selector without nesting.`,
+          `[plumeria] "${nesting.name}()" cannot be nested inside another "${nesting.name}()": "${key}". Rewrite the selector without nesting.`,
+        );
+      if (nesting?.kind === 'stray-quote')
+        throw new Error(
+          `[plumeria] Unexpected quote in selector: "${key}". Close the string inside brackets or parentheses, or remove the quote.`,
+        );
+      if (nesting?.kind === 'too-deep')
+        throw new Error(
+          `[plumeria] Selector nests deeper than ${MAX_SELECTOR_NESTING} levels: "${key}". Rewrite the selector with fewer levels.`,
         );
     }
 
