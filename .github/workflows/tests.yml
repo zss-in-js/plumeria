@@ -86,6 +86,16 @@ jobs:
           name: coverage-report
           path: coverage/
 
+  skill-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check SKILL.md matches ai.md
+        run: |
+          node scripts/build-skill.js
+          git diff --exit-code plugins/plumeria/skills/plumeria/SKILL.md
+
   codemod-round-trip:
     runs-on: ubuntu-latest
     steps:
