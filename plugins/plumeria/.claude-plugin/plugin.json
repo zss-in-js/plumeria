@@ -1,0 +1,11 @@
+{
+  "name": "plumeria",
+  "description": "Teaches Claude the Plumeria rules for writing, reviewing, and fixing styles. Generated from the official AI.md documentation.",
+  "author": {
+    "name": "refirst11"
+  },
+  "homepage": "https://plumeria.dev",
+  "repository": "https://github.com/zss-in-js/plumeria",
+  "license": "MIT",
+  "keywords": ["css", "css-in-js", "plumeria", "styling"]
+}
