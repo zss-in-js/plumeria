@@ -5,37 +5,80 @@ const MAX_OF_ARGUMENTS: &[&str] = &["is", "not", "has"];
 const NTH_WITH_OF: &[&str] = &["nth-child", "nth-last-child"];
 const ARGUMENT_ADDS_TO_HOST: &[&str] = &["host", "host-context"];
 const ARGUMENT_ADDS_TO_ELEMENT: &[&str] = &["slotted", "cue", "cue-region"];
+const UTF8_LEN: [usize; 16] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 4];
 
-fn is_name_char(c: char) -> bool {
-    c.is_ascii_alphanumeric() || c == '_' || c == '-'
+#[derive(Clone, Copy, PartialEq)]
+enum Kind {
+    Sum,
+    Highest,
+    BeforeOf,
+    Ignored,
 }
 
-fn at(chars: &[char], index: usize) -> Option<char> {
-    chars.get(index).copied()
+struct Frame {
+    kind: Kind,
+    sum: Specificity,
+    best: Specificity,
 }
 
-fn escape_end(chars: &[char], start: usize) -> usize {
+fn frame(kind: Kind) -> Frame {
+    Frame {
+        kind,
+        sum: [0; 3],
+        best: [0; 3],
+    }
+}
+
+fn add(total: &mut Specificity, value: Specificity) {
+    total[0] += value[0];
+    total[1] += value[1];
+    total[2] += value[2];
+}
+
+fn higher(a: Specificity, b: Specificity) -> Specificity {
+    if (b[0], b[1], b[2]) > (a[0], a[1], a[2]) {
+        b
+    } else {
+        a
+    }
+}
+
+fn is_one_of(name: &[u8], list: &[&str]) -> bool {
+    list.iter()
+        .any(|item| name.eq_ignore_ascii_case(item.as_bytes()))
+}
+
+fn is_name_byte(c: u8) -> bool {
+    c.is_ascii_alphanumeric() || c == b'_' || c == b'-'
+}
+
+fn lower_name(bytes: &[u8], start: usize, end: usize) -> String {
+    String::from_utf8_lossy(&bytes[start..end.max(start)]).to_lowercase()
+}
+
+fn escape_end(bytes: &[u8], start: usize) -> usize {
     let mut end = start + 1;
-    while end < chars.len() && end - start <= 6 && chars[end].is_ascii_hexdigit() {
+    while end < bytes.len() && end - start <= 6 && bytes[end].is_ascii_hexdigit() {
         end += 1;
     }
     if end == start + 1 {
-        return (start + 2).min(chars.len());
+        let width = bytes.get(end).map_or(1, |c| UTF8_LEN[(c >> 4) as usize]);
+        return (end + width).min(bytes.len());
     }
-    if end < chars.len() && chars[end].is_ascii_whitespace() {
+    if end < bytes.len() && bytes[end].is_ascii_whitespace() {
         end += 1;
     }
     end
 }
 
-fn skip_name(chars: &[char], from: usize) -> usize {
+fn skip_name(bytes: &[u8], from: usize) -> usize {
     let mut index = from;
-    while index < chars.len() {
-        if chars[index] == '\\' {
-            index = escape_end(chars, index);
+    while index < bytes.len() {
+        if bytes[index] == b'\\' {
+            index = escape_end(bytes, index);
             continue;
         }
-        if !is_name_char(chars[index]) {
+        if !is_name_byte(bytes[index]) {
             break;
         }
         index += 1;
@@ -43,33 +86,33 @@ fn skip_name(chars: &[char], from: usize) -> usize {
     index
 }
 
-fn skip_string(chars: &[char], quote: char, from: usize) -> usize {
+fn skip_string(bytes: &[u8], quote: u8, from: usize) -> usize {
     let mut index = from;
-    while index < chars.len() && chars[index] != quote {
-        if chars[index] == '\\' {
+    while index < bytes.len() && bytes[index] != quote {
+        if bytes[index] == b'\\' {
             index += 1;
         }
         index += 1;
     }
-    (index + 1).min(chars.len())
+    (index + 1).min(bytes.len())
 }
 
-fn find_close(chars: &[char], open: usize) -> usize {
+fn find_close(bytes: &[u8], open: usize) -> usize {
     let mut depth = 0i64;
     let mut index = open;
-    while index < chars.len() {
-        let c = chars[index];
-        if c == '\\' {
+    while index < bytes.len() {
+        let c = bytes[index];
+        if c == b'\\' {
             index += 2;
             continue;
         }
-        if c == '"' || c == '\'' {
-            index = skip_string(chars, c, index + 1);
+        if c == b'"' || c == b'\'' {
+            index = skip_string(bytes, c, index + 1);
             continue;
         }
-        if c == '(' {
+        if c == b'(' {
             depth += 1;
-        } else if c == ')' {
+        } else if c == b')' {
             depth -= 1;
             if depth == 0 {
                 return index;
@@ -77,226 +120,164 @@ fn find_close(chars: &[char], open: usize) -> usize {
         }
         index += 1;
     }
-    chars.len()
+    bytes.len()
 }
 
-fn skip_bracket(chars: &[char], open: usize) -> usize {
+fn skip_bracket(bytes: &[u8], open: usize) -> usize {
     let mut index = open + 1;
-    while index < chars.len() {
-        let c = chars[index];
-        if c == '\\' {
+    while index < bytes.len() {
+        let c = bytes[index];
+        if c == b'\\' {
             index += 2;
             continue;
         }
-        if c == '"' || c == '\'' {
-            index = skip_string(chars, c, index + 1);
+        if c == b'"' || c == b'\'' {
+            index = skip_string(bytes, c, index + 1);
             continue;
         }
-        if c == ']' {
+        if c == b']' {
             return index + 1;
         }
         index += 1;
     }
-    chars.len()
+    bytes.len()
 }
 
-fn split_top_level(list: &[char]) -> Vec<Vec<char>> {
-    let mut parts = Vec::new();
-    let mut depth = 0i64;
-    let mut start = 0;
-    let mut index = 0;
-    while index < list.len() {
-        let c = list[index];
-        if c == '\\' {
-            index += 2;
-            continue;
-        }
-        if c == '"' || c == '\'' {
-            index = skip_string(list, c, index + 1);
-            continue;
-        }
-        if c == '(' || c == '[' {
-            depth += 1;
-        } else if c == ')' || c == ']' {
-            depth -= 1;
-        } else if c == ',' && depth == 0 {
-            parts.push(list[start..index].to_vec());
-            start = index + 1;
-        }
-        index += 1;
+fn of_at(selector: &str, index: usize) -> bool {
+    selector[..index]
+        .chars()
+        .next_back()
+        .is_some_and(char::is_whitespace)
+        && selector[index..].starts_with("of")
+        && selector[index + 2..]
+            .chars()
+            .next()
+            .is_some_and(char::is_whitespace)
+}
+
+fn pseudo(name: &[u8], double_colon: bool) -> (Specificity, Kind) {
+    if double_colon || is_one_of(name, LEGACY_PSEUDO_ELEMENTS) {
+        let kind = if is_one_of(name, ARGUMENT_ADDS_TO_ELEMENT) {
+            Kind::Highest
+        } else {
+            Kind::Ignored
+        };
+        ([0, 0, 1], kind)
+    } else if name.eq_ignore_ascii_case(b"where") {
+        ([0, 0, 0], Kind::Ignored)
+    } else if is_one_of(name, MAX_OF_ARGUMENTS) {
+        ([0, 0, 0], Kind::Highest)
+    } else if is_one_of(name, ARGUMENT_ADDS_TO_HOST) {
+        ([0, 1, 0], Kind::Highest)
+    } else if is_one_of(name, NTH_WITH_OF) {
+        ([0, 1, 0], Kind::BeforeOf)
+    } else {
+        ([0, 1, 0], Kind::Ignored)
     }
-    parts.push(list[start.min(list.len())..].to_vec());
-    parts
 }
 
-fn compare(a: &Specificity, b: &Specificity) -> i64 {
-    let first = a[0] - b[0];
-    if first != 0 {
-        return first;
-    }
-    let second = a[1] - b[1];
-    if second != 0 {
-        return second;
-    }
-    a[2] - b[2]
-}
-
-fn highest(list: &[char]) -> Specificity {
-    split_top_level(list)
-        .into_iter()
-        .fold([0, 0, 0], |best, part| {
-            let current = specificity_of(&part);
-            if compare(&current, &best) > 0 {
-                current
-            } else {
-                best
-            }
-        })
-}
-
-fn slice(chars: &[char], start: usize, end: usize) -> Vec<char> {
-    let start = start.min(chars.len());
-    let end = end.min(chars.len()).max(start);
-    chars[start..end].to_vec()
-}
-
-fn lower_name(chars: &[char], start: usize, end: usize) -> String {
-    slice(chars, start, end)
-        .into_iter()
-        .collect::<String>()
-        .to_lowercase()
-}
-
-fn index_of_of_keyword(inner: &[char]) -> Option<(usize, usize)> {
-    let mut index = 0;
-    while index < inner.len() {
-        if inner[index].is_whitespace() {
-            let mut end = index;
-            while end < inner.len() && inner[end].is_whitespace() {
-                end += 1;
-            }
-            if end + 1 < inner.len() && inner[end] == 'o' && inner[end + 1] == 'f' {
-                let after = end + 2;
-                let mut tail = after;
-                while tail < inner.len() && inner[tail].is_whitespace() {
-                    tail += 1;
-                }
-                if tail > after {
-                    return Some((index, tail));
-                }
-            }
-            index = end.max(index + 1);
-            continue;
-        }
-        index += 1;
-    }
-    None
-}
-
-fn specificity_of(chars: &[char]) -> Specificity {
-    let mut total: Specificity = [0, 0, 0];
-    let mut index = 0;
-    let add = |total: &mut Specificity, value: Specificity| {
-        total[0] += value[0];
-        total[1] += value[1];
-        total[2] += value[2];
+fn close(stack: &mut Vec<Frame>) {
+    let top = stack.pop().expect("a frame to close");
+    let value = match top.kind {
+        Kind::Sum => top.sum,
+        Kind::Highest => higher(top.best, top.sum),
+        Kind::BeforeOf | Kind::Ignored => return,
     };
-
-    while index < chars.len() {
-        let c = chars[index];
-        if c == '#' {
-            index = skip_name(chars, index + 1);
-            total[0] += 1;
-            continue;
-        }
-        if c == '.' {
-            index = skip_name(chars, index + 1);
-            total[1] += 1;
-            continue;
-        }
-        if c == '[' {
-            index = skip_bracket(chars, index);
-            total[1] += 1;
-            continue;
-        }
-        if c == ':' {
-            let double_colon = at(chars, index + 1) == Some(':');
-            let name_start = index + if double_colon { 2 } else { 1 };
-            let name_end = skip_name(chars, name_start);
-            let name = lower_name(chars, name_start, name_end);
-            index = name_end;
-
-            let mut inner: Vec<char> = Vec::new();
-            if at(chars, index) == Some('(') {
-                let close = find_close(chars, index);
-                inner = slice(chars, index + 1, close);
-                index = close + 1;
-            }
-
-            if double_colon || LEGACY_PSEUDO_ELEMENTS.contains(&name.as_str()) {
-                total[2] += 1;
-                if ARGUMENT_ADDS_TO_ELEMENT.contains(&name.as_str()) {
-                    add(&mut total, highest(&inner));
-                }
-                continue;
-            }
-            if name == "where" {
-                continue;
-            }
-            if MAX_OF_ARGUMENTS.contains(&name.as_str()) {
-                add(&mut total, highest(&inner));
-                continue;
-            }
-            total[1] += 1;
-            if ARGUMENT_ADDS_TO_HOST.contains(&name.as_str()) {
-                add(&mut total, highest(&inner));
-                continue;
-            }
-            if NTH_WITH_OF.contains(&name.as_str())
-                && let Some((_, end)) = index_of_of_keyword(&inner)
-            {
-                add(&mut total, highest(&inner[end..]));
-            }
-            continue;
-        }
-        if is_name_char(c) || c == '\\' {
-            index = skip_name(chars, index);
-            total[2] += 1;
-            continue;
-        }
-        index += 1;
-    }
-    total
+    add(&mut stack.last_mut().expect("the root stays").sum, value);
 }
 
 pub fn get_specificity(selector: &str) -> Specificity {
-    let chars: Vec<char> = selector.chars().collect();
-    specificity_of(&chars)
+    let bytes = selector.as_bytes();
+    let mut stack = Vec::with_capacity(4);
+    stack.push(frame(Kind::Sum));
+    let mut index = 0;
+    while index < bytes.len() {
+        let c = bytes[index];
+        let top = stack.len() - 1;
+        let kind = stack[top].kind;
+        let counting = kind == Kind::Sum || kind == Kind::Highest;
+        match c {
+            b'"' | b'\'' => index = skip_string(bytes, c, index + 1),
+            b'\\' if !counting => index += 2,
+            b')' => {
+                if stack.len() > 1 {
+                    close(&mut stack);
+                }
+                index += 1;
+            }
+            b'(' => {
+                stack.push(frame(if counting { Kind::Sum } else { Kind::Ignored }));
+                index += 1;
+            }
+            b'o' if kind == Kind::BeforeOf && of_at(selector, index) => {
+                stack[top].kind = Kind::Highest;
+                index += 2;
+            }
+            _ if !counting => index += 1,
+            b',' if kind == Kind::Highest => {
+                let f = &mut stack[top];
+                f.best = higher(f.best, f.sum);
+                f.sum = [0; 3];
+                index += 1;
+            }
+            b'#' | b'.' => {
+                stack[top].sum[if c == b'#' { 0 } else { 1 }] += 1;
+                index = skip_name(bytes, index + 1);
+            }
+            b'[' => {
+                stack[top].sum[1] += 1;
+                index = skip_bracket(bytes, index);
+            }
+            b':' => {
+                let double_colon = bytes.get(index + 1) == Some(&b':');
+                let start = index + if double_colon { 2 } else { 1 };
+                let end = skip_name(bytes, start);
+                let (own, argument) = pseudo(&bytes[start..end.max(start)], double_colon);
+                add(&mut stack[top].sum, own);
+                if bytes.get(end) == Some(&b'(') {
+                    stack.push(frame(argument));
+                    index = end + 1;
+                } else {
+                    index = end;
+                }
+            }
+            _ if is_name_byte(c) || c == b'\\' => {
+                stack[top].sum[2] += 1;
+                index = skip_name(bytes, index);
+            }
+            _ => index += 1,
+        }
+    }
+    while stack.len() > 1 {
+        close(&mut stack);
+    }
+    stack[0].sum
 }
 
 pub fn get_pseudo_element(selector: &str) -> String {
-    let chars: Vec<char> = selector.chars().collect();
+    let bytes = selector.as_bytes();
     let mut index = 0;
-    while index < chars.len() {
-        let c = chars[index];
-        if c == '[' {
-            index = skip_bracket(&chars, index);
+    while index < bytes.len() {
+        let c = bytes[index];
+        if c == b'[' {
+            index = skip_bracket(bytes, index);
             continue;
         }
-        if c != ':' {
+        if c != b':' {
             index += 1;
             continue;
         }
-        let double_colon = at(&chars, index + 1) == Some(':');
+        let double_colon = bytes.get(index + 1) == Some(&b':');
         let name_start = index + if double_colon { 2 } else { 1 };
-        let name_end = skip_name(&chars, name_start);
-        let name = lower_name(&chars, name_start, name_end);
+        let name_end = skip_name(bytes, name_start);
+        let name = lower_name(bytes, name_start, name_end);
         index = name_end;
 
         let mut argument = String::new();
-        if at(&chars, index) == Some('(') {
-            let close = find_close(&chars, index);
-            argument = slice(&chars, index, close + 1).into_iter().collect();
+        if bytes.get(index) == Some(&b'(') {
+            let close = find_close(bytes, index);
+            argument =
+                String::from_utf8_lossy(&bytes[index..(close + 1).min(bytes.len())]).into_owned();
             index = close + 1;
         }
         if double_colon || LEGACY_PSEUDO_ELEMENTS.contains(&name.as_str()) {
@@ -307,38 +288,38 @@ pub fn get_pseudo_element(selector: &str) -> String {
 }
 
 pub fn find_same_name_nesting(selector: &str) -> Option<String> {
-    let chars: Vec<char> = selector.chars().collect();
+    let bytes = selector.as_bytes();
     let mut open: Vec<(String, usize)> = Vec::new();
     let mut depth = 0usize;
     let mut index = 0;
-    while index < chars.len() {
-        let c = chars[index];
-        if c == '\\' {
-            index = escape_end(&chars, index);
+    while index < bytes.len() {
+        let c = bytes[index];
+        if c == b'\\' {
+            index = escape_end(bytes, index);
             continue;
         }
-        if c == '"' || c == '\'' {
-            index = skip_string(&chars, c, index + 1);
+        if c == b'"' || c == b'\'' {
+            index = skip_string(bytes, c, index + 1);
             continue;
         }
-        if c == '[' {
-            index = skip_bracket(&chars, index);
+        if c == b'[' {
+            index = skip_bracket(bytes, index);
             continue;
         }
-        if c == '(' {
+        if c == b'(' {
             depth += 1;
-        } else if c == ')' {
+        } else if c == b')' {
             if open.last().is_some_and(|(_, level)| *level == depth) {
                 open.pop();
             }
             depth = depth.saturating_sub(1);
-        } else if c == ':' {
-            let double_colon = at(&chars, index + 1) == Some(':');
+        } else if c == b':' {
+            let double_colon = bytes.get(index + 1) == Some(&b':');
             let name_start = index + if double_colon { 2 } else { 1 };
-            let name_end = skip_name(&chars, name_start);
-            if name_end > name_start && at(&chars, name_end) == Some('(') {
+            let name_end = skip_name(bytes, name_start);
+            if name_end > name_start && bytes.get(name_end) == Some(&b'(') {
                 let prefix = if double_colon { "::" } else { ":" };
-                let name = format!("{prefix}{}", lower_name(&chars, name_start, name_end));
+                let name = format!("{prefix}{}", lower_name(bytes, name_start, name_end));
                 if open.iter().any(|(ancestor, _)| *ancestor == name) {
                     return Some(name);
                 }
