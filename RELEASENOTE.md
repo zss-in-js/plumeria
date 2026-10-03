@@ -1,5 +1,15 @@
 # Release Notes
 
+## 19.8.0 (Oct 3, 2026)
+
+- Compute specificity in one pass, and stop counting comments in selector keys
+
+- Read `OF` in `:nth-child()` in any case
+
+- Allow `:not()` inside `:not()`, and stop the build on a key nested deeper than 16 levels or holding a stray quote
+
+- `no-invalid-selector` reports a key nested deeper than 16 levels or holding a stray quote
+
 ## 19.7.0 (Sep 30, 2026)
 
 - Reject a functional pseudo-class nested inside one of the same name at any depth, such as `:where(:where(.a), .b)`, and stop the build with a message naming the function and the key
