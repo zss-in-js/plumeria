@@ -8,7 +8,9 @@ use oxc_syntax::operator::{BinaryOperator, LogicalOperator, UnaryOperator};
 pub use env::{Env, Layer, Lookup, NOTHING, Single};
 
 use crate::engine::hash::hash_object;
-use crate::engine::specificity::find_same_name_nesting;
+use crate::engine::specificity::{
+    InvalidSelector, MAX_SELECTOR_NESTING, find_invalid_selector, strip_selector_comments,
+};
 use crate::js::number::{number_to_string, to_int32, to_uint32};
 use crate::js::{Object, Value};
 use crate::style::theme::theme_var_reference;
@@ -147,12 +149,30 @@ impl<'e, 'r> Evaluator<'e, 'r> {
                     return Ok(());
                 }
                 let key = key.to_js_string();
-                if (key.starts_with(':') || key.starts_with('['))
-                    && let Some(name) = find_same_name_nesting(&key)
-                {
-                    return Err(format!(
-                        "[plumeria] \"{name}()\" cannot be nested inside another \"{name}()\": \"{key}\". Rewrite the selector without nesting."
-                    ));
+                let key = if key.contains("/*") {
+                    strip_selector_comments(&key).into_owned()
+                } else {
+                    key
+                };
+                if key.starts_with(':') || key.starts_with('[') {
+                    match find_invalid_selector(&key) {
+                        Some(InvalidSelector::SameName(name)) => {
+                            return Err(format!(
+                                "[plumeria] \"{name}()\" cannot be nested inside another \"{name}()\": \"{key}\". Rewrite the selector without nesting."
+                            ));
+                        }
+                        Some(InvalidSelector::TooDeep) => {
+                            return Err(format!(
+                                "[plumeria] Selector nests deeper than {MAX_SELECTOR_NESTING} levels: \"{key}\". Rewrite the selector with fewer levels."
+                            ));
+                        }
+                        Some(InvalidSelector::StrayQuote) => {
+                            return Err(format!(
+                                "[plumeria] Unexpected quote in selector: \"{key}\". Close the string inside brackets or parentheses, or remove the quote."
+                            ));
+                        }
+                        None => {}
+                    }
                 }
                 if let Some(value) = self.property_value(E::new(&prop.value))? {
                     obj.insert(key, value);
