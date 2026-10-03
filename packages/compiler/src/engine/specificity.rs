@@ -160,20 +160,42 @@ fn skip_bracket(bytes: &[u8], open: usize) -> usize {
     bytes.len()
 }
 
+fn is_of(word: &[u8]) -> bool {
+    let mut letters = [0u32; 2];
+    let mut count = 0;
+    let mut index = 0;
+    while index < word.len() {
+        if count == 2 {
+            return false;
+        }
+        let code = if word[index] == b'\\' {
+            let end = escape_end(word, index);
+            let hex = word[index + 1..end]
+                .iter()
+                .take_while(|c| c.is_ascii_hexdigit())
+                .fold(0u32, |code, &c| code * 16 + (c as char).to_digit(16).unwrap_or(0));
+            let plain = word[index + 1..end].first().is_some_and(|c| !c.is_ascii_hexdigit());
+            index = end;
+            if plain { u32::from(word[end - 1]) } else { hex }
+        } else {
+            index += 1;
+            u32::from(word[index - 1])
+        };
+        letters[count] = code;
+        count += 1;
+    }
+    count == 2 && letters[0] | 0x20 == u32::from(b'o') && letters[1] | 0x20 == u32::from(b'f')
+}
+
 fn of_at(selector: &str, index: usize) -> bool {
-    (selector[..index]
+    let bytes = selector.as_bytes();
+    let after_gap = selector[..index]
         .chars()
         .next_back()
         .is_some_and(char::is_whitespace)
-        || selector[..index].ends_with("*/"))
-        && selector.as_bytes()[index..]
-            .get(..2)
-            .is_some_and(|word| word.eq_ignore_ascii_case(b"of"))
-        && (selector[index + 2..]
-            .chars()
-            .next()
-            .is_some_and(char::is_whitespace)
-            || selector[index + 2..].starts_with("/*"))
+        || selector[..index].ends_with("*/");
+    let end = skip_name(bytes, index);
+    after_gap && is_of(&bytes[index..end]) && bytes.get(end).is_none_or(|&c| c < 0x80)
 }
 
 fn pseudo(name: &[u8], double_colon: bool) -> (Specificity, Kind) {
@@ -222,6 +244,10 @@ pub fn get_specificity(selector: &str) -> Specificity {
                 index = skip_comment(bytes, index);
             }
             b'"' | b'\'' => index = skip_string(bytes, c, index + 1),
+            b'o' | b'O' | b'\\' if kind == Kind::BeforeOf && of_at(selector, index) => {
+                stack[top].kind = Kind::Highest;
+                index = skip_name(bytes, index);
+            }
             b'\\' if !counting => index += 2,
             b')' => {
                 if stack.len() > 1 {
@@ -232,10 +258,6 @@ pub fn get_specificity(selector: &str) -> Specificity {
             b'(' => {
                 stack.push(frame(if counting { Kind::Sum } else { Kind::Ignored }));
                 index += 1;
-            }
-            b'o' | b'O' if kind == Kind::BeforeOf && of_at(selector, index) => {
-                stack[top].kind = Kind::Highest;
-                index += 2;
             }
             _ if !counting => index += 1,
             b',' if kind == Kind::Highest => {
@@ -426,6 +448,17 @@ mod tests {
     fn of_keyword_ignores_ascii_case() {
         assert_eq!(get_specificity(":nth-child(2 OF .item)"), [0, 2, 0]);
         assert_eq!(get_specificity(":nth-last-child(odd Of #a, .b)"), [1, 1, 0]);
+    }
+
+    #[test]
+    fn of_keyword_is_a_whole_word() {
+        assert_eq!(get_specificity(":nth-child(2 of.a)"), [0, 2, 0]);
+        assert_eq!(get_specificity(":nth-child(2 OF#a)"), [1, 1, 0]);
+        assert_eq!(get_specificity(":nth-child(2 of:hover)"), [0, 2, 0]);
+        assert_eq!(get_specificity(":nth-child(2 o\\66 .a)"), [0, 2, 0]);
+        assert_eq!(get_specificity(":nth-child(2 \\6f f.a)"), [0, 2, 0]);
+        assert_eq!(get_specificity(":nth-child(2 ofx .a)"), [0, 1, 0]);
+        assert_eq!(get_specificity(":nth-child(2n+1of .a)"), [0, 1, 0]);
     }
 
     #[test]
