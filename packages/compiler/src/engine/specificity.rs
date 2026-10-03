@@ -148,7 +148,9 @@ fn of_at(selector: &str, index: usize) -> bool {
         .chars()
         .next_back()
         .is_some_and(char::is_whitespace)
-        && selector[index..].starts_with("of")
+        && selector.as_bytes()[index..]
+            .get(..2)
+            .is_some_and(|word| word.eq_ignore_ascii_case(b"of"))
         && selector[index + 2..]
             .chars()
             .next()
@@ -209,7 +211,7 @@ pub fn get_specificity(selector: &str) -> Specificity {
                 stack.push(frame(if counting { Kind::Sum } else { Kind::Ignored }));
                 index += 1;
             }
-            b'o' if kind == Kind::BeforeOf && of_at(selector, index) => {
+            b'o' | b'O' if kind == Kind::BeforeOf && of_at(selector, index) => {
                 stack[top].kind = Kind::Highest;
                 index += 2;
             }
@@ -339,6 +341,12 @@ pub fn find_same_name_nesting(selector: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::{find_same_name_nesting, get_specificity};
+
+    #[test]
+    fn of_keyword_ignores_ascii_case() {
+        assert_eq!(get_specificity(":nth-child(2 OF .item)"), [0, 2, 0]);
+        assert_eq!(get_specificity(":nth-last-child(odd Of #a, .b)"), [1, 1, 0]);
+    }
 
     #[test]
     fn hex_escapes_end_at_their_whitespace() {
