@@ -1,0 +1,14 @@
+{
+  "name": "plumeria",
+  "description": "Official Claude Code plugins for Plumeria",
+  "owner": {
+    "name": "refirst11"
+  },
+  "plugins": [
+    {
+      "name": "plumeria",
+      "source": "./plugins/plumeria",
+      "description": "Plumeria rules for writing, reviewing, and fixing styles, generated from the official AI.md documentation"
+    }
+  ]
+}
