@@ -4,7 +4,6 @@
   "description": "Zero-cost abstraction layer for styling React components.",
   "author": "Refirst 11",
   "license": "MIT",
-  "funding": "https://github.com/sponsors/refirst11",
   "homepage": "https://plumeria.dev",
   "repository": {
     "type": "git",
