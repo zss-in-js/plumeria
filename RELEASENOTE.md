@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.8.1 (Oct 4, 2026)
+
+- Read selector names as CSS identifiers when computing specificity, so `of` in `:nth-child()` is read when `.`, `#` or `:` follows it directly (`2 of.a`) and when escaped (`o\66`)
+
+- Count escaped pseudo-class names such as `:\69s()` and `:nth-chil\64()`
+
+- Count type selectors that start with a non-ASCII character
+
 ## 19.8.0 (Oct 3, 2026)
 
 - Compute specificity in one pass, and stop counting comments in selector keys
