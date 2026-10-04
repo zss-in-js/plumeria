@@ -28,51 +28,6 @@ fn frame(kind: Kind) -> Frame {
     }
 }
 
-// Frames up to this depth stay on the call stack; deeper ones spill to the heap.
-const INLINE_FRAMES: usize = 8;
-
-struct Stack {
-    inline: [Frame; INLINE_FRAMES],
-    len: usize,
-    spill: Vec<Frame>,
-}
-
-impl Stack {
-    fn new() -> Self {
-        Stack {
-            inline: [frame(Kind::Sum); INLINE_FRAMES],
-            len: 1,
-            spill: Vec::new(),
-        }
-    }
-
-    fn top(&mut self) -> &mut Frame {
-        if self.len <= INLINE_FRAMES {
-            &mut self.inline[self.len - 1]
-        } else {
-            self.spill.last_mut().expect("spilled frames")
-        }
-    }
-
-    fn push(&mut self, kind: Kind) {
-        if self.len < INLINE_FRAMES {
-            self.inline[self.len] = frame(kind);
-        } else {
-            self.spill.push(frame(kind));
-        }
-        self.len += 1;
-    }
-
-    fn pop(&mut self) -> Frame {
-        self.len -= 1;
-        if self.len < INLINE_FRAMES {
-            self.inline[self.len]
-        } else {
-            self.spill.pop().expect("spilled frames")
-        }
-    }
-}
-
 fn add(total: &mut Specificity, value: Specificity) {
     total[0] += value[0];
     total[1] += value[1];
