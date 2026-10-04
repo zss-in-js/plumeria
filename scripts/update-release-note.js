@@ -9,6 +9,10 @@ const corePackageJsonPath = path.join(
   __dirname,
   '../packages/core/package.json',
 );
+const pluginJsonPath = path.join(
+  __dirname,
+  '../plugins/plumeria/.claude-plugin/plugin.json',
+);
 
 function main() {
   const changes = [];
@@ -42,6 +46,10 @@ function main() {
     fs.readFileSync(corePackageJsonPath, 'utf-8'),
   );
   const newVersion = corePackageJson.version;
+
+  const pluginJson = JSON.parse(fs.readFileSync(pluginJsonPath, 'utf-8'));
+  pluginJson.version = newVersion;
+  fs.writeFileSync(pluginJsonPath, JSON.stringify(pluginJson, null, 2) + '\n');
 
   const months = [
     'Jan',
