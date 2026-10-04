@@ -165,7 +165,6 @@ const HOST: (Specificity, Kind) = ([0, 1, 0], Kind::Highest);
 const NTH: (Specificity, Kind) = ([0, 1, 0], Kind::BeforeOf);
 const CLASS: (Specificity, Kind) = ([0, 1, 0], Kind::Ignored);
 
-// Rules looked up by the name's length and first letter, so a name is compared once.
 fn pseudo(
     bytes: &[u8],
     start: usize,
