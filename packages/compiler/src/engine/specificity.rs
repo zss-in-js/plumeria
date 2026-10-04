@@ -234,7 +234,6 @@ fn escape_value(bytes: &[u8], start: usize, end: usize) -> u32 {
     }
 }
 
-// An identifier with its escapes decoded and ASCII lowercased; empty when it cannot be a keyword.
 fn keyword<'a>(bytes: &[u8], start: usize, end: usize, buf: &'a mut [u8; 24]) -> &'a [u8] {
     let mut len = 0;
     let mut index = start;
