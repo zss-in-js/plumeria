@@ -100,7 +100,6 @@ fn skip_comment(bytes: &[u8], from: usize) -> usize {
 
 const IDENT_BYTE: u8 = 1;
 const IDENT_START: u8 = 2;
-// Classes of ASCII bytes; every byte from 0x80 is both.
 const IDENT_CLASS: [u8; 128] = {
     let mut table = [0u8; 128];
     let mut c = 0;
