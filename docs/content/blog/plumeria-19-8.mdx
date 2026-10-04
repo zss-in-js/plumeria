@@ -40,3 +40,20 @@ A key can nest `:not()` and functional pseudo-classes of different names up to 1
 ```
 
 `no-invalid-selector` reports the same keys the compiler rejects. Neither a person nor an AI agent can write a key past these limits: the lint reports it, and the compiler stops the build. See [selector rules](/docs/selector-rules).
+
+---
+
+## Release notes
+
+## 19.8.1 (Oct 4, 2026)
+
+- Fix [#631](https://github.com/zss-in-js/plumeria/issues/631): specificity reads selector names as CSS identifiers, so `of` in `:nth-child()` is read when `.`, `#` or `:` follows it directly (`2 of.a`) and when escaped (`o\66`). Proposed by Anionix
+- Count escaped pseudo-class names such as `:\69s()` and `:nth-chil\64()`
+- Count type selectors that start with a non-ASCII character
+
+## 19.8.0 (Oct 3, 2026)
+
+- Compute specificity in one pass, and stop counting comments in selector keys
+- Read `OF` in `:nth-child()` in any case
+- Allow `:not()` inside `:not()`, and stop the build on a key nested deeper than 16 levels or holding a stray quote
+- `no-invalid-selector` reports a key nested deeper than 16 levels or holding a stray quote
