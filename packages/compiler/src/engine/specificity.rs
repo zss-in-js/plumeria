@@ -100,12 +100,12 @@ fn skip_comment(bytes: &[u8], from: usize) -> usize {
 
 const IDENT_BYTE: u8 = 1;
 const IDENT_START: u8 = 2;
-static IDENT_CLASS: [u8; 256] = {
-    let mut table = [0u8; 256];
+const IDENT_CLASS: [u8; 128] = {
+    let mut table = [0u8; 128];
     let mut c = 0;
-    while c < 256 {
+    while c < 128 {
         let b = c as u8;
-        if b.is_ascii_alphabetic() || b == b'_' || b >= 0x80 {
+        if b.is_ascii_alphabetic() || b == b'_' {
             table[c] = IDENT_BYTE | IDENT_START;
         } else if b.is_ascii_digit() || b == b'-' {
             table[c] = IDENT_BYTE;
@@ -116,11 +116,11 @@ static IDENT_CLASS: [u8; 256] = {
 };
 
 fn is_ident_byte(c: u8) -> bool {
-    IDENT_CLASS[c as usize] & IDENT_BYTE != 0
+    c >= 0x80 || IDENT_CLASS[c as usize] & IDENT_BYTE != 0
 }
 
 fn is_ident_start(c: u8) -> bool {
-    IDENT_CLASS[c as usize] & IDENT_START != 0
+    c >= 0x80 || IDENT_CLASS[c as usize] & IDENT_START != 0
 }
 
 fn valid_escape(bytes: &[u8], index: usize) -> bool {
@@ -156,7 +156,15 @@ fn skip_ident(bytes: &[u8], from: usize) -> (usize, bool) {
     }
 }
 
-fn pseudo_at(
+const ELEMENT: (Specificity, Kind) = ([0, 0, 1], Kind::Ignored);
+const ELEMENT_WITH_ARGUMENT: (Specificity, Kind) = ([0, 0, 1], Kind::Highest);
+const WHERE: (Specificity, Kind) = ([0, 0, 0], Kind::Ignored);
+const HIGHEST_ARGUMENT: (Specificity, Kind) = ([0, 0, 0], Kind::Highest);
+const HOST: (Specificity, Kind) = ([0, 1, 0], Kind::Highest);
+const NTH: (Specificity, Kind) = ([0, 1, 0], Kind::BeforeOf);
+const CLASS: (Specificity, Kind) = ([0, 1, 0], Kind::Ignored);
+
+fn pseudo(
     bytes: &[u8],
     start: usize,
     end: usize,
@@ -169,48 +177,49 @@ fn pseudo_at(
     } else {
         &bytes[start..end]
     };
-    let is = |word: &[u8]| name.eq_ignore_ascii_case(word);
+    let is = |word: &str| name.eq_ignore_ascii_case(word.as_bytes());
+    let length = name.len();
     let first = name.first().map_or(0, |c| c | 0x20);
     if double_colon {
-        let argument = matches!((name.len(), first), (7, b's') | (3, b'c') | (10, b'c'))
-            && (is(b"slotted") || is(b"cue") || is(b"cue-region"));
-        return (
-            [0, 0, 1],
-            if argument {
-                Kind::Highest
-            } else {
-                Kind::Ignored
-            },
-        );
+        return if (first == b's' && is("slotted"))
+            || (first == b'c' && (is("cue") || is("cue-region")))
+        {
+            ELEMENT_WITH_ARGUMENT
+        } else {
+            ELEMENT
+        };
     }
-    match (name.len(), first) {
-        (6, b'b') if is(b"before") => ([0, 0, 1], Kind::Ignored),
-        (5, b'a') if is(b"after") => ([0, 0, 1], Kind::Ignored),
-        (10, b'f') if is(b"first-line") => ([0, 0, 1], Kind::Ignored),
-        (12, b'f') if is(b"first-letter") => ([0, 0, 1], Kind::Ignored),
-        (5, b'w') if is(b"where") => ([0, 0, 0], Kind::Ignored),
-        (2, b'i') if is(b"is") => ([0, 0, 0], Kind::Highest),
-        (3, b'n') if is(b"not") => ([0, 0, 0], Kind::Highest),
-        (3, b'h') if is(b"has") => ([0, 0, 0], Kind::Highest),
-        (4, b'h') if is(b"host") => ([0, 1, 0], Kind::Highest),
-        (12, b'h') if is(b"host-context") => ([0, 1, 0], Kind::Highest),
-        (9, b'n') if is(b"nth-child") => ([0, 1, 0], Kind::BeforeOf),
-        (14, b'n') if is(b"nth-last-child") => ([0, 1, 0], Kind::BeforeOf),
-        _ => ([0, 1, 0], Kind::Ignored),
+    match (length, first) {
+        (2, b'i') if is("is") => HIGHEST_ARGUMENT,
+        (3, b'n') if is("not") => HIGHEST_ARGUMENT,
+        (3, b'h') if is("has") => HIGHEST_ARGUMENT,
+        (4, b'h') if is("host") => HOST,
+        (5, b'w') if is("where") => WHERE,
+        (5, b'a') if is("after") => ELEMENT,
+        (6, b'b') if is("before") => ELEMENT,
+        (9, b'n') if is("nth-child") => NTH,
+        (10, b'f') if is("first-line") => ELEMENT,
+        (12, b'h') if is("host-context") => HOST,
+        (12, b'f') if is("first-letter") => ELEMENT,
+        (14, b'n') if is("nth-last-child") => NTH,
+        _ => CLASS,
     }
 }
 
+fn hex_value(c: u8) -> Option<u32> {
+    (c as char).to_digit(16)
+}
+
 fn escape_value(bytes: &[u8], start: usize, end: usize) -> u32 {
-    let (digits, value) = bytes[start + 1..end]
-        .iter()
-        .take_while(|c| c.is_ascii_hexdigit())
-        .fold((0, 0u32), |(digits, value), &c| {
-            (
-                digits + 1,
-                value * 16 + (c as char).to_digit(16).unwrap_or(0),
-            )
-        });
-    if digits == 0 {
+    let mut value = 0;
+    let mut index = start + 1;
+    while index < end
+        && let Some(digit) = hex_value(bytes[index])
+    {
+        value = value * 16 + digit;
+        index += 1;
+    }
+    if index == start + 1 {
         return std::str::from_utf8(&bytes[start + 1..end])
             .ok()
             .and_then(|rest| rest.chars().next())
@@ -412,7 +421,7 @@ pub fn get_specificity(selector: &str) -> Specificity {
                 let function = bytes.get(end) == Some(&b'(');
                 if counting {
                     let (own, argument) =
-                        pseudo_at(bytes, start, end, escaped, double_colon, &mut buf);
+                        pseudo(bytes, start, end, escaped, double_colon, &mut buf);
                     add(&mut stack[depth].sum, own);
                     if function {
                         depth = push(&mut stack, depth, argument);
