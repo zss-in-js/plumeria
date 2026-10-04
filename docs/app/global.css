@@ -336,7 +336,7 @@ code {
 .playground-loading-mark {
   font-size: 32px;
   line-height: 1;
-  color: var(--plumeria-accent);
+  color: #2aa4f4;
   animation: playground-spin 2.4s linear infinite;
 }
 
@@ -351,7 +351,7 @@ code {
 .playground-loading-fill {
   display: block;
   height: 100%;
-  background: var(--plumeria-accent);
+  background: #2aa4f4;
   transform-origin: left;
   transition: transform 200ms ease;
 }
