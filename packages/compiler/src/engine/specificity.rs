@@ -3,10 +3,6 @@ use std::borrow::Cow;
 pub type Specificity = [i64; 3];
 
 const LEGACY_PSEUDO_ELEMENTS: &[&str] = &["before", "after", "first-line", "first-letter"];
-const MAX_OF_ARGUMENTS: &[&str] = &["is", "not", "has"];
-const NTH_WITH_OF: &[&str] = &["nth-child", "nth-last-child"];
-const ARGUMENT_ADDS_TO_HOST: &[&str] = &["host", "host-context"];
-const ARGUMENT_ADDS_TO_ELEMENT: &[&str] = &["slotted", "cue", "cue-region"];
 const UTF8_LEN: [usize; 16] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 4];
 
 #[derive(Clone, Copy, PartialEq)]
@@ -17,6 +13,7 @@ enum Kind {
     Ignored,
 }
 
+#[derive(Clone, Copy)]
 struct Frame {
     kind: Kind,
     sum: Specificity,
@@ -28,6 +25,51 @@ fn frame(kind: Kind) -> Frame {
         kind,
         sum: [0; 3],
         best: [0; 3],
+    }
+}
+
+// Frames up to this depth stay on the call stack; deeper ones spill to the heap.
+const INLINE_FRAMES: usize = 8;
+
+struct Stack {
+    inline: [Frame; INLINE_FRAMES],
+    len: usize,
+    spill: Vec<Frame>,
+}
+
+impl Stack {
+    fn new() -> Self {
+        Stack {
+            inline: [frame(Kind::Sum); INLINE_FRAMES],
+            len: 1,
+            spill: Vec::new(),
+        }
+    }
+
+    fn top(&mut self) -> &mut Frame {
+        if self.len <= INLINE_FRAMES {
+            &mut self.inline[self.len - 1]
+        } else {
+            self.spill.last_mut().expect("spilled frames")
+        }
+    }
+
+    fn push(&mut self, kind: Kind) {
+        if self.len < INLINE_FRAMES {
+            self.inline[self.len] = frame(kind);
+        } else {
+            self.spill.push(frame(kind));
+        }
+        self.len += 1;
+    }
+
+    fn pop(&mut self) -> Frame {
+        self.len -= 1;
+        if self.len < INLINE_FRAMES {
+            self.inline[self.len]
+        } else {
+            self.spill.pop().expect("spilled frames")
+        }
     }
 }
 
@@ -43,11 +85,6 @@ fn higher(a: Specificity, b: Specificity) -> Specificity {
     } else {
         a
     }
-}
-
-fn is_one_of(name: &[u8], list: &[&str]) -> bool {
-    list.iter()
-        .any(|item| name.eq_ignore_ascii_case(item.as_bytes()))
 }
 
 fn is_name_byte(c: u8) -> bool {
@@ -106,6 +143,155 @@ fn skip_comment(bytes: &[u8], from: usize) -> usize {
         .map_or(bytes.len(), |end| from + end + 4)
 }
 
+const IDENT_BYTE: u8 = 1;
+const IDENT_START: u8 = 2;
+static IDENT_CLASS: [u8; 256] = {
+    let mut table = [0u8; 256];
+    let mut c = 0;
+    while c < 256 {
+        let b = c as u8;
+        if b.is_ascii_alphabetic() || b == b'_' || b >= 0x80 {
+            table[c] = IDENT_BYTE | IDENT_START;
+        } else if b.is_ascii_digit() || b == b'-' {
+            table[c] = IDENT_BYTE;
+        }
+        c += 1;
+    }
+    table
+};
+
+fn is_ident_byte(c: u8) -> bool {
+    IDENT_CLASS[c as usize] & IDENT_BYTE != 0
+}
+
+fn is_ident_start(c: u8) -> bool {
+    IDENT_CLASS[c as usize] & IDENT_START != 0
+}
+
+fn valid_escape(bytes: &[u8], index: usize) -> bool {
+    bytes.get(index) == Some(&b'\\') && !matches!(bytes.get(index + 1), Some(b'\n' | b'\r' | 0x0c))
+}
+
+fn starts_ident(bytes: &[u8], index: usize) -> bool {
+    match bytes.get(index) {
+        Some(b'-') => {
+            bytes
+                .get(index + 1)
+                .is_some_and(|&c| is_ident_start(c) || c == b'-')
+                || valid_escape(bytes, index + 1)
+        }
+        Some(b'\\') => valid_escape(bytes, index),
+        Some(&c) => is_ident_start(c),
+        None => false,
+    }
+}
+
+fn skip_ident(bytes: &[u8], from: usize) -> (usize, bool) {
+    let mut index = from;
+    let mut escaped = false;
+    loop {
+        while bytes.get(index).is_some_and(|&c| is_ident_byte(c)) {
+            index += 1;
+        }
+        if !valid_escape(bytes, index) {
+            return (index, escaped);
+        }
+        index = escape_end(bytes, index);
+        escaped = true;
+    }
+}
+
+// Pseudo-class rules looked up by length and first letter, so a name is compared once.
+fn pseudo_at(
+    bytes: &[u8],
+    start: usize,
+    end: usize,
+    escaped: bool,
+    double_colon: bool,
+    buf: &mut [u8; 24],
+) -> (Specificity, Kind) {
+    let name = if escaped {
+        keyword(bytes, start, end, buf)
+    } else {
+        &bytes[start..end]
+    };
+    let is = |word: &[u8]| name.eq_ignore_ascii_case(word);
+    let first = name.first().map_or(0, |c| c | 0x20);
+    if double_colon {
+        let argument = matches!((name.len(), first), (7, b's') | (3, b'c') | (10, b'c'))
+            && (is(b"slotted") || is(b"cue") || is(b"cue-region"));
+        return (
+            [0, 0, 1],
+            if argument {
+                Kind::Highest
+            } else {
+                Kind::Ignored
+            },
+        );
+    }
+    match (name.len(), first) {
+        (6, b'b') if is(b"before") => ([0, 0, 1], Kind::Ignored),
+        (5, b'a') if is(b"after") => ([0, 0, 1], Kind::Ignored),
+        (10, b'f') if is(b"first-line") => ([0, 0, 1], Kind::Ignored),
+        (12, b'f') if is(b"first-letter") => ([0, 0, 1], Kind::Ignored),
+        (5, b'w') if is(b"where") => ([0, 0, 0], Kind::Ignored),
+        (2, b'i') if is(b"is") => ([0, 0, 0], Kind::Highest),
+        (3, b'n') if is(b"not") => ([0, 0, 0], Kind::Highest),
+        (3, b'h') if is(b"has") => ([0, 0, 0], Kind::Highest),
+        (4, b'h') if is(b"host") => ([0, 1, 0], Kind::Highest),
+        (12, b'h') if is(b"host-context") => ([0, 1, 0], Kind::Highest),
+        (9, b'n') if is(b"nth-child") => ([0, 1, 0], Kind::BeforeOf),
+        (14, b'n') if is(b"nth-last-child") => ([0, 1, 0], Kind::BeforeOf),
+        _ => ([0, 1, 0], Kind::Ignored),
+    }
+}
+
+fn escape_value(bytes: &[u8], start: usize, end: usize) -> u32 {
+    let (digits, value) = bytes[start + 1..end]
+        .iter()
+        .take_while(|c| c.is_ascii_hexdigit())
+        .fold((0, 0u32), |(digits, value), &c| {
+            (
+                digits + 1,
+                value * 16 + (c as char).to_digit(16).unwrap_or(0),
+            )
+        });
+    if digits == 0 {
+        return std::str::from_utf8(&bytes[start + 1..end])
+            .ok()
+            .and_then(|rest| rest.chars().next())
+            .map_or(0xFFFD, u32::from);
+    }
+    if value == 0 || char::from_u32(value).is_none() {
+        0xFFFD
+    } else {
+        value
+    }
+}
+
+// An identifier with its escapes decoded and ASCII lowercased; empty when it cannot be a keyword.
+fn keyword<'a>(bytes: &[u8], start: usize, end: usize, buf: &'a mut [u8; 24]) -> &'a [u8] {
+    let mut len = 0;
+    let mut index = start;
+    while index < end {
+        let code = if bytes[index] == b'\\' {
+            let next = escape_end(bytes, index);
+            let code = escape_value(bytes, index, next);
+            index = next;
+            code
+        } else {
+            index += 1;
+            u32::from(bytes[index - 1])
+        };
+        if code >= 0x80 || len == buf.len() {
+            return &[];
+        }
+        buf[len] = (code as u8).to_ascii_lowercase();
+        len += 1;
+    }
+    &buf[..len]
+}
+
 fn find_close(bytes: &[u8], open: usize) -> usize {
     let mut depth = 0i64;
     let mut index = open;
@@ -160,122 +346,121 @@ fn skip_bracket(bytes: &[u8], open: usize) -> usize {
     bytes.len()
 }
 
-fn of_at(selector: &str, index: usize) -> bool {
-    (selector[..index]
-        .chars()
-        .next_back()
-        .is_some_and(char::is_whitespace)
-        || selector[..index].ends_with("*/"))
-        && selector.as_bytes()[index..]
-            .get(..2)
-            .is_some_and(|word| word.eq_ignore_ascii_case(b"of"))
-        && (selector[index + 2..]
-            .chars()
-            .next()
-            .is_some_and(char::is_whitespace)
-            || selector[index + 2..].starts_with("/*"))
-}
-
-fn pseudo(name: &[u8], double_colon: bool) -> (Specificity, Kind) {
-    if double_colon || is_one_of(name, LEGACY_PSEUDO_ELEMENTS) {
-        let kind = if is_one_of(name, ARGUMENT_ADDS_TO_ELEMENT) {
-            Kind::Highest
-        } else {
-            Kind::Ignored
-        };
-        ([0, 0, 1], kind)
-    } else if name.eq_ignore_ascii_case(b"where") {
-        ([0, 0, 0], Kind::Ignored)
-    } else if is_one_of(name, MAX_OF_ARGUMENTS) {
-        ([0, 0, 0], Kind::Highest)
-    } else if is_one_of(name, ARGUMENT_ADDS_TO_HOST) {
-        ([0, 1, 0], Kind::Highest)
-    } else if is_one_of(name, NTH_WITH_OF) {
-        ([0, 1, 0], Kind::BeforeOf)
-    } else {
-        ([0, 1, 0], Kind::Ignored)
-    }
-}
-
-fn close(stack: &mut Vec<Frame>) {
-    let top = stack.pop().expect("a frame to close");
+fn close(stack: &mut Stack) {
+    let top = stack.pop();
     let value = match top.kind {
         Kind::Sum => top.sum,
         Kind::Highest => higher(top.best, top.sum),
         Kind::BeforeOf | Kind::Ignored => return,
     };
-    add(&mut stack.last_mut().expect("the root stays").sum, value);
+    add(&mut stack.top().sum, value);
 }
 
 pub fn get_specificity(selector: &str) -> Specificity {
     let bytes = selector.as_bytes();
-    let mut stack = Vec::with_capacity(4);
-    stack.push(frame(Kind::Sum));
+    let mut stack = Stack::new();
+    let mut buf = [0u8; 24];
     let mut index = 0;
     while index < bytes.len() {
         let c = bytes[index];
-        let top = stack.len() - 1;
-        let kind = stack[top].kind;
+        let kind = stack.top().kind;
         let counting = kind == Kind::Sum || kind == Kind::Highest;
+        // Inside `:nth-child(` a word may start with a digit, so `1of` stays one word.
+        let ident = match c {
+            b'\\' | b'-' => starts_ident(bytes, index),
+            _ if kind == Kind::BeforeOf => is_ident_byte(c),
+            _ => is_ident_start(c),
+        };
+        if ident {
+            let (end, escaped) = skip_ident(bytes, index);
+            if bytes.get(end) == Some(&b'(') {
+                stack.push(if counting { Kind::Sum } else { Kind::Ignored });
+                index = end + 1;
+                continue;
+            }
+            if kind == Kind::BeforeOf {
+                let name = if escaped {
+                    keyword(bytes, index, end, &mut buf)
+                } else {
+                    &bytes[index..end]
+                };
+                if name.eq_ignore_ascii_case(b"of") {
+                    stack.top().kind = Kind::Highest;
+                }
+            } else if counting {
+                stack.top().sum[2] += 1;
+            }
+            index = end;
+            continue;
+        }
         match c {
             b'/' if bytes.get(index + 1) == Some(&b'*') => {
                 index = skip_comment(bytes, index);
             }
             b'"' | b'\'' => index = skip_string(bytes, c, index + 1),
-            b'\\' if !counting => index += 2,
+            b'(' => {
+                stack.push(if counting { Kind::Sum } else { Kind::Ignored });
+                index += 1;
+            }
             b')' => {
-                if stack.len() > 1 {
+                if stack.len > 1 {
                     close(&mut stack);
                 }
                 index += 1;
             }
-            b'(' => {
-                stack.push(frame(if counting { Kind::Sum } else { Kind::Ignored }));
-                index += 1;
-            }
-            b'o' | b'O' if kind == Kind::BeforeOf && of_at(selector, index) => {
-                stack[top].kind = Kind::Highest;
-                index += 2;
-            }
-            _ if !counting => index += 1,
-            b',' if kind == Kind::Highest => {
-                let f = &mut stack[top];
-                f.best = higher(f.best, f.sum);
-                f.sum = [0; 3];
-                index += 1;
-            }
-            b'#' | b'.' => {
-                stack[top].sum[if c == b'#' { 0 } else { 1 }] += 1;
-                index = skip_name(bytes, index + 1);
-            }
             b'[' => {
-                stack[top].sum[1] += 1;
+                if counting {
+                    stack.top().sum[1] += 1;
+                }
                 index = skip_bracket(bytes, index);
+            }
+            b'#' | b'.'
+                if starts_ident(bytes, index + 1)
+                    || (c == b'#'
+                        && (bytes.get(index + 1).is_some_and(|&n| is_ident_byte(n))
+                            || valid_escape(bytes, index + 1))) =>
+            {
+                if counting {
+                    stack.top().sum[if c == b'#' { 0 } else { 1 }] += 1;
+                }
+                index = skip_ident(bytes, index + 1).0;
+            }
+            b',' => {
+                if kind == Kind::Highest {
+                    let f = stack.top();
+                    f.best = higher(f.best, f.sum);
+                    f.sum = [0; 3];
+                }
+                index += 1;
             }
             b':' => {
                 let double_colon = bytes.get(index + 1) == Some(&b':');
-                let start = index + if double_colon { 2 } else { 1 };
-                let end = skip_name(bytes, start);
-                let (own, argument) = pseudo(&bytes[start..end.max(start)], double_colon);
-                add(&mut stack[top].sum, own);
-                if bytes.get(end) == Some(&b'(') {
-                    stack.push(frame(argument));
-                    index = end + 1;
-                } else {
-                    index = end;
+                let start = index + 1 + usize::from(double_colon);
+                if !starts_ident(bytes, start) {
+                    index = start;
+                    continue;
                 }
-            }
-            _ if is_name_byte(c) || c == b'\\' => {
-                stack[top].sum[2] += 1;
-                index = skip_name(bytes, index);
+                let (end, escaped) = skip_ident(bytes, start);
+                let function = bytes.get(end) == Some(&b'(');
+                if counting {
+                    let (own, argument) =
+                        pseudo_at(bytes, start, end, escaped, double_colon, &mut buf);
+                    add(&mut stack.top().sum, own);
+                    if function {
+                        stack.push(argument);
+                    }
+                } else if function {
+                    stack.push(Kind::Ignored);
+                }
+                index = end + usize::from(function);
             }
             _ => index += 1,
         }
     }
-    while stack.len() > 1 {
+    while stack.len > 1 {
         close(&mut stack);
     }
-    stack[0].sum
+    stack.inline[0].sum
 }
 
 pub fn get_pseudo_element(selector: &str) -> String {
@@ -426,6 +611,25 @@ mod tests {
     fn of_keyword_ignores_ascii_case() {
         assert_eq!(get_specificity(":nth-child(2 OF .item)"), [0, 2, 0]);
         assert_eq!(get_specificity(":nth-last-child(odd Of #a, .b)"), [1, 1, 0]);
+    }
+
+    #[test]
+    fn of_keyword_is_read_as_an_identifier() {
+        assert_eq!(get_specificity(":nth-child(2 of.a)"), [0, 2, 0]);
+        assert_eq!(get_specificity(":nth-child(2 OF#a)"), [1, 1, 0]);
+        assert_eq!(get_specificity(":nth-child(2 of:hover)"), [0, 2, 0]);
+        assert_eq!(get_specificity(":nth-child(2 o\\66 .a)"), [0, 2, 0]);
+        assert_eq!(get_specificity(":nth-child(2 \\6f f.a)"), [0, 2, 0]);
+        assert_eq!(get_specificity(":nth-child(2 ofx .a)"), [0, 1, 0]);
+        assert_eq!(get_specificity(":nth-child(2n+1of .a)"), [0, 1, 0]);
+    }
+
+    #[test]
+    fn escaped_pseudo_names_are_decoded() {
+        assert_eq!(get_specificity(":nth-chil\\64 (2 of #a)"), [1, 1, 0]);
+        assert_eq!(get_specificity(":\\69s(.a, #b)"), [1, 0, 0]);
+        assert_eq!(get_specificity(":wh\\65re(#a).b"), [0, 1, 0]);
+        assert_eq!(get_specificity(".\\"), [0, 1, 0]);
     }
 
     #[test]
