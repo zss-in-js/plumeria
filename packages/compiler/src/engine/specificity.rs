@@ -308,26 +308,32 @@ fn skip_bracket(bytes: &[u8], open: usize) -> usize {
     bytes.len()
 }
 
-fn close(stack: &mut Stack) {
-    let top = stack.pop();
+fn close(stack: &mut [Frame], depth: usize) {
+    let top = stack[depth];
     let value = match top.kind {
         Kind::Sum => top.sum,
         Kind::Highest => higher(top.best, top.sum),
         Kind::BeforeOf | Kind::Ignored => return,
     };
-    add(&mut stack.top().sum, value);
+    add(&mut stack[depth - 1].sum, value);
+}
+
+fn push(stack: &mut [Frame], depth: usize, kind: Kind) -> usize {
+    let next = (depth + 1).min(stack.len() - 1);
+    stack[next] = frame(kind);
+    next
 }
 
 pub fn get_specificity(selector: &str) -> Specificity {
     let bytes = selector.as_bytes();
-    let mut stack = Stack::new();
+    let mut stack = [frame(Kind::Sum); MAX_SELECTOR_NESTING + 1];
+    let mut depth = 0;
     let mut buf = [0u8; 24];
     let mut index = 0;
     while index < bytes.len() {
         let c = bytes[index];
-        let kind = stack.top().kind;
+        let kind = stack[depth].kind;
         let counting = kind == Kind::Sum || kind == Kind::Highest;
-        // Inside `:nth-child(` a word may start with a digit, so `1of` stays one word.
         let ident = match c {
             b'\\' | b'-' => starts_ident(bytes, index),
             _ if kind == Kind::BeforeOf => is_ident_byte(c),
@@ -336,7 +342,11 @@ pub fn get_specificity(selector: &str) -> Specificity {
         if ident {
             let (end, escaped) = skip_ident(bytes, index);
             if bytes.get(end) == Some(&b'(') {
-                stack.push(if counting { Kind::Sum } else { Kind::Ignored });
+                depth = push(
+                    &mut stack,
+                    depth,
+                    if counting { Kind::Sum } else { Kind::Ignored },
+                );
                 index = end + 1;
                 continue;
             }
@@ -347,10 +357,10 @@ pub fn get_specificity(selector: &str) -> Specificity {
                     &bytes[index..end]
                 };
                 if name.eq_ignore_ascii_case(b"of") {
-                    stack.top().kind = Kind::Highest;
+                    stack[depth].kind = Kind::Highest;
                 }
             } else if counting {
-                stack.top().sum[2] += 1;
+                stack[depth].sum[2] += 1;
             }
             index = end;
             continue;
@@ -361,18 +371,23 @@ pub fn get_specificity(selector: &str) -> Specificity {
             }
             b'"' | b'\'' => index = skip_string(bytes, c, index + 1),
             b'(' => {
-                stack.push(if counting { Kind::Sum } else { Kind::Ignored });
+                depth = push(
+                    &mut stack,
+                    depth,
+                    if counting { Kind::Sum } else { Kind::Ignored },
+                );
                 index += 1;
             }
             b')' => {
-                if stack.len > 1 {
-                    close(&mut stack);
+                if depth > 0 {
+                    close(&mut stack, depth);
+                    depth -= 1;
                 }
                 index += 1;
             }
             b'[' => {
                 if counting {
-                    stack.top().sum[1] += 1;
+                    stack[depth].sum[1] += 1;
                 }
                 index = skip_bracket(bytes, index);
             }
@@ -383,13 +398,13 @@ pub fn get_specificity(selector: &str) -> Specificity {
                             || valid_escape(bytes, index + 1))) =>
             {
                 if counting {
-                    stack.top().sum[if c == b'#' { 0 } else { 1 }] += 1;
+                    stack[depth].sum[if c == b'#' { 0 } else { 1 }] += 1;
                 }
                 index = skip_ident(bytes, index + 1).0;
             }
             b',' => {
                 if kind == Kind::Highest {
-                    let f = stack.top();
+                    let f = &mut stack[depth];
                     f.best = higher(f.best, f.sum);
                     f.sum = [0; 3];
                 }
@@ -407,22 +422,23 @@ pub fn get_specificity(selector: &str) -> Specificity {
                 if counting {
                     let (own, argument) =
                         pseudo(bytes, start, end, escaped, double_colon, &mut buf);
-                    add(&mut stack.top().sum, own);
+                    add(&mut stack[depth].sum, own);
                     if function {
-                        stack.push(argument);
+                        depth = push(&mut stack, depth, argument);
                     }
                 } else if function {
-                    stack.push(Kind::Ignored);
+                    depth = push(&mut stack, depth, Kind::Ignored);
                 }
                 index = end + usize::from(function);
             }
             _ => index += 1,
         }
     }
-    while stack.len > 1 {
-        close(&mut stack);
+    while depth > 0 {
+        close(&mut stack, depth);
+        depth -= 1;
     }
-    stack.inline[0].sum
+    stack[0].sum
 }
 
 pub fn get_pseudo_element(selector: &str) -> String {
