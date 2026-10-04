@@ -1,5 +1,11 @@
 # @plumeria/inspector
 
+## 19.8.1
+
+### Patch Changes
+
+- 2dbd3fc: Bump version to 19.8.1
+
 ## 19.8.0
 
 ### Minor Changes
