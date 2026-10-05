@@ -1,0 +1,67 @@
+---
+title: '@plumeria/swc-jest'
+description: 'Compile Plumeria styles in Jest, then hand the result to @swc/jest.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+[`@plumeria/swc-jest`](https://www.npmjs.com/package/@plumeria/swc-jest) is a Jest transformer for Plumeria.
+It compiles the styling prop away, then passes the result to [`@swc/jest`](https://www.npmjs.com/package/@swc/jest), so components render in a test with the class names the build gives them.
+
+## Installation
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i -D @plumeria/swc-jest @swc/core
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/swc-jest @swc/core
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i -D @plumeria/swc-jest @swc/core
+```
+</Tab>
+</Tabs>
+
+## Usage
+
+Put it where `@swc/jest` was. Jest runs one transformer per pattern, so it replaces the entry rather than sitting beside it:
+
+```js title="jest.config.js"
+module.exports = {
+  testEnvironment: 'jsdom',
+  transform: {
+    '^.+\\.(t|j)sx?$': '@plumeria/swc-jest',
+  },
+};
+```
+
+SWC is configured as before: from `.swcrc`, or from the options next to the transformer. A project on `ts-jest`, `babel-jest` or `next/jest` moves that entry here; type checking then belongs to `tsc`, not to the test run.
+
+No stylesheet is written. jsdom applies none, so a test sees which classes were attached, not what they do; see [What jsdom does not give you](/docs/testing#what-jsdom-does-not-give-you).
+
+## Options
+
+```js title="jest.config.js"
+module.exports = {
+  transform: {
+    '^.+\\.(t|j)sx?$': [
+      '@plumeria/swc-jest',
+      {
+        styleProp: 'sx',
+        jsc: { transform: { react: { runtime: 'automatic' } } },
+      },
+    ],
+  },
+};
+```
+
+- `styleProp`: The JSX prop that carries styles. The default is `'classStyle'`.
+- `withoutLogicalProperties`: Rejects the logical name of a property that also has a physical name. The default is `false`.
+- `withoutPhysicalProperties`: Rejects the physical name of a property that also has a logical name. The default is `false`.
+
+Every other key is passed to `@swc/jest` unchanged. Keep these three the same as in the bundler config; they behave exactly as on [`@plumeria/unplugin`](/docs/api-reference/plugins/unplugin#withoutlogicalproperties-and-withoutphysicalproperties).
