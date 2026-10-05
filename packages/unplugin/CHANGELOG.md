@@ -1,5 +1,15 @@
 # @plumeria/unplugin
 
+## 19.8.2
+
+### Patch Changes
+
+- 91cd9d9: - Remove the `funding` field from package.json
+  - Move the test-only devDependencies of `@plumeria/compiler` to the workspace root
+  - Update the `next` devDependency of `@plumeria/next-plugin` to 16.3.8
+- Updated dependencies [91cd9d9]
+  - @plumeria/compiler@19.8.2
+
 ## 19.8.1
 
 ### Patch Changes
