@@ -1,0 +1,77 @@
+---
+title: 'Jest'
+description: 'Render Plumeria components in Jest with @plumeria/swc-jest as the transformer.'
+---
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+Jest takes the transform through [`@plumeria/swc-jest`](/docs/api-reference/plugins/swc-jest). It compiles the styling prop away, then hands the file to `@swc/jest`.
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+<Tab>
+```sh title="Terminal"
+npm i -D @plumeria/swc-jest @swc/core
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+yarn add -D @plumeria/swc-jest @swc/core
+```
+</Tab>
+<Tab>
+```sh title="Terminal"
+pnpm i -D @plumeria/swc-jest @swc/core
+```
+</Tab>
+</Tabs>
+
+Put it where `@swc/jest` was. Jest runs one transformer per pattern, so it replaces the entry rather than sitting beside it:
+
+```js title="jest.config.js"
+module.exports = {
+  testEnvironment: 'jsdom',
+  transform: {
+    '^.+\\.(t|j)sx?$': '@plumeria/swc-jest',
+  },
+};
+```
+
+SWC is configured as before, from `.swcrc` or from the options next to the transformer. A project on `ts-jest`, `babel-jest` or `next/jest` moves that entry to `@plumeria/swc-jest`; type checking then belongs to `tsc`, not to the test run.
+
+## Do
+
+Assert what the component does. The class names are real, so a branch that picks a different style shows up as a different `className`:
+
+```tsx title="tabs.test.tsx"
+import { render, screen } from '@testing-library/react';
+import { Tabs } from './tabs';
+
+test('the active tab is styled apart from the rest', () => {
+  render(<Tabs active="b" />);
+
+  const a = screen.getByRole('tab', { name: 'A' });
+  const b = screen.getByRole('tab', { name: 'B' });
+
+  expect(b.getAttribute('aria-selected')).toBe('true');
+  expect(b.className).not.toBe(a.className);
+});
+```
+
+- Test text, roles, state and events, as you would without Plumeria.
+- Compare class names between two renders or two elements to check a conditional style took effect.
+- Import styles from other files freely. They compile as in the build, and Jest's cache follows them: change a shared style and the files that use it are compiled again.
+
+## Don't
+
+```tsx
+expect(button.className).toBe('xqqbxt1d xq96bg3w'); // don't
+expect(getComputedStyle(button).color).toBe('red'); // don't
+```
+
+- Don't hard-code a generated class name. Each one is a property–value pair, hashed: add a property to the style and the test fails, having found nothing wrong with the component.
+- Don't assert computed styles. No stylesheet is written, and jsdom applies none; see [What jsdom does not give you](/docs/testing#what-jsdom-does-not-give-you).
+- Don't list it beside `@swc/jest`, `ts-jest` or `babel-jest` for the same files. Only one transformer runs per pattern.
+- Don't test what a style compiles to here. Call the transform directly; see [Driving the transform](/docs/api-reference/plugins/unplugin#driving-the-transform).
+
+<Cards>
+  <Card title="See more about @plumeria/swc-jest" href="/docs/api-reference/plugins/swc-jest" />
+</Cards>
