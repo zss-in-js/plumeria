@@ -1,0 +1,66 @@
+---
+title: 'Vitest'
+description: 'Render Plumeria components in Vitest with @plumeria/unplugin in the config.'
+---
+
+Vitest runs on Vite, so it takes the plugin directly:
+
+```ts title="vitest.config.ts"
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import plumeria from '@plumeria/unplugin';
+
+export default defineConfig({
+  plugins: [react(), plumeria.vite()],
+  test: {
+    environment: 'jsdom',
+  },
+});
+```
+
+The component is compiled by the plugin, and the styling prop is gone by the time it reaches the DOM:
+
+```html
+<h1 class="xvdv6o3r xggb8uiu xvazecna">Vite + React</h1>
+```
+
+A Next.js project adds the same plugin to `vitest.config.ts`. `@plumeria/next-plugin` hooks into Next.js's bundler, which Vitest never runs.
+
+## Do
+
+Assert what the component does. The class names are real, so a branch that picks a different style shows up as a different `className`:
+
+```tsx title="tabs.test.tsx"
+import { render, screen } from '@testing-library/react';
+import { expect, test } from 'vitest';
+import { Tabs } from './tabs';
+
+test('the active tab is styled apart from the rest', () => {
+  render(<Tabs active="b" />);
+
+  const a = screen.getByRole('tab', { name: 'A' });
+  const b = screen.getByRole('tab', { name: 'B' });
+
+  expect(b.getAttribute('aria-selected')).toBe('true');
+  expect(b.className).not.toBe(a.className);
+});
+```
+
+- Test text, roles, state and events, as you would without Plumeria.
+- Compare class names between two renders or two elements to check a conditional style took effect.
+- Import styles from other files freely; they compile as in the build.
+
+## Don't
+
+```tsx
+expect(heading.className).toBe('xvdv6o3r xggb8uiu xvazecna'); // don't
+expect(getComputedStyle(heading).color).toBe('red'); // don't
+```
+
+- Don't hard-code a generated class name. Each one is a property–value pair, hashed: add a property to the style and the test fails, having found nothing wrong with the component.
+- Don't assert computed styles. jsdom applies no stylesheet; see [What jsdom does not give you](/docs/testing#what-jsdom-does-not-give-you).
+- Don't test what a style compiles to here. Call the transform directly; see [Driving the transform](/docs/api-reference/plugins/unplugin#driving-the-transform).
+
+<Cards>
+  <Card title="See more about unplugin options" href="/docs/api-reference/plugins/unplugin" />
+</Cards>
