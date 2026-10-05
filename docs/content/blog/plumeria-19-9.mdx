@@ -1,0 +1,35 @@
+---
+title: 'Plumeria 19.9'
+description: 'Feature: @plumeria/swc-jest compiles styles in Jest, so components render with their class names'
+date: '2026-10-05'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v19.9 adds `@plumeria/swc-jest`. Components can now be tested in Jest as well as Vitest.
+
+## 1. @plumeria/swc-jest
+
+`@plumeria/core` ships types and no runtime, so a component test only works when the runner compiles the styling prop away first. Vitest did that through `@plumeria/unplugin`. Jest had no transformer for it.
+
+`@plumeria/swc-jest` compiles the file, then hands it to `@swc/jest`. Put it where `@swc/jest` was:
+
+```js title="jest.config.js"
+module.exports = {
+  testEnvironment: 'jsdom',
+  transform: {
+    '^.+\\.(t|j)sx?$': '@plumeria/swc-jest',
+  },
+};
+```
+
+SWC is configured as before, from `.swcrc` or from the options next to the transformer. `styleProp`, `withoutLogicalProperties` and `withoutPhysicalProperties` are read by Plumeria; every other key goes to `@swc/jest`.
+
+Styles imported from another file compile as they do in the build, and Jest's cache follows them: change a shared style and the files that use it are compiled again.
+
+A project on `ts-jest`, `babel-jest` or `next/jest` moves that entry to `@plumeria/swc-jest`. See [`@plumeria/swc-jest`](/docs/api-reference/plugins/swc-jest) and [Testing](/docs/testing/jest).
