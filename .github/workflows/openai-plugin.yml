@@ -43,6 +43,7 @@ jobs:
                     developerName: claude.author.name,
                     category: "Developer Tools",
                     websiteURL: claude.homepage,
+                    privacyPolicyURL: claude.homepage + "/privacy",
                     composerIcon: "./assets/icon.png",
                     logo: "./assets/icon.png",
                   },
