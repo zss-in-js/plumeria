@@ -37,6 +37,7 @@
     "@plumeria/codemod": "workspace:^",
     "@plumeria/eslint-plugin": "workspace:^",
     "@plumeria/init": "workspace:^",
+    "@plumeria/utils": "workspace:^",
     "@swc/core": "catalog:",
     "@swc/jest": "^0.2.39",
     "@types/jest": "^30.0.0",
@@ -52,7 +53,8 @@
     "ts-jest": "^29.4.11",
     "turbo": "^2.9.16",
     "typescript": "6.0.3",
-    "typescript-eslint": "^8.60.0"
+    "typescript-eslint": "^8.60.0",
+    "zss-engine": "catalog:"
   },
   "packageManager": "pnpm@11.3.0"
 }
