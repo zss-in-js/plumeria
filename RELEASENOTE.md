@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.9.0 (Oct 5, 2026)
+
+- Add `@plumeria/swc-jest`, a Jest transformer that compiles Plumeria styles and hands the result to `@swc/jest`
+
 ## 19.8.2 (Oct 5, 2026)
 
 - Remove the `funding` field from package.json
