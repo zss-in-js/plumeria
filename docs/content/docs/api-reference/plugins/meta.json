@@ -4,6 +4,7 @@
   "pages": [
     "eslint-plugin",
     "next-plugin",
+    "swc-jest",
     "unplugin"
   ]
 }
