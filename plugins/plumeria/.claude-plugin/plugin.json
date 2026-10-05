@@ -6,8 +6,12 @@
     "name": "refirst11"
   },
   "homepage": "https://plumeria.dev",
+  "documentationUrl": "https://plumeria.dev/docs/ai",
+  "supportUrl": "https://github.com/zss-in-js/plumeria/issues",
+  "privacyPolicyUrl": "https://plumeria.dev/privacy",
   "repository": "https://github.com/zss-in-js/plumeria",
   "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
   "keywords": [
     "css",
     "css-in-js",
