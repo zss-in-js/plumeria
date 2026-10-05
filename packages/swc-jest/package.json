@@ -1,0 +1,52 @@
+{
+  "name": "@plumeria/swc-jest",
+  "version": "19.8.2",
+  "description": "Plumeria Jest transformer on @swc/jest",
+  "author": "Refirst 11",
+  "license": "MIT",
+  "homepage": "https://plumeria.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zss-in-js/plumeria.git",
+    "directory": "packages/swc-jest"
+  },
+  "bugs": {
+    "url": "https://github.com/zss-in-js/plumeria/issues"
+  },
+  "keywords": [
+    "plumeria",
+    "swc",
+    "jest",
+    "transformer",
+    "testing",
+    "css",
+    "css-in-js"
+  ],
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "rimraf dist && pnpm cjs",
+    "cjs": "tsc --project tsconfig.cjs.json"
+  },
+  "dependencies": {
+    "@plumeria/compiler": "workspace:*",
+    "@swc/jest": "^0.2.39"
+  },
+  "peerDependencies": {
+    "@swc/core": "*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
