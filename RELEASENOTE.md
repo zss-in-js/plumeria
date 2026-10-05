@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.8.2 (Oct 5, 2026)
+
+- Remove the `funding` field from package.json
+
+- Move the test-only devDependencies of `@plumeria/compiler` to the workspace root
+
+- Update the `next` devDependency of `@plumeria/next-plugin` to 16.3.8
+
 ## 19.8.1 (Oct 4, 2026)
 
 - Read selector names as CSS identifiers when computing specificity, so `of` in `:nth-child()` is read when `.`, `#` or `:` follows it directly (`2 of.a`) and when escaped (`o\66`)
