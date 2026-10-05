@@ -1,0 +1,59 @@
+name: openai-plugin
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/content/docs/ai.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check SKILL.md matches ai.md
+        run: |
+          node scripts/build-skill.js
+          git diff --exit-code plugins/plumeria/skills/plumeria/SKILL.md
+
+      - name: Stage the Agent Plugins package
+        run: |
+          mkdir -p openai-plugin/skills/plumeria openai-plugin/assets
+          cp plugins/plumeria/skills/plumeria/SKILL.md openai-plugin/skills/plumeria/SKILL.md
+          cp plugins/plumeria/.claude-plugin/icon.png openai-plugin/assets/icon.png
+          node -e '
+            const fs = require("fs");
+            const claude = JSON.parse(fs.readFileSync("plugins/plumeria/.claude-plugin/plugin.json", "utf8"));
+            const description = "Plumeria rules for writing, reviewing, and fixing styles. Generated from the official AI.md documentation.";
+            const manifest = {
+              $schema: "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+              ...claude,
+              description,
+              extensions: {
+                "com.openai": {
+                  interface: {
+                    displayName: "Plumeria",
+                    shortDescription: "Plumeria styling rules",
+                    longDescription: description,
+                    developerName: claude.author.name,
+                    category: "Developer Tools",
+                    websiteURL: claude.homepage,
+                    composerIcon: "./assets/icon.png",
+                    logo: "./assets/icon.png",
+                  },
+                },
+              },
+            };
+            fs.writeFileSync("openai-plugin/plugin.json", JSON.stringify(manifest, null, 2) + "\n");
+          '
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: plumeria-openai-plugin-${{ github.sha }}
+          path: openai-plugin/
+          retention-days: 90
