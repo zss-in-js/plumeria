@@ -734,13 +734,22 @@ const compile = (source) =>
 
 The loader returns the rewritten code and writes its stylesheet only when `NODE_ENV` is `development` or `production`; a test run is neither, so the file is left alone. Read class names from the returned code and derive them; do not hard-code them.
 
-**To test component behaviour, use Vitest with the plugin in the config.** This is the only layer that needs the transform in the module pipeline.
+**To test component behaviour, put the transform in the runner's module pipeline.** This is the only layer that needs it. Vitest takes the plugin in its config:
 
 ```ts
 export default defineConfig({
   plugins: [react(), plumeria.vite()],
   test: { environment: 'jsdom' },
 });
+```
+
+Jest takes `@plumeria/swc-jest` in place of `@swc/jest`, `ts-jest` or `babel-jest`; SWC options stay in `.swcrc` or beside the transformer:
+
+```js
+module.exports = {
+  testEnvironment: 'jsdom',
+  transform: { '^.+\\.(t|j)sx?$': '@plumeria/swc-jest' },
+};
 ```
 
 **jsdom applies no stylesheet.** `document.styleSheets` is empty and `getComputedStyle` returns initial values. A test there can see which classes were attached, never what they do. Anything about the cascade — specificity, `@media`, `marker` with `extended` — belongs in an end-to-end test against a real browser.
