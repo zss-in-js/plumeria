@@ -59,6 +59,9 @@ importers:
       '@plumeria/init':
         specifier: workspace:^
         version: link:packages/init
+      '@plumeria/utils':
+        specifier: workspace:^
+        version: link:packages/utils
       '@swc/core':
         specifier: 'catalog:'
         version: 1.15.47(@swc/helpers@0.5.23)
@@ -107,6 +110,9 @@ importers:
       typescript-eslint:
         specifier: ^8.60.0
         version: 8.60.0(eslint@10.4.1(jiti@2.7.0))(typescript@6.0.3)
+      zss-engine:
+        specifier: 'catalog:'
+        version: 2.9.1
 
   docs:
     dependencies:
@@ -960,15 +966,6 @@ importers:
       '@napi-rs/wasm-runtime':
         specifier: 1.2.4
         version: 1.2.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
-      '@plumeria/utils':
-        specifier: workspace:*
-        version: link:../utils
-      '@swc/core':
-        specifier: 'catalog:'
-        version: 1.15.47(@swc/helpers@0.5.23)
-      zss-engine:
-        specifier: 'catalog:'
-        version: 2.9.1
 
   packages/core: {}
 
