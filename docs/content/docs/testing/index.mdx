@@ -1,0 +1,59 @@
+---
+title: 'Testing'
+description: 'Test styles at the compiler, the component, the browser and the type checker.'
+---
+
+Three questions get asked of a style, and each has its own answer. Does the component that uses it behave. What did it compile to. Does the page it renders actually look right.
+
+## Components
+
+`@plumeria/core` ships types and no runtime. A component test only runs once the styling prop has been compiled away, so the transform has to sit in the test runner's module pipeline:
+
+- [Vitest](/docs/testing/vitest) takes `@plumeria/unplugin` in its config.
+- [Jest](/docs/testing/jest) takes `@plumeria/swc-jest` as its transformer.
+
+Either way the class names in the DOM are the ones the build gives them.
+
+## Compiled output
+
+To assert what the transform outputs — the rewritten code and the stylesheet — see [Driving the transform](/docs/api-reference/plugins/unplugin#driving-the-transform) or [Driving the loader](/docs/api-reference/plugins/next-plugin#driving-the-loader).
+
+## What jsdom does not give you
+
+The class names are real, but no stylesheet is loaded into the document — `document.styleSheets` is empty, and `getComputedStyle` returns initial values for every property the styles set. A test can see that the right classes were attached; it cannot see what they do.
+
+Anything that turns on the cascade — specificity between two styles, a `@media` branch, a `marker` and its `extended` styles — needs a real browser. Run those end to end, against the build, where the emitted stylesheet is actually applied.
+
+## Types
+
+Because the package is types-only, the API surface can be tested with nothing but `tsc`. Write the calls you expect to hold, mark the ones you expect to fail, and type-check the file:
+
+```ts title="styles.test-d.ts"
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  text: { fontSize: '12px', color: 'red' },
+  variant: (size: number) => ({ width: `${size}px` }),
+});
+
+export const atomic: string = styles.text.color;
+export const fromVariant: string = styles.variant(8).width;
+
+// @ts-expect-error atomic class names are branded per property
+export const crossed: css.AtomicClassNameFor<'color', 'red'> = styles.text.fontSize;
+
+// @ts-expect-error the key was never defined
+export const missing: string = styles.nope.color;
+```
+
+```sh title="Terminal"
+tsc --noEmit
+```
+
+An `@ts-expect-error` that stops being an error is itself reported, as `TS2578: Unused '@ts-expect-error' directive`, so the file fails when a guarantee quietly disappears.
+
+The work is already divided by the time a test runs. TypeScript offers the property names and values as you write them, and the [lint rules](/docs/api-reference/plugins/eslint-plugin) check what you wrote — spelling, values, pseudos, selectors, order-dependent overlap. What neither of them states is the type that comes back out, and that is what this file pins: the branding that keeps one property's class name from being passed off as another's, and keys that do not exist.
+
+<Cards>
+  <Card title="See more about the lint rules" href="/docs/api-reference/plugins/eslint-plugin" />
+</Cards>
