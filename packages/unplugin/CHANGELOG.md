@@ -1,5 +1,16 @@
 # @plumeria/unplugin
 
+## 19.9.0
+
+### Minor Changes
+
+- b6352d3: Bump version to 19.9.0
+
+### Patch Changes
+
+- Updated dependencies [b6352d3]
+  - @plumeria/compiler@19.9.0
+
 ## 19.8.2
 
 ### Patch Changes
