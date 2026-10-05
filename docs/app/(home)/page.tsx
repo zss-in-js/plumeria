@@ -144,6 +144,7 @@ const groups = [
       { label: 'GitHub', href: 'https://github.com/zss-in-js/plumeria' },
       { label: 'AI agent resources', href: '/docs/ai-agent-resources' },
       { label: 'llms.txt', href: '/llms.txt' },
+      { label: 'Privacy Policy', href: '/privacy' },
     ],
   },
 ];
