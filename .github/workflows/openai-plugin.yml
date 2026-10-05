@@ -43,6 +43,7 @@ jobs:
                     developerName: claude.author.name,
                     category: "Developer Tools",
                     websiteURL: claude.homepage,
+                    supportURL: claude.repository + "/issues",
                     privacyPolicyURL: claude.homepage + "/privacy",
                     composerIcon: "./assets/icon.png",
                     logo: "./assets/icon.png",
