@@ -1118,6 +1118,18 @@ importers:
         specifier: 'catalog:'
         version: 5.109.2(@swc/core@1.15.47(@swc/helpers@0.5.23))
 
+  packages/swc-jest:
+    dependencies:
+      '@plumeria/compiler':
+        specifier: workspace:*
+        version: link:../compiler
+      '@swc/core':
+        specifier: '*'
+        version: 1.15.47(@swc/helpers@0.5.23)
+      '@swc/jest':
+        specifier: ^0.2.39
+        version: 0.2.39(@swc/core@1.15.47(@swc/helpers@0.5.23))
+
   packages/turbopack-loader:
     dependencies:
       '@plumeria/compiler':
