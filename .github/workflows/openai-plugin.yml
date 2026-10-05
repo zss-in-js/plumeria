@@ -28,7 +28,7 @@ jobs:
           cp plugins/plumeria/.claude-plugin/icon.png openai-plugin/assets/icon.png
           node -e '
             const fs = require("fs");
-            const claude = JSON.parse(fs.readFileSync("plugins/plumeria/.claude-plugin/plugin.json", "utf8"));
+            const { icon, documentationUrl, supportUrl, privacyPolicyUrl, ...claude } = JSON.parse(fs.readFileSync("plugins/plumeria/.claude-plugin/plugin.json", "utf8"));
             const description = "Plumeria rules for writing, reviewing, and fixing styles. Generated from the official AI.md documentation.";
             const manifest = {
               $schema: "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
