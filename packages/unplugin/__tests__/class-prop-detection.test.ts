@@ -1,3 +1,6 @@
+jest.mock('@plumeria/eslint-plugin/guard', () => ({
+  startLintGuard: jest.fn(),
+}));
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
