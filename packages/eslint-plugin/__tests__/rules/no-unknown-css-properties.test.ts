@@ -246,9 +246,43 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
       `,
       errors: [
         {
-          messageId: 'unknownProperty',
+          messageId: 'unknownNestedProperty',
           data: {
             name: '& .child',
+          },
+        },
+      ],
+    },
+    {
+      code: `
+        import { create } from '@plumeria/core';
+        const styles = create({
+          main: {
+            '&:hover': 'red'
+          }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'unknownProperty',
+          data: {
+            name: '&:hover',
+          },
+        },
+      ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const animation = css.keyframes({
+          from: { '&:hover': { color: 'red' } }
+        });
+      `,
+      errors: [
+        {
+          messageId: 'unknownProperty',
+          data: {
+            name: '&:hover',
           },
         },
       ],
