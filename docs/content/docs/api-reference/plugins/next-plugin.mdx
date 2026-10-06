@@ -48,10 +48,10 @@ export default withPlumeria(nextConfig);
 Takes a Next.js configuration object and returns a new configuration object with the necessary Turbopack or Webpack configurations added for Plumeria.
 
 - `nextConfig`: Next.js configuration object.
-- `options`: Compiler options, passed through to the loader.
+- `options`: Compiler options, passed through to the loader, and `lint`.
 
 ```ts
-function withPlumeria(nextConfig: NextConfig, options?: LoaderOptions): NextConfig;
+function withPlumeria(nextConfig: NextConfig, options?: PlumeriaOptions): NextConfig;
 ```
 
 ### Options
@@ -69,14 +69,16 @@ export default withPlumeria(nextConfig, {
 - `styleProp`: The JSX prop that carries styles. The default is `'classStyle'`.
 - `withoutLogicalProperties`: Rejects the logical name of a property that also has a physical name. The default is `false`.
 - `withoutPhysicalProperties`: Rejects the physical name of a property that also has a logical name. The default is `false`.
+- `lint`: Lints the project with [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) during `next build`. The default is `true`.
 
 ```ts
-interface LoaderOptions {
+interface PlumeriaOptions {
   include?: string[];
   exclude?: string[];
   styleProp?: string;
   withoutLogicalProperties?: boolean | { sizes?: boolean };
   withoutPhysicalProperties?: boolean | { sizes?: boolean };
+  lint?: boolean;
 }
 ```
 
@@ -108,6 +110,20 @@ export default withPlumeria(nextConfig, { withoutPhysicalProperties: true });
 export default withPlumeria(nextConfig, {
   withoutPhysicalProperties: { sizes: true },
 });
+```
+
+### lint
+
+The lint is integrated into the build by default, so it needs no setup. `next build` runs [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) through oxlint alongside the compile and stops on any error or warning. The build waits for the lint before it exits, so a build that finishes first still fails when the lint does. `next dev` does not lint.
+
+The lint runs the recommended rules. It does not read `eslint.config.*`, so an [optional rule](/docs/api-reference/plugins/eslint-plugin/optional-rules) enabled there runs under ESLint only.
+
+oxlint skips the files `.gitignore` ignores, and the build also stops when it finds no file to lint.
+
+`plumerialint -- next build` still works, and the lint runs once. To build without it:
+
+```ts title="next.config.ts"
+export default withPlumeria(nextConfig, { lint: false });
 ```
 
 ## Driving the loader
