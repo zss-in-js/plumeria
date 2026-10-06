@@ -57,6 +57,7 @@ if (!buildCommand) {
   const buildChild = spawn(fullBuildCommand, {
     stdio: 'inherit',
     shell: true,
+    env: { ...process.env, PLUMERIA_LINT_GUARD: '1' },
   });
 
   function abort(exitCode, failedSource) {
