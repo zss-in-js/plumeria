@@ -42,8 +42,7 @@
   },
   "dependencies": {
     "@plumeria/eslint-plugin": "workspace:*",
-    "@plumeria/turbopack-loader": "workspace:*",
-    "oxlint": "1.67.0"
+    "@plumeria/turbopack-loader": "workspace:*"
   },
   "devDependencies": {
     "next": "catalog:",
