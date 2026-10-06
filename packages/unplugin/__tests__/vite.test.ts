@@ -1,3 +1,6 @@
+jest.mock('@plumeria/eslint-plugin/guard', () => ({
+  startLintGuard: jest.fn(),
+}));
 jest.mock('@plumeria/compiler', () => ({
   DEFAULT_STYLE_PROP: 'classStyle',
   needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
@@ -53,6 +56,18 @@ it('merges Vite config for serve and build commands', () => {
   expect((vite() as any).config({}, { command: 'build' })).toMatchObject({
     build: { cssCodeSplit: false },
   });
+});
+
+it('starts the lint guard for builds only', () => {
+  const { startLintGuard } = jest.requireMock<{ startLintGuard: jest.Mock }>(
+    '@plumeria/eslint-plugin/guard',
+  );
+  (vite() as any).config({}, { command: 'serve' });
+  expect(startLintGuard).not.toHaveBeenCalled();
+  (vite() as any).config({}, { command: 'build' });
+  expect(startLintGuard).toHaveBeenCalledTimes(1);
+  (vite({ lint: false }) as any).config({}, { command: 'build' });
+  expect(startLintGuard).toHaveBeenCalledTimes(1);
 });
 
 it('configures RSC builds detected from environments and nested plugins', () => {
