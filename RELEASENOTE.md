@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.9.1 (Oct 6, 2026)
+
+- `no-unknown-css-properties` adds a hint to an unknown key that holds an object in `css.create`: nested selectors start with `:`, `[` or `@`
+
 ## 19.9.0 (Oct 5, 2026)
 
 - Add `@plumeria/swc-jest`, a Jest transformer that compiles Plumeria styles and hands the result to `@swc/jest`
