@@ -29,7 +29,8 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./oxlint-plugin": "./oxlint-plugin.js"
+    "./oxlint-plugin": "./oxlint-plugin.js",
+    "./oxlint.json": "./oxlint.json"
   },
   "files": [
     "dist/",
