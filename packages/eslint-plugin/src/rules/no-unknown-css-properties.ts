@@ -19,6 +19,8 @@ export const noUnknownCssProperties: Rule.RuleModule = {
     },
     messages: {
       unknownProperty: "Unknown CSS property '{{ name }}'.",
+      unknownNestedProperty:
+        "Unknown CSS property '{{ name }}'. Nested selectors start with ':', '[' or '@'.",
     },
     schema: [],
   },
@@ -48,6 +50,7 @@ export const noUnknownCssProperties: Rule.RuleModule = {
       },
       CallExpression(node) {
         let isCssProperties = false;
+        let isCreate = false;
         if (node.callee.type === 'MemberExpression') {
           if (
             node.callee.object.type === 'Identifier' &&
@@ -63,6 +66,7 @@ export const noUnknownCssProperties: Rule.RuleModule = {
               propertyName === 'viewTransition'
             ) {
               isCssProperties = true;
+              isCreate = propertyName === 'create';
             }
           }
         } else if (node.callee.type === 'Identifier') {
@@ -73,6 +77,7 @@ export const noUnknownCssProperties: Rule.RuleModule = {
             alias === 'viewTransition'
           ) {
             isCssProperties = true;
+            isCreate = alias === 'create';
           }
         }
 
@@ -82,7 +87,7 @@ export const noUnknownCssProperties: Rule.RuleModule = {
               arg.properties.forEach((prop) => {
                 if (prop.type !== 'Property') return;
                 const style = styleObjectFromValue(prop.value);
-                if (style) checkStyleObject(style);
+                if (style) checkStyleObject(style, isCreate);
               });
             }
           });
@@ -90,11 +95,11 @@ export const noUnknownCssProperties: Rule.RuleModule = {
       },
     };
 
-    function checkStyleObject(node: ObjectExpression) {
+    function checkStyleObject(node: ObjectExpression, isCreate: boolean) {
       node.properties.forEach((prop) => {
         if (prop.type === 'Property') {
           if (prop.value.type === 'ObjectExpression') {
-            checkStyleObject(prop.value);
+            checkStyleObject(prop.value, isCreate);
           }
 
           let isCheckable = false;
@@ -125,7 +130,10 @@ export const noUnknownCssProperties: Rule.RuleModule = {
               if (!knownProperties.has(kebabName)) {
                 context.report({
                   node: prop.key,
-                  messageId: 'unknownProperty',
+                  messageId:
+                    isCreate && prop.value.type === 'ObjectExpression'
+                      ? 'unknownNestedProperty'
+                      : 'unknownProperty',
                   data: {
                     name: keyName,
                   },
