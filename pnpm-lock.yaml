@@ -1107,9 +1107,15 @@ importers:
 
   packages/next-plugin:
     dependencies:
+      '@plumeria/eslint-plugin':
+        specifier: workspace:*
+        version: link:../eslint-plugin
       '@plumeria/turbopack-loader':
         specifier: workspace:*
         version: link:../turbopack-loader
+      oxlint:
+        specifier: 1.67.0
+        version: 1.67.0
     devDependencies:
       next:
         specifier: 'catalog:'
