@@ -977,6 +977,9 @@ importers:
       known-css-properties:
         specifier: ^0.37.0
         version: 0.37.0
+      oxlint:
+        specifier: 1.67.0
+        version: 1.67.0
       zss-engine:
         specifier: 'catalog:'
         version: 2.9.1
@@ -1113,9 +1116,6 @@ importers:
       '@plumeria/turbopack-loader':
         specifier: workspace:*
         version: link:../turbopack-loader
-      oxlint:
-        specifier: 1.67.0
-        version: 1.67.0
     devDependencies:
       next:
         specifier: 'catalog:'
@@ -1151,6 +1151,9 @@ importers:
       '@plumeria/compiler':
         specifier: workspace:*
         version: link:../compiler
+      '@plumeria/eslint-plugin':
+        specifier: workspace:*
+        version: link:../eslint-plugin
       '@rollup/pluginutils':
         specifier: ^5.4.0
         version: 5.4.0(rollup@4.60.4)
