@@ -55,6 +55,7 @@ export default withPlumeria(nextConfig, {
 | `styleProp` | `'classStyle'` | The JSX prop that carries styles. |
 | `withoutLogicalProperties` | `false` | Reject the logical name of a property that also has a physical name. Takes `true` or `{ sizes?: boolean }`. |
 | `withoutPhysicalProperties` | `false` | Reject the physical name of a property that also has a logical name. Takes `true` or `{ sizes?: boolean }`. |
+| `lint` | `true` | Lint with `@plumeria/eslint-plugin` during `next build`, integrated into the build so it needs no setup. `false` builds without it. |
 
 The two spelling options contradict each other, so enabling both is a configuration error. See [the docs](https://plumeria.dev/docs/api-reference/plugins/next-plugin) for why the pair has to be settled and how it lines up with the lint rules.
 
