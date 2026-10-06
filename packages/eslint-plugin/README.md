@@ -252,16 +252,6 @@ plumerialint
 The process exits with a non-zero status code if any errors or warnings are found,
 making it suitable for use in CI and build pipelines.
 
-Example usage in `package.json`:
-
-```json
-{
-  "scripts": {
-    "lint": "plumerialint"
-  }
-}
-```
-
 ### Aborting Builds on Lint Errors (Parallel Pipeline)
 
 You can run `plumerialint` in parallel with your build command (e.g. `next build` or `vite build`) using the `--` separator:
