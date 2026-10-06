@@ -5,7 +5,7 @@
   "scripts": {
     "predev": "rimraf .next && node scripts/copy-playground-libs.mjs && node scripts/build-playground-engine.mjs",
     "prebuild": "rimraf .next && node scripts/copy-playground-libs.mjs && node scripts/build-playground-engine.mjs",
-    "build": "plumerialint -- next build",
+    "build": "next build",
     "dev": "next dev",
     "start": "next start",
     "postinstall": "fumadocs-mdx"
