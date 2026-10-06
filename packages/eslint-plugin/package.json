@@ -62,7 +62,7 @@
   "dependencies": {
     "@plumeria/compiler": "workspace:*",
     "known-css-properties": "^0.37.0",
-    "oxlint": "1.67.0",
+    "oxlint": "1.87.0",
     "zss-engine": "catalog:"
   }
 }
