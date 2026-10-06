@@ -162,8 +162,10 @@ function attachViteHooks(plugin: any, options?: VitePluginOptions) {
   const vitePlugin = {
     ...plugin,
     name: '@plumeria/unplugin:vite',
+    vite: undefined,
 
     config(userConfig: UserConfig, { command }: { command: string }) {
+      plugin.vite?.config?.(userConfig, { command });
       const configToReturn: UserConfig = {
         optimizeDeps: {
           exclude: [
