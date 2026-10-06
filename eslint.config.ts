@@ -25,9 +25,6 @@ export default defineConfig(
   },
   {
     files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      parserOptions: { projectService: true },
-    },
     rules: {
       '@plumeria/expand-border-shorthands': 'warn',
       '@plumeria/no-logical-properties': 'warn',
