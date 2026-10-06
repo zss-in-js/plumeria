@@ -1,3 +1,4 @@
+jest.mock('../src/lint', () => ({ startNextLintGuard: jest.fn() }));
 jest.mock('fs', () => {
   const actual = jest.requireActual('fs');
   return {
@@ -20,6 +21,25 @@ import type {
 } from 'next/dist/server/config-shared';
 
 describe('withPlumeria', () => {
+  it('starts the lint guard unless lint is false', () => {
+    const { startNextLintGuard } = jest.requireMock<{
+      startNextLintGuard: jest.Mock;
+    }>('../src/lint');
+    startNextLintGuard.mockClear();
+    withPlumeria({});
+    expect(startNextLintGuard).toHaveBeenCalledTimes(1);
+    withPlumeria({}, { lint: false });
+    expect(startNextLintGuard).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not pass lint to the loader', () => {
+    const config = withPlumeria({}, { lint: false, styleProp: 'css' });
+    const rule = config.turbopack!.rules!['*.tsx'] as {
+      loaders: { options: Record<string, unknown> }[];
+    };
+    expect(rule.loaders[0].options).toEqual({ styleProp: 'css' });
+  });
+
   it('calls original webpack function if exists', () => {
     const originalWebpack = jest.fn((config) => config);
     withPlumeria({ webpack: originalWebpack }).webpack!({}, {
