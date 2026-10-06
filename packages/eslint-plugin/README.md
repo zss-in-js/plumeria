@@ -277,3 +277,5 @@ You can run `plumerialint` in parallel with your build command (e.g. `next build
 If `plumerialint` detects any styling errors or warnings, it will print the diagnostics, kill the build process immediately, and exit with a non-zero code. This avoids compiling when styling validation fails.
 
 **Note:** `oxlint` is required as `plumerialint` uses it internally.
+
+With `@plumeria/next-plugin` and `@plumeria/unplugin` (except on esbuild and Bun), this lint is integrated into the build by default, so it needs no setup. Pass `lint: false` to the plugin to build without it.
