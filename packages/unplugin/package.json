@@ -97,6 +97,7 @@
   },
   "dependencies": {
     "@plumeria/compiler": "workspace:*",
+    "@plumeria/eslint-plugin": "workspace:*",
     "@rollup/pluginutils": "^5.4.0",
     "unplugin": "^3.0.0"
   },
