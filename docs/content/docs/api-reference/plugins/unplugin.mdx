@@ -49,6 +49,7 @@ export default {
 - `styleProp`: The JSX prop that carries styles. The default is `'classStyle'`.
 - `withoutLogicalProperties`: Rejects the logical name of a property that also has a physical name. The default is `false`.
 - `withoutPhysicalProperties`: Rejects the physical name of a property that also has a logical name. The default is `false`.
+- `lint`: Lints the project with [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) during a production build, on every bundler except esbuild and Bun. The default is `true`.
 
 ```ts
 interface PluginOptions {
@@ -58,6 +59,7 @@ interface PluginOptions {
   styleProp?: string;
   withoutLogicalProperties?: boolean | { sizes?: boolean };
   withoutPhysicalProperties?: boolean | { sizes?: boolean };
+  lint?: boolean;
 }
 ```
 
@@ -101,6 +103,31 @@ directions and the rule renames a property the build then rejects.
 
 [Specificity](/docs/specificity) explains why the pair cannot be
 ranked, and why neither spelling is rewritten for you.
+
+### lint
+
+The lint is integrated into the build by default, so it needs no setup. A production build runs [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) through oxlint alongside the build and stops on any error or warning. The build waits for the lint before it exits, so a build that finishes first still fails when the lint does.
+
+| Bundler | Lints on | Does not lint on |
+| --- | --- | --- |
+| Vite | `vite build` | the dev server, Vitest |
+| webpack, Rspack | a single build | `--watch`, the dev server |
+| Rollup, Rolldown | a single build | `--watch` |
+| Farm | `farm build` | `farm start` |
+
+esbuild and Bun do not say whether a build is a one-off or a watch, so they do not lint. Run `plumerialint` there instead.
+
+A build started from a script or a test lints as well, and a lint error ends that process. Pass `lint: false` where that is not wanted.
+
+The lint runs the recommended rules. It does not read `eslint.config.*`, so an [optional rule](/docs/api-reference/plugins/eslint-plugin/optional-rules) enabled there runs under ESLint only.
+
+oxlint skips the files `.gitignore` ignores, and the build also stops when it finds no file to lint.
+
+`plumerialint -- vite build` still works, and the lint runs once. To build without it:
+
+```ts
+plumeria.vite({ lint: false });
+```
 
 ## Driving the transform
 
