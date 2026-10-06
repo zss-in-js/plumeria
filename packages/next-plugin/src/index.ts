@@ -4,6 +4,7 @@ import type { TurbopackLoaderItem } from 'next/dist/server/config-shared';
 import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
 import * as fs from 'fs';
+import { startLintGuard } from './lint';
 
 type TurbopackConfig = NonNullable<NextConfig['turbopack']>;
 type TurbopackRules = NonNullable<TurbopackConfig['rules']>;
@@ -32,6 +33,8 @@ export function withPlumeria(
   nextConfig: NextConfig = {},
   options: LoaderOptions = {},
 ): NextConfig {
+  startLintGuard();
+
   const globalRef = global as typeof global & {
     __PLUMERIA_RESET_DONE__?: boolean;
   };
