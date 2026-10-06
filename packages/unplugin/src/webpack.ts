@@ -77,6 +77,7 @@ export function attachWebpackHooks(plugin: any) {
 
   const hookFn = (compiler: any) => {
     if (compiler.isChild()) return;
+    plugin.webpack?.(compiler);
 
     setRoot(compiler.context);
     if (compiler.options.mode === 'development') {
