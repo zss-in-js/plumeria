@@ -41,7 +41,9 @@
     "cjs": "tsc --project tsconfig.cjs.json"
   },
   "dependencies": {
-    "@plumeria/turbopack-loader": "workspace:*"
+    "@plumeria/eslint-plugin": "workspace:*",
+    "@plumeria/turbopack-loader": "workspace:*",
+    "oxlint": "1.67.0"
   },
   "devDependencies": {
     "next": "catalog:",
