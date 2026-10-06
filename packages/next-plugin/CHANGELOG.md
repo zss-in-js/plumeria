@@ -1,5 +1,13 @@
 # @plumeria/next-plugin
 
+## 19.9.1
+
+### Patch Changes
+
+- f51e812: Bump version to 19.9.1
+- Updated dependencies [f51e812]
+  - @plumeria/turbopack-loader@19.9.1
+
 ## 19.9.0
 
 ### Minor Changes

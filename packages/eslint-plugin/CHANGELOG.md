@@ -1,3 +1,11 @@
+## 19.9.1
+
+### Patch Changes
+
+- f51e812: - `no-unknown-css-properties` adds a hint to an unknown key that holds an object in `css.create`: nested selectors start with `:`, `[` or `@`
+- Updated dependencies [f51e812]
+  - @plumeria/compiler@19.9.1
+
 ## 19.9.0
 
 ### Minor Changes
