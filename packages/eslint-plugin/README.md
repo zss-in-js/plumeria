@@ -139,6 +139,8 @@ Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-sty
 
 Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, and `css.viewTransition`.
 
+In `css.create`, a key that holds an object is reported with a hint that nested selectors start with `:`, `[` or `@`.
+
 ### no-unresolved-composition
 
 A safety net for `css.use()`. Warns when its result is combined with other class names or passed to another function, or when a function key is passed to it. Pass every style to one `css.use()` call, and apply function keys to the styling prop.
