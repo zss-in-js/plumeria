@@ -1,3 +1,6 @@
+jest.mock('@plumeria/eslint-plugin/guard', () => ({
+  startLintGuard: jest.fn(),
+}));
 jest.mock('@plumeria/compiler', () => ({
   DEFAULT_STYLE_PROP: 'classStyle',
   needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
@@ -204,4 +207,52 @@ it('accumulates development CSS and keeps re-added sheets latest', async () => {
   ).toEqual(new Set(['.second {}', '.generated {}']));
   expect(mockOptimizer).toHaveBeenLastCalledWith('.second {}.generated {}');
   expect(mockOptimizer).toHaveBeenCalledTimes(3);
+});
+
+describe('the lint guard', () => {
+  const { startLintGuard } = jest.requireMock<{ startLintGuard: jest.Mock }>(
+    '@plumeria/eslint-plugin/guard',
+  );
+  const create = (lint?: boolean) =>
+    unpluginFactory(lint === undefined ? {} : { lint }, {} as never) as any;
+  const run = () => ({
+    hooks: { run: { tap: (_name: string, fn: () => void) => fn() } },
+  });
+
+  beforeEach(() => startLintGuard.mockClear());
+
+  it('starts on a webpack or rspack run', () => {
+    create().webpack(run());
+    create().rspack(run());
+    expect(startLintGuard).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts on a rollup or rolldown build outside watch mode', () => {
+    const plugin = create();
+    plugin.rollup.buildStart.call({ meta: { watchMode: true } });
+    plugin.rolldown.buildStart.call({ meta: { watchMode: true } });
+    expect(startLintGuard).not.toHaveBeenCalled();
+    plugin.rollup.buildStart.call({ meta: { watchMode: false } });
+    plugin.rolldown.buildStart.call({ meta: { watchMode: false } });
+    expect(startLintGuard).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts on a vite build and a farm production build', () => {
+    const plugin = create();
+    plugin.vite.config({}, { command: 'serve' });
+    plugin.farm.config({ compilation: { mode: 'development' } });
+    expect(startLintGuard).not.toHaveBeenCalled();
+    plugin.vite.config({}, { command: 'build' });
+    plugin.farm.config({ compilation: { mode: 'production' } });
+    expect(startLintGuard).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not start with lint: false', () => {
+    const plugin = create(false);
+    plugin.webpack(run());
+    plugin.rollup.buildStart.call({ meta: { watchMode: false } });
+    plugin.vite.config({}, { command: 'build' });
+    plugin.farm.config({ compilation: { mode: 'production' } });
+    expect(startLintGuard).not.toHaveBeenCalled();
+  });
 });
