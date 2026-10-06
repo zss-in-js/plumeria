@@ -29,11 +29,13 @@ function supportsRuleCondition(): boolean {
   }
 }
 
+export type PlumeriaOptions = LoaderOptions & { lint?: boolean };
+
 export function withPlumeria(
   nextConfig: NextConfig = {},
-  options: LoaderOptions = {},
+  { lint = true, ...options }: PlumeriaOptions = {},
 ): NextConfig {
-  startNextLintGuard();
+  if (lint) startNextLintGuard();
 
   const globalRef = global as typeof global & {
     __PLUMERIA_RESET_DONE__?: boolean;
