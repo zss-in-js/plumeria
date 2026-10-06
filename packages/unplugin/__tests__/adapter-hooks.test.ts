@@ -1,3 +1,6 @@
+jest.mock('@plumeria/eslint-plugin/guard', () => ({
+  startLintGuard: jest.fn(),
+}));
 // The bundler adapters wrap the core plugin rather than reimplement it, so
 // each one is only correct while three things hold: the bundler's root and
 // mode reach the core plugin, the wrapped `transform` hands back exactly what
@@ -21,6 +24,7 @@ const mockedGlob = jest.requireMock<{ globSync: jest.Mock }>('@rust-gear/glob');
 
 import vite from '../src/vite';
 import { attachWebpackHooks } from '../src/webpack';
+import farm from '../src/farm';
 import { unpluginFactory } from '../src/core';
 
 const SOURCE = `
@@ -89,6 +93,7 @@ describe('the webpack adapter', () => {
 
   const compilerWith = (rules: unknown[]) => ({
     isChild: () => false,
+    hooks: { run: { tap: jest.fn() } },
     context: DIR,
     options: { mode: 'development', module: { rules } },
   });
@@ -207,5 +212,32 @@ describe('the core plugin', () => {
 
   it('serves an empty stylesheet for a module it never compiled', () => {
     expect(core().load(`${DIR}/Absent.zero.css`)).toBe('');
+  });
+});
+
+describe('the lint guard through the adapters', () => {
+  const { startLintGuard } = jest.requireMock<{ startLintGuard: jest.Mock }>(
+    '@plumeria/eslint-plugin/guard',
+  );
+  beforeEach(() => startLintGuard.mockClear());
+
+  it('starts when a webpack or rspack build runs', () => {
+    const plugin = attachWebpackHooks(unpluginFactory(undefined, {} as never));
+    const tap = jest.fn((_name: string, fn: () => void) => fn());
+    plugin.webpack({
+      isChild: () => false,
+      hooks: { run: { tap } },
+      context: DIR,
+      options: { mode: 'production', module: { rules: [] } },
+    });
+    expect(startLintGuard).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts when farm builds for production', () => {
+    const plugin = farm() as any;
+    plugin.config({ compilation: { mode: 'development' } });
+    expect(startLintGuard).not.toHaveBeenCalled();
+    plugin.config({ compilation: { mode: 'production' } });
+    expect(startLintGuard).toHaveBeenCalledTimes(1);
   });
 });
