@@ -3,6 +3,7 @@ import { createFilter } from '@rollup/pluginutils';
 import * as path from 'path';
 import compiler from '@plumeria/compiler';
 import type { PropertyPolicyOptions } from '@plumeria/compiler';
+import { startLintGuard } from '@plumeria/eslint-plugin/guard';
 
 const {
   resolvePropertyPolicy,
@@ -26,6 +27,7 @@ export interface PluginOptions extends PropertyPolicyOptions {
   exclude?: string | RegExp | Array<string | RegExp>;
   devEmitToDisk?: boolean;
   styleProp?: string;
+  lint?: boolean;
 }
 
 /* istanbul ignore next -- SWC reports exported constant initializers as uncovered. */
@@ -50,9 +52,41 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
   let cssImport: CssImportFormatter | null = null;
   let viteRoot: string = process.cwd();
 
+  const lint = options.lint !== false;
+  const lintOnRun = (bundler: {
+    hooks: { run: { tap: (name: string, fn: () => void) => void } };
+  }) => {
+    if (!lint) return;
+    bundler.hooks.run.tap('@plumeria/unplugin', () => {
+      startLintGuard();
+    });
+  };
+  const lintUnlessWatching = {
+    buildStart(this: { meta: { watchMode: boolean } }) {
+      if (lint && !this.meta.watchMode) startLintGuard();
+    },
+  };
+
   return {
     name: '@plumeria/unplugin',
     enforce: 'pre',
+
+    webpack: lintOnRun,
+    rspack: lintOnRun,
+    rollup: lintUnlessWatching,
+    rolldown: lintUnlessWatching,
+    vite: {
+      config(_config: unknown, { command }: { command: string }) {
+        if (lint && command === 'build') startLintGuard();
+      },
+    },
+    farm: {
+      config(config: any) {
+        if (lint && config?.compilation?.mode === 'production')
+          startLintGuard();
+        return config;
+      },
+    },
 
     // Internal state for bundler-specific hooks
     __plumeriaInternal: {
