@@ -14,8 +14,10 @@ function attachFarmHooks(plugin: any) {
     isDev ? diskCssImport(ctx) : `\nimport ${JSON.stringify(ctx.cssId)};`,
   );
 
+  const coreFarm = plugin.farm;
   plugin.farm = {
     config(config: any) {
+      coreFarm?.config?.(config);
       if (plugin.__plumeriaInternal) {
         if (config?.root) {
           farmRoot = config.root;
