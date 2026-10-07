@@ -1,5 +1,11 @@
 # @plumeria/compiler
 
+## 19.10.0
+
+### Minor Changes
+
+- db560c7: Bump version to 19.10.0
+
 ## 19.9.1
 
 ### Patch Changes
