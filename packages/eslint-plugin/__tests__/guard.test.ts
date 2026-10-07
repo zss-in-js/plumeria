@@ -6,24 +6,32 @@ jest.mock('child_process', () => ({
 }));
 
 import * as fs from 'fs';
-import { spellingRules, startLintGuard } from '../src/guard';
+import { lintOverrides, startLintGuard } from '../src/guard';
 
-describe('spellingRules', () => {
+describe('lintOverrides', () => {
   it('turns each spelling option into its rule', () => {
-    expect(spellingRules({})).toEqual({});
+    expect(lintOverrides({})).toEqual({});
     expect(
-      spellingRules({
+      lintOverrides({
         withoutLogicalProperties: true,
         withoutPhysicalProperties: false,
       }),
-    ).toEqual({ '@plumeria/no-logical-properties': 'error' });
+    ).toEqual({ rules: { '@plumeria/no-logical-properties': 'error' } });
     expect(
-      spellingRules({ withoutPhysicalProperties: { sizes: true } }),
+      lintOverrides({ withoutPhysicalProperties: { sizes: true } }),
     ).toEqual({
-      '@plumeria/no-physical-properties': ['error', { sizes: true }],
+      rules: {
+        '@plumeria/no-physical-properties': ['error', { sizes: true }],
+      },
     });
-    expect(spellingRules({ withoutLogicalProperties: {} })).toEqual({
-      '@plumeria/no-logical-properties': 'error',
+    expect(lintOverrides({ withoutLogicalProperties: {} })).toEqual({
+      rules: { '@plumeria/no-logical-properties': 'error' },
+    });
+  });
+
+  it('passes the styling prop to the rules as a setting', () => {
+    expect(lintOverrides({ styleProp: 'sx' })).toEqual({
+      settings: { plumeria: { styleProp: 'sx' } },
     });
   });
 });
@@ -97,12 +105,16 @@ describe('startLintGuard', () => {
     expect(exit).toHaveBeenCalledWith(0);
   });
 
-  it('extends the plumeria config with the rules it is given', () => {
-    startLintGuard({ '@plumeria/no-physical-properties': 'error' });
+  it('extends the plumeria config with the overrides it is given', () => {
+    startLintGuard({
+      rules: { '@plumeria/no-physical-properties': 'error' },
+      settings: { plumeria: { styleProp: 'sx' } },
+    });
     const config = spawn.mock.calls[0][1][2];
     expect(JSON.parse(fs.readFileSync(config, 'utf8'))).toEqual({
       extends: [expect.stringMatching(/eslint-plugin[\\/]oxlint\.json$/)],
       rules: { '@plumeria/no-physical-properties': 'error' },
+      settings: { plumeria: { styleProp: 'sx' } },
     });
     child.emit('close', 0);
     expect(fs.existsSync(config)).toBe(false);
