@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 19.10.2
+
+### Patch Changes
+
+- 50858a7: Bump version to 19.10.2
+- Updated dependencies [50858a7]
+  - @plumeria/compiler@19.10.2
+
 ## 19.10.1
 
 ### Patch Changes
