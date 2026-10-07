@@ -2,9 +2,9 @@
   "defaultOpen": false,
   "title": "Plugins",
   "pages": [
-    "eslint-plugin",
     "next-plugin",
-    "swc-jest",
-    "unplugin"
+    "unplugin",
+    "eslint-plugin",
+    "swc-jest"
   ]
 }
