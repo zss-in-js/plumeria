@@ -139,7 +139,7 @@ const groups = [
     ],
   },
   {
-    title: 'Principles',
+    title: 'Concepts',
     links: [
       { label: 'Specificity', href: '/docs/specificity' },
       { label: 'Composition laws', href: '/docs/composition-laws' },
