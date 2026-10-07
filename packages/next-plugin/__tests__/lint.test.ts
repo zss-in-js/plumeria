@@ -40,4 +40,14 @@ describe('startNextLintGuard', () => {
     expect(startNextLintGuard({}, ['node', NEXT_BIN, 'dev'])).toBe(false);
     expect(startLintGuard).not.toHaveBeenCalled();
   });
+
+  it('reads process.argv when no argv is given', () => {
+    expect(startNextLintGuard()).toBe(false);
+    expect(startLintGuard).not.toHaveBeenCalled();
+  });
+
+  it('does not start the lint guard without a bin', () => {
+    expect(startNextLintGuard({}, ['node'])).toBe(false);
+    expect(startLintGuard).not.toHaveBeenCalled();
+  });
 });
