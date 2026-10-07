@@ -1,5 +1,11 @@
 # Release Notes
 
+## 19.10.1 (Oct 7, 2026)
+
+- `@plumeria/next-plugin` starts the build lint only when the running bin is `next`, not when any path holds a `next` directory
+
+- `@plumeria/eslint-plugin/guard` no longer exports `GUARD_ENV` and `SpellingOptions`
+
 ## 19.10.0 (Oct 7, 2026)
 
 - `@plumeria/next-plugin` and `@plumeria/unplugin` run `@plumeria/eslint-plugin` through oxlint alongside a production build and stop it on any error or warning, so no build script is needed

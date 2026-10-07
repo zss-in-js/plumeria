@@ -1,5 +1,16 @@
 # @plumeria/next-plugin
 
+## 19.10.1
+
+### Patch Changes
+
+- 107a11a: - `@plumeria/next-plugin` starts the build lint only when the running bin is `next`, not when any path holds a `next` directory
+  - `@plumeria/eslint-plugin/guard` no longer exports `GUARD_ENV` and `SpellingOptions`
+- Updated dependencies [107a11a]
+- Updated dependencies [107a11a]
+  - @plumeria/turbopack-loader@19.10.1
+  - @plumeria/eslint-plugin@19.10.1
+
 ## 19.10.0
 
 ### Minor Changes
