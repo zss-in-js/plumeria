@@ -59,7 +59,6 @@ expect(getComputedStyle(heading).color).toBe('red'); // don't
 
 - Don't hard-code a generated class name. Each one is a property–value pair, hashed: add a property to the style and the test fails, having found nothing wrong with the component.
 - Don't assert computed styles. jsdom applies no stylesheet; see [What jsdom does not give you](/docs/testing#what-jsdom-does-not-give-you).
-- Don't test what a style compiles to here. Call the transform directly; see [Driving the transform](/docs/api-reference/plugins/unplugin#driving-the-transform).
 
 <Cards>
   <Card title="See more about unplugin options" href="/docs/api-reference/plugins/unplugin" />
