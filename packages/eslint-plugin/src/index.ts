@@ -58,6 +58,7 @@ const configs: Configs = {
     },
     rules: {
       '@plumeria/custom-props-require-import': 'error',
+      '@plumeria/expand-border-shorthands': 'warn',
       '@plumeria/no-combinator': 'error',
       '@plumeria/no-destructure': 'error',
       '@plumeria/no-inline-object': 'error',
