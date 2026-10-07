@@ -8,6 +8,7 @@ Below are the available rules and the recommended configuration.
 The `plugin:@plumeria/recommended` config enables the following:
 
 - `@plumeria/custom-props-require-import`: **error**
+- `@plumeria/expand-border-shorthands`: **warn**
 - `@plumeria/no-combinator`: **error**
 - `@plumeria/no-destructure`: **error**
 - `@plumeria/no-inline-object`: **error**
@@ -81,6 +82,27 @@ such a prop carries a style, so it compiles the file only when the file imports
 the import.
 
 Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-styling-prop).
+
+### expand-border-shorthands
+
+Expands a border shorthand that bundles a width, a style and a color —
+`border`, `borderBlock`, `borderInline`, and the eight edge forms — into the
+three declarations it stands for. Those bundles are the only properties left
+that cross an axis shorthand without either containing the other, so expanding
+them turns the last unrankable pairs into ordinary shorthand-to-longhand ones.
+
+Fixable. A value it cannot split, such as `var(--edge)` or `inherit`, is
+reported without a fix: leaving it silent would let the expanded declarations
+elsewhere outrank it.
+
+```js
+borderTop: '1px solid red'
+// becomes
+borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'red'
+```
+
+A shorthand resets what it omits, so `borderBlock: 'solid'` expands with
+`medium` and `currentcolor` written out.
 
 ### no-combinator
 
@@ -176,8 +198,8 @@ Validates at-rules inside `css.create()`. It accepts `@media`, `@container`, `@s
 
 ## Optional rules
 
-These rules are not enabled by `plumeria.configs.recommended`. Enable only the
-policy or transformation that fits the project:
+These rules are not enabled by `plumeria.configs.recommended`. Enable the
+spelling policy that fits the project:
 
 ```js
 export default [
@@ -185,32 +207,10 @@ export default [
   {
     rules: {
       '@plumeria/no-logical-properties': 'warn',
-      '@plumeria/expand-border-shorthands': 'warn',
     },
   },
 ];
 ```
-
-### expand-border-shorthands
-
-Expands a border shorthand that bundles a width, a style and a color —
-`border`, `borderBlock`, `borderInline`, and the eight edge forms — into the
-three declarations it stands for. Those bundles are the only properties left
-that cross an axis shorthand without either containing the other, so expanding
-them turns the last unrankable pairs into ordinary shorthand-to-longhand ones.
-
-Fixable. A value it cannot split, such as `var(--edge)` or `inherit`, is
-reported without a fix: leaving it silent would let the expanded declarations
-elsewhere outrank it.
-
-```js
-borderTop: '1px solid red'
-// becomes
-borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'red'
-```
-
-A shorthand resets what it omits, so `borderBlock: 'solid'` expands with
-`medium` and `currentcolor` written out.
 
 ### no-physical-properties / no-logical-properties
 
@@ -228,19 +228,24 @@ appears under one spelling only can never meet its other spelling on an element.
 A shorthand with no single counterpart, such as `borderBlockWidth`, is outside
 either rule and stays reported.
 
+The bundler plugins turn the matching rule on in the build lint as well:
+`withoutPhysicalProperties` runs `no-physical-properties`, and
+`withoutLogicalProperties` runs `no-logical-properties`, `{ sizes }` included.
+
 ## CLI (plumerialint)
 
 This package provides a CLI command, `plumerialint`, as a convenient way
 to run Plumeria's custom ESLint rules.
 
-It uses `oxlint` internally for fast linting with code snippets in output.
+It runs `oxlint`, which this package depends on, for fast linting with code
+snippets in output, so oxlint needs no separate install.
 
 ### Installation
 
 ```bash
-npm install -D @plumeria/eslint-plugin oxlint
+npm install -D @plumeria/eslint-plugin
 # or
-pnpm add -D @plumeria/eslint-plugin oxlint
+pnpm add -D @plumeria/eslint-plugin
 ```
 
 ### Usage
@@ -265,7 +270,5 @@ You can run `plumerialint` in parallel with your build command (e.g. `next build
 ```
 
 If `plumerialint` detects any styling errors or warnings, it will print the diagnostics, kill the build process immediately, and exit with a non-zero code. This avoids compiling when styling validation fails.
-
-**Note:** `oxlint` is required as `plumerialint` uses it internally.
 
 With `@plumeria/next-plugin` and `@plumeria/unplugin` (except on esbuild and Bun), this lint is integrated into the build by default, so it needs no setup. Pass `lint: false` to the plugin to build without it.
