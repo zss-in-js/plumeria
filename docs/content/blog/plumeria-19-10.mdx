@@ -1,0 +1,84 @@
+---
+title: 'Plumeria 19.10'
+description: 'Feature: the bundler plugins lint the build, so a style error stops it with no setup'
+date: '2026-10-07'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v19.10 integrates the lint into the bundler plugins by default. A style error now stops the build with no setup.
+
+## 1. Lint in the build
+
+The compiler stops only what would break its output, such as a key nested deeper than 16 levels. A misspelled property or a selector like `&:hover` compiles to nothing, and catching it is the lint's job. Until 19.9 that lint stopped a build only when the build script ran it: `plumerialint -- next build`.
+
+Now oxlint starts inside the bundler and runs [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) alongside the compile. It runs with `--deny-warnings`, so any error or warning fails the build, and the build waits for its result before it exits. A build that passes has passed both:
+
+```json title="package.json"
+{
+  "scripts": {
+    "build": "next build"
+  }
+}
+```
+
+| Plugin | Lints on |
+| --- | --- |
+| `@plumeria/next-plugin` | `next build` |
+| `@plumeria/unplugin` | `vite build`, a single webpack or Rspack build, a single Rollup or Rolldown build, `farm build` |
+
+Development servers and watch builds do not lint. The lint runs in parallel with the compile, so the build time is unchanged.
+
+esbuild and Bun do not say whether a build is a one-off or a watch, so they keep `plumerialint -- <build>`. Elsewhere that script still works, and the lint runs once.
+
+## 2. The rules it runs
+
+The lint runs the recommended rules and only those: oxlint's own rules are off, and `eslint.config.*` is not read. oxlint skips the files `.gitignore` ignores.
+
+`withoutLogicalProperties` and `withoutPhysicalProperties` now drive the lint too. The plugin option that rewrites one spelling also turns on the rule that reports it:
+
+```ts title="next.config.ts"
+export default withPlumeria(nextConfig, { withoutLogicalProperties: true });
+// runs @plumeria/no-logical-properties in the build
+```
+
+`expand-border-shorthands` joins the recommended rules as a warning. It is fixable.
+
+`@plumeria/eslint-plugin` now depends on oxlint, so `plumerialint` needs no separate install.
+
+## 3. If the build fails after upgrading
+
+A project that built through lint reports now fails. Fix them, most of them automatically:
+
+```bash
+npx plumerialint --fix
+```
+
+Or pass `lint: false` to build without the lint:
+
+```ts title="next.config.ts"
+export default withPlumeria(nextConfig, { lint: false });
+```
+
+See [`@plumeria/next-plugin`](/docs/api-reference/plugins/next-plugin#lint) and [`@plumeria/unplugin`](/docs/api-reference/plugins/unplugin#lint).
+
+---
+
+## Release notes
+
+## 19.10.0 (Oct 7, 2026)
+
+- `@plumeria/next-plugin` and `@plumeria/unplugin` run `@plumeria/eslint-plugin` through oxlint alongside a production build and stop it on any error or warning, so no build script is needed
+- `@plumeria/unplugin` lints on Vite, webpack, Rspack, Rollup, Rolldown and Farm
+- `withoutLogicalProperties` and `withoutPhysicalProperties` turn on the matching lint rule in that lint
+- Add the `lint` option to `@plumeria/next-plugin` and `@plumeria/unplugin` to build without the lint
+- `expand-border-shorthands` joins the recommended rules as a warning
+- `plumerialint` runs the oxlint that `@plumeria/eslint-plugin` depends on, so oxlint needs no separate install
+- The lint runs the Plumeria rules only, not oxlint's own default rules, and passes when there is no file to lint
+- `@plumeria/eslint-plugin` depends on oxlint 1.87.0
+- `@plumeria/init` prefixes the build script with `plumerialint --` only on esbuild and Bun, and no longer installs oxlint or asks about border shorthands
