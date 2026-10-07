@@ -1,6 +1,6 @@
 {
   "name": "plumeria",
-  "version": "19.10.1",
+  "version": "19.10.2",
   "description": "Teaches Claude the Plumeria rules for writing, reviewing, and fixing styles. Generated from the official AI.md documentation.",
   "author": {
     "name": "refirst11"
