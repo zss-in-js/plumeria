@@ -3,13 +3,16 @@ title: 'Optional rules'
 description: 'Rules that make an order-dependent pair impossible to write'
 ---
 
-`recommended` reports defects. These three do something else: they take away the
-room for one, at the cost of narrowing how you are allowed to write. None of
-them is on by default.
+`recommended` reports defects. The two spelling rules do something else: they
+take away the room for one, at the cost of narrowing how you are allowed to
+write. Neither is on by default. `expand-border-shorthands`, which takes away
+the other shape, is part of `recommended` as a warning and is covered here with
+them.
 
-They are turned on in an ESLint config only: `plumerialint` runs a fixed oxlint
-config that does not list them, and a rule that config leaves out cannot be
-turned on from the command line.
+The spelling rules are turned on in an ESLint config. The lint the bundler
+plugins run, and `plumerialint`, use a fixed oxlint config that does not list
+them; the bundler plugins add the one that matches `withoutLogicalProperties` or
+`withoutPhysicalProperties`.
 
 ## What they are for
 
@@ -43,7 +46,6 @@ export default [
   plumeria.configs.recommended,
   {
     rules: {
-      '@plumeria/expand-border-shorthands': 'warn',
       '@plumeria/no-logical-properties': 'warn',
     },
   },
@@ -52,11 +54,11 @@ export default [
 
 Eighty-six pairs exist that nothing ranks: 30 are crossings, every one
 containing a border bundle, and 56 are the same property under two names.
-`expand-border-shorthands` removes the 30, a spelling rule — either direction —
-removes the 56 (the twelve axis pairs with `{ sizes: true }`), so running both
-leaves zero. Both are fixable or offer a rename, so adopting them on an
-existing codebase is mostly a matter of running the fixer once and reading the
-leftovers.
+`expand-border-shorthands`, in `recommended`, removes the 30, and a spelling
+rule — either direction — removes the 56 (the twelve axis pairs with
+`{ sizes: true }`), so adding one leaves zero. Both are fixable or offer a
+rename, so adopting them on an existing codebase is mostly a matter of running
+the fixer once and reading the leftovers.
 
 ## expand-border-shorthands
 
@@ -163,8 +165,8 @@ configuration error, the same contradiction as running both rules.
 ## What is left
 
 A shorthand with no single counterpart, such as `borderBlockWidth`, belongs to
-neither spelling and is never renamed. With `expand-border-shorthands` on, it no
-longer has anything to cross with.
+neither spelling and is never renamed. `expand-border-shorthands` expands the
+border bundles, so it no longer has anything to cross with.
 
 Two conditions that can match at the same time are settled by the optimizer
 where one provably matches a subset of the other: the narrower one is placed
