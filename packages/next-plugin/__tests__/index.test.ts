@@ -32,6 +32,17 @@ describe('withPlumeria', () => {
     expect(startNextLintGuard).toHaveBeenCalledTimes(1);
   });
 
+  it('lints with the spelling rule the options turn on', () => {
+    const { startNextLintGuard } = jest.requireMock<{
+      startNextLintGuard: jest.Mock;
+    }>('../src/lint');
+    startNextLintGuard.mockClear();
+    withPlumeria({}, { withoutPhysicalProperties: { sizes: true } });
+    expect(startNextLintGuard).toHaveBeenCalledWith({
+      '@plumeria/no-physical-properties': ['error', { sizes: true }],
+    });
+  });
+
   it('does not pass lint to the loader', () => {
     const config = withPlumeria({}, { lint: false, styleProp: 'css' });
     const rule = config.turbopack!.rules!['*.tsx'] as {
