@@ -84,7 +84,6 @@ expect(getComputedStyle(button).color).toBe('red'); // don't
 - Don't assert computed styles. jsdom applies no stylesheet, and none is written: `getComputedStyle` returns initial values. Check the cascade, `@media` and pseudo-classes in a real browser.
 - Don't list it beside `@swc/jest`, `ts-jest` or `babel-jest` for the same files. Only one transformer runs per pattern.
 - Don't rely on the test run for type checking. SWC strips types; run `tsc` for that.
-- Don't use it to test what a style compiles to. Call the transform directly for that; see [Driving the transform](https://plumeria.dev/docs/api-reference/plugins/unplugin#driving-the-transform).
 
 ## License
 
