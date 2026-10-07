@@ -47,11 +47,10 @@ describe('ask', () => {
   });
 
   it('asks about the size axis once a spelling is chosen', async () => {
-    const asker = scripted(['logical', 'y', 'y', '', 'y']);
+    const asker = scripted(['logical', 'y', '', 'y']);
     await expect(ask(asker, {})).resolves.toMatchObject({
       spelling: 'logical',
       sizes: true,
-      expandBorderShorthands: true,
       styleProp: 'classStyle',
       eslint: true,
     });
@@ -83,7 +82,6 @@ describe('ask', () => {
       spelling: 'physical',
       sizes: false,
       styleProp: 'sx',
-      expandBorderShorthands: false,
       eslint: false,
     });
     expect(asker.asked).toEqual([]);
@@ -95,18 +93,18 @@ describe('ask', () => {
   });
 
   it('takes a renamed styling prop', async () => {
-    const answers = await ask(scripted(['3', 'n', 'sx', 'n']), {});
+    const answers = await ask(scripted(['3', 'sx', 'n']), {});
     expect(answers.styleProp).toBe('sx');
   });
 
   it('refuses a styling prop that is not an identifier', async () => {
-    await expect(ask(scripted(['3', 'n', 'class-style']), {})).rejects.toThrow(
+    await expect(ask(scripted(['3', 'class-style']), {})).rejects.toThrow(
       /not a valid identifier/,
     );
   });
 
   it('turns ESLint off when told to', async () => {
-    const answers = await ask(scripted(['3', 'n', '', 'n']), {});
+    const answers = await ask(scripted(['3', '', 'n']), {});
     expect(answers.eslint).toBe(false);
   });
 });
