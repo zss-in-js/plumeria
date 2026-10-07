@@ -315,10 +315,11 @@ the conditions only where one provably matches a subset of the other.
 
 ### Removing the first two entirely
 
-Two optional rules take the room away instead of reporting it. Expanding a
-border shorthand into the three declarations it stands for turns a crossing pair
-into a shorthand and a longhand, and writing one spelling of a property and not
-the other means the same property can never appear twice:
+Two rules take the room away instead of reporting it. Expanding a border
+shorthand into the three declarations it stands for turns a crossing pair into a
+shorthand and a longhand; `expand-border-shorthands` does that, and it is in
+`recommended` as a warning. Writing one spelling of a property and not the other
+means the same property can never appear twice; that is an optional rule:
 
 ```js
 import plumeria from '@plumeria/eslint-plugin';
@@ -327,14 +328,13 @@ export default [
   plumeria.configs.recommended,
   {
     rules: {
-      '@plumeria/expand-border-shorthands': 'warn',
       '@plumeria/no-logical-properties': 'warn',
     },
   },
 ];
 ```
 
-With both on, every pair on this page except the overlapping conditions and the
+With the spelling rule on as well, every pair on this page except the overlapping conditions and the
 two states becomes impossible to write. See
 [Optional rules](/docs/api-reference/plugins/eslint-plugin/optional-rules).
 </Step>
