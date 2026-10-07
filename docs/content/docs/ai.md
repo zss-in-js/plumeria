@@ -756,7 +756,7 @@ module.exports = {
 
 ## Toolchain Notes
 
-**Setup.** Do not write the configuration by hand. `npx @plumeria/init` detects the package manager and the bundler, installs the packages, writes `plumeria.d.ts` and the bundler config, extends the ESLint flat config, and puts `plumerialint --` in front of the `build` script. It shows the plan before it writes, `--dry-run` stops at the plan, and `--yes` takes every default without asking, which is what makes it usable without a TTY. A project that is already set up reads as done and nothing is written.
+**Setup.** Do not write the configuration by hand. `npx @plumeria/init` detects the package manager and the bundler, installs the packages, writes `plumeria.d.ts` and the bundler config, extends the ESLint flat config, and on esbuild and Bun puts `plumerialint --` in front of the `build` script. The other bundler plugins lint the build themselves. It shows the plan before it writes, `--dry-run` stops at the plan, and `--yes` takes every default without asking, which is what makes it usable without a TTY. A project that is already set up reads as done and nothing is written.
 
 **Compiler expectations.** The SWC compiler statically extracts `css.create()` calls, which is why they MUST sit at module top level. Prefer direct, clearly defined references — indirect variable references may be unanalyzable.
 
