@@ -91,6 +91,26 @@ describe('source generators', () => {
     ]);
   });
 
+  it('names a renamed styling prop in the ESLint settings', () => {
+    expect(eslintSource(answers(), true)).not.toContain('settings:');
+    expect(eslintEntries(answers({ styleProp: 'sx' }), false)[1]).toContain(
+      "files: ['**/*.{js,jsx}']",
+    );
+    const source = eslintSource(answers({ styleProp: 'sx' }), true);
+    expect(source).toContain("      plumeria: { styleProp: 'sx' },");
+    expect(eslintEntries(answers({ styleProp: 'sx' }), true)).toEqual([
+      'plumeria.configs.recommended',
+      [
+        '{',
+        "  files: ['**/*.{ts,tsx}'],",
+        '  settings: {',
+        "    plumeria: { styleProp: 'sx' },",
+        '  },',
+        '}',
+      ].join('\n'),
+    ]);
+  });
+
   it('covers plugin, script, and package-manager variants', () => {
     expect(pluginOptions(answers({ styleProp: 'sx' }))).toContain(
       "styleProp: 'sx'",
