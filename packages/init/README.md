@@ -13,11 +13,11 @@ writes. Nothing is installed or patched before you say so.
 ```
 ✔ detected  next  pnpm  typescript
 
-  ➡︎ install  @plumeria/core @plumeria/next-plugin @plumeria/eslint-plugin oxlint
+  ➡︎ install  @plumeria/core @plumeria/next-plugin @plumeria/eslint-plugin rimraf
   + write    plumeria.d.ts     classStyle
   ~ patch    next.config.ts    withPlumeria(...)
   ~ patch    eslint.config.ts  plumeria.configs.recommended
-  ~ patch    package.json      build: plumerialint -- next build
+  ~ patch    package.json      predev: rimraf .next, prebuild: rimraf .next
 ```
 
 ## What it detects
@@ -42,20 +42,17 @@ so the counterpart cannot compile, and ESLint gets
 is reported while you type. Answering "none" sets neither. `--sizes` extends
 the answer to the size axis, where `width` and `inlineSize` are the pair.
 
-**Expand a border shorthand into the three declarations it sets?** — turns on
-`@plumeria/expand-border-shorthands`. A `border` shorthand crosses the axis
-shorthands without either containing the other, so leaving it whole makes the
-outcome depend on order.
-
 **Which JSX prop carries styles?** — `classStyle` by default. A renamed prop is
 written into the plugin as `styleProp` and declared in `plumeria.d.ts`, so the
 two cannot disagree. It has to be an identifier TypeScript can declare, and a
 name React leaves free; `className`, `style`, `key`, `ref` and `children` are
 refused, from the prompt and from `--style-prop` alike.
 
-**Set up `@plumeria/eslint-plugin` and the `plumerialint` build guard?** — adds
-the plugin and `oxlint`, writes or extends the flat config, and prefixes the
-`build` script with `plumerialint --`, so a style error stops the build.
+**Set up `@plumeria/eslint-plugin` for ESLint?** — adds the plugin and writes or
+extends the flat config, so a style error is reported while you type. The build
+lints either way: the bundler plugin runs the same rules alongside the build and
+stops it on a style error. On esbuild and Bun, which the plugin cannot lint,
+the `build` script is prefixed with `plumerialint --` instead.
 
 ## What it writes
 
@@ -66,8 +63,8 @@ the plugin and `oxlint`, writes or extends the flat config, and prefixes the
   wrapped in `withPlumeria`.
 - `eslint.config.ts` — `plumeria.configs.recommended` plus the rules that were
   asked for. An existing flat config is extended rather than replaced.
-- `package.json` — `plumerialint --` in front of the `build` script, and on
-  Next.js `rimraf .next` before `dev` and before `build`, so a version change is
+- `package.json` — on esbuild and Bun, `plumerialint --` in front of the `build`
+  script, and on Next.js `rimraf .next` before `dev` and before `build`, so a version change is
   not read as a compile error. A `pre` script is added only for a script the
   project actually has, and one it already wrote is left alone. Clearing the
   cache is a Next.js concern rather than a lint one, so `--no-eslint` keeps it.
@@ -94,7 +91,7 @@ npx @plumeria/init --yes                # take every default, ask nothing
 npx @plumeria/init --physical --sizes   # answer the spelling question up front
 npx @plumeria/init --style-prop sx
 npx @plumeria/init --bundler rollup
-npx @plumeria/init --no-eslint          # leave ESLint and the plumerialint guard out
+npx @plumeria/init --no-eslint          # leave ESLint out
 npx @plumeria/init --no-install         # write the configs, print the command
 npx @plumeria/init --cwd packages/app
 ```
