@@ -3,7 +3,7 @@ import { createFilter } from '@rollup/pluginutils';
 import * as path from 'path';
 import compiler from '@plumeria/compiler';
 import type { PropertyPolicyOptions } from '@plumeria/compiler';
-import { spellingRules, startLintGuard } from '@plumeria/eslint-plugin/guard';
+import { lintOverrides, startLintGuard } from '@plumeria/eslint-plugin/guard';
 
 const {
   resolvePropertyPolicy,
@@ -54,7 +54,7 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
 
   const lint = options.lint !== false;
   const startLint = () => {
-    startLintGuard(spellingRules(options));
+    startLintGuard(lintOverrides(options));
   };
   const lintOnRun = (bundler: {
     hooks: { run: { tap: (name: string, fn: () => void) => void } };
