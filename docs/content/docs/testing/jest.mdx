@@ -70,7 +70,6 @@ expect(getComputedStyle(button).color).toBe('red'); // don't
 - Don't hard-code a generated class name. Each one is a property–value pair, hashed: add a property to the style and the test fails, having found nothing wrong with the component.
 - Don't assert computed styles. No stylesheet is written, and jsdom applies none; see [What jsdom does not give you](/docs/testing#what-jsdom-does-not-give-you).
 - Don't list it beside `@swc/jest`, `ts-jest` or `babel-jest` for the same files. Only one transformer runs per pattern.
-- Don't test what a style compiles to here. Call the transform directly; see [Driving the transform](/docs/api-reference/plugins/unplugin#driving-the-transform).
 
 <Cards>
   <Card title="See more about @plumeria/swc-jest" href="/docs/api-reference/plugins/swc-jest" />
