@@ -128,36 +128,3 @@ oxlint skips the files `.gitignore` ignores, and runs only the Plumeria rules, n
 ```ts
 plumeria.vite({ lint: false });
 ```
-
-## Driving the transform
-
-`@plumeria/unplugin/factory` exposes the plugin behind every bundler entry. `transform` takes a source string and hands back the rewritten code; `load` hands back the stylesheet it emitted. No bundler, no DOM and no runtime resolution of `@plumeria/core` is involved, so it runs anywhere plain JavaScript does — which makes it the way to assert what a style compiles to:
-
-```js title="compile.test.js"
-const { unpluginFactory } = require('@plumeria/unplugin/factory');
-const plugin = unpluginFactory();
-
-const compile = async (source) => {
-  const { code } = await plugin.transform(source, `${__dirname}/fixture.tsx`);
-  const cssId = code.match(/import "(.+\.zero\.css)"/)[1];
-  return { code, css: plugin.load(cssId) };
-};
-
-test('two properties become two atoms', async () => {
-  const { code, css } = await compile(`
-    import * as css from '@plumeria/core';
-    const styles = css.create({ box: { padding: 16, color: 'red' } });
-    export const A = () => <div classStyle={styles.box} />;
-  `);
-
-  expect(code).toMatch(/className=\{"\S+ \S+"\}/);
-  expect(css).toContain('padding: 16px');
-  expect(css).toContain('color: red');
-});
-```
-
-`fixture.tsx` does not have to exist; the path only tells the compiler where the module would sit.
-
-The example is written for Jest. Vitest wants `import { test, expect } from 'vitest'` and ESM in place of `require` and `__dirname`; `node:test` takes `test` from `node:test` and asserts through `node:assert`, having no `expect`. What is being called stays the same in all three.
-
-The factory's hooks are part of the published surface, and will not be changed under you.
