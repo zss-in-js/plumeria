@@ -21,12 +21,20 @@ describe('startNextLintGuard', () => {
   });
 
   it('starts the lint guard for next build', () => {
-    expect(startNextLintGuard(['node', NEXT_BIN, 'build'])).toBe(true);
-    expect(startLintGuard).toHaveBeenCalledTimes(1);
+    expect(
+      startNextLintGuard({ '@plumeria/no-physical-properties': 'error' }, [
+        'node',
+        NEXT_BIN,
+        'build',
+      ]),
+    ).toBe(true);
+    expect(startLintGuard).toHaveBeenCalledWith({
+      '@plumeria/no-physical-properties': 'error',
+    });
   });
 
   it('does not start the lint guard for next dev', () => {
-    expect(startNextLintGuard(['node', NEXT_BIN, 'dev'])).toBe(false);
+    expect(startNextLintGuard({}, ['node', NEXT_BIN, 'dev'])).toBe(false);
     expect(startLintGuard).not.toHaveBeenCalled();
   });
 });
