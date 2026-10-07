@@ -66,7 +66,7 @@ Split, organize, and refactor styles across files without fear. Where traditiona
 
 ## Never Executes Your Application Code
 
-Plumeria's compiler never executes your application code. It relies purely on fast static analysis (oxlint/ESLint) and direct AST rewrites, and the hand-written type definitions of `@plumeria/core` resolve without any evaluation. The build pipeline stays fast and lightweight — and it can never break on a runtime evaluation error, because there is no runtime evaluation.
+Plumeria's compiler never executes your application code. It relies purely on fast static analysis with the oxc parser and direct AST rewrites, and the hand-written type definitions of `@plumeria/core` resolve without any evaluation. The build pipeline stays fast and lightweight — and it can never break on a runtime evaluation error, because there is no runtime evaluation.
 
 ## Already on CSS Modules
 
