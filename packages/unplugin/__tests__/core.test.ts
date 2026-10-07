@@ -1,6 +1,6 @@
 jest.mock('@plumeria/eslint-plugin/guard', () => ({
-  spellingRules: jest.requireActual('@plumeria/eslint-plugin/guard')
-    .spellingRules,
+  lintOverrides: jest.requireActual('@plumeria/eslint-plugin/guard')
+    .lintOverrides,
   startLintGuard: jest.fn(),
 }));
 jest.mock('@plumeria/compiler', () => ({
@@ -256,7 +256,15 @@ describe('the lint guard', () => {
     ) as any;
     plugin.vite.config({}, { command: 'build' });
     expect(startLintGuard).toHaveBeenCalledWith({
-      '@plumeria/no-logical-properties': 'error',
+      rules: { '@plumeria/no-logical-properties': 'error' },
+    });
+  });
+
+  it('lints with the styling prop the options name', () => {
+    const plugin = unpluginFactory({ styleProp: 'sx' }, {} as never) as any;
+    plugin.vite.config({}, { command: 'build' });
+    expect(startLintGuard).toHaveBeenCalledWith({
+      settings: { plumeria: { styleProp: 'sx' } },
     });
   });
 
