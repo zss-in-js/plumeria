@@ -3,7 +3,7 @@ import { createFilter } from '@rollup/pluginutils';
 import * as path from 'path';
 import compiler from '@plumeria/compiler';
 import type { PropertyPolicyOptions } from '@plumeria/compiler';
-import { startLintGuard } from '@plumeria/eslint-plugin/guard';
+import { spellingRules, startLintGuard } from '@plumeria/eslint-plugin/guard';
 
 const {
   resolvePropertyPolicy,
@@ -53,17 +53,20 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
   let viteRoot: string = process.cwd();
 
   const lint = options.lint !== false;
+  const startLint = () => {
+    startLintGuard(spellingRules(options));
+  };
   const lintOnRun = (bundler: {
     hooks: { run: { tap: (name: string, fn: () => void) => void } };
   }) => {
     if (!lint) return;
     bundler.hooks.run.tap('@plumeria/unplugin', () => {
-      startLintGuard();
+      startLint();
     });
   };
   const lintUnlessWatching = {
     buildStart(this: { meta: { watchMode: boolean } }) {
-      if (lint && !this.meta.watchMode) startLintGuard();
+      if (lint && !this.meta.watchMode) startLint();
     },
   };
 
@@ -77,13 +80,12 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
     rolldown: lintUnlessWatching,
     vite: {
       config(_config: unknown, { command }: { command: string }) {
-        if (lint && command === 'build') startLintGuard();
+        if (lint && command === 'build') startLint();
       },
     },
     farm: {
       config(config: any) {
-        if (lint && config?.compilation?.mode === 'production')
-          startLintGuard();
+        if (lint && config?.compilation?.mode === 'production') startLint();
         return config;
       },
     },
