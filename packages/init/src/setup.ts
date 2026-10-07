@@ -211,6 +211,15 @@ export default defineConfig({
   return undefined;
 };
 
+const settingsLines = (answers: Answers): string[] =>
+  answers.styleProp === DEFAULT_STYLE_PROP
+    ? []
+    : [
+        `settings: {`,
+        `  plumeria: { styleProp: '${answers.styleProp}' },`,
+        `},`,
+      ];
+
 export const eslintSource = (answers: Answers, typescript: boolean): string => {
   const rules = [spellingRule(answers)].filter(
     (rule): rule is string => rule !== undefined,
@@ -225,6 +234,7 @@ export const eslintSource = (answers: Answers, typescript: boolean): string => {
     rules.length > 0 ? `    rules: {` : undefined,
     ...rules.map((rule) => `      ${rule},`),
     rules.length > 0 ? `    },` : undefined,
+    ...settingsLines(answers).map((line) => `    ${line}`),
     `  },`,
   ].filter((line): line is string => line !== undefined);
 
@@ -258,17 +268,21 @@ export const eslintEntries = (
     (rule): rule is string => rule !== undefined,
   );
 
+  const settings = settingsLines(answers);
   const entries = ['plumeria.configs.recommended'];
-  if (rules.length > 0) {
+  if (rules.length > 0 || settings.length > 0) {
     entries.push(
       [
         `{`,
         `  files: ['**/*.{${typescript ? 'ts,tsx' : 'js,jsx'}}'],`,
-        `  rules: {`,
+        rules.length > 0 ? `  rules: {` : undefined,
         ...rules.map((rule) => `    ${rule},`),
-        `  },`,
+        rules.length > 0 ? `  },` : undefined,
+        ...settings.map((line) => `  ${line}`),
         `}`,
-      ].join('\n'),
+      ]
+        .filter((line): line is string => line !== undefined)
+        .join('\n'),
     );
   }
   return entries;
