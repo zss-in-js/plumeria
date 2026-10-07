@@ -4,8 +4,6 @@ description: 'Fixed rscute to compile semi-cyclic references and add new APIs'
 date: '2025/06/11'
 ---
 
-import Link from 'next/link'
-
 > **Current API:** `css.createComposite()` was folded into `css.props()` ([0.11.0](/blog/plumeria-0-11-0)), which is now `css.use()` ([9.0.0](/blog/plumeria-9-0-0)); see [classStyle & use()](/docs/api-reference/javascript/use).<br />
 > `css.defineConsts()` is now `css.createStatic()` ([2.0.0](/blog/plumeria-2-0-0)); see [createStatic](/docs/api-reference/javascript/createStatic).
 
@@ -34,7 +32,7 @@ eg, `core: 0.10.4` and `compiler: 0.10.0`.
 - Added `css.defineConsts()`.
 - Fixed `rscute` to compile semi-cyclic references.
 - Fixed `defineThemeVars` split into `defineVars` and `defineTheme`.
-- Added all color completions to <Link href="/docs/color">`css.color`</Link>
+- Added all color completions to `css.color`
 - API Types definitions are now public.
 
 ## Other Fixed:
