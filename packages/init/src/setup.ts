@@ -24,7 +24,6 @@ export interface Answers {
   spelling: Spelling;
   sizes: boolean;
   styleProp: string;
-  expandBorderShorthands: boolean;
   eslint: boolean;
   install: boolean;
 }
@@ -78,7 +77,6 @@ export const DEFAULT_ANSWERS: Answers = {
   spelling: 'none',
   sizes: false,
   styleProp: DEFAULT_STYLE_PROP,
-  expandBorderShorthands: true,
   eslint: true,
   install: true,
 };
@@ -214,12 +212,9 @@ export default defineConfig({
 };
 
 export const eslintSource = (answers: Answers, typescript: boolean): string => {
-  const rules = [
-    answers.expandBorderShorthands
-      ? `'@plumeria/expand-border-shorthands': 'warn'`
-      : undefined,
-    spellingRule(answers),
-  ].filter((rule): rule is string => rule !== undefined);
+  const rules = [spellingRule(answers)].filter(
+    (rule): rule is string => rule !== undefined,
+  );
 
   const block = [
     `  {`,
@@ -259,12 +254,9 @@ export const eslintEntries = (
   answers: Answers,
   typescript: boolean,
 ): string[] => {
-  const rules = [
-    answers.expandBorderShorthands
-      ? `'@plumeria/expand-border-shorthands': 'warn'`
-      : undefined,
-    spellingRule(answers),
-  ].filter((rule): rule is string => rule !== undefined);
+  const rules = [spellingRule(answers)].filter(
+    (rule): rule is string => rule !== undefined,
+  );
 
   const entries = ['plumeria.configs.recommended'];
   if (rules.length > 0) {
@@ -282,6 +274,9 @@ export const eslintEntries = (
   return entries;
 };
 
+const guardsByScript = (detected: Detected): boolean =>
+  detected.bundler === 'esbuild' || detected.bundler === 'bun';
+
 export const packages = (detected: Detected, answers: Answers): string[] => {
   const present = installed(detected.manifest);
   const wanted = [
@@ -292,7 +287,7 @@ export const packages = (detected: Detected, answers: Answers): string[] => {
   ];
 
   if (answers.eslint) {
-    wanted.push('@plumeria/eslint-plugin', 'oxlint');
+    wanted.push('@plumeria/eslint-plugin');
     if (!detected.eslintConfig) {
       wanted.push('eslint', '@eslint/js');
       if (detected.typescript) wanted.push('typescript-eslint');
@@ -354,7 +349,10 @@ export const plan = (detected: Detected, answers: Answers): Action[] => {
 
   actions.push(bundlerAction(detected, answers));
   if (answers.eslint) actions.push(eslintAction(detected, answers));
-  if (answers.eslint || detected.bundler === 'next')
+  if (
+    (answers.eslint && guardsByScript(detected)) ||
+    detected.bundler === 'next'
+  )
     actions.push(scriptAction(detected, answers));
 
   return actions;
@@ -594,7 +592,8 @@ const scriptAction = (detected: Detected, answers: Answers): Action => {
   const notes: string[] = [];
 
   const existing = scripts.build;
-  if (answers.eslint && existing && !existing.includes('plumerialint')) {
+  const guard = answers.eslint && guardsByScript(detected);
+  if (guard && existing && !existing.includes('plumerialint')) {
     scripts.build = buildScript(existing);
     notes.push(`build: ${scripts.build}`);
   }
@@ -612,7 +611,7 @@ const scriptAction = (detected: Detected, answers: Answers): Action => {
       kind: 'skip',
       label: 'skip',
       note:
-        answers.eslint && !existing
+        guard && !existing
           ? 'no build script to guard'
           : 'the scripts already carry it',
       file: 'package.json',
