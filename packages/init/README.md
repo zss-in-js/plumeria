@@ -64,7 +64,7 @@ the `build` script is prefixed with `plumerialint --` instead.
 - `eslint.config.ts` — `plumeria.configs.recommended` plus the rules that were
   asked for. An existing flat config is extended rather than replaced.
 - `package.json` — on esbuild and Bun, `plumerialint --` in front of the `build`
-  script, and on Next.js `rimraf .next` before `dev` and before `build`, so a version change is
+  script, with `--style-prop` when the styling prop was renamed, and on Next.js `rimraf .next` before `dev` and before `build`, so a version change is
   not read as a compile error. A `pre` script is added only for a script the
   project actually has, and one it already wrote is left alone. Clearing the
   cache is a Next.js concern rather than a lint one, so `--no-eslint` keeps it.
