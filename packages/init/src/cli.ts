@@ -27,7 +27,7 @@ Options
       --logical        this project writes logical properties
       --physical       this project writes physical properties
       --sizes          extend the spelling policy to the size axis
-      --no-eslint      leave ESLint and the plumerialint guard out
+      --no-eslint      leave ESLint out
       --no-install     write the configs, print the install command
       --cwd <dir>      run against another directory
   -h, --help           show this message
