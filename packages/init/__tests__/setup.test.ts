@@ -86,9 +86,9 @@ describe('source generators', () => {
     expect(bundlerSource('astro', answers(), true)).toContain('vite:');
     expect(bundlerSource('webpack', answers(), true)).toBeUndefined();
     expect(eslintSource(answers(), false)).toContain('**/*.{js,jsx}');
-    expect(
-      eslintEntries(answers({ expandBorderShorthands: false }), false),
-    ).toEqual(['plumeria.configs.recommended']);
+    expect(eslintEntries(answers(), false)).toEqual([
+      'plumeria.configs.recommended',
+    ]);
   });
 
   it('covers plugin, script, and package-manager variants', () => {
@@ -274,7 +274,6 @@ describe('plan', () => {
       ),
     );
     expect(written).toContain('plumeria.configs.recommended,');
-    expect(written).toContain("'@plumeria/expand-border-shorthands': 'warn',");
     expect(written).toContain("'@plumeria/no-physical-properties': 'error',");
     expect(written).toContain('parserOptions: { projectService: true }');
   });
@@ -286,21 +285,18 @@ describe('plan', () => {
     );
 
     const written = contentsOf(
-      on(
-        plan(detect(dir), answers({ expandBorderShorthands: false })),
-        'eslint.config.ts',
-      ),
+      on(plan(detect(dir), answers()), 'eslint.config.ts'),
     );
     expect(written).toContain('plumeria.configs.recommended,');
     expect(written).not.toContain('rules:');
   });
 
-  it('guards the build script it finds', () => {
+  it('guards the build script of a bundler the plugin cannot lint', () => {
     project(
       {
         name: 'app',
-        scripts: { build: 'tsc -b && vite build' },
-        devDependencies: { vite: '^8.0.13' },
+        scripts: { build: 'node build.mjs' },
+        devDependencies: { esbuild: '^0.28.0' },
       },
       { 'tsconfig.json': '{}' },
     );
@@ -310,7 +306,22 @@ describe('plan', () => {
     ) as {
       scripts: Record<string, string>;
     };
-    expect(patched.scripts.build).toBe('plumerialint -- tsc -b && vite build');
+    expect(patched.scripts.build).toBe('plumerialint -- node build.mjs');
+  });
+
+  it('leaves the build script alone where the plugin lints the build', () => {
+    project(
+      {
+        name: 'app',
+        scripts: { build: 'tsc -b && vite build' },
+        devDependencies: { vite: '^8.0.13' },
+      },
+      { 'tsconfig.json': '{}' },
+    );
+
+    expect(() => on(plan(detect(dir), answers()), 'package.json')).toThrow(
+      'nothing planned for package.json',
+    );
   });
 
   it('installs only what is missing', () => {
@@ -474,11 +485,10 @@ describe('plan', () => {
       dir,
       'package.json',
       JSON.stringify({
-        scripts: { build: 'vite build' },
-        devDependencies: { vite: '1' },
+        scripts: { build: 'node build.mjs' },
+        devDependencies: { esbuild: '1' },
       }),
     );
-    add(dir, 'vite.config.js', VITE_CONFIG);
     const patched = contentsOf(
       on(plan(detect(dir), answers()), 'package.json'),
     );
@@ -694,7 +704,7 @@ describe('the Next cache', () => {
     expect(patched.scripts).toMatchObject({
       predev: 'rimraf .next',
       prebuild: 'rimraf .next',
-      build: 'plumerialint -- next build',
+      build: 'next build',
     });
   });
 
@@ -712,12 +722,7 @@ describe('the Next cache', () => {
   it('leaves a pre script the project already wrote', () => {
     next({ predev: 'del .next', prebuild: 'del .next', build: 'next build' });
 
-    const patched = JSON.parse(
-      contentsOf(on(plan(detect(dir), answers()), 'package.json')),
-    ) as { scripts: Record<string, string> };
-
-    expect(patched.scripts.predev).toBe('del .next');
-    expect(patched.scripts.prebuild).toBe('del .next');
+    expect(on(plan(detect(dir), answers()), 'package.json').kind).toBe('skip');
   });
 
   it('leaves the scripts of another bundler alone', () => {
@@ -728,12 +733,9 @@ describe('the Next cache', () => {
     );
     add(dir, 'tsconfig.json', '{}');
 
-    const patched = JSON.parse(
-      contentsOf(on(plan(detect(dir), answers()), 'package.json')),
-    ) as { scripts: Record<string, string> };
-
-    expect(patched.scripts.predev).toBeUndefined();
-    expect(patched.scripts.build).toBe('plumerialint -- vite build');
+    expect(() => on(plan(detect(dir), answers()), 'package.json')).toThrow(
+      'nothing planned for package.json',
+    );
   });
 });
 
