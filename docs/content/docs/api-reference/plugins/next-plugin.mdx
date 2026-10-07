@@ -116,9 +116,9 @@ export default withPlumeria(nextConfig, {
 
 The lint is integrated into the build by default, so it needs no setup. `next build` runs [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) through oxlint alongside the compile and stops on any error or warning. The build waits for the lint before it exits, so a build that finishes first still fails when the lint does. `next dev` does not lint.
 
-The lint runs the recommended rules. It does not read `eslint.config.*`, so an [optional rule](/docs/api-reference/plugins/eslint-plugin/optional-rules) enabled there runs under ESLint only.
+The lint runs the recommended rules, and `withoutLogicalProperties` or `withoutPhysicalProperties` adds the [spelling rule](/docs/api-reference/plugins/eslint-plugin/optional-rules) that matches, `{ sizes }` included. It does not read `eslint.config.*`.
 
-oxlint skips the files `.gitignore` ignores, and the build also stops when it finds no file to lint.
+oxlint skips the files `.gitignore` ignores, and runs only the Plumeria rules, not oxlint's own.
 
 `plumerialint -- next build` still works, and the lint runs once. To build without it:
 
