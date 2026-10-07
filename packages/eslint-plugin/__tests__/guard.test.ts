@@ -5,7 +5,28 @@ jest.mock('child_process', () => ({
   spawn: (...args: unknown[]) => spawn(...args),
 }));
 
-import { startLintGuard } from '../src/guard';
+import * as fs from 'fs';
+import { spellingRules, startLintGuard } from '../src/guard';
+
+describe('spellingRules', () => {
+  it('turns each spelling option into its rule', () => {
+    expect(spellingRules({})).toEqual({});
+    expect(
+      spellingRules({
+        withoutLogicalProperties: true,
+        withoutPhysicalProperties: false,
+      }),
+    ).toEqual({ '@plumeria/no-logical-properties': 'error' });
+    expect(
+      spellingRules({ withoutPhysicalProperties: { sizes: true } }),
+    ).toEqual({
+      '@plumeria/no-physical-properties': ['error', { sizes: true }],
+    });
+    expect(spellingRules({ withoutLogicalProperties: {} })).toEqual({
+      '@plumeria/no-logical-properties': 'error',
+    });
+  });
+});
 
 describe('startLintGuard', () => {
   const realExit = process.exit;
@@ -43,6 +64,7 @@ describe('startLintGuard', () => {
       '-c',
       expect.stringMatching(/eslint-plugin[\\/]oxlint\.json$/),
       '--deny-warnings',
+      '--no-error-on-unmatched-pattern',
     ]);
   });
 
@@ -73,5 +95,16 @@ describe('startLintGuard', () => {
     child.emit('close', 0);
     process.exit(0);
     expect(exit).toHaveBeenCalledWith(0);
+  });
+
+  it('extends the plumeria config with the rules it is given', () => {
+    startLintGuard({ '@plumeria/no-physical-properties': 'error' });
+    const config = spawn.mock.calls[0][1][2];
+    expect(JSON.parse(fs.readFileSync(config, 'utf8'))).toEqual({
+      extends: [expect.stringMatching(/eslint-plugin[\\/]oxlint\.json$/)],
+      rules: { '@plumeria/no-physical-properties': 'error' },
+    });
+    child.emit('close', 0);
+    expect(fs.existsSync(config)).toBe(false);
   });
 });
