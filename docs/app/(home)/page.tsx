@@ -92,8 +92,8 @@ const styles = css.create({
   groups: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, max-content)',
-    justifyContent: 'space-between',
     gap: 32,
+    justifyContent: 'space-between',
     [breakpoints.sm]: {
       gridTemplateColumns: 'repeat(2, max-content)',
       justifyContent: 'space-evenly',
@@ -163,7 +163,7 @@ export default function Page() {
       <div classStyle={styles.hero}>
         <h1 classStyle={styles.title}>Plumeria</h1>
         <p classStyle={styles.description}>
-          Type-safe styling for <span classStyle={styles.emphasis}>React.</span>
+          Type-safe styling for <span classStyle={styles.emphasis}>React</span>.
           <br />
           <span classStyle={styles.emphasis}>Rust-compiled</span> zero-runtime atomic CSS.
         </p>
