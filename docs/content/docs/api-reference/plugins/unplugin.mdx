@@ -119,7 +119,7 @@ esbuild and Bun do not say whether a build is a one-off or a watch, so they do n
 
 A build started from a script or a test lints as well, and a lint error ends that process. Pass `lint: false` where that is not wanted.
 
-The lint runs the recommended rules, and `withoutLogicalProperties` or `withoutPhysicalProperties` adds the [spelling rule](/docs/api-reference/plugins/eslint-plugin/optional-rules) that matches, `{ sizes }` included. It does not read `eslint.config.*`.
+The lint runs the recommended rules, and `withoutLogicalProperties` or `withoutPhysicalProperties` adds the [spelling rule](/docs/api-reference/plugins/eslint-plugin/optional-rules) that matches, `{ sizes }` included. `styleProp` reaches the rules that read the styling prop. It does not read `eslint.config.*`.
 
 oxlint skips the files `.gitignore` ignores, and runs only the Plumeria rules, not oxlint's own.
 
