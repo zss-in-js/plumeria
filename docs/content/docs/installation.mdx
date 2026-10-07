@@ -11,8 +11,7 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 ## One command
 
 `npx @plumeria/init` reads the project, asks what it cannot read, and writes the
-rest: the packages, the bundler plugin, `plumeria.d.ts`, the ESLint config and
-the `plumerialint` build guard.
+rest: the packages, the bundler plugin, `plumeria.d.ts` and the ESLint config.
 
 ```sh title="Terminal"
 npx @plumeria/init
@@ -79,35 +78,25 @@ export default defineConfig(
 );
 ```
 
-The `plumerialint` command ships with the plugin and runs its rules through `oxlint`, so a style error stops the build. Install the plugin and `oxlint`, plus `rimraf` for Next.js:
+The bundler plugins lint the build with these rules by default, so a style error stops it with no setup. On esbuild and Bun, put `plumerialint --` in front of the build command instead, and add `--style-prop` if the styling prop was renamed.
+
+Install the plugin, plus `rimraf` for Next.js:
 
 ```sh
-pnpm i -D @plumeria/eslint-plugin oxlint rimraf
+pnpm i -D @plumeria/eslint-plugin rimraf
 ```
 
 On Next.js, clearing the build cache before `dev` and `build` keeps a version change from being read as a compile error:
-<Tabs items={["Next.js", "Vite"]}>
-<Tab>
+
 ```json title="package.json"
   "scripts": {
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
     "dev": "next dev",
-    "build": "plumerialint -- next build",
+    "build": "next build",
     "start": "next start",
   },
 ```
-
-</Tab>
-<Tab>
-```json title="package.json"
-  "scripts": {
-    "dev": "vite",
-    "build": "plumerialint -- tsc -b && vite build", 
-  },
-```
-</Tab>
-</Tabs>
 
 </Step>
 
