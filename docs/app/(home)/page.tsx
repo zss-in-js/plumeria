@@ -148,7 +148,7 @@ const groups = [
   {
     title: 'Skill',
     links: [
-      { label: 'AI agent resources', href: '/docs/ai-agent-resources' },
+      { label: 'AI Agent Resources', href: '/docs/ai-agent-resources' },
       { label: 'Privacy', href: '/privacy' },
     ],
   },
