@@ -258,6 +258,16 @@ plumerialint
 The process exits with a non-zero status code if any errors or warnings are found,
 making it suitable for use in CI and build pipelines.
 
+### Styling prop
+
+If the styling prop is renamed, pass the name with `--style-prop`. Without the
+flag, `plumerialint` asks ESLint for `settings.plumeria.styleProp` when ESLint
+and a flat config are installed, and uses `classStyle` otherwise:
+
+```bash
+plumerialint --style-prop sx
+```
+
 ### Aborting Builds on Lint Errors (Parallel Pipeline)
 
 You can run `plumerialint` in parallel with your build command (e.g. `next build` or `vite build`) using the `--` separator:
