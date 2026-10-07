@@ -3,6 +3,7 @@
 const { spawn } = require('child_process');
 const process = require('process');
 const path = require('path');
+const fs = require('fs');
 const oxlintConfig = path.join(__dirname, '..', 'oxlint.json');
 const oxlintBin = path.join(
   path.dirname(require.resolve('oxlint/package.json')),
@@ -10,49 +11,69 @@ const oxlintBin = path.join(
   'oxlint',
 );
 
+const { cliOverrides } = require('../dist/cli.js');
+const { lintConfig } = require('../dist/guard.js');
+
 const doubleDashIndex = process.argv.indexOf('--');
-let oxlintExtraArgs = [];
+let cliArgs = [];
 let buildCommand = null;
 let buildArgs = [];
 
 if (doubleDashIndex !== -1) {
-  oxlintExtraArgs = process.argv.slice(2, doubleDashIndex);
+  cliArgs = process.argv.slice(2, doubleDashIndex);
   if (doubleDashIndex + 1 < process.argv.length) {
     buildCommand = process.argv[doubleDashIndex + 1];
     buildArgs = process.argv.slice(doubleDashIndex + 2);
   }
 } else {
-  oxlintExtraArgs = process.argv.slice(2);
+  cliArgs = process.argv.slice(2);
 }
 
-const oxlintArgs = [
-  oxlintBin,
-  '-c',
-  oxlintConfig,
-  '--deny-warnings',
-  '--no-error-on-unmatched-pattern',
-  ...oxlintExtraArgs,
-];
+async function startOxlint() {
+  const { overrides, rest } = await cliOverrides(cliArgs, process.cwd());
+  const config = lintConfig(overrides);
+  const child = spawn(
+    process.execPath,
+    [
+      oxlintBin,
+      '-c',
+      config,
+      '--deny-warnings',
+      '--no-error-on-unmatched-pattern',
+      ...rest,
+    ],
+    { stdio: 'inherit' },
+  );
+  if (config !== oxlintConfig) {
+    child.on('close', () => fs.rmSync(config, { force: true }));
+  }
+  return child;
+}
 
 function handleOxlintError(err) {
   console.error('Error running oxlint:', err.message);
   process.exit(1);
 }
 
+function fail(err) {
+  console.error(`✖ [plumerialint] ${err.message}`);
+  process.exit(1);
+}
+
 if (!buildCommand) {
-  const child = spawn(process.execPath, oxlintArgs, { stdio: 'inherit' });
-  child.on('error', handleOxlintError);
-  child.on('close', (code) => {
-    process.exit(code || 0);
-  });
+  startOxlint().then((child) => {
+    child.on('error', handleOxlintError);
+    child.on('close', (code) => {
+      process.exit(code || 0);
+    });
+  }, fail);
 } else {
   let oxlintExited = false;
   let oxlintCode = null;
   let buildExited = false;
   let buildCode = null;
   let aborted = false;
-
-  const oxlintChild = spawn(process.execPath, oxlintArgs, { stdio: 'inherit' });
+  let oxlintChild = null;
 
   const fullBuildCommand =
     buildArgs.length > 0
@@ -78,15 +99,11 @@ if (!buildCommand) {
     } else if (failedSource === 'build') {
       console.error(`\n✖ [plumerialint] Build failed. Aborting lint...`);
       try {
-        oxlintChild.kill();
+        if (oxlintChild) oxlintChild.kill();
       } catch (e) {}
       process.exit(exitCode || 1);
     }
   }
-
-  oxlintChild.on('error', (err) => {
-    handleOxlintError(err);
-  });
 
   buildChild.on('error', (err) => {
     console.error(
@@ -94,16 +111,6 @@ if (!buildCommand) {
       err.message,
     );
     abort(1, 'build');
-  });
-
-  oxlintChild.on('close', (code) => {
-    oxlintExited = true;
-    oxlintCode = code;
-    if (code !== 0) {
-      abort(code, 'lint');
-    } else if (buildExited) {
-      process.exit(buildCode || 0);
-    }
   });
 
   buildChild.on('close', (code) => {
@@ -115,4 +122,22 @@ if (!buildCommand) {
       process.exit(oxlintCode || 0);
     }
   });
+
+  startOxlint().then((child) => {
+    if (aborted) {
+      child.kill();
+      return;
+    }
+    oxlintChild = child;
+    child.on('error', handleOxlintError);
+    child.on('close', (code) => {
+      oxlintExited = true;
+      oxlintCode = code;
+      if (code !== 0) {
+        abort(code, 'lint');
+      } else if (buildExited) {
+        process.exit(buildCode || 0);
+      }
+    });
+  }, fail);
 }
