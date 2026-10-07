@@ -1,5 +1,5 @@
 {
   "defaultOpen": false,
   "title": "API Reference",
-  "pages": ["tools", "plugins", "javascript", "types", "components"]
+  "pages": ["plugins", "javascript", "types", "components", "tools"]
 }
