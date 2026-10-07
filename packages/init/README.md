@@ -62,7 +62,7 @@ the `build` script is prefixed with `plumerialint --` instead.
   plugin joins the `plugins` array. A Next config has its default export
   wrapped in `withPlumeria`.
 - `eslint.config.ts` — `plumeria.configs.recommended` plus the rules that were
-  asked for. An existing flat config is extended rather than replaced.
+  asked for, and `settings.plumeria.styleProp` when the styling prop was renamed. An existing flat config is extended rather than replaced.
 - `package.json` — on esbuild and Bun, `plumerialint --` in front of the `build`
   script, with `--style-prop` when the styling prop was renamed, and on Next.js `rimraf .next` before `dev` and before `build`, so a version change is
   not read as a compile error. A `pre` script is added only for a script the
