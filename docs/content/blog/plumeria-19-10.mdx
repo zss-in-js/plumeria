@@ -32,7 +32,7 @@ Now oxlint starts inside the bundler and runs [`@plumeria/eslint-plugin`](/docs/
 | `@plumeria/next-plugin` | `next build` |
 | `@plumeria/unplugin` | `vite build`, a single webpack or Rspack build, a single Rollup or Rolldown build, `farm build` |
 
-Development servers and watch builds do not lint. The lint runs in parallel with the compile, so the build time is unchanged.
+Development servers and watch builds do not lint.
 
 esbuild and Bun do not say whether a build is a one-off or a watch, so they keep `plumerialint -- <build>`, with `--style-prop` when the styling prop is renamed. Elsewhere that script still works, and the lint runs once.
 
@@ -73,6 +73,8 @@ See [`@plumeria/next-plugin`](/docs/api-reference/plugins/next-plugin#lint) and 
 
 ## Release notes
 
+In 19.10.0 and 19.10.1, the build lint checks `classStyle` only. A styling prop renamed with `styleProp` is linted from 19.10.2.
+
 ## 19.10.2 (Oct 7, 2026)
 
 - The build lint reads the styling prop from `styleProp`, so `no-mixed-styling-props`, `no-inline-object`, `no-style-prop-relay`, `no-unresolved-composition` and `custom-props-require-import` check the prop the compiler transforms instead of `classStyle`
@@ -86,8 +88,6 @@ See [`@plumeria/next-plugin`](/docs/api-reference/plugins/next-plugin#lint) and 
 - `@plumeria/next-plugin` starts the build lint only when the running bin is `next`, not when any path holds a `next` directory
 - `@plumeria/eslint-plugin/guard` no longer exports `GUARD_ENV` and `SpellingOptions`
 
-> **Known issue:** The build lint in this release checks `classStyle` whatever `styleProp` names, so a project that renamed the styling prop is linted against the wrong prop. Please use `^19.10.2` or later.
-
 ## 19.10.0 (Oct 7, 2026)
 
 - `@plumeria/next-plugin` and `@plumeria/unplugin` run `@plumeria/eslint-plugin` through oxlint alongside a production build and stop it on any error or warning, so no build script is needed
@@ -99,5 +99,3 @@ See [`@plumeria/next-plugin`](/docs/api-reference/plugins/next-plugin#lint) and 
 - The lint runs the Plumeria rules only, not oxlint's own default rules, and passes when there is no file to lint
 - `@plumeria/eslint-plugin` depends on oxlint 1.87.0
 - `@plumeria/init` prefixes the build script with `plumerialint --` only on esbuild and Bun, and no longer installs oxlint or asks about border shorthands
-
-> **Known issue:** The build lint in this release checks `classStyle` whatever `styleProp` names, so a project that renamed the styling prop is linted against the wrong prop. Please use `^19.10.2` or later.
