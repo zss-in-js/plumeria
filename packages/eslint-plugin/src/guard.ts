@@ -3,13 +3,13 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-export const GUARD_ENV = 'PLUMERIA_LINT_GUARD';
+const GUARD_ENV = 'PLUMERIA_LINT_GUARD';
 
 const BASE_CONFIG = path.join(__dirname, '..', 'oxlint.json');
 
 type Spelling = boolean | { sizes?: boolean } | undefined;
 
-export interface SpellingOptions {
+interface SpellingOptions {
   withoutLogicalProperties?: Spelling;
   withoutPhysicalProperties?: Spelling;
 }
