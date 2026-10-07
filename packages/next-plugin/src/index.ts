@@ -4,6 +4,7 @@ import type { TurbopackLoaderItem } from 'next/dist/server/config-shared';
 import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
 import * as fs from 'fs';
+import { spellingRules } from '@plumeria/eslint-plugin/guard';
 import { startNextLintGuard } from './lint';
 
 type TurbopackConfig = NonNullable<NextConfig['turbopack']>;
@@ -35,7 +36,7 @@ export function withPlumeria(
   nextConfig: NextConfig = {},
   { lint = true, ...options }: PlumeriaOptions = {},
 ): NextConfig {
-  if (lint) startNextLintGuard();
+  if (lint) startNextLintGuard(spellingRules(options));
 
   const globalRef = global as typeof global & {
     __PLUMERIA_RESET_DONE__?: boolean;
