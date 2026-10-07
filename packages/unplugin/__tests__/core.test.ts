@@ -1,4 +1,6 @@
 jest.mock('@plumeria/eslint-plugin/guard', () => ({
+  spellingRules: jest.requireActual('@plumeria/eslint-plugin/guard')
+    .spellingRules,
   startLintGuard: jest.fn(),
 }));
 jest.mock('@plumeria/compiler', () => ({
@@ -245,6 +247,17 @@ describe('the lint guard', () => {
     plugin.vite.config({}, { command: 'build' });
     plugin.farm.config({ compilation: { mode: 'production' } });
     expect(startLintGuard).toHaveBeenCalledTimes(2);
+  });
+
+  it('lints with the spelling rule the options turn on', () => {
+    const plugin = unpluginFactory(
+      { withoutLogicalProperties: true },
+      {} as never,
+    ) as any;
+    plugin.vite.config({}, { command: 'build' });
+    expect(startLintGuard).toHaveBeenCalledWith({
+      '@plumeria/no-logical-properties': 'error',
+    });
   });
 
   it('does not start with lint: false', () => {
