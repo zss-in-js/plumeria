@@ -1,0 +1,46 @@
+---
+title: 'Plumeria 19.0'
+description: 'Notice: 19.0.0 was shipped by mistake with known bugs; upgrade every @plumeria package past it'
+date: '2026-09-09'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+</div>
+
+Plumeria v19.0.0 was shipped by mistake. It contains the bugs below, so do not stay on it: upgrade every `@plumeria` package together to a release after 19.0.0, ideally the latest.
+
+```bash
+npm install @plumeria/core@latest @plumeria/next-plugin@latest @plumeria/eslint-plugin@latest
+```
+
+Upgrade the other `@plumeria` packages the project uses to the same version as well. The packages are released with one shared version number and expect each other at it.
+
+## Known bugs in 19.0.0
+
+1. **`Style` accepts more than created styles.** 19.0.0 made an inline object a type error, but the check was structural: the object that holds the styles, or any object shaped like a created style, still passed. Fixed in 19.1.0.
+2. **An at-rule without a space after the keyword is rejected.** `'@media(min-width: 600px)'` is a type error, and `validate-at-rules` reports it, though it is valid CSS. Fixed in 19.1.0.
+3. **A `css.marker()` style fails a constrained style prop.** A style built from `css.marker()` does not pass a prop typed with `StyleProps`. Fixed in 19.1.0.
+4. **Styles are dropped for a key that sets none of the colliding properties.** When a bracket group's key sets none of the properties the groups collide over, selecting it drops every other group's styles, with no error. This affects every release before 19.1.6.
+
+## What 19.0 introduced
+
+The features 19.0 introduced — `StyleProps`, `WithoutProperties`, `StaticStyles` and the `validate-at-rules` rule — are covered, with the fixes above, in [Plumeria 19.1](/blog/plumeria-19-1).
+
+---
+
+## Release notes
+
+## 19.0.0 (Sep 9, 2026)
+
+> **Shipped by mistake:** this release contains the bugs listed above. Please upgrade every `@plumeria` package to a later release.
+
+- Feat: add `StyleProps` and `WithoutProperties` for constraining the properties a style prop accepts
+- Feat: add `StaticStyles`, which rejects a dynamic style and narrows properties when given a type argument
+- Feat: add the `validate-at-rules` lint rule, which reports an unrecognised at-rule inside `css.create()`
+- Feat: the export reports a reference to a Plumeria style type and leaves that module in place, instead of removing the import the reference still needs
+- Fix: `css.use()` declared a rest parameter that was not an array type
+- Fix: the `classStyle` global augmentation was missing its `declare` modifier
+- Break: `Style` accepts only styles created by `css.create`; an inline object is a type error
