@@ -17,9 +17,6 @@ export const dynamic = 'force-static';
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.className} ${inter.variable}`} suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/logo.svg" sizes="any" />
-      </head>
       <body>
         <Provider>{children}</Provider>
         <Analytics mode="production" />
