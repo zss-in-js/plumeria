@@ -91,10 +91,11 @@ const styles = css.create({
   },
   groups: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(4, max-content)',
+    justifyContent: 'space-between',
     gap: 32,
     [breakpoints.sm]: {
-      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+      gridTemplateColumns: 'repeat(2, max-content)',
     },
   },
   heading: {
@@ -125,26 +126,29 @@ const groups = [
   {
     title: 'Develop',
     links: [
-      { label: 'Documentation', href: '/docs' },
-      { label: 'API reference', href: '/docs/api-reference' },
-      { label: 'Integrations', href: '/docs/integration' },
+      { label: 'API', href: '/docs/api-reference' },
+      { label: 'Testing', href: '/docs/testing' },
     ],
   },
   {
     title: 'Explore',
     links: [
-      { label: 'Why Plumeria?', href: '/docs/why-plumeria' },
+      { label: 'Playground', href: '/playground' },
       { label: 'Blog', href: latestBlogUrl },
-      { label: 'CSS references', href: '/docs/specificity' },
     ],
   },
   {
-    title: 'Resources',
+    title: 'Principles',
     links: [
-      { label: 'GitHub', href: 'https://github.com/zss-in-js/plumeria' },
+      { label: 'Specificity', href: '/docs/specificity' },
+      { label: 'Composition laws', href: '/docs/composition-laws' },
+    ],
+  },
+  {
+    title: 'Skill',
+    links: [
       { label: 'AI agent resources', href: '/docs/ai-agent-resources' },
-      { label: 'llms.txt', href: '/llms.txt' },
-      { label: 'Privacy Policy', href: '/privacy' },
+      { label: 'Privacy', href: '/privacy' },
     ],
   },
 ];
