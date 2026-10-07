@@ -1,9 +1,9 @@
 ---
 title: 'Testing'
-description: 'Test styles at the compiler, the component, the browser and the type checker.'
+description: 'Test styles at the component, the browser and the type checker.'
 ---
 
-Three questions get asked of a style, and each has its own answer. Does the component that uses it behave. What did it compile to. Does the page it renders actually look right.
+Two questions get asked of a style, and each has its own answer. Does the component that uses it behave. Does the page it renders actually look right.
 
 ## Components
 
@@ -13,10 +13,6 @@ Three questions get asked of a style, and each has its own answer. Does the comp
 - [Jest](/docs/testing/jest) takes `@plumeria/swc-jest` as its transformer.
 
 Either way the class names in the DOM are the ones the build gives them.
-
-## Compiled output
-
-To assert what the transform outputs — the rewritten code and the stylesheet — see [Driving the transform](/docs/api-reference/plugins/unplugin#driving-the-transform) or [Driving the loader](/docs/api-reference/plugins/next-plugin#driving-the-loader).
 
 ## What jsdom does not give you
 
