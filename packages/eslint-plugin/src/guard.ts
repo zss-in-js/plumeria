@@ -9,9 +9,15 @@ const BASE_CONFIG = path.join(__dirname, '..', 'oxlint.json');
 
 type Spelling = boolean | { sizes?: boolean } | undefined;
 
-interface SpellingOptions {
+interface LintOptions {
   withoutLogicalProperties?: Spelling;
   withoutPhysicalProperties?: Spelling;
+  styleProp?: string;
+}
+
+export interface LintOverrides {
+  rules?: Record<string, unknown>;
+  settings?: { plumeria: { styleProp: string } };
 }
 
 function spellingRule(spelling: Spelling): unknown {
@@ -21,29 +27,35 @@ function spellingRule(spelling: Spelling): unknown {
     : 'error';
 }
 
-export function spellingRules(
-  options: SpellingOptions,
-): Record<string, unknown> {
+export function lintOverrides(options: LintOptions): LintOverrides {
+  const overrides: LintOverrides = {};
   const rules: Record<string, unknown> = {};
   const logical = spellingRule(options.withoutLogicalProperties);
   const physical = spellingRule(options.withoutPhysicalProperties);
   if (logical) rules['@plumeria/no-logical-properties'] = logical;
   if (physical) rules['@plumeria/no-physical-properties'] = physical;
-  return rules;
+  if (logical || physical) overrides.rules = rules;
+  if (options.styleProp) {
+    overrides.settings = { plumeria: { styleProp: options.styleProp } };
+  }
+  return overrides;
 }
 
-function lintConfig(rules: Record<string, unknown>): string {
-  if (Object.keys(rules).length === 0) return BASE_CONFIG;
+function lintConfig(overrides: LintOverrides): string {
+  if (!overrides.rules && !overrides.settings) return BASE_CONFIG;
   const file = path.join(os.tmpdir(), `plumeria-oxlint-${process.pid}.json`);
-  fs.writeFileSync(file, JSON.stringify({ extends: [BASE_CONFIG], rules }));
+  fs.writeFileSync(
+    file,
+    JSON.stringify({ extends: [BASE_CONFIG], ...overrides }),
+  );
   return file;
 }
 
-export function startLintGuard(rules: Record<string, unknown> = {}): boolean {
+export function startLintGuard(overrides: LintOverrides = {}): boolean {
   if (process.env[GUARD_ENV]) return false;
   process.env[GUARD_ENV] = '1';
 
-  const config = lintConfig(rules);
+  const config = lintConfig(overrides);
 
   const child = spawn(
     process.execPath,
