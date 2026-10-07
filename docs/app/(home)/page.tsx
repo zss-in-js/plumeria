@@ -96,6 +96,7 @@ const styles = css.create({
     gap: 32,
     [breakpoints.sm]: {
       gridTemplateColumns: 'repeat(2, max-content)',
+      justifyContent: 'space-evenly',
     },
   },
   heading: {
