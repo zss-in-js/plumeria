@@ -34,7 +34,8 @@ export default [plumeria.configs.recommended];
 
 ## Configuring the styling prop
 
-Both `custom-props-require-import` and `no-mixed-styling-props` need to know which JSX
+`custom-props-require-import`, `no-inline-object`, `no-mixed-styling-props`,
+`no-style-prop-relay` and `no-unresolved-composition` need to know which JSX
 prop carries styles. It is `classStyle` unless you changed it, so most projects
 configure nothing.
 
