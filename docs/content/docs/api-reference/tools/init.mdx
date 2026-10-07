@@ -64,7 +64,7 @@ A renamed prop is rejected unless it is an identifier TypeScript can declare, an
 | --- | --- |
 | `plumeria.d.ts` | the styling prop TypeScript reads |
 | the bundler config | the plugin, and the options the answers chose |
-| `eslint.config.ts` | `plumeria.configs.recommended` and the rules that were asked for |
+| `eslint.config.ts` | `plumeria.configs.recommended`, the rules that were asked for, and `settings.plumeria.styleProp` when the styling prop was renamed |
 | `package.json` | on esbuild and Bun, `plumerialint --` in front of the `build` script, and on Next.js `rimraf .next` before `dev` and `build` |
 
 An existing file is patched, not replaced. The import lands after the last import, the plugin joins the `plugins` array, and a Next config has its default export wrapped:
