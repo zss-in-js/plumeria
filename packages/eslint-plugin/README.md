@@ -39,7 +39,8 @@ prop carries styles. It is `classStyle` unless you changed it, so most projects
 configure nothing.
 
 If you did rename it — via `styleProp` on `withPlumeria` or on the unplugin
-options — tell the plugin the same name. ESLint cannot read it from your bundler
+options — tell the plugin the same name. The lint the bundler plugins run in the
+build is given that name already. ESLint cannot read it from your bundler
 config, so set it once in `settings` and every rule picks it up:
 
 ```js
