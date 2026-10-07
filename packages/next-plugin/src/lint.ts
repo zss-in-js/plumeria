@@ -6,7 +6,10 @@ export function isNextBuild(argv: string[]): boolean {
   );
 }
 
-export function startNextLintGuard(argv: string[] = process.argv): boolean {
+export function startNextLintGuard(
+  rules: Record<string, unknown> = {},
+  argv: string[] = process.argv,
+): boolean {
   if (!isNextBuild(argv)) return false;
-  return startLintGuard();
+  return startLintGuard(rules);
 }
