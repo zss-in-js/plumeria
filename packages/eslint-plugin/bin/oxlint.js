@@ -4,6 +4,11 @@ const { spawn } = require('child_process');
 const process = require('process');
 const path = require('path');
 const oxlintConfig = path.join(__dirname, '..', 'oxlint.json');
+const oxlintBin = path.join(
+  path.dirname(require.resolve('oxlint/package.json')),
+  'bin',
+  'oxlint',
+);
 
 const doubleDashIndex = process.argv.indexOf('--');
 let oxlintExtraArgs = [];
@@ -20,22 +25,22 @@ if (doubleDashIndex !== -1) {
   oxlintExtraArgs = process.argv.slice(2);
 }
 
-const oxlintArgs = ['-c', oxlintConfig, '--deny-warnings', ...oxlintExtraArgs];
+const oxlintArgs = [
+  oxlintBin,
+  '-c',
+  oxlintConfig,
+  '--deny-warnings',
+  '--no-error-on-unmatched-pattern',
+  ...oxlintExtraArgs,
+];
 
 function handleOxlintError(err) {
-  if (err.code === 'ENOENT') {
-    console.error('\n✖ oxlint is not installed.');
-    console.error('➡︎ plumerialint uses oxlint.');
-    console.error('✔ please install oxlint.\n');
-    process.exit(1);
-  } else {
-    console.error('Error running oxlint:', err.message);
-    process.exit(1);
-  }
+  console.error('Error running oxlint:', err.message);
+  process.exit(1);
 }
 
 if (!buildCommand) {
-  const child = spawn('oxlint', oxlintArgs, { stdio: 'inherit' });
+  const child = spawn(process.execPath, oxlintArgs, { stdio: 'inherit' });
   child.on('error', handleOxlintError);
   child.on('close', (code) => {
     process.exit(code || 0);
@@ -47,7 +52,7 @@ if (!buildCommand) {
   let buildCode = null;
   let aborted = false;
 
-  const oxlintChild = spawn('oxlint', oxlintArgs, { stdio: 'inherit' });
+  const oxlintChild = spawn(process.execPath, oxlintArgs, { stdio: 'inherit' });
 
   const fullBuildCommand =
     buildArgs.length > 0
