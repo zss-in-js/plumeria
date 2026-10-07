@@ -90,14 +90,6 @@ export const ask = async (
     );
   }
 
-  if (preset.expandBorderShorthands === undefined) {
-    answers.expandBorderShorthands = await confirm(
-      asker,
-      'Expand a border shorthand into the three declarations it sets?',
-      true,
-    );
-  }
-
   if (preset.styleProp === undefined) {
     const answer = (
       await asker.question(
@@ -112,7 +104,7 @@ export const ask = async (
   if (preset.eslint === undefined) {
     answers.eslint = await confirm(
       asker,
-      'Set up @plumeria/eslint-plugin and the plumerialint build guard?',
+      'Set up @plumeria/eslint-plugin for ESLint?',
       true,
     );
   }
