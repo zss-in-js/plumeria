@@ -96,7 +96,12 @@ describe('source generators', () => {
       "styleProp: 'sx'",
     );
     expect(pluginCall('bun', answers(), 'p')).toBe('p.bun()');
-    expect(buildScript('vite build')).toBe('plumerialint -- vite build');
+    expect(buildScript('vite build', 'classStyle')).toBe(
+      'plumerialint -- vite build',
+    );
+    expect(buildScript('vite build', 'sx')).toBe(
+      'plumerialint --style-prop sx -- vite build',
+    );
     expect(installCommand('yarn', ['a'])).toBe('yarn add -D a');
     expect(installCommand('bun', ['a'])).toBe('bun add -d a');
     expect(cleanScripts({ dev: 'x', predev: 'y', build: 'z' })).toEqual({
@@ -307,6 +312,28 @@ describe('plan', () => {
       scripts: Record<string, string>;
     };
     expect(patched.scripts.build).toBe('plumerialint -- node build.mjs');
+  });
+
+  it('names a renamed styling prop in the guarded build script', () => {
+    project(
+      {
+        name: 'app',
+        scripts: { build: 'node build.mjs' },
+        devDependencies: { esbuild: '^0.28.0' },
+      },
+      { 'tsconfig.json': '{}' },
+    );
+
+    const patched = JSON.parse(
+      contentsOf(
+        on(plan(detect(dir), answers({ styleProp: 'sx' })), 'package.json'),
+      ),
+    ) as {
+      scripts: Record<string, string>;
+    };
+    expect(patched.scripts.build).toBe(
+      'plumerialint --style-prop sx -- node build.mjs',
+    );
   });
 
   it('leaves the build script alone where the plugin lints the build', () => {
