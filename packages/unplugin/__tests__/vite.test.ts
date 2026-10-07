@@ -1,4 +1,6 @@
 jest.mock('@plumeria/eslint-plugin/guard', () => ({
+  spellingRules: jest.requireActual('@plumeria/eslint-plugin/guard')
+    .spellingRules,
   startLintGuard: jest.fn(),
 }));
 jest.mock('@plumeria/compiler', () => ({
