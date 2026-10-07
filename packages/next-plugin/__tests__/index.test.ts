@@ -39,7 +39,20 @@ describe('withPlumeria', () => {
     startNextLintGuard.mockClear();
     withPlumeria({}, { withoutPhysicalProperties: { sizes: true } });
     expect(startNextLintGuard).toHaveBeenCalledWith({
-      '@plumeria/no-physical-properties': ['error', { sizes: true }],
+      rules: {
+        '@plumeria/no-physical-properties': ['error', { sizes: true }],
+      },
+    });
+  });
+
+  it('lints with the styling prop the options name', () => {
+    const { startNextLintGuard } = jest.requireMock<{
+      startNextLintGuard: jest.Mock;
+    }>('../src/lint');
+    startNextLintGuard.mockClear();
+    withPlumeria({}, { styleProp: 'sx' });
+    expect(startNextLintGuard).toHaveBeenCalledWith({
+      settings: { plumeria: { styleProp: 'sx' } },
     });
   });
 
