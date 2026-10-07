@@ -41,7 +41,7 @@ export function lintOverrides(options: LintOptions): LintOverrides {
   return overrides;
 }
 
-function lintConfig(overrides: LintOverrides): string {
+export function lintConfig(overrides: LintOverrides): string {
   if (!overrides.rules && !overrides.settings) return BASE_CONFIG;
   const file = path.join(os.tmpdir(), `plumeria-oxlint-${process.pid}.json`);
   fs.writeFileSync(
