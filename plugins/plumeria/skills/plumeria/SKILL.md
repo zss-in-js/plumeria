@@ -702,42 +702,6 @@ export const Button = ({ size = 'sm', tone = 'primary', styleArray }: ButtonProp
 
 **NEVER assert a generated class name in a component test.** `xvdv6o3r` is one property-value pair, hashed. Adding a property to the style breaks every test that spelled the old list out. Assert what the component renders, holds, or branches on.
 
-**To test what a style compiles to, call the transform directly.** It takes a source string and returns the rewritten code plus the stylesheet — no component, no DOM, no bundler. Write it for Jest; Vitest and `node:test` need their own imports, and `node:test` has no `expect` at all.
-
-For a project on `@plumeria/unplugin`:
-
-```js
-const { unpluginFactory } = require('@plumeria/unplugin/factory');
-
-const plugin = unpluginFactory();
-const { code } = await plugin.transform(source, id);
-
-const cssId = code.match(/import "(.+\.zero\.css)"/)[1];
-const css = plugin.load(cssId);
-```
-
-For a project on `@plumeria/next-plugin`, call the loader its build runs, with a loader context of your own:
-
-```js
-const loader = require('@plumeria/turbopack-loader');
-const fn = loader.default ?? loader;
-
-const compile = (source) =>
-  new Promise((resolve, reject) => {
-    fn.call(
-      {
-        resourcePath: `${__dirname}/fixture.tsx`,
-        async: () => (err, content) => (err ? reject(err) : resolve(content)),
-        addDependency: () => {},
-        clearDependencies: () => {},
-      },
-      source,
-    );
-  });
-```
-
-The loader returns the rewritten code and writes its stylesheet only when `NODE_ENV` is `development` or `production`; a test run is neither, so the file is left alone. Read class names from the returned code and derive them; do not hard-code them.
-
 **To test component behaviour, put the transform in the runner's module pipeline.** This is the only layer that needs it. Vitest takes the plugin in its config:
 
 ```ts
