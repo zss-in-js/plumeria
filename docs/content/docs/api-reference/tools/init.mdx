@@ -15,11 +15,11 @@ It reads the project, asks what it cannot read, shows the plan, and only then wr
 ```sh title="Terminal"
 ✔ detected  next  pnpm  typescript
 
-  ➡︎ install  @plumeria/core @plumeria/next-plugin @plumeria/eslint-plugin oxlint
+  ➡︎ install  @plumeria/core @plumeria/next-plugin @plumeria/eslint-plugin rimraf
   + write    plumeria.d.ts     classStyle
   ~ patch    next.config.ts    withPlumeria(...)
   ~ patch    eslint.config.ts  plumeria.configs.recommended
-  ~ patch    package.json      build: plumerialint -- next build
+  ~ patch    package.json      predev: rimraf .next, prebuild: rimraf .next
 
 Apply? (Y/n)
 ```
@@ -48,17 +48,13 @@ One answer reaches both levels. The bundler plugin receives `withoutPhysicalProp
 
 On a codebase that already has styles, answer `3` and follow [Optional rules](/docs/api-reference/plugins/eslint-plugin/optional-rules) instead: the rule offers a rename on every occurrence, which is what a migration needs, and the build option belongs afterwards.
 
-### Expand a border shorthand into the three declarations it sets?
-
-Turns on `@plumeria/expand-border-shorthands`. A `border` shorthand crosses the axis shorthands without either containing the other, so specificity cannot rank the pair and the outcome depends on the order it was written in. Expanding removes the shape. On by default.
-
 ### Which JSX prop carries styles?
 
 `classStyle` unless you name another. A renamed prop is written into the plugin as `styleProp` and declared in `plumeria.d.ts` at the same time, so the two cannot disagree — a mismatch type-checks but is never compiled away.
 
-### Set up `@plumeria/eslint-plugin` and the `plumerialint` build guard?
+### Set up `@plumeria/eslint-plugin` for ESLint?
 
-Adds the plugin and `oxlint`, writes or extends the flat config, and puts `plumerialint --` in front of the `build` script, so a style error stops the build before the bundler runs.
+Adds the plugin and writes or extends the flat config, so a style error is reported while you type. The build lints either way: the bundler plugin runs the same rules alongside the build and stops it on a style error. On esbuild and Bun, which the plugin cannot lint, the `build` script is prefixed with `plumerialint --` instead, with `--style-prop` when the styling prop was renamed.
 
 A renamed prop is rejected unless it is an identifier TypeScript can declare, and unless React leaves the name free — `className`, `style`, `key`, `ref` and `children` are refused, from the prompt and from `--style-prop` alike.
 
@@ -69,7 +65,7 @@ A renamed prop is rejected unless it is an identifier TypeScript can declare, an
 | `plumeria.d.ts` | the styling prop TypeScript reads |
 | the bundler config | the plugin, and the options the answers chose |
 | `eslint.config.ts` | `plumeria.configs.recommended` and the rules that were asked for |
-| `package.json` | `plumerialint --` in front of the `build` script, and `rimraf .next` before `dev` and `build` on Next.js |
+| `package.json` | on esbuild and Bun, `plumerialint --` in front of the `build` script, and on Next.js `rimraf .next` before `dev` and `build` |
 
 An existing file is patched, not replaced. The import lands after the last import, the plugin joins the `plugins` array, and a Next config has its default export wrapped:
 
@@ -102,11 +98,11 @@ On Next.js a `pre` script clears the build cache, which is what keeps a version 
     "predev": "rimraf .next",
     "prebuild": "rimraf .next",
     "dev": "next dev",
-    "build": "plumerialint -- next build"
+    "build": "next build"
   }
 ```
 
-A `predev` or `prebuild` the project already wrote is left as it is. Clearing the cache is a Next.js concern rather than a lint one, so `--no-eslint` leaves it in place and drops only `plumerialint`.
+A `predev` or `prebuild` the project already wrote is left as it is. Clearing the cache is a Next.js concern rather than a lint one, so `--no-eslint` leaves it in place.
 
 What counts as already set up is the plugin being *called*, not merely imported. A bare `plumeria.version`, and a call inside a comment, a string or a regex literal, all read as not set up, because none of them registers anything; an import nothing calls is completed rather than skipped, and the binding the file already named is the one that gets called. An import spanning several lines is read as one statement, so it is never duplicated. A second run writes nothing, and a half-finished one is finished.
 
@@ -120,7 +116,7 @@ npx @plumeria/init --yes                # take every default, ask nothing
 npx @plumeria/init --physical --sizes   # answer the spelling question up front
 npx @plumeria/init --style-prop sx
 npx @plumeria/init --bundler rollup
-npx @plumeria/init --no-eslint          # leave ESLint and the plumerialint guard out
+npx @plumeria/init --no-eslint          # leave ESLint out
 npx @plumeria/init --no-install         # write the configs, print the command
 npx @plumeria/init --cwd packages/app
 ```
