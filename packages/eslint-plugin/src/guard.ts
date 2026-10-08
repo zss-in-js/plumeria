@@ -51,6 +51,16 @@ export function lintConfig(overrides: LintOverrides): string {
   return file;
 }
 
+export function lowerPriority(pid: number | undefined): boolean {
+  if (!pid) return false;
+  try {
+    os.setPriority(pid, os.constants.priority.PRIORITY_LOW);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function startLintGuard(overrides: LintOverrides = {}): boolean {
   if (process.env[GUARD_ENV]) return false;
   process.env[GUARD_ENV] = '1';
@@ -69,9 +79,11 @@ export function startLintGuard(overrides: LintOverrides = {}): boolean {
       config,
       '--deny-warnings',
       '--no-error-on-unmatched-pattern',
+      '--threads=2',
     ],
     { stdio: 'inherit' },
   );
+  lowerPriority(child.pid);
 
   const exit = process.exit.bind(process);
   let lintCode: number | null = null;
