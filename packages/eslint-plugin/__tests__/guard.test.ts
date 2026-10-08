@@ -5,8 +5,15 @@ jest.mock('child_process', () => ({
   spawn: (...args: unknown[]) => spawn(...args),
 }));
 
+const setPriority = jest.fn();
+jest.mock('os', () => ({
+  ...jest.requireActual('os'),
+  setPriority: (...args: unknown[]) => setPriority(...args),
+}));
+
 import * as fs from 'fs';
-import { lintOverrides, startLintGuard } from '../src/guard';
+import * as os from 'os';
+import { lintOverrides, lowerPriority, startLintGuard } from '../src/guard';
 
 describe('lintOverrides', () => {
   it('turns each spelling option into its rule', () => {
@@ -33,6 +40,30 @@ describe('lintOverrides', () => {
     expect(lintOverrides({ styleProp: 'sx' })).toEqual({
       settings: { plumeria: { styleProp: 'sx' } },
     });
+  });
+});
+
+describe('lowerPriority', () => {
+  beforeEach(() => setPriority.mockReset());
+
+  it('lowers the process to the lowest priority', () => {
+    expect(lowerPriority(42)).toBe(true);
+    expect(setPriority).toHaveBeenCalledWith(
+      42,
+      os.constants.priority.PRIORITY_LOW,
+    );
+  });
+
+  it('skips a process that did not start', () => {
+    expect(lowerPriority(undefined)).toBe(false);
+    expect(setPriority).not.toHaveBeenCalled();
+  });
+
+  it('leaves the priority alone when the process is gone', () => {
+    setPriority.mockImplementation(() => {
+      throw new Error('ESRCH');
+    });
+    expect(lowerPriority(42)).toBe(false);
   });
 });
 
@@ -73,6 +104,7 @@ describe('startLintGuard', () => {
       expect.stringMatching(/eslint-plugin[\\/]oxlint\.json$/),
       '--deny-warnings',
       '--no-error-on-unmatched-pattern',
+      '--threads=2',
     ]);
   });
 
