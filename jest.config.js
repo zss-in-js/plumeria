@@ -26,6 +26,7 @@ module.exports = {
     'summary',
   ],
   coveragePathIgnorePatterns: [
+    '<rootDir>/scripts/',
     '<rootDir>/packages/codemod/dist/',
     '<rootDir>/packages/compiler/dist/',
     '<rootDir>/packages/compiler/index.js',
