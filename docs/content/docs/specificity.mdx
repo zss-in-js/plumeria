@@ -25,8 +25,8 @@ const styles = css.create({
 });
 
 // Both produce the same result
-classStyle={styles.base, styles.custom}
-classStyle={styles.custom, styles.base}
+classStyle={[styles.base, styles.custom]}
+classStyle={[styles.custom, styles.base]}
 
 // Result: margin 10px on all sides, except top is 20px
 ```
@@ -118,8 +118,8 @@ const styles = css.create({
 });
 
 // The right always wins
-classStyle={styles.base, styles.custom} // 16px
-classStyle={styles.custom, styles.base} // 10px
+classStyle={[styles.base, styles.custom]} // 16px
+classStyle={[styles.custom, styles.base]} // 10px
 ```
 Generated as follows:
 ```css
