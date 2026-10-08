@@ -11,7 +11,7 @@ export const create: create;
 ```
 
 `create` defines css styles using plain JavaScript style objects.  
-type-safe・autocomplete・lintable
+Type-safe, autocompleted and lintable.
 
 Only the styles you use in `classStyle` will be on-demand compiled.
 
@@ -43,7 +43,7 @@ export default function App() {
 }
 ```
 
-The call is cleaned up by the bundler.
+The compiler replaces the call with its class names, and the import goes with it.
 
 **Compiled:**
 ```tsx
@@ -180,7 +180,7 @@ The condition can sit inside the brackets or around them. Both compile to a sing
 
 The branches of a condition are mutually exclusive — only one of them ever applies — so the compiler folds the condition into the key expression instead of expanding a combination per branch.
 
-That leaves only two things worth knowing:
+What the lookup holds depends on how the condition is written:
 
 | Written as | Lookup holds |
 | --- | --- |
