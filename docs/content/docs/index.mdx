@@ -92,7 +92,7 @@ Styling shouldn't require a runtime. Plumeria treats styles as **type schemas** 
 }
 ```
 
-Static styles resolve to class names entirely at compile time. The only dynamic pieces — function keys and variant props — compile down to CSS variables, so even they leave no JavaScript behind. Every API compiles to nothing but static class names and CSS:
+Static styles resolve to class names entirely at compile time. The dynamic pieces leave no library behind either: function keys compile down to CSS variables, and a style chosen at runtime compiles to a literal lookup of precomputed class strings. What ships is class names, CSS, and the expressions you already wrote:
 
 - No runtime bundle
 - No runtime evaluation
