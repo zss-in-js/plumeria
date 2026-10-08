@@ -143,7 +143,7 @@ Three of these are worth reading twice.
 
 A sibling is the one relation nothing here states, and it is reported rather than converted. A style query reaches descendants, never siblings, so no marker carries the signal sideways. An ordinal is the usual replacement, but `:not(:first-child)` counts children of the parent while `+` reads the one element before it — the two agree only where every sibling carries the class. A header row or a separator in the list is enough to part them, and the stylesheet cannot see either. The rule is left where it is, named by file and line, because the markup that settles it is yours.
 
-### Previewing the migration
+### Previewing a CSS Modules migration
 
 Start with `-d` or `--dry-run` to inspect the complete migration without creating any `*.styles.ts` files or rewriting their consumers:
 
@@ -160,7 +160,7 @@ Run without --dry-run to apply.
 
 Paths can follow the flag as usual. Rules that cannot be converted are reported in the same run, and the exit code remains 1 while any such rules are present. Remove `--dry-run` to generate the modules and rewrite their consumers.
 
-### What it reports instead of converting
+### What a CSS Modules migration reports
 
 ```
 src/Card.module.css
@@ -437,7 +437,7 @@ can make a member falsy, so that branch drops out at runtime:
 + <div className={[styles.base, active && styles.active].filter(Boolean).join(' ')} />
 ```
 
-### Previewing the migration
+### Previewing a Plumeria migration
 
 Start with `-d` or `--dry-run` to inspect the exported style modules and rewritten sources without writing files:
 
@@ -453,7 +453,7 @@ npx @plumeria/codemod migrate --from plumeria --dry-run
 Run without --dry-run to apply.
 ```
 
-### What it reports instead of converting
+### What a Plumeria migration reports
 
 Constructs that cannot be statically resolved or exported without changing runtime behavior are reported, and the original Plumeria definitions are left in place:
 
