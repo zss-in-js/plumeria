@@ -1,5 +1,11 @@
 # Release Notes
 
+## 19.10.3 (Oct 8, 2026)
+
+- The build lint and `plumerialint` run oxlint at the lowest CPU priority, so the build keeps the CPU when both compete for it
+
+- The build lint and `plumerialint` run oxlint on 2 threads, and `plumerialint` keeps a `--threads` you pass
+
 ## 19.10.2 (Oct 7, 2026)
 
 - The build lint reads the styling prop from `styleProp`, so `no-mixed-styling-props`, `no-inline-object`, `no-style-prop-relay`, `no-unresolved-composition` and `custom-props-require-import` check the prop the compiler transforms instead of `classStyle`

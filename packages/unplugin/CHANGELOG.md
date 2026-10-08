@@ -1,5 +1,16 @@
 # @plumeria/unplugin
 
+## 19.10.3
+
+### Patch Changes
+
+- 0a9c2d8: - The build lint and `plumerialint` run oxlint at the lowest CPU priority, so the build keeps the CPU when both compete for it
+  - The build lint and `plumerialint` run oxlint on 2 threads, and `plumerialint` keeps a `--threads` you pass
+- Updated dependencies [0a9c2d8]
+- Updated dependencies [0a9c2d8]
+  - @plumeria/eslint-plugin@19.10.3
+  - @plumeria/compiler@19.10.3
+
 ## 19.10.2
 
 ### Patch Changes
