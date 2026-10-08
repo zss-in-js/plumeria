@@ -10,7 +10,7 @@ A style nests one level of selectors, and only in one direction:
 - A pseudo-selector cannot hold a query, and a query cannot hold another query.
 - A pseudo-selector cannot hold another pseudo-selector. Write the pair as one key, such as `':hover::before'`.
 
-```ts title="TypeScript" {1}
+```ts title="TypeScript"
 import * as css from '@plumeria/core';
 
 const styles = css.create({
@@ -26,7 +26,7 @@ const styles = css.create({
 
 Not allowed:
 
-```ts title="TypeScript" {1}
+```ts title="TypeScript"
 import * as css from '@plumeria/core';
 
 const styles = css.create({
@@ -59,11 +59,9 @@ The compiler stops the build on such a key. `no-invalid-selector` flattens it wi
 A key can nest at most 16 levels of parentheses, and a quote must open and close a string inside brackets or parentheses. The compiler stops the build on a deeper key or a stray quote such as `':hover":is(.x)'`, and `no-invalid-selector` reports both.
 
 ## Reason
-This design intentionally avoids reverse nesting.
+Every rule a style can produce has exactly one way to be written. A stylesheet places a selector inside a query — `@media (…) { .a:hover { … } }` — never the reverse, so the key order follows the CSS it compiles to.
 
-- Type system limitations (recursive types)
-- Avoiding reverse nesting complexity
-- Ensuring consistent nesting patterns
+Allowing the reverse would give the same rule two spellings, and the style's type would have to recurse through every pseudo-selector and query to accept both. Keeping one level in one direction keeps the type flat, its autocomplete precise, and every style in a codebase nested the same way.
 
 
 <Cards>
