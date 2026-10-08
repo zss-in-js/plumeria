@@ -82,9 +82,26 @@ The bundler plugins lint the build with these rules by default, so a style error
 
 Install the plugin, plus `rimraf` for Next.js:
 
-```sh
-pnpm i -D @plumeria/eslint-plugin rimraf
-```
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    npm i -D @plumeria/eslint-plugin rimraf
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    yarn add -D @plumeria/eslint-plugin rimraf
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    pnpm i -D @plumeria/eslint-plugin rimraf
+    ```
+  </Tab>
+</Tabs>
 
 On Next.js, clearing the build cache before `dev` and `build` keeps a version change from being read as a compile error:
 
@@ -103,9 +120,9 @@ On Next.js, clearing the build cache before `dev` and `build` keeps a version ch
 <Step>
 ## Integration
 
-</Step>
+Add the plugin for your bundler.
 
-## Next.js
+### Next.js
 
 <Tabs items={["npm", "yarn", "pnpm"]}>
   {/* prettier-ignore */}
@@ -126,7 +143,6 @@ On Next.js, clearing the build cache before `dev` and `build` keeps a version ch
   </Tab>
 </Tabs>
 
-### next.config.ts
 It works with both Turbopack and Webpack.
 
 ```ts title="next.config.ts"
@@ -140,10 +156,7 @@ const nextConfig: NextConfig = {
 export default withPlumeria(nextConfig);
 ```
 
-
----
-
-## Vite
+### Vite
 <Tabs items={["npm", "yarn", "pnpm"]}>
   <Tab>
     ```sh title="Terminal"
@@ -162,7 +175,6 @@ export default withPlumeria(nextConfig);
   </Tab>
 </Tabs>
 
-### vite.config
 ```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
@@ -177,4 +189,6 @@ export default defineConfig({
   <Card title="See more about @plumeria/unplugin package" href="/docs/integration/vite" />
   <Card title="See more about @plumeria/next-plugin package" href="/docs/integration/next" />
 </Cards>
+
+</Step>
 </Steps>
