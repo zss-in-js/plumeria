@@ -43,7 +43,7 @@ const names = new Set<string>(kept);
 if (fs.existsSync(output)) {
   for (const match of fs
     .readFileSync(output, 'utf8')
-    .matchAll(/^  '(.+)',$/gm)) {
+    .matchAll(/^ {2}'(.+)',$/gm)) {
     names.add(match[1]);
   }
 }
