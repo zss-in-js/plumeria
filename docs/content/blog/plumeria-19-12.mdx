@@ -1,6 +1,6 @@
 ---
 title: 'Plumeria 19.12'
-description: 'Update: no-unknown-css-properties checks names against MDN data, and plumeria-lint starts faster from the second run'
+description: 'Update: no-unknown-css-properties and the CSS types are generated from MDN data, and plumeria-lint starts faster from the second run'
 date: '2026-10-09'
 ---
 
@@ -11,7 +11,7 @@ import { GitHubUser } from 'component/GitHubUser'
   <GitHubUser username="Anionix" subtext="Plumeria Core" />
 </div>
 
-Plumeria v19.12 moves `no-unknown-css-properties` onto MDN data, so a property that ships in a browser is known without waiting for a dependency.
+Plumeria v19.12 moves `no-unknown-css-properties` and the CSS types onto MDN data, so a property that ships in a browser is known and completed without waiting for a dependency.
 
 ## 1. Property names from MDN
 
@@ -45,7 +45,28 @@ A name only ever enters the list. When MDN drops a name a browser stopped suppor
 
 MDN documents none of these names. The prefixed names that still appear in real code, such as `msFlexAlign`, `msGridColumn`, `msTextSizeAdjust` and `'-apple-pay-button-style'`, stay known.
 
-## 3. A faster `plumeria-lint`
+## 3. CSS types from MDN
+
+The types `css.create` completes from are now generated from `mdn-data` too, so they follow the same source as the lint. Properties such as `cornerShape`, `fieldSizing`, `interestDelay` and `textBox` now complete, and the keywords of every property follow its syntax on MDN:
+
+```ts
+type alignSelf =
+  | 'auto'
+  | 'normal'
+  | 'stretch'
+  | BaselinePosition
+  | SelfPosition
+  | `${'unsafe' | 'safe'} ${SelfPosition}`
+  | 'anchor-center';
+```
+
+A property whose syntax lists only keywords takes only those keywords. A property that also takes a length or a number takes `number`, and one that takes any other value takes a string too. `number` is now offered only where a lone length or number is a valid value, so properties such as `anchorName`, `containerName` and `viewTransitionName` no longer suggest one.
+
+Properties MDN marks as obsolete, such as `gridGap`, `fontStretch` and `pageBreakAfter`, stay in the types, since browsers still apply them. Properties a browser ships before `mdn-data` lists them, such as `colorInterpolation`, `viewTransitionGroup` and the gap decorations `rowRule` and `ruleOverlap`, are added from the CSS specifications through [`@webref/css`](https://github.com/w3c/webref). Names no browser runs today are no longer in the types: the speech properties such as `voiceFamily` and `cue`, the `@font-face` descriptors `src` and `unicodeRange`, and drafts that were renamed or dropped such as `motionPath`. A style that still writes one of them keeps compiling, but it can no longer be named as a key in type arguments such as `StyleProps<K>` and `WithoutProperties<K>`.
+
+`MsOverflowStyle` never compiled to `-ms-overflow-style`, so it is now offered as `msOverflowStyle`, the spelling the compiler and the lint read.
+
+## 4. A faster `plumeria-lint`
 
 19.11 gave the build lint a compile cache. `plumeria-lint` now keeps the same cache in `node_modules/.cache/plumeria-lint`, so from the second run it loads oxlint and the Plumeria rules without compiling them again.
 
@@ -55,7 +76,9 @@ MDN documents none of these names. The prefixed names that still appear in real 
 
 ## 19.12.0 (Oct 9, 2026)
 
-- `no-unknown-css-properties` checks names against a list generated from `mdn-data` and `@mdn/browser-compat-data` instead of `known-css-properties`, and the list only ever grows
-- Names no current browser supports, such as speech properties, dropped drafts and `-khtml-` prefixes, are now reported as unknown
-- `@plumeria/eslint-plugin` no longer depends on `known-css-properties`
-- `plumeria-lint` keeps the same compile cache as the build lint in `node_modules/.cache/plumeria-lint`, so oxlint and the rules load faster from the second run
+- `no-unknown-css-properties` checks names against MDN data instead of `known-css-properties`, and reports names MDN does not document, such as the speech properties
+- The CSS types are generated from MDN data, so newer properties such as `cornerShape` complete and keywords follow each property's syntax
+- The CSS types keep the obsolete properties browsers still apply, such as `gridGap` and `fontStretch`, and drop names no browser runs, such as `voiceFamily`
+- `MsOverflowStyle` in the CSS types is now `msOverflowStyle`
+- A number for `lineClamp`, `WebkitLineClamp`, `readingOrder` and the other unitless properties is written without `px`
+- `plumeria-lint` keeps a compile cache, so it starts faster from the second run
