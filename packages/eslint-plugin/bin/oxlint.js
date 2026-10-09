@@ -12,7 +12,7 @@ const oxlintBin = path.join(
 );
 
 const { cliOverrides } = require('../dist/cli.js');
-const { lintConfig, lowerPriority } = require('../dist/guard.js');
+const { lintConfig, lintEnv, lowerPriority } = require('../dist/guard.js');
 
 const doubleDashIndex = process.argv.indexOf('--');
 let cliArgs = [];
@@ -45,7 +45,7 @@ async function startOxlint() {
         : ['--threads=2']),
       ...rest,
     ],
-    { stdio: 'inherit' },
+    { stdio: 'inherit', env: lintEnv() },
   );
   lowerPriority(child.pid);
   if (config !== oxlintConfig) {
