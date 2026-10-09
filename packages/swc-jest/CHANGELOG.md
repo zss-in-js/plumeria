@@ -1,5 +1,16 @@
 # @plumeria/swc-jest
 
+## 19.11.0
+
+### Minor Changes
+
+- 21c541a: Bump version to 19.11.0
+
+### Patch Changes
+
+- Updated dependencies [21c541a]
+  - @plumeria/compiler@19.11.0
+
 ## 19.10.4
 
 ### Patch Changes
