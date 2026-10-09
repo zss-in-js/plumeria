@@ -41,7 +41,8 @@
     "oxlint.json"
   ],
   "bin": {
-    "plumerialint": "bin/oxlint.js"
+    "plumeria-lint": "bin/oxlint.js",
+    "plumerialint": "bin/plumerialint.js"
   },
   "scripts": {
     "build": "rimraf dist && pnpm cjs",
