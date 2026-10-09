@@ -1,5 +1,11 @@
 # @plumeria/inspector
 
+## 19.12.0
+
+### Minor Changes
+
+- e784644: Bump version to 19.12.0
+
 ## 19.11.0
 
 ### Minor Changes
