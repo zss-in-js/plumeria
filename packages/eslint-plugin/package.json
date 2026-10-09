@@ -46,15 +46,18 @@
   },
   "scripts": {
     "build": "rimraf dist && pnpm cjs",
-    "cjs": "tsc --project tsconfig.cjs.json"
+    "cjs": "tsc --project tsconfig.cjs.json",
+    "properties": "node scripts/generate-css-properties.mts"
   },
   "devDependencies": {
+    "@mdn/browser-compat-data": "^8.1.5",
     "@types/eslint": "^9.6.1",
     "@types/estree": "^1.0.9",
     "@types/estree-jsx": "^1.0.5",
     "@typescript-eslint/parser": "^8.60.0",
     "@typescript-eslint/utils": "^8.60.0",
-    "eslint": "^10.4.0"
+    "eslint": "^10.4.0",
+    "mdn-data": "^2.37.2"
   },
   "publishConfig": {
     "access": "public",
@@ -62,7 +65,6 @@
   },
   "dependencies": {
     "@plumeria/compiler": "workspace:*",
-    "known-css-properties": "^0.37.0",
     "oxlint": "1.87.0",
     "zss-engine": "catalog:"
   }
