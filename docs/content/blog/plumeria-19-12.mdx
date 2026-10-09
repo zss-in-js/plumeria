@@ -1,0 +1,61 @@
+---
+title: 'Plumeria 19.12'
+description: 'Update: no-unknown-css-properties checks names against MDN data, and plumeria-lint starts faster from the second run'
+date: '2026-10-09'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v19.12 moves `no-unknown-css-properties` onto MDN data, so a property that ships in a browser is known without waiting for a dependency.
+
+## 1. Property names from MDN
+
+`no-unknown-css-properties` used to read its list from `known-css-properties`, which has not been updated since June 2025. The list is now generated from [`mdn-data`](https://github.com/mdn/data) and [`@mdn/browser-compat-data`](https://github.com/mdn/browser-compat-data), the data behind MDN, and ships inside `@plumeria/eslint-plugin`. Neither is installed with the plugin.
+
+The list takes every property MDN documents, and every prefixed or older name a browser shipped it under:
+
+```ts
+const styles = css.create({
+  card: {
+    cornerShape: 'squircle',
+    interestDelay: '0.5s',
+    msOverflowStyle: 'none',
+    WebkitOverflowScrolling: 'touch',
+  },
+});
+```
+
+A name only ever enters the list. When MDN drops a name a browser stopped supporting long ago, the list keeps it, so a project that passes the lint keeps passing it.
+
+## 2. Names that are now reported
+
+`known-css-properties` also listed names that MDN does not document, and they are now reported as unknown. Most come from drafts that never shipped or were renamed, and from engines that no longer exist:
+
+| Kind | Examples |
+| --- | --- |
+| Speech | `voiceFamily`, `pause`, `cue`, `speechRate` |
+| Dropped drafts | `wrapFlow`, `flowInto`, `animationTriggerRange`, `textDecorationSkipBox` |
+| Old prefixes | `WebkitMarquee`, `WebkitGridColumns`, `MozImageRegion`, `msAnimation` |
+| Internet Explorer | `scrollbarFaceColor`, `layoutGrid`, `textKashida` |
+
+MDN documents none of these names. The prefixed names that still appear in real code, such as `msFlexAlign`, `msGridColumn`, `msTextSizeAdjust` and `'-apple-pay-button-style'`, stay known.
+
+## 3. A faster `plumeria-lint`
+
+19.11 gave the build lint a compile cache. `plumeria-lint` now keeps the same cache in `node_modules/.cache/plumeria-lint`, so from the second run it loads oxlint and the Plumeria rules without compiling them again.
+
+---
+
+## Release notes
+
+## 19.12.0 (Oct 9, 2026)
+
+- `no-unknown-css-properties` checks names against a list generated from `mdn-data` and `@mdn/browser-compat-data` instead of `known-css-properties`, and the list only ever grows
+- Names no current browser supports, such as speech properties, dropped drafts and `-khtml-` prefixes, are now reported as unknown
+- `@plumeria/eslint-plugin` no longer depends on `known-css-properties`
+- `plumeria-lint` keeps the same compile cache as the build lint in `node_modules/.cache/plumeria-lint`, so oxlint and the rules load faster from the second run
