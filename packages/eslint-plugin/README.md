@@ -234,9 +234,9 @@ The bundler plugins turn the matching rule on in the build lint as well:
 `withoutPhysicalProperties` runs `no-physical-properties`, and
 `withoutLogicalProperties` runs `no-logical-properties`, `{ sizes }` included.
 
-## CLI (plumerialint)
+## CLI (plumeria-lint)
 
-This package provides a CLI command, `plumerialint`, as a convenient way
+This package provides a CLI command, `plumeria-lint`, as a convenient way
 to run Plumeria's custom ESLint rules.
 
 It runs `oxlint`, which this package depends on, for fast linting with code
@@ -253,7 +253,7 @@ pnpm add -D @plumeria/eslint-plugin
 ### Usage
 
 ```bash
-plumerialint
+plumeria-lint
 ```
 
 The process exits with a non-zero status code if any errors or warnings are found,
@@ -262,25 +262,25 @@ making it suitable for use in CI and build pipelines.
 ### Styling prop
 
 If the styling prop is renamed, pass the name with `--style-prop`. Without the
-flag, `plumerialint` asks ESLint for `settings.plumeria.styleProp` when ESLint
+flag, `plumeria-lint` asks ESLint for `settings.plumeria.styleProp` when ESLint
 and a flat config are installed, and uses `classStyle` otherwise:
 
 ```bash
-plumerialint --style-prop sx
+plumeria-lint --style-prop sx
 ```
 
 ### Aborting Builds on Lint Errors (Parallel Pipeline)
 
-You can run `plumerialint` in parallel with your build command (e.g. `next build` or `vite build`) using the `--` separator:
+You can run `plumeria-lint` in parallel with your build command (e.g. `next build` or `vite build`) using the `--` separator:
 
 ```json
 {
   "scripts": {
-    "build": "plumerialint -- next build"
+    "build": "plumeria-lint -- next build"
   }
 }
 ```
 
-If `plumerialint` detects any styling errors or warnings, it will print the diagnostics, kill the build process immediately, and exit with a non-zero code. This avoids compiling when styling validation fails.
+If `plumeria-lint` detects any styling errors or warnings, it will print the diagnostics, kill the build process immediately, and exit with a non-zero code. This avoids compiling when styling validation fails.
 
 With `@plumeria/next-plugin` and `@plumeria/unplugin` (except on esbuild and Bun), this lint is integrated into the build by default, so it needs no setup. Pass `lint: false` to the plugin to build without it.
