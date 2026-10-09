@@ -2,80 +2,13 @@
  * @fileoverview Disallow unknown CSS properties
  */
 
-import { all } from 'known-css-properties';
 import { camelToKebabCase } from 'zss-engine';
 import type { ObjectExpression, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
+import { cssPropertyData } from '../util/cssPropertyData';
 
-const knownProperties = new Set([
-  ...all,
-  'border-shape',
-  'corner-shape',
-  'corner-top-shape',
-  'corner-right-shape',
-  'corner-bottom-shape',
-  'corner-left-shape',
-  'corner-top-left-shape',
-  'corner-top-right-shape',
-  'corner-bottom-left-shape',
-  'corner-bottom-right-shape',
-  'corner-block-start-shape',
-  'corner-block-end-shape',
-  'corner-inline-start-shape',
-  'corner-inline-end-shape',
-  'corner-start-start-shape',
-  'corner-start-end-shape',
-  'corner-end-start-shape',
-  'corner-end-end-shape',
-  'flex-line-count',
-  'flow-tolerance',
-  'interest-delay',
-  'interest-delay-start',
-  'interest-delay-end',
-  'rule-inset',
-  'rule-inset-start',
-  'rule-inset-end',
-  'rule-inset-cap',
-  'rule-inset-junction',
-  'rule-overlap',
-  'rule-visibility-items',
-  'column-rule-inset',
-  'column-rule-inset-start',
-  'column-rule-inset-end',
-  'column-rule-inset-cap',
-  'column-rule-inset-cap-start',
-  'column-rule-inset-cap-end',
-  'column-rule-inset-junction',
-  'column-rule-inset-junction-start',
-  'column-rule-inset-junction-end',
-  'column-rule-visibility-items',
-  'row-rule-inset',
-  'row-rule-inset-start',
-  'row-rule-inset-end',
-  'row-rule-inset-cap',
-  'row-rule-inset-cap-start',
-  'row-rule-inset-cap-end',
-  'row-rule-inset-junction',
-  'row-rule-inset-junction-start',
-  'row-rule-inset-junction-end',
-  'row-rule-visibility-items',
-  'scroll-axis-lock',
-  'text-decoration-inset',
-  'text-fit',
-  'timeline-trigger',
-  'timeline-trigger-name',
-  'timeline-trigger-source',
-  'timeline-trigger-activation-range',
-  'timeline-trigger-activation-range-start',
-  'timeline-trigger-activation-range-end',
-  'timeline-trigger-active-range',
-  'timeline-trigger-active-range-start',
-  'timeline-trigger-active-range-end',
-  'trigger-scope',
-  'view-transition-scope',
-  'window-drag',
-]);
+const knownProperties = new Set(cssPropertyData);
 
 export const noUnknownCssProperties: Rule.RuleModule = {
   meta: {
