@@ -1,5 +1,11 @@
 # @plumeria/inspector
 
+## 19.10.4
+
+### Patch Changes
+
+- 2079db2: Bump version to 19.10.4
+
 ## 19.10.3
 
 ### Patch Changes
