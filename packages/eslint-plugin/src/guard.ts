@@ -61,6 +61,18 @@ export function lowerPriority(pid: number | undefined): boolean {
   }
 }
 
+export function lintEnv(): NodeJS.ProcessEnv {
+  return {
+    NODE_COMPILE_CACHE: path.join(
+      process.cwd(),
+      'node_modules',
+      '.cache',
+      'plumeria-lint',
+    ),
+    ...process.env,
+  };
+}
+
 export function startLintGuard(overrides: LintOverrides = {}): boolean {
   if (process.env[GUARD_ENV]) return false;
   process.env[GUARD_ENV] = '1';
@@ -81,18 +93,7 @@ export function startLintGuard(overrides: LintOverrides = {}): boolean {
       '--no-error-on-unmatched-pattern',
       '--threads=2',
     ],
-    {
-      stdio: 'inherit',
-      env: {
-        NODE_COMPILE_CACHE: path.join(
-          process.cwd(),
-          'node_modules',
-          '.cache',
-          'plumeria-lint',
-        ),
-        ...process.env,
-      },
-    },
+    { stdio: 'inherit', env: lintEnv() },
   );
   lowerPriority(child.pid);
 
