@@ -172,8 +172,39 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
         });
       `,
     },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const styles = css.create({
+          main: {
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch',
+            WebkitFontSmoothing: 'antialiased',
+            MozOsxFontSmoothing: 'grayscale',
+            WebkitLineClamp: 2,
+            msTextSizeAdjust: '100%',
+            gridGap: '8px'
+          }
+        });
+      `,
+    },
   ],
   invalid: [
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const styles = css.create({
+          main: {
+            voiceFamily: 'male',
+            WebkitMarquee: 'auto'
+          }
+        });
+      `,
+      errors: [
+        { messageId: 'unknownProperty', data: { name: 'voiceFamily' } },
+        { messageId: 'unknownProperty', data: { name: 'WebkitMarquee' } },
+      ],
+    },
     {
       code: `
         import * as css from '@plumeria/core';
