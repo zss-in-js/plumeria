@@ -329,8 +329,8 @@ const indentOfJson = (source: string): number => {
 
 export const buildScript = (existing: string, styleProp: string): string =>
   styleProp === DEFAULT_STYLE_PROP
-    ? `plumerialint -- ${existing}`
-    : `plumerialint --style-prop ${styleProp} -- ${existing}`;
+    ? `plumeria-lint -- ${existing}`
+    : `plumeria-lint --style-prop ${styleProp} -- ${existing}`;
 
 export const plan = (detected: Detected, answers: Answers): Action[] => {
   const actions: Action[] = [];
@@ -609,7 +609,10 @@ const scriptAction = (detected: Detected, answers: Answers): Action => {
 
   const existing = scripts.build;
   const guard = answers.eslint && guardsByScript(detected);
-  if (guard && existing && !existing.includes('plumerialint')) {
+  if (guard && existing && existing.includes('plumerialint')) {
+    scripts.build = existing.replace(/plumerialint/g, 'plumeria-lint');
+    notes.push(`build: ${scripts.build}`);
+  } else if (guard && existing && !existing.includes('plumeria-lint')) {
     scripts.build = buildScript(existing, answers.styleProp);
     notes.push(`build: ${scripts.build}`);
   }
