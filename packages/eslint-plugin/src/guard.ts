@@ -81,7 +81,18 @@ export function startLintGuard(overrides: LintOverrides = {}): boolean {
       '--no-error-on-unmatched-pattern',
       '--threads=2',
     ],
-    { stdio: 'inherit' },
+    {
+      stdio: 'inherit',
+      env: {
+        NODE_COMPILE_CACHE: path.join(
+          process.cwd(),
+          'node_modules',
+          '.cache',
+          'plumeria-lint',
+        ),
+        ...process.env,
+      },
+    },
   );
   lowerPriority(child.pid);
 
