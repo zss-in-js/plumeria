@@ -54,7 +54,7 @@ On a codebase that already has styles, answer `3` and follow [Optional rules](/d
 
 ### Set up `@plumeria/eslint-plugin` for ESLint?
 
-Adds the plugin and writes or extends the flat config, so a style error is reported while you type. The build lints either way: the bundler plugin runs the same rules alongside the build and stops it on a style error. On esbuild and Bun, which the plugin cannot lint, the `build` script is prefixed with `plumerialint --` instead, with `--style-prop` when the styling prop was renamed.
+Adds the plugin and writes or extends the flat config, so a style error is reported while you type. The build lints either way: the bundler plugin runs the same rules alongside the build and stops it on a style error. On esbuild and Bun, which the plugin cannot lint, the `build` script is prefixed with `plumeria-lint --` instead, with `--style-prop` when the styling prop was renamed.
 
 A renamed prop is rejected unless it is an identifier TypeScript can declare, and unless React leaves the name free — `className`, `style`, `key`, `ref` and `children` are refused, from the prompt and from `--style-prop` alike.
 
@@ -65,7 +65,7 @@ A renamed prop is rejected unless it is an identifier TypeScript can declare, an
 | `plumeria.d.ts` | the styling prop TypeScript reads |
 | the bundler config | the plugin, and the options the answers chose |
 | `eslint.config.ts` | `plumeria.configs.recommended`, the rules that were asked for, and `settings.plumeria.styleProp` when the styling prop was renamed |
-| `package.json` | on esbuild and Bun, `plumerialint --` in front of the `build` script, and on Next.js `rimraf .next` before `dev` and `build` |
+| `package.json` | on esbuild and Bun, `plumeria-lint --` in front of the `build` script, and on Next.js `rimraf .next` before `dev` and `build` |
 
 An existing file is patched, not replaced. The import lands after the last import, the plugin joins the `plugins` array, and a Next config has its default export wrapped:
 
