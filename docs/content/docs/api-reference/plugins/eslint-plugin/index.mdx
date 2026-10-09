@@ -33,7 +33,7 @@ import plumeria from '@plumeria/eslint-plugin';
 export default [plumeria.configs.recommended];
 ```
 
-`no-invalid-selector`, `validate-pseudos`, and `validate-at-rules` also check selectors that are not written as string literals. A computed key is followed back to where it is declared, the same way under ESLint and `plumerialint`, with no type information involved:
+`no-invalid-selector`, `validate-pseudos`, and `validate-at-rules` also check selectors that are not written as string literals. A computed key is followed back to where it is declared, the same way under ESLint and `plumeria-lint`, with no type information involved:
 
 ```ts
 import * as css from '@plumeria/core';
@@ -152,7 +152,7 @@ const Layout = ({ headerStyle }: { headerStyle?: css.Style }) => (
 
 `custom-props-require-import`, `no-inline-object`, `no-mixed-styling-props`, `no-style-prop-relay` and `no-unresolved-composition` need to know which JSX prop carries styles. It is `classStyle` unless you changed it, so most projects configure nothing.
 
-If you did rename it — via `styleProp` on `withPlumeria` or on the unplugin options — tell the plugin the same name. The lint the bundler plugins run in the build is given that name already. `plumerialint` takes it with `--style-prop`, or reads it from the `settings` below when ESLint is installed. ESLint cannot read it from your bundler config, so set it once in `settings` and every rule picks it up:
+If you did rename it — via `styleProp` on `withPlumeria` or on the unplugin options — tell the plugin the same name. The lint the bundler plugins run in the build is given that name already. `plumeria-lint` takes it with `--style-prop`, or reads it from the `settings` below when ESLint is installed. ESLint cannot read it from your bundler config, so set it once in `settings` and every rule picks it up:
 
 ```js
 import plumeria from '@plumeria/eslint-plugin';
