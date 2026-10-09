@@ -60,7 +60,7 @@ function handleOxlintError(err) {
 }
 
 function fail(err) {
-  console.error(`✖ [plumerialint] ${err.message}`);
+  console.error(`✖ [plumeria-lint] ${err.message}`);
   process.exit(1);
 }
 
@@ -95,13 +95,13 @@ if (!buildCommand) {
     aborted = true;
 
     if (failedSource === 'lint') {
-      console.error(`\n✖ [plumerialint] Linting failed. Aborting build...`);
+      console.error(`\n✖ [plumeria-lint] Linting failed. Aborting build...`);
       try {
         buildChild.kill();
       } catch (e) {}
       process.exit(exitCode || 1);
     } else if (failedSource === 'build') {
-      console.error(`\n✖ [plumerialint] Build failed. Aborting lint...`);
+      console.error(`\n✖ [plumeria-lint] Build failed. Aborting lint...`);
       try {
         if (oxlintChild) oxlintChild.kill();
       } catch (e) {}
