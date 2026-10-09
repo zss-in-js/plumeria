@@ -115,7 +115,7 @@ The lint is integrated into the build by default, so it needs no setup. A produc
 | Rollup, Rolldown | a single build | `--watch` |
 | Farm | `farm build` | `farm start` |
 
-esbuild and Bun do not say whether a build is a one-off or a watch, so they do not lint. Run `plumerialint` there instead.
+esbuild and Bun do not say whether a build is a one-off or a watch, so they do not lint. Run `plumeria-lint` there instead.
 
 A build started from a script or a test lints as well, and a lint error ends that process. Pass `lint: false` where that is not wanted.
 
@@ -123,7 +123,7 @@ The lint runs the recommended rules, and `withoutLogicalProperties` or `withoutP
 
 oxlint skips the files `.gitignore` ignores, and runs only the Plumeria rules, not oxlint's own.
 
-`plumerialint -- vite build` still works, and the lint runs once. To build without it:
+`plumeria-lint -- vite build` still works, and the lint runs once. To build without it:
 
 ```ts
 plumeria.vite({ lint: false });
