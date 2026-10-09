@@ -1,5 +1,15 @@
 # @plumeria/next-plugin
 
+## 19.10.4
+
+### Patch Changes
+
+- 2079db2: - `no-unknown-css-properties` adds the shipped properties missing from known-css-properties to its known list, such as `cornerShape`, `interestDelay`, `viewTransitionScope` and `textDecorationInset`
+- Updated dependencies [2079db2]
+- Updated dependencies [2079db2]
+  - @plumeria/turbopack-loader@19.10.4
+  - @plumeria/eslint-plugin@19.10.4
+
 ## 19.10.3
 
 ### Patch Changes
