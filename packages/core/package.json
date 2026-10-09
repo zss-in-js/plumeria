@@ -38,6 +38,9 @@
   "files": [
     "lib/"
   ],
+  "scripts": {
+    "csstypes": "node scripts/generate-csstypes.mts"
+  },
   "publishConfig": {
     "access": "public",
     "provenance": true
