@@ -1,5 +1,11 @@
 # @plumeria/init
 
+## 19.10.5
+
+### Patch Changes
+
+- 2079db2: Bump version to 19.10.4
+
 ## 19.10.4
 
 ### Patch Changes
