@@ -1,0 +1,48 @@
+---
+title: 'Plumeria 19.11'
+description: 'Update: plumerialint is now plumeria-lint, and the build lint starts faster from the second build'
+date: '2026-10-09'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v19.11 renames the CLI to `plumeria-lint` and caches what the build lint loads.
+
+## 1. `plumeria-lint`
+
+The CLI that runs the lint is now `plumeria-lint`. It takes the same flags:
+
+```json title="package.json"
+{
+  "scripts": {
+    "build": "plumeria-lint -- esbuild src/index.ts --bundle"
+  }
+}
+```
+
+`plumerialint` no longer lints. It prints that it has been renamed and exits with code 1, so a build script that still calls it fails instead of passing without the lint:
+
+```
+✖ [plumerialint] plumerialint has been renamed to plumeria-lint. Run plumeria-lint instead.
+```
+
+Running `npx @plumeria/init` again renames it in the `build` script.
+
+## 2. A faster build lint
+
+The lint the bundler plugins run starts oxlint in a child process. That process now keeps a compile cache in `node_modules/.cache/plumeria-lint`, so from the second build it loads oxlint and the Plumeria rules without compiling them again. Set `NODE_COMPILE_CACHE` to keep the cache somewhere else.
+
+---
+
+## Release notes
+
+## 19.11.0 (Oct 9, 2026)
+
+- Rename the CLI from `plumerialint` to `plumeria-lint`; `plumerialint` prints that it has been renamed and exits with code 1
+- `@plumeria/init` writes `plumeria-lint` into the build script and renames an existing `plumerialint`
+- The build lint keeps a compile cache in `node_modules/.cache/plumeria-lint`, so oxlint and the rules load faster from the second build
