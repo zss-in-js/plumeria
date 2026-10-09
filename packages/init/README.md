@@ -52,7 +52,7 @@ refused, from the prompt and from `--style-prop` alike.
 extends the flat config, so a style error is reported while you type. The build
 lints either way: the bundler plugin runs the same rules alongside the build and
 stops it on a style error. On esbuild and Bun, which the plugin cannot lint,
-the `build` script is prefixed with `plumerialint --` instead.
+the `build` script is prefixed with `plumeria-lint --` instead.
 
 ## What it writes
 
@@ -63,7 +63,7 @@ the `build` script is prefixed with `plumerialint --` instead.
   wrapped in `withPlumeria`.
 - `eslint.config.ts` — `plumeria.configs.recommended` plus the rules that were
   asked for, and `settings.plumeria.styleProp` when the styling prop was renamed. An existing flat config is extended rather than replaced.
-- `package.json` — on esbuild and Bun, `plumerialint --` in front of the `build`
+- `package.json` — on esbuild and Bun, `plumeria-lint --` in front of the `build`
   script, with `--style-prop` when the styling prop was renamed, and on Next.js `rimraf .next` before `dev` and before `build`, so a version change is
   not read as a compile error. A `pre` script is added only for a script the
   project actually has, and one it already wrote is left alone. Clearing the
