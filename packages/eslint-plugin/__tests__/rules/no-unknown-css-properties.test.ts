@@ -155,6 +155,23 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
         });
       `,
     },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const styles = css.create({
+          main: {
+            cornerShape: 'squircle',
+            cornerTopLeftShape: 'bevel',
+            interestDelay: '0.5s',
+            viewTransitionScope: 'all',
+            textDecorationInset: '0.1em',
+            columnRuleInset: '4px',
+            timelineTrigger: 'none',
+            flowTolerance: 'normal'
+          }
+        });
+      `,
+    },
   ],
   invalid: [
     {
