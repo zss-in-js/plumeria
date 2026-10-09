@@ -1,5 +1,15 @@
 # @plumeria/unplugin
 
+## 19.10.4
+
+### Patch Changes
+
+- 37d7bb9: - `no-unknown-css-properties` stops reporting the shipped properties missing from known-css-properties, such as `cornerShape`, `interestDelay`, `viewTransitionScope` and `textDecorationInset`
+- Updated dependencies [37d7bb9]
+- Updated dependencies [37d7bb9]
+  - @plumeria/compiler@19.10.4
+  - @plumeria/eslint-plugin@19.10.4
+
 ## 19.10.3
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@plumeria/swc-jest",
-  "version": "19.10.3",
+  "version": "19.10.4",
   "description": "Plumeria Jest transformer on @swc/jest",
   "author": "Refirst 11",
   "license": "MIT",

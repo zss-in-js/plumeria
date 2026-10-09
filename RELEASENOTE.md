@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.10.4 (Oct 9, 2026)
+
+- `no-unknown-css-properties` stops reporting the shipped properties missing from known-css-properties, such as `cornerShape`, `interestDelay`, `viewTransitionScope` and `textDecorationInset`
+
 ## 19.10.3 (Oct 8, 2026)
 
 - The build lint and `plumerialint` run oxlint at the lowest CPU priority, so the build keeps the CPU when both compete for it
