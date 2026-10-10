@@ -6,6 +6,8 @@
 
 **Plumeria** is a **zero-cost abstraction layer** for styling React components. You write type-safe styles in TypeScript, and what ships is a class string — not a style object and a merger. Style composition is a monoid whose operation is fully determined at compile time, which is where the predictability comes from: styles are composable by construction, and strict syntax and linting keep the cognitive overhead low.
 
+> The compiler is written in Rust with oxc, so builds are fast. The CSS types and the property list the linter checks against are generated from MDN data, so properties and keywords follow what MDN documents.
+
 ## Example
 
 Styles can be passed to the `classStyle` prop. That prop accepts static and dynamic styles as an array. At build time, the compiler resolves `classStyle` into a static `className`; dynamic values are passed as CSS variables through the `style` attribute — no runtime library is involved.
@@ -162,8 +164,7 @@ We welcome contributions of all kinds — bug reports, feature ideas, pull reque
 - [Linaria](https://linaria.dev/) - for inspiring the Zero-Runtime architecture
 - [React Native](https://reactnative.dev/docs/stylesheet) - for inspiring the StyleSheet.create
 - [React Native for Web](https://necolas.github.io/react-native-web/) - for inspiring that attempt
-- [React Strict DOM](https://facebook.github.io/react-strict-dom/) - for inspiring the Strict architecture philosophy
-- [StyleX](https://stylexjs.com/) - for inspiring the optimized Atomic CSS
+- [StyleX](https://stylexjs.com/) - It inherits the design philosophy.
 - [Tailwind CSS](https://tailwindcss.com/) - for inspiring the brilliance of its approach
 
 ## License
