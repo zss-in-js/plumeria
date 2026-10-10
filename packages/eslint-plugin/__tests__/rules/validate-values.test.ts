@@ -81,6 +81,9 @@ ruleTester.run('validate-values', validateValues, {
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { margin: 'abs(-10px)' } });`,
     },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'color(from red --custom r g b)' } });`,
+    },
     // Basic keywords
     {
       code: `import { create } from '@plumeria/core'; const styles = create({ s: { color: 'red' } });`,
@@ -1425,6 +1428,18 @@ ruleTester.run('validate-values', validateValues, {
   ],
 
   invalid: [
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'color(from red bogus r g b)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { backgroundImage: 'image-set()' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { maskImage: 'image-set( )' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'rgb(from red r g)' } });`,
       errors: [{ messageId: 'validateValue' }],
