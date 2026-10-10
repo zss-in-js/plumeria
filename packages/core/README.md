@@ -9,6 +9,8 @@
 
 **Plumeria** is a **zero-cost abstraction layer** for styling React components. You write type-safe styles in TypeScript, and what ships is a class string — not a style object and a merger. Style composition is a monoid whose operation is fully determined at compile time, which is where the predictability comes from: styles are composable by construction, and strict syntax and linting keep the cognitive overhead low.
 
+> The compiler is written in Rust with oxc, so builds are fast. The CSS types and the property list the linter checks against are generated from MDN data, so properties and keywords follow what MDN documents.
+
 ## Installation
 
 `@plumeria/core` contains type definitions only. Which JSX prop carries styles is declared in your project — one line for the default `classStyle`, see [Declaring the styling prop](#declaring-the-styling-prop). Styles are compiled away at build time by a bundler integration — [`@plumeria/next-plugin`](https://www.npmjs.com/package/@plumeria/next-plugin) for Next.js, or [`@plumeria/unplugin`](https://www.npmjs.com/package/@plumeria/unplugin) for Vite, Webpack, and others.
