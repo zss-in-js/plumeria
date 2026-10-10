@@ -81,7 +81,7 @@ body {
 }
 
 .dark .docs-article-description {
-  color: #a5a0a4;
+  color: #8f8f8fcc;
 }
 
 .docs-article-header {
@@ -94,8 +94,8 @@ body {
 }
 
 .dark #nd-page > .prose {
-  --tw-prose-body: #a5a0a4;
-  color: #a5a0a4;
+  --tw-prose-body: #8f8f8fcc;
+  color: #8f8f8fcc;
 }
 
 #nd-page > .prose {
