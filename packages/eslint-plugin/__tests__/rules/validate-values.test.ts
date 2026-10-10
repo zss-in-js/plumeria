@@ -84,6 +84,30 @@ ruleTester.run('validate-values', validateValues, {
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'color(from red --custom r g b)' } });`,
     },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(.5, 1)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'cubic-bezier(.4, 0, .2, 1)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { margin: '-.5rem' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { padding: '.5px .25em' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { opacity: '.5' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'oklch(70% .1 200 / .5)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { borderImageSlice: '.5 fill' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'calc(.5px + 1px)' } });`,
+    },
     // Basic keywords
     {
       code: `import { create } from '@plumeria/core'; const styles = create({ s: { color: 'red' } });`,
@@ -1776,14 +1800,6 @@ ruleTester.run('validate-values', validateValues, {
     },
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(0, 50%, 1)' } });`,
-      errors: [{ messageId: 'validateValue' }],
-    },
-    {
-      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'linear(.5, 1)' } });`,
-      errors: [{ messageId: 'validateValue' }],
-    },
-    {
-      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transitionTimingFunction: 'cubic-bezier(.4, 0, .2, 1)' } });`,
       errors: [{ messageId: 'validateValue' }],
     },
     {
