@@ -14,13 +14,18 @@ export const SAMPLE_FILES: SampleFile[] = [
 import { theme } from './theme';
 import { tokens } from './tokens';
 
+const External = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <path d="M11 5H4v15h15v-7" />
+    <path d="M14 3h7v7M21 3 11 13" />
+  </svg>
+);
+
 export const Card = () => (
   <main classStyle={styles.canvas}>
     <article classStyle={styles.card}>
       <div classStyle={styles.heading}>
-        <div classStyle={styles.icon} aria-hidden="true">
-          <span classStyle={styles.crab} />
-        </div>
+        <img src="/logo.svg" alt="" width={24} height={24} />
         <p classStyle={styles.eyebrow}>PLUMERIA</p>
       </div>
       <h1 classStyle={styles.title}>Rust-based CSS compiler</h1>
@@ -30,21 +35,16 @@ export const Card = () => (
         Edit any style and watch it land live.
       </p>
       <div classStyle={styles.actions}>
-        <a classStyle={[styles.button, styles.primary]} href="/docs" target="_blank" rel="noreferrer">Docs ↗</a>
-        <a classStyle={styles.button} href="https://github.com/zss-in-js/plumeria" target="_blank" rel="noreferrer">GitHub ↗</a>
+        <a classStyle={[styles.button, styles.primary]} href="/docs" target="_blank" rel="noreferrer">
+          Docs <External />
+        </a>
+        <a classStyle={styles.button} href="https://github.com/zss-in-js/plumeria" target="_blank" rel="noreferrer">
+          GitHub <External />
+        </a>
       </div>
     </article>
   </main>
 );
-
-const scuttle = css.keyframes({
-  from: {
-    transform: 'translateX(-3px)'
-  },
-  to: {
-    transform: 'translateX(3px)'
-  },
-});
 
 const styles = css.create({
   canvas: {
@@ -71,68 +71,28 @@ const styles = css.create({
   },
   heading: {
     display: 'flex',
-    gap: 12,
+    gap: 10,
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  icon: {
-    display: 'grid',
-    flexShrink: 0,
-    placeItems: 'center',
-    width: 40,
-    height: 36,
-  },
-  crab: {
-    position: 'relative',
-    width: 28,
-    height: 18,
-    background: \`radial-gradient(circle at 35% 40%, \${theme.crabSoft} 2px, transparent 2.5px), radial-gradient(circle at 65% 40%, \${theme.crabSoft} 2px, transparent 2.5px), \${theme.crab}\`,
-    borderRadius: '50% 50% 45% 45%',
-    isolation: 'isolate',
-    animation: \`\${scuttle} 0.6s ease-in-out infinite alternate\`,
-    '::before': {
-      position: 'absolute',
-      top: -7,
-      left: -6,
-      zIndex: -1,
-      width: 10,
-      height: 10,
-      content: '""',
-      background: theme.crab,
-      borderRadius: '50% 50% 0 50%',
-      boxShadow: \`30px 0 \${theme.crab}\`
-    },
-    '::after': {
-      position: 'absolute',
-      top: 8,
-      left: -5,
-      zIndex: -1,
-      width: 38,
-      height: 10,
-      content: '""',
-      background: \`repeating-linear-gradient(to bottom, \${theme.crab} 0 2px, transparent 2px 4px)\`
-    },
-    '@media (prefers-reduced-motion: reduce)': {
-      animation: 'none'
-    }
+    marginBottom: 16,
   },
   eyebrow: {
     margin: 0,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 600,
     color: theme.accent,
-    letterSpacing: '0.16em'
+    letterSpacing: '0.12em'
   },
   title: {
     margin: 0,
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 600,
     lineHeight: 1.2,
-    letterSpacing: '-0.04em'
+    letterSpacing: '-0.03em'
   },
   description: {
-    margin: '10px 0 20px',
-    lineHeight: 1.7,
+    margin: '12px 0 24px',
+    fontSize: 15,
+    lineHeight: 1.6,
     color: theme.muted,
   },
   actions: {
@@ -143,15 +103,15 @@ const styles = css.create({
     boxSizing: 'border-box',
     display: 'flex',
     flex: 'none',
+    gap: 6,
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 120,
     minHeight: 40,
     padding: '10px 20px',
-    fontSize: 13,
-    fontWeight: 600,
+    fontSize: 14,
+    fontWeight: 500,
     color: theme.text,
-    textAlign: 'center',
     textDecoration: 'none',
     background: theme.tint,
     borderRadius: tokens.pill,
@@ -185,8 +145,6 @@ export const theme = css.createTheme('.dark', {
   muted: { default: '#596273', theme: '#a4acbd' },
   accent: { default: '#365dcc', theme: '#5b8cff' },
   onAccent: { default: '#ffffff', theme: '#0b1533' },
-  crab: { default: '#e5484d', theme: '#ff6369' },
-  crabSoft: { default: '#fde8e8', theme: '#4a1f22' },
   tint: { default: '#e1e5ee', theme: '#2e3442' },
 });
 `,
