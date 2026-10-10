@@ -66,6 +66,10 @@ const config: NextConfig = withPlumeria(
           source: '/playground/:path*',
           headers: isolationHeaders,
         },
+        {
+          source: '/_next/static/:path*/turbopack-worker-:name',
+          headers: isolationHeaders,
+        },
       ];
     },
   },
