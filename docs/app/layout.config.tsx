@@ -21,17 +21,19 @@ const styles = css.create({
   },
 });
 
+export const logo = (
+  <span classStyle={styles.image}>
+    <span classStyle={styles.mark}>
+      <Image src="/logo.svg" alt="logo" width={20} height={20} preload />
+    </span>
+    Plumeria
+  </span>
+);
+
 export const baseOptions: BaseLayoutProps = {
   nav: {
     transparentMode: 'top',
-    title: (
-      <span classStyle={styles.image}>
-        <span classStyle={styles.mark}>
-          <Image src="/logo.svg" alt="logo" width={20} height={20} preload />
-        </span>
-        Plumeria
-      </span>
-    ),
+    title: logo,
   },
 
   links: [
