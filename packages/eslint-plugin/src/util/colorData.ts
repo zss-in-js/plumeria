@@ -1,5 +1,6 @@
 const colorNames = [
   'currentColor',
+  'currentcolor',
   'transparent',
   'aliceblue',
   'antiquewhite',
