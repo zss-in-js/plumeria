@@ -9,7 +9,7 @@ const generateSEOData = ({ title, subtitle, date = '', path = '/' }: SeoData) =>
   const image = {
     width: 1200,
     height: 630,
-    url: `${process.env.PROD_URL}/api/ogp?title=${title}&date=${date}`,
+    url: `${process.env.PROD_URL}/api/ogp?title=${title}&date=${date}&v=19`,
   };
 
   return {
