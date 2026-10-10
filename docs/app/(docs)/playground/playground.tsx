@@ -19,7 +19,8 @@ const styles = css.create({
   root: {
     display: 'flex',
     flexDirection: 'column',
-    height: 'calc(100dvh - 56px)',
+    gridArea: 'main',
+    height: 'calc(var(--fd-docs-height) - var(--fd-header-height))',
     overflow: 'hidden',
     color: theme.textPrimary,
   },
