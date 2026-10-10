@@ -2,6 +2,7 @@ import * as css from '@plumeria/core';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { breakpoints } from 'lib/mediaQuery';
+import { theme } from 'lib/theme';
 import generateSEOData from 'lib/generateSEOData';
 import { latestBlogUrl } from 'lib/latestBlogUrl';
 
@@ -33,10 +34,13 @@ const styles = css.create({
   },
   title: {
     margin: 0,
-    fontSize: 'clamp(56px, 10vw, 112px)',
-    fontWeight: 650,
-    lineHeight: 1.1,
-    letterSpacing: '-0.065em',
+    marginRight: '-0.12em',
+    fontSize: 'clamp(28px, 6vw, 56px)',
+    fontWeight: 600,
+    lineHeight: 1,
+    color: theme.wordmark,
+    textTransform: 'uppercase',
+    letterSpacing: '0.12em',
   },
   description: {
     maxWidth: 640,
