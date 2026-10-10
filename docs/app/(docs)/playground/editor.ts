@@ -52,11 +52,23 @@ function onBackground(theme: ThemeRegistration, background: string): ThemeRegist
   };
 }
 
+function withDarkSelection(theme: ThemeRegistration): ThemeRegistration {
+  return {
+    ...theme,
+    colors: {
+      ...theme.colors,
+      'editor.selectionBackground': '#eeeeee30',
+      'editor.inactiveSelectionBackground': '#eeeeee1c',
+      'editor.selectionHighlightBackground': '#eeeeee1c',
+    },
+  };
+}
+
 let highlighter: Promise<HighlighterCore> | undefined;
 
 function setupHighlighting() {
   highlighter ??= createHighlighterCore({
-    themes: [onBackground(vitesseLight, '#ffffff'), onBackground(vitesseDark, '#000000')],
+    themes: [onBackground(vitesseLight, '#ffffff'), onBackground(withDarkSelection(vitesseDark), '#000000')],
     langs: [tsx.map((grammar) => (grammar.name === 'tsx' ? { ...grammar, name: 'typescript', aliases: [] } : grammar))],
     engine: createJavaScriptRegexEngine(),
   }).then((core) => {
