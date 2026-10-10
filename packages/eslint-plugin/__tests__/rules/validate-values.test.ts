@@ -39,6 +39,48 @@ ruleTester.run('validate-values', validateValues, {
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'currentcolor' } });`,
     },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'oklch(from var(--brand) l c calc(h + 180))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'rgb(from #f00 r g b / 50%)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'color(from red srgb r g b)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'color-mix(in srgb, red 50%, color-mix(in srgb, blue, white))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { backgroundColor: 'color-mix(in oklch, light-dark(white, black), transparent 30%)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { boxShadow: '0 0 2px light-dark(rgb(from red r g b / 50%), black)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { backgroundImage: 'image-set(url(a.avif) type("image/avif"), url(a.png) 1x)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { maskImage: 'image-set("a.png" 1x)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { content: '"(" counter(item) ")"' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { content: 'open-quote "x" close-quote' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { content: 'url(a.png) / "alt"' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'round(up, 10.5px, 1px)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'mod(18px, 5px)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { margin: 'abs(-10px)' } });`,
+    },
     // Basic keywords
     {
       code: `import { create } from '@plumeria/core'; const styles = create({ s: { color: 'red' } });`,
@@ -1383,6 +1425,34 @@ ruleTester.run('validate-values', validateValues, {
   ],
 
   invalid: [
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'rgb(from red r g)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'color-mix(in srgb, redd, blue)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'color-mix(srgb, red, blue)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'light-dark(red)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'color-mix(in srgb, red, blue)' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { content: '"a" foo' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { content: '"a" / ' } });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
     // OutlineWidth
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { outlineWidth: '50%' } });`,
