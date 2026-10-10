@@ -35,6 +35,19 @@ const unitData = [
   'lvh',
   'dvw',
   'dvh',
+  'svb',
+  'svi',
+  'lvb',
+  'lvi',
+  'dvb',
+  'dvi',
+  // ContainerCSSUnit
+  'cqw',
+  'cqh',
+  'cqi',
+  'cqb',
+  'cqmin',
+  'cqmax',
   // PercentageCSSUnit
   // '%',
 ];
