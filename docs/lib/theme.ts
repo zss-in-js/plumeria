@@ -9,6 +9,10 @@ export const theme = css.createTheme('.dark', {
     default: 'rgba(255, 255, 255, 0.5)',
     theme: 'rgba(24, 24, 27, 0.5)',
   },
+  pageBg: {
+    default: 'white',
+    theme: 'black',
+  },
   dropdownBg: {
     default: '#ffffff',
     theme: '#18181b',
