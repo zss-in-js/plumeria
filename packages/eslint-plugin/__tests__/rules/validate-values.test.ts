@@ -9,6 +9,36 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('validate-values', validateValues, {
   valid: [
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'min(100%, calc(50% + 10px))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'clamp(1rem, calc(1rem + 2vw), 3rem)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'max(min(10px, 5vw), 1rem)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'calc(100% - min(10px, (2px + 1px)))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: '100cqi' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { height: '50dvb' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { transform: 'translate(calc(100% - 1px), 0) rotate(45deg)' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 200px), 1fr))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { flex: '1 1 calc(50% - (1rem + 2px))' } });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'currentcolor' } });`,
+    },
     // Basic keywords
     {
       code: `import { create } from '@plumeria/core'; const styles = create({ s: { color: 'red' } });`,
