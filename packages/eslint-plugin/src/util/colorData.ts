@@ -209,4 +209,4 @@ const colorFunctionPattern = `${colorFunctionName}${colorParameters}`;
 // overall pattern of color values
 const colorValue = `(?:${hexPattern}|${rgbPattern}|${hslPattern}|${hwbPattern}|${labPattern}|${lchPattern}|${colorFunctionPattern}|${colorNames})`;
 
-export { colorValue };
+export { colorValue, colorSpaces };
