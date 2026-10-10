@@ -261,7 +261,7 @@ const cssVariablePlaceholder = '\u0001';
 const canonicalCssVariable = (index: number) => `var(--x${index})`;
 const varString = `(?:var\\(${dashedIdentString}(,\\s*[^\\)]+)?\\)|${cssVariablePlaceholder})`;
 const varRegex = new RegExp(`^(${varString})$`);
-const pureNumber = `(-?\\d+(\\.\\d+)?)`;
+const pureNumber = `(-?(?:\\d+(?:\\.\\d+)?|\\.\\d+))`;
 const numberPattern = `(${pureNumber}|${varString})`;
 const percentagePattern = `${pureNumber}%`;
 const pureInteger = `(-?\\d+)`;
@@ -412,7 +412,7 @@ const imageRegex = new RegExp(
 );
 const urlRegex = new RegExp(`^(${urlString})$`);
 const sliceValuePattern =
-  '^(?:-?\\d+(?:\\.\\d+)?%?|fill)(?:\\s+(?:-?\\d+(?:\\.\\d+)?%?|fill)){0,3}$';
+  '^(?:-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)%?|fill)(?:\\s+(?:-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)%?|fill)){0,3}$';
 const sliceRegex = new RegExp(`^(${sliceValuePattern})$`);
 
 const otherGroupProperties = [
@@ -1813,10 +1813,10 @@ function getValidator(key: string): ValidatorFn | null {
       'step-start',
       'step-end',
     ].join('|');
-    const zeroToOne = '(0(\\.\\d+)?|1(\\.0+)?)';
+    const zeroToOne = '(0?\\.\\d+|0|1(\\.0+)?)';
     const bezierProgressPattern = `(?:${zeroToOne}|${varString})`;
     const cubicBezierPattern = `cubic-bezier\\(\\s*(?:${varString}|${bezierProgressPattern}\\s*,\\s*${numberPattern}\\s*,\\s*${bezierProgressPattern}\\s*,\\s*${numberPattern})\\s*\\)`;
-    const stopLengthPattern = `(?:-?\\d+(\\.\\d+)?%|${varString})`;
+    const stopLengthPattern = `(?:${percentagePattern}|${varString})`;
     const linearStopPattern = `${numberPattern}(?:\\s+${stopLengthPattern}){0,2}`;
     const linearPattern = `linear\\(\\s*(?:${varString}|${linearStopPattern}(?:\\s*,\\s*${linearStopPattern})*)\\s*\\)`;
     const positiveIntegerPattern = '[1-9]\\d*';
