@@ -9,6 +9,10 @@ export const theme = css.createTheme('.dark', {
     default: 'rgba(255, 255, 255, 0.5)',
     theme: 'rgba(24, 24, 27, 0.5)',
   },
+  wordmark: {
+    default: '#365dcc',
+    theme: '#5b8cff',
+  },
   pageBg: {
     default: 'white',
     theme: 'black',
