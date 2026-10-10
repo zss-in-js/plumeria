@@ -1,5 +1,11 @@
 # @plumeria/utils
 
+## 19.12.1
+
+### Patch Changes
+
+- 8b7fc9e: Bump version to 19.12.1
+
 ## 19.12.0
 
 ### Minor Changes
