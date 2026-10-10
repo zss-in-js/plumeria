@@ -153,7 +153,7 @@ const colorNames = [
 ].join('|');
 
 // Numeric patterns (including negative numbers, decimals, and percentages)
-const numberPattern = '-?\\d+(?:\\.\\d+)?%?';
+const numberPattern = '-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)%?';
 
 // Percentage value pattern
 const percentagePattern = `${numberPattern}%`;
