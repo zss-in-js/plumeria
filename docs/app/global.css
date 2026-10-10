@@ -8,10 +8,24 @@
 
 :root {
   --plumeria-accent: #d653bb;
+  --fd-layout-width: 100vw;
 }
 
 :is(#nd-sidebar, #nd-sidebar-mobile) {
   --color-fd-primary: var(--plumeria-accent);
+}
+
+#nd-sidebar {
+  background-color: white;
+}
+
+.dark #nd-sidebar {
+  background-color: black;
+}
+
+#nd-toc {
+  padding-inline-start: 16px;
+  border-inline-start: 1px solid var(--color-fd-border);
 }
 
 :is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
