@@ -6,7 +6,7 @@ import { dirname, join, sep } from 'node:path';
 const root = process.cwd();
 const stub = join(root, 'lib', 'node-stub.cjs');
 const pathPolyfill = createRequire(import.meta.url).resolve('path-browserify');
-const utilsShim = join(root, 'app', '(home)', 'playground', 'utils-shim.ts');
+const utilsShim = join(root, 'app', '(docs)', 'playground', 'utils-shim.ts');
 const compilerWasm = dirname(createRequire(import.meta.url).resolve('@plumeria/compiler-wasm32-wasi/package.json'));
 
 const nodeBuiltins = [
@@ -66,7 +66,7 @@ const stubPlugin = {
 };
 
 await build({
-  entryPoints: [join(root, 'app', '(home)', 'playground', 'engine-entry.ts')],
+  entryPoints: [join(root, 'app', '(docs)', 'playground', 'engine-entry.ts')],
   outfile: join(root, 'public', 'playground', 'engine.mjs'),
   bundle: true,
   format: 'esm',
@@ -122,7 +122,7 @@ for (const name of ['engine.mjs', 'libs.json']) {
 await writeFile(join(root, 'public', 'playground', 'manifest.json'), JSON.stringify(sizes));
 
 const previewDir = join(root, 'public', 'playground', 'preview');
-const previewSrc = join(root, 'app', '(home)', 'playground', 'preview');
+const previewSrc = join(root, 'app', '(docs)', 'playground', 'preview');
 
 await build({
   entryPoints: [
