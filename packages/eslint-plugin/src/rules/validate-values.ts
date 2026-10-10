@@ -5,7 +5,10 @@
 import { Rule } from 'eslint';
 import { validData } from '../util/validData';
 import { unitData } from '../util/unitData';
-import { colorValue } from '../util/colorData';
+import {
+  colorValue,
+  colorSpaces as predefinedColorSpaces,
+} from '../util/colorData';
 import {
   isValidPlaceContent,
   isValidPlaceItems,
@@ -275,7 +278,6 @@ const absString = `abs\\(${mathContentsString}\\)`;
 const gradientString =
   '(?:repeating-)?(?:linear|radial|conic)-gradient\\(.*\\)';
 const urlString = `url\\([^\\)${cssVariablePlaceholder}]+\\)`;
-const imageSetString = `image-set\\(${mathContentsString}\\)`;
 const attrString = 'attr\\([^\\)]+\\)';
 const addString = `add\\(${integerPattern}\\)`;
 const counterString = 'counter\\([^\\)]+\\)';
@@ -285,6 +287,7 @@ const singleQuoteString = "'[^']*'";
 const stringString = `(?:${doubleQuoteString}|${singleQuoteString})`;
 const functionContentsString = `(?=[^)]*[^\\s()])${mathContentsString}`;
 const repeatString = `repeat\\(${functionContentsString}\\)`;
+const imageSetString = `image-set\\(${functionContentsString}\\)`;
 const colorSpaces =
   'srgb|srgb-linear|display-p3|a98-rgb|prophoto-rgb|rec2020|lab|oklab|xyz|xyz-d50|xyz-d65|hsl|hwb|lch|oklch';
 const hueModifiers = '(?:\\s+(?:shorter|longer|increasing|decreasing)\\s+hue)?';
@@ -295,6 +298,9 @@ const colorFunctionPlaceholder = '\u0002';
 const relativeChannel = `(?:[a-z]+|${pureNumber}(?:%|deg|rad|grad|turn)?|${calcString}|${varString})`;
 const relativeChannelsRegex = new RegExp(
   `^${relativeChannel}(?:\\s+${relativeChannel}){2}(?:\\s*/\\s*${relativeChannel})?$`,
+);
+const relativeColorSpaceRegex = new RegExp(
+  `^(?:${predefinedColorSpaces}|${dashedIdentString})$`,
 );
 const colorInterpolationRegex = new RegExp(`^${colorSpacePattern}$`);
 const mixPercentageRegex = new RegExp(
@@ -375,7 +381,8 @@ function isValidColorFunction(name: string, args: string): boolean {
     return false;
   }
   const channels = tokens.slice(name === 'color' ? 3 : 2);
-  if (name === 'color' && !/^[a-z][a-z0-9-]*$/.test(tokens[2])) return false;
+  if (name === 'color' && !relativeColorSpaceRegex.test(tokens[2]))
+    return false;
   return relativeChannelsRegex.test(channels.join(' '));
 }
 
