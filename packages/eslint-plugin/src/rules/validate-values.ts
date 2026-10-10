@@ -243,10 +243,16 @@ const anchorSizeProperties = [
   'maxInlineSize',
 ];
 
-const fitContentString = 'fit-content\\([^()]*\\)';
-const minString = 'min\\([^()]*\\)';
-const maxString = 'max\\([^()]*\\)';
-const minmaxString = 'minmax\\([^()]*\\)';
+const quotedString = `"[^"]*"|'[^']*'`;
+const nestedContents = (depth: number): string =>
+  depth === 0
+    ? `(?:[^()"']|${quotedString})*`
+    : `(?:[^()"']|${quotedString}|\\(${nestedContents(depth - 1)}\\))*`;
+const mathContentsString = nestedContents(3);
+const fitContentString = `fit-content\\(${mathContentsString}\\)`;
+const minString = `min\\(${mathContentsString}\\)`;
+const maxString = `max\\(${mathContentsString}\\)`;
+const minmaxString = `minmax\\(${mathContentsString}\\)`;
 const dashedIdentString = '--[a-zA-Z_][a-zA-Z0-9_-]*';
 const cssVariablePlaceholder = '\u0001';
 const canonicalCssVariable = (index: number) => `var(--x${index})`;
@@ -260,10 +266,10 @@ const integerPattern = `(${pureInteger}|${varString})`;
 const lengthPattern = `0|${pureNumber}(?:${unitData.join('|')})`;
 const pureAngle = `${pureNumber}(deg|rad|grad|turn)`;
 const anglePattern = `(${pureAngle}|${varString})`;
-const calcString = 'calc\\(.*?\\)';
+const calcString = `calc\\(${mathContentsString}\\)`;
 const anchorString = 'anchor\\([^()]*\\)';
 const anchorSizeString = 'anchor-size\\([^()]*\\)';
-const clampString = 'clamp\\([^()]*\\)';
+const clampString = `clamp\\(${mathContentsString}\\)`;
 const gradientString =
   '(?:repeating-)?(?:linear|radial|conic)-gradient\\(.*\\)';
 const urlString = `url\\([^\\)${cssVariablePlaceholder}]+\\)`;
@@ -275,7 +281,7 @@ const countersString = 'counters\\([^\\)]+\\)';
 const doubleQuoteString = '"[^"]*"';
 const singleQuoteString = "'[^']*'";
 const stringString = `(?:${doubleQuoteString}|${singleQuoteString})`;
-const functionContentsString = '(?=[^)]*[^\\s()])(?:[^()]|\\([^()]*\\))*';
+const functionContentsString = `(?=[^)]*[^\\s()])${mathContentsString}`;
 const repeatString = `repeat\\(${functionContentsString}\\)`;
 const colorSpaces =
   'srgb|srgb-linear|display-p3|a98-rgb|prophoto-rgb|rec2020|lab|oklab|xyz|xyz-d50|xyz-d65|hsl|hwb|lch|oklch';
@@ -658,13 +664,13 @@ function isValidMultipleColorValues(value: string) {
 function splitColorValues(value: string) {
   const colors = [];
   const remaining = value.trim();
-  let inParentheses = false;
+  let depth = 0;
   let currentColor = '';
   for (let i = 0; i < remaining.length; i++) {
     const char = remaining[i];
-    if (char === '(') inParentheses = true;
-    else if (char === ')') inParentheses = false;
-    if (char === ' ' && !inParentheses && currentColor.length > 0) {
+    if (char === '(') depth++;
+    else if (char === ')') depth--;
+    if (char === ' ' && depth === 0 && currentColor.length > 0) {
       colors.push(currentColor.trim());
       currentColor = '';
     } else {
@@ -851,27 +857,27 @@ function getValidator(key: string): ValidatorFn | null {
   // Helper functions for static string blocks
   const getTransformFunctions = () =>
     [
-      'matrix\\([^\\)]+\\)',
-      'matrix3d\\([^\\)]+\\)',
-      'perspective\\([^\\)]+\\)',
-      'rotate\\([^\\)]+\\)',
-      'rotate3d\\([^\\)]+\\)',
-      'rotateX\\([^\\)]+\\)',
-      'rotateY\\([^\\)]+\\)',
-      'rotateZ\\([^\\)]+\\)',
-      'scale\\([^\\)]+\\)',
-      'scale3d\\([^\\)]+\\)',
-      'scaleX\\([^\\)]+\\)',
-      'scaleY\\([^\\)]+\\)',
-      'scaleZ\\([^\\)]+\\)',
-      'skew\\([^\\)]+\\)',
-      'skewX\\([^\\)]+\\)',
-      'skewY\\([^\\)]+\\)',
-      'translate\\([^\\)]+\\)',
-      'translate3d\\([^\\)]+\\)',
-      'translateX\\([^\\)]+\\)',
-      'translateY\\([^\\)]+\\)',
-      'translateZ\\([^\\)]+\\)',
+      `matrix\\(${mathContentsString}\\)`,
+      `matrix3d\\(${mathContentsString}\\)`,
+      `perspective\\(${mathContentsString}\\)`,
+      `rotate\\(${mathContentsString}\\)`,
+      `rotate3d\\(${mathContentsString}\\)`,
+      `rotateX\\(${mathContentsString}\\)`,
+      `rotateY\\(${mathContentsString}\\)`,
+      `rotateZ\\(${mathContentsString}\\)`,
+      `scale\\(${mathContentsString}\\)`,
+      `scale3d\\(${mathContentsString}\\)`,
+      `scaleX\\(${mathContentsString}\\)`,
+      `scaleY\\(${mathContentsString}\\)`,
+      `scaleZ\\(${mathContentsString}\\)`,
+      `skew\\(${mathContentsString}\\)`,
+      `skewX\\(${mathContentsString}\\)`,
+      `skewY\\(${mathContentsString}\\)`,
+      `translate\\(${mathContentsString}\\)`,
+      `translate3d\\(${mathContentsString}\\)`,
+      `translateX\\(${mathContentsString}\\)`,
+      `translateY\\(${mathContentsString}\\)`,
+      `translateZ\\(${mathContentsString}\\)`,
     ].join('|');
 
   const getGeometryBaseSet = () =>
@@ -1575,7 +1581,7 @@ function getValidator(key: string): ValidatorFn | null {
     validator = (value: string) => {
       const cleanValue = value.replace(/\s+/g, ' ').trim();
       if (!cleanValue) return false;
-      const parts = cleanValue.split(' ');
+      const parts = splitColorValues(cleanValue);
       if (parts.length > 3) return false;
       if (parts.length === 1)
         return numRegex.test(parts[0]) || lenRegex.test(parts[0]);
