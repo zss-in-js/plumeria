@@ -270,10 +270,12 @@ const calcString = `calc\\(${mathContentsString}\\)`;
 const anchorString = 'anchor\\([^()]*\\)';
 const anchorSizeString = 'anchor-size\\([^()]*\\)';
 const clampString = `clamp\\(${mathContentsString}\\)`;
+const steppedValueString = `(?:round|mod|rem)\\(${mathContentsString}\\)`;
+const absString = `abs\\(${mathContentsString}\\)`;
 const gradientString =
   '(?:repeating-)?(?:linear|radial|conic)-gradient\\(.*\\)';
 const urlString = `url\\([^\\)${cssVariablePlaceholder}]+\\)`;
-const imageSetString = 'image-set\\([^\\)]+\\)';
+const imageSetString = `image-set\\(${mathContentsString}\\)`;
 const attrString = 'attr\\([^\\)]+\\)';
 const addString = `add\\(${integerPattern}\\)`;
 const counterString = 'counter\\([^\\)]+\\)';
@@ -289,15 +291,118 @@ const hueModifiers = '(?:\\s+(?:shorter|longer|increasing|decreasing)\\s+hue)?';
 const colorSpacePattern = `in\\s+(?:${colorSpaces})${hueModifiers}`;
 
 const paletteMixString = `palette-mix\\(${colorSpacePattern},\\s*(?:(${dashedIdentString}|${varString}))(?:\\s+(${percentagePattern}|${varString}))?,\\s*(?:(${dashedIdentString}|${varString}))(?:\\s+(${percentagePattern}|${varString}))?\\)`;
-const colorMixString = `color-mix\\(${colorSpacePattern},\\s*(${colorValue}|${varString})(?:\\s+(${percentagePattern}|${varString}))?,\\s*(${colorValue}|${varString})(?:\\s+(${percentagePattern}|${varString}))?\\)`;
-const lightDarkValue = `${colorValue}|${colorMixString}|${varString}`;
-const lightDarkString = `light-dark\\((?:${lightDarkValue}),\\s*(?:${lightDarkValue})\\)`;
+const colorFunctionPlaceholder = '\u0002';
+const relativeChannel = `(?:[a-z]+|${pureNumber}(?:%|deg|rad|grad|turn)?|${calcString}|${varString})`;
+const relativeChannelsRegex = new RegExp(
+  `^${relativeChannel}(?:\\s+${relativeChannel}){2}(?:\\s*/\\s*${relativeChannel})?$`,
+);
+const colorInterpolationRegex = new RegExp(`^${colorSpacePattern}$`);
+const mixPercentageRegex = new RegExp(
+  `^(?:${percentagePattern}|${varString})$`,
+);
+const colorFunctionSource =
+  '(?<![\\w-])(color-mix|light-dark|rgba?|hsla?|hwb|lab|oklab|lch|oklch|color)\\(';
 
 const colorRegex = new RegExp(
-  `^(${colorValue}|${colorMixString}|${lightDarkString}|${varString})$`,
+  `^(${colorValue}|${varString}|${colorFunctionPlaceholder})$`,
 );
 const colorSource = colorRegex.source.slice(1, -1);
-const imageRegex = new RegExp(`^(${gradientString}|${urlString})$`);
+
+function findClosingParenthesis(value: string, open: number): number {
+  let depth = 0;
+  let quote = '';
+  for (let index = open; index < value.length; index++) {
+    const char = value[index];
+    if (quote) {
+      if (char === quote) quote = '';
+    } else if (char === '"' || char === "'") {
+      quote = char;
+    } else if (char === '(') {
+      depth++;
+    } else if (char === ')') {
+      depth--;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
+}
+
+function splitTopLevelCommas(value: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < value.length; index++) {
+    const char = value[index];
+    if (char === '(') depth++;
+    else if (char === ')') depth--;
+    else if (char === ',' && depth === 0) {
+      parts.push(value.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  parts.push(value.slice(start).trim());
+  return parts;
+}
+
+function isColor(value: string): boolean {
+  return colorRegex.test(normalizeColorFunctions(value.trim()));
+}
+
+function isValidMixComponent(value: string): boolean {
+  const parts = splitColorValues(value);
+  if (parts.length === 1) return isColor(parts[0]);
+  if (parts.length !== 2) return false;
+  if (mixPercentageRegex.test(parts[1])) return isColor(parts[0]);
+  return mixPercentageRegex.test(parts[0]) && isColor(parts[1]);
+}
+
+function isValidColorFunction(name: string, args: string): boolean {
+  if (name === 'color-mix') {
+    const parts = splitTopLevelCommas(args);
+    return (
+      parts.length === 3 &&
+      colorInterpolationRegex.test(parts[0]) &&
+      isValidMixComponent(parts[1]) &&
+      isValidMixComponent(parts[2])
+    );
+  }
+  if (name === 'light-dark') {
+    const parts = splitTopLevelCommas(args);
+    return parts.length === 2 && isColor(parts[0]) && isColor(parts[1]);
+  }
+  const tokens = splitColorValues(args.trim());
+  if (tokens[0] !== 'from' || tokens.length < 3 || !isColor(tokens[1])) {
+    return false;
+  }
+  const channels = tokens.slice(name === 'color' ? 3 : 2);
+  if (name === 'color' && !/^[a-z][a-z0-9-]*$/.test(tokens[2])) return false;
+  return relativeChannelsRegex.test(channels.join(' '));
+}
+
+function normalizeColorFunctions(value: string): string {
+  let normalized = '';
+  let cursor = 0;
+  const pattern = new RegExp(colorFunctionSource, 'g');
+  for (let match = pattern.exec(value); match; match = pattern.exec(value)) {
+    const name = match[1];
+    const open = match.index + name.length;
+    const close = findClosingParenthesis(value, open);
+    if (close === -1) break;
+    const args = value.slice(open + 1, close);
+    const isComposite =
+      name === 'color-mix' || name === 'light-dark' || /^\s*from\s/.test(args);
+    if (!isComposite) continue;
+    if (isValidColorFunction(name, args)) {
+      normalized += value.slice(cursor, match.index) + colorFunctionPlaceholder;
+      cursor = close + 1;
+    }
+    pattern.lastIndex = close + 1;
+  }
+  return normalized + value.slice(cursor);
+}
+const imageRegex = new RegExp(
+  `^(${gradientString}|${urlString}|${imageSetString})$`,
+);
 const urlRegex = new RegExp(`^(${urlString})$`);
 const sliceValuePattern =
   '^(?:-?\\d+(?:\\.\\d+)?%?|fill)(?:\\s+(?:-?\\d+(?:\\.\\d+)?%?|fill)){0,3}$';
@@ -830,7 +935,7 @@ function getLengthValuePattern(key: string): string {
     (isBackgroundSize ? '|cover|contain' : '') +
     (isAnchor ? `|${anchorString}` : '') +
     (isAnchorSize ? `|${anchorSizeString}` : '') +
-    `|${calcString}|${clampString}|${minString}|${maxString}|${varString}`
+    `|${calcString}|${clampString}|${minString}|${maxString}|${steppedValueString}|${absString}|${varString}`
   );
 }
 
@@ -1595,8 +1700,10 @@ function getValidator(key: string): ValidatorFn | null {
   } else if (['cursor'].includes(key)) {
     validator = isValidCursor;
   } else if (['content'].includes(key)) {
+    const contentItem = `${urlString}|${gradientString}|${imageSetString}|${attrString}|${counterString}|${countersString}|${stringString}|open-quote|close-quote|no-open-quote|no-close-quote|${varString}`;
+    const altItem = `${stringString}|${counterString}|${countersString}|${attrString}|${varString}`;
     const r = new RegExp(
-      `^(${urlString}|${gradientString}|${imageSetString}|${attrString}|${counterString}|${countersString}|${stringString})$`,
+      `^(?:${contentItem})(?:\\s*(?:${contentItem}))*(?:\\s*/\\s*(?:${altItem})(?:\\s*(?:${altItem}))*)?$`,
     );
     validator = (v) => r.test(v);
   } else if (['contain'].includes(key)) {
@@ -1622,7 +1729,7 @@ function getValidator(key: string): ValidatorFn | null {
   } else if (['background'].includes(key)) {
     const positionPattern = `(?:(?:top|bottom|center|left|right|${varString})(?:\\s+top|bottom|center|left|right|${varString})?)`;
     const sizePattern = `(?:\\s*/\\s*(?:cover|contain|(${lvp})( (?!\\s)(${lvp})){0,2}?))?`;
-    const flexibleLayerWithoutColor = `(?:(?:${positionPattern}${sizePattern})?|(?:${urlString}|${gradientString}|${varString}\\s*)?|(?:(?:repeat|space|round|no-repeat|repeatX|repeatY)\\s+)?|(?:scroll|fixed|local|${varString}\\s+)?|(?:border-box|padding-box|content-box|${varString}\\s+)?)`;
+    const flexibleLayerWithoutColor = `(?:(?:${positionPattern}${sizePattern})?|(?:${urlString}|${gradientString}|${imageSetString}|${varString}\\s*)?|(?:(?:repeat|space|round|no-repeat|repeatX|repeatY)\\s+)?|(?:scroll|fixed|local|${varString}\\s+)?|(?:border-box|padding-box|content-box|${varString}\\s+)?)`;
     const flexibleLayerWithColor = `(?:${flexibleLayerWithoutColor}\\s*)*(?:\\s*${colorSource})?`;
     const r = new RegExp(
       `^(?!\\s)(?=\\S)${flexibleLayerWithColor}(?:\\s*,\\s*${flexibleLayerWithColor})*$`,
@@ -1657,7 +1764,7 @@ function getValidator(key: string): ValidatorFn | null {
     validator = (v) => r.test(v);
   } else if (['backgroundImage'].includes(key)) {
     const r = new RegExp(
-      `^(${gradientString}|${urlString}|${varString}|none)(\\s*,\\s*(${gradientString}|${urlString}|${varString}|none))*$`,
+      `^(${gradientString}|${urlString}|${imageSetString}|${varString}|none)(\\s*,\\s*(${gradientString}|${urlString}|${imageSetString}|${varString}|none))*$`,
     );
     validator = (v) => r.test(v);
   } else if (['backgroundOrigin', 'backgroundClip'].includes(key)) {
@@ -1680,7 +1787,7 @@ function getValidator(key: string): ValidatorFn | null {
     validator = (v) => r.test(v);
   } else if (['backdropFilter', 'filter'].includes(key)) {
     const filterNumPattern = `(?:brightness|contrast|grayscale|invert|opacity|sepia|saturate)\\(\\s*${numberPattern}%?\\s*\\)`;
-    const blurPattern = `blur\\(\\s*(${lengthPattern}|${calcString}|${clampString}|${minString}|${maxString}|${varString})\\s*\\)`;
+    const blurPattern = `blur\\(\\s*(${lengthPattern}|${calcString}|${clampString}|${minString}|${maxString}|${steppedValueString}|${absString}|${varString})\\s*\\)`;
     const anglePatternFunc = `hue-rotate\\(\\s*${anglePattern}\\s*\\)`;
     const dropShadowPattern = `drop-shadow\\(\\s*(?:${varString}|(?:${colorSource}|${lvp})(?:\\s+(?:${colorSource}|${lvp})){2,3})\\s*\\)`;
     const r = new RegExp(
@@ -1950,7 +2057,9 @@ export const validateValues: Rule.RuleModule = {
         const validator = getValidator(key);
 
         const accepts = (v: string) =>
-          !!validator && (validator(v) || validator(v.toLowerCase()));
+          !!validator &&
+          (validator(normalizeColorFunctions(v)) ||
+            validator(normalizeColorFunctions(v.toLowerCase())));
 
         if (validator && (!normalized || !accepts(normalized.value))) {
           context.report({
