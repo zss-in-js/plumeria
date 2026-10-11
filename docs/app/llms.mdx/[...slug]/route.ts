@@ -4,12 +4,14 @@ import { source } from 'lib/source';
 export const revalidate = false;
 export const dynamic = 'force-static';
 
-export async function GET(
-  _req: Request,
-  props: { params: Promise<{ slug?: string[] }> },
-): Promise<Response> {
+const markdownSlug = (slugs: string[]) => {
+  const path = ['docs', ...slugs];
+  return [...path.slice(0, -1), `${path.at(-1)}.md`];
+};
+
+export async function GET(_req: Request, props: { params: Promise<{ slug: string[] }> }): Promise<Response> {
   const params = await props.params;
-  const page = source.getPage(params.slug);
+  const page = source.getPages().find((page) => markdownSlug(page.slugs).join('/') === params.slug.join('/'));
   if (!page) notFound();
 
   const url = new URL(page.url, process.env.PROD_URL).toString();
@@ -21,5 +23,5 @@ export async function GET(
 }
 
 export function generateStaticParams() {
-  return source.generateParams();
+  return source.getPages().map((page) => ({ slug: markdownSlug(page.slugs) }));
 }
