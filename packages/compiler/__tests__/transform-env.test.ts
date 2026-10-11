@@ -24,10 +24,7 @@ export const styles = css.create({ box: { color: 'teal' } });
 export const A = () => <div classStyle={styles.box} />;
 `;
 
-  const run = (overrides: {
-    isDev?: boolean;
-    collectOndemandSheets?: boolean;
-  }) =>
+  const run = (overrides: { isDev?: boolean }) =>
     transformSource({
       source: SOURCE,
       moduleId: FILE,
@@ -37,7 +34,6 @@ export const A = () => <div classStyle={styles.box} />;
       styleProp: DEFAULT_STYLE_PROP,
       propertyPolicy: undefined,
       isDev: false,
-      collectOndemandSheets: true,
       addDependency: () => {},
       ...overrides,
     });
@@ -73,18 +69,12 @@ export const A = () => <div classStyle={styles.box} />;
     });
   });
 
-  describe('transform: the on-demand sheet axis', () => {
-    it('collects the stylesheet when the caller asks for it', async () => {
-      const { sheets } = await run({ collectOndemandSheets: true });
+  describe('transform: output', () => {
+    it('returns the compiled code and no stylesheet', async () => {
+      const output = await run({});
 
-      expect(sheets.join('')).toContain('color: teal');
-    });
-
-    it('leaves the stylesheet to the caller when it does not', async () => {
-      const { code, sheets } = await run({ collectOndemandSheets: false });
-
-      expect(sheets).toEqual([]);
-      expect(code).toContain('className=');
+      expect(output).not.toHaveProperty('sheets');
+      expect(output.code).toContain('className=');
     });
   });
 });
