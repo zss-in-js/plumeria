@@ -52,7 +52,6 @@ export function createTransformer(
       styleProp,
       propertyPolicy,
       isDev: process.env.NODE_ENV !== 'production',
-      collectOndemandSheets: false,
     }).code;
   };
 
