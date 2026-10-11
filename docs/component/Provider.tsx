@@ -4,6 +4,7 @@ import * as css from '@plumeria/core';
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { RootProvider } from 'fumadocs-ui/provider/next';
+import { SearchDialog } from 'component/SearchDialog';
 
 const styles = css.create({
   hotKey: {
@@ -35,5 +36,5 @@ const hotKey = [
 export const Provider = ({ children }: { children: ReactNode }) => {
   const preload = usePathname() !== '/';
 
-  return <RootProvider search={{ hotKey, preload, options: { type: 'static' } }}>{children}</RootProvider>;
+  return <RootProvider search={{ SearchDialog, hotKey, preload }}>{children}</RootProvider>;
 };
