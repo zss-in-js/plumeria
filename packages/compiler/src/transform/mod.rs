@@ -23,7 +23,7 @@ use crate::eval::functions::{StyleFunctions, style_functions_of};
 use crate::js::{Object, Value};
 use crate::policy::{PropertyPolicy, assert_property_policy};
 use crate::project::{KeyTable, LocalImport, LocalImports, Project, Tables};
-use crate::style::ondemand::{SheetTables, Sheets, extract_ondemand_styles};
+use crate::style::ondemand::SheetTables;
 use crate::style::records::{StyleRecord, Weights, style_records};
 use crate::syntax::expr::{E, K};
 use crate::syntax::module::{Aliases, CORE, SpecKind, add_core_aliases, import_specs};
@@ -38,13 +38,11 @@ pub struct TransformEnv {
     pub class_prop: String,
     pub policy: Option<PropertyPolicy>,
     pub is_dev: bool,
-    pub collect_ondemand_sheets: bool,
     pub cwd: String,
 }
 
 pub struct TransformOutput {
     pub code: String,
-    pub sheets: Vec<String>,
     pub dependencies: Vec<String>,
 }
 
@@ -116,7 +114,6 @@ pub struct Transformer<'t, 'p, 'b, 'a> {
     pub declared_props: FxHashMap<String, FxHashSet<String>>,
     pub component_param_names: FxHashSet<String>,
     pub applied_style_props: FxHashSet<String>,
-    pub sheets: Sheets,
     pub jsx_owner: FxHashMap<
         u32,
         (
@@ -325,25 +322,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
         style: &Object,
         weights: Option<&Weights>,
     ) -> Vec<StyleRecord> {
-        let records = style_records(style, weights);
-        if self.env.collect_ondemand_sheets {
-            let overlay = OverlayView {
-                writes: &self.writes,
-                tables: self.tables,
-            };
-            let sheets = &mut self.sheets;
-            extract_ondemand_styles(
-                style,
-                &mut |sheet| {
-                    sheets.insert(sheet);
-                },
-                &overlay,
-            );
-            for record in &records {
-                self.sheets.insert(record.sheet.clone());
-            }
-        }
-        records
+        style_records(style, weights)
     }
 
     pub fn owner_component_of(&self, at: u32) -> Option<String> {
@@ -499,7 +478,7 @@ pub fn transform_source(project: &mut Project, env: &TransformEnv) -> TResult<Tr
     dependencies.extend(parents);
 
     let tables = std::mem::take(&mut project.tables);
-    let result = (|| -> TResult<(String, Vec<String>)> {
+    let result = (|| -> TResult<String> {
         let mut transformer =
             Transformer::new(project, &tables, &allocator, source, program, scoping, env);
         transformer.prepare()?;
@@ -508,12 +487,8 @@ pub fn transform_source(project: &mut Project, env: &TransformEnv) -> TResult<Tr
         transformer.finish()
     })();
     project.tables = tables;
-    let (code, sheets) = result?;
-    Ok(TransformOutput {
-        code,
-        sheets,
-        dependencies,
-    })
+    let code = result?;
+    Ok(TransformOutput { code, dependencies })
 }
 
 impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
@@ -565,7 +540,6 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
             declared_props: FxHashMap::default(),
             component_param_names: FxHashSet::default(),
             applied_style_props: FxHashSet::default(),
-            sheets: Sheets::default(),
             jsx_owner: FxHashMap::default(),
             shorthand_starts: FxHashSet::default(),
         }
@@ -822,7 +796,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
         }
     }
 
-    fn finish(mut self) -> TResult<(String, Vec<String>)> {
+    fn finish(mut self) -> TResult<String> {
         for component in &self.components {
             let key = format!("{}-{}", self.resource, component.name);
             let Some(props) = self.tables.component_props.get(&key) else {
@@ -923,7 +897,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
             offset = replacement.end;
         }
         out.push_str(&self.source[offset as usize..]);
-        Ok((out, self.sheets.into_iter().collect()))
+        Ok(out)
     }
 
     fn build_exported_init(&self, info: &CreateStyle) -> String {
