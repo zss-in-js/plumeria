@@ -17,7 +17,12 @@ import {
   camelToKebabCase,
   isAtRule,
 } from 'zss-engine';
-import * as fs from 'fs';
+import { readSource, sourceStamp } from './sourceCache';
+import {
+  compilationRevision,
+  compilationGeneration,
+  getFileDependencies,
+} from './parser';
 import * as path from 'path';
 import * as rs from '@rust-gear/glob';
 
@@ -342,6 +347,17 @@ function extractStylesFromExpression(
   return results;
 }
 
+type SheetCacheEntry = {
+  key: string;
+  revision: number;
+  sheets: string[];
+  dependencies: [string, string | undefined][];
+  writes: Record<string, Record<string, unknown>>;
+};
+const sheetCache = new Map<string, SheetCacheEntry>();
+let sheetCacheContext = '';
+let sheetGlobals = '';
+
 // ===========================================
 // Main compiler function
 // ===========================================
@@ -361,12 +377,67 @@ export function compileCSS(options: CompilerOptions) {
     sort: true,
   });
 
-  const scannedTables = scanOverlay(cwd, styleProp);
+  let scannedTables = scanOverlay(cwd, styleProp);
+  const context = JSON.stringify([
+    path.resolve(cwd),
+    styleProp,
+    propertyPolicy,
+  ]);
+  // These objects may be referenced through literal CSS markers without an import.
+  const globals = JSON.stringify(
+    [
+      scannedTables.createThemeHashTable,
+      scannedTables.createThemeObjectTable,
+      scannedTables.createThemeSelectorTable,
+      scannedTables.keyframesObjectTable,
+      scannedTables.viewTransitionObjectTable,
+    ].map((table) => {
+      const flat: Record<string, unknown> = {};
+      for (const key in table) flat[key] = table[key];
+      return flat;
+    }),
+  );
+  if (sheetCacheContext !== context || sheetGlobals !== globals)
+    sheetCache.clear();
+  for (const [file, entry] of sheetCache) {
+    if (entry.revision !== 0 && compilationRevision(file) === 0)
+      sheetCache.delete(file);
+  }
+  sheetCacheContext = context;
+  sheetGlobals = globals;
+  const scope = JSON.stringify([
+    include,
+    exclude,
+    options.sources,
+    Object.keys(options.sources ?? {}).length
+      ? compilationGeneration()
+      : undefined,
+  ]);
+  const stamps = new Map<string, string | undefined>();
+  const stampOf = (file: string): string | undefined => {
+    if (!stamps.has(file)) {
+      try {
+        stamps.set(file, sourceStamp(file));
+      } catch {
+        stamps.set(file, undefined);
+      }
+    }
+    return stamps.get(file);
+  };
+  let dependencies = new Set<string>();
+  const propsByFile = new Map<string, unknown[]>();
+  for (const [key, props] of Object.entries(
+    scannedTables.componentPropsTable ?? {},
+  )) {
+    const file = key.slice(0, key.lastIndexOf('-'));
+    const entries = propsByFile.get(file) ?? [];
+    entries.push([key, props]);
+    propsByFile.set(file, entries);
+  }
 
   const processFile = (filePath: string): string[] => {
     const resourcePath = path.resolve(cwd, filePath);
-    const source =
-      options.sources?.[resourcePath] ?? fs.readFileSync(resourcePath, 'utf-8');
+    const source = options.sources?.[resourcePath] ?? readSource(resourcePath);
     const extractedSheets: string[] = [];
 
     const ast = parseSync(source, {
@@ -423,6 +494,9 @@ export function compileCSS(options: CompilerOptions) {
         const actualPath = resolveImportPath(sourcePath, resourcePath);
 
         if (actualPath) {
+          dependencies.add(actualPath);
+          for (const dependency of getFileDependencies(actualPath))
+            dependencies.add(dependency);
           node.specifiers.forEach((specifier: ImportSpecifier) => {
             if (specifier.type === 'ImportNamespaceSpecifier') {
               localImports[specifier.local.value] = {
@@ -1545,8 +1619,57 @@ export function compileCSS(options: CompilerOptions) {
   };
 
   for (const file of files) {
-    const sheets = processFile(file);
-    for (const sheet of sheets) {
+    const resource = path.resolve(cwd, file);
+    const key = JSON.stringify([
+      scope,
+      stampOf(resource),
+      compilationRevision(resource),
+      propsByFile.get(resource),
+    ]);
+    let cached = sheetCache.get(resource);
+    if (
+      cached?.key !== key ||
+      cached.dependencies.some(([file, stamp]) => stampOf(file) !== stamp)
+    ) {
+      dependencies = new Set();
+      // Record writes as well as CSS: subsequent files see the same overlay on a hit.
+      const base = scannedTables;
+      const writes: SheetCacheEntry['writes'] = {};
+      scannedTables = { ...base };
+      for (const [name, table] of Object.entries(base)) {
+        const proxy = new Proxy(table as object, {
+          set(target, property, value, receiver) {
+            if (receiver === proxy)
+              (writes[name] ??= {})[String(property)] = value;
+            return Reflect.set(target, property, value, receiver);
+          },
+        });
+        Object.assign(scannedTables, { [name]: proxy });
+      }
+      try {
+        const sheets = processFile(file);
+        cached = {
+          key,
+          revision: compilationRevision(resource),
+          sheets,
+          writes,
+          dependencies: [...dependencies].map((file) => [file, stampOf(file)]),
+        };
+      } catch (error) {
+        sheetCache.delete(resource);
+        throw error;
+      } finally {
+        scannedTables = base;
+      }
+      sheetCache.set(resource, cached);
+    } else {
+      for (const [name, writes] of Object.entries(cached.writes)) {
+        const table = scannedTables[name as keyof typeof scannedTables];
+        if (table === undefined) throw new Error(`Missing CSS table: ${name}`);
+        Object.assign(table, writes);
+      }
+    }
+    for (const sheet of cached.sheets) {
       allSheets.add(sheet);
     }
   }
