@@ -9,9 +9,12 @@ const {
   resolvePropertyPolicy,
   optimizer,
   transformSource,
+  compileCSS,
   DEFAULT_STYLE_PROP,
   needsCompile,
 } = compiler;
+
+const escapeGlob = (file: string) => file.replace(/[*?[\]{}!]/g, '[$&]');
 
 export type CssImportContext = {
   id: string;
@@ -157,19 +160,31 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           }
         };
 
-        const { code: transformedSource, sheets: extractedSheets } =
-          transformSource({
-            source,
-            moduleId: id,
-            filePath: baseId,
-            root: viteRoot,
-            styleProp,
-            classProp,
-            propertyPolicy,
-            isDev,
-            collectOndemandSheets: true,
-            addDependency,
-          });
+        const { code: transformedSource } = transformSource({
+          source,
+          moduleId: id,
+          filePath: baseId,
+          root: viteRoot,
+          styleProp,
+          classProp,
+          propertyPolicy,
+          isDev,
+          addDependency,
+        });
+
+        const relative = path.relative(viteRoot, baseId).replace(/\\/g, '/');
+        const insideRoot =
+          !relative.startsWith('..') && !path.isAbsolute(relative);
+        const fileCss = compileCSS({
+          include: [escapeGlob(insideRoot ? relative : path.basename(baseId))],
+          exclude: [],
+          cwd: insideRoot ? viteRoot : path.dirname(baseId),
+          styleProp,
+          withoutLogicalProperties: options.withoutLogicalProperties,
+          withoutPhysicalProperties: options.withoutPhysicalProperties,
+          sources: { [path.resolve(baseId)]: source },
+        });
+        const extractedSheets = fileCss ? [fileCss] : [];
 
         const cssFilename = `${baseId.replace(EXTENSION_PATTERN, '')}.zero.css`;
         const cssId = `/${path.relative(viteRoot, cssFilename).replace(/\\/g, '/')}`;
