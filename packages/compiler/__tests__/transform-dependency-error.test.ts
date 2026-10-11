@@ -17,7 +17,6 @@ describe.each(implementations)('$name', ({ transformSource }) => {
     styleProp: DEFAULT_STYLE_PROP,
     propertyPolicy: undefined,
     isDev: false,
-    collectOndemandSheets: true,
     addDependency: () => {},
   });
 
