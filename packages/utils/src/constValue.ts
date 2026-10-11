@@ -1,3 +1,4 @@
+import { readSource } from './sourceCache';
 import * as fs from 'fs';
 import { parseSync } from '@swc/core';
 import type { StaticTable } from './types';
@@ -24,7 +25,7 @@ function readConstFile(filePath: string): ConstFile {
   const cached = constFileCache.get(filePath);
   if (cached && cached.mtimeMs === mtimeMs) return cached;
 
-  const ast = parseSync(fs.readFileSync(filePath, 'utf8'), {
+  const ast = parseSync(readSource(filePath), {
     syntax: 'typescript',
     tsx: true,
     target: 'es2022',
