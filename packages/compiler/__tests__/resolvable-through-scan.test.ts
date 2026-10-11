@@ -42,7 +42,6 @@ const styles = css.create({ box: { animationName: spin, animationDuration: '1s' 
       styleProp: DEFAULT_STYLE_PROP,
       propertyPolicy: undefined,
       isDev: false,
-      collectOndemandSheets: true,
       addDependency: () => {},
     });
 
