@@ -130,7 +130,6 @@ pub struct TransformEnv<'scope> {
     pub class_prop: Option<String>,
     pub property_policy: Option<PropertyPolicyValue>,
     pub is_dev: bool,
-    pub collect_ondemand_sheets: bool,
     pub cwd: Option<String>,
     pub add_dependency: Option<Function<'scope, String, ()>>,
 }
@@ -138,7 +137,6 @@ pub struct TransformEnv<'scope> {
 #[napi(object)]
 pub struct TransformOutput {
     pub code: String,
-    pub sheets: Vec<String>,
     pub dependencies: Vec<String>,
 }
 
@@ -158,7 +156,6 @@ pub fn transform_source(env: Env, options: TransformEnv) -> Result<TransformOutp
             .unwrap_or_else(|| "className".to_string()),
         policy: to_policy(options.property_policy),
         is_dev: options.is_dev,
-        collect_ondemand_sheets: options.collect_ondemand_sheets,
         cwd,
     };
     let output = {
@@ -173,7 +170,6 @@ pub fn transform_source(env: Env, options: TransformEnv) -> Result<TransformOutp
     }
     Ok(TransformOutput {
         code: output.code,
-        sheets: output.sheets,
         dependencies: output.dependencies,
     })
 }
@@ -186,6 +182,7 @@ pub struct CompilerOptions {
     pub style_prop: Option<String>,
     pub without_logical_properties: Option<Either<bool, SizesOption>>,
     pub without_physical_properties: Option<Either<bool, SizesOption>>,
+    pub sources: Option<std::collections::HashMap<String, String>>,
 }
 
 #[napi(js_name = "compileCSS")]
@@ -204,6 +201,7 @@ pub fn compile_css(options: CompilerOptions) -> Result<String> {
             .style_prop
             .unwrap_or_else(|| DEFAULT_STYLE_PROP.to_string()),
         policy,
+        sources: options.sources.unwrap_or_default().into_iter().collect(),
     };
     let mut project = lock_project();
     compile::compile_css(&mut project, &compile_options).map_err(failure)
