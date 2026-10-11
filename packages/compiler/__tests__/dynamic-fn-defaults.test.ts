@@ -27,16 +27,18 @@ export const A = (p: any) => <div classStyle={${call}} />;`;
   const transformCode = async (code: string) => {
     const cwd = project(code);
     const filePath = path.join(cwd, 'app.tsx');
-    const { code: output, sheets } = await transformSource({
+    const { code: output } = await transformSource({
       source: code,
       moduleId: filePath,
       filePath,
       root: cwd,
       cwd,
       isDev: false,
-      collectOndemandSheets: true,
     });
-    return { code: output, css: sheets.join('') };
+    return {
+      code: output,
+      css: compileCSS({ include: ['**/*.{ts,tsx}'], exclude: [], cwd }),
+    };
   };
 
   const transform = (params: string, body: string, call: string) =>
