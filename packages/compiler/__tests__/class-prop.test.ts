@@ -26,7 +26,6 @@ describe.each(implementations)('$name', ({ transformSource }) => {
       classProp,
       propertyPolicy: undefined,
       isDev: false,
-      collectOndemandSheets: true,
       addDependency: () => {},
     });
     return code;
