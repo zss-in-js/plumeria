@@ -20,7 +20,8 @@ const WITH_BASE_RULE = `import * as css from '@plumeria/core';
 
 export const hmrTarget = css.create({
   box: {
-    paddingTop: 4,
+    paddingBlock: 4,
+    marginLeft: 7,
     '@media (min-width: 600px)': {
       padding: 40,
     },
@@ -54,11 +55,12 @@ test.describe('rules added by HMR', () => {
 
     const box = page.locator('[data-testid="hmr-box"]');
     await expect(box).toHaveCSS('padding-top', '40px');
+    await expect(box).toHaveCSS('margin-left', '0px');
 
     fs.writeFileSync(STYLE_FILE, WITH_BASE_RULE, 'utf-8');
 
-    // the base rule reaches the shared file only now, after the @media rule
-    await expect(box).toHaveCSS('padding-bottom', '40px', { timeout: 30000 });
+    await expect(box).toHaveCSS('margin-left', '7px', { timeout: 30000 });
     await expect(box).toHaveCSS('padding-top', '40px');
+    await expect(box).toHaveCSS('padding-bottom', '40px');
   });
 });
