@@ -4,7 +4,7 @@ import { extname, join } from 'node:path';
 import { URL } from 'node:url';
 
 const root = join(process.cwd(), 'out');
-const vercel = JSON.parse(readFileSync(join(process.cwd(), 'vercel.json'), 'utf8'));
+const vercel = JSON.parse(readFileSync(join(process.cwd(), '..', 'vercel.json'), 'utf8'));
 const port = Number(process.env.PORT ?? 3000);
 
 const types = {
