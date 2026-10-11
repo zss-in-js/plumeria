@@ -35,5 +35,5 @@ const hotKey = [
 export const Provider = ({ children }: { children: ReactNode }) => {
   const preload = usePathname() !== '/';
 
-  return <RootProvider search={{ hotKey, preload }}>{children}</RootProvider>;
+  return <RootProvider search={{ hotKey, preload, options: { type: 'static' } }}>{children}</RootProvider>;
 };
