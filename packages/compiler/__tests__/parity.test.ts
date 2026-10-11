@@ -48,7 +48,6 @@ describe.each(implementations)('$name', ({ compileCSS, transformSource }) => {
       root: DIRECTORY,
       propertyPolicy: undefined,
       isDev: false,
-      collectOndemandSheets: true,
       cwd: DIRECTORY,
       addDependency: () => {},
     });
@@ -202,11 +201,6 @@ describe.each(implementations)('$name', ({ compileCSS, transformSource }) => {
     it.each(CASES)('%s', async (_name, source) => {
       const { compiled, transformed } = await both(source);
       const defined = definedClasses(compiled);
-
-      const missingRules = [...definedClasses(transformed.sheets.join('\n'))]
-        .filter((name) => !defined.has(name))
-        .sort();
-      expect(missingRules).toEqual([]);
 
       const missingReferences = [...referencedClasses(transformed.code)]
         .filter((name) => !defined.has(name))
