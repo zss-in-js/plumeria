@@ -3,16 +3,19 @@ jest.mock('@plumeria/eslint-plugin/guard', () => ({
     .lintOverrides,
   startLintGuard: jest.fn(),
 }));
+let mockCompiledSource = '';
 jest.mock('@plumeria/compiler', () => ({
   DEFAULT_STYLE_PROP: 'classStyle',
   needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
   optimizer: jest.fn((css: string) => css),
   resolvePropertyPolicy: () => ({}),
   scanAll: jest.fn(() => ({ componentPropsTable: {} })),
-  transformSource: ({ source }: { source: string }) => ({
-    code: 'transformed',
-    sheets: [source.includes('blue') ? '.box { color: blue; }' : '.box {}'],
-  }),
+  transformSource: ({ source }: { source: string }) => {
+    mockCompiledSource = source;
+    return { code: 'transformed' };
+  },
+  compileCSS: () =>
+    mockCompiledSource.includes('blue') ? '.box { color: blue; }' : '.box {}',
 }));
 jest.mock('../src/disk-css', () => ({
   ensureVirtualCssFile: jest.fn(),
