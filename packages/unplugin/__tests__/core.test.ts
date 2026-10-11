@@ -3,6 +3,7 @@ jest.mock('@plumeria/eslint-plugin/guard', () => ({
     .lintOverrides,
   startLintGuard: jest.fn(),
 }));
+let mockCompiledSource = '';
 jest.mock('@plumeria/compiler', () => ({
   DEFAULT_STYLE_PROP: 'classStyle',
   needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
@@ -16,16 +17,17 @@ jest.mock('@plumeria/compiler', () => ({
       source: string;
       addDependency: (path: string) => void;
     }) => {
+      mockCompiledSource = source;
       addDependency('/dependency.ts');
-      return {
-        code: 'transformed',
-        sheets: source.includes('EMPTY')
-          ? []
-          : source.includes('SECOND')
-            ? ['.second {}']
-            : ['.generated {}'],
-      };
+      return { code: 'transformed' };
     },
+  ),
+  compileCSS: jest.fn(() =>
+    mockCompiledSource.includes('EMPTY')
+      ? ''
+      : mockCompiledSource.includes('SECOND')
+        ? '.second {}'
+        : '.generated {}',
   ),
 }));
 
@@ -143,12 +145,39 @@ it('stores and loads generated CSS through virtual and filesystem ids', async ()
       styleProp: 'css',
       propertyPolicy: { policy: true },
       isDev: false,
-      collectOndemandSheets: true,
     }),
   );
   expect(plugin.load('/source.zero.css?direct')).toBe('.generated {}');
   expect(plugin.load('/project/source.zero.css')).toBe('.generated {}');
   expect(plugin.load('/missing.zero.css')).toBe('');
+});
+
+it('compiles the stylesheet of the transformed file alone', async () => {
+  const { compileCSS: mockCompileCSS } = jest.requireMock<{
+    compileCSS: jest.Mock;
+  }>('@plumeria/compiler');
+  const plugin = createPlugin({
+    styleProp: 'css',
+    withoutLogicalProperties: true,
+  });
+  plugin.__plumeriaInternal.setRoot('/project');
+
+  await plugin.transform.handler(SOURCE, '/project/app/[slug]/page.tsx');
+  await plugin.transform.handler(SOURCE, '/outside/Card.tsx');
+
+  expect(mockCompileCSS).toHaveBeenNthCalledWith(1, {
+    include: ['app/[[]slug[]]/page.tsx'],
+    exclude: [],
+    cwd: '/project',
+    styleProp: 'css',
+    withoutLogicalProperties: true,
+    withoutPhysicalProperties: undefined,
+    sources: { '/project/app/[slug]/page.tsx': SOURCE },
+  });
+  expect(mockCompileCSS).toHaveBeenNthCalledWith(
+    2,
+    expect.objectContaining({ include: ['Card.tsx'], cwd: '/outside' }),
+  );
 });
 
 it('uses a custom CSS import formatter and permits omitting the import', async () => {
