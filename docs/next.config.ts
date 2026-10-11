@@ -45,35 +45,49 @@ const isolationHeaders = [
 
 const config: NextConfig = withPlumeria(
   {
+    output: 'export',
+    images: {
+      unoptimized: true,
+    },
     reactCompiler: true,
     reactStrictMode: true,
-
-    async rewrites() {
-      return [{ source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*' }];
-    },
-
-    async headers() {
-      return [
-        {
-          source: '/(.*)',
-          headers: securityHeaders,
-        },
-        {
-          source: '/playground',
-          headers: isolationHeaders,
-        },
-        {
-          source: '/playground/:path*',
-          headers: isolationHeaders,
-        },
-        {
-          source: '/_next/static/:path*/turbopack-worker-:name',
-          headers: isolationHeaders,
-        },
-      ];
-    },
   },
   { withoutLogicalProperties: true },
 );
 
-export default withMDX(config);
+const { output: _output, ...devBase } = config;
+
+const devConfig: NextConfig = {
+  ...devBase,
+
+  async rewrites() {
+    return [
+      { source: '/', destination: '/index.html' },
+      { source: '/docs.md', destination: '/llms.mdx/docs.md' },
+      { source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*.md' },
+    ];
+  },
+
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: securityHeaders,
+      },
+      {
+        source: '/playground',
+        headers: isolationHeaders,
+      },
+      {
+        source: '/playground/:path*',
+        headers: isolationHeaders,
+      },
+      {
+        source: '/_next/static/:path*/turbopack-worker-:name',
+        headers: isolationHeaders,
+      },
+    ];
+  },
+};
+
+export default withMDX(process.env.NODE_ENV === 'development' ? devConfig : config);
