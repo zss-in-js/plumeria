@@ -19,7 +19,7 @@ pub struct ConstFile {
 
 fn read_const_file(path: &str) -> Option<ConstFile> {
     let stamp = stat(path)?.stamp;
-    let source = std::fs::read_to_string(path).ok()?;
+    let source = crate::fs::source::read(path).ok()?;
     let allocator = Allocator::default();
     let program = parse_program(&allocator, &source).ok()?;
     let mut values = collect_local_consts(&program);
