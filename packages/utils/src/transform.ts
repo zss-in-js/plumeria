@@ -30,7 +30,6 @@ import {
   getRootIdentifier,
   resolveOriginError,
   unwrapExpression,
-  extractOndemandStyles,
   deepMerge,
   scanOverlay,
   fileTableKeys,
@@ -101,7 +100,6 @@ const spreadValues = (
 };
 
 import { getStyleRecords } from './create';
-import type { StyleRecord } from './create';
 import {
   styleFunctionsOf,
   resolveDynamicStyle,
@@ -295,27 +293,17 @@ export type TransformEnv = {
   classProp?: string;
   propertyPolicy: PropertyPolicy | undefined;
   isDev: boolean;
-  collectOndemandSheets: boolean;
   addDependency: (depPath: string) => void;
 };
 
 export type TransformOutput = {
   code: string;
-  sheets: string[];
 };
 
 export const transformSource = async (
   env: TransformEnv,
 ): Promise<TransformOutput> => {
-  const {
-    source,
-    root,
-    styleProp,
-    propertyPolicy,
-    isDev,
-    collectOndemandSheets,
-    addDependency,
-  } = env;
+  const { source, root, styleProp, propertyPolicy, isDev, addDependency } = env;
   const classProp = env.classProp ?? 'className';
   const id = env.moduleId;
   const resourcePath = env.moduleId;
@@ -485,24 +473,10 @@ export const transformSource = async (
     }
   };
 
-  const extractedSheets = new Set<string>();
-  const addSheet = (sheet: string) => {
-    extractedSheets.add(sheet);
-  };
-
   const processStyleRecords = (
     style: CSSObject,
     weights?: Record<string, number>,
-  ) => {
-    const records = getStyleRecords(style as CSSProperties, weights);
-    if (collectOndemandSheets) {
-      extractOndemandStyles(style, addSheet, scannedTables);
-      records.forEach((r: StyleRecord) => {
-        addSheet(r.sheet);
-      });
-    }
-    return records;
-  };
+  ) => getStyleRecords(style as CSSProperties, weights);
 
   const localConsts = collectLocalConsts(ast);
   const localConstNodes = collectLocalConstNodes(ast);
@@ -2175,7 +2149,8 @@ export const transformSource = async (
       if (
         t.isMemberExpression(expr) &&
         t.isIdentifier(expr.object) &&
-        expr.property.type === 'Computed'
+        expr.property.type === 'Computed' &&
+        expr.property.expression.type !== 'StringLiteral'
       ) {
         const varName = expr.object.value;
         const styleObj = isVisibleReference(expr)
@@ -3210,5 +3185,5 @@ export const transformSource = async (
   parts.push(sourceBuffer.subarray(offset));
   const transformedSource = Buffer.concat(parts).toString();
 
-  return { code: transformedSource, sheets: [...extractedSheets] };
+  return { code: transformedSource };
 };
