@@ -37,7 +37,6 @@ describe.each(implementations)('$name', ({ transformSource, optimizer }) => {
     styleProp: DEFAULT_STYLE_PROP,
     propertyPolicy: undefined,
     isDev: false,
-    collectOndemandSheets: true,
     addDependency: () => {},
   });
 
@@ -167,12 +166,9 @@ describe.each(implementations)('$name', ({ transformSource, optimizer }) => {
 
   const compile = async (styleExpr: string) => {
     const id = `${DIR}/fixture-${fixtureCount++}.tsx`;
-    const result = await transformSource(
-      env(
-        `${HEAD}export const A = ({ ${VARS.join(', ')} }: any) => <div classStyle={${styleExpr}} />;\n`,
-        id,
-      ),
-    );
+    const source = `${HEAD}export const A = ({ ${VARS.join(', ')} }: any) => <div classStyle={${styleExpr}} />;\n`;
+    fs.writeFileSync(id, source);
+    const result = await transformSource(env(source, id));
     const code = typeof result === 'string' ? result : (result?.code ?? '');
 
     // A dynamic style function puts a `style` attribute after the class list.
@@ -181,7 +177,12 @@ describe.each(implementations)('$name', ({ transformSource, optimizer }) => {
     if (!dynamic && !literal) throw new Error(`no className in:\n${code}`);
     const expr = dynamic ? dynamic[1] : JSON.stringify(literal![1]);
 
-    const css = await optimizer(result.sheets.join(''));
+    const { compileCSS } = implementations.find(
+      (implementation) => implementation.transformSource === transformSource,
+    )!;
+    const css = await optimizer(
+      compileCSS({ include: [path.basename(id)], exclude: [], cwd: DIR }),
+    );
 
     return { expr, css };
   };
