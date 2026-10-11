@@ -69,6 +69,7 @@ interface CompilerOptions extends PropertyPolicyOptions {
   exclude: string[];
   cwd?: string;
   styleProp?: string;
+  sources?: Record<string, string>;
 }
 
 // ===========================================
@@ -364,7 +365,8 @@ export function compileCSS(options: CompilerOptions) {
 
   const processFile = (filePath: string): string[] => {
     const resourcePath = path.resolve(cwd, filePath);
-    const source = fs.readFileSync(resourcePath, 'utf-8');
+    const source =
+      options.sources?.[resourcePath] ?? fs.readFileSync(resourcePath, 'utf-8');
     const extractedSheets: string[] = [];
 
     const ast = parseSync(source, {
