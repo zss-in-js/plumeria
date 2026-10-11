@@ -1,5 +1,6 @@
 jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
 
+import * as fs from 'fs';
 import type { unpluginFactory as Factory } from '../src/core';
 
 type Plugin = {
@@ -20,6 +21,10 @@ beforeEach(() => {
   jest.resetModules();
 });
 
+afterAll(() => {
+  fs.rmSync(ID, { force: true });
+});
+
 const devSession = () => {
   const { unpluginFactory } = require('../src/core') as {
     unpluginFactory: typeof Factory;
@@ -32,6 +37,7 @@ const devSession = () => {
   plugin.__plumeriaInternal.setRoot(__dirname);
 
   return async (source: string): Promise<string> => {
+    fs.writeFileSync(ID, source);
     await plugin.transform.handler.call({ addWatchFile: () => {} }, source, ID);
     return plugin.__plumeriaInternal.cssLookup.get(CSS_ID) ?? '';
   };
