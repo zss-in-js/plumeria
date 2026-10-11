@@ -27,7 +27,6 @@ describe.each(implementations)(
       styleProp: DEFAULT_STYLE_PROP,
       propertyPolicy: resolvePropertyPolicy(options),
       isDev: false,
-      collectOndemandSheets: true,
       addDependency: () => {},
     });
 
