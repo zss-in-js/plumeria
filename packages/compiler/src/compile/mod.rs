@@ -43,6 +43,25 @@ pub struct CompileOptions {
     pub sources: FxHashMap<String, String>,
 }
 
+#[derive(Default)]
+pub struct CssCache {
+    #[cfg(test)]
+    extractions: usize,
+    context: String,
+    globals: Writes,
+    pub files: FxHashMap<String, CachedCss>,
+}
+
+pub struct CachedCss {
+    scope: String,
+    stamp: crate::fs::source::SourceStamp,
+    revision: u64,
+    props: crate::project::PropsTable,
+    sheets: Vec<String>,
+    dependencies: Vec<(String, Option<crate::fs::source::SourceStamp>)>,
+    writes: Writes,
+}
+
 pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<String, String> {
     let cwd = resolve(&std::env::current_dir().unwrap_or_default(), &options.cwd);
     let files = glob_sync(
@@ -54,24 +73,121 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
         },
     )?;
     project.scan_overlay(&cwd.to_string_lossy(), &options.style_prop);
-    let tables = std::mem::take(&mut project.tables);
-    let mut writes = Writes::default();
+    let mut tables = std::mem::take(&mut project.tables);
+    let mut cache = std::mem::take(&mut project.css_cache);
+    let context = format!(
+        "{}|{}|{:?}",
+        cwd.display(),
+        options.style_prop,
+        options.policy
+    );
+    // Literal CSS markers can refer to these objects without an import edge.
+    let globals = Writes {
+        theme_hash: tables.theme_hash.clone(),
+        theme_obj: tables.theme_obj.clone(),
+        theme_selector: tables.theme_selector.clone(),
+        keyframes_obj: tables.keyframes_obj.clone(),
+        view_transition_obj: tables.view_transition_obj.clone(),
+        ..Writes::default()
+    };
+    if cache.context != context || cache.globals != globals {
+        cache.files.clear();
+        cache.context = context;
+        cache.globals = globals;
+    }
+    let mut overrides: Vec<_> = options.sources.iter().collect();
+    overrides.sort_by(|a, b| a.0.cmp(b.0));
+    let scope = format!(
+        "{:?}|{:?}|{:?}|{:?}",
+        options.include,
+        options.exclude,
+        overrides,
+        (!options.sources.is_empty()).then_some(project.scan_generation)
+    );
+    let mut props_by_file: FxHashMap<String, crate::project::PropsTable> = FxHashMap::default();
+    for (key, props) in &tables.component_props {
+        if let Some((file, _)) = key.rsplit_once('-') {
+            props_by_file
+                .entry(file.to_string())
+                .or_default()
+                .insert(key.clone(), props.clone());
+        }
+    }
+    let mut stamps: FxHashMap<String, Option<crate::fs::source::SourceStamp>> =
+        FxHashMap::default();
+    let mut stamp_of = |file: &str| {
+        stamps
+            .entry(file.to_string())
+            .or_insert_with(|| crate::fs::source::stamp(file).ok())
+            .clone()
+    };
     let mut all: IndexSet<String, FxBuildHasher> = IndexSet::default();
+    // Keep overlays local to this call, including on errors.
+    let base_tables = tables.clone();
     let result = (|| -> Result<(), String> {
         for file in &files {
             let resource = resolve(&cwd, file).to_string_lossy().into_owned();
-            let source = match options.sources.get(&resource) {
-                Some(source) => source.clone(),
-                None => std::fs::read_to_string(&resource).map_err(|error| error.to_string())?,
-            };
-            let sheets = process_file(project, &tables, &mut writes, &resource, &source, options)?;
-            for sheet in sheets {
-                all.insert(sheet);
+            let stamp =
+                stamp_of(&resource).ok_or_else(|| format!("Cannot read source: {resource}"))?;
+            let revision = project
+                .compile_revisions
+                .get(&resource)
+                .copied()
+                .unwrap_or_default();
+            let props = props_by_file.remove(&resource).unwrap_or_default();
+            let hit = cache.files.get(&resource).is_some_and(|entry| {
+                entry.scope == scope
+                    && entry.stamp == stamp
+                    && entry.revision == revision
+                    && entry.props == props
+                    && entry
+                        .dependencies
+                        .iter()
+                        .all(|(file, stamp)| stamp_of(file) == *stamp)
+            });
+            if !hit {
+                cache.files.remove(&resource);
+                let source = match options.sources.get(&resource) {
+                    Some(source) => source.clone(),
+                    None => {
+                        crate::fs::source::read(&resource).map_err(|error| error.to_string())?
+                    }
+                };
+                let mut writes = Writes::default();
+                #[cfg(test)]
+                {
+                    cache.extractions += 1;
+                }
+                let (sheets, dependencies) =
+                    process_file(project, &tables, &mut writes, &resource, &source, options)?;
+                let dependencies = dependencies
+                    .into_iter()
+                    .map(|file| {
+                        let stamp = stamp_of(&file);
+                        (file, stamp)
+                    })
+                    .collect();
+                cache.files.insert(
+                    resource.clone(),
+                    CachedCss {
+                        scope: scope.clone(),
+                        stamp,
+                        revision,
+                        props,
+                        sheets,
+                        dependencies,
+                        writes,
+                    },
+                );
             }
+            let entry = &cache.files[&resource];
+            entry.writes.apply(&mut tables);
+            all.extend(entry.sheets.iter().cloned());
         }
         Ok(())
     })();
-    project.tables = tables;
+    project.tables = base_tables;
+    project.css_cache = cache;
     result?;
     Ok(all.into_iter().collect::<Vec<_>>().join("\n"))
 }
@@ -121,7 +237,7 @@ fn process_file(
     resource: &str,
     source: &str,
     options: &CompileOptions,
-) -> R<Vec<String>> {
+) -> R<(Vec<String>, Vec<String>)> {
     let allocator = Allocator::default();
     let source: &str = allocator.alloc_str(source);
     let program = parse_program(&allocator, source)?;
@@ -177,7 +293,15 @@ fn process_file(
     if let Some(error) = second.error {
         return Err(error);
     }
-    Ok(extractor.sheets.into_iter().collect())
+    let mut dependencies = IndexSet::<String, FxBuildHasher>::default();
+    for import in extractor.local_imports.values() {
+        dependencies.insert(import.actual_path.clone());
+        dependencies.extend(extractor.project.get_file_dependencies(&import.actual_path));
+    }
+    Ok((
+        extractor.sheets.into_iter().collect(),
+        dependencies.into_iter().collect(),
+    ))
 }
 
 impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
@@ -1601,3 +1725,6 @@ impl<'x, 't, 'p, 'w, 'b, 'a> Visit<'a> for SecondPass<'x, 't, 'p, 'w, 'b, 'a> {
         walk::walk_jsx_attribute(self, it);
     }
 }
+
+#[cfg(test)]
+mod cache_tests;
