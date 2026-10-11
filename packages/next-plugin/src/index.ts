@@ -3,7 +3,6 @@ import type { LoaderOptions } from '@plumeria/turbopack-loader';
 import type { TurbopackLoaderItem } from 'next/dist/server/config-shared';
 import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
-import * as fs from 'fs';
 import { lintOverrides } from '@plumeria/eslint-plugin/guard';
 import { startNextLintGuard } from './lint';
 
@@ -18,17 +17,8 @@ const isRuleConfigItem = (
 
 type PlumeriaTurbopackRules = Record<
   string,
-  { loaders: TurbopackLoaderItem[]; condition?: unknown }
+  { loaders: TurbopackLoaderItem[]; condition?: unknown; as?: string }
 >;
-
-function supportsRuleCondition(): boolean {
-  try {
-    const { version } = require('next/package.json') as { version: string };
-    return Number(version.split('.')[0]) >= 16;
-  } catch {
-    return false;
-  }
-}
 
 export type PlumeriaOptions = LoaderOptions & { lint?: boolean };
 
@@ -38,34 +28,6 @@ export function withPlumeria(
 ): NextConfig {
   if (lint) startNextLintGuard(lintOverrides(options));
 
-  const globalRef = global as typeof global & {
-    __PLUMERIA_RESET_DONE__?: boolean;
-  };
-
-  // Production needs this as much as development does: the loader treats "still
-  // the placeholder" as "this build has not generated the CSS yet", which only
-  // holds if every build starts from the placeholder.
-  /* istanbul ignore next */
-  if (!globalRef.__PLUMERIA_RESET_DONE__) {
-    globalRef.__PLUMERIA_RESET_DONE__ = true;
-
-    try {
-      const VIRTUAL_FILE_PATH =
-        require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
-      const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
-
-      if (fs.existsSync(LOCK_DIR_PATH)) {
-        try {
-          fs.rmdirSync(LOCK_DIR_PATH);
-        } catch (e) {
-          // ignore
-        }
-      }
-      fs.writeFileSync(VIRTUAL_FILE_PATH, '/** Placeholder file */\n', 'utf-8');
-    } catch (e) {
-      console.error('Failed to reset Plumeria virtual CSS file:', e);
-    }
-  }
   const originalWebpack = nextConfig.webpack;
 
   const turbopackLoaders: TurbopackLoaderItem[] = [
@@ -83,20 +45,24 @@ export function withPlumeria(
     `@plumeria/core|${start}${escapedStyleProp}${end}`,
   );
 
-  const ruleItem = supportsRuleCondition()
-    ? {
-        loaders: turbopackLoaders,
-        condition: {
-          all: [{ not: 'foreign' }, { content }],
-        },
-      }
-    : { loaders: turbopackLoaders };
+  const ruleItem = {
+    loaders: turbopackLoaders,
+    condition: {
+      all: [{ not: 'foreign' }, { content }],
+    },
+  };
+
+  const cssLoader = {
+    loader: '@plumeria/turbopack-loader/css',
+    options: options as Record<string, never>,
+  };
 
   const plumeriaRules: PlumeriaTurbopackRules = {
     '*.ts': ruleItem,
     '*.tsx': ruleItem,
     '*.js': ruleItem,
     '*.jsx': ruleItem,
+    'zero-virtual.css': { loaders: [cssLoader], as: '*.css' },
   };
 
   const mergeTurbopackRules = (
@@ -167,6 +133,12 @@ export function withPlumeria(
         test: /\.(tsx|ts|jsx|js)$/,
         exclude: [/node_modules/, /\.next/, /\.git/],
         use: { loader: '@plumeria/turbopack-loader', options },
+      });
+
+      config.module?.rules?.unshift({
+        enforce: 'pre',
+        test: /zero-virtual\.css$/,
+        use: { loader: '@plumeria/turbopack-loader/css', options },
       });
 
       return config;
