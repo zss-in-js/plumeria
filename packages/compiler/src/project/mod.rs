@@ -96,6 +96,9 @@ pub struct Site {
 #[derive(Default)]
 pub struct Project {
     pub tables: Tables,
+    pub css_cache: crate::compile::CssCache,
+    pub compile_revisions: FxHashMap<String, u64>,
+    pub scan_generation: u64,
     pub files: FxHashMap<String, CachedFile>,
     receiver_keys_by_file: FxHashMap<String, Vec<String>>,
     dependents: FxHashMap<String, IndexSet<String, FxBuildHasher>>,
@@ -504,7 +507,14 @@ impl Project {
             return;
         }
 
+        self.scan_generation += 1;
+        for file in &invalidated {
+            self.compile_revisions
+                .insert(file.clone(), self.scan_generation);
+        }
         for file in &deleted {
+            self.compile_revisions.remove(file);
+            self.css_cache.files.remove(file);
             let cached = self.files.get(file).cloned();
             if let Some(cached) = &cached {
                 self.strip_file_contributions(file, cached.component_props.as_ref());
@@ -527,7 +537,7 @@ impl Project {
             }
         }
 
-        let load = |file: &String| stat(file).map(|stat| (stat, std::fs::read_to_string(file)));
+        let load = |file: &String| stat(file).map(|stat| (stat, crate::fs::source::read(file)));
         let loaded: Vec<Option<(Stat, std::io::Result<String>)>> = if uncached.len() < 512 {
             uncached.iter().map(load).collect()
         } else {
@@ -933,7 +943,7 @@ impl Project {
             };
             if stale
                 && stat.is_file
-                && let Ok(source) = std::fs::read_to_string(file)
+                && let Ok(source) = crate::fs::source::read(file)
             {
                 let allocator = Allocator::default();
                 if let Ok(program) = parse_program(&allocator, &source) {
