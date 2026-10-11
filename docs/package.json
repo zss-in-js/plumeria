@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "predev": "rimraf .next && node scripts/copy-playground-libs.mjs && node scripts/build-playground-engine.mjs",
-    "prebuild": "rimraf .next && node scripts/copy-playground-libs.mjs && node scripts/build-playground-engine.mjs",
+    "predev": "node scripts/copy-playground-libs.mjs && node scripts/build-playground-engine.mjs",
+    "prebuild": "node scripts/copy-playground-libs.mjs && node scripts/build-playground-engine.mjs",
     "build": "next build",
     "dev": "next dev",
     "start": "node scripts/serve.mjs",
