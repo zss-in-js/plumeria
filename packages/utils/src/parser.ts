@@ -1,3 +1,4 @@
+import { readSource } from './sourceCache';
 import type {
   CSSObject,
   CSSValue,
@@ -1654,6 +1655,13 @@ const detachedOverlayTables = new Set([
 ]);
 let overlayScan = false;
 let tablesGeneration = 0;
+const compileRevisions = new Map<string, number>();
+export function compilationGeneration(): number {
+  return tablesGeneration;
+}
+export function compilationRevision(file: string): number {
+  return compileRevisions.get(file) ?? 0;
+}
 let overlayBaseGeneration = -1;
 let overlayBase: Tables | undefined;
 
@@ -1991,6 +1999,8 @@ function runScan(scanCwd: string, styleProp: string): Tables {
   }
 
   tablesGeneration++;
+  for (const file of invalidated) compileRevisions.set(file, tablesGeneration);
+  for (const file of deletedFiles) compileRevisions.delete(file);
 
   // Strip deleted files' stale contributions, then clean up cache/dependency edges
   for (const fp of deletedFiles) {
@@ -2017,7 +2027,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
   for (const filePath of uncachedFiles) {
     try {
       const stats = fs.statSync(filePath);
-      const source = fs.readFileSync(filePath, 'utf8');
+      const source = readSource(filePath);
       if (!needsCompile(source, styleProp, filePath)) {
         // Store an empty record in the cache and clear old dependency edges
         updateDependencyEdges(
@@ -3339,7 +3349,7 @@ export function resolveExport(
           fileCache[filePath].exportsMtimeMs !== stats.mtimeMs) &&
         stats.isFile()
       ) {
-        const source = fs.readFileSync(filePath, 'utf8');
+        const source = readSource(filePath);
         const ast = parseSync(source, {
           syntax: 'typescript',
           tsx: true,
