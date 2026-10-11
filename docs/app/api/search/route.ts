@@ -2,7 +2,9 @@ import { searchSource } from 'lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
 import { basename, extname } from 'node:path';
 
-export const { GET } = createFromSource(searchSource, {
+export const dynamic = 'force-static';
+
+export const { staticGET: GET } = createFromSource(searchSource, {
   buildIndex: (page) => ({
     id: page.url,
     title: page.data.title ?? basename(page.path, extname(page.path)),
