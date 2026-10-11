@@ -46,6 +46,7 @@ const html = `<!doctype html>
     <style>${css}</style>
     <script type="speculationrules">${speculationRules}</script>
     <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
   </head>
   <body>
     <header class="header">
