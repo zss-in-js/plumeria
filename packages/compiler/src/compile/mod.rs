@@ -53,13 +53,13 @@ pub struct CssCache {
 }
 
 pub struct CachedCss {
-    scope: String,
+    scope: std::sync::Arc<str>,
     stamp: crate::fs::source::SourceStamp,
     revision: u64,
     props: crate::project::PropsTable,
     sheets: Vec<String>,
     dependencies: Vec<(String, Option<crate::fs::source::SourceStamp>)>,
-    writes: Writes,
+    writes: std::sync::Arc<Writes>,
 }
 
 pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<String, String> {
@@ -97,20 +97,23 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
     }
     let mut overrides: Vec<_> = options.sources.iter().collect();
     overrides.sort_by(|a, b| a.0.cmp(b.0));
-    let scope = format!(
+    let scope: std::sync::Arc<str> = format!(
         "{:?}|{:?}|{:?}|{:?}",
         options.include,
         options.exclude,
         overrides,
         (!options.sources.is_empty()).then_some(project.scan_generation)
-    );
-    let mut props_by_file: FxHashMap<String, crate::project::PropsTable> = FxHashMap::default();
-    for (key, props) in &tables.component_props {
+    )
+    .into();
+    let mut props_by_file: FxHashMap<String, Vec<usize>> = FxHashMap::default();
+    for (index, key) in tables.component_props.keys().enumerate() {
         if let Some((file, _)) = key.rsplit_once('-') {
-            props_by_file
-                .entry(file.to_string())
-                .or_default()
-                .insert(key.clone(), props.clone());
+            match props_by_file.get_mut(file) {
+                Some(indices) => indices.push(index),
+                None => {
+                    props_by_file.insert(file.to_string(), vec![index]);
+                }
+            }
         }
     }
     let mut stamps: FxHashMap<String, Option<crate::fs::source::SourceStamp>> =
@@ -123,7 +126,7 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
     };
     let mut all: IndexSet<String, FxBuildHasher> = IndexSet::default();
     // Keep overlays local to this call, including on errors.
-    let base_tables = tables.clone();
+    let mut undo = crate::transform::overlay::Restore::default();
     let result = (|| -> Result<(), String> {
         for file in &files {
             let resource = resolve(&cwd, file).to_string_lossy().into_owned();
@@ -136,10 +139,14 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
                 .unwrap_or_default();
             let props = props_by_file.remove(&resource).unwrap_or_default();
             let hit = cache.files.get(&resource).is_some_and(|entry| {
-                entry.scope == scope
+                (std::sync::Arc::ptr_eq(&entry.scope, &scope) || entry.scope == scope)
                     && entry.stamp == stamp
                     && entry.revision == revision
-                    && entry.props == props
+                    && entry.props.len() == props.len()
+                    && props.iter().all(|&index| {
+                        let (key, value) = tables.component_props.get_index(index).unwrap();
+                        entry.props.get(key) == Some(value)
+                    })
                     && entry
                         .dependencies
                         .iter()
@@ -173,20 +180,27 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
                         scope: scope.clone(),
                         stamp,
                         revision,
-                        props,
+                        props: props
+                            .iter()
+                            .map(|&index| {
+                                let (key, value) = tables.component_props.get_index(index).unwrap();
+                                (key.clone(), value.clone())
+                            })
+                            .collect(),
                         sheets,
                         dependencies,
-                        writes,
+                        writes: std::sync::Arc::new(writes),
                     },
                 );
             }
             let entry = &cache.files[&resource];
-            entry.writes.apply(&mut tables);
+            entry.writes.apply(&mut tables, &mut undo);
             all.extend(entry.sheets.iter().cloned());
         }
         Ok(())
     })();
-    project.tables = base_tables;
+    undo.undo(&mut tables);
+    project.tables = tables;
     project.css_cache = cache;
     result?;
     Ok(all.into_iter().collect::<Vec<_>>().join("\n"))
