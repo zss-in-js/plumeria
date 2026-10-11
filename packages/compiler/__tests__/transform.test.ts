@@ -4,7 +4,7 @@ import * as path from 'path';
 import { DEFAULT_STYLE_PROP } from '@plumeria/utils';
 import { implementations } from '../compiler-implementations';
 
-describe.each(implementations)('$name', ({ transformSource }) => {
+describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
   const directory = fs.realpathSync(
     fs.mkdtempSync(path.join(os.tmpdir(), 'transform-coverage-')),
   );
@@ -30,7 +30,6 @@ describe.each(implementations)('$name', ({ transformSource }) => {
       styleProp: DEFAULT_STYLE_PROP,
       propertyPolicy: undefined,
       isDev: false,
-      collectOndemandSheets: true,
       addDependency: (dependency) => options.dependencies?.push(dependency),
     });
   };
@@ -322,7 +321,9 @@ describe.each(implementations)('$name', ({ transformSource }) => {
     `);
       expect(result.code).toContain('className');
       expect(result.code).not.toContain('style={');
-      expect(result.sheets.join('')).toContain('color: red');
+      expect(
+        compileCSS({ include: ['*.tsx'], exclude: [], cwd: directory }),
+      ).toContain('color: red');
     });
 
     it('rejects a computed key on a top-level object that holds no styles', async () => {
