@@ -95,7 +95,6 @@ export const Unseen = () => <Alone classStyle={styles.b} />;`,
       styleProp: DEFAULT_STYLE_PROP,
       propertyPolicy: undefined,
       isDev: false,
-      collectOndemandSheets: true,
       addDependency: () => {},
     });
     return result.code;
@@ -240,7 +239,6 @@ export const Unseen = () => <Alone classStyle={styles.b} />;`,
         styleProp: DEFAULT_STYLE_PROP,
         propertyPolicy: undefined,
         isDev: false,
-        collectOndemandSheets: true,
         addDependency: () => {},
       });
       expect(declarationOf(result.code, 'Unseen')).toContain('className={"');
