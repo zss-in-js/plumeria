@@ -12,7 +12,7 @@ import * as path from 'path';
 import { DEFAULT_STYLE_PROP } from '@plumeria/utils';
 import { implementations } from '../compiler-implementations';
 
-describe.each(implementations)('$name', ({ transformSource }) => {
+describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
   const DIR = fs.realpathSync(
     fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-')),
   );
@@ -29,7 +29,6 @@ describe.each(implementations)('$name', ({ transformSource }) => {
     styleProp: DEFAULT_STYLE_PROP,
     propertyPolicy: undefined,
     isDev: false,
-    collectOndemandSheets: true,
     addDependency: () => {},
   });
 
@@ -57,7 +56,12 @@ export const Component = () => <span classStyle={styles.label} />;
 
   const run = async (file: string) => {
     const result = await transformSource(env(files[file], file));
-    return { code: result.code, css: (result.sheets ?? []).join('\n') };
+    const css = compileCSS({
+      include: ['**/*.{ts,tsx}'],
+      exclude: [],
+      cwd: DIR,
+    });
+    return { code: result.code, css };
   };
 
   const referenced = (value: string) => [
