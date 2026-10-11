@@ -3,7 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { implementations } from '../compiler-implementations';
 
-describe.each(implementations)('$name', ({ transformSource }) => {
+describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
   const DIR = fs.realpathSync(
     fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-')),
   );
@@ -26,7 +26,6 @@ describe.each(implementations)('$name', ({ transformSource }) => {
       styleProp,
       propertyPolicy: undefined,
       isDev: false,
-      collectOndemandSheets: true,
       addDependency: () => {},
     });
 
@@ -49,10 +48,12 @@ import { Alone } from './Alone';
 export const App = () => <Alone classStyle={styles.a} />;`,
     );
 
-    const { code, sheets } = await transform(receiver, 'classStyle');
+    const { code } = await transform(receiver, 'classStyle');
 
     expect(code).not.toContain('className={""}');
-    expect(sheets.join('')).toContain('teal');
+    expect(
+      compileCSS({ include: ['**/*.{ts,tsx}'], exclude: [], cwd: DIR }),
+    ).toContain('teal');
   });
 
   it('rescans every file when the style prop changes', async () => {
