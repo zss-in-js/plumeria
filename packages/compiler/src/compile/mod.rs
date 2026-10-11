@@ -40,6 +40,7 @@ pub struct CompileOptions {
     pub cwd: String,
     pub style_prop: String,
     pub policy: Option<PropertyPolicy>,
+    pub sources: FxHashMap<String, String>,
 }
 
 pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<String, String> {
@@ -59,7 +60,10 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
     let result = (|| -> Result<(), String> {
         for file in &files {
             let resource = resolve(&cwd, file).to_string_lossy().into_owned();
-            let source = std::fs::read_to_string(&resource).map_err(|error| error.to_string())?;
+            let source = match options.sources.get(&resource) {
+                Some(source) => source.clone(),
+                None => std::fs::read_to_string(&resource).map_err(|error| error.to_string())?,
+            };
             let sheets = process_file(project, &tables, &mut writes, &resource, &source, options)?;
             for sheet in sheets {
                 all.insert(sheet);
