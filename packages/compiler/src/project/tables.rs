@@ -14,7 +14,7 @@ pub struct Condition {
     pub truthy: bool,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TableEntry {
     pub key: String,
     pub style: Object,
