@@ -1,61 +1,23 @@
-jest.mock('@rust-gear/glob', () => ({ globSync: jest.fn(() => []) }));
-// Every path under the package's zero-virtual.css (the file, its lock and temp
-// files) is redirected into a private directory, so suites writing the shared
-// file from parallel workers cannot change what this suite reads back.
-jest.mock('fs', () => {
-  const actual = jest.requireActual('fs');
-  const through =
-    (fn: Function) =>
-    (p: unknown, ...rest: unknown[]) =>
-      fn(mockPrivatePath(p), ...rest);
-  return {
-    ...actual,
-    existsSync: through(actual.existsSync),
-    mkdirSync: through(actual.mkdirSync),
-    readFileSync: through(actual.readFileSync),
-    rmdirSync: through(actual.rmdirSync),
-    renameSync: (from: unknown, to: unknown) =>
-      actual.renameSync(mockPrivatePath(from), mockPrivatePath(to)),
-    writeFileSync: through(actual.writeFileSync),
-  };
-});
-
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import cssLoader from '../src/css';
 
-const VIRTUAL_FILE_PATH = path.resolve(__dirname, '..', 'zero-virtual.css');
-const mockPrivateDir = fs.mkdtempSync(
-  path.join(os.tmpdir(), 'plumeria-theme-hmr-'),
+const projectDir = fs.realpathSync(
+  fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-theme-hmr-')),
 );
-const mockPrivatePath = (p: unknown) =>
-  typeof p === 'string' && p.startsWith(VIRTUAL_FILE_PATH)
-    ? path.join(mockPrivateDir, 'zero-virtual.css') +
-      p.slice(VIRTUAL_FILE_PATH.length)
-    : p;
 
-type Loader = (this: unknown, source: string) => Promise<void>;
-
-const compileIn = (fixture: string) => {
-  const loader = require('../src/index').default as Loader;
-
-  return (source: string): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const context = {
-        resourcePath: path.join(__dirname, fixture),
-        async:
-          () =>
-          (err: Error | null): void => {
-            if (err) reject(err);
-            else resolve(fs.readFileSync(VIRTUAL_FILE_PATH, 'utf-8'));
-          },
-        addDependency: () => {},
-        clearDependencies: () => {},
-      };
-
-      loader.call(context, source).catch(reject);
+const compileWith = (files: Record<string, string>): Promise<string> =>
+  new Promise((resolve, reject) => {
+    for (const [name, source] of Object.entries(files)) {
+      fs.writeFileSync(path.join(projectDir, name), source, 'utf-8');
+    }
+    cssLoader.call({
+      async: () => (err: Error | null, css?: string) =>
+        err ? reject(err) : resolve(css as string),
+      addDependency: () => {},
     });
-};
+  });
 
 type ThemeArgs = { selector?: string; default?: string; theme?: string };
 
@@ -102,84 +64,93 @@ const expectOneSelectorPerVariable = (css: string): void => {
   }
 };
 
-describe('createTheme edits in the shared dev CSS file', () => {
+describe('createTheme edits compiled into the virtual CSS', () => {
   afterAll(() => {
-    fs.rmSync(mockPrivateDir, { recursive: true, force: true });
+    fs.rmSync(projectDir, { recursive: true, force: true });
   });
 
   beforeEach(() => {
-    jest.resetModules();
-    fs.writeFileSync(VIRTUAL_FILE_PATH, '', 'utf-8');
-    jest.replaceProperty(process.env, 'NODE_ENV', 'development');
+    for (const name of fs.readdirSync(projectDir)) {
+      fs.rmSync(path.join(projectDir, name));
+    }
+    jest.spyOn(process, 'cwd').mockReturnValue(projectDir);
   });
 
-  it('gives the new selector a variable of its own', async () => {
-    const compile = compileIn('theme-hmr-fixture.tsx');
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
-    const first = await compile(moduleWith({ selector: '.dark' }));
+  it('gives the new selector a variable of its own and drops the old one', async () => {
+    const first = await compileWith({
+      'theme.tsx': moduleWith({ selector: '.dark' }),
+    });
     const [oldVar] = varsIn(first);
 
-    const second = await compile(moduleWith({ selector: '.night' }));
+    const second = await compileWith({
+      'theme.tsx': moduleWith({ selector: '.night' }),
+    });
     const newVar = varsIn(second).find((name) => name !== oldVar) as string;
 
     expect(themeSelectorsOf(second, newVar)).toEqual(['.night']);
-    expect(themeSelectorsOf(second, oldVar)).toEqual(['.dark']);
+    expect(varsIn(second)).not.toContain(oldVar);
     expect(referencedIn(second)).toContain(newVar);
     expectOneSelectorPerVariable(second);
   });
 
   it('separates a class selector from the at-rule that replaced it', async () => {
-    const compile = compileIn('theme-hmr-fixture.tsx');
+    await compileWith({ 'theme.tsx': moduleWith({ selector: '.dark' }) });
 
-    const first = await compile(moduleWith({ selector: '.dark' }));
-    const [oldVar] = varsIn(first);
-
-    const second = await compile(
-      moduleWith({ selector: '@media (prefers-color-scheme: dark)' }),
-    );
-    const newVar = varsIn(second).find((name) => name !== oldVar) as string;
+    const second = await compileWith({
+      'theme.tsx': moduleWith({
+        selector: '@media (prefers-color-scheme: dark)',
+      }),
+    });
+    const [newVar] = varsIn(second);
 
     expect(themeSelectorsOf(second, newVar)).toEqual([
       '@media (prefers-color-scheme: dark)',
     ]);
+    expect(second).not.toContain('.dark');
     expectOneSelectorPerVariable(second);
   });
 
-  it('keeps one selector per variable across repeated selector edits', async () => {
-    const compile = compileIn('theme-hmr-fixture.tsx');
+  it('keeps only the latest selector across repeated selector edits', async () => {
+    await compileWith({ 'theme.tsx': moduleWith({ selector: '.dark' }) });
+    await compileWith({ 'theme.tsx': moduleWith({ selector: '.night' }) });
+    const last = await compileWith({
+      'theme.tsx': moduleWith({ selector: '.dusk' }),
+    });
 
-    await compile(moduleWith({ selector: '.dark' }));
-    await compile(moduleWith({ selector: '.night' }));
-    const last = await compile(moduleWith({ selector: '.dusk' }));
-
-    expect(varsIn(last)).toHaveLength(3);
-    expectOneSelectorPerVariable(last);
+    expect(varsIn(last)).toHaveLength(1);
+    expect(themeSelectorsOf(last, varsIn(last)[0])).toEqual(['.dusk']);
   });
 
-  it('keeps class rules emitted by an earlier compile', async () => {
-    const compile = compileIn('theme-hmr-fixture.tsx');
+  it('replaces the class rule when the theme value changes', async () => {
+    await compileWith({ 'theme.tsx': moduleWith({ default: 'black' }) });
+    const second = await compileWith({
+      'theme.tsx': moduleWith({ default: 'navy' }),
+    });
 
-    const first = await compile(moduleWith({ default: 'black' }));
-    const boxClass = first.match(/\.(x[0-9a-z]+) \{\n {2}color/)?.[1];
-    expect(boxClass).toBeDefined();
-
-    const second = await compile(moduleWith({ default: 'navy' }));
-    expect(second).toContain(boxClass as string);
+    expect(second).toContain('navy');
+    expect(second).not.toContain('black');
+    expect(second.match(/\.x[0-9a-z]+ \{\n {2}color/g)).toHaveLength(1);
   });
 
   it('leaves the theme of another source file alone', async () => {
-    const inA = compileIn('theme-hmr-a.tsx');
-    const inB = compileIn('theme-hmr-b.tsx');
+    const both = await compileWith({
+      'theme-a.tsx': moduleWith({ selector: '.dark' }),
+      'theme-b.tsx': moduleWith({ selector: '.sepia' }),
+    });
 
-    await inA(moduleWith({ selector: '.dark' }));
-    const afterB = await inB(moduleWith({ selector: '.sepia' }));
+    expect(both).toContain('.dark');
+    expect(both).toContain('.sepia');
+    expectOneSelectorPerVariable(both);
 
-    expect(afterB).toContain('.dark');
-    expect(afterB).toContain('.sepia');
-    expectOneSelectorPerVariable(afterB);
-
-    const recompiled = await inA(moduleWith({ selector: '.dark' }));
+    const recompiled = await compileWith({
+      'theme-a.tsx': moduleWith({ selector: '.dusk' }),
+    });
     expect(recompiled).toContain('.sepia');
+    expect(recompiled).not.toContain('.dark');
     expectOneSelectorPerVariable(recompiled);
   });
 });
