@@ -1,16 +1,6 @@
 jest.mock('../src/lint', () => ({ startNextLintGuard: jest.fn() }));
-jest.mock('fs', () => {
-  const actual = jest.requireActual('fs');
-  return {
-    ...actual,
-    writeFileSync: jest.fn(),
-    existsSync: jest.fn(),
-    rmdirSync: jest.fn(),
-  };
-});
 
 import webpack from 'webpack';
-import * as fs from 'fs';
 import { withPlumeria } from '../src';
 import type {
   NextConfig,
@@ -113,11 +103,18 @@ describe('withPlumeria', () => {
         dev: true,
         isServer: true,
       } as WebpackConfigContext);
-      expect(config.module!.rules![0]).toMatchObject({
-        enforce: 'pre',
-        test: /\.(tsx|ts|jsx|js)$/,
-        use: { loader: '@plumeria/turbopack-loader', options: {} },
-      });
+      expect(config.module!.rules).toEqual([
+        {
+          enforce: 'pre',
+          test: /zero-virtual\.css$/,
+          use: { loader: '@plumeria/turbopack-loader/css', options: {} },
+        },
+        expect.objectContaining({
+          enforce: 'pre',
+          test: /\.(tsx|ts|jsx|js)$/,
+          use: { loader: '@plumeria/turbopack-loader', options: {} },
+        }),
+      ]);
       expect(config.watchOptions!.ignored).toEqual([
         'node_modules',
         '.next',
@@ -232,74 +229,6 @@ describe('withPlumeria', () => {
     });
   });
 
-  describe('development environment initialization', () => {
-    let originalEnv: 'development' | 'production' | 'test';
-
-    beforeEach(() => {
-      originalEnv = process.env.NODE_ENV;
-      delete (global as any).__PLUMERIA_RESET_DONE__;
-    });
-
-    afterEach(() => {
-      jest.replaceProperty(process.env, 'NODE_ENV', originalEnv);
-      delete (global as any).__PLUMERIA_RESET_DONE__;
-      jest.mocked(fs.existsSync).mockReset();
-      jest.mocked(fs.rmdirSync).mockReset();
-      jest.mocked(fs.writeFileSync).mockReset();
-    });
-
-    it('runs reset logic in development mode', () => {
-      jest.replaceProperty(process.env, 'NODE_ENV', 'development');
-      expect((global as any).__PLUMERIA_RESET_DONE__).toBeUndefined();
-
-      withPlumeria();
-
-      expect((global as any).__PLUMERIA_RESET_DONE__).toBe(true);
-    });
-
-    it('removes lock directory if it exists and handles file write errors', () => {
-      jest.replaceProperty(process.env, 'NODE_ENV', 'development');
-      const VIRTUAL_FILE_PATH =
-        require.resolve('@plumeria/turbopack-loader/zero-virtual.css');
-      const LOCK_DIR_PATH = VIRTUAL_FILE_PATH + '.lock';
-
-      jest.mocked(fs.existsSync).mockReturnValue(true);
-
-      withPlumeria();
-
-      expect(fs.rmdirSync).toHaveBeenCalledWith(LOCK_DIR_PATH);
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
-        VIRTUAL_FILE_PATH,
-        '/** Placeholder file */\n',
-        'utf-8',
-      );
-
-      const consoleErrorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-      jest.mocked(fs.writeFileSync).mockImplementationOnce(() => {
-        throw new Error('EACCES: permission denied');
-      });
-
-      delete (global as any).__PLUMERIA_RESET_DONE__;
-      expect(() => withPlumeria()).not.toThrow();
-      expect(consoleErrorSpy).toHaveBeenCalled();
-
-      consoleErrorSpy.mockRestore();
-    });
-
-    it('ignores a lock directory that cannot be removed', () => {
-      jest.replaceProperty(process.env, 'NODE_ENV', 'development');
-      jest.mocked(fs.existsSync).mockReturnValue(true);
-      jest.mocked(fs.rmdirSync).mockImplementationOnce(() => {
-        throw new Error('ENOTEMPTY');
-      });
-
-      expect(() => withPlumeria()).not.toThrow();
-      expect(fs.writeFileSync).toHaveBeenCalled();
-    });
-  });
-
   describe('loader options', () => {
     const loaderItem = (config: NextConfig) => {
       const rule = config.turbopack?.rules?.['*.tsx'] as {
@@ -321,9 +250,21 @@ describe('withPlumeria', () => {
         isServer: true,
       } as WebpackConfigContext);
 
-      expect(config.module.rules[0].use).toEqual({
-        loader: '@plumeria/turbopack-loader',
-        options,
+      expect(
+        config.module.rules.map((rule: { use: unknown }) => rule.use),
+      ).toEqual([
+        { loader: '@plumeria/turbopack-loader/css', options },
+        { loader: '@plumeria/turbopack-loader', options },
+      ]);
+    });
+
+    it('reaches the CSS loader of the virtual stylesheet', () => {
+      const options = { styleProp: 'sx', withoutLogicalProperties: true };
+      expect(
+        withPlumeria({}, options).turbopack?.rules?.['zero-virtual.css'],
+      ).toEqual({
+        loaders: [{ loader: '@plumeria/turbopack-loader/css', options }],
+        as: '*.css',
       });
     });
 
@@ -336,7 +277,7 @@ describe('withPlumeria', () => {
     const ruleFor = (config: NextConfig) =>
       config.turbopack?.rules?.['*.tsx'] as { condition?: unknown };
 
-    it('applies a condition on next 16 and up', () => {
+    it('applies a condition', () => {
       expect(ruleFor(withPlumeria()).condition).toEqual({
         all: [
           { not: 'foreign' },
@@ -382,28 +323,6 @@ describe('withPlumeria', () => {
       expect(content.test('<div $sx={styles.a} />')).toBe(true);
       expect(content.test("import '@plumeria/core';")).toBe(true);
       expect(content.test('<div sx={styles.a} />')).toBe(false);
-    });
-
-    it('omits the condition when the next version is unreadable', () => {
-      jest.isolateModules(() => {
-        jest.doMock('next/package.json', () => {
-          throw new Error('unreadable');
-        });
-        const isolated = require('../src') as typeof import('../src');
-        expect(ruleFor(isolated.withPlumeria())).not.toHaveProperty(
-          'condition',
-        );
-      });
-    });
-
-    it('omits the condition on next 15', () => {
-      jest.isolateModules(() => {
-        jest.doMock('next/package.json', () => ({ version: '15.4.2' }));
-        const isolated = require('../src') as typeof import('../src');
-        expect(ruleFor(isolated.withPlumeria())).not.toHaveProperty(
-          'condition',
-        );
-      });
     });
   });
 });
