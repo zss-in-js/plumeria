@@ -15,8 +15,6 @@ pub trait SheetTables {
     fn theme_selector(&self, hash: &str) -> Option<String>;
 }
 
-pub type Sheets = IndexSet<String, FxBuildHasher>;
-
 fn find_markers(text: &str, mut found: impl FnMut(&str, &str)) {
     let bytes = text.as_bytes();
     let mut i = 0;
