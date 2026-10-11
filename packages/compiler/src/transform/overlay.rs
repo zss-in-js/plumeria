@@ -33,7 +33,7 @@ impl<V: Clone> Lookup<V> for Chain<'_, V> {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, PartialEq)]
 pub struct Writes {
     pub theme_hash: Map<String>,
     pub theme_obj: Map<Value>,
@@ -44,4 +44,20 @@ pub struct Writes {
     pub view_transition_obj: Map<Value>,
     pub create_obj: Map<Value>,
     pub atomic_map: Map<Value>,
+}
+
+impl Writes {
+    pub fn apply(&self, tables: &mut crate::project::Tables) {
+        tables.theme_hash.extend(self.theme_hash.clone());
+        tables.theme_obj.extend(self.theme_obj.clone());
+        tables.theme_selector.extend(self.theme_selector.clone());
+        tables.static_hash.extend(self.static_hash.clone());
+        tables.static_obj.extend(self.static_obj.clone());
+        tables.keyframes_obj.extend(self.keyframes_obj.clone());
+        tables
+            .view_transition_obj
+            .extend(self.view_transition_obj.clone());
+        tables.create_obj.extend(self.create_obj.clone());
+        tables.atomic_map.extend(self.atomic_map.clone());
+    }
 }
