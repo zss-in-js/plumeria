@@ -611,6 +611,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 continue;
             }
             if let (K::Member(_), Some(Prop::Computed(dyn_expr))) = (expr.kind(), expr.prop())
+                && !matches!(dyn_expr.kind(), K::Str(_))
                 && let Some(var_name) = expr.object().and_then(|object| object.ident_name())
             {
                 let style_obj = if self.visibility().expr(expr) {
