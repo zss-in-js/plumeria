@@ -3,7 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { implementations } from '../compiler-implementations';
 
-describe.each(implementations)('$name', ({ transformSource }) => {
+describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
   const DIR = fs.realpathSync(
     fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-transform-edge-')),
   );
@@ -25,16 +25,18 @@ const s = css.create({
       fs.writeFileSync(path.join(cwd, name), source);
     }
     const filePath = path.join(cwd, 'app.tsx');
-    const { code, sheets } = await transformSource({
+    const { code } = await transformSource({
       source: files['app.tsx'],
       moduleId: filePath,
       filePath,
       root: cwd,
       cwd,
       isDev: false,
-      collectOndemandSheets: true,
     });
-    return { code, css: sheets.join('') };
+    return {
+      code,
+      css: compileCSS({ include: ['**/*.{ts,tsx}'], exclude: [], cwd }),
+    };
   };
 
   const app = (body: string) => transform({ 'app.tsx': HEAD + body });
@@ -655,7 +657,6 @@ export const A = () => <Card cardStyle={s.a} />;`;
           filePath,
           root: project,
           isDev: false,
-          collectOndemandSheets: true,
         });
         expect(code).toContain(`<Card cardStyle={"xdeb8kup"} />`);
       } finally {
