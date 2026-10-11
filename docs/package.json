@@ -7,7 +7,7 @@
     "prebuild": "rimraf .next && node scripts/copy-playground-libs.mjs && node scripts/build-playground-engine.mjs",
     "build": "next build",
     "dev": "next dev",
-    "start": "next start",
+    "start": "node scripts/serve.mjs",
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
@@ -19,6 +19,7 @@
     "@typescript-eslint/parser": "^8.60.0",
     "@typescript/vfs": "^1.6.5",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "fumadocs-core": "^16.9.3",
     "fumadocs-mdx": "^15.0.5",
     "fumadocs-ui": "^16.9.3",
