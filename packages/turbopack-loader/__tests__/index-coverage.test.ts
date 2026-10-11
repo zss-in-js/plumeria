@@ -1,64 +1,34 @@
 import * as path from 'path';
 
-const mockCompileCSS = jest.fn(() => '.production {}');
-const mockTransformSource = jest.fn(
-  ({ collectOndemandSheets }: { collectOndemandSheets: boolean }) => ({
-    code: 'transformed',
-    sheets: collectOndemandSheets ? ['.generated {}'] : [],
-  }),
-);
-const mockOptimizer = jest.fn((css: string) => css);
+const mockCompileCSS = jest.fn((_options: unknown) => '.production {}');
+const mockTransformSource = jest.fn((_options: unknown) => ({
+  code: 'transformed',
+}));
 const mockWriteFileSync = jest.fn();
-let mockSharedCss: string | undefined;
-let mockTemporaryCss: string | undefined;
 
 jest.mock('@plumeria/compiler', () => ({
-  compileCSS: mockCompileCSS,
+  compileCSS: (options: unknown) => mockCompileCSS(options),
   DEFAULT_STYLE_PROP: 'classStyle',
   needsCompile: jest.requireActual('@plumeria/compiler').needsCompile,
-  optimizer: mockOptimizer,
+  optimizer: (css: string) => css,
   resolvePropertyPolicy: () => ({}),
-  transformSource: mockTransformSource,
-}));
-jest.mock('../src/file-lock', () => ({
-  acquireLock: async () => {},
-  releaseLockSync: () => {},
+  transformSource: (options: unknown) => mockTransformSource(options),
 }));
 jest.mock('fs', () => ({
-  readFileSync: (file: string) => {
-    if (file.includes('zero-virtual.css')) {
-      if (mockSharedCss === undefined) throw new Error('ENOENT');
-      return mockSharedCss;
-    }
-    return jest.requireActual('fs').readFileSync(file, 'utf-8');
-  },
-  writeFileSync: (file: string, content: string) => {
-    mockWriteFileSync(file, content);
-    if (file.endsWith('.tmp')) mockTemporaryCss = content;
-    else if (file.includes('zero-virtual.css')) mockSharedCss = content;
-  },
-  renameSync: (_from: string, to: string) => {
-    if (to.includes('zero-virtual.css')) mockSharedCss = mockTemporaryCss;
-  },
+  ...jest.requireActual('fs'),
+  writeFileSync: (...args: unknown[]) => mockWriteFileSync(...args),
 }));
+
+import loader from '../src/index';
 
 type Loader = (this: unknown, source: string) => Promise<void>;
 
-const freshLoader = (): Loader => {
-  let loader: Loader | undefined;
-  jest.isolateModules(() => {
-    loader = require('../src/index').default;
-  });
-  return loader as Loader;
-};
-
 const runLoader = (
-  loader: Loader,
   source: string,
   context: Record<string, unknown> = {},
 ): Promise<string> =>
   new Promise((resolve, reject) => {
-    loader.call(
+    (loader as unknown as Loader).call(
       {
         resourcePath: path.resolve(__dirname, '..', 'fixture.tsx'),
         async: () => (error: Error | null, content?: string) =>
@@ -81,18 +51,13 @@ afterEach(() => {
   setNodeEnv(originalNodeEnv);
   mockCompileCSS.mockClear();
   mockTransformSource.mockClear();
-  mockOptimizer.mockClear();
   mockWriteFileSync.mockClear();
-  mockSharedCss = undefined;
-  mockTemporaryCss = undefined;
 });
 
 it('returns sources outside the loader scope unchanged', async () => {
-  const loader = freshLoader();
-
-  await expect(runLoader(loader, 'export {};')).resolves.toBe('export {};');
+  await expect(runLoader('export {};')).resolves.toBe('export {};');
   await expect(
-    runLoader(loader, SOURCE, {
+    runLoader(SOURCE, {
       resourcePath: '/project/node_modules/dependency.ts',
     }),
   ).resolves.toBe(SOURCE);
@@ -101,9 +66,7 @@ it('returns sources outside the loader scope unchanged', async () => {
 });
 
 it('supports query options and prefixes a same-directory virtual import', async () => {
-  setNodeEnv('test');
-
-  const output = await runLoader(freshLoader(), SOURCE, {
+  const output = await runLoader(SOURCE, {
     query: { styleProp: 'sx' },
   });
 
@@ -113,45 +76,15 @@ it('supports query options and prefixes a same-directory virtual import', async 
   expect(output).toBe('transformed\nimport "./zero-virtual.css";');
 });
 
-it('does not rewrite a development rule that already exists', async () => {
-  setNodeEnv('development');
-  const loader = freshLoader();
+it.each(['development', 'production'])(
+  'leaves the stylesheet to the CSS loader in %s',
+  async (mode) => {
+    setNodeEnv(mode);
 
-  await runLoader(loader, SOURCE);
-  await runLoader(loader, SOURCE);
+    await runLoader(SOURCE);
 
-  expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
-});
-
-it('skips an already generated production stylesheet', async () => {
-  setNodeEnv('production');
-  mockSharedCss = '/* plumeria: generated */\n.existing {}';
-
-  await runLoader(freshLoader(), SOURCE);
-
-  expect(mockCompileCSS).not.toHaveBeenCalled();
-});
-
-it('reuses the completed production generation', async () => {
-  setNodeEnv('production');
-  const loader = freshLoader();
-
-  await runLoader(loader, SOURCE);
-  await runLoader(loader, SOURCE);
-
-  expect(mockCompileCSS).toHaveBeenCalledTimes(1);
-  expect(mockOptimizer.mock.calls).toEqual([['.production {}']]);
-});
-
-it('does not optimize when a development module emits no sheets', async () => {
-  setNodeEnv('development');
-  mockTransformSource.mockReturnValueOnce({
-    code: 'transformed',
-    sheets: [],
-  });
-
-  await runLoader(freshLoader(), SOURCE);
-
-  expect(mockOptimizer).not.toHaveBeenCalled();
-  expect(mockWriteFileSync).not.toHaveBeenCalled();
-});
+    expect(mockTransformSource).toHaveBeenCalled();
+    expect(mockCompileCSS).not.toHaveBeenCalled();
+    expect(mockWriteFileSync).not.toHaveBeenCalled();
+  },
+);
