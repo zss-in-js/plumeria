@@ -4,7 +4,7 @@ import * as path from 'path';
 import { DEFAULT_STYLE_PROP } from '@plumeria/utils';
 import { implementations } from '../compiler-implementations';
 
-describe.each(implementations)('$name', ({ transformSource }) => {
+describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
   const DIR = fs.realpathSync(
     fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-')),
   );
@@ -19,7 +19,6 @@ describe.each(implementations)('$name', ({ transformSource }) => {
     styleProp: DEFAULT_STYLE_PROP,
     propertyPolicy: undefined,
     isDev: false,
-    collectOndemandSheets: true,
     addDependency: () => {},
   });
   fs.writeFileSync(
@@ -37,7 +36,10 @@ export const importedStyles = css.create({
   ): Promise<{ code: string; sheets: string[] }> => {
     const file = path.join(DIR, name);
     fs.writeFileSync(file, code);
-    return transformSource(env(code, file));
+    return transformSource(env(code, file)).then((result) => ({
+      code: result.code,
+      sheets: [compileCSS({ include: [name], exclude: [], cwd: DIR })],
+    }));
   };
 
   // A file left off the disk has no entry in the scan, so a component it renders
@@ -45,7 +47,7 @@ export const importedStyles = css.create({
   const runUnscanned = (
     code: string,
     name: string,
-  ): Promise<{ code: string; sheets: string[] }> =>
+  ): Promise<{ code: string }> =>
     transformSource(env(code, path.join(DIR, name)));
 
   const header = `import * as css from '@plumeria/core';
