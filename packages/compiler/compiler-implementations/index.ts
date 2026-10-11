@@ -3,7 +3,7 @@ import * as ts from '@plumeria/utils';
 import { createTheme as createThemeTs } from '../../utils/src/createTheme';
 
 export type TransformEnv = rust.TransformEnv;
-export type TransformOutput = { code: string; sheets: string[] };
+export type TransformOutput = { code: string };
 
 export type Implementation = {
   name: 'rust' | 'ts';
