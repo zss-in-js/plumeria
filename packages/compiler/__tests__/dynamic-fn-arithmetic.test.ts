@@ -22,16 +22,18 @@ describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
   const transform = async (files: Record<string, string>) => {
     const cwd = project(files);
     const filePath = path.join(cwd, 'app.tsx');
-    const { code, sheets } = await transformSource({
+    const { code } = await transformSource({
       source: files['app.tsx'],
       moduleId: filePath,
       filePath,
       root: cwd,
       cwd,
       isDev: false,
-      collectOndemandSheets: true,
     });
-    return { code, css: sheets.join('') };
+    return {
+      code,
+      css: compileCSS({ include: ['**/*.{ts,tsx}'], exclude: [], cwd }),
+    };
   };
 
   type Options = { call?: string; lead?: string; params?: string };
