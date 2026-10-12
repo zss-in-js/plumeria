@@ -7,6 +7,7 @@ import {
   camelToKebabCase,
   canonicalProperty,
   impliesCondition,
+  parseConditionalRange,
   getPseudoElement,
   getSpecificity,
 } from 'zss-engine';
@@ -19,6 +20,32 @@ import {
 import type { ObjectExpression, Property, ImportSpecifier } from 'estree';
 import type { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
+import { staticValueResolver } from '../util/staticValue';
+
+type ConditionalRange = NonNullable<ReturnType<typeof parseConditionalRange>>;
+
+function overlapRange(
+  first: ConditionalRange,
+  second: ConditionalRange,
+): boolean {
+  if (first.kind !== second.kind || first.name !== second.name) return false;
+  const axes = new Set([...first.axes.keys(), ...second.axes.keys()]);
+  for (const axis of axes) {
+    const a = first.axes.get(axis);
+    const b = second.axes.get(axis);
+    if (!a || !b) continue;
+    if (a.unit !== b.unit) return false;
+    if (Math.max(a.lower, b.lower) >= Math.min(a.upper, b.upper)) return false;
+  }
+  return true;
+}
+
+function crossesCondition(first: string, second: string): boolean {
+  const a = parseConditionalRange(first);
+  const b = parseConditionalRange(second);
+  if (!a || !b || !overlapRange(a, b)) return false;
+  return !impliesCondition(first, second) && !impliesCondition(second, first);
+}
 
 const DIRECT_SHORTHANDS: Record<string, string[]> = {};
 for (const [shorthand, longhands] of Object.entries(DIRECT_LONGHANDS)) {
@@ -86,6 +113,8 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
         "'{{ first }}' and '{{ second }}' are the same property under two names, so neither outranks the other. The one written last wins.",
       crossing:
         "'{{ first }}' and '{{ second }}' overlap, but neither property outranks the other. The result depends on the order they are written.",
+      crossingCondition:
+        "'{{ first }}' and '{{ second }}' can match at the same time, but neither contains the other, so the order they are written decides which one sets '{{ property }}' where both match. Split them into ranges that do not overlap, or give the overlap a condition of its own.",
       condition:
         "'{{ narrow }}' matches only where '{{ broad }}' also matches, so it is the more specific of the two, and both set '{{ property }}'. Written first, it reads as though the broader one wins, which is the opposite of what the stylesheet does.",
       state:
@@ -99,6 +128,7 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
   create(context) {
     const plumeriaAliases: Record<string, string> = {};
     const sourceCode = context.sourceCode;
+    const staticValue = staticValueResolver(context);
 
     return {
       ImportDeclaration(node) {
@@ -170,9 +200,10 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
           ? prop.key.name
           : String((prop.key as { value: unknown }).value);
       }
-      return prop.key.type === 'Literal' && typeof prop.key.value === 'string'
-        ? prop.key.value
-        : '';
+      if (prop.key.type === 'Literal' && typeof prop.key.value === 'string')
+        return prop.key.value;
+      const value = staticValue(prop.key);
+      return typeof value === 'string' ? value : '';
     }
 
     function declaredNames(
@@ -282,12 +313,24 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
         for (let j = i + 1; j < conditions.length; j++) {
           const first = conditions[i];
           const second = conditions[j];
-          if (!impliesCondition(first.name, second.name)) continue;
-
           const shared = [...first.sets].filter((name) =>
             second.sets.has(name),
           );
           if (shared.length === 0) continue;
+
+          if (crossesCondition(first.name, second.name)) {
+            context.report({
+              node: second.prop.key,
+              messageId: 'crossingCondition',
+              data: {
+                first: first.name,
+                second: second.name,
+                property: shared[0],
+              },
+            });
+            continue;
+          }
+          if (!impliesCondition(first.name, second.name)) continue;
 
           context.report({
             node: first.prop.key,
