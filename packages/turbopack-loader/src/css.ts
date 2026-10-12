@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { compileCSS, optimizer, DEFAULT_STYLE_PROP } from '@plumeria/compiler';
+import { devGenerationsPath } from './index';
 import type { LoaderOptions } from './index';
 
 const DEFAULT_INCLUDE = ['**/*.{js,jsx,ts,tsx}'];
@@ -13,6 +14,30 @@ interface CssLoaderContext {
   addDependency: (path: string) => void;
   getOptions?: () => LoaderOptions | undefined;
   query?: LoaderOptions | string;
+}
+
+type Generations = { previous: string; current: string };
+
+function readGenerations(file: string): Generations {
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf-8')) as Generations;
+  } catch {
+    return { previous: '', current: '' };
+  }
+}
+
+function withPreviousGeneration(cwd: string, css: string): string {
+  const file = devGenerationsPath(cwd);
+  const stored = readGenerations(file);
+  const generations =
+    stored.current === css
+      ? stored
+      : { previous: stored.current, current: css };
+  if (generations !== stored) {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(generations), 'utf-8');
+  }
+  return generations.previous ? `${generations.previous}\n${css}` : css;
 }
 
 function watchSources(context: CssLoaderContext, dir: string): void {
@@ -42,7 +67,14 @@ export default function cssLoader(this: CssLoaderContext) {
       withoutLogicalProperties: options.withoutLogicalProperties,
       withoutPhysicalProperties: options.withoutPhysicalProperties,
     });
-    callback(null, optimizer(css));
+    callback(
+      null,
+      optimizer(
+        process.env.NODE_ENV === 'development'
+          ? withPreviousGeneration(cwd, css)
+          : css,
+      ),
+    );
   } catch (error) {
     callback(error as Error);
   }
