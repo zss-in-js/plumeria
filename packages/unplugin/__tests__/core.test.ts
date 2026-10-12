@@ -166,8 +166,9 @@ it('compiles the stylesheet of the transformed file alone', async () => {
   await plugin.transform.handler(SOURCE, '/outside/Card.tsx');
 
   expect(mockCompileCSS).toHaveBeenNthCalledWith(1, {
-    include: ['app/[[]slug[]]/page.tsx'],
+    include: [],
     exclude: [],
+    files: ['/project/app/[slug]/page.tsx'],
     cwd: '/project',
     styleProp: 'css',
     withoutLogicalProperties: true,
@@ -176,7 +177,10 @@ it('compiles the stylesheet of the transformed file alone', async () => {
   });
   expect(mockCompileCSS).toHaveBeenNthCalledWith(
     2,
-    expect.objectContaining({ include: ['Card.tsx'], cwd: '/outside' }),
+    expect.objectContaining({
+      files: ['/outside/Card.tsx'],
+      cwd: '/outside',
+    }),
   );
 });
 
