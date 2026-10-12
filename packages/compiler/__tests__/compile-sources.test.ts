@@ -75,4 +75,30 @@ describe.each(implementations)('$name', ({ compileCSS }) => {
   it('leaves the other files to the disk', () => {
     expect(compile({ [FILE]: moduleUsing('blue') })).toContain('green');
   });
+
+  it('keeps the themes a given source writes out of the next compile', () => {
+    const themed = (fg: string, opacity: string) =>
+      `import * as css from '@plumeria/core';
+const theme = css.createTheme('.dark', { fg: { default: '${fg}', theme: '#fafafa' } });
+const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: ${opacity} } });
+const styles = css.create({ box: { color: theme.fg, animationName: fade } });
+export const Box = () => <div classStyle={styles.box} />;
+`;
+    const themedDir = path.join(DIR, 'themed');
+    const themedFile = path.join(themedDir, 'box.tsx');
+    fs.mkdirSync(themedDir);
+    fs.writeFileSync(themedFile, themed('#f11111', '0.25'));
+    const options = { include: ['**/*.tsx'], exclude: [], cwd: themedDir };
+
+    const first = compileCSS(options);
+    const overridden = compileCSS({
+      ...options,
+      sources: { [themedFile]: themed('#f33333', '0.75') },
+    });
+    const next = compileCSS(options);
+
+    expect(overridden).toContain('#f33333');
+    expect(next).not.toContain('#f33333');
+    expect(next).toBe(first);
+  });
 });
