@@ -263,6 +263,9 @@ const styles = css.create({
       borderBottomStyle: 'solid',
       borderBottomWidth: '2px',
     },
+    ['[data-state="active"]:hover']: {
+      color: theme.plumeAccent,
+    },
   },
   tabsContent: {
     padding: '16px',
@@ -338,6 +341,9 @@ const styles = css.create({
     },
     ['[data-state="checked"]']: {
       backgroundColor: theme.plumeAccent,
+      borderColor: theme.plumeAccent,
+    },
+    ['[data-state="checked"]:hover']: {
       borderColor: theme.plumeAccent,
     },
   },
@@ -417,6 +423,9 @@ const styles = css.create({
       borderColor: theme.plumeAccent,
     },
     ['[data-state="checked"]']: {
+      borderColor: theme.plumeAccent,
+    },
+    ['[data-state="checked"]:hover']: {
       borderColor: theme.plumeAccent,
     },
   },
@@ -731,6 +740,9 @@ const styles = css.create({
       backgroundColor: theme.plumeAccent,
       borderColor: theme.plumeAccent,
     },
+    ['[data-state="on"]:hover']: {
+      backgroundColor: theme.plumeAccent,
+    },
   },
   toggleGroupRoot: {
     display: 'inline-flex',
@@ -764,6 +776,9 @@ const styles = css.create({
     },
     ['[data-state="on"]']: {
       color: '#fff',
+      backgroundColor: theme.plumeAccent,
+    },
+    ['[data-state="on"]:hover']: {
       backgroundColor: theme.plumeAccent,
     },
     [':last-child']: {
