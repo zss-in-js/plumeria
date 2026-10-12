@@ -183,6 +183,7 @@ pub struct CompilerOptions {
     pub without_logical_properties: Option<Either<bool, SizesOption>>,
     pub without_physical_properties: Option<Either<bool, SizesOption>>,
     pub sources: Option<std::collections::HashMap<String, String>>,
+    pub files: Option<Vec<String>>,
 }
 
 #[napi(js_name = "compileCSS")]
@@ -202,6 +203,7 @@ pub fn compile_css(options: CompilerOptions) -> Result<String> {
             .unwrap_or_else(|| DEFAULT_STYLE_PROP.to_string()),
         policy,
         sources: options.sources.unwrap_or_default().into_iter().collect(),
+        files: options.files,
     };
     let mut project = lock_project();
     compile::compile_css(&mut project, &compile_options).map_err(failure)
