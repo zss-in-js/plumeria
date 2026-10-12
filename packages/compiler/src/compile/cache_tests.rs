@@ -28,6 +28,7 @@ fn unchanged_files_skip_reads_and_extraction() {
         style_prop: "classStyle".into(),
         policy: None,
         sources: FxHashMap::default(),
+        files: None,
     };
     let mut project = Project::default();
     let first = compile_css(&mut project, &options).unwrap();
@@ -80,6 +81,7 @@ fn overlays_are_restored_after_a_later_file_fails() {
         style_prop: "classStyle".into(),
         policy: None,
         sources: FxHashMap::default(),
+        files: None,
     };
     let mut project = Project::default();
     let initial = compile_css(&mut project, &options).unwrap();
