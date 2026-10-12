@@ -384,11 +384,13 @@ const applyWrites = (tables: Tables, writes: Writes): void => {
   }
 };
 
+type Dependencies = readonly (readonly [string, string | undefined])[];
+
 type SheetCacheEntry = {
   key: string;
   revision: number;
   sheets: string[];
-  dependencies: [string, string | undefined][];
+  dependencies: Dependencies[];
   writes: Writes;
 };
 const sheetCache = new Map<string, SheetCacheEntry>();
@@ -464,7 +466,7 @@ export function compileCSS(options: CompilerOptions) {
     }
     return stamps.get(file);
   };
-  let dependencies = new Set<string>();
+  let imports = new Set<string>();
   const propsByFile = new Map<string, unknown[]>();
   for (const [key, props] of Object.entries(tables.componentPropsTable ?? {})) {
     const file = key.slice(0, key.lastIndexOf('-'));
@@ -533,9 +535,7 @@ export function compileCSS(options: CompilerOptions) {
         const actualPath = resolveImportPath(sourcePath, resourcePath);
 
         if (actualPath) {
-          dependencies.add(actualPath);
-          for (const dependency of getFileDependencies(actualPath))
-            dependencies.add(dependency);
+          imports.add(actualPath);
           node.specifiers.forEach((specifier: ImportSpecifier) => {
             if (specifier.type === 'ImportNamespaceSpecifier') {
               localImports[specifier.local.value] = {
@@ -1657,6 +1657,27 @@ export function compileCSS(options: CompilerOptions) {
     return extractedSheets;
   };
 
+  const closures = new Map<string, Dependencies>();
+  const closureOf = (file: string): Dependencies => {
+    let closure = closures.get(file);
+    if (!closure) {
+      closure = [file, ...getFileDependencies(file)].map(
+        (dependency) => [dependency, stampOf(dependency)] as const,
+      );
+      closures.set(file, closure);
+    }
+    return closure;
+  };
+  const verified = new Map<Dependencies, boolean>();
+  const isFresh = (closure: Dependencies): boolean => {
+    let fresh = verified.get(closure);
+    if (fresh === undefined) {
+      fresh = closure.every(([file, stamp]) => stampOf(file) === stamp);
+      verified.set(closure, fresh);
+    }
+    return fresh;
+  };
+
   for (const file of files) {
     const resource = path.resolve(cwd, file);
     const key = JSON.stringify([
@@ -1666,11 +1687,8 @@ export function compileCSS(options: CompilerOptions) {
       propsByFile.get(resource),
     ]);
     let cached = sheetCache.get(resource);
-    if (
-      cached?.key !== key ||
-      cached.dependencies.some(([file, stamp]) => stampOf(file) !== stamp)
-    ) {
-      dependencies = new Set();
+    if (cached?.key !== key || !cached.dependencies.every(isFresh)) {
+      imports = new Set();
       const writes = createWrites(tables);
       try {
         const sheets = processFile(file, writes);
@@ -1679,7 +1697,7 @@ export function compileCSS(options: CompilerOptions) {
           revision: compilationRevision(resource),
           sheets,
           writes: snapshotWrites(writes),
-          dependencies: [...dependencies].map((file) => [file, stampOf(file)]),
+          dependencies: [...imports].map(closureOf),
         };
       } catch (error) {
         sheetCache.delete(resource);
