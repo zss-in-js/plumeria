@@ -1,3 +1,5 @@
+import * as crypto from 'crypto';
+import * as os from 'os';
 import * as path from 'path';
 import {
   resolvePropertyPolicy,
@@ -29,6 +31,13 @@ export const VIRTUAL_FILE_PATH = path.resolve(
   '..',
   'zero-virtual.css',
 );
+
+export const devGenerationsPath = (cwd: string) =>
+  path.join(
+    os.tmpdir(),
+    'plumeria',
+    `${crypto.createHash('sha1').update(cwd).digest('hex')}.json`,
+  );
 
 export default async function loader(this: LoaderContext, source: string) {
   const callback = this.async();
