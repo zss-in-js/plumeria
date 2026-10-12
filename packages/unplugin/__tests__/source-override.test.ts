@@ -40,3 +40,55 @@ it.each([true, false])(
     expect(css).toContain(`.${className}`);
   },
 );
+
+it.each([true, false])(
+  'compiles a file whose name holds glob syntax (dev: %s)',
+  async (isDev) => {
+    const file = path.join(DIR, 'bang!-[slug]-{a}.tsx');
+    fs.writeFileSync(file, moduleUsing('#b22222'));
+    const plugin = unpluginFactory({ lint: false }, {
+      framework: 'vite',
+    } as never) as any;
+    plugin.__plumeriaInternal.setDev(isDev);
+    plugin.__plumeriaInternal.setRoot(DIR);
+
+    await plugin.transform.handler.call(
+      { addWatchFile() {} },
+      moduleUsing('#b22222'),
+      file,
+    );
+
+    expect(
+      plugin.__plumeriaInternal.cssLookup.get(
+        path.join(DIR, 'bang!-[slug]-{a}.zero.css'),
+      ),
+    ).toContain('#b22222');
+  },
+);
+
+it.each([true, false])(
+  'compiles a module that has no file on disk (dev: %s)',
+  async (isDev) => {
+    const file = path.join(DIR, 'virtual.tsx');
+    const plugin = unpluginFactory({ lint: false }, {
+      framework: 'vite',
+    } as never) as any;
+    plugin.__plumeriaInternal.setDev(isDev);
+    plugin.__plumeriaInternal.setRoot(DIR);
+
+    const result = await plugin.transform.handler.call(
+      { addWatchFile() {} },
+      moduleUsing('#c33333'),
+      file,
+    );
+    const [className] = result.code.match(/x[0-9a-z]{7}/) ?? [];
+
+    expect(fs.existsSync(file)).toBe(false);
+    expect(result.code).toContain('import "/virtual.zero.css"');
+    expect(
+      plugin.__plumeriaInternal.cssLookup.get(
+        path.join(DIR, 'virtual.zero.css'),
+      ),
+    ).toContain(`.${className}`);
+  },
+);
