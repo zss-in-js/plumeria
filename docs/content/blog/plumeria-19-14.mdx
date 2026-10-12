@@ -1,0 +1,79 @@
+---
+title: 'Plumeria 19.14'
+description: 'Update: no-order-dependent-overlap reports media and container queries that cross, and no-mutable-binding asks for const in style definitions'
+date: '2026-10-12'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v19.14 moves two more decisions the stylesheet used to make by source order into the lint, so they are reported while the code is written rather than discovered in the browser.
+
+## 1. Conditions that cross
+
+Two conditions that can match at the same time, where neither contains the other, leave the winner to the order they are written:
+
+```ts
+const styles = css.create({
+  box: {
+    '@media (min-width: 600px) and (max-width: 900px)': { color: 'red' },
+    '@media (min-width: 700px) and (max-width: 1000px)': { color: 'blue' },
+  },
+});
+```
+
+Between 700px and 900px both queries apply, and nothing ranks one above the other. `no-order-dependent-overlap` now reports such a pair when both set the same property, for `@media` and `@container` alike. Split the ranges so they no longer overlap, or give the overlap a condition of its own.
+
+The rule reports only what it can prove. Two ranges that only touch, such as `max-width: 600px` against `min-width: 600px`, are left alone, and so are conditions with different units or media types. A pair where one condition contains the other is still reported when the narrower one is written first.
+
+## 2. Breakpoints from `createStatic`
+
+`no-order-dependent-overlap` used to read only keys written as strings, so breakpoints kept in `createStatic` went unchecked. It now resolves those keys, including breakpoints imported from another module:
+
+```ts
+// breakpoints.ts
+export const bp = css.createStatic({
+  medium: '@media (min-width: 600px) and (max-width: 900px)',
+  wide: '@media (min-width: 700px) and (max-width: 1000px)',
+});
+
+// card.styles.ts
+import { bp } from './breakpoints';
+
+export const card = css.create({
+  box: {
+    [bp.medium]: { color: 'red' },
+    [bp.wide]: { color: 'blue' },
+  },
+});
+```
+
+The crossing pair above is reported, and so is a narrower breakpoint written before a broader one it falls inside.
+
+## 3. `no-mutable-binding`
+
+The build reads a style definition once, with the values its bindings start with. A `let` or `var` can be reassigned later, but the stylesheet never sees the new value:
+
+```ts
+let gap = 8;
+
+const styles = css.create({
+  box: { gap },
+});
+
+gap = 16;
+```
+
+`no-mutable-binding` reports a `let` or `var` binding used in `css.create`, `createStatic`, `createTheme`, `keyframes` or `viewTransition`, and asks for `const`. It is enabled by `recommended` as a warning. The parameters of a dynamic style are untouched:
+
+```ts
+const styles = css.create({
+  box: (gap: number) => ({ gap }),
+});
+```
+
+The lint that runs in the build stops on warnings, so a project that declares a style value with `let` sees the build stop until the binding is a `const`.
