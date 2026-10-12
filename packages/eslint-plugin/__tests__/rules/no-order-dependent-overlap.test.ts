@@ -1,5 +1,20 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { RuleTester } from 'eslint';
 import { noOrderDependentOverlap } from '../../src/rules/no-order-dependent-overlap';
+
+const DIR = fs.mkdtempSync(path.join(__dirname, 'fixture-'));
+afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
+fs.writeFileSync(
+  path.join(DIR, 'breakpoints.ts'),
+  `import * as css from '@plumeria/core';
+export const bp = css.createStatic({
+  medium: '@media (min-width: 600px) and (max-width: 900px)',
+  wide: '@media (min-width: 700px) and (max-width: 1000px)',
+  large: '@media (min-width: 1200px)',
+});`,
+);
+const APP = path.join(DIR, 'app.ts');
 
 const ruleTester = new RuleTester({
   languageOptions: {
@@ -10,6 +25,46 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
   valid: [
+    `
+      import * as css from '@plumeria/core';
+      css.create({
+        main: {
+          '@media (max-width: 600px)': { color: 'red' },
+          '@media (min-width: 600px)': { color: 'blue' },
+        },
+      });
+    `,
+    `
+      import * as css from '@plumeria/core';
+      css.create({
+        main: {
+          '@media (min-width: 600px) and (max-width: 900px)': { color: 'red' },
+          '@media (min-width: 700px) and (max-width: 1000px)': { padding: 0 },
+        },
+      });
+    `,
+    `
+      import * as css from '@plumeria/core';
+      css.create({
+        main: {
+          '@media (min-width: 600px) and (max-width: 900px)': { color: 'red' },
+          '@media (min-width: 40em) and (max-width: 60em)': { color: 'blue' },
+        },
+      });
+    `,
+    {
+      filename: APP,
+      code: `
+        import * as css from '@plumeria/core';
+        import { bp } from './breakpoints';
+        css.create({
+          main: {
+            [bp.medium]: { color: 'red' },
+            [bp.large]: { color: 'blue' },
+          },
+        });
+      `,
+    },
     {
       code: `
         import * as css from 'not-plumeria';
@@ -199,7 +254,7 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
     {
       code: `
         import * as css from '@plumeria/core';
-        const dynamic = 'color';
+        let dynamic = 'color';
         css.create({
           main: {
             ':hover': { [dynamic]: 'blue' },
@@ -243,6 +298,60 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
     },
   ],
   invalid: [
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '@media (min-width: 600px) and (max-width: 900px)': { color: 'red' },
+            '@media (min-width: 700px) and (max-width: 1000px)': { color: 'blue' },
+          },
+        });
+      `,
+      errors: [{ messageId: 'crossingCondition' }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '@container (min-width: 300px) and (max-width: 500px)': { color: 'red' },
+            '@container (min-width: 400px) and (max-width: 700px)': { color: 'blue' },
+          },
+        });
+      `,
+      errors: [{ messageId: 'crossingCondition' }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const bp = css.createStatic({
+          medium: '@media (min-width: 600px) and (max-width: 900px)',
+          wide: '@media (min-width: 700px) and (max-width: 1000px)',
+        });
+        css.create({
+          main: {
+            [bp.medium]: { color: 'red' },
+            [bp.wide]: { color: 'blue' },
+          },
+        });
+      `,
+      errors: [{ messageId: 'crossingCondition' }],
+    },
+    {
+      filename: APP,
+      code: `
+        import * as css from '@plumeria/core';
+        import { bp } from './breakpoints';
+        css.create({
+          main: {
+            [bp.medium]: { color: 'red' },
+            [bp.wide]: { color: 'blue' },
+          },
+        });
+      `,
+      errors: [{ messageId: 'crossingCondition' }],
+    },
     {
       code: `
         import { create as make } from '@plumeria/core';
