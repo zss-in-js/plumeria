@@ -85,6 +85,19 @@ test.describe('files added to and removed from the project during HMR', () => {
     );
     fs.writeFileSync(EDITED_FILE, `${original}\n\n`, 'utf-8');
     await expect
+      .poll(() => hasRule(page, `outline-offset: ${offset + 100}px`), {
+        timeout: 30000,
+      })
+      .toBe(true);
+
+    // Deletion and addition can compile as one generation. Wait for that
+    // generation above before advancing again to retire the deleted rule.
+    fs.writeFileSync(
+      addedFile(`${testInfo.project.name}-next`),
+      addedSource(offset + 200),
+      'utf-8',
+    );
+    await expect
       .poll(() => hasRule(page, declaration), { timeout: 30000 })
       .toBe(false);
   });
