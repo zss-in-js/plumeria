@@ -75,6 +75,7 @@ interface CompilerOptions extends PropertyPolicyOptions {
   cwd?: string;
   styleProp?: string;
   sources?: Record<string, string>;
+  files?: string[];
 }
 
 // ===========================================
@@ -371,11 +372,13 @@ export function compileCSS(options: CompilerOptions) {
   const propertyPolicy = resolvePropertyPolicy(options);
   const allSheets = new Set<string>();
 
-  const files = rs.globSync(include, {
-    cwd,
-    exclude: exclude,
-    sort: true,
-  });
+  const files =
+    options.files ??
+    rs.globSync(include, {
+      cwd,
+      exclude: exclude,
+      sort: true,
+    });
 
   let scannedTables = scanOverlay(cwd, styleProp);
   const context = JSON.stringify([
@@ -408,6 +411,7 @@ export function compileCSS(options: CompilerOptions) {
   const scope = JSON.stringify([
     include,
     exclude,
+    options.files,
     options.sources,
     Object.keys(options.sources ?? {}).length
       ? compilationGeneration()
