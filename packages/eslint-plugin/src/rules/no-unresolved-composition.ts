@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Warn when class names are composed outside css.use()
+ */
+
 import type { Rule } from 'eslint';
 import type { Node, Identifier, MemberExpression } from 'estree';
 import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
