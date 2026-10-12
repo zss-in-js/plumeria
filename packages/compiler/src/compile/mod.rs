@@ -41,6 +41,7 @@ pub struct CompileOptions {
     pub style_prop: String,
     pub policy: Option<PropertyPolicy>,
     pub sources: FxHashMap<String, String>,
+    pub files: Option<Vec<String>>,
 }
 
 #[derive(Default)]
@@ -54,7 +55,7 @@ pub struct CssCache {
 
 pub struct CachedCss {
     scope: std::sync::Arc<str>,
-    stamp: crate::fs::source::SourceStamp,
+    stamp: Option<crate::fs::source::SourceStamp>,
     revision: u64,
     props: crate::project::PropsTable,
     sheets: Vec<String>,
@@ -64,14 +65,17 @@ pub struct CachedCss {
 
 pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<String, String> {
     let cwd = resolve(&std::env::current_dir().unwrap_or_default(), &options.cwd);
-    let files = glob_sync(
-        &options.include,
-        GlobOptions {
-            cwd: &cwd,
-            exclude: &options.exclude,
-            expected_files: 0,
-        },
-    )?;
+    let files = match &options.files {
+        Some(files) => files.clone(),
+        None => glob_sync(
+            &options.include,
+            GlobOptions {
+                cwd: &cwd,
+                exclude: &options.exclude,
+                expected_files: 0,
+            },
+        )?,
+    };
     project.scan_overlay(&cwd.to_string_lossy(), &options.style_prop);
     let mut tables = std::mem::take(&mut project.tables);
     let mut cache = std::mem::take(&mut project.css_cache);
@@ -98,9 +102,10 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
     let mut overrides: Vec<_> = options.sources.iter().collect();
     overrides.sort_by(|a, b| a.0.cmp(b.0));
     let scope: std::sync::Arc<str> = format!(
-        "{:?}|{:?}|{:?}|{:?}",
+        "{:?}|{:?}|{:?}|{:?}|{:?}",
         options.include,
         options.exclude,
+        options.files,
         overrides,
         (!options.sources.is_empty()).then_some(project.scan_generation)
     )
@@ -130,8 +135,10 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
     let result = (|| -> Result<(), String> {
         for file in &files {
             let resource = resolve(&cwd, file).to_string_lossy().into_owned();
-            let stamp =
-                stamp_of(&resource).ok_or_else(|| format!("Cannot read source: {resource}"))?;
+            let stamp = stamp_of(&resource);
+            if stamp.is_none() && !options.sources.contains_key(&resource) {
+                return Err(format!("Cannot read source: {resource}"));
+            }
             let revision = project
                 .compile_revisions
                 .get(&resource)
