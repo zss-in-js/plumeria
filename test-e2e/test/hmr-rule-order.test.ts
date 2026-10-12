@@ -57,10 +57,30 @@ test.describe('rules added by HMR', () => {
     await expect(box).toHaveCSS('padding-top', '40px');
     await expect(box).toHaveCSS('margin-left', '0px');
 
+    // Observe every rendered frame during HMR, not only the settled result.
+    await page.evaluate(() => {
+      const samples: string[] = [];
+      const sample = () => {
+        const element = document.querySelector('[data-testid="hmr-box"]');
+        samples.push(
+          element ? getComputedStyle(element).paddingTop : 'missing',
+        );
+        requestAnimationFrame(sample);
+      };
+      Object.assign(window, { hmrPaddingSamples: samples });
+      requestAnimationFrame(sample);
+    });
+
     fs.writeFileSync(STYLE_FILE, WITH_BASE_RULE, 'utf-8');
 
     await expect(box).toHaveCSS('margin-left', '7px', { timeout: 30000 });
     await expect(box).toHaveCSS('padding-top', '40px');
     await expect(box).toHaveCSS('padding-bottom', '40px');
+    const samples = await page.evaluate(
+      () =>
+        (window as Window & { hmrPaddingSamples?: string[] }).hmrPaddingSamples,
+    );
+    expect(samples?.length).toBeGreaterThan(0);
+    expect(samples?.filter((padding) => padding !== '40px')).toEqual([]);
   });
 });
