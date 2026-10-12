@@ -43,6 +43,35 @@ describe.each(implementations)('$name', ({ compileCSS }) => {
     expect(css).not.toContain('red');
   });
 
+  it('compiles only the files it is given, whatever their names hold', () => {
+    const bang = path.join(DIR, 'bang!-[slug].tsx');
+    fs.writeFileSync(bang, moduleUsing('#d44444'));
+
+    const css = compileCSS({
+      include: [],
+      exclude: [],
+      cwd: DIR,
+      files: [bang],
+    });
+
+    expect(css).toContain('#d44444');
+    expect(css).not.toContain('red');
+  });
+
+  it('compiles a given file that has no copy on disk', () => {
+    const virtual = path.join(DIR, 'virtual.tsx');
+
+    const css = compileCSS({
+      include: [],
+      exclude: [],
+      cwd: DIR,
+      files: [virtual],
+      sources: { [virtual]: moduleUsing('#e55555') },
+    });
+
+    expect(css).toContain('#e55555');
+  });
+
   it('leaves the other files to the disk', () => {
     expect(compile({ [FILE]: moduleUsing('blue') })).toContain('green');
   });
