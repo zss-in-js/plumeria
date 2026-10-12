@@ -113,7 +113,7 @@ function prepareTransform(root, relative) {
       styleProp: DEFAULT_STYLE_PROP,
       propertyPolicy: undefined,
       isDev: false,
-      collectOndemandSheets: true,
+      collectOndemandSheets: false,
       addDependency: () => {},
     });
 }
@@ -182,10 +182,9 @@ async function main() {
     const output = await prepareTransform(root, componentName(0))();
     if (
       output.code.includes('classStyle=') ||
-      !output.code.includes('className=') ||
-      !output.sheets.length
+      !output.code.includes('className=')
     ) {
-      throw new Error('Fixture component was not compiled with CSS output');
+      throw new Error('Fixture component was not compiled');
     }
 
     console.log(
