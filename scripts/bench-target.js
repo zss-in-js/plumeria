@@ -9,6 +9,7 @@ function loadTarget(target) {
       implementation: 'compiler',
       scanAll: compiler.scanAll,
       transformSource: compiler.transformSource,
+      compileCSS: compiler.compileCSS,
       DEFAULT_STYLE_PROP: compiler.DEFAULT_STYLE_PROP,
       countParses: null,
     };
@@ -36,6 +37,7 @@ function loadTarget(target) {
     scanAll: require(path.join(utils, 'dist/parser.js')).scanAll,
     transformSource: require(path.join(utils, 'dist/transform.js'))
       .transformSource,
+    compileCSS: require(path.join(utils, 'dist/compile.js')).compileCSS,
     DEFAULT_STYLE_PROP: require(path.join(utils, 'dist/constants.js'))
       .DEFAULT_STYLE_PROP,
     countParses,
