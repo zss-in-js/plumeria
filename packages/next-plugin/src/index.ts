@@ -3,6 +3,8 @@ import type { LoaderOptions } from '@plumeria/turbopack-loader';
 import type { TurbopackLoaderItem } from 'next/dist/server/config-shared';
 import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
+import * as fs from 'fs';
+import { devGenerationsPath } from '@plumeria/turbopack-loader';
 import { lintOverrides } from '@plumeria/eslint-plugin/guard';
 import { startNextLintGuard } from './lint';
 
@@ -27,6 +29,17 @@ export function withPlumeria(
   { lint = true, ...options }: PlumeriaOptions = {},
 ): NextConfig {
   if (lint) startNextLintGuard(lintOverrides(options));
+
+  const globalRef = global as typeof global & {
+    __PLUMERIA_DEV_CSS_RESET__?: boolean;
+  };
+  if (
+    process.env.NODE_ENV === 'development' &&
+    !globalRef.__PLUMERIA_DEV_CSS_RESET__
+  ) {
+    globalRef.__PLUMERIA_DEV_CSS_RESET__ = true;
+    fs.rmSync(devGenerationsPath(process.cwd()), { force: true });
+  }
 
   const originalWebpack = nextConfig.webpack;
 
