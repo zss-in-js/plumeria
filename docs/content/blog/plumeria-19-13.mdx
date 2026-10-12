@@ -1,0 +1,73 @@
+---
+title: 'Plumeria 19.13'
+description: 'Update: every plugin builds its CSS through compileCSS, so next dev and next build agree and a build that reuses .next keeps its styles'
+date: '2026-10-12'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v19.13 builds the stylesheet in one place. `transformSource` now only rewrites the code, and every plugin compiles its CSS through `compileCSS`, the function `next build` already used.
+
+## 1. Builds that reuse `.next`
+
+A `next build` that reused `.next` could ship without Plumeria's styles: Turbopack read the stylesheet from its cache before the loader had written it. The stylesheet is now a module Turbopack compiles itself, from the source files it depends on, so a cached build rebuilds it whenever one of them changes. Removing `.next` before each build is no longer needed.
+
+## 2. One stylesheet for `next dev` and `next build`
+
+`next dev` used to append each module's rules to the stylesheet as the module compiled, while `next build` compiled the whole project at once. Rules that the order of the stylesheet decides, such as two media queries in different modules that overlap without one containing the other, could then resolve differently in the two:
+
+```ts
+// medium.styles.ts
+export const medium = css.create({
+  box: { '@media (min-width: 600px) and (max-width: 900px)': { color: 'red' } },
+});
+
+// wide.styles.ts
+export const wide = css.create({
+  box: { '@media (min-width: 700px) and (max-width: 1000px)': { color: 'blue' } },
+});
+```
+
+Both now come from `compileCSS`, so the page between 700px and 900px looks the same in `next dev` and `next build`. Keeping such a pair inside one style is still the way to decide which one wins; see [Specificity](/docs/specificity).
+
+## 3. Editing styles in `next dev`
+
+- An edit no longer leaves the rules of earlier edits, or of an earlier dev session, in the stylesheet.
+- The rules of the previous edit stay until every module has updated, so a class the page still renders keeps its style and the page does not flicker.
+- A syntax error in an imported style file, such as an unclosed quote, is reported, and fixing the file brings the page back without touching the file that imports it.
+
+## 4. String keys
+
+A dynamic key written as a string literal compiles to the class name, the same as a dot:
+
+```ts
+<div classStyle={sizeStyles['small']} />
+```
+
+It used to compile to a lookup table that carried every option of `sizeStyles`.
+
+## 5. The unplugin
+
+The unplugin compiles each module's CSS from the source it transformed rather than from the file on disk. A module another plugin rewrote, or one with no file on disk, gets the styles its code refers to, and a file whose name contains glob syntax, such as `page[slug].tsx` or `bang!.tsx`, compiles too.
+
+## 6. `compileCSS`
+
+`compileCSS` takes two new options:
+
+- `sources` compiles a given source in place of the file on disk.
+- `files` compiles a given list of files without a glob.
+
+It also keeps the CSS of each unchanged file between runs, so a second compile of the same project reads only what changed.
+
+## 7. Next.js 16.0.3 or later
+
+The stylesheet module relies on Turbopack loader conditions, so Turbopack builds require Next.js 16.0.3 or later.
+
+## 8. Removed
+
+`transformSource` no longer collects stylesheets, and its `collectOndemandSheets` option and `sheets` output are removed. Plugins from 19.0.0 to 19.2.0 resolve `@plumeria/utils` and `@plumeria/compiler` with a caret and read `sheets`, so upgrade the plugin together with the other Plumeria packages.
