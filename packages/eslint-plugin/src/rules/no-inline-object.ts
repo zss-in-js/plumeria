@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Disallow inline objects in the styling prop and css.use
+ */
+
 import type { Rule } from 'eslint';
 import type { ImportSpecifier, CallExpression } from 'estree';
 import { JSXAttribute } from 'estree-jsx';
