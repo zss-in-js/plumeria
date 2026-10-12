@@ -19,7 +19,7 @@ npx @plumeria/init
 
 It shows the plan before it writes anything, and `--dry-run` stops at the plan.
 See [@plumeria/init](/docs/api-reference/tools/init) for every question it asks and
-every file it touches. The rest of this page is the same setup by hand.
+every file it touches. The rest of this page shows the setup by hand.
 
 </Step>
 
@@ -62,6 +62,29 @@ ESLint is optional. Skip to your bundler: [Next.js](/docs/installation#nextjs) /
 
 ## ESLint Setup
 
+Install the plugin:
+
+<Tabs items={['npm', 'yarn', 'pnpm']}>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    npm i -D @plumeria/eslint-plugin
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    yarn add -D @plumeria/eslint-plugin
+    ```
+  </Tab>
+  {/* prettier-ignore */}
+  <Tab>
+    ```sh title="Terminal"
+    pnpm i -D @plumeria/eslint-plugin
+    ```
+  </Tab>
+</Tabs>
+
 [`@plumeria/eslint-plugin`](/docs/api-reference/plugins/eslint-plugin) sorts and formats style properties and reports invalid values and selectors.
 The [plugin reference](/docs/api-reference/plugins/eslint-plugin) lists every rule.
 
@@ -78,42 +101,10 @@ export default defineConfig(
 );
 ```
 
-The bundler plugins lint the build with these rules by default, so a style error stops it with no setup. On esbuild and Bun, put `plumeria-lint --` in front of the build command instead, and add `--style-prop` if the styling prop was renamed.
-
-Install the plugin, plus `rimraf` for Next.js:
-
-<Tabs items={['npm', 'yarn', 'pnpm']}>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="Terminal"
-    npm i -D @plumeria/eslint-plugin rimraf
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="Terminal"
-    yarn add -D @plumeria/eslint-plugin rimraf
-    ```
-  </Tab>
-  {/* prettier-ignore */}
-  <Tab>
-    ```sh title="Terminal"
-    pnpm i -D @plumeria/eslint-plugin rimraf
-    ```
-  </Tab>
-</Tabs>
-
-On Next.js, clearing the build cache before `dev` and `build` keeps a version change from being read as a compile error:
-
-```json title="package.json"
-  "scripts": {
-    "predev": "rimraf .next",
-    "prebuild": "rimraf .next",
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-  },
-```
+The bundler plugins lint the build with these rules by default, so a style error
+or warning stops it with no setup. On esbuild and Bun, put `plumeria-lint --` in
+front of the build command instead. If you renamed the styling prop to `sx`,
+use `plumeria-lint --style-prop sx --` before the build command.
 
 </Step>
 
@@ -143,7 +134,11 @@ Add the plugin for your bundler.
   </Tab>
 </Tabs>
 
-It works with both Turbopack and Webpack.
+It works with both Turbopack and Webpack. Turbopack requires Next.js 16.0.3 or later.
+
+The plugin updates the stylesheet when your source files change, including when
+Next.js reuses its build cache. There is no need to install `rimraf` or delete
+`.next` before running `dev` or `build`.
 
 ```ts title="next.config.ts"
 import type { NextConfig } from "next";
