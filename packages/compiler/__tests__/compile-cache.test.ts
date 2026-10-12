@@ -6,6 +6,7 @@ jest.mock('fs', () => {
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { genBase36Hash } from 'zss-engine';
 import { implementations } from '../compiler-implementations';
 
 const box = (color: string) => `import * as css from '@plumeria/core';
@@ -160,6 +161,58 @@ export const Parent = () => <Child look={s.box} />;`;
       expect(() => compile()).toThrow();
       write('a.tsx', box('blue'));
       expect(compile()).toBe(reference());
+    });
+
+    it('replays cached definitions before extracting an edited later file', () => {
+      const frames = { from: { opacity: 0 }, to: { opacity: 1 } };
+      const hash = genBase36Hash(frames, 1, 8);
+      // An unassigned call is extracted here rather than registered by scanning.
+      write(
+        'a.tsx',
+        `import * as css from '@plumeria/core'; css.keyframes(${JSON.stringify(frames)});`,
+      );
+      const animatedBox = (color: string) =>
+        box(color).replace(
+          `color: '${color}'`,
+          `color: '${color}', animationName: 'kf-${hash}'`,
+        );
+      write('b.tsx', animatedBox('red'));
+      const first = compile();
+      expect(first).toContain(`@keyframes kf-${hash}`);
+      expect(compile()).toBe(first);
+
+      write('b.tsx', animatedBox('blue'));
+      const edited = compile();
+      expect(edited).toContain('blue');
+      expect(edited).toContain(`@keyframes kf-${hash}`);
+      expect(edited).toBe(reference());
+    });
+
+    it('discards theme and static writes after an extraction error', () => {
+      const themedBox = (
+        color: string,
+      ) => `import * as css from '@plumeria/core';
+const theme = css.createTheme('.dark', { primary: { default: '${color}', theme: 'pink' } });
+const sizes = css.createStatic({ gap: 4 });
+const styles = css.create({ box: { color: theme.primary, padding: sizes.gap } });
+export const Box = () => <div classStyle={styles.box} />;`;
+      write('a.tsx', themedBox('red'));
+      write('b.tsx', box('blue'));
+      const initial = compile();
+      expect(initial).toContain('red');
+      expect(initial).toContain('padding: 4px');
+
+      const sources = {
+        [path.join(dir, 'a.tsx')]: themedBox('green'),
+        [path.join(dir, 'b.tsx')]: themedBox('purple').replace(
+          'classStyle={styles.box}',
+          'classStyle={unknownStyle}',
+        ),
+      };
+      expect(() => compile({ sources })).toThrow();
+      expect(() => compile({ sources })).toThrow();
+      expect(compile()).toBe(initial);
+      expect(compile()).toBe(initial);
     });
 
     it('does not reuse a result across include, styleProp, or policy changes', () => {
