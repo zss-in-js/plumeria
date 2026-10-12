@@ -191,6 +191,7 @@ export function statesOf(selector: string): string[] {
 
 export function compoundOf(first: string, second: string): string {
   const states = [...new Set([...statesOf(first), ...statesOf(second)])];
+  states.sort((a, b) => Number(b.startsWith('[')) - Number(a.startsWith('[')));
   return states.join('') + getPseudoElement(first);
 }
 
