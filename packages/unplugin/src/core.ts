@@ -14,8 +14,6 @@ const {
   needsCompile,
 } = compiler;
 
-const escapeGlob = (file: string) => file.replace(/[*?[\]{}!]/g, '[$&]');
-
 export type CssImportContext = {
   id: string;
   cssId: string;
@@ -175,14 +173,16 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
         const relative = path.relative(viteRoot, baseId).replace(/\\/g, '/');
         const insideRoot =
           !relative.startsWith('..') && !path.isAbsolute(relative);
+        const filePath = path.resolve(baseId);
         const fileCss = compileCSS({
-          include: [escapeGlob(insideRoot ? relative : path.basename(baseId))],
+          include: [],
           exclude: [],
+          files: [filePath],
           cwd: insideRoot ? viteRoot : path.dirname(baseId),
           styleProp,
           withoutLogicalProperties: options.withoutLogicalProperties,
           withoutPhysicalProperties: options.withoutPhysicalProperties,
-          sources: { [path.resolve(baseId)]: source },
+          sources: { [filePath]: source },
         });
         const extractedSheets = fileCss ? [fileCss] : [];
 
