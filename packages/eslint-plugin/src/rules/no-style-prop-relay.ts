@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Disallow passing a received style prop on without applying it
+ */
+
 import type { Rule } from 'eslint';
 import type { Node, Pattern } from 'estree';
 import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
