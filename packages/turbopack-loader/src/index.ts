@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {
@@ -21,6 +22,7 @@ interface LoaderContext {
   rootContext: string;
   async: () => (err: Error | null, content?: string) => void;
   addDependency: (path: string) => void;
+  emitError?: (error: Error) => void;
   clearDependencies: () => void;
   getOptions?: () => LoaderOptions | undefined;
   query?: LoaderOptions | string;
@@ -31,6 +33,21 @@ export const VIRTUAL_FILE_PATH = path.resolve(
   '..',
   'zero-virtual.css',
 );
+
+const SOURCE_FILE = /\.[cm]?[jt]sx?$/;
+const SKIPPED_DIRS = new Set(['node_modules', '.next', '.git']);
+
+export function watchSources(
+  context: { addDependency: (path: string) => void },
+  dir: string,
+): void {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (SKIPPED_DIRS.has(entry.name)) continue;
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) watchSources(context, entryPath);
+    else if (SOURCE_FILE.test(entry.name)) context.addDependency(entryPath);
+  }
+}
 
 export const devGenerationsPath = (cwd: string) =>
   path.join(
@@ -87,6 +104,14 @@ export default async function loader(this: LoaderContext, source: string) {
       `${transformedSource}\nimport "${relativeImportPath}";`,
     );
   } catch (error) {
-    return callback(error as Error);
+    if (process.env.NODE_ENV !== 'development' || !this.emitError) {
+      return callback(error as Error);
+    }
+    watchSources(this, process.cwd());
+    this.emitError(error as Error);
+    return callback(
+      null,
+      `throw new Error(${JSON.stringify((error as Error).message)});`,
+    );
   }
 }
