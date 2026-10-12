@@ -1,17 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { compileCSS, optimizer, DEFAULT_STYLE_PROP } from '@plumeria/compiler';
-import { devGenerationsPath } from './index';
+import { devGenerationsPath, watchSources } from './index';
 import type { LoaderOptions } from './index';
 
 const DEFAULT_INCLUDE = ['**/*.{js,jsx,ts,tsx}'];
 const DEFAULT_EXCLUDE = ['**/node_modules/**', '**/dist/**', '**/.next/**'];
-const SOURCE_FILE = /\.[cm]?[jt]sx?$/;
-const SKIPPED_DIRS = new Set(['node_modules', '.next', '.git']);
 
 interface CssLoaderContext {
   async: () => (err: Error | null, content?: string) => void;
   addDependency: (path: string) => void;
+  emitError?: (error: Error) => void;
   getOptions?: () => LoaderOptions | undefined;
   query?: LoaderOptions | string;
 }
@@ -38,15 +37,6 @@ function withPreviousGeneration(cwd: string, css: string): string {
     fs.writeFileSync(file, JSON.stringify(generations), 'utf-8');
   }
   return generations.previous ? `${generations.previous}\n${css}` : css;
-}
-
-function watchSources(context: CssLoaderContext, dir: string): void {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (SKIPPED_DIRS.has(entry.name)) continue;
-    const entryPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) watchSources(context, entryPath);
-    else if (SOURCE_FILE.test(entry.name)) context.addDependency(entryPath);
-  }
 }
 
 export default function cssLoader(this: CssLoaderContext) {
@@ -76,6 +66,11 @@ export default function cssLoader(this: CssLoaderContext) {
       ),
     );
   } catch (error) {
-    callback(error as Error);
+    if (process.env.NODE_ENV !== 'development' || !this.emitError) {
+      return callback(error as Error);
+    }
+    this.emitError(error as Error);
+    const stored = readGenerations(devGenerationsPath(cwd));
+    callback(null, optimizer(`${stored.previous}\n${stored.current}`));
   }
 }
