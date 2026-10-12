@@ -55,10 +55,11 @@ test.describe('files added to and removed from the project during HMR', () => {
 
   test.afterEach(() => {
     fs.rmSync(addedFile(test.info().project.name), { force: true });
+    fs.rmSync(addedFile(`${test.info().project.name}-next`), { force: true });
     fs.writeFileSync(EDITED_FILE, original, 'utf-8');
   });
 
-  test('serves the rules of a new file once the project recompiles, and drops them when it is deleted', async ({
+  test('serves the rules of a new file once the project recompiles, and drops them after it is deleted', async ({
     page,
   }, testInfo) => {
     test.setTimeout(90 * 1000);
@@ -77,6 +78,12 @@ test.describe('files added to and removed from the project during HMR', () => {
       .toBe(true);
 
     fs.rmSync(added);
+    fs.writeFileSync(
+      addedFile(`${testInfo.project.name}-next`),
+      addedSource(offset + 100),
+      'utf-8',
+    );
+    fs.writeFileSync(EDITED_FILE, `${original}\n\n`, 'utf-8');
     await expect
       .poll(() => hasRule(page, declaration), { timeout: 30000 })
       .toBe(false);
