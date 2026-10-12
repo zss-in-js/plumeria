@@ -3510,33 +3510,33 @@ export function extractOndemandStyles(
   }
 
   if (usedVariables.size > 0) {
-    Object.keys(t.createThemeHashTable)
-      .sort()
-      .forEach((themeVarName) => {
-        const hash = t.createThemeHashTable[themeVarName];
-        const definition = t.createThemeObjectTable[hash];
-        const selector = t.createThemeSelectorTable[hash];
-        if (definition && typeof definition === 'object' && selector) {
-          Object.keys(definition).forEach((key) => {
-            const value = definition[key];
-            const atomicHash = genBase36Hash(
-              { _theme: hash, [key]: value },
-              1,
-              8,
+    const themeNames: string[] = [];
+    for (const name in t.createThemeHashTable) themeNames.push(name);
+    themeNames.sort().forEach((themeVarName) => {
+      const hash = t.createThemeHashTable[themeVarName];
+      const definition = t.createThemeObjectTable[hash];
+      const selector = t.createThemeSelectorTable[hash];
+      if (definition && typeof definition === 'object' && selector) {
+        Object.keys(definition).forEach((key) => {
+          const value = definition[key];
+          const atomicHash = genBase36Hash(
+            { _theme: hash, [key]: value },
+            1,
+            8,
+          );
+          const varName = `--${atomicHash}-${camelToKebabCase(key)}`;
+          if (usedVariables.has(varName)) {
+            const styles = createTheme(
+              selector,
+              { [key]: value } as CreateTheme,
+              hash,
             );
-            const varName = `--${atomicHash}-${camelToKebabCase(key)}`;
-            if (usedVariables.has(varName)) {
-              const styles = createTheme(
-                selector,
-                { [key]: value } as CreateTheme,
-                hash,
-              );
-              const { styleSheet } = transpile(styles, undefined, '--global');
-              addSheet(styleSheet);
-            }
-          });
-        }
-      });
+            const { styleSheet } = transpile(styles, undefined, '--global');
+            addSheet(styleSheet);
+          }
+        });
+      }
+    });
   }
 }
 
