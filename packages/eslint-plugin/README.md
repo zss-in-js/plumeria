@@ -15,6 +15,7 @@ The `plugin:@plumeria/recommended` config enables the following:
 - `@plumeria/no-inner-call`: **error**
 - `@plumeria/no-invalid-selector`: **error**
 - `@plumeria/no-mixed-styling-props`: **error**
+- `@plumeria/no-mutable-binding`: **warn**
 - `@plumeria/no-order-dependent-overlap`: **warn**
 - `@plumeria/no-style-prop-relay`: **error**
 - `@plumeria/no-unknown-css-properties`: **error**
