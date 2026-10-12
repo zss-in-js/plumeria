@@ -348,12 +348,48 @@ function extractStylesFromExpression(
   return results;
 }
 
+type Tables = ReturnType<typeof scanOverlay>;
+
+const writtenTableNames = [
+  'createThemeHashTable',
+  'createThemeObjectTable',
+  'createThemeSelectorTable',
+  'createStaticHashTable',
+  'createStaticObjectTable',
+  'keyframesObjectTable',
+  'viewTransitionObjectTable',
+  'createAtomicMapTable',
+] as const satisfies readonly (keyof Tables)[];
+
+type Writes = Pick<Tables, (typeof writtenTableNames)[number]>;
+
+const createWrites = (tables: Tables): Writes =>
+  Object.fromEntries(
+    writtenTableNames.map((name) => [name, Object.create(tables[name])]),
+  ) as Writes;
+
+const readTables = (tables: Tables, writes: Writes): Tables => ({
+  ...tables,
+  ...writes,
+});
+
+const snapshotWrites = (writes: Writes): Writes =>
+  Object.fromEntries(
+    writtenTableNames.map((name) => [name, { ...writes[name] }]),
+  ) as Writes;
+
+const applyWrites = (tables: Tables, writes: Writes): void => {
+  for (const name of writtenTableNames) {
+    Object.assign(tables[name], writes[name]);
+  }
+};
+
 type SheetCacheEntry = {
   key: string;
   revision: number;
   sheets: string[];
   dependencies: [string, string | undefined][];
-  writes: Record<string, Record<string, unknown>>;
+  writes: Writes;
 };
 const sheetCache = new Map<string, SheetCacheEntry>();
 let sheetCacheContext = '';
@@ -380,7 +416,7 @@ export function compileCSS(options: CompilerOptions) {
       sort: true,
     });
 
-  let scannedTables = scanOverlay(cwd, styleProp);
+  const tables = scanOverlay(cwd, styleProp);
   const context = JSON.stringify([
     path.resolve(cwd),
     styleProp,
@@ -389,11 +425,11 @@ export function compileCSS(options: CompilerOptions) {
   // These objects may be referenced through literal CSS markers without an import.
   const globals = JSON.stringify(
     [
-      scannedTables.createThemeHashTable,
-      scannedTables.createThemeObjectTable,
-      scannedTables.createThemeSelectorTable,
-      scannedTables.keyframesObjectTable,
-      scannedTables.viewTransitionObjectTable,
+      tables.createThemeHashTable,
+      tables.createThemeObjectTable,
+      tables.createThemeSelectorTable,
+      tables.keyframesObjectTable,
+      tables.viewTransitionObjectTable,
     ].map((table) => {
       const flat: Record<string, unknown> = {};
       for (const key in table) flat[key] = table[key];
@@ -430,16 +466,15 @@ export function compileCSS(options: CompilerOptions) {
   };
   let dependencies = new Set<string>();
   const propsByFile = new Map<string, unknown[]>();
-  for (const [key, props] of Object.entries(
-    scannedTables.componentPropsTable ?? {},
-  )) {
+  for (const [key, props] of Object.entries(tables.componentPropsTable ?? {})) {
     const file = key.slice(0, key.lastIndexOf('-'));
     const entries = propsByFile.get(file) ?? [];
     entries.push([key, props]);
     propsByFile.set(file, entries);
   }
 
-  const processFile = (filePath: string): string[] => {
+  const processFile = (filePath: string, writes: Writes): string[] => {
+    const scannedTables = readTables(tables, writes);
     const resourcePath = path.resolve(cwd, filePath);
     const source = options.sources?.[resourcePath] ?? readSource(resourcePath);
     const extractedSheets: string[] = [];
@@ -1302,7 +1337,7 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          ctx.scannedTables.keyframesObjectTable[hash] = obj;
+          writes.keyframesObjectTable[hash] = obj;
         } else if (
           propName === 'viewTransition' &&
           args.length > 0 &&
@@ -1320,7 +1355,7 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          ctx.scannedTables.viewTransitionObjectTable[hash] = obj;
+          writes.viewTransitionObjectTable[hash] = obj;
         } else if (
           propName === 'createTheme' &&
           args.length >= 2 &&
@@ -1357,9 +1392,9 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
           );
           const hash = themeHashOf(selector, obj);
-          ctx.scannedTables.createThemeObjectTable[hash] = obj;
+          writes.createThemeObjectTable[hash] = obj;
           if (ctx.scannedTables.createThemeSelectorTable) {
-            ctx.scannedTables.createThemeSelectorTable[hash] = selector;
+            writes.createThemeSelectorTable[hash] = selector;
           }
         } else if (
           propName === 'createStatic' &&
@@ -1378,7 +1413,7 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
-          ctx.scannedTables.createStaticObjectTable[hash] = obj;
+          writes.createStaticObjectTable[hash] = obj;
         }
       }
     };
@@ -1494,10 +1529,10 @@ export function compileCSS(options: CompilerOptions) {
                 );
                 const hash = themeHashOf(selector, obj);
                 const uKey = `${resourcePath}-${node.id.value}`;
-                ctx.scannedTables.createThemeHashTable[uKey] = hash;
-                ctx.scannedTables.createThemeObjectTable[hash] = obj;
+                writes.createThemeHashTable[uKey] = hash;
+                writes.createThemeObjectTable[hash] = obj;
                 if (ctx.scannedTables.createThemeSelectorTable) {
-                  ctx.scannedTables.createThemeSelectorTable[hash] = selector;
+                  writes.createThemeSelectorTable[hash] = selector;
                 }
                 const themeHashMap: Record<string, any> = {};
                 for (const [key, value] of Object.entries(obj)) {
@@ -1509,7 +1544,7 @@ export function compileCSS(options: CompilerOptions) {
                   );
                   themeHashMap[key] = `var(--${atomicHash}-${cssVarName})`;
                 }
-                ctx.scannedTables.createAtomicMapTable[hash] = themeHashMap;
+                writes.createAtomicMapTable[hash] = themeHashMap;
                 ctx.localCreateStyles[node.id.value] = {
                   type: 'create',
                   obj: ctx.scannedTables.createAtomicMapTable[hash],
@@ -1529,8 +1564,8 @@ export function compileCSS(options: CompilerOptions) {
                 if (obj) {
                   const hash = genBase36Hash(obj, 1, 8);
                   const uKey = `${resourcePath}-${node.id.value}`;
-                  ctx.scannedTables.createStaticHashTable[uKey] = hash;
-                  ctx.scannedTables.createStaticObjectTable[hash] = obj;
+                  writes.createStaticHashTable[uKey] = hash;
+                  writes.createStaticObjectTable[hash] = obj;
                   ctx.mergedCreateStaticHashTable[node.id.value] = hash;
                 }
               }
@@ -1636,43 +1671,23 @@ export function compileCSS(options: CompilerOptions) {
       cached.dependencies.some(([file, stamp]) => stampOf(file) !== stamp)
     ) {
       dependencies = new Set();
-      // Record writes as well as CSS: subsequent files see the same overlay on a hit.
-      const base = scannedTables;
-      const writes: SheetCacheEntry['writes'] = {};
-      scannedTables = { ...base };
-      for (const [name, table] of Object.entries(base)) {
-        const proxy = new Proxy(table as object, {
-          set(target, property, value, receiver) {
-            if (receiver === proxy)
-              (writes[name] ??= {})[String(property)] = value;
-            return Reflect.set(target, property, value, receiver);
-          },
-        });
-        Object.assign(scannedTables, { [name]: proxy });
-      }
+      const writes = createWrites(tables);
       try {
-        const sheets = processFile(file);
+        const sheets = processFile(file, writes);
         cached = {
           key,
           revision: compilationRevision(resource),
           sheets,
-          writes,
+          writes: snapshotWrites(writes),
           dependencies: [...dependencies].map((file) => [file, stampOf(file)]),
         };
       } catch (error) {
         sheetCache.delete(resource);
         throw error;
-      } finally {
-        scannedTables = base;
       }
       sheetCache.set(resource, cached);
-    } else {
-      for (const [name, writes] of Object.entries(cached.writes)) {
-        const table = scannedTables[name as keyof typeof scannedTables];
-        if (table === undefined) throw new Error(`Missing CSS table: ${name}`);
-        Object.assign(table, writes);
-      }
     }
+    applyWrites(tables, cached.writes);
     for (const sheet of cached.sheets) {
       allSheets.add(sheet);
     }
