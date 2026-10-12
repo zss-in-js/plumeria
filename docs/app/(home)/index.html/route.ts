@@ -14,6 +14,8 @@ const css = readFileSync(join(process.cwd(), 'app/(home)/top.css'), 'utf8').repl
 
 const themeScript = `try{var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);var e=document.documentElement;e.classList.toggle('dark',d);e.style.colorScheme=d?'dark':'light'}catch(_){}`;
 
+const heroHeightScript = `(()=>{var w=0,e=document.documentElement;function s(){if(innerWidth!==w){w=innerWidth;e.style.setProperty('--hero-height',innerHeight+'px')}}s();addEventListener('resize',s)})()`;
+
 const speculationRules = JSON.stringify({
   prerender: [{ urls: ['/docs'], eagerness: 'immediate' }],
   prefetch: [{ where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/' } }] }, eagerness: 'immediate' }],
@@ -25,6 +27,7 @@ const html = `<!doctype html>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>${themeScript}</script>
+    <script>${heroHeightScript}</script>
     <title>${seo.title}</title>
     <meta name="description" content="${seo.description}">
     <link rel="canonical" href="${seo.metadataBase}${seo.alternates.canonical}">
