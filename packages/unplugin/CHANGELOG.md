@@ -1,5 +1,22 @@
 # @plumeria/unplugin
 
+## 19.14.0
+
+### Minor Changes
+
+- 4ef2f4d: - Feat: `no-order-dependent-overlap` reports two media or container queries that cross without either containing the other, such as `600px` to `900px` against `700px` to `1000px`, when both set the same property
+  - Feat: `no-order-dependent-overlap` resolves keys from `createStatic`, including breakpoints imported from another module
+  - Feat: `no-mutable-binding` reports a `let` or `var` binding used in `css.create`, `createStatic`, `createTheme`, `keyframes` or `viewTransition`, since the build reads only the value it starts with
+  - Update: README.md
+  - Fix: Place attribute selectors before pseudo-classes in compound keys recommended by `no-order-dependent-overlap` so they pass `validate-pseudos`.
+
+### Patch Changes
+
+- Updated dependencies [4ef2f4d]
+- Updated dependencies [4ef2f4d]
+  - @plumeria/compiler@19.14.0
+  - @plumeria/eslint-plugin@19.14.0
+
 ## 19.13.0
 
 ### Minor Changes
