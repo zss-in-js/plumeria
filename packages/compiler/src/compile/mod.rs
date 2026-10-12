@@ -59,9 +59,11 @@ pub struct CachedCss {
     revision: u64,
     props: crate::project::PropsTable,
     sheets: Vec<String>,
-    dependencies: Vec<(String, Option<crate::fs::source::SourceStamp>)>,
+    dependencies: Vec<Dependencies>,
     writes: std::sync::Arc<Writes>,
 }
+
+type Dependencies = std::sync::Arc<Vec<(String, Option<crate::fs::source::SourceStamp>)>>;
 
 pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<String, String> {
     let cwd = resolve(&std::env::current_dir().unwrap_or_default(), &options.cwd);
@@ -129,6 +131,8 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
             .or_insert_with(|| crate::fs::source::stamp(file).ok())
             .clone()
     };
+    let mut closures: FxHashMap<String, Dependencies> = FxHashMap::default();
+    let mut verified: FxHashMap<usize, (Dependencies, bool)> = FxHashMap::default();
     let mut all: IndexSet<String, FxBuildHasher> = IndexSet::default();
     // Keep overlays local to this call, including on errors.
     let mut undo = crate::transform::overlay::Restore::default();
@@ -154,10 +158,17 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
                         let (key, value) = tables.component_props.get_index(index).unwrap();
                         entry.props.get(key) == Some(value)
                     })
-                    && entry
-                        .dependencies
-                        .iter()
-                        .all(|(file, stamp)| stamp_of(file) == *stamp)
+                    && entry.dependencies.iter().all(|dependencies| {
+                        let key = std::sync::Arc::as_ptr(dependencies) as usize;
+                        if let Some((_, fresh)) = verified.get(&key) {
+                            return *fresh;
+                        }
+                        let fresh = dependencies
+                            .iter()
+                            .all(|(file, stamp)| stamp_of(file) == *stamp);
+                        verified.insert(key, (dependencies.clone(), fresh));
+                        fresh
+                    })
             });
             if !hit {
                 cache.files.remove(&resource);
@@ -172,13 +183,22 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
                 {
                     cache.extractions += 1;
                 }
-                let (sheets, dependencies) =
+                let (sheets, imports) =
                     process_file(project, &tables, &mut writes, &resource, &source, options)?;
-                let dependencies = dependencies
+                let dependencies = imports
                     .into_iter()
-                    .map(|file| {
-                        let stamp = stamp_of(&file);
-                        (file, stamp)
+                    .map(|import| {
+                        if let Some(dependencies) = closures.get(&import) {
+                            return dependencies.clone();
+                        }
+                        let mut list = vec![(import.clone(), stamp_of(&import))];
+                        for file in project.get_file_dependencies(&import) {
+                            let stamp = stamp_of(&file);
+                            list.push((file, stamp));
+                        }
+                        let dependencies = std::sync::Arc::new(list);
+                        closures.insert(import, dependencies.clone());
+                        dependencies
                     })
                     .collect();
                 cache.files.insert(
@@ -314,14 +334,13 @@ fn process_file(
     if let Some(error) = second.error {
         return Err(error);
     }
-    let mut dependencies = IndexSet::<String, FxBuildHasher>::default();
+    let mut imports = IndexSet::<String, FxBuildHasher>::default();
     for import in extractor.local_imports.values() {
-        dependencies.insert(import.actual_path.clone());
-        dependencies.extend(extractor.project.get_file_dependencies(&import.actual_path));
+        imports.insert(import.actual_path.clone());
     }
     Ok((
         extractor.sheets.into_iter().collect(),
-        dependencies.into_iter().collect(),
+        imports.into_iter().collect(),
     ))
 }
 
