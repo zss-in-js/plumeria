@@ -1,3 +1,14 @@
+## 19.13.0
+
+### Minor Changes
+
+- ba9260a: Bump version to 19.13.0
+
+### Patch Changes
+
+- Updated dependencies [ba9260a]
+  - @plumeria/compiler@19.13.0
+
 ## 19.12.1
 
 ### Patch Changes
