@@ -247,7 +247,9 @@ the source then reads as though `red` would win.
 
 Two conditions that overlap without either containing the other — `600px` to
 `900px` against `700px` to `1000px` — are left to source order, and so is any
-pair the optimizer cannot compare.
+pair the optimizer cannot compare. `no-order-dependent-overlap` reports a
+crossing pair that sets the same property, so the ranges can be split or the
+overlap given a condition of its own.
 
 ### Two states that match at once
 
@@ -310,7 +312,8 @@ that order consistent. Splitting one of the first three across two `css.create`
 calls is what makes the result depend on the bundler instead. Two states are the
 exception: splitting them is how the intent is stated.
 `no-order-dependent-overlap` reports all four when they meet in one style,
-the conditions only where one provably matches a subset of the other.
+the conditions where one provably matches a subset of the other or where two
+comparable ranges cross.
 </Callout>
 
 ### Removing the first two entirely
