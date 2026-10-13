@@ -5,10 +5,6 @@ description: 'What Plumeria is, what writing styles with it looks like, and how 
 
 Plumeria is a compile-time CSS-in-JS library for React. You write style objects in TypeScript, and the compiler turns them into static atomic CSS — while removing every trace of the library from your JavaScript bundle. No runtime code ships, no styles are computed in the browser.
 
-```math
-\mathtt{Plumeria(Type)} \xrightarrow{\text{Compilation}} \mathtt{Static\ Atomic\ CSS}
-```
-
 Because styles are compiled instead of injected, the order of the generated CSS is decided by the compiler's module graph, not by the order a bundler happens to emit chunks — split and rearrange files, and the layout holds.
 
 ## Usage
