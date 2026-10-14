@@ -1,5 +1,16 @@
 # @plumeria/unplugin
 
+## 19.14.2
+
+### Patch Changes
+
+- df92992: - Fix: `next dev` keeps one more previous generation of rules, so a rule is not dropped when edits arrive before every module has updated
+  - Fix: `compileCSS` no longer fails when a file is deleted while the project is being compiled, such as during a branch switch
+- Updated dependencies [57dfbc9]
+- Updated dependencies [57dfbc9]
+  - @plumeria/eslint-plugin@19.14.2
+  - @plumeria/compiler@19.14.2
+
 ## 19.14.1
 
 ### Patch Changes

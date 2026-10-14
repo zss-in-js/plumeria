@@ -1,5 +1,15 @@
 # @plumeria/next-plugin
 
+## 19.14.2
+
+### Patch Changes
+
+- df92992: Bump version to 19.14.2
+- Updated dependencies [57dfbc9]
+- Updated dependencies [57dfbc9]
+  - @plumeria/eslint-plugin@19.14.2
+  - @plumeria/turbopack-loader@19.14.2
+
 ## 19.14.1
 
 ### Patch Changes

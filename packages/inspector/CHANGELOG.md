@@ -1,5 +1,11 @@
 # @plumeria/inspector
 
+## 19.14.2
+
+### Patch Changes
+
+- df92992: Bump version to 19.14.2
+
 ## 19.14.1
 
 ### Patch Changes
