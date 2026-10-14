@@ -15,28 +15,27 @@ interface CssLoaderContext {
   query?: LoaderOptions | string;
 }
 
-type Generations = { previous: string; current: string };
+const KEPT_GENERATIONS = 3;
 
-function readGenerations(file: string): Generations {
+function readGenerations(file: string): string[] {
   try {
-    return JSON.parse(fs.readFileSync(file, 'utf-8')) as Generations;
+    const stored: unknown = JSON.parse(fs.readFileSync(file, 'utf-8'));
+    return Array.isArray(stored)
+      ? stored.filter((css): css is string => typeof css === 'string')
+      : [];
   } catch {
-    return { previous: '', current: '' };
+    return [];
   }
 }
 
-function withPreviousGeneration(cwd: string, css: string): string {
+function withPreviousGenerations(cwd: string, css: string): string {
   const file = devGenerationsPath(cwd);
   const stored = readGenerations(file);
-  const generations =
-    stored.current === css
-      ? stored
-      : { previous: stored.current, current: css };
-  if (generations !== stored) {
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(generations), 'utf-8');
-  }
-  return generations.previous ? `${generations.previous}\n${css}` : css;
+  if (stored[stored.length - 1] === css) return stored.join('\n');
+  const generations = [...stored, css].slice(-KEPT_GENERATIONS);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(generations), 'utf-8');
+  return generations.join('\n');
 }
 
 export default function cssLoader(this: CssLoaderContext) {
@@ -61,7 +60,7 @@ export default function cssLoader(this: CssLoaderContext) {
       null,
       optimizer(
         process.env.NODE_ENV === 'development'
-          ? withPreviousGeneration(cwd, css)
+          ? withPreviousGenerations(cwd, css)
           : css,
       ),
     );
@@ -70,7 +69,9 @@ export default function cssLoader(this: CssLoaderContext) {
       return callback(error as Error);
     }
     this.emitError(error as Error);
-    const stored = readGenerations(devGenerationsPath(cwd));
-    callback(null, optimizer(`${stored.previous}\n${stored.current}`));
+    callback(
+      null,
+      optimizer(readGenerations(devGenerationsPath(cwd)).join('\n')),
+    );
   }
 }
