@@ -1678,8 +1678,17 @@ export function compileCSS(options: CompilerOptions) {
     return fresh;
   };
 
+  const globbed = options.files === undefined;
   for (const file of files) {
     const resource = path.resolve(cwd, file);
+    if (
+      globbed &&
+      options.sources?.[resource] === undefined &&
+      stampOf(resource) === undefined
+    ) {
+      sheetCache.delete(resource);
+      continue;
+    }
     const key = JSON.stringify([
       scope,
       stampOf(resource),
@@ -1701,6 +1710,9 @@ export function compileCSS(options: CompilerOptions) {
         };
       } catch (error) {
         sheetCache.delete(resource);
+        if (globbed && (error as NodeJS.ErrnoException).code === 'ENOENT') {
+          continue;
+        }
         throw error;
       }
       sheetCache.set(resource, cached);
