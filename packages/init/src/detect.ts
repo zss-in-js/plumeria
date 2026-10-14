@@ -30,6 +30,7 @@ export interface Detected {
   bundler: Bundler;
   bundlerConfig: string | undefined;
   eslintConfig: string | undefined;
+  oxlintConfig: string | undefined;
   declaration: string | undefined;
   typescript: boolean;
   esm: boolean;
@@ -226,6 +227,7 @@ export const detect = (root: string, override?: Bundler): Detected => {
     bundler,
     bundlerConfig: firstExisting(root, CONFIG_NAMES[bundler]),
     eslintConfig: firstExisting(root, ESLINT_NAMES),
+    oxlintConfig: firstExisting(root, ['.oxlintrc.json']),
     declaration,
     typescript,
     esm: manifest.type === 'module',
