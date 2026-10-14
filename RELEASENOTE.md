@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.14.1 (Oct 14, 2026)
+
+- Fix: In a project that lints with oxlint only, `init` adds the plugin and its recommended rules to `.oxlintrc.json` instead of writing an `eslint.config` file, and shows the entries to add by hand when the file has comments
+
 ## 19.14.0 (Oct 12, 2026)
 
 - Feat: `no-order-dependent-overlap` reports two media or container queries that cross without either containing the other, such as `600px` to `900px` against `700px` to `1000px`, when both set the same property
