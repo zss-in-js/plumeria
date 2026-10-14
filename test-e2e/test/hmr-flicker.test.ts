@@ -4,9 +4,9 @@ import { test, expect, type Page } from '@playwright/test';
 
 /**
  * Turbopack updates the stylesheet and the modules that use it at different
- * times. The dev stylesheet keeps the previous generation of rules until the
- * next edit, so a module still holding the old class name never renders without
- * its rule, and a rule two edits old is gone.
+ * times. The dev stylesheet keeps the rules of the two previous generations, so
+ * a module still holding an old class name never renders without its rule, and a
+ * rule three edits old is gone.
  *
  * Production has no HMR, so this only runs against the dev server.
  */
@@ -17,9 +17,9 @@ const styleFile = (slug: string) =>
   path.join(__dirname, `../nextjs/component/hmr-value-${slug}.styles.ts`);
 
 // Each project edits its own file with its own colors, so no two share a class.
-const COLORS: Record<string, [string, string, string]> = {
-  chromium: ['#a1b2c3', '#c3b2a1', '#b2a1c3'],
-  'mobile-chrome': ['#a2b3c4', '#c4b3a2', '#b3a2c4'],
+const COLORS: Record<string, [string, string, string, string]> = {
+  chromium: ['#a1b2c3', '#c3b2a1', '#b2a1c3', '#c3a1b2'],
+  'mobile-chrome': ['#a2b3c4', '#c4b3a2', '#b3a2c4', '#c4a2b3'],
 };
 
 const rgb = (hex: string) => {
@@ -65,13 +65,13 @@ test.describe('a value edited by HMR', () => {
     fs.writeFileSync(styleFile(slug), source(COLORS[slug][0]), 'utf-8');
   });
 
-  test('never renders a frame without the old or the new rule, and drops a rule two edits old', async ({
+  test('never renders a frame without the old or the new rule, and drops a rule three edits old', async ({
     page,
   }, testInfo) => {
     test.setTimeout(90 * 1000);
     const slug = slugOf(testInfo.project.name);
     const file = styleFile(slug);
-    const [first, second, third] = COLORS[slug];
+    const [first, second, third, fourth] = COLORS[slug];
 
     await page.goto(`/hmr-value/${slug}`);
 
@@ -109,6 +109,11 @@ test.describe('a value edited by HMR', () => {
 
     fs.writeFileSync(file, source(third), 'utf-8');
     await expect(box).toHaveCSS('background-color', rgb(third), {
+      timeout: 30000,
+    });
+
+    fs.writeFileSync(file, source(fourth), 'utf-8');
+    await expect(box).toHaveCSS('background-color', rgb(fourth), {
       timeout: 30000,
     });
     await expect
