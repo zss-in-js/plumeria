@@ -15,6 +15,7 @@ import {
   eslintEntries,
   eslintSource,
   installCommand,
+  OXLINT_RECOMMENDED,
   packages,
   plan,
   pluginCall,
@@ -545,6 +546,91 @@ describe('plan', () => {
     const actions = plan(detect(dir), answers());
     expect(on(actions, 'eslint.config.mjs').kind).toBe('write');
     expect(actions.some((action) => action.kind === 'install')).toBe(false);
+  });
+
+  it('adds the plugin to an oxlint config instead of writing an ESLint config', () => {
+    project(
+      { devDependencies: { vite: '1', oxlint: '1' } },
+      {
+        'vite.config.ts': VITE_CONFIG,
+        '.oxlintrc.json': `{\n    "plugins": ["typescript"],\n    "rules": { "no-debugger": "error" }\n}\n`,
+      },
+    );
+    const actions = plan(
+      detect(dir),
+      answers({ spelling: 'logical', sizes: true, styleProp: 'sx' }),
+    );
+    expect(
+      actions.some(
+        (action) =>
+          action.kind !== 'install' && action.file.startsWith('eslint.config'),
+      ),
+    ).toBe(false);
+    const install = actions.find((action) => action.kind === 'install');
+    expect(install?.kind === 'install' && install.packages).not.toContain(
+      'eslint',
+    );
+
+    const action = on(actions, '.oxlintrc.json');
+    expect(action.kind).toBe('patch');
+    const contents = contentsOf(action);
+    expect(contents).toContain('\n    "plugins"');
+    const config = JSON.parse(contents);
+    expect(config.plugins).toEqual(['typescript']);
+    expect(config.jsPlugins).toEqual([
+      { name: '@plumeria', specifier: '@plumeria/eslint-plugin/oxlint-plugin' },
+    ]);
+    expect(config.rules['no-debugger']).toBe('error');
+    expect(config.rules['@plumeria/no-unknown-css-properties']).toBe('error');
+    expect(config.rules['@plumeria/no-physical-properties']).toEqual([
+      'error',
+      { sizes: true },
+    ]);
+    expect(config.settings).toEqual({ plumeria: { styleProp: 'sx' } });
+  });
+
+  it('skips an oxlint config that already loads the plugin and hands over one with comments', () => {
+    project(
+      { devDependencies: { vite: '1' } },
+      {
+        'vite.config.ts': VITE_CONFIG,
+        '.oxlintrc.json': `{ "jsPlugins": ["@plumeria/eslint-plugin/oxlint-plugin"] }\n`,
+      },
+    );
+    expect(on(plan(detect(dir), answers()), '.oxlintrc.json').kind).toBe(
+      'skip',
+    );
+
+    add(dir, '.oxlintrc.json', `{\n  // project rules\n  "rules": {}\n}\n`);
+    const action = on(plan(detect(dir), answers()), '.oxlintrc.json');
+    expect(action.kind).toBe('manual');
+    if (action.kind === 'manual') {
+      expect(JSON.parse(action.snippet).rules).toEqual(OXLINT_RECOMMENDED);
+    }
+  });
+
+  it('prefers the ESLint config when both linters are configured', () => {
+    project(
+      { devDependencies: { vite: '1' } },
+      {
+        'vite.config.ts': VITE_CONFIG,
+        'eslint.config.mjs': 'export default [];\n',
+        '.oxlintrc.json': '{}\n',
+      },
+    );
+    const actions = plan(detect(dir), answers());
+    expect(on(actions, 'eslint.config.mjs').kind).toBe('patch');
+    expect(() => on(actions, '.oxlintrc.json')).toThrow();
+  });
+
+  it('keeps the oxlint rules in step with the recommended oxlint config', () => {
+    const shipped = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, '../../eslint-plugin/oxlint.json'),
+        'utf8',
+      ),
+    );
+    expect(OXLINT_RECOMMENDED).toEqual(shipped.rules);
   });
 
   it('preserves compact package JSON indentation', () => {
