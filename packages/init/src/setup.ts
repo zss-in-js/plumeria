@@ -302,7 +302,7 @@ export const packages = (detected: Detected, answers: Answers): string[] => {
 
   if (answers.eslint) {
     wanted.push('@plumeria/eslint-plugin');
-    if (!detected.eslintConfig) {
+    if (!detected.eslintConfig && !detected.oxlintConfig) {
       wanted.push('eslint', '@eslint/js');
       if (detected.typescript) wanted.push('typescript-eslint');
     }
@@ -521,9 +521,118 @@ const snippetFor = (bundler: Bundler, call: string): string => {
   return `${imported}\n\nplugins: [${call}]`;
 };
 
+export const OXLINT_PLUGIN = {
+  name: '@plumeria',
+  specifier: '@plumeria/eslint-plugin/oxlint-plugin',
+};
+
+export const OXLINT_RECOMMENDED: Record<string, 'error' | 'warn'> = {
+  '@plumeria/custom-props-require-import': 'error',
+  '@plumeria/expand-border-shorthands': 'warn',
+  '@plumeria/no-combinator': 'error',
+  '@plumeria/no-destructure': 'error',
+  '@plumeria/no-inline-object': 'error',
+  '@plumeria/no-inner-call': 'error',
+  '@plumeria/no-invalid-selector': 'error',
+  '@plumeria/no-mixed-styling-props': 'error',
+  '@plumeria/no-mutable-binding': 'warn',
+  '@plumeria/no-order-dependent-overlap': 'warn',
+  '@plumeria/no-style-prop-relay': 'error',
+  '@plumeria/no-unknown-css-properties': 'error',
+  '@plumeria/no-unused-keys': 'warn',
+  '@plumeria/no-unresolved-composition': 'warn',
+  '@plumeria/sort-properties': 'warn',
+  '@plumeria/format-properties': 'warn',
+  '@plumeria/validate-values': 'warn',
+  '@plumeria/validate-pseudos': 'warn',
+  '@plumeria/validate-at-rules': 'warn',
+};
+
+type JsonObject = Record<string, unknown>;
+
+const isJsonObject = (value: unknown): value is JsonObject =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+export const oxlintEntries = (answers: Answers): JsonObject => {
+  const rules: JsonObject = { ...OXLINT_RECOMMENDED };
+  const rejected = rejectedSpelling(answers.spelling);
+  if (rejected) {
+    rules[`@plumeria/no-${rejected}-properties`] = answers.sizes
+      ? ['error', { sizes: true }]
+      : 'error';
+  }
+  const entries: JsonObject = { jsPlugins: [OXLINT_PLUGIN], rules };
+  if (answers.styleProp !== DEFAULT_STYLE_PROP) {
+    entries.settings = { plumeria: { styleProp: answers.styleProp } };
+  }
+  return entries;
+};
+
+const oxlintAction = (
+  detected: Detected,
+  answers: Answers,
+  file: string,
+): Action => {
+  const source = read(detected, file);
+  if (source.includes(OXLINT_PLUGIN.specifier)) {
+    return {
+      kind: 'skip',
+      label: 'skip',
+      note: 'the plugin is already configured',
+      file,
+    };
+  }
+
+  const entries = oxlintEntries(answers);
+  let config: unknown;
+  try {
+    config = JSON.parse(source);
+  } catch {
+    config = undefined;
+  }
+  if (!isJsonObject(config)) {
+    return {
+      kind: 'manual',
+      label: 'manual',
+      note: 'merge into the oxlint config',
+      file,
+      snippet: JSON.stringify(entries, null, 2),
+    };
+  }
+
+  const merged: JsonObject = {
+    ...config,
+    jsPlugins: [
+      ...(Array.isArray(config.jsPlugins) ? config.jsPlugins : []),
+      OXLINT_PLUGIN,
+    ],
+    rules: {
+      ...(isJsonObject(config.rules) ? config.rules : {}),
+      ...(entries.rules as JsonObject),
+    },
+  };
+  if (entries.settings) {
+    merged.settings = {
+      ...(isJsonObject(config.settings) ? config.settings : {}),
+      ...(entries.settings as JsonObject),
+    };
+  }
+  return {
+    kind: 'patch',
+    label: 'patch',
+    note: 'jsPlugins @plumeria',
+    file,
+    contents: `${JSON.stringify(merged, null, indentOfJson(source))}\n`,
+  };
+};
+
 const eslintAction = (detected: Detected, answers: Answers): Action => {
-  const { eslintConfig, typescript } = detected;
+  const { eslintConfig, oxlintConfig, typescript } = detected;
   const entries = eslintEntries(answers, typescript);
+
+  if (!eslintConfig && oxlintConfig) {
+    return oxlintAction(detected, answers, oxlintConfig);
+  }
 
   if (!eslintConfig) {
     return {
