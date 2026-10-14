@@ -20,6 +20,9 @@ const port = rsc
       ? 4001
       : 4000;
 const built = isProduction || isExported;
+const hmr = /hmr-.*\.test\.ts/;
+const splitsHmr = !rsc && !isExported;
+const pages = splitsHmr ? ' pages' : '';
 
 // Plumeria's own build stays up beside the exported one, so a test can put the
 // two pages side by side rather than against a stored image.
@@ -96,28 +99,50 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
+      name: `chromium${pages}`,
+      ...(splitsHmr
+        ? {
+            testIgnore: [hmr, /exported-parity\.test\.ts/, /rsc-.*\.test\.ts/],
+          }
+        : {}),
       use: {
         ...devices['Desktop Chrome'],
       },
     },
     {
-      name: 'Mobile Chrome',
+      name: `Mobile Chrome${pages}`,
       // A project's `testIgnore` replaces the one above rather than adding to
       // it, so every pattern that run needs is repeated here.
       testIgnore: rsc
         ? /hmr-rule-order\.test\.ts/
         : isExported
           ? /hmr-rule-order\.test\.ts/
-          : [
-              /hmr-rule-order\.test\.ts/,
-              /exported-parity\.test\.ts/,
-              /rsc-.*\.test\.ts/,
-            ],
+          : [hmr, /exported-parity\.test\.ts/, /rsc-.*\.test\.ts/],
       use: {
         ...devices['Pixel 5'],
       },
     },
+    ...(splitsHmr
+      ? [
+          {
+            name: 'chromium',
+            testMatch: hmr,
+            dependencies: [`chromium${pages}`, `Mobile Chrome${pages}`],
+            use: {
+              ...devices['Desktop Chrome'],
+            },
+          },
+          {
+            name: 'Mobile Chrome',
+            testMatch: hmr,
+            testIgnore: /hmr-rule-order\.test\.ts/,
+            dependencies: [`chromium${pages}`, `Mobile Chrome${pages}`],
+            use: {
+              ...devices['Pixel 5'],
+            },
+          },
+        ]
+      : []),
   ],
 
   /* Run your local dev server before starting the tests */
