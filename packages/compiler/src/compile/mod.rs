@@ -67,6 +67,7 @@ type Dependencies = std::sync::Arc<Vec<(String, Option<crate::fs::source::Source
 
 pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<String, String> {
     let cwd = resolve(&std::env::current_dir().unwrap_or_default(), &options.cwd);
+    let globbed = options.files.is_none();
     let files = match &options.files {
         Some(files) => files.clone(),
         None => glob_sync(
@@ -141,6 +142,10 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
             let resource = resolve(&cwd, file).to_string_lossy().into_owned();
             let stamp = stamp_of(&resource);
             if stamp.is_none() && !options.sources.contains_key(&resource) {
+                if globbed {
+                    cache.files.remove(&resource);
+                    continue;
+                }
                 return Err(format!("Cannot read source: {resource}"));
             }
             let revision = project
@@ -174,9 +179,13 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
                 cache.files.remove(&resource);
                 let source = match options.sources.get(&resource) {
                     Some(source) => source.clone(),
-                    None => {
-                        crate::fs::source::read(&resource).map_err(|error| error.to_string())?
-                    }
+                    None => match crate::fs::source::read(&resource) {
+                        Ok(source) => source,
+                        Err(error) if globbed && error.kind() == std::io::ErrorKind::NotFound => {
+                            continue;
+                        }
+                        Err(error) => return Err(error.to_string()),
+                    },
                 };
                 let mut writes = Writes::default();
                 #[cfg(test)]
