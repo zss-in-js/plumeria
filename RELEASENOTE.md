@@ -36,8 +36,6 @@
 
 - Refactor: `transformSource` no longer collects stylesheets, and `collectOndemandSheets` and `sheets` are removed; every plugin builds its CSS through `compileCSS`
 
-- Update: Turbopack builds require Next.js 16.0.3 or later
-
 ## 19.12.1 (Oct 10, 2026)
 
 - Fix: `validate-values` accepts math functions nested inside each other, such as `min(100%, calc(50% + 10px))` and `repeat(auto-fill, minmax(min(100%, 200px), 1fr))`
