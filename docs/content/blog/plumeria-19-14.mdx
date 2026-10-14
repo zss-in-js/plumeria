@@ -82,6 +82,11 @@ The lint that runs in the build stops on warnings, so a project that declares a 
 
 ## Release notes
 
+## 19.14.2 (Oct 14, 2026)
+
+- Fix: `next dev` keeps one more previous generation of rules, so a rule is not dropped when edits arrive before every module has updated
+- Fix: `compileCSS` no longer fails when a file is deleted while the project is being compiled, such as during a branch switch
+
 ## 19.14.1 (Oct 14, 2026)
 
 - Fix: In a project that lints with oxlint only, `init` adds the plugin and its recommended rules to `.oxlintrc.json` instead of writing an `eslint.config` file, and shows the entries to add by hand when the file has comments
