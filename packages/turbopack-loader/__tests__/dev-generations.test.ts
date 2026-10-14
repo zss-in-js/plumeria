@@ -48,14 +48,40 @@ describe('the virtual CSS in development', () => {
     expect(css).toContain('#1111a1');
   });
 
-  it('drops a rule two edits old', async () => {
+  it('keeps the rules of two edits back when edits land before modules update', async () => {
     await compileWith('#a11111');
     await compileWith('#1111a1');
     const css = await compileWith('#11a111');
 
+    expect(css).toContain('#a11111');
+    expect(css).toContain('#1111a1');
+    expect(css).toContain('#11a111');
+  });
+
+  it('drops a rule three edits old', async () => {
+    await compileWith('#a11111');
+    await compileWith('#1111a1');
+    await compileWith('#11a111');
+    const css = await compileWith('#a1a111');
+
     expect(css).not.toContain('#a11111');
     expect(css).toContain('#1111a1');
     expect(css).toContain('#11a111');
+    expect(css).toContain('#a1a111');
+  });
+
+  it('starts over from a generations file in the earlier format', async () => {
+    fs.mkdirSync(path.dirname(devGenerationsPath(projectDir)), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      devGenerationsPath(projectDir),
+      JSON.stringify({ previous: '.stale{color:#a1a1a1}', current: '' }),
+    );
+    const css = await compileWith('#1111a1');
+
+    expect(css).not.toContain('#a1a1a1');
+    expect(css).toContain('#1111a1');
   });
 
   it('does not advance when the same stylesheet is compiled again', async () => {
