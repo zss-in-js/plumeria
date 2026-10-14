@@ -1,5 +1,11 @@
 # @plumeria/core
 
+## 19.14.2
+
+### Patch Changes
+
+- 57dfbc9: Bump version to 19.14.2
+
 ## 19.14.1
 
 ### Patch Changes
