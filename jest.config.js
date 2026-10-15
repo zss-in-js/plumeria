@@ -34,6 +34,7 @@ module.exports = {
     '<rootDir>/packages/init/dist/',
     '<rootDir>/packages/next-plugin/dist/',
     '<rootDir>/packages/turbopack-loader/dist/',
+    '<rootDir>/packages/turbopack-loader/src/dev-bridge-client.ts',
     '<rootDir>/packages/swc-jest/dist/',
     '<rootDir>/packages/utils/dist/',
     '<rootDir>/packages/utils/src/index.ts',
