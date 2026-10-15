@@ -127,6 +127,7 @@ export default defineConfig({
           {
             name: 'chromium',
             testMatch: hmr,
+            workers: 1,
             dependencies: [`chromium${pages}`, `Mobile Chrome${pages}`],
             use: {
               ...devices['Desktop Chrome'],
@@ -136,7 +137,12 @@ export default defineConfig({
             name: 'Mobile Chrome',
             testMatch: hmr,
             testIgnore: /hmr-rule-order\.test\.ts/,
-            dependencies: [`chromium${pages}`, `Mobile Chrome${pages}`],
+            workers: 1,
+            dependencies: [
+              `chromium${pages}`,
+              `Mobile Chrome${pages}`,
+              'chromium',
+            ],
             use: {
               ...devices['Pixel 5'],
             },
