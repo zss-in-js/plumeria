@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.14.3 (Oct 15, 2026)
+
+- Fix: `next dev` no longer shows a frame without styles when a client component or a style module it imports is edited, because the edited module carries the stylesheet until the updated one arrives
+
 ## 19.14.2 (Oct 14, 2026)
 
 - Fix: `next dev` keeps one more previous generation of rules, so a rule is not dropped when edits arrive before every module has updated

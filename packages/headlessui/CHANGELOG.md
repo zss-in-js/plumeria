@@ -1,5 +1,11 @@
 # @plumeria/headlessui
 
+## 19.14.3
+
+### Patch Changes
+
+- e3f505f: Bump version to 19.14.3
+
 ## 19.14.2
 
 ### Patch Changes
