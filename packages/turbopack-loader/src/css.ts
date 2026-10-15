@@ -1,11 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { compileCSS, optimizer, DEFAULT_STYLE_PROP } from '@plumeria/compiler';
-import { devGenerationsPath, watchSources } from './index';
+import { optimizer } from '@plumeria/compiler';
+import {
+  compileStylesheet,
+  devGenerationsPath,
+  generationMarker,
+  watchSources,
+} from './index';
 import type { LoaderOptions } from './index';
-
-const DEFAULT_INCLUDE = ['**/*.{js,jsx,ts,tsx}'];
-const DEFAULT_EXCLUDE = ['**/node_modules/**', '**/dist/**', '**/.next/**'];
 
 interface CssLoaderContext {
   async: () => (err: Error | null, content?: string) => void;
@@ -48,19 +50,12 @@ export default function cssLoader(this: CssLoaderContext) {
 
   try {
     watchSources(this, cwd);
-    const css = compileCSS({
-      include: options.include ?? DEFAULT_INCLUDE,
-      exclude: options.exclude ?? DEFAULT_EXCLUDE,
-      cwd,
-      styleProp: options.styleProp ?? DEFAULT_STYLE_PROP,
-      withoutLogicalProperties: options.withoutLogicalProperties,
-      withoutPhysicalProperties: options.withoutPhysicalProperties,
-    });
+    const css = compileStylesheet(options, cwd);
     callback(
       null,
       optimizer(
         process.env.NODE_ENV === 'development'
-          ? withPreviousGenerations(cwd, css)
+          ? withPreviousGenerations(cwd, `${css}\n${generationMarker(css)}`)
           : css,
       ),
     );
