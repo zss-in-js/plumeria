@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { compileCSS, optimizer } from '@plumeria/compiler';
-import loader from '../src/index';
+import loader, { generationMarker } from '../src/index';
 import cssLoader from '../src/css';
 
 const projectDir = fs.realpathSync(
@@ -63,13 +63,12 @@ it.each([
     const previousCwd = process.cwd();
     process.chdir(projectDir);
     try {
-      const build = optimizer(
-        compileCSS({
-          cwd: projectDir,
-          include: ['**/*.{js,jsx,ts,tsx}'],
-          exclude: [],
-        }),
-      );
+      const raw = compileCSS({
+        cwd: projectDir,
+        include: ['**/*.{js,jsx,ts,tsx}'],
+        exclude: [],
+      });
+      const build = optimizer(`${raw}\n${generationMarker(raw)}`);
       for (const name of order) await transform(name);
 
       const dev = await virtualCss();
