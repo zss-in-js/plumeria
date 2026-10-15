@@ -91,12 +91,20 @@ test.describe('files added to and removed from the project during HMR', () => {
       .toBe(true);
 
     // Deletion and addition can compile as one generation. Wait for that
-    // generation above before advancing again to retire the deleted rule.
-    fs.writeFileSync(
-      addedFile(`${testInfo.project.name}-next`),
-      addedSource(offset + 200),
-      'utf-8',
-    );
+    // generation above, then advance two more so the deleted rule falls out
+    // of the three generations development keeps.
+    for (const step of [200, 300]) {
+      fs.writeFileSync(
+        addedFile(`${testInfo.project.name}-next`),
+        addedSource(offset + step),
+        'utf-8',
+      );
+      await expect
+        .poll(() => hasRule(page, `outline-offset: ${offset + step}px`), {
+          timeout: 30000,
+        })
+        .toBe(true);
+    }
     await expect
       .poll(() => hasRule(page, declaration), { timeout: 30000 })
       .toBe(false);
