@@ -3,6 +3,7 @@ import * as path from 'path';
 const mockCompileCSS = jest.fn((_options: unknown) => '.production {}');
 const mockTransformSource = jest.fn((_options: unknown) => ({
   code: 'transformed',
+  dependencies: [] as string[],
 }));
 const mockWriteFileSync = jest.fn();
 
