@@ -1,5 +1,13 @@
 # @plumeria/turbopack-loader
 
+## 19.14.3
+
+### Patch Changes
+
+- 6e9ed5d: - Fix: `next dev` no longer shows a frame without styles when a client component or a style module it imports is edited, because the edited module carries the stylesheet until the updated one arrives
+- Updated dependencies [6e9ed5d]
+  - @plumeria/compiler@19.14.3
+
 ## 19.14.2
 
 ### Patch Changes
