@@ -3,12 +3,15 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {
+  compileCSS,
+  optimizer,
   resolvePropertyPolicy,
   transformSource,
   DEFAULT_STYLE_PROP,
   needsCompile,
 } from '@plumeria/compiler';
 import type { PropertyPolicyOptions } from '@plumeria/compiler';
+import { carryStylesheet } from './dev-bridge-client';
 
 export interface LoaderOptions extends PropertyPolicyOptions {
   include?: string[];
@@ -56,6 +59,71 @@ export const devGenerationsPath = (cwd: string) =>
     `${crypto.createHash('sha1').update(cwd).digest('hex')}.json`,
   );
 
+const DEFAULT_INCLUDE = ['**/*.{js,jsx,ts,tsx}'];
+const DEFAULT_EXCLUDE = ['**/node_modules/**', '**/dist/**', '**/.next/**'];
+
+export function compileStylesheet(options: LoaderOptions, cwd: string) {
+  return compileCSS({
+    include: options.include ?? DEFAULT_INCLUDE,
+    exclude: options.exclude ?? DEFAULT_EXCLUDE,
+    cwd,
+    styleProp: options.styleProp ?? DEFAULT_STYLE_PROP,
+    withoutLogicalProperties: options.withoutLogicalProperties,
+    withoutPhysicalProperties: options.withoutPhysicalProperties,
+  });
+}
+
+export const generationId = (css: string) =>
+  crypto.createHash('sha1').update(css).digest('hex').slice(0, 16);
+
+export const generationMarker = (css: string) =>
+  `[data-plumeria-generation="${generationId(css)}"] { --plumeria-generation: 1; }`;
+
+export const DEV_BRIDGE_ID = 'plumeria-dev-bridge';
+export const DEV_BRIDGE_WINDOW_MS = 30_000;
+
+const bridgeScript = (css: string, id: string) =>
+  `\n(${carryStylesheet})(${JSON.stringify(css)}, ${JSON.stringify(id)}, ${JSON.stringify(DEV_BRIDGE_ID)});\n`;
+
+const editedWithinWindow = (file: string) => {
+  try {
+    return Date.now() - fs.statSync(file).mtimeMs <= DEV_BRIDGE_WINDOW_MS;
+  } catch {
+    return false;
+  }
+};
+
+const transformedOutputs = new Map<
+  string,
+  { digest: string; edited: boolean }
+>();
+
+const outputEdited = (resourcePath: string, code: string) => {
+  const digest = crypto.createHash('sha1').update(code).digest('hex');
+  const previous = transformedOutputs.get(resourcePath);
+  const edited =
+    previous !== undefined && (previous.digest !== digest || previous.edited);
+  transformedOutputs.set(resourcePath, { digest, edited });
+  return edited;
+};
+
+export function devBridge(
+  module: { resourcePath: string; code: string; dependencies: string[] },
+  options: LoaderOptions,
+  cwd: string,
+): string {
+  if (process.env.NODE_ENV !== 'development') return '';
+  if (!outputEdited(module.resourcePath, module.code)) return '';
+  if (![module.resourcePath, ...module.dependencies].some(editedWithinWindow))
+    return '';
+  try {
+    const css = compileStylesheet(options, cwd);
+    return bridgeScript(optimizer(css), generationId(css));
+  } catch {
+    return '';
+  }
+}
+
 export default async function loader(this: LoaderContext, source: string) {
   const callback = this.async();
   const loaderOptions: LoaderOptions =
@@ -77,7 +145,7 @@ export default async function loader(this: LoaderContext, source: string) {
     this.clearDependencies();
     this.addDependency(resourcePath);
 
-    const { code: transformedSource } = transformSource({
+    const { code: transformedSource, dependencies } = transformSource({
       source,
       moduleId: resourcePath,
       filePath: resourcePath,
@@ -101,7 +169,7 @@ export default async function loader(this: LoaderContext, source: string) {
 
     return callback(
       null,
-      `${transformedSource}\nimport "${relativeImportPath}";`,
+      `${transformedSource}\nimport "${relativeImportPath}";${devBridge({ resourcePath, code: transformedSource, dependencies }, loaderOptions, process.cwd())}`,
     );
   } catch (error) {
     if (process.env.NODE_ENV !== 'development' || !this.emitError) {
