@@ -163,7 +163,7 @@ We welcome contributions of all kinds — bug reports, feature ideas, pull reque
 
 - [Linaria](https://linaria.dev/) - for inspiring the Zero-Runtime architecture
 - [React Native](https://reactnative.dev/docs/stylesheet) - for inspiring the StyleSheet.create
-- [React Native for Web](https://necolas.github.io/react-native-web/) - for inspiring that attempt
+- [React Native for Web](https://necolas.github.io/react-native-web/) - for inspiring the generation of atomic CSS from CSS-in-JS
 - [StyleX](https://stylexjs.com/) - It inherits the design philosophy.
 - [Tailwind CSS](https://tailwindcss.com/) - for inspiring the brilliance of its approach
 
