@@ -92,10 +92,15 @@ const html = `<!doctype html>
               </ul>
             </div>
             <div>
-              <h2 class="heading">Concepts</h2>
+              <h2 class="heading">Participate</h2>
               <ul class="list">
-                <li><a href="/docs/specificity" class="link">Specificity</a></li>
-                <li><a href="/docs/composition-laws" class="link">Composition laws</a></li>
+                <li>
+                  <a href="https://github.com/zss-in-js/plumeria" target="_blank" rel="noreferrer noopener" class="menu-link external">
+                    GitHub
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
+                  </a>
+                </li>
+                <li><a href="/docs/acknowledgements" class="link">Acknowledgements</a></li>
               </ul>
             </div>
             <div>
