@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import generateSEOData from 'lib/generateSEOData';
 import { latestBlogUrl } from 'lib/latestBlogUrl';
 
@@ -10,9 +8,9 @@ const seo = generateSEOData({
   subtitle: 'Plumeria is a zero-cost abstraction layer for styling React components.',
 });
 
-const css = readFileSync(join(process.cwd(), 'app/(home)/top.css'), 'utf8').replace(/\n\s*/g, '');
-
 const themeScript = `try{var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);var e=document.documentElement;e.classList.toggle('dark',d);e.style.colorScheme=d?'dark':'light'}catch(_){}`;
+
+const heroHeightScript = `(()=>{var w=0,e=document.documentElement;function s(){if(innerWidth!==w){w=innerWidth;e.style.setProperty('--hero-height',innerHeight+'px')}}s();addEventListener('resize',s)})()`;
 
 const speculationRules = JSON.stringify({
   prerender: [{ urls: ['/docs'], eagerness: 'immediate' }],
@@ -25,6 +23,7 @@ const html = `<!doctype html>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>${themeScript}</script>
+    <script>${heroHeightScript}</script>
     <title>${seo.title}</title>
     <meta name="description" content="${seo.description}">
     <link rel="canonical" href="${seo.metadataBase}${seo.alternates.canonical}">
@@ -43,7 +42,7 @@ const html = `<!doctype html>
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-icon.png">
     <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <style>${css}</style>
+    <link rel="stylesheet" href="/top.css">
     <script type="speculationrules">${speculationRules}</script>
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
