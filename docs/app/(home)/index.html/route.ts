@@ -71,7 +71,7 @@ const html = `<!doctype html>
           <p class="description">Type-safe styling for <span class="emphasis">React</span>.<br><span class="emphasis">Rust-compiled</span> zero-runtime atomic CSS.</p>
           <div class="actions">
             <a href="/docs" class="button primary">Get started</a>
-            <a href="/docs/why-plumeria" class="button">Why Plumeria?</a>
+            <a href="/docs/ai-agent-resources#claude-plugin" class="button">Migrate from Tailwind</a>
           </div>
         </div>
         <footer class="footer">
@@ -79,6 +79,7 @@ const html = `<!doctype html>
             <div>
               <h2 class="heading">Develop</h2>
               <ul class="list">
+                <li><a href="/docs/why-plumeria" class="link">Why Plumeria?</a></li>
                 <li><a href="/docs/api-reference" class="link">API</a></li>
                 <li><a href="/docs/testing" class="link">Testing</a></li>
               </ul>
