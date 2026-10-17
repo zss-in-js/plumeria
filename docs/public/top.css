@@ -245,7 +245,7 @@ button {
 
 .groups {
   display: grid;
-  grid-template-columns: repeat(4, max-content);
+  grid-template-columns: repeat(5, max-content);
   gap: 32px;
   justify-content: space-between;
 }
@@ -265,6 +265,12 @@ button {
 
 .link {
   font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.legal {
+  margin-top: 40px;
+  font-size: 13px;
   color: var(--muted-foreground);
 }
 
