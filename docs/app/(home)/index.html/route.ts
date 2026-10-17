@@ -1,3 +1,6 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import generateSEOData from 'lib/generateSEOData';
 import { copyright, footerGroups } from 'lib/footerGroups';
 
@@ -7,6 +10,11 @@ const seo = generateSEOData({
   title: 'Plumeria - Zero-cost abstraction layer',
   subtitle: 'Plumeria is a zero-cost abstraction layer for styling React components.',
 });
+
+const topCssVersion = createHash('sha256')
+  .update(readFileSync(join(process.cwd(), 'public/top.css')))
+  .digest('hex')
+  .slice(0, 8);
 
 const themeScript = `try{var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);var e=document.documentElement;e.classList.toggle('dark',d);e.style.colorScheme=d?'dark':'light'}catch(_){}`;
 
@@ -61,7 +69,7 @@ const html = `<!doctype html>
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-icon.png">
     <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="/top.css">
+    <link rel="stylesheet" href="/top.css?v=${topCssVersion}">
     <script type="speculationrules">${speculationRules}</script>
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
