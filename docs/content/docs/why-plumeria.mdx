@@ -86,6 +86,10 @@ npx @plumeria/codemod migrate --from plumeria
 
 Styles go back to `*.module.css`, theme tokens and animations to global CSS, and the call sites to `className`. It is an export rather than a round trip — a dynamic style leaves as a custom property, a marker as the `@container style()` rule it compiles to — so what returns is the equivalent stylesheet, not the files you started from. Leaving is a command too.
 
+## Coming from Tailwind
+
+The [Claude plugin](/docs/ai-agent-resources#claude-plugin) includes a skill that migrates Tailwind classes to Plumeria styles.
+
 ---
 
 Plumeria is for those who say, "I never compromise." Ready to try it? Start with [Getting started](/docs/installation).
