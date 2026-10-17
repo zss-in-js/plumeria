@@ -269,8 +269,10 @@ button {
 }
 
 .legal {
+  display: flex;
+  justify-content: space-between;
   margin-top: 64px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted-foreground);
 }
 
@@ -338,5 +340,11 @@ button {
   .groups {
     grid-template-columns: repeat(2, max-content);
     justify-content: space-evenly;
+  }
+
+  .legal {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
   }
 }
