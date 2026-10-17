@@ -392,3 +392,62 @@ code {
     transform: none;
   }
 }
+
+.site-footer {
+  container-type: inline-size;
+  padding-top: 40px;
+  margin-top: 48px;
+  border-top: 1px solid var(--color-fd-border);
+}
+
+.site-footer-groups {
+  display: grid;
+  grid-template-columns: repeat(5, max-content);
+  gap: 32px;
+  justify-content: space-between;
+}
+
+.site-footer-heading {
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.site-footer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+}
+
+.site-footer-link {
+  font-size: 14px;
+  color: var(--color-fd-muted-foreground);
+}
+
+.site-footer-external {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.site-footer-legal {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 64px;
+  font-size: 14px;
+  color: var(--color-fd-muted-foreground);
+}
+
+@container (max-width: 640px) {
+  .site-footer-groups {
+    grid-template-columns: repeat(2, max-content);
+    justify-content: space-evenly;
+  }
+
+  .site-footer-legal {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+}
