@@ -98,7 +98,7 @@ const html = `<!doctype html>
           <nav aria-label="Resources" class="groups">
 ${footerGroupsHtml}
           </nav>
-          <p class="legal">${copyright} · <a href="/privacy" class="link">Privacy</a></p>
+          <div class="legal"><span>${copyright}</span><a href="/privacy" class="link">Privacy</a></div>
         </footer>
       </div>
     </main>
