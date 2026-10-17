@@ -88,6 +88,18 @@ const html = `<!doctype html>
               <ul class="list">
                 <li><a href="/playground" class="link">Playground</a></li>
                 <li><a href="${latestBlogUrl}" class="link">Blog</a></li>
+                <li>
+                  <a href="https://jantimon.github.io/css-in-js-bench/" target="_blank" rel="noreferrer noopener" class="link external">
+                    SSR Benchmark
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
+                  </a>
+                </li>
+                <li>
+                  <a href="https://refirst11.github.io/css-compiler-bench/" target="_blank" rel="noreferrer noopener" class="link external">
+                    Build Benchmark
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
+                  </a>
+                </li>
               </ul>
             </div>
             <div>
@@ -105,6 +117,12 @@ const html = `<!doctype html>
             <div>
               <h2 class="heading">Skill</h2>
               <ul class="list">
+                <li>
+                  <a href="https://claude.ai/directory?q=Plumeria" target="_blank" rel="noreferrer noopener" class="link external">
+                    Claude Plugin
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
+                  </a>
+                </li>
                 <li><a href="/docs/ai-agent-resources" class="link">AI Agent Resources</a></li>
                 <li><a href="/privacy" class="link">Privacy</a></li>
               </ul>
