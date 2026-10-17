@@ -1,5 +1,5 @@
 import generateSEOData from 'lib/generateSEOData';
-import { latestBlogUrl } from 'lib/latestBlogUrl';
+import { copyright, footerGroups } from 'lib/footerGroups';
 
 export const dynamic = 'force-static';
 
@@ -16,6 +16,25 @@ const speculationRules = JSON.stringify({
   prerender: [{ urls: ['/docs'], eagerness: 'immediate' }],
   prefetch: [{ where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/' } }] }, eagerness: 'immediate' }],
 });
+
+const externalIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>`;
+
+const footerGroupsHtml = footerGroups
+  .map(
+    ({ heading, links }) => `            <div>
+              <h2 class="heading">${heading}</h2>
+              <ul class="list">
+${links
+  .map(({ label, href, external }) =>
+    external
+      ? `                <li><a href="${href}" target="_blank" rel="noreferrer noopener" class="link external">${label}${externalIcon}</a></li>`
+      : `                <li><a href="${href}" class="link">${label}</a></li>`,
+  )
+  .join('\n')}
+              </ul>
+            </div>`,
+  )
+  .join('\n');
 
 const html = `<!doctype html>
 <html lang="en">
@@ -57,6 +76,7 @@ const html = `<!doctype html>
         <div id="home-menu" popover="auto" class="menu">
           <a href="/docs" class="menu-link">Docs</a>
           <a href="/playground" class="menu-link">Playground</a>
+          <a href="/docs/why-plumeria" class="menu-link">Why Plumeria?</a>
           <a href="https://github.com/zss-in-js/plumeria" target="_blank" rel="noreferrer noopener" class="menu-link external">
             GitHub
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
@@ -76,59 +96,9 @@ const html = `<!doctype html>
         </div>
         <footer class="footer">
           <nav aria-label="Resources" class="groups">
-            <div>
-              <h2 class="heading">Develop</h2>
-              <ul class="list">
-                <li><a href="/docs/why-plumeria" class="link">Why Plumeria?</a></li>
-                <li><a href="/docs/api-reference" class="link">API</a></li>
-                <li><a href="/docs/testing" class="link">Testing</a></li>
-              </ul>
-            </div>
-            <div>
-              <h2 class="heading">Explore</h2>
-              <ul class="list">
-                <li><a href="/playground" class="link">Playground</a></li>
-                <li><a href="${latestBlogUrl}" class="link">Blog</a></li>
-                <li>
-                  <a href="https://jantimon.github.io/css-in-js-bench/" target="_blank" rel="noreferrer noopener" class="link external">
-                    SSR Benchmark
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
-                  </a>
-                </li>
-                <li>
-                  <a href="https://refirst11.github.io/css-compiler-bench/" target="_blank" rel="noreferrer noopener" class="link external">
-                    Build Benchmark
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h2 class="heading">Participate</h2>
-              <ul class="list">
-                <li>
-                  <a href="https://github.com/zss-in-js/plumeria" target="_blank" rel="noreferrer noopener" class="link external">
-                    GitHub
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
-                  </a>
-                </li>
-                <li><a href="/docs/acknowledgements" class="link">Acknowledgements</a></li>
-              </ul>
-            </div>
-            <div>
-              <h2 class="heading">Skill</h2>
-              <ul class="list">
-                <li>
-                  <a href="https://claude.ai/directory?q=Plumeria" target="_blank" rel="noreferrer noopener" class="link external">
-                    Claude Plugin
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
-                  </a>
-                </li>
-                <li><a href="/docs/ai-agent-resources" class="link">AI Agent Resources</a></li>
-                <li><a href="/privacy" class="link">Privacy</a></li>
-              </ul>
-            </div>
+${footerGroupsHtml}
           </nav>
+          <p class="legal">${copyright} · <a href="/privacy" class="link">Privacy</a></p>
         </footer>
       </div>
     </main>
