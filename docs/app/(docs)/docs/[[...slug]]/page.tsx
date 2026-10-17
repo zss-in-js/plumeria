@@ -1,10 +1,12 @@
 import { source } from 'lib/source';
-import { DocsPage, DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/page';
+import { DocsPage, DocsBody, DocsDescription, DocsTitle, EditOnGitHub } from 'fumadocs-ui/page';
+import { Footer } from 'fumadocs-ui/layouts/docs/page/slots/footer';
 import { notFound } from 'next/navigation';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import { Metadata } from 'next';
 import generateSEOData from 'lib/generateSEOData';
 import { MarkdownActions } from 'component/MarkdownActions';
+import { SiteFooter } from 'component/SiteFooter';
 import type { Node } from 'fumadocs-core/page-tree';
 
 const getSection = (nodes: Node[], url: string, section = ''): string | undefined => {
@@ -42,12 +44,7 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
-      editOnGithub={{
-        owner: 'zss-in-js',
-        repo: 'plumeria',
-        sha: 'main',
-        path: `docs/content/docs/${page.path}`,
-      }}
+      footer={{ enabled: false }}
       tableOfContent={{
         style: 'clerk',
         single: true,
@@ -66,6 +63,9 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
       <DocsBody>
         <MDX components={{ ...defaultMdxComponents }} />
       </DocsBody>
+      <EditOnGitHub href={`https://github.com/zss-in-js/plumeria/blob/main/docs/content/docs/${page.path}`} />
+      <Footer />
+      <SiteFooter />
     </DocsPage>
   );
 }
