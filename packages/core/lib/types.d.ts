@@ -155,6 +155,49 @@ type ViewTransition = {
   old?: CSSProperties;
 };
 
+type PositionTryProperty =
+  | 'positionAnchor'
+  | 'positionArea'
+  | 'inset'
+  | 'insetBlock'
+  | 'insetBlockStart'
+  | 'insetBlockEnd'
+  | 'insetInline'
+  | 'insetInlineStart'
+  | 'insetInlineEnd'
+  | 'top'
+  | 'right'
+  | 'bottom'
+  | 'left'
+  | 'placeSelf'
+  | 'alignSelf'
+  | 'justifySelf'
+  | 'inlineSize'
+  | 'minInlineSize'
+  | 'maxInlineSize'
+  | 'width'
+  | 'minWidth'
+  | 'maxWidth'
+  | 'blockSize'
+  | 'minBlockSize'
+  | 'maxBlockSize'
+  | 'height'
+  | 'minHeight'
+  | 'maxHeight'
+  | 'margin'
+  | 'marginBlock'
+  | 'marginBlockStart'
+  | 'marginBlockEnd'
+  | 'marginInline'
+  | 'marginInlineStart'
+  | 'marginInlineEnd'
+  | 'marginTop'
+  | 'marginRight'
+  | 'marginBottom'
+  | 'marginLeft';
+
+type PositionTry = Pick<CommonProperties, PositionTryProperty>;
+
 type VarTypeSyntax =
   | '<angle>'
   | '<color>'
@@ -212,6 +255,7 @@ export type {
   CreateStatic,
   Keyframes,
   ViewTransition,
+  PositionTry,
   VarType,
   CSSVariableKey,
   Marker,
