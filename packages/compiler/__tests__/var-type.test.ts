@@ -111,6 +111,40 @@ describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
     );
     fs.rmSync(file);
   });
+
+  // An @property the optimizer rejects takes the whole stylesheet down with
+  // it, so the definition is reported where it is written instead.
+  it.each([
+    ['a quote in the syntax', `'<an"gle>'`, `'0deg'`],
+    ['a misspelled syntax', `'<lenght>'`, `'0px'`],
+    ['an initial value of another type', `'<angle>'`, `'red'`],
+  ])('reports %s at the definition', async (_, syntax, initialValue) => {
+    const file = path.join(DIR, 'invalid.ts');
+    fs.writeFileSync(
+      file,
+      `import * as css from '@plumeria/core';\nexport const broken = css.varType({ syntax: ${syntax}, initialValue: ${initialValue} });\n`,
+    );
+    await expect(transformSource(env(DIR, 'invalid.ts'))).rejects.toThrow(
+      /css\.varType "broken" is not a valid @property/,
+    );
+    fs.rmSync(file);
+  });
+
+  it.each([
+    [`'<length> | <percentage>'`, `'0px'`],
+    [`'<length>+'`, `'0px'`],
+    [`'small | medium | large'`, `'small'`],
+    [`'<string>'`, `'"hello"'`],
+  ])('accepts the syntax %s', async (syntax, initialValue) => {
+    const file = path.join(DIR, 'valid.ts');
+    fs.writeFileSync(
+      file,
+      `import * as css from '@plumeria/core';\nexport const fine = css.varType({ syntax: ${syntax}, initialValue: ${initialValue} });\n`,
+    );
+    const { code } = await transformSource(env(DIR, 'valid.ts'));
+    expect(nameOf(code, 'fine')).toBeDefined();
+    fs.rmSync(file);
+  });
 });
 
 it('gives the same name in both implementations', async () => {
