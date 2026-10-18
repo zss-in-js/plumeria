@@ -138,6 +138,24 @@ ruleTester.run('sort-properties', sortProperties, {
   ],
   invalid: [
     {
+      code: "import * as css from '@plumeria/core'; const styles = css.create({ tip: { top: 0, positionTryFallbacks: 'flip-block', positionArea: 'top', position: 'absolute', anchorName: '--a' } });",
+      errors: 3,
+      output:
+        "import * as css from '@plumeria/core'; const styles = css.create({ tip: { position: 'absolute', positionArea: 'top', positionTryFallbacks: 'flip-block', anchorName: '--a', top: 0 } });",
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
+      code: "import * as css from '@plumeria/core'; const above = css.positionTry({ marginBottom: 8, top: 0 });",
+      errors: 1,
+      output:
+        "import * as css from '@plumeria/core'; const above = css.positionTry({ top: 0, marginBottom: 8 });",
+      settings: {
+        ecmaVersion: 2021,
+      },
+    },
+    {
       code: 'import * as css from "@plumeria/core"; const styles = css.create({ key1: { display: "block", position: "absolute", top: "0", right: "0", bottom: "0", left: "0" } });',
       errors: 1,
       output:
