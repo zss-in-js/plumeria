@@ -16,6 +16,7 @@ import type {
   KeyframesHashTable,
   ViewTransitionHashTable,
   VarTypeHashTable,
+  PositionTryHashTable,
   CreateHashTable,
   CreateThemeHashTable,
   CreateThemeObjectTable,
@@ -334,6 +335,7 @@ export type DynamicStyleTables = {
   keyframesHashTable: KeyframesHashTable;
   viewTransitionHashTable: ViewTransitionHashTable;
   varTypeHashTable?: VarTypeHashTable;
+  positionTryHashTable?: PositionTryHashTable;
   createThemeHashTable: CreateThemeHashTable;
   createThemeObjectTable: CreateThemeObjectTable;
   createHashTable: CreateHashTable;
@@ -554,6 +556,7 @@ export const resolveDynamicStyle = (
       tables.createStaticObjectTable,
       undefined,
       tables.varTypeHashTable,
+      tables.positionTryHashTable,
     ).value;
 
   const withDefault = Object.entries(func.defaults ?? {}).filter(([param]) =>
@@ -621,6 +624,7 @@ export const resolveDynamicStyle = (
       tables.createStaticObjectTable,
       undefined,
       tables.varTypeHashTable,
+      tables.positionTryHashTable,
     );
 
   const varNames = [...varParams, ...derived.map(({ name }) => name)];
