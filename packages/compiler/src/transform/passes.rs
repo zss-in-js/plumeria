@@ -12,7 +12,7 @@ use crate::eval::{argument_expr, resolve_theme_selector};
 use crate::js::json::{quote, stringify, stringify_object};
 use crate::js::{Object, Value};
 use crate::style::records::atom_map;
-use crate::style::theme::{theme_atomic_map, theme_hash_of};
+use crate::style::theme::{theme_atomic_map, theme_hash_of, var_type_hash};
 use crate::syntax::expr::{E, K, Member, Prop, unwrap, unwrap_style};
 use crate::syntax::module::{CORE, NAMESPACE, SpecKind, import_specs, plumeria_method};
 
@@ -118,7 +118,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
         };
         let is_registered_kind = matches!(
             prop_name.as_str(),
-            "create" | "createTheme" | "createStatic"
+            "create" | "createTheme" | "createStatic" | "varType"
         );
         if is_registered_kind && !self.top_level_declarators.contains(&node.span.start) {
             return Err(self.fail(
@@ -229,6 +229,23 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                     },
                 );
             }
+            "varType" => {
+                let Some(object) = first_object else {
+                    return Ok(());
+                };
+                let obj = self.evaluate_object(object)?;
+                self.assert_no_dropped(object, &obj)?;
+                let hash = var_type_hash(name, &obj);
+                self.writes
+                    .var_type_obj
+                    .insert(hash.clone(), Value::obj(obj));
+                self.merged_var_types.insert(name.to_string(), hash.clone());
+                self.replacements.push(Replacement {
+                    start: call.span.start,
+                    end: call.span.end,
+                    content: quote(&format!("--pr-{hash}")),
+                });
+            }
             "createStatic" => {
                 let Some(object) = first_object else {
                     return Ok(());
@@ -291,7 +308,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
         };
         if matches!(
             prop_name.as_str(),
-            "create" | "createTheme" | "createStatic"
+            "create" | "createTheme" | "createStatic" | "varType"
         ) && !self.registered_style_calls.contains(&call.span.start)
         {
             return Err(self.fail(
