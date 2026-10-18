@@ -1,0 +1,37 @@
+name: skill-sync
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/content/docs/ai.md
+      - scripts/build-skill.js
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: skill-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Regenerate SKILL.md from ai.md
+        run: node scripts/build-skill.js
+
+      - name: Commit and push
+        run: |
+          if git diff --quiet -- plugins/plumeria/skills/plumeria/SKILL.md; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add plugins/plumeria/skills/plumeria/SKILL.md
+          git commit -m 'chore(plugins/plumeria/skills/plumeria): regenerate SKILL.md from ai.md'
+          git pull --rebase
+          git push
