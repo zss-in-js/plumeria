@@ -12,7 +12,7 @@ use crate::eval::{argument_expr, resolve_theme_selector};
 use crate::js::json::{quote, stringify, stringify_object};
 use crate::js::{Object, Value};
 use crate::style::records::atom_map;
-use crate::style::theme::{theme_atomic_map, theme_hash_of, var_type_hash};
+use crate::style::theme::{checked_var_type_hash, theme_atomic_map, theme_hash_of};
 use crate::syntax::expr::{E, K, Member, Prop, unwrap, unwrap_style};
 use crate::syntax::module::{CORE, NAMESPACE, SpecKind, import_specs, plumeria_method};
 
@@ -235,7 +235,8 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 };
                 let obj = self.evaluate_object(object)?;
                 self.assert_no_dropped(object, &obj)?;
-                let hash = var_type_hash(name, &obj);
+                let hash = checked_var_type_hash(name, &obj)
+                    .map_err(|message| self.fail(message, Some(call.span)))?;
                 self.writes
                     .var_type_obj
                     .insert(hash.clone(), Value::obj(obj));
