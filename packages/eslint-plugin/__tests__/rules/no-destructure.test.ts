@@ -97,6 +97,15 @@ ruleTester.run('no-destructure', noDestructure, {
       ],
     },
     {
+      code: `import * as css from '@plumeria/core'; const { positionTry } = css;`,
+      errors: [
+        {
+          message:
+            'Do not destructure "positionTry" from "css". Use dot notation instead.',
+        },
+      ],
+    },
+    {
       code: `import * as css from '@plumeria/core'; const { varType } = css;`,
       errors: [
         {
