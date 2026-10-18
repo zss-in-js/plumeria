@@ -71,8 +71,8 @@
 
   .site-footer-social {
     flex-basis: 100%;
-    order: -1;
-    margin-bottom: 8px;
+    justify-content: center;
+    margin-top: 24px;
     margin-left: 0;
   }
 }
