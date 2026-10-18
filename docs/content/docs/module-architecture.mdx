@@ -14,7 +14,10 @@ that needs it imports it. Each style is defined once, the way a **Go package** o
 app/
 └─ page.tsx
 components/
-└─ Card.tsx
+├─ Card.tsx
+└─ Profile/
+   ├─ Profile.tsx
+   └─ styles.ts
 styles/
 ├─ theme.ts
 ├─ tokens.ts
@@ -114,6 +117,37 @@ const styles = css.create({
 });
 
 export const Card = () => <div classStyle={styles.card} />;
+```
+
+When a component's styles grow long enough to crowd its markup, they can move
+to a `styles.ts` next to it. The output does not change, and only that
+component imports them. Once another component needs one of them, it moves to
+`styles/`.
+
+```ts title="components/Profile/styles.ts"
+import * as css from '@plumeria/core';
+
+export const styles = css.create({
+  profile: {
+    display: 'flex',
+    gap: 12,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: '50%',
+  },
+});
+```
+
+```tsx title="components/Profile/Profile.tsx"
+import { styles } from './styles';
+
+export const Profile = () => (
+  <div classStyle={styles.profile}>
+    <img classStyle={styles.avatar} src="/avatar.png" alt="" />
+  </div>
+);
 ```
 
 ## Refactoring is free
