@@ -15,6 +15,14 @@ export const propertyGroups: Group[] = [
   {
     properties: [
       'position',
+      'positionAnchor',
+      'positionArea',
+      'positionTry',
+      'positionTryOrder',
+      'positionTryFallbacks',
+      'positionVisibility',
+      'anchorName',
+      'anchorScope',
       'inset',
       'insetBlock',
       'insetBlockStart',
