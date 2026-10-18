@@ -21,7 +21,7 @@ use crate::policy::{PropertyPolicy, assert_property_policy};
 use crate::project::{KeyTable, LocalImport, LocalImports, Project, Tables};
 use crate::style::ondemand::extract_ondemand_styles;
 use crate::style::records::style_records;
-use crate::style::theme::theme_hash_of;
+use crate::style::theme::{theme_hash_of, var_type_hash};
 use crate::syntax::expr::{E, K, Prop, root_identifier, unwrap};
 use crate::syntax::module::{
     Aliases, CORE, SpecKind, add_core_aliases, import_specs, plumeria_method,
@@ -95,6 +95,7 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
         theme_selector: tables.theme_selector.clone(),
         keyframes_obj: tables.keyframes_obj.clone(),
         view_transition_obj: tables.view_transition_obj.clone(),
+        var_type_obj: tables.var_type_obj.clone(),
         ..Writes::default()
     };
     if cache.context != context || cache.globals != globals {
@@ -261,6 +262,7 @@ struct Extractor<'t, 'p, 'w, 'b, 'a> {
     merged_static: Object,
     merged_keyframes: Map<String>,
     merged_view_transitions: Map<String>,
+    merged_var_types: Map<String>,
     merged_create: Map<String>,
     merged_theme: Map<String>,
     merged_static_hash: Map<String>,
@@ -310,6 +312,7 @@ fn process_file(
         merged_static: Object::new(),
         merged_keyframes: Map::default(),
         merged_view_transitions: Map::default(),
+        merged_var_types: Map::default(),
         merged_create: Map::default(),
         merged_theme: Map::default(),
         merged_static_hash: Map::default(),
@@ -371,6 +374,7 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
         let mut import_map = Object::new();
         let mut keyframes_imports: Map<String> = Map::default();
         let mut view_transition_imports: Map<String> = Map::default();
+        let mut var_type_imports: Map<String> = Map::default();
         let mut create_imports: Map<String> = Map::default();
         let mut theme_imports: Map<String> = Map::default();
         let mut static_hash_imports: Map<String> = Map::default();
@@ -432,6 +436,13 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                     view_transition_imports.insert(local_name.clone(), hash.clone());
                 }
                 if let Some(hash) = tables
+                    .var_type_hash
+                    .get(&unique_key)
+                    .filter(|h| !h.is_empty())
+                {
+                    var_type_imports.insert(local_name.clone(), hash.clone());
+                }
+                if let Some(hash) = tables
                     .create_hash
                     .get(&unique_key)
                     .filter(|h| !h.is_empty())
@@ -486,6 +497,12 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
             &mut self.merged_view_transitions,
         );
         self.merged_view_transitions.extend(view_transition_imports);
+        own(
+            KeyTable::VarTypeHash,
+            &self.tables.var_type_hash,
+            &mut self.merged_var_types,
+        );
+        self.merged_var_types.extend(var_type_imports);
         own(
             KeyTable::ThemeHash,
             &self.tables.theme_hash,
@@ -583,6 +600,7 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                 &self.merged_view_transitions,
                 &self.tables.view_transition_hash,
             ),
+            var_types: Chain::two(&self.merged_var_types, &self.tables.var_type_hash),
             theme_hashes: Chain::three(
                 &self.merged_theme,
                 &self.writes.theme_hash,
@@ -1353,7 +1371,7 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
         };
         if matches!(
             prop_name.as_str(),
-            "create" | "createTheme" | "createStatic"
+            "create" | "createTheme" | "createStatic" | "varType"
         ) && !self.registered_style_calls.contains(&call.span.start)
         {
             return Err(format!(
@@ -1533,6 +1551,14 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                             functions: None,
                         },
                     );
+                }
+                "varType" => {
+                    let obj = self.evaluate(object)?;
+                    let hash = var_type_hash(&name, &obj);
+                    self.writes
+                        .var_type_obj
+                        .insert(hash.clone(), Value::obj(obj));
+                    self.merged_var_types.insert(name, hash);
                 }
                 "createStatic" => {
                     let obj = self.evaluate(object)?;
