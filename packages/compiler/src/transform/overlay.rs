@@ -44,6 +44,7 @@ pub struct Writes {
     pub static_obj: Map<Value>,
     pub keyframes_obj: Map<Value>,
     pub view_transition_obj: Map<Value>,
+    pub position_try_obj: Map<Value>,
     pub var_type_obj: Map<Value>,
     pub create_obj: Map<Value>,
     pub atomic_map: Map<Value>,
@@ -89,6 +90,7 @@ pub struct Restore {
     static_obj: Undo<Value>,
     keyframes_obj: Undo<Value>,
     view_transition_obj: Undo<Value>,
+    position_try_obj: Undo<Value>,
     var_type_obj: Undo<Value>,
     create_obj: Undo<Value>,
     atomic_map: Undo<Value>,
@@ -103,6 +105,7 @@ impl Writes {
             && self.static_obj.is_empty()
             && self.keyframes_obj.is_empty()
             && self.view_transition_obj.is_empty()
+            && self.position_try_obj.is_empty()
             && self.var_type_obj.is_empty()
             && self.create_obj.is_empty()
             && self.atomic_map.is_empty()
@@ -140,6 +143,11 @@ impl Writes {
             &mut tables.view_transition_obj,
             &self.view_transition_obj,
             &mut undo.view_transition_obj,
+        );
+        swap(
+            &mut tables.position_try_obj,
+            &self.position_try_obj,
+            &mut undo.position_try_obj,
         );
         swap(
             &mut tables.var_type_obj,
@@ -198,6 +206,11 @@ impl Restore {
                 &mut self.view_transition_obj,
             );
             restore(
+                &mut tables.position_try_obj,
+                &writes.position_try_obj,
+                &mut self.position_try_obj,
+            );
+            restore(
                 &mut tables.var_type_obj,
                 &writes.var_type_obj,
                 &mut self.var_type_obj,
@@ -242,7 +255,7 @@ mod tests {
         }
         populate!("value".to_string(); theme_hash, theme_selector, static_hash);
         populate!(Value::str("value"); theme_obj, static_obj, keyframes_obj,
-            view_transition_obj, var_type_obj, create_obj, atomic_map);
+            view_transition_obj, position_try_obj, var_type_obj, create_obj, atomic_map);
         let original = tables.clone();
         let writes = Arc::new(writes);
         let mut undo = Restore::default();
@@ -261,6 +274,7 @@ mod tests {
             static_obj,
             keyframes_obj,
             view_transition_obj,
+            position_try_obj,
             var_type_obj,
             create_obj,
             atomic_map
