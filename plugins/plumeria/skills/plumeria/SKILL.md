@@ -417,6 +417,28 @@ export const styles = css.create({
 });
 ```
 
+### `css.positionTry()`
+
+Defines an `@position-try` rule and returns its dashed name for `positionTryFallbacks`. It only accepts `positionAnchor`, `positionArea`, inset, margin, sizing and self-alignment properties:
+
+```tsx
+import * as css from '@plumeria/core';
+
+const above = css.positionTry({
+  positionArea: 'top',
+  marginBottom: 8,
+});
+
+export const styles = css.create({
+  tooltip: {
+    position: 'absolute',
+    positionAnchor: '--trigger',
+    positionArea: 'bottom',
+    positionTryFallbacks: `${above}, flip-inline`,
+  },
+});
+```
+
 ## Styling Custom Components
 
 There are exactly **3 patterns** for applying Plumeria styles to custom components. In all of them, compilation happens at the `classStyle` / `css.use()` call sites; the component itself just passes the compiled `className` / `style` through to the DOM.
