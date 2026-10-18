@@ -103,3 +103,22 @@ css.use({ color: 'red' }); // eslint-disable-line @plumeria/no-inline-object
 
 // @ts-expect-error a nested inline object is not a created style either
 css.use([styles.text, { ':hover': { color: 'blue' } }]);
+
+export const angle = css.varType({
+  syntax: '<angle>',
+  initialValue: '0deg',
+});
+
+export const anything = css.varType({ syntax: '*' });
+
+// @ts-expect-error a typed syntax needs an initial value
+css.varType({ syntax: '<color>' });
+
+export const rotating = css.create({
+  ring: {
+    background: `conic-gradient(from var(${angle}), red, blue)`,
+    [angle]: '0deg',
+    ':hover': { [angle]: '90deg' },
+  },
+  rotate: (value: string) => ({ [angle]: value }),
+});
