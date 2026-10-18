@@ -27,22 +27,17 @@ const speculationRules = JSON.stringify({
 
 const externalIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>`;
 
+const footerLinkHtml = ({ label, href, external }: { label: string; href: string; external?: boolean }) =>
+  external
+    ? `<a href="${href}" target="_blank" rel="noreferrer noopener" class="link external">${label}${externalIcon}</a>`
+    : `<a href="${href}" class="link">${label}</a>`;
+
 const footerGroupsHtml = footerGroups
   .map(
-    ({ heading, links }) => `            <div>
-              <h2 class="heading">${heading}</h2>
-              <ul class="list">
-${links
-  .map(({ label, href, external }) =>
-    external
-      ? `                <li><a href="${href}" target="_blank" rel="noreferrer noopener" class="link external">${label}${externalIcon}</a></li>`
-      : `                <li><a href="${href}" class="link">${label}</a></li>`,
+    ({ heading, links }) =>
+      `<div><h2 class="heading">${heading}</h2><ul class="list">${links.map((link) => `<li>${footerLinkHtml(link)}</li>`).join('')}</ul></div>`,
   )
-  .join('\n')}
-              </ul>
-            </div>`,
-  )
-  .join('\n');
+  .join('');
 
 const html = `<!doctype html>
 <html lang="en">
@@ -84,7 +79,6 @@ const html = `<!doctype html>
         <div id="home-menu" popover="auto" class="menu">
           <a href="/docs" class="menu-link">Docs</a>
           <a href="/playground" class="menu-link">Playground</a>
-          <a href="/docs/why-plumeria" class="menu-link">Why Plumeria?</a>
           <a href="https://github.com/zss-in-js/plumeria" target="_blank" rel="noreferrer noopener" class="menu-link external">
             GitHub
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
@@ -99,14 +93,14 @@ const html = `<!doctype html>
           <p class="description">Type-safe styling for <span class="emphasis">React</span>.<br><span class="emphasis">Rust-compiled</span> zero-runtime atomic CSS.</p>
           <div class="actions">
             <a href="/docs" class="button primary">Get started</a>
-            <a href="/docs/ai-agent-resources#claude-plugin" class="button">Migrate from Tailwind</a>
+            <a href="/docs/why-plumeria" class="button">Why Plumeria?</a>
           </div>
         </div>
         <footer class="footer">
           <nav aria-label="Resources" class="groups">
 ${footerGroupsHtml}
           </nav>
-          <div class="legal"><span>${copyright}</span><a href="/privacy" class="link">Privacy</a></div>
+          <div class="legal"><span>${copyright}</span><span aria-hidden="true">·</span><a href="/privacy" class="link">privacy</a></div>
         </footer>
       </div>
     </main>
