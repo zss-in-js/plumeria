@@ -59,6 +59,7 @@ export const noDestructure: Rule.RuleModule = {
                   keyName === 'createTheme' ||
                   keyName === 'keyframes' ||
                   keyName === 'viewTransition' ||
+                  keyName === 'varType' ||
                   keyName === 'use'
                 ) {
                   context.report({
