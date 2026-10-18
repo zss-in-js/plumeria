@@ -15,6 +15,7 @@ import type {
   StaticTable,
   KeyframesHashTable,
   ViewTransitionHashTable,
+  VarTypeHashTable,
   CreateHashTable,
   CreateThemeHashTable,
   CreateThemeObjectTable,
@@ -332,6 +333,7 @@ export const applyVarFallback = (
 export type DynamicStyleTables = {
   keyframesHashTable: KeyframesHashTable;
   viewTransitionHashTable: ViewTransitionHashTable;
+  varTypeHashTable?: VarTypeHashTable;
   createThemeHashTable: CreateThemeHashTable;
   createThemeObjectTable: CreateThemeObjectTable;
   createHashTable: CreateHashTable;
@@ -550,6 +552,8 @@ export const resolveDynamicStyle = (
       tables.createHashTable,
       tables.createStaticHashTable,
       tables.createStaticObjectTable,
+      undefined,
+      tables.varTypeHashTable,
     ).value;
 
   const withDefault = Object.entries(func.defaults ?? {}).filter(([param]) =>
@@ -615,6 +619,8 @@ export const resolveDynamicStyle = (
       tables.createHashTable,
       tables.createStaticHashTable,
       tables.createStaticObjectTable,
+      undefined,
+      tables.varTypeHashTable,
     );
 
   const varNames = [...varParams, ...derived.map(({ name }) => name)];
