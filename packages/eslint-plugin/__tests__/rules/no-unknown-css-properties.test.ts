@@ -99,6 +99,27 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
     },
     {
       code: `
+        import * as css from '@plumeria/core';
+        const above = css.positionTry({ positionArea: 'top', marginBottom: 8 });
+      `,
+    },
+    {
+      code: `
+        import { positionTry } from '@plumeria/core';
+        const fallback = positionTry({
+          inset: 0,
+          insetBlockStart: 0,
+          placeSelf: 'center',
+          minInlineSize: 100,
+          maxHeight: 200,
+          marginInlineEnd: 4,
+          positionAnchor: '--anchor',
+          ['positionArea']: 'bottom',
+        });
+      `,
+    },
+    {
+      code: `
         import { viewTransition as vt } from '@plumeria/core';
         const transition = vt({
           new: { opacity: 1 }
@@ -363,6 +384,42 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
           messageId: 'unknownProperty',
           data: {
             name: 'unkownProp',
+          },
+        },
+      ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const above = css.positionTry({
+          color: 'red',
+          padding: 4,
+          '--gap': '8px',
+          ':hover': { top: 0 },
+          '@media (width > 600px)': { top: 0 },
+        });
+      `,
+      errors: [
+        { messageId: 'positionTryProperty', data: { name: 'color' } },
+        { messageId: 'positionTryProperty', data: { name: 'padding' } },
+        { messageId: 'positionTryProperty', data: { name: '--gap' } },
+        { messageId: 'positionTryProperty', data: { name: ':hover' } },
+        {
+          messageId: 'positionTryProperty',
+          data: { name: '@media (width > 600px)' },
+        },
+      ],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        const above = css.positionTry({ positionAre: 'top' });
+      `,
+      errors: [
+        {
+          messageId: 'unknownProperty',
+          data: {
+            name: 'positionAre',
           },
         },
       ],
