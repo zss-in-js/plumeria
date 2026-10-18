@@ -24,7 +24,7 @@ export interface PropertyPolicy {
   includeAxes: boolean;
 }
 
-const STYLE_APIS = ['create', 'keyframes', 'viewTransition'];
+const STYLE_APIS = ['create', 'keyframes', 'viewTransition', 'positionTry'];
 
 const MESSAGES: Record<PropertySpelling, (n: string, c: string) => string> = {
   physical: (name, counterpart) =>
@@ -153,6 +153,10 @@ export const assertPropertyPolicy = (
 
       node.arguments.forEach(({ expression }: { expression: Expression }) => {
         if (!t.isObjectExpression(expression)) return;
+        if (apiName === 'positionTry') {
+          check(expression);
+          return;
+        }
         expression.properties.forEach((prop) => {
           if (!t.isObjectProperty(prop)) return;
           const style = styleObjectOf(prop.value as Expression);
