@@ -4,6 +4,7 @@ import 'monaco-editor/languages/definitions/typescript/register';
 import { shikiToMonaco } from '@shikijs/monaco';
 import { createHighlighterCore, type HighlighterCore, type ThemeRegistration } from 'shiki/core';
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
+import css from 'shiki/langs/css.mjs';
 import tsx from 'shiki/langs/tsx.mjs';
 import vitesseDark from 'shiki/themes/vitesse-dark.mjs';
 import vitesseLight from 'shiki/themes/vitesse-light.mjs';
@@ -69,9 +70,13 @@ let highlighter: Promise<HighlighterCore> | undefined;
 function setupHighlighting() {
   highlighter ??= createHighlighterCore({
     themes: [onBackground(vitesseLight, '#ffffff'), onBackground(withDarkSelection(vitesseDark), '#000000')],
-    langs: [tsx.map((grammar) => (grammar.name === 'tsx' ? { ...grammar, name: 'typescript', aliases: [] } : grammar))],
+    langs: [
+      tsx.map((grammar) => (grammar.name === 'tsx' ? { ...grammar, name: 'typescript', aliases: [] } : grammar)),
+      css,
+    ],
     engine: createJavaScriptRegexEngine(),
   }).then((core) => {
+    monaco.languages.register({ id: 'css' });
     shikiToMonaco(core, monaco);
     return core;
   });
@@ -142,8 +147,11 @@ function toMarker(message: LintMessage): monaco.editor.IMarkerData {
   };
 }
 
+export type OutputKind = 'jsx' | 'css';
+
 export type PlaygroundHandle = {
   reset: () => void;
+  setOutput: (kind: OutputKind) => void;
   getSource: () => string;
   setFile: (path: string) => void;
   setPolicy: (policy: SpellingPolicy) => void;
@@ -153,6 +161,7 @@ export type PlaygroundHandle = {
 
 export async function mount(
   container: HTMLElement,
+  output: HTMLElement,
   preview: HTMLIFrameElement,
   files: SampleFile[],
   entry: string,
@@ -338,6 +347,30 @@ export async function mount(
     wordBasedSuggestions: 'off',
   });
 
+  const outputModels = {
+    jsx: monaco.editor.createModel('', 'typescript', monaco.Uri.parse('inmemory://output/output.tsx')),
+    css: monaco.editor.createModel('', 'css', monaco.Uri.parse('inmemory://output/output.css')),
+  };
+  const outputEditor = monaco.editor.create(output, {
+    model: outputModels.jsx,
+    readOnly: true,
+    domReadOnly: true,
+    automaticLayout: true,
+    minimap: { enabled: false },
+    stickyScroll: { enabled: false },
+    fontSize: 13,
+    lineNumbers: 'on',
+    scrollBeyondLastLine: false,
+    padding: { top: 16, bottom: 16 },
+    renderValidationDecorations: 'off',
+  });
+  let compiledJsx: Record<string, string> = {};
+
+  function showJsx() {
+    const next = compiledJsx[pathOf.get(model) as string] ?? '';
+    if (outputModels.jsx.getValue() !== next) outputModels.jsx.setValue(next);
+  }
+
   // Decorations retain semantic colors while Monaco retokenizes after a theme change.
   const semanticStyles = document.createElement('style');
   semanticStyles.textContent = [LIGHT_THEME, DARK_THEME]
@@ -387,11 +420,19 @@ export async function mount(
     if (!previewReady) return;
     const transpiled: Record<string, string> = {};
     for (const [path, target] of models) transpiled[path] = session.transpile(path, target.getValue());
-    preview.contentWindow?.postMessage({ type: 'playground:render', files: transpiled, entry }, '*');
+    const sources = Object.fromEntries([...models].map(([path, target]) => [path, target.getValue()]));
+    preview.contentWindow?.postMessage({ type: 'playground:render', files: transpiled, sources, entry }, '*');
   }
 
-  const onPreviewMessage = (event: MessageEvent<{ type?: string }>) => {
-    if (event.source !== preview.contentWindow || event.data?.type !== 'playground:ready') return;
+  const onPreviewMessage = (event: MessageEvent<{ type?: string; jsx?: Record<string, string>; css?: string }>) => {
+    if (event.source !== preview.contentWindow) return;
+    if (event.data?.type === 'playground:output') {
+      compiledJsx = event.data.jsx ?? {};
+      showJsx();
+      if (outputModels.css.getValue() !== event.data.css) outputModels.css.setValue(event.data.css ?? '');
+      return;
+    }
+    if (event.data?.type !== 'playground:ready') return;
     previewReady = true;
     sendTheme(document.documentElement.classList.contains('dark'));
     sendPreview();
@@ -499,6 +540,7 @@ export async function mount(
       if (!next || next === model) return;
       model = next;
       editor.setModel(model);
+      showJsx();
       updateSemanticColors();
       editor.focus();
     },
@@ -514,6 +556,9 @@ export async function mount(
       run();
       editor.setScrollTop(0);
       editor.focus();
+    },
+    setOutput(kind) {
+      outputEditor.setModel(outputModels[kind]);
     },
     setPolicy(next) {
       policy = next;
@@ -534,6 +579,9 @@ export async function mount(
       semanticStyles.remove();
       for (const provider of providers) provider?.dispose();
       editor.dispose();
+      outputEditor.dispose();
+      outputModels.jsx.dispose();
+      outputModels.css.dispose();
       model.dispose();
     },
   };
