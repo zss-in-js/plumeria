@@ -1,0 +1,129 @@
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { DEFAULT_STYLE_PROP } from '@plumeria/utils';
+import { implementations } from '../compiler-implementations';
+
+const VARS = `import * as css from '@plumeria/core';
+export const angle = css.varType({ syntax: '<angle>', initialValue: '0deg' });
+export const rotation = css.varType({ syntax: '<angle>', initialValue: '0deg' });
+`;
+
+const PAGE = `import * as css from '@plumeria/core';
+import { angle } from './vars';
+const tint = css.varType({ syntax: '<color>', initialValue: 'red', inherits: true });
+const s = css.create({
+  ring: {
+    background: \`conic-gradient(from var(\${angle}), var(\${tint}), blue)\`,
+    transition: \`\${angle} 0.3s\`,
+    [tint]: 'blue',
+    ':hover': { [angle]: '90deg' },
+  },
+  rotate: (a: string) => ({ [angle]: a }),
+});
+export const P = (p: any) => <div classStyle={[s.ring, s.rotate(p.a)]} />;
+`;
+
+const setup = () => {
+  const dir = fs.realpathSync(
+    fs.mkdtempSync(path.join(os.tmpdir(), 'plumeria-')),
+  );
+  fs.writeFileSync(path.join(dir, 'vars.ts'), VARS);
+  fs.writeFileSync(path.join(dir, 'page.tsx'), PAGE);
+  return dir;
+};
+
+const env = (dir: string, name: string) => {
+  const filePath = path.join(dir, name);
+  return {
+    source: fs.readFileSync(filePath, 'utf8'),
+    moduleId: filePath,
+    filePath,
+    root: dir,
+    cwd: dir,
+    styleProp: DEFAULT_STYLE_PROP,
+    propertyPolicy: undefined,
+    isDev: false,
+    addDependency: () => {},
+  };
+};
+
+const nameOf = (code: string, binding: string) =>
+  new RegExp(`const ${binding} = "(--pr-[0-9a-z]+)"`).exec(code)?.[1];
+
+describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
+  const DIR = setup();
+
+  afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
+
+  const css = () =>
+    compileCSS({ include: ['*.ts', '*.tsx'], exclude: [], cwd: DIR });
+
+  it('replaces each definition with its own name, even when two read the same', async () => {
+    const { code } = await transformSource(env(DIR, 'vars.ts'));
+    const angle = nameOf(code, 'angle');
+    const rotation = nameOf(code, 'rotation');
+    expect(angle).toBeDefined();
+    expect(rotation).toBeDefined();
+    expect(angle).not.toBe(rotation);
+  });
+
+  it('registers a used variable with @property, and inherits only when asked', async () => {
+    const { code: vars } = await transformSource(env(DIR, 'vars.ts'));
+    const { code: page } = await transformSource(env(DIR, 'page.tsx'));
+    const angle = nameOf(vars, 'angle')!;
+    const tint = nameOf(page, 'tint')!;
+    const sheet = css();
+    expect(sheet).toContain(
+      `@property ${angle} {\n  syntax: "<angle>";\n  inherits: false;\n  initial-value: 0deg;\n}`,
+    );
+    expect(sheet).toContain(
+      `@property ${tint} {\n  syntax: "<color>";\n  inherits: true;\n  initial-value: red;\n}`,
+    );
+  });
+
+  it('leaves out the @property of a variable nothing uses', async () => {
+    const { code } = await transformSource(env(DIR, 'vars.ts'));
+    const rotation = nameOf(code, 'rotation')!;
+    expect(css()).not.toContain(`@property ${rotation}`);
+  });
+
+  it('reads the name as a key, inside var(), in a condition and in a function key', async () => {
+    const { code } = await transformSource(env(DIR, 'vars.ts'));
+    const angle = nameOf(code, 'angle')!;
+    const sheet = css();
+    expect(sheet).toContain(`from var(${angle})`);
+    expect(sheet).toContain(`transition: ${angle} 0.3s;`);
+    expect(sheet).toContain(`:hover { ${angle}: 90deg; }`);
+    expect(sheet).toMatch(
+      new RegExp(`\\{ ${angle}: var\\(--[0-9a-z]+-a\\); \\}`),
+    );
+  });
+
+  it('needs a named top-level variable to hash the name from', async () => {
+    const file = path.join(DIR, 'anonymous.ts');
+    fs.writeFileSync(
+      file,
+      `import * as css from '@plumeria/core';\nexport default css.varType({ syntax: '*' });\n`,
+    );
+    await expect(transformSource(env(DIR, 'anonymous.ts'))).rejects.toThrow(
+      /css\.varType must be assigned to a named top-level variable/,
+    );
+    fs.rmSync(file);
+  });
+});
+
+it('gives the same name in both implementations', async () => {
+  const names = await Promise.all(
+    implementations.map(async ({ transformSource }) => {
+      const dir = setup();
+      try {
+        const { code } = await transformSource(env(dir, 'vars.ts'));
+        return [nameOf(code, 'angle'), nameOf(code, 'rotation')];
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    }),
+  );
+  expect(names[0]).toEqual(names[1]);
+});
