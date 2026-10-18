@@ -7,6 +7,7 @@
  * type createStatic = <const T extends CreateStatic>(rule: T)=> T;
  * type keyframes = <const T extends Keyframes>(rule: T) => string;
  * type viewTransition = <const T extends ViewTransition>(rule: T) => string;
+ * type varType = <const T extends VarType>(rule: T) => CSSVariableKey;
  * type marker = (id: string, pseudo: string) => Marker;
  * type extended = <I extends string, P extends string>(id: I, pseudo: P) => Extended<I, P>;
  * type use = (...rules: Style[]) => string;
@@ -31,6 +32,8 @@ declare module '@plumeria/core' {
     CreateStatic,
     Keyframes,
     ViewTransition,
+    VarType,
+    CSSVariableKey,
     Marker,
     Extended,
   } from '#types';
@@ -68,6 +71,9 @@ declare module '@plumeria/core' {
   export type viewTransition = <const T extends ViewTransition>(
     rule: T,
   ) => string;
+
+  export const varType: varType;
+  export type varType = <const T extends VarType>(rule: T) => CSSVariableKey;
 
   export const marker: marker;
   export type marker = (id: string, pseudo: string) => Marker;
