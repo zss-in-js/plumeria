@@ -199,7 +199,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 if selector.starts_with('@') && !is_at_rule(&selector) {
                     return Err(self.fail(
                         format!(
-                            "[plumeria] Unsupported at-rule: \"{selector}\". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope."
+                            "[plumeria] Unsupported at-rule: \"{selector}\". createTheme only supports nesting at-rules such as @media, @container, and @supports."
                         ),
                         Some(selector_expr.span()),
                     ));
@@ -376,7 +376,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 if selector.starts_with('@') && !is_at_rule(&selector) {
                     return Err(self.fail(
                         format!(
-                            "[plumeria] Unsupported at-rule: \"{selector}\". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope."
+                            "[plumeria] Unsupported at-rule: \"{selector}\". createTheme only supports nesting at-rules such as @media, @container, and @supports."
                         ),
                         Some(selector_expr.span()),
                     ));
