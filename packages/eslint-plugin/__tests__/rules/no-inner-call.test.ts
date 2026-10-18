@@ -100,6 +100,11 @@ ruleTester.run('no-inner-call', noInnerCall, {
       settings,
     },
     {
+      code: `import * as css from '@plumeria/core'; (() => { css.varType({ syntax: '*' }); })();`,
+      errors: [{ message: 'Do not use css.varType inside functions' }],
+      settings,
+    },
+    {
       code: `import { createStatic } from '@plumeria/core'; function consts() { createStatic(); }`,
       errors: [{ message: 'Do not use createStatic inside functions' }],
       settings,
