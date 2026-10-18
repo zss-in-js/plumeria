@@ -19,7 +19,7 @@ use crate::eval::functions::{
 use crate::eval::{Env, EvalResult, Evaluator, Lookup, argument_expr, resolve_theme_selector};
 use crate::js::{Object, Value, deep_merge, entries_object};
 use crate::style::records::{atom_class_string, atom_map};
-use crate::style::theme::{theme_atomic_map, theme_hash_of};
+use crate::style::theme::{theme_atomic_map, theme_hash_of, var_type_hash};
 use crate::syntax::expr::{BinOp, E, K, Prop, unwrap};
 use crate::syntax::module::{
     Aliases, CORE, SpecKind, add_core_aliases, import_specs, plumeria_method,
@@ -36,6 +36,8 @@ pub struct LocalTables {
     pub keyframes_obj: Map<Value>,
     pub view_transition_hash: Map<String>,
     pub view_transition_obj: Map<Value>,
+    pub var_type_hash: Map<String>,
+    pub var_type_obj: Map<Value>,
     pub theme_obj: Map<Value>,
     pub theme_selector: Map<String>,
     pub create_hash: Map<String>,
@@ -74,6 +76,7 @@ const STYLE_METHODS: &[&str] = &[
     "createStatic",
     "keyframes",
     "viewTransition",
+    "varType",
 ];
 
 pub fn scan_file_pass<'b, 'a>(
@@ -172,6 +175,16 @@ pub fn scan_file_pass<'b, 'a>(
                             local
                                 .view_transition_obj
                                 .insert(hash.clone(), object.clone());
+                        }
+                    }
+                    if let Some(hash) = tables
+                        .var_type_hash
+                        .get(&resolved_key)
+                        .filter(|h| !h.is_empty())
+                    {
+                        local.var_type_hash.insert(local_name.clone(), hash.clone());
+                        if let Some(object) = tables.var_type_obj.get(hash) {
+                            local.var_type_obj.insert(hash.clone(), object.clone());
                         }
                     }
                     if let Some(hash) = tables
@@ -293,7 +306,7 @@ pub fn scan_file_pass<'b, 'a>(
 
             let is_pass_one = matches!(
                 method.as_str(),
-                "createStatic" | "createTheme" | "keyframes" | "viewTransition"
+                "createStatic" | "createTheme" | "keyframes" | "viewTransition" | "varType"
             );
             if first_pass && !is_pass_one {
                 continue;
@@ -314,6 +327,7 @@ pub fn scan_file_pass<'b, 'a>(
                 statics: &scoped,
                 keyframes: &local.keyframes_hash,
                 view_transitions: &local.view_transition_hash,
+                var_types: &local.var_type_hash,
                 theme_hashes: &local.theme_hash,
                 theme_objects: &local.theme_obj,
                 create_hashes: &local.create_hash,
@@ -379,6 +393,22 @@ pub fn scan_file_pass<'b, 'a>(
                         .insert(hash.clone(), value.clone());
                     local.view_transition_obj.insert(hash.clone(), value);
                     project.register_object_owner(ObjectTable::ViewTransitionObject, &hash, file);
+                }
+                "varType" => {
+                    let value = Value::obj(obj.clone());
+                    let hash = var_type_hash(name, &obj);
+                    local.var_type_hash.insert(name.to_string(), hash.clone());
+                    project
+                        .tables
+                        .var_type_hash
+                        .insert(unique_key.clone(), hash.clone());
+                    project.register_file_key(KeyTable::VarTypeHash, &unique_key, file);
+                    project
+                        .tables
+                        .var_type_obj
+                        .insert(hash.clone(), value.clone());
+                    local.var_type_obj.insert(hash.clone(), value);
+                    project.register_object_owner(ObjectTable::VarTypeObject, &hash, file);
                 }
                 "createTheme" => {
                     let selector_env = Env {
@@ -453,6 +483,7 @@ pub fn scan_file_pass<'b, 'a>(
                             statics: &scoped,
                             keyframes: &local.keyframes_hash,
                             view_transitions: &local.view_transition_hash,
+                            var_types: &local.var_type_hash,
                             theme_hashes: &local.theme_hash,
                             theme_objects: &local.theme_obj,
                             create_hashes: &local.create_hash,
@@ -637,6 +668,7 @@ impl<'p, 'b, 'a> JsxContext<'p, 'b, 'a> {
             statics: &crate::eval::NOTHING,
             keyframes: &self.local.keyframes_hash,
             view_transitions: &self.local.view_transition_hash,
+            var_types: &self.local.var_type_hash,
             theme_hashes: &self.local.theme_hash,
             theme_objects: self.theme_objects,
             create_hashes: &self.local.create_hash,
@@ -1204,6 +1236,10 @@ pub fn jsx_phase<'b, 'a>(
     object_keys.insert(
         ObjectTable::ViewTransitionObject,
         local.view_transition_obj.keys().cloned().collect(),
+    );
+    object_keys.insert(
+        ObjectTable::VarTypeObject,
+        local.var_type_obj.keys().cloned().collect(),
     );
     object_keys.insert(
         ObjectTable::ThemeObject,
