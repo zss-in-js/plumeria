@@ -90,6 +90,7 @@ export const noInnerCall: Rule.RuleModule = {
             propertyName === 'createTheme' ||
             propertyName === 'keyframes' ||
             propertyName === 'viewTransition' ||
+            propertyName === 'positionTry' ||
             propertyName === 'varType'
           ) {
             context.report({
