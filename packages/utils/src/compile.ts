@@ -1407,7 +1407,7 @@ export function compileCSS(options: CompilerOptions) {
           if (selector.startsWith('@') && !isAtRule(selector)) {
             throw new Error(
               `[plumeria] Unsupported at-rule: "${selector}". createTheme only supports ` +
-                `nesting at-rules such as @media, @container, @supports, @layer, and @scope. (${path.basename(resourcePath)})`,
+                `nesting at-rules such as @media, @container, and @supports. (${path.basename(resourcePath)})`,
             );
           }
           const obj = objectExpressionToObject(
@@ -1548,7 +1548,7 @@ export function compileCSS(options: CompilerOptions) {
                 if (selector.startsWith('@') && !isAtRule(selector)) {
                   throw new Error(
                     `[plumeria] Unsupported at-rule: "${selector}". createTheme only supports ` +
-                      `nesting at-rules such as @media, @container, @supports, @layer, and @scope. (${path.basename(resourcePath)})`,
+                      `nesting at-rules such as @media, @container, and @supports. (${path.basename(resourcePath)})`,
                   );
                 }
                 const obj = objectExpressionToObject(
