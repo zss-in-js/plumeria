@@ -78,6 +78,7 @@ const styles = css.create({
     fontSize: 14,
     color: 'var(--color-fd-muted-foreground)',
     textDecoration: 'none',
+    transitionDuration: '0.2s',
     [breakpoints.md]: {
       paddingBlock: 6,
       fontSize: 16,
@@ -85,8 +86,6 @@ const styles = css.create({
     },
     ':hover': {
       color: 'var(--color-fd-foreground)',
-      textDecoration: 'underline',
-      textUnderlineOffset: 4,
     },
   },
   external: {
