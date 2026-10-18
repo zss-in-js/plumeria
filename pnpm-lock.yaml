@@ -34,8 +34,8 @@ catalogs:
       specifier: 5.109.2
       version: 5.109.2
     zss-engine:
-      specifier: 3.0.0
-      version: 3.0.0
+      specifier: 3.0.1
+      version: 3.0.1
 
 importers:
 
@@ -112,7 +112,7 @@ importers:
         version: 6.0.3
       zss-engine:
         specifier: 'catalog:'
-        version: 3.0.0
+        version: 3.0.1
 
   docs:
     dependencies:
@@ -184,7 +184,7 @@ importers:
         version: 4.4.3
       zss-engine:
         specifier: 'catalog:'
-        version: 3.0.0
+        version: 3.0.1
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.5
@@ -962,7 +962,7 @@ importers:
         version: 7.1.1
       zss-engine:
         specifier: 'catalog:'
-        version: 3.0.0
+        version: 3.0.1
 
   packages/compiler:
     devDependencies:
@@ -985,7 +985,7 @@ importers:
         version: 1.87.0
       zss-engine:
         specifier: 'catalog:'
-        version: 3.0.0
+        version: 3.0.1
     devDependencies:
       '@types/eslint':
         specifier: ^9.6.1
@@ -1147,7 +1147,7 @@ importers:
     devDependencies:
       zss-engine:
         specifier: 'catalog:'
-        version: 3.0.0
+        version: 3.0.1
 
   packages/unplugin:
     dependencies:
@@ -1184,7 +1184,7 @@ importers:
         version: 8.5.26
       zss-engine:
         specifier: 'catalog:'
-        version: 3.0.0
+        version: 3.0.1
 
   test-e2e/nextjs:
     dependencies:
@@ -11991,8 +11991,8 @@ packages:
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
-  zss-engine@3.0.0:
-    resolution: {integrity: sha512-HxdHBLQICf61onS5J1ahIJ9xTYn5nMq+nHOkI9Hebx5QU+8XcRKTPMNh16xV8IZUUxtHOmaG/U643TGYMj4R8A==}
+  zss-engine@3.0.1:
+    resolution: {integrity: sha512-j3A+V79icZQuhSSQRI6dz7+XWl2+Imch7Gy5Tp53gEoj+SXKpriMlLkBCQwFyP2tq63cst5Db7KmBZaidopmyA==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -23729,7 +23729,7 @@ snapshots:
 
   zod@4.4.3: {}
 
-  zss-engine@3.0.0:
+  zss-engine@3.0.1:
     dependencies:
       csstype: 3.2.3
 
