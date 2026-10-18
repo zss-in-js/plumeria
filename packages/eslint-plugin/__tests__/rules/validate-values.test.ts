@@ -9,6 +9,82 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('validate-values', validateValues, {
   valid: [
+    // css.varType initial values the browser registers
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>', initialValue: '10px' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>', initialValue: '1vw' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>', initialValue: 'calc(1px + 2px)' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>', initialValue: '0' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length-percentage>', initialValue: '50%' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<number>', initialValue: 0.5 });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<integer>', initialValue: '3' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<angle>', initialValue: '0deg' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<time>', initialValue: '200ms' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<resolution>', initialValue: '2x' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<color>', initialValue: 'red' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<color>', initialValue: 'currentcolor' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<color> | <length>', initialValue: 'red' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<color> | <length>', initialValue: '10px' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>+', initialValue: '1px 2px' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>#', initialValue: '1px, 2px' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: 'small | medium', initialValue: 'small' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<transform-function>', initialValue: 'rotate(10deg)' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<transform-list>', initialValue: 'rotate(10deg) scale(2)' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<string>', initialValue: '"1em"' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<custom-ident>', initialValue: 'auto-fill' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '*', initialValue: 'var(--x)' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<lenght>', initialValue: '1px' });`,
+    },
+    {
+      code: `import { varType } from '@plumeria/core'; const v = varType({ syntax: '<length>', initialValue: '1px' });`,
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: '1em', height: 'var(--x)' } });`,
+    },
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { width: 'min(100%, calc(50% + 10px))' } });`,
     },
@@ -1452,6 +1528,67 @@ ruleTester.run('validate-values', validateValues, {
   ],
 
   invalid: [
+    // css.varType initial values the browser drops
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>', initialValue: '1em' });`,
+      errors: [{ messageId: 'varTypeDependent' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>', initialValue: '1rem' });`,
+      errors: [{ messageId: 'varTypeDependent' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>', initialValue: '10cqw' });`,
+      errors: [{ messageId: 'varTypeDependent' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>', initialValue: 'calc(1px + 1em)' });`,
+      errors: [{ messageId: 'varTypeDependent' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>', initialValue: 'var(--x)' });`,
+      errors: [{ messageId: 'varTypeDependent' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<color> | <length>', initialValue: '1em' });`,
+      errors: [{ messageId: 'varTypeDependent' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<angle>', initialValue: '0' });`,
+      errors: [{ messageId: 'varTypeMismatch' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<angle>', initialValue: 'red' });`,
+      errors: [{ messageId: 'varTypeMismatch' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<time>', initialValue: '200' });`,
+      errors: [{ messageId: 'varTypeMismatch' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>+', initialValue: '1px red' });`,
+      errors: [{ messageId: 'varTypeMismatch' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>#', initialValue: '1px 2px' });`,
+      errors: [{ messageId: 'varTypeMismatch' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: 'small | medium', initialValue: 'large' });`,
+      errors: [{ messageId: 'varTypeMismatch' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<integer>', initialValue: '1.5' });`,
+      errors: [{ messageId: 'varTypeMismatch' }],
+    },
+    {
+      code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<custom-ident>', initialValue: 'inherit' });`,
+      errors: [{ messageId: 'varTypeMismatch' }],
+    },
+    {
+      code: `import { varType } from '@plumeria/core'; const v = varType({ syntax: '<length>', initialValue: '1em' });`,
+      errors: [{ messageId: 'varTypeDependent' }],
+    },
     {
       code: `import * as css from '@plumeria/core'; const styles = css.create({ s: { color: 'color(from red bogus r g b)' } });`,
       errors: [{ messageId: 'validateValue' }],
