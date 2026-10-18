@@ -139,8 +139,8 @@ xatom {
 <Step>
 ## Conditional and nested rules
 
-Conditional rules such as `@media`, `@container`, and `@supports`, as well as
-nested selectors, receive one additional `:not(#\#)`. This lets a conditional
+Conditional rules such as `@media`, `@container`, and `@supports`, the
+`@starting-style` rule, and nested selectors receive one additional `:not(#\#)`. This lets a conditional
 or nested declaration override its base declaration without relying on where
 the generated rule appears in the stylesheet. A nested selector inside a
 condition receives both.
