@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import generateSEOData from 'lib/generateSEOData';
-import { copyright, footerGroups } from 'lib/footerGroups';
+import { copyright, footerGroups, footerSocialLinks } from 'lib/footerGroups';
 
 export const dynamic = 'force-static';
 
@@ -45,6 +45,13 @@ const footerGroupsHtml = footerGroups
   .map(
     ({ heading, links }) =>
       `<div><h2 class="site-footer-heading">${heading}</h2><ul class="site-footer-list">${links.map((link) => `<li>${footerLinkHtml(link)}</li>`).join('')}</ul></div>`,
+  )
+  .join('');
+
+const footerSocialHtml = footerSocialLinks
+  .map(
+    ({ label, href, path }) =>
+      `<a href="${href}" target="_blank" rel="noreferrer noopener" aria-label="${label}" class="site-footer-social-link"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="${path}"/></svg></a>`,
   )
   .join('');
 
@@ -112,7 +119,7 @@ const html = `<!doctype html>
           <nav aria-label="Resources" class="site-footer-groups">
 ${footerGroupsHtml}
           </nav>
-          <div class="site-footer-legal"><span>${copyright}</span><span aria-hidden="true">·</span><a href="/privacy" class="site-footer-link">privacy</a></div>
+          <div class="site-footer-legal"><span>${copyright}</span><span aria-hidden="true">·</span><a href="/privacy" class="site-footer-link">privacy</a><div class="site-footer-social">${footerSocialHtml}</div></div>
         </footer>
       </div>
     </main>
