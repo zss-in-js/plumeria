@@ -43,6 +43,7 @@ pub enum KeyTable {
     Static,
     KeyframesHash,
     ViewTransitionHash,
+    VarTypeHash,
     ThemeHash,
     CreateHash,
     CreateFunction,
@@ -53,6 +54,7 @@ pub enum KeyTable {
 pub enum ObjectTable {
     KeyframesObject,
     ViewTransitionObject,
+    VarTypeObject,
     ThemeObject,
     ThemeSelector,
     CreateObject,
@@ -67,6 +69,8 @@ pub struct Tables {
     pub keyframes_obj: Map<Value>,
     pub view_transition_hash: Map<String>,
     pub view_transition_obj: Map<Value>,
+    pub var_type_hash: Map<String>,
+    pub var_type_obj: Map<Value>,
     pub theme_hash: Map<String>,
     pub theme_selector: Map<String>,
     pub theme_obj: Map<Value>,
@@ -92,6 +96,9 @@ impl Tables {
             KeyTable::ViewTransitionHash => {
                 self.view_transition_hash.remove(key);
             }
+            KeyTable::VarTypeHash => {
+                self.var_type_hash.remove(key);
+            }
             KeyTable::ThemeHash => {
                 self.theme_hash.remove(key);
             }
@@ -114,6 +121,9 @@ impl Tables {
             }
             ObjectTable::ViewTransitionObject => {
                 self.view_transition_obj.remove(hash);
+            }
+            ObjectTable::VarTypeObject => {
+                self.var_type_obj.remove(hash);
             }
             ObjectTable::ThemeObject => {
                 self.theme_obj.remove(hash);
