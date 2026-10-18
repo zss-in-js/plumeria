@@ -1,0 +1,88 @@
+---
+title: 'css.varType'
+description: 'Typed custom properties registered with @property, so they can transition and animate.'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+```ts
+export type varType = <const T extends VarType>(rule: T) => CSSVariableKey;
+export const varType: varType;
+```
+
+The `varType()` method registers a custom property with `@property` and returns its name (a unique hash that is inlined during build time). A registered property has a type, so the browser can interpolate it in transitions and animations, such as the angle of a gradient.
+
+## Example
+
+<Tabs items={["ts", "css"]}>
+  <Tab>
+    ```ts title="TypeScript"
+    import * as css from '@plumeria/core'
+
+    const angle = css.varType({
+      syntax: '<angle>',
+      initialValue: '0deg',
+    });
+
+    const styles = css.create({
+      ring: {
+        background: `conic-gradient(from var(${angle}), #d653bb, #2aa4f4, #d653bb)`,
+        transition: `${angle} 0.6s ease`,
+        ':hover': {
+          [angle]: '180deg',
+        },
+      },
+    });
+    ```
+  </Tab>
+  <Tab>
+    ```css title="CSS"
+    @property --pr-xy9ywt9x {
+      syntax: "<angle>";
+      inherits: false;
+      initial-value: 0deg;
+    }
+
+    .x3387w0m { background: conic-gradient(from var(--pr-xy9ywt9x), #d653bb, #2aa4f4, #d653bb); }
+    .x5q2m834 { transition: --pr-xy9ywt9x 0.6s ease; }
+    .xblf4qye:hover { --pr-xy9ywt9x: 180deg; }
+    ```
+  </Tab>
+</Tabs>
+
+## Options
+
+- `syntax`: The type of the value, such as `'<length>'`, `'<color>'` or `'<angle>'`. Types can be combined with `|`, as in `'<length> | <percentage>'`, and a type followed by `+` or `#` takes a list separated by spaces or commas. `'*'` accepts any value.
+- `initialValue`: The value the property has until it is set. It is required for every syntax but `'*'`.
+- `inherits`: Whether the property inherits from its parent. It defaults to `false`.
+
+## Usage
+
+The returned name is a custom property name. Use it as a key to set the value, and inside `var()` to read it:
+
+```ts
+const styles = css.create({
+  box: {
+    [angle]: '45deg',
+    transform: `rotate(var(${angle}))`,
+  },
+  rotate: (value: string) => ({
+    [angle]: value,
+  }),
+});
+```
+
+`@property` is emitted only for a name that is used in a style, so a definition nothing uses adds nothing to the stylesheet. A definition can be exported and imported from another module like `keyframes`.
+
+## Validation
+
+The browser ignores an `@property` whose `initialValue` does not match its `syntax`. A definition the stylesheet cannot parse, such as a misspelled type or an initial value of another type, stops the build at the definition:
+
+```ts
+const size = css.varType({
+  syntax: '<length>',
+  initialValue: 'red',
+});
+```
+
+`validate-values` reports the same mismatch in the editor. It also reports an initial value that depends on where it is used, which the browser drops without a warning: font-relative units such as `em` and `rem`, container units such as `cqw`, and `var()`. Use an absolute value such as `16px` instead.
