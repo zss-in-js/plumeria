@@ -1,5 +1,17 @@
 # @plumeria/next-plugin
 
+## 20.0.0
+
+### Major Changes
+
+- 1bf429a: Bump version to 20.0.0
+
+### Patch Changes
+
+- Updated dependencies [1bf429a]
+  - @plumeria/eslint-plugin@20.0.0
+  - @plumeria/turbopack-loader@20.0.0
+
 ## 19.15.0
 
 ### Minor Changes
