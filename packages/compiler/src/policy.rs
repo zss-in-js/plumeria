@@ -141,7 +141,7 @@ impl<'a> Visit<'a> for Check<'_> {
         }
         let api = plumeria_method(&it.callee, &self.aliases).map(str::to_string);
         if let Some(api) = api
-            && ["create", "keyframes", "viewTransition"].contains(&api.as_str())
+            && ["create", "keyframes", "viewTransition", "positionTry"].contains(&api.as_str())
         {
             for argument in &it.arguments {
                 let expr = match argument {
@@ -151,6 +151,13 @@ impl<'a> Visit<'a> for Check<'_> {
                 let Expression::ObjectExpression(object) = expr else {
                     continue;
                 };
+                if api == "positionTry" {
+                    self.check(object);
+                    if self.error.is_some() {
+                        return;
+                    }
+                    continue;
+                }
                 for prop in &object.properties {
                     let Some(prop) = is_key_value(prop) else {
                         continue;
