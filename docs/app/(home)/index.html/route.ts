@@ -11,12 +11,21 @@ const seo = generateSEOData({
   subtitle: 'Plumeria is a zero-cost abstraction layer for styling React components.',
 });
 
-const topCssVersion = createHash('sha256')
-  .update(readFileSync(join(process.cwd(), 'public/top.css')))
-  .digest('hex')
-  .slice(0, 8);
+const cssVersion = (file: string) =>
+  createHash('sha256')
+    .update(readFileSync(join(process.cwd(), 'public', file)))
+    .digest('hex')
+    .slice(0, 8);
 
 const themeScript = `try{var t=localStorage.getItem('theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);var e=document.documentElement;e.classList.toggle('dark',d);e.style.colorScheme=d?'dark':'light'}catch(_){}`;
+
+const themeToggleScript = `document.querySelector('.theme').addEventListener('click',()=>{var e=document.documentElement,d=!e.classList.contains('dark'),t=d?'dark':'light';try{localStorage.setItem('theme',t)}catch(_){}e.classList.toggle('dark',d);e.style.colorScheme=t})`;
+
+const githubIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.026 2c-5.509 0-9.974 4.465-9.974 9.974c0 4.406 2.857 8.145 6.821 9.465c.499.09.679-.217.679-.481c0-.237-.008-.865-.011-1.696c-2.775.602-3.361-1.338-3.361-1.338c-.452-1.152-1.107-1.459-1.107-1.459c-.905-.619.069-.605.069-.605c1.002.07 1.527 1.028 1.527 1.028c.89 1.524 2.336 1.084 2.902.829c.091-.645.351-1.085.635-1.334c-2.214-.251-4.542-1.107-4.542-4.93c0-1.087.389-1.979 1.024-2.675c-.101-.253-.446-1.268.099-2.64c0 0 .837-.269 2.742 1.021a9.582 9.582 0 0 1 2.496-.336a9.554 9.554 0 0 1 2.496.336c1.906-1.291 2.742-1.021 2.742-1.021c.545 1.372.203 2.387.099 2.64c.64.696 1.024 1.587 1.024 2.675c0 3.833-2.33 4.675-4.552 4.922c.355.308.675.916.675 1.846c0 1.334-.012 2.41-.012 2.737c0 .267.178.577.687.479C19.146 20.115 22 16.379 22 11.974C22 6.465 17.535 2 12.026 2z"/></svg>`;
+
+const sunIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`;
+
+const moonIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
 
 const heroHeightScript = `(()=>{var w=0,e=document.documentElement;function s(){if(innerWidth!==w){w=innerWidth;e.style.setProperty('--hero-height',innerHeight+'px')}}s();addEventListener('resize',s)})()`;
 
@@ -29,13 +38,13 @@ const externalIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none
 
 const footerLinkHtml = ({ label, href, external }: { label: string; href: string; external?: boolean }) =>
   external
-    ? `<a href="${href}" target="_blank" rel="noreferrer noopener" class="link external">${label}${externalIcon}</a>`
-    : `<a href="${href}" class="link">${label}</a>`;
+    ? `<a href="${href}" target="_blank" rel="noreferrer noopener" class="site-footer-link site-footer-external">${label}${externalIcon}</a>`
+    : `<a href="${href}" class="site-footer-link">${label}</a>`;
 
 const footerGroupsHtml = footerGroups
   .map(
     ({ heading, links }) =>
-      `<div><h2 class="heading">${heading}</h2><ul class="list">${links.map((link) => `<li>${footerLinkHtml(link)}</li>`).join('')}</ul></div>`,
+      `<div><h2 class="site-footer-heading">${heading}</h2><ul class="site-footer-list">${links.map((link) => `<li>${footerLinkHtml(link)}</li>`).join('')}</ul></div>`,
   )
   .join('');
 
@@ -64,7 +73,8 @@ const html = `<!doctype html>
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-icon.png">
     <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="/top.css?v=${topCssVersion}">
+    <link rel="stylesheet" href="/top.css?v=${cssVersion('top.css')}">
+    <link rel="stylesheet" href="/footer.css?v=${cssVersion('footer.css')}">
     <script type="speculationrules">${speculationRules}</script>
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
@@ -77,12 +87,14 @@ const html = `<!doctype html>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
         </button>
         <div id="home-menu" popover="auto" class="menu">
-          <a href="/docs" class="menu-link">Docs</a>
-          <a href="/playground" class="menu-link">Playground</a>
-          <a href="https://github.com/zss-in-js/plumeria" target="_blank" rel="noreferrer noopener" class="menu-link external">
-            GitHub
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5H4v15h15v-7"/><path d="M14 3h7v7M21 3 11 13"/></svg>
-          </a>
+          <div class="menu-body">
+            <a href="/docs" class="menu-link">Docs</a>
+            <a href="/playground" class="menu-link">Playground</a>
+            <div class="menu-actions">
+              <a href="https://github.com/zss-in-js/plumeria" target="_blank" rel="noreferrer noopener" aria-label="GitHub" class="icon-link">${githubIcon}</a>
+              <button type="button" aria-label="Toggle Theme" class="theme"><span class="theme-icon theme-light">${sunIcon}</span><span class="theme-icon theme-dark">${moonIcon}</span></button>
+            </div>
+          </div>
         </div>
       </nav>
     </header>
@@ -96,14 +108,15 @@ const html = `<!doctype html>
             <a href="/docs/why-plumeria" class="button">Why Plumeria?</a>
           </div>
         </div>
-        <footer class="footer">
-          <nav aria-label="Resources" class="groups">
+        <footer class="site-footer">
+          <nav aria-label="Resources" class="site-footer-groups">
 ${footerGroupsHtml}
           </nav>
-          <div class="legal"><span>${copyright}</span><span aria-hidden="true">·</span><a href="/privacy" class="link">privacy</a></div>
+          <div class="site-footer-legal"><span>${copyright}</span><span aria-hidden="true">·</span><a href="/privacy" class="site-footer-link">privacy</a></div>
         </footer>
       </div>
     </main>
+    <script>${themeToggleScript}</script>
   </body>
 </html>
 `;
