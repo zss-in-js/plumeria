@@ -10,6 +10,8 @@ import type {
   TurbopackRuleConfigItem,
 } from 'next/dist/server/config-shared';
 
+const { version } = require('../../turbopack-loader/package.json');
+
 describe('withPlumeria', () => {
   it('starts the lint guard unless lint is false', () => {
     const { startNextLintGuard } = jest.requireMock<{
@@ -51,7 +53,7 @@ describe('withPlumeria', () => {
     const rule = config.turbopack!.rules!['*.tsx'] as {
       loaders: { options: Record<string, unknown> }[];
     };
-    expect(rule.loaders[0].options).toEqual({ styleProp: 'css' });
+    expect(rule.loaders[0].options).toEqual({ styleProp: 'css', version });
   });
 
   it('calls original webpack function if exists', () => {
@@ -148,7 +150,7 @@ describe('withPlumeria', () => {
       expect(tsRule.loaders).toHaveLength(2);
       expect(tsRule.loaders[0]).toEqual({
         loader: '@plumeria/turbopack-loader',
-        options: {},
+        options: { version },
       });
       expect(tsRule.loaders[1]).toBe('existing-loader');
     });
@@ -239,7 +241,10 @@ describe('withPlumeria', () => {
 
     it('reaches the turbopack loader', () => {
       const options = { styleProp: 'sx', include: ['./src/**/*.tsx'] };
-      expect(loaderItem(withPlumeria({}, options)).options).toEqual(options);
+      expect(loaderItem(withPlumeria({}, options)).options).toEqual({
+        ...options,
+        version,
+      });
     });
 
     it('reaches the webpack loader too, so both bundlers agree', () => {
@@ -263,13 +268,18 @@ describe('withPlumeria', () => {
       expect(
         withPlumeria({}, options).turbopack?.rules?.['zero-virtual.css'],
       ).toEqual({
-        loaders: [{ loader: '@plumeria/turbopack-loader/css', options }],
+        loaders: [
+          {
+            loader: '@plumeria/turbopack-loader/css',
+            options: { ...options, version },
+          },
+        ],
         as: '*.css',
       });
     });
 
-    it('defaults to an empty set when the caller passes none', () => {
-      expect(loaderItem(withPlumeria()).options).toEqual({});
+    it('carries only the loader version when the caller passes none, so Turbopack drops transforms cached by another version', () => {
+      expect(loaderItem(withPlumeria()).options).toEqual({ version });
     });
   });
 
