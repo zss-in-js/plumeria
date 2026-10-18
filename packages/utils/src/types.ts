@@ -15,6 +15,7 @@ export type StaticTable = Record<string, CSSValue>; // varName -> object
 export type KeyframesHashTable = Record<string, string>; // varName -> hash
 export type KeyframesObjectTable = Record<string, CSSObject>; // hashKey: { string: { string: string | number }, ... }
 export type ViewTransitionHashTable = Record<string, string>; // varName -> hash
+export type VarTypeHashTable = Record<string, string>; // varName -> hash
 export type ViewTransitionObjectTable = Record<string, CSSObject>; // hashKey: { new: { string: string| number }, old: { string: string| number } }
 export type CreateThemeObjectTable = Record<string, CSSObject>; // { string: { varName: { varName: value }, ... } }
 export type CreateHashTable = Record<string, string>; // varName -> hash
@@ -46,6 +47,8 @@ export interface Tables {
   keyframesObjectTable: KeyframesObjectTable;
   viewTransitionHashTable: ViewTransitionHashTable;
   viewTransitionObjectTable: ViewTransitionObjectTable;
+  varTypeHashTable?: VarTypeHashTable;
+  varTypeObjectTable?: Record<string, CSSObject>;
   createThemeHashTable: CreateThemeHashTable;
   createThemeSelectorTable: CreateThemeSelectorTable;
   createThemeObjectTable: CreateThemeObjectTable;
