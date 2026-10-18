@@ -8,6 +8,7 @@ const stub = join(root, 'lib', 'node-stub.cjs');
 const pathPolyfill = createRequire(import.meta.url).resolve('path-browserify');
 const utilsShim = join(root, 'app', '(docs)', 'playground', 'utils-shim.ts');
 const compilerWasm = dirname(createRequire(import.meta.url).resolve('@plumeria/compiler-wasm32-wasi/package.json'));
+const wasmRuntime = dirname(createRequire(join(compilerWasm, 'package.json')).resolve('@napi-rs/wasm-runtime'));
 
 const nodeBuiltins = [
   'fs',
@@ -56,6 +57,10 @@ const stubPlugin = {
     });
 
     build.onResolve({ filter: /^(node:)?path$/ }, () => ({ path: pathPolyfill }));
+
+    build.onResolve({ filter: /^@napi-rs\/wasm-runtime(\/fs)?$/ }, ({ path }) => ({
+      path: join(wasmRuntime, path.endsWith('/fs') ? join('dist', 'fs.js') : 'runtime.js'),
+    }));
 
     build.onResolve({ filter: /^@plumeria\/(utils|compiler)$/ }, () => ({ path: utilsShim }));
 
@@ -132,6 +137,7 @@ await build({
     join(previewSrc, 'jsx-dev-runtime.ts'),
     join(previewSrc, 'core.ts'),
     join(previewSrc, 'boot.ts'),
+    join(previewSrc, 'output-worker.ts'),
   ],
   outdir: previewDir,
   outExtension: { '.js': '.mjs' },
@@ -149,8 +155,8 @@ await build({
 await copyFile(join(compilerWasm, 'compiler.wasm32-wasi.wasm'), join(previewDir, 'compiler.wasm32-wasi.wasm'));
 
 await build({
-  entryPoints: [join(compilerWasm, 'wasi-worker-browser.mjs')],
-  outfile: join(previewDir, 'wasi-worker-browser.mjs'),
+  entryPoints: [join(previewSrc, 'compiler-worker.ts')],
+  outfile: join(previewDir, 'compiler-worker.mjs'),
   bundle: true,
   format: 'esm',
   minify: true,
