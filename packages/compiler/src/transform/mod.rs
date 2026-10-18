@@ -92,6 +92,7 @@ pub struct Transformer<'t, 'p, 'b, 'a> {
     pub merged_static: Object,
     pub merged_keyframes: Map<String>,
     pub merged_view_transitions: Map<String>,
+    pub merged_position_tries: Map<String>,
     pub merged_var_types: Map<String>,
     pub merged_create: Map<String>,
     pub merged_theme: Map<String>,
@@ -284,6 +285,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 &self.merged_view_transitions,
                 &self.tables.view_transition_hash,
             ),
+            position_tries: Chain::two(&self.merged_position_tries, &self.tables.position_try_hash),
             var_types: Chain::two(&self.merged_var_types, &self.tables.var_type_hash),
             theme_hashes: Chain::three(
                 &self.merged_theme,
@@ -402,6 +404,13 @@ impl SheetTables for OverlayView<'_> {
             .view_transition_obj
             .get(hash)
             .or_else(|| self.tables.view_transition_obj.get(hash))
+            .cloned()
+    }
+    fn position_try_obj(&self, hash: &str) -> Option<Value> {
+        self.writes
+            .position_try_obj
+            .get(hash)
+            .or_else(|| self.tables.position_try_obj.get(hash))
             .cloned()
     }
     fn var_type_obj(&self, hash: &str) -> Option<Value> {
@@ -527,6 +536,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
             merged_static: Object::new(),
             merged_keyframes: Map::default(),
             merged_view_transitions: Map::default(),
+            merged_position_tries: Map::default(),
             merged_var_types: Map::default(),
             merged_create: Map::default(),
             merged_theme: Map::default(),
@@ -623,6 +633,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
         let mut import_map = Object::new();
         let mut keyframes_imports: Map<String> = Map::default();
         let mut view_transition_imports: Map<String> = Map::default();
+        let mut position_try_imports: Map<String> = Map::default();
         let mut var_type_imports: Map<String> = Map::default();
         let mut create_imports: Map<String> = Map::default();
         let mut theme_imports: Map<String> = Map::default();
@@ -685,6 +696,13 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                     view_transition_imports.insert(local_name.clone(), hash.clone());
                 }
                 if let Some(hash) = tables
+                    .position_try_hash
+                    .get(&unique_key)
+                    .filter(|h| !h.is_empty())
+                {
+                    position_try_imports.insert(local_name.clone(), hash.clone());
+                }
+                if let Some(hash) = tables
                     .var_type_hash
                     .get(&unique_key)
                     .filter(|h| !h.is_empty())
@@ -743,6 +761,13 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
             &mut self.merged_view_transitions,
         );
         self.merged_view_transitions.extend(view_transition_imports);
+        own(
+            self.project,
+            KeyTable::PositionTryHash,
+            &self.tables.position_try_hash,
+            &mut self.merged_position_tries,
+        );
+        self.merged_position_tries.extend(position_try_imports);
         own(
             self.project,
             KeyTable::VarTypeHash,
