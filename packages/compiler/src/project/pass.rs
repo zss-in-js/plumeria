@@ -36,6 +36,8 @@ pub struct LocalTables {
     pub keyframes_obj: Map<Value>,
     pub view_transition_hash: Map<String>,
     pub view_transition_obj: Map<Value>,
+    pub position_try_hash: Map<String>,
+    pub position_try_obj: Map<Value>,
     pub var_type_hash: Map<String>,
     pub var_type_obj: Map<Value>,
     pub theme_obj: Map<Value>,
@@ -76,6 +78,7 @@ const STYLE_METHODS: &[&str] = &[
     "createStatic",
     "keyframes",
     "viewTransition",
+    "positionTry",
     "varType",
 ];
 
@@ -175,6 +178,18 @@ pub fn scan_file_pass<'b, 'a>(
                             local
                                 .view_transition_obj
                                 .insert(hash.clone(), object.clone());
+                        }
+                    }
+                    if let Some(hash) = tables
+                        .position_try_hash
+                        .get(&resolved_key)
+                        .filter(|h| !h.is_empty())
+                    {
+                        local
+                            .position_try_hash
+                            .insert(local_name.clone(), hash.clone());
+                        if let Some(object) = tables.position_try_obj.get(hash) {
+                            local.position_try_obj.insert(hash.clone(), object.clone());
                         }
                     }
                     if let Some(hash) = tables
@@ -306,7 +321,12 @@ pub fn scan_file_pass<'b, 'a>(
 
             let is_pass_one = matches!(
                 method.as_str(),
-                "createStatic" | "createTheme" | "keyframes" | "viewTransition" | "varType"
+                "createStatic"
+                    | "createTheme"
+                    | "keyframes"
+                    | "viewTransition"
+                    | "positionTry"
+                    | "varType"
             );
             if first_pass && !is_pass_one {
                 continue;
@@ -327,6 +347,7 @@ pub fn scan_file_pass<'b, 'a>(
                 statics: &scoped,
                 keyframes: &local.keyframes_hash,
                 view_transitions: &local.view_transition_hash,
+                position_tries: &local.position_try_hash,
                 var_types: &local.var_type_hash,
                 theme_hashes: &local.theme_hash,
                 theme_objects: &local.theme_obj,
@@ -393,6 +414,24 @@ pub fn scan_file_pass<'b, 'a>(
                         .insert(hash.clone(), value.clone());
                     local.view_transition_obj.insert(hash.clone(), value);
                     project.register_object_owner(ObjectTable::ViewTransitionObject, &hash, file);
+                }
+                "positionTry" => {
+                    let value = Value::obj(obj.clone());
+                    let hash = hash_object(&obj);
+                    local
+                        .position_try_hash
+                        .insert(name.to_string(), hash.clone());
+                    project
+                        .tables
+                        .position_try_hash
+                        .insert(unique_key.clone(), hash.clone());
+                    project.register_file_key(KeyTable::PositionTryHash, &unique_key, file);
+                    project
+                        .tables
+                        .position_try_obj
+                        .insert(hash.clone(), value.clone());
+                    local.position_try_obj.insert(hash.clone(), value);
+                    project.register_object_owner(ObjectTable::PositionTryObject, &hash, file);
                 }
                 "varType" => {
                     let value = Value::obj(obj.clone());
@@ -483,6 +522,7 @@ pub fn scan_file_pass<'b, 'a>(
                             statics: &scoped,
                             keyframes: &local.keyframes_hash,
                             view_transitions: &local.view_transition_hash,
+                            position_tries: &local.position_try_hash,
                             var_types: &local.var_type_hash,
                             theme_hashes: &local.theme_hash,
                             theme_objects: &local.theme_obj,
@@ -668,6 +708,7 @@ impl<'p, 'b, 'a> JsxContext<'p, 'b, 'a> {
             statics: &crate::eval::NOTHING,
             keyframes: &self.local.keyframes_hash,
             view_transitions: &self.local.view_transition_hash,
+            position_tries: &self.local.position_try_hash,
             var_types: &self.local.var_type_hash,
             theme_hashes: &self.local.theme_hash,
             theme_objects: self.theme_objects,
@@ -1236,6 +1277,10 @@ pub fn jsx_phase<'b, 'a>(
     object_keys.insert(
         ObjectTable::ViewTransitionObject,
         local.view_transition_obj.keys().cloned().collect(),
+    );
+    object_keys.insert(
+        ObjectTable::PositionTryObject,
+        local.position_try_obj.keys().cloned().collect(),
     );
     object_keys.insert(
         ObjectTable::VarTypeObject,
