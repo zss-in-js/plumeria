@@ -113,6 +113,20 @@ export const entering = css.create({
   },
 });
 
+export const above: `--${string}` = css.positionTry({
+  positionArea: 'top',
+  marginBottom: 8,
+});
+
+// @ts-expect-error @position-try only takes position, margin, size and alignment properties
+css.positionTry({ color: 'red' });
+
+export const anchored = css.create({
+  tooltip: {
+    positionTryFallbacks: `${above}, flip-inline`,
+  },
+});
+
 export const angle = css.varType({
   syntax: '<angle>',
   initialValue: '0deg',
