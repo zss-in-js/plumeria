@@ -1,0 +1,81 @@
+---
+title: 'css.positionTry'
+description: 'Named @position-try fallbacks for anchor positioning.'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+```ts
+export type positionTry = (rule: PositionTry) => CSSVariableKey;
+export const positionTry: positionTry;
+```
+
+The `positionTry()` method defines an `@position-try` rule and returns its name (a unique hash that is inlined during build time). An anchor-positioned element lists the name in `positionTryFallbacks`, and the browser moves it to that position when it does not fit where it is.
+
+## Example
+
+<Tabs items={["ts", "css"]}>
+  <Tab>
+    ```ts title="TypeScript"
+    import * as css from '@plumeria/core'
+
+    const above = css.positionTry({
+      positionArea: 'top',
+      marginBottom: 8,
+    });
+
+    const styles = css.create({
+      tooltip: {
+        position: 'absolute',
+        positionAnchor: '--trigger',
+        positionArea: 'bottom',
+        marginTop: 8,
+        positionTryFallbacks: `${above}, flip-inline`,
+      },
+    });
+    ```
+  </Tab>
+  <Tab>
+    ```css title="CSS"
+    @position-try --pt-xndu7ecb {
+      position-area: top;
+      margin-bottom: 8px;
+    }
+
+    .xobmrwib { position: absolute; }
+    .x54fk64s { position-anchor: --trigger; }
+    .xa1mxswp { position-area: bottom; }
+    .xxb8i1k0:not(#\#):not(#\#) { margin-top: 8px; }
+    .xpww34nj:not(#\#) { position-try-fallbacks: --pt-xndu7ecb, flip-inline; }
+    ```
+  </Tab>
+</Tabs>
+
+## Properties
+
+`@position-try` only accepts the properties that place the element:
+
+- `positionAnchor` and `positionArea`
+- Insets: `inset`, `top`, `right`, `bottom`, `left` and their logical forms
+- Margins: `margin` and its longhands
+- Sizing: `width`, `height`, `inlineSize`, `blockSize` and their `min` and `max` forms
+- Self-alignment: `placeSelf`, `alignSelf` and `justifySelf`
+
+Other properties, nested selectors and at-rules are a type error, and `no-unknown-css-properties` reports them in the editor.
+
+## Usage
+
+The returned name is used in a value, alone or in a list with other names and keywords such as `flip-inline`:
+
+```ts
+const styles = css.create({
+  menu: {
+    positionTryFallbacks: above,
+  },
+  tooltip: {
+    positionTryFallbacks: `${above}, flip-block`,
+  },
+});
+```
+
+`@position-try` is emitted only for a name that is used in a style, so a definition nothing uses adds nothing to the stylesheet. A definition can be exported and imported from another module like `keyframes`.
