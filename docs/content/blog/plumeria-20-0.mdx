@@ -1,0 +1,120 @@
+---
+title: 'Plumeria 20.0'
+description: 'Feat: css.positionTry and @starting-style; Update: @layer and @scope are no longer accepted as style keys'
+date: '2026-10-18'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v20.0 adds `css.positionTry` for anchor positioning fallbacks and accepts `@starting-style` as a key. It also stops accepting `@layer` and `@scope`, which is why this is a major release.
+
+## 1. `@layer` and `@scope` are no longer accepted
+
+In Plumeria, the style composed last wins: `css.use(styles.base, styles.active)` and `classStyle={[styles.base, styles.active]}` both mean `active` overrides `base`. Every at-rule key has to keep that promise, and these two cannot.
+
+- A style inside `@layer` loses to every unlayered style, wherever it is composed.
+- A style inside `@scope` is decided by how close its scope root is to the element, before composition order is looked at. This happens in Chromium, Firefox and WebKit alike.
+
+So a key such as `'@layer base'` or `'@scope (.card)'` used to compile into a style whose place in the composition did not decide anything. Both are now rejected in `css.create` and as a `css.createTheme` selector: the compiler stops with an error, the types no longer accept them, and `validate-at-rules` reports them in the editor.
+
+The keys that remain are `@media`, `@container`, `@supports` and `@starting-style`. A stylesheet that needs layers or scopes can still be written in global CSS next to Plumeria.
+
+## 2. `@starting-style`
+
+`@starting-style` sets the values an element transitions from when it first appears, such as a popover opening or a dialog being added to the page:
+
+```ts
+import * as css from '@plumeria/core';
+
+const styles = css.create({
+  popover: {
+    opacity: 1,
+    transition:
+      'opacity 0.3s, display 0.3s allow-discrete, overlay 0.3s allow-discrete',
+    '@starting-style': {
+      opacity: 0,
+    },
+  },
+});
+```
+
+```css
+@starting-style {
+  .xgnu9yxr:not(#\#) {
+    opacity: 0;
+  }
+}
+```
+
+It composes like any other key: a style composed later that sets its own starting value wins. `@starting-style` takes no condition, so `validate-at-rules` reports one written after it.
+
+## 3. `css.positionTry`
+
+Anchor positioning places an element next to another one, and `position-try-fallbacks` lists where to go when it does not fit. A named fallback is an `@position-try` rule, which used to mean writing it in global CSS and repeating its name as a string.
+
+`css.positionTry` returns the name instead:
+
+```ts
+import * as css from '@plumeria/core';
+
+const above = css.positionTry({
+  positionArea: 'top',
+  marginBottom: 8,
+});
+
+const styles = css.create({
+  tooltip: {
+    position: 'absolute',
+    positionAnchor: '--trigger',
+    positionArea: 'bottom',
+    marginTop: 8,
+    positionTryFallbacks: `${above}, flip-inline`,
+  },
+});
+```
+
+```css
+@position-try --pt-xndu7ecb {
+  position-area: top;
+  margin-bottom: 8px;
+}
+```
+
+Like `css.keyframes` and `css.varType`, the name is a value you import, and the rule is emitted only when a style uses it. `@position-try` only accepts inset, margin, sizing and self-alignment properties, `positionAnchor` and `positionArea`, and the types allow only those.
+
+## 4. Lint
+
+- `no-unknown-css-properties` reports a property that `@position-try` does not accept inside `css.positionTry`.
+- The rules that read the styles in `css.keyframes` and `css.viewTransition` read `css.positionTry` as well, and `no-mutable-binding`, `no-destructure` and `no-inner-call` cover it.
+- `sort-properties` places the anchor positioning properties right after `position`.
+
+## 5. Codemod
+
+Exporting to CSS Modules wrote a lone condition such as `classStyle={open && styles.panel}` as `className={open && styles.panel}`, which does not type-check because `className` does not take `false`. It is now written as `(open && styles.panel) || undefined`, and adopting the project back reads it as `classStyle={[open && styles.panel]}`.
+
+## Upgrading
+
+The `@plumeria` packages share one version number, so upgrade them together:
+
+```bash
+pnpm up "@plumeria/*" --latest
+```
+
+---
+
+## Release notes
+
+## 20.0.0 (Oct 18, 2026)
+
+- Feat: `css.positionTry` defines an `@position-try` rule and returns its dashed name, and emits the rule only when the name is used in a value
+- Feat: `@starting-style` is accepted as a key in `css.create`, so an element can transition in from its starting values
+- Update: `@layer` and `@scope` are no longer accepted as keys in `css.create` or as a `createTheme` selector, because a layered or scoped style is not decided by composition order; `validate-at-rules` reports them
+- Feat: `no-unknown-css-properties` reports properties that `@position-try` does not accept inside `css.positionTry`
+- Feat: the rules that read styles in `css.keyframes` and `css.viewTransition` also read `css.positionTry`, and `no-mutable-binding`, `no-destructure` and `no-inner-call` cover it
+- Update: `sort-properties` places the anchor positioning properties right after `position`
+- Fix: the export codemod writes a lone `classStyle` condition that can be false, such as `open && styles.x`, as `(open && styles.x) || undefined`, since `className` does not take `false`, and the adopt codemod reads it back into `classStyle`
