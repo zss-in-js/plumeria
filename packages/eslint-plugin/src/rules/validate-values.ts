@@ -2274,6 +2274,8 @@ export const validateValues: Rule.RuleModule = {
         }
 
         let isCssProperties = false;
+
+        let isPositionTry = false;
         if (node.callee.type === 'MemberExpression') {
           if (
             node.callee.object.type === 'Identifier' &&
@@ -2286,9 +2288,11 @@ export const validateValues: Rule.RuleModule = {
             if (
               propertyName === 'create' ||
               propertyName === 'keyframes' ||
-              propertyName === 'viewTransition'
+              propertyName === 'viewTransition' ||
+              propertyName === 'positionTry'
             ) {
               isCssProperties = true;
+              isPositionTry = propertyName === 'positionTry';
             }
           }
         } else if (node.callee.type === 'Identifier') {
@@ -2296,9 +2300,11 @@ export const validateValues: Rule.RuleModule = {
           if (
             alias === 'create' ||
             alias === 'keyframes' ||
-            alias === 'viewTransition'
+            alias === 'viewTransition' ||
+            alias === 'positionTry'
           ) {
             isCssProperties = true;
+            isPositionTry = alias === 'positionTry';
           }
         }
 
@@ -2306,6 +2312,10 @@ export const validateValues: Rule.RuleModule = {
 
         node.arguments.forEach((arg) => {
           if (arg.type === 'ObjectExpression') {
+            if (isPositionTry) {
+              checkStyleObject(arg as Rule.Node);
+              return;
+            }
             arg.properties.forEach((prop) => {
               if (prop.type !== 'Property') return;
               const style = styleObjectFromValue(prop.value);
