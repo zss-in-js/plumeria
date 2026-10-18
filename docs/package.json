@@ -38,7 +38,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^10.0.1",
-    "@plumeria/compiler-wasm32-wasi": "^19.15.0",
+    "@plumeria/compiler-wasm32-wasi": "^20.0.0",
     "@plumeria/core": "workspace:^",
     "@plumeria/eslint-plugin": "workspace:^",
     "@plumeria/headlessui": "workspace:^",
