@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { copyright, footerGroups } from 'lib/footerGroups';
+import { copyright, footerGroups, footerSocialLinks } from 'lib/footerGroups';
 
 const ExternalIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -45,6 +45,22 @@ export function SiteFooter() {
         <Link href="/privacy" className="site-footer-link">
           privacy
         </Link>
+        <div className="site-footer-social">
+          {footerSocialLinks.map(({ label, href, path }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label={label}
+              className="site-footer-social-link"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d={path} />
+              </svg>
+            </a>
+          ))}
+        </div>
       </div>
     </footer>
   );
