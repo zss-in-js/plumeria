@@ -224,6 +224,15 @@ ruleTester.run('format-properties', formatProperties, {
 });`,
     },
     {
+      code: `import * as css from '@plumeria/core'; const above = css.positionTry({ top: 0,
+  left: 0 });`,
+      errors: [{ messageId: 'mustBeMultiline' }],
+      output: `import * as css from '@plumeria/core'; const above = css.positionTry({
+  top: 0,
+  left: 0
+});`,
+    },
+    {
       code: `import { viewTransition } from '@plumeria/core'; const vt = viewTransition({
   testKey: { fontSize: 24 }
 });`,
