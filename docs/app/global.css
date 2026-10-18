@@ -123,6 +123,24 @@ body {
   border: none;
 }
 
+#nd-page > .prose li > a:has(> code):not(:has(> :not(code))) {
+  text-decoration: none;
+}
+
+#nd-page > .prose li > a:has(> code):not(:has(> :not(code))) > code {
+  padding: 3px;
+  background: var(--color-fd-muted);
+  border: 1px solid var(--color-fd-border);
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+#nd-page > .prose li > a:has(> code):not(:has(> :not(code))):hover > code {
+  color: var(--plumeria-accent);
+  border-color: var(--plumeria-accent);
+}
+
 .dark #nd-page > .prose strong {
   color: #fff;
 }
