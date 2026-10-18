@@ -4,12 +4,17 @@ import { flushSync } from 'react-dom';
 import { beginStyles, commitStyles, discardStyles } from './core';
 
 type Message =
-  | { type: 'playground:render'; files: Record<string, string>; entry: string }
+  | { type: 'playground:render'; files: Record<string, string>; sources: Record<string, string>; entry: string }
   | { type: 'playground:theme'; dark: boolean };
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
 const status = document.getElementById('status') as HTMLElement;
+
+const outputWorker = new Worker(new URL('./output-worker.mjs', import.meta.url), { type: 'module' });
+outputWorker.onmessage = (event: MessageEvent) => {
+  window.parent.postMessage({ type: 'playground:output', ...event.data }, '*');
+};
 
 function pickComponent(module: Record<string, unknown>): ComponentType | undefined {
   if (typeof module.default === 'function') return module.default as ComponentType;
@@ -97,7 +102,8 @@ let revision = 0;
 window.addEventListener('message', (event: MessageEvent<Message>) => {
   if (event.data?.type === 'playground:render') {
     const current = ++revision;
-    const { files, entry } = event.data;
+    const { files, sources, entry } = event.data;
+    outputWorker.postMessage({ sources });
     renderQueue = renderQueue.then(() => (current === revision ? render(files, entry) : undefined));
   }
   if (event.data?.type === 'playground:theme') {
