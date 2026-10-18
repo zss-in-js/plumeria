@@ -16,13 +16,6 @@ export const footerGroups = [
     ],
   },
   {
-    heading: 'Benchmarks',
-    links: [
-      { label: 'SSR', href: 'https://jantimon.github.io/css-in-js-bench/', external: true },
-      { label: 'Build', href: 'https://refirst11.github.io/css-compiler-bench/', external: true },
-    ],
-  },
-  {
     heading: 'Participate',
     links: [
       { label: 'GitHub', href: 'https://github.com/zss-in-js/plumeria', external: true },
