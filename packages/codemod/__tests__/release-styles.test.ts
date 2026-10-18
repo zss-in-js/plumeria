@@ -640,6 +640,28 @@ const { card } = styles;
     },
     {
       filename,
+      // className takes no false, so a lone condition reads as undefined
+      code: `<div classStyle={!open && styles.collapsed} />;`,
+      options,
+      output: `<div className={(!open && styles.collapsed) || undefined} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      code: `<div classStyle={open ? styles.open : null} />;`,
+      options,
+      output: `<div className={(open ? styles.open : null) || undefined} />;`,
+      errors: 2,
+    },
+    {
+      filename,
+      code: `<div classStyle={open ? styles.open : styles.closed} />;`,
+      options,
+      output: `<div className={open ? styles.open : styles.closed} />;`,
+      errors: 1,
+    },
+    {
+      filename,
       code: `<div classStyle={styles.size(width, color)} />;`,
       options: [
         {
