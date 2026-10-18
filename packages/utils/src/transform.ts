@@ -959,7 +959,7 @@ export const transformSource = async (
 
         if (selector.startsWith('@') && !isAtRule(selector)) {
           throwCompilationError(
-            `[plumeria] Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
+            `[plumeria] Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, and @supports.`,
             selectorExpr as HasSpan,
           );
         }
@@ -1371,7 +1371,7 @@ export const transformSource = async (
 
           if (selector.startsWith('@') && !isAtRule(selector)) {
             throwCompilationError(
-              `[plumeria] Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope.`,
+              `[plumeria] Unsupported at-rule: "${selector}". createTheme only supports nesting at-rules such as @media, @container, and @supports.`,
               selectorExpr as HasSpan,
             );
           }
