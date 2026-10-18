@@ -1,5 +1,12 @@
 {
   "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/blog/eating-up-the-libraries",
+      "destination": "https://refirst11.vercel.app/posts/2026-05-10",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/docs.md", "destination": "/llms.mdx/docs.md" },
     { "source": "/docs/:path*.md", "destination": "/llms.mdx/docs/:path*.md" }
