@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const blogDir = join(process.cwd(), 'content/blog');
@@ -15,10 +15,8 @@ const compareVersion = (a: number[], b: number[]) => {
 
 const latest = readdirSync(blogDir)
   .filter((file) => file.endsWith('.mdx'))
-  .map((file) => {
-    const date = /^date:\s*['"]?([^'"\n]+)/m.exec(readFileSync(join(blogDir, file), 'utf8'))?.[1];
-    return { slug: file.slice(0, -'.mdx'.length), time: date ? new Date(date).getTime() : 0 };
-  })
-  .sort((a, b) => b.time - a.time || compareVersion(versionOf(a.slug), versionOf(b.slug)))[0];
+  .map((file) => file.slice(0, -'.mdx'.length))
+  .filter((slug) => versionOf(slug).length > 0)
+  .sort((a, b) => compareVersion(versionOf(a), versionOf(b)))[0];
 
-export const latestBlogUrl = latest ? `/blog/${latest.slug}` : '/blog';
+export const latestBlogUrl = latest ? `/blog/${latest}` : '/blog';
