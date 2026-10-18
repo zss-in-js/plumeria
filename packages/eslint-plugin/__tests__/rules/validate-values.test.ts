@@ -195,6 +195,9 @@ ruleTester.run('validate-values', validateValues, {
       code: `import { viewTransition } from '@plumeria/core'; const vt = viewTransition({ s: { color: 'red' } });`,
     },
     {
+      code: `import * as css from '@plumeria/core'; const above = css.positionTry({ positionArea: 'top', marginBottom: '8px' });`,
+    },
+    {
       code: `import plumeria from '@plumeria/core'; const styles = plumeria.create({ s: { color: 'red' } });`,
     },
     {
@@ -1528,6 +1531,10 @@ ruleTester.run('validate-values', validateValues, {
   ],
 
   invalid: [
+    {
+      code: `import * as css from '@plumeria/core'; const above = css.positionTry({ width: 'wide' });`,
+      errors: [{ messageId: 'validateValue' }],
+    },
     // css.varType initial values the browser drops
     {
       code: `import * as css from '@plumeria/core'; const v = css.varType({ syntax: '<length>', initialValue: '1em' });`,
