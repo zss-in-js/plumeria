@@ -1,5 +1,14 @@
 # @plumeria/unplugin
 
+## 19.14.4
+
+### Patch Changes
+
+- 1e59337: Bump version to 19.14.4
+- Updated dependencies [1e59337]
+  - @plumeria/compiler@19.14.4
+  - @plumeria/eslint-plugin@19.14.4
+
 ## 19.14.3
 
 ### Patch Changes
