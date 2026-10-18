@@ -9,6 +9,8 @@ const SKIP = new Set([
   '.source',
   '.turbo',
   'dist',
+  'out',
+  'public',
   'tsconfig.tsbuildinfo',
 ]);
 const root = path.join(__dirname, '..');
