@@ -43,6 +43,7 @@ import {
   collectLocalConstNodes,
 } from './parser';
 import { assertNoDroppedValues } from './unresolvableValue';
+import { varTypeHashOf } from './varType';
 
 const spreadValues = (
   tables: Parameters<typeof objectExpressionToObject> extends [
@@ -122,6 +123,7 @@ import type {
   StaticTable,
   KeyframesHashTable,
   ViewTransitionHashTable,
+  VarTypeHashTable,
   CreateHashTable,
   CreateThemeHashTable,
   CreateStaticHashTable,
@@ -483,6 +485,7 @@ export const transformSource = async (
   const importMap: StaticTable = {};
   const keyframesImportMap: KeyframesHashTable = {};
   const viewTransitionImportMap: ViewTransitionHashTable = {};
+  const varTypeImportMap: VarTypeHashTable = {};
   const createImportMap: CreateHashTable = {};
   const createFunctionImportMap: Record<string, StyleFunctions> = {};
   const createThemeImportMap: CreateThemeHashTable = {};
@@ -554,6 +557,10 @@ export const transformSource = async (
             viewTransitionImportMap[localName] =
               scannedTables.viewTransitionHashTable[uniqueKey];
           }
+          if (scannedTables.varTypeHashTable?.[uniqueKey]) {
+            varTypeImportMap[localName] =
+              scannedTables.varTypeHashTable[uniqueKey];
+          }
           if (scannedTables.createHashTable[uniqueKey]) {
             createImportMap[localName] =
               scannedTables.createHashTable[uniqueKey];
@@ -609,6 +616,16 @@ export const transformSource = async (
     mergedViewTransitionTable[key] = viewTransitionImportMap[key];
   }
 
+  const varTypeHashTable = scannedTables.varTypeHashTable ?? {};
+  const mergedVarTypeTable: VarTypeHashTable = Object.create(varTypeHashTable);
+  for (const key of fileTableKeys(resourcePath, 'varTypeHashTable') ?? []) {
+    mergedVarTypeTable[key.slice(resourcePath.length + 1)] =
+      varTypeHashTable[key];
+  }
+  for (const key of Object.keys(varTypeImportMap)) {
+    mergedVarTypeTable[key] = varTypeImportMap[key];
+  }
+
   const mergedCreateTable: CreateHashTable = Object.create(
     scannedTables.createHashTable,
   );
@@ -646,6 +663,7 @@ export const transformSource = async (
   const dynamicStyleTables: DynamicStyleTables = {
     keyframesHashTable: mergedKeyframesTable,
     viewTransitionHashTable: mergedViewTransitionTable,
+    varTypeHashTable: mergedVarTypeTable,
     createThemeHashTable: mergedCreateThemeHashTable,
     createThemeObjectTable: scannedTables.createThemeObjectTable,
     createHashTable: mergedCreateTable,
@@ -815,7 +833,9 @@ export const transformSource = async (
 
     if (propName && init && t.isCallExpression(init)) {
       if (
-        ['create', 'createTheme', 'createStatic'].includes(propName) &&
+        ['create', 'createTheme', 'createStatic', 'varType'].includes(
+          propName,
+        ) &&
         !topLevelDeclarators.has(node)
       ) {
         throwCompilationError(
@@ -823,7 +843,9 @@ export const transformSource = async (
           node,
         );
       }
-      if (['create', 'createTheme', 'createStatic'].includes(propName)) {
+      if (
+        ['create', 'createTheme', 'createStatic', 'varType'].includes(propName)
+      ) {
         const argumentIndex = propName === 'createTheme' ? 1 : 0;
         const argument = init.arguments[argumentIndex];
         const object = argument && literalObjectArgument(argument.expression);
@@ -849,6 +871,8 @@ export const transformSource = async (
           mergedCreateTable,
           mergedCreateStaticHashTable,
           scannedTables.createStaticObjectTable,
+          undefined,
+          mergedVarTypeTable,
         );
         assertNoDroppedValues(
           init.arguments[0].expression as ObjectExpression,
@@ -863,6 +887,8 @@ export const transformSource = async (
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
+              undefined,
+              mergedVarTypeTable,
             ],
             localConstNodes,
             getSource,
@@ -948,6 +974,8 @@ export const transformSource = async (
           mergedCreateTable,
           mergedCreateStaticHashTable,
           scannedTables.createStaticObjectTable,
+          undefined,
+          mergedVarTypeTable,
         );
         assertNoDroppedValues(
           init.arguments[1].expression as ObjectExpression,
@@ -962,6 +990,8 @@ export const transformSource = async (
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
+              undefined,
+              mergedVarTypeTable,
             ],
             localConstNodes,
             getSource,
@@ -1008,6 +1038,53 @@ export const transformSource = async (
           };
         }
       } else if (
+        propName === 'varType' &&
+        t.isIdentifier(node.id) &&
+        t.isObjectExpression(init.arguments[0].expression)
+      ) {
+        const expr = init.arguments[0].expression as ObjectExpression;
+        const obj = objectExpressionToObject(
+          expr,
+          mergedStaticTable,
+          mergedKeyframesTable,
+          mergedViewTransitionTable,
+          mergedCreateThemeHashTable,
+          scannedTables.createThemeObjectTable,
+          mergedCreateTable,
+          mergedCreateStaticHashTable,
+          scannedTables.createStaticObjectTable,
+          undefined,
+          mergedVarTypeTable,
+        );
+        assertNoDroppedValues(
+          expr,
+          obj,
+          spreadValues(
+            [
+              mergedStaticTable,
+              mergedKeyframesTable,
+              mergedViewTransitionTable,
+              mergedCreateThemeHashTable,
+              scannedTables.createThemeObjectTable,
+              mergedCreateTable,
+              mergedCreateStaticHashTable,
+              scannedTables.createStaticObjectTable,
+              undefined,
+              mergedVarTypeTable,
+            ],
+            localConstNodes,
+            getSource,
+          ),
+        );
+        const hash = varTypeHashOf(node.id.value, obj);
+        mergedVarTypeTable[node.id.value] = hash;
+        (scannedTables.varTypeObjectTable ??= {})[hash] = obj;
+        replacements.push({
+          start: init.span.start - baseByteOffset,
+          end: init.span.end - baseByteOffset,
+          content: JSON.stringify(`--pr-${hash}`),
+        });
+      } else if (
         propName === 'createStatic' &&
         t.isObjectExpression(init.arguments[0].expression)
       ) {
@@ -1024,6 +1101,8 @@ export const transformSource = async (
           mergedCreateTable,
           mergedCreateStaticHashTable,
           scannedTables.createStaticObjectTable,
+          undefined,
+          mergedVarTypeTable,
         );
         assertNoDroppedValues(
           init.arguments[0].expression as ObjectExpression,
@@ -1038,6 +1117,8 @@ export const transformSource = async (
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
+              undefined,
+              mergedVarTypeTable,
             ],
             localConstNodes,
             getSource,
@@ -1161,7 +1242,9 @@ export const transformSource = async (
 
       if (propName) {
         if (
-          ['create', 'createTheme', 'createStatic'].includes(propName) &&
+          ['create', 'createTheme', 'createStatic', 'varType'].includes(
+            propName,
+          ) &&
           !registeredStyleCalls.has(node.span.start)
         ) {
           throwCompilationError(
@@ -1184,6 +1267,8 @@ export const transformSource = async (
               mergedCreateTable,
               mergedCreateStaticHashTable,
               scannedTables.createStaticObjectTable,
+              undefined,
+              mergedVarTypeTable,
             );
             assertNoDroppedValues(
               expr,
@@ -1198,6 +1283,8 @@ export const transformSource = async (
                   mergedCreateTable,
                   mergedCreateStaticHashTable,
                   scannedTables.createStaticObjectTable,
+                  undefined,
+                  mergedVarTypeTable,
                 ],
                 localConstNodes,
                 getSource,
@@ -1226,6 +1313,8 @@ export const transformSource = async (
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
+            undefined,
+            mergedVarTypeTable,
           );
           assertNoDroppedValues(
             args[0].expression as ObjectExpression,
@@ -1240,6 +1329,8 @@ export const transformSource = async (
                 mergedCreateTable,
                 mergedCreateStaticHashTable,
                 scannedTables.createStaticObjectTable,
+                undefined,
+                mergedVarTypeTable,
               ],
               localConstNodes,
               getSource,
@@ -1289,6 +1380,8 @@ export const transformSource = async (
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
+            undefined,
+            mergedVarTypeTable,
           );
           assertNoDroppedValues(
             args[1].expression as ObjectExpression,
@@ -1303,6 +1396,8 @@ export const transformSource = async (
                 mergedCreateTable,
                 mergedCreateStaticHashTable,
                 scannedTables.createStaticObjectTable,
+                undefined,
+                mergedVarTypeTable,
               ],
               localConstNodes,
               getSource,
@@ -1328,6 +1423,8 @@ export const transformSource = async (
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
+            undefined,
+            mergedVarTypeTable,
           );
           assertNoDroppedValues(
             args[0].expression as ObjectExpression,
@@ -1342,6 +1439,8 @@ export const transformSource = async (
                 mergedCreateTable,
                 mergedCreateStaticHashTable,
                 scannedTables.createStaticObjectTable,
+                undefined,
+                mergedVarTypeTable,
               ],
               localConstNodes,
               getSource,
@@ -1364,6 +1463,8 @@ export const transformSource = async (
             mergedCreateTable,
             mergedCreateStaticHashTable,
             scannedTables.createStaticObjectTable,
+            undefined,
+            mergedVarTypeTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.createObjectTable[hash] = obj;
@@ -1474,6 +1575,8 @@ export const transformSource = async (
         mergedCreateTable,
         mergedCreateStaticHashTable,
         scannedTables.createStaticObjectTable,
+        undefined,
+        mergedVarTypeTable,
       );
     } else if (
       t.isMemberExpression(expr) &&
@@ -1596,6 +1699,8 @@ export const transformSource = async (
         mergedCreateTable,
         mergedCreateStaticHashTable,
         scannedTables.createStaticObjectTable,
+        undefined,
+        mergedVarTypeTable,
       );
 
     if (func.named) {
