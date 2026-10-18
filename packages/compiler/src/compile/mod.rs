@@ -21,7 +21,7 @@ use crate::policy::{PropertyPolicy, assert_property_policy};
 use crate::project::{KeyTable, LocalImport, LocalImports, Project, Tables};
 use crate::style::ondemand::extract_ondemand_styles;
 use crate::style::records::style_records;
-use crate::style::theme::{theme_hash_of, var_type_hash};
+use crate::style::theme::{checked_var_type_hash, theme_hash_of};
 use crate::syntax::expr::{E, K, Prop, root_identifier, unwrap};
 use crate::syntax::module::{
     Aliases, CORE, SpecKind, add_core_aliases, import_specs, plumeria_method,
@@ -1554,7 +1554,7 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                 }
                 "varType" => {
                     let obj = self.evaluate(object)?;
-                    let hash = var_type_hash(&name, &obj);
+                    let hash = checked_var_type_hash(&name, &obj)?;
                     self.writes
                         .var_type_obj
                         .insert(hash.clone(), Value::obj(obj));
