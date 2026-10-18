@@ -64,7 +64,7 @@ import {
 } from 'zss-engine';
 import type { CSSProperties } from 'zss-engine';
 import { createViewTransition } from './viewTransition';
-import { createVarType, varTypeHashOf } from './varType';
+import { checkedVarTypeHash, createVarType } from './varType';
 import { DEFAULT_STYLE_PROP } from './constants';
 import { needsCompile } from './stylePropFilter';
 import { getStyleRecords } from './create';
@@ -2497,7 +2497,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
                   localKeyframesObjectTable[hash] = obj;
                   registerObjectOwner('keyframesObjectTable', hash, filePath);
                 } else if (method === 'varType') {
-                  const hash = varTypeHashOf(name, obj);
+                  const hash = checkedVarTypeHash(name, obj);
                   localVarTypeHashTable[name] = hash;
                   localTables.varTypeHashTable![uniqueKey] = hash;
                   registerFileKey('varTypeHashTable', uniqueKey, filePath);
