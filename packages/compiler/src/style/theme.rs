@@ -131,6 +131,15 @@ pub fn create_theme(selector: &str, rule: &Object, theme_hash: &str) -> Object {
     result
 }
 
+pub fn create_position_try(rule: &Object, hash: &str) -> Object {
+    let mut result = Object::new();
+    result.insert(
+        format!("@position-try --pt-{hash}"),
+        Value::obj(rule.clone()),
+    );
+    result
+}
+
 pub fn create_view_transition(rule: &Object, hash: &str) -> Object {
     let mut result = Object::new();
     for (key, pseudo) in [
