@@ -19,7 +19,7 @@ use crate::eval::functions::{
 use crate::eval::{Env, EvalResult, Evaluator, Lookup, argument_expr, resolve_theme_selector};
 use crate::js::{Object, Value, deep_merge, entries_object};
 use crate::style::records::{atom_class_string, atom_map};
-use crate::style::theme::{theme_atomic_map, theme_hash_of, var_type_hash};
+use crate::style::theme::{checked_var_type_hash, theme_atomic_map, theme_hash_of};
 use crate::syntax::expr::{BinOp, E, K, Prop, unwrap};
 use crate::syntax::module::{
     Aliases, CORE, SpecKind, add_core_aliases, import_specs, plumeria_method,
@@ -396,7 +396,7 @@ pub fn scan_file_pass<'b, 'a>(
                 }
                 "varType" => {
                     let value = Value::obj(obj.clone());
-                    let hash = var_type_hash(name, &obj);
+                    let hash = checked_var_type_hash(name, &obj)?;
                     local.var_type_hash.insert(name.to_string(), hash.clone());
                     project
                         .tables
