@@ -397,6 +397,7 @@ code {
 
 .site-footer {
   --site-footer-border: var(--color-fd-border);
+  --site-footer-foreground: var(--color-fd-foreground);
   --site-footer-muted: var(--color-fd-muted-foreground);
 
   margin-top: 48px;
