@@ -32,7 +32,7 @@ export const blog = loader({
   },
 });
 
-const specialBlogSlugs = ['how-to-leave-plumeria', 'eating-up-the-libraries'];
+const specialBlogSlugs = ['how-to-leave-plumeria', 'how-to-plumeria'];
 
 function getBlogSlug(node: Node): string {
   if (node.type !== 'page') return '';
