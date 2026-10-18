@@ -3,6 +3,7 @@ export type {
   StaticTable,
   KeyframesHashTable,
   ViewTransitionHashTable,
+  VarTypeHashTable,
   CreateHashTable,
   CreateFunctionTable,
   CreateThemeHashTable,
