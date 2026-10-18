@@ -286,9 +286,9 @@ winner, and the module the bundler reached first no longer decides anything.
 
 Only a pair that is otherwise indistinguishable is weighted: the same condition,
 the same pseudo-element, the same property and the same selector specificity.
-Every axis that already decides is left alone — a differing `@media`, `@layer` or
-`@scope`, a longhand against its shorthand, `:host(.active)` against `:hover` —
-and so is an explicit `:hover:focus`, which stays above the weighting.
+Every axis that already decides is left alone — a differing `@media`, a
+longhand against its shorthand, `:host(.active)` against `:hover` — and so is
+an explicit `:hover:focus`, which stays above the weighting.
 
 Written in one style there is no composition to read, and the intersection falls
 back to source order:
