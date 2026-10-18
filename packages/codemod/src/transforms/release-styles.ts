@@ -71,6 +71,14 @@ const needsFilter = (node: any): boolean =>
   node.type === 'ConditionalExpression' ||
   node.type === 'SpreadElement';
 
+const mayBeFalsy = (node: any): boolean => {
+  if (node.type === 'LogicalExpression')
+    return node.operator === '&&' || mayBeFalsy(node.right);
+  if (node.type === 'ConditionalExpression')
+    return mayBeFalsy(node.consequent) || mayBeFalsy(node.alternate);
+  return node.type === 'Literal' && !node.value;
+};
+
 export const __private = { memberPath, isCreate, needsFilter };
 
 export const releaseStyles: Rule.RuleModule = {
@@ -102,6 +110,8 @@ export const releaseStyles: Rule.RuleModule = {
       styleType: 'A released style is a class name.',
       folded: 'This only named a style key, which the export has resolved.',
       read: 'Read this style by the name the export gave it.',
+      falsy:
+        'className takes a string or undefined, so a condition that can be false reads as undefined.',
       functionStyle:
         'Use the CSS Module class and pass function arguments as custom properties.',
       unsupportedFunctionStyle:
@@ -1147,6 +1157,21 @@ export const releaseStyles: Rule.RuleModule = {
         }
         const text = expression ? resolveText(expression) : undefined;
         if (!complete && expression && text === undefined) return;
+        if (
+          !carried &&
+          expression &&
+          text !== undefined &&
+          mayBeFalsy(expression)
+        ) {
+          context.report({
+            node: expression,
+            messageId: 'falsy',
+            fix: (fixer) =>
+              fixer.replaceText(expression, `(${text}) || undefined`),
+          });
+          takeProp();
+          return;
+        }
         // A key named by a constant resolves to the class the export wrote.
         // Every other lone value already reads as itself, and leaving this one
         // alone spells a binding the pass has retired.
