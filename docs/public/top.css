@@ -245,7 +245,7 @@ button {
 
 .groups {
   display: grid;
-  grid-template-columns: repeat(5, max-content);
+  grid-template-columns: repeat(4, max-content);
   gap: 32px;
   justify-content: space-between;
 }
