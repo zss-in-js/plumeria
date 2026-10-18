@@ -118,8 +118,10 @@ export const above: `--${string}` = css.positionTry({
   marginBottom: 8,
 });
 
-// @ts-expect-error @position-try only takes position, margin, size and alignment properties
-css.positionTry({ color: 'red' });
+css.positionTry({
+  // @ts-expect-error @position-try only takes position, margin, size and alignment properties
+  color: 'red', // eslint-disable-line @plumeria/no-unknown-css-properties
+});
 
 export const anchored = css.create({
   tooltip: {
