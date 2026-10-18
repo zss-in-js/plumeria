@@ -1,0 +1,79 @@
+---
+title: 'Plumeria 19.15'
+description: 'Feat: css.varType registers typed custom properties with @property, and the lint checks their initial values'
+date: '2026-10-18'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v19.15 adds `css.varType`, which registers a custom property with `@property` from the same module that uses it.
+
+## 1. `css.varType`
+
+A custom property has no type until it is registered, so the browser cannot interpolate it: a transition on the angle of a gradient jumps instead of turning. Registering it used to mean writing `@property --angle` in global CSS and repeating `'--angle'` as a string in every style, with nothing tying the two together.
+
+`css.varType` returns the name instead:
+
+```ts
+import * as css from '@plumeria/core';
+
+const angle = css.varType({
+  syntax: '<angle>',
+  initialValue: '0deg',
+});
+
+const styles = css.create({
+  ring: {
+    background: `conic-gradient(from var(${angle}), #d653bb, #2aa4f4, #d653bb)`,
+    transition: `${angle} 0.6s ease`,
+    ':hover': {
+      [angle]: '180deg',
+    },
+  },
+});
+```
+
+```css
+@property --pr-xy9ywt9x {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+```
+
+The name is a value you import, so a typo is a type error and a rename reaches every use. `@property` is emitted only for a name a style uses, like `keyframes`. `inherits` defaults to `false`, and `initialValue` is required for every syntax but `'*'`.
+
+## 2. Definitions the browser would not register
+
+An `@property` the stylesheet cannot parse, such as a misspelled type or an initial value of another type, used to stop the CSS optimizer for the whole stylesheet without pointing at the cause. The build now stops at the definition and names it:
+
+```
+[plumeria] css.varType "size" is not a valid @property: syntax "<lenght>" with initialValue "0px". The syntax has to be a valid @property syntax, and the initial value has to match it.
+```
+
+Some initial values parse but are still dropped by the browser without a warning. An initial value has to mean the same thing wherever it is used, so font-relative units such as `em` and `rem`, container units such as `cqw`, and `var()` leave the property unregistered. `validate-values` reports them in the editor, along with an initial value that does not match its syntax:
+
+```ts
+const offset = css.varType({
+  syntax: '<length>',
+  initialValue: '1em', // reported: use an absolute value such as 16px
+});
+```
+
+Viewport units such as `vw` are accepted, since the browser registers them. `no-mutable-binding`, `no-destructure` and `no-inner-call` cover `css.varType` like the other style APIs.
+
+---
+
+## Release notes
+
+## 19.15.0 (Oct 18, 2026)
+
+- Feat: `css.varType` defines a typed custom property and returns its name, and emits its `@property` only when the name is used in a key or value
+- Feat: `css.varType` reports an `@property` the browser cannot parse, such as a quote in `syntax` or an `initialValue` of another type, at its definition instead of breaking the whole stylesheet
+- Feat: `validate-values` checks a `css.varType` `initialValue` against its `syntax`, and reports font-relative units, container units and `var()`, which the browser drops
+- Feat: `no-mutable-binding`, `no-destructure` and `no-inner-call` cover `css.varType`
