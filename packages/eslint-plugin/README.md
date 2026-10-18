@@ -162,7 +162,7 @@ Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-sty
 
 ### no-unknown-css-properties
 
-Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, and `css.viewTransition`.
+Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, `css.viewTransition`, and `css.positionTry`. Inside `css.positionTry`, it also reports properties that `@position-try` does not accept.
 
 In `css.create`, a key that holds an object is reported with a hint that nested selectors start with `:`, `[` or `@`.
 
