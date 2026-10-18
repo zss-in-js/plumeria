@@ -7,15 +7,10 @@ import { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
 import { staticValueResolver } from '../util/staticValue';
 
-const VALID_AT_RULES = [
-  '@media',
-  '@container',
-  '@supports',
-  '@layer',
-  '@scope',
-];
+const VALID_AT_RULES = ['@media', '@container', '@supports'];
 
 export function isValidAtRule(rule: string): boolean {
+  if (rule === '@starting-style') return true;
   return VALID_AT_RULES.some((keyword) => {
     if (!rule.startsWith(keyword)) return false;
     const prelude = rule.slice(keyword.length);
