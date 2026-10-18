@@ -1448,7 +1448,7 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
         }
         if selector.starts_with('@') && !is_at_rule(selector) {
             return Err(format!(
-                "[plumeria] Unsupported at-rule: \"{selector}\". createTheme only supports nesting at-rules such as @media, @container, @supports, @layer, and @scope. ({})",
+                "[plumeria] Unsupported at-rule: \"{selector}\". createTheme only supports nesting at-rules such as @media, @container, and @supports. ({})",
                 self.file()
             ));
         }
