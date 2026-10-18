@@ -34,8 +34,7 @@ ruleTester.run('validate-at-rules', validateAtRules, {
             '@media(width >= 480px)': { color: 'red' },
             '@container card (width > 20rem)': { display: 'grid' },
             '@supports (display: grid)': { display: 'grid' },
-            '@layer components': { color: 'blue' },
-            '@scope (.card)': { color: 'green' },
+            '@starting-style': { opacity: 0 },
           },
         });
       `,
@@ -67,6 +66,9 @@ ruleTester.run('validate-at-rules', validateAtRules, {
             [unknown]: { color: 'red' },
             '@mediafoo': { color: 'blue' },
             '@supports': { display: 'grid' },
+            '@layer components': { color: 'blue' },
+            '@scope (.card)': { color: 'green' },
+            '@starting-style (.a)': { opacity: 0 },
           },
         });
       `,
@@ -74,6 +76,9 @@ ruleTester.run('validate-at-rules', validateAtRules, {
         { message: 'Invalid at-rule: "@unknown foo".' },
         { message: 'Invalid at-rule: "@mediafoo".' },
         { message: 'Invalid at-rule: "@supports".' },
+        { message: 'Invalid at-rule: "@layer components".' },
+        { message: 'Invalid at-rule: "@scope (.card)".' },
+        { message: 'Invalid at-rule: "@starting-style (.a)".' },
       ],
     },
   ],
@@ -115,7 +120,7 @@ ruleTesterNoType.run(
 describe('isValidAtRule', () => {
   test('accepts supported at-rules with a prelude', () => {
     expect(isValidAtRule('@media print')).toBe(true);
-    expect(isValidAtRule('@scope (.card)')).toBe(true);
+    expect(isValidAtRule('@supports (display: grid)')).toBe(true);
   });
 
   test('accepts a prelude that follows the keyword without a space', () => {
