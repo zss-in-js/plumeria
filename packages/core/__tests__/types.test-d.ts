@@ -104,6 +104,15 @@ css.use({ color: 'red' }); // eslint-disable-line @plumeria/no-inline-object
 // @ts-expect-error a nested inline object is not a created style either
 css.use([styles.text, { ':hover': { color: 'blue' } }]);
 
+export const entering = css.create({
+  popover: {
+    opacity: 1,
+    '@starting-style': {
+      opacity: 0,
+    },
+  },
+});
+
 export const angle = css.varType({
   syntax: '<angle>',
   initialValue: '0deg',
