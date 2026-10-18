@@ -4,6 +4,7 @@ export type {
   KeyframesHashTable,
   ViewTransitionHashTable,
   VarTypeHashTable,
+  PositionTryHashTable,
   CreateHashTable,
   CreateFunctionTable,
   CreateThemeHashTable,
