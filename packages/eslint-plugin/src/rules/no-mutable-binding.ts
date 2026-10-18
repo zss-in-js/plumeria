@@ -11,6 +11,7 @@ const STYLE_APIS = new Set([
   'createTheme',
   'keyframes',
   'viewTransition',
+  'varType',
 ]);
 
 const isReference = (node: Node, parent: Node | undefined): boolean => {
