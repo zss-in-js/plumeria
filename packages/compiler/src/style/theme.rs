@@ -1,4 +1,4 @@
-use crate::engine::{camel_to_kebab_case, hash_object, is_at_rule};
+use crate::engine::{camel_to_kebab_case, hash_object, is_at_rule, transpile_global};
 use crate::js::{Object, Value};
 
 pub fn theme_hash_of(selector: &str, rule: &Object) -> String {
@@ -13,6 +13,26 @@ pub fn var_type_hash(name: &str, rule: &Object) -> String {
     source.insert("_varTypeName", Value::str(name));
     source.assign(rule);
     hash_object(&source)
+}
+
+pub fn checked_var_type_hash(name: &str, rule: &Object) -> Result<String, String> {
+    let hash = var_type_hash(name, rule);
+    let css = transpile_global(&create_var_type(rule, &hash));
+    if crate::optimize::optimize(&css, false).is_ok() {
+        return Ok(hash);
+    }
+    let syntax = match rule.get("syntax") {
+        Some(Value::Str(syntax)) => format!("syntax \"{syntax}\""),
+        _ => "no syntax".to_string(),
+    };
+    let initial = match rule.get("initialValue") {
+        Some(Value::Str(value)) => format!("initialValue \"{value}\""),
+        Some(Value::Num(value)) => format!("initialValue {value}"),
+        _ => "no initialValue".to_string(),
+    };
+    Err(format!(
+        "[plumeria] css.varType \"{name}\" is not a valid @property: {syntax} with {initial}. The syntax has to be a valid @property syntax, and the initial value has to match it."
+    ))
 }
 
 pub fn create_var_type(rule: &Object, hash: &str) -> Object {
