@@ -1,0 +1,132 @@
+---
+title: 'How to Plumeria'
+description: 'What a project gets by staying, who enforces each part of it, and what is still left to you'
+date: '2026-10-18'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+<GitHubUser username="refirst11" subtext="Core team members" />
+</div>
+
+[How to leave Plumeria](/blog/how-to-leave-plumeria) ended on a question. Once the exit is free, nobody asks *can I get back out* any more. They ask *is it any good*.
+
+This is the answer, written the same way: not as a list of features, but as a list of what holds.
+
+---
+
+## A benefit is not a guarantee
+
+A benefit is something you notice. Small bundles, fast builds, a nice API — you see them on the first day, and you stop seeing them by the second week.
+
+A guarantee is something that holds when nobody is looking. It is the reason a refactor six months from now does not break a page nobody opened.
+
+So the useful question about any part of Plumeria is not *what does it give me*, but *who enforces it*. There are four answers, and they are not equally strong.
+
+| Enforced by | What happens when it is violated | Can it be switched off |
+| :-- | :-- | :-- |
+| The compiler | The output is what the contract says, or the build reports it | No |
+| The types | The editor marks it before you save | Only by casting |
+| The lint rules | A report in the editor, and a stopped production build | Per line with a comment, or all at once with `lint: false` |
+| Nobody | The browser decides | — |
+
+The rest of this post goes down that table.
+
+---
+
+## Held by the compiler
+
+These are the ones you cannot opt out of, because there is no runtime left to opt into.
+
+**Nothing of the library runs.** `@plumeria/core` has one entry point, and it is a `.d.ts` file. There is no JavaScript to import, so there is nothing to tree-shake, nothing to load, and nothing that can be on the wrong side of a `'use client'` boundary. The call site is rewritten to a string of class names and the import disappears with it.
+
+What this protects is not bundle size. It is the fact that styling can never be the reason a component has to become a client component.
+
+**The bundler does not decide the order.** Generated CSS is ordered by the compiler's module graph, and every pair where one declaration contains another — a shorthand and its longhand, a base and its `:hover` — is ranked by specificity rather than by position. Split a file, move a style, let the bundler emit chunks in a different order: the page does not change.
+
+What this protects is refactoring. Moving code between files is supposed to be free, and here it actually is.
+
+**One property reaches an element once.** A `classStyle` array is merged at build time, property by property, and the losing class is removed before it is written:
+
+$$parse(A_{color} \oplus B_{color}) \to \text{"classB"}$$
+
+Two classes for the same property never land on one element, so the cascade is never asked to break a tie. The merge is associative, has an identity, and is idempotent — which means you can pull part of an array into a variable or a prop, put it back anywhere in the same position, and pass the same style twice without harm. Order is the one thing that still matters, and it matters in one direction only: the right side wins.
+
+What this protects is composition. A style passed down through a prop behaves the same as a style written in place.
+
+**Your code is never executed.** The compiler reads the source with a parser and rewrites the syntax tree. It does not run your modules to find out what a style is. A value it cannot resolve statically is reported at build time, not guessed at.
+
+What this protects is the build itself. It does not depend on what your code does when it is imported, and it does not get slower as your code does more.
+
+---
+
+## Held by the types
+
+A style is a type schema, not an object the library inspects at run time. That is why the package can be a `.d.ts` file at all: the types are the whole interface, and they are written by hand rather than generated from an implementation.
+
+Property names and their values are typed, so the editor completes them and marks a wrong one before the file is saved. A component that accepts styles can say which properties it accepts with [`StyleProps`](/docs/api-reference/types/StyleProps), and a caller that passes anything else is a type error at the call site, not a surprise in the browser.
+
+What this protects is the gap between writing a style and finding out it is wrong. That gap is measured in keystrokes, not in page loads.
+
+---
+
+## Held by the lint rules
+
+Some mistakes are valid code. A selector that reaches through a combinator, two styles that set the same property under two different names, a style relayed through a prop the compiler cannot follow — all of these compile. They just stop meaning what they look like they mean.
+
+That is what the [ESLint plugin](/docs/api-reference/plugins/eslint-plugin) is for, and why `recommended` turns every rule on. A few examples of what it reports:
+
+- `no-combinator` — a descendant or sibling selector, which would make a style depend on markup the compiler cannot see.
+- `no-order-dependent-overlap` — two styles whose winner would depend on source order, because neither contains the other.
+- `no-unresolved-composition` — `css.use()` results glued together with `+` or `clsx`, which skips the merge and lets two classes for one property reach an element.
+- `no-unknown-css-properties` — a property the browser will silently ignore.
+
+In the editor a rule is advice. In the build it is not. The [Next.js plugin](/docs/api-reference/plugins/next-plugin) and the [unplugin](/docs/api-reference/plugins/unplugin) run the same `recommended` rules beside a production build with `--deny-warnings`, and stop the build when anything is reported. A warning that would be scrolled past in a terminal is a build that does not ship.
+
+It is on by default, and the set of rules is fixed. Your own lint config does not change it. That is deliberate: what the editor marks is exactly what stops the build, no more and no less, so neither can surprise you about the other.
+
+That is where the cascade's last loose ends are tied. [Specificity](/docs/specificity#what-source-order-still-decides) lists four pairs that containment cannot rank:
+
+| Pair | What settles it |
+| :-- | :-- |
+| The same property under two names, `paddingTop` and `paddingBlockStart` | `no-order-dependent-overlap` reads them as one property and stops the build |
+| Two shorthands that cross, `borderTop` and `borderBlockWidth` | `expand-border-shorthands` stops the build, and `--fix` expands the shorthand into longhands specificity can rank |
+| Two conditions that overlap without containing each other | `no-order-dependent-overlap` stops the build |
+| Two states that match at once, `:hover` and `:focus` | Composed as two styles, the compiler gives the right one an extra `:not(#\#)`, so the array order decides by specificity. Written inside one style, `no-order-dependent-overlap` stops the build |
+
+So the claim is narrow and checkable: **a build that passes contains no pair whose winner depends on the order the bundler emitted it.**
+
+A lint rule is still weaker than the compiler, and it should be said plainly. There are two ways out: a comment that disables one rule on one line, and `lint: false` in the plugin options, which turns the whole check off. Both are written in the code, where a reviewer can see them. The guarantee holds exactly where neither is written.
+
+---
+
+## Held by nobody
+
+Here is what is not guaranteed, because a guarantee nobody can keep is worse than none.
+
+**A value decided at run time is yours.** A function key compiles to a CSS variable, and the variable is set from the expression you wrote. The compiler can promise where that value goes. It cannot promise what the value is.
+
+**The markup is yours.** The compiler sees styles and the call sites that apply them. It does not see what you render inside what. That is the whole reason combinators are refused: a relation between two elements is a fact about markup, and a stylesheet that depends on it is making a promise about code it cannot read. Where that relation is genuinely needed, a [marker](/docs/api-reference/javascript/marker) states it by name instead of by path.
+
+---
+
+## What it costs
+
+None of this is free, and the cost is the same shape as the guarantees.
+
+Styles are written in a way that can be analyzed without running them. That rules out computing a key at run time, reaching across the DOM with a selector, and nesting more than one level deep. Each of those is a thing that works in plain CSS and is given up here — not because it is bad, but because it is the specific thing that would make one of the guarantees above impossible to keep.
+
+The work does not disappear either. It moves to the build. The browser receives class names and CSS, and the compiler does everything else.
+
+If that trade is wrong for a project, [the way out](/blog/how-to-leave-plumeria) is one command.
+
+---
+
+## Why this post exists
+
+It would have been easier to write *fast, small, type-safe* and stop.
+
+But those words describe every library in this space, and they describe the first day. What decides whether a styling library was a good choice is the second year — when the person who wrote a style has moved on, the file it lived in has been split three times, and someone passes it down through a prop nobody expected.
+
+What holds on that day is the list above. That is what staying means.
