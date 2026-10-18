@@ -38,14 +38,41 @@
 .site-footer-legal {
   display: flex;
   gap: 8px;
+  align-items: center;
   margin-top: 64px;
   font-size: 14px;
   color: var(--site-footer-muted);
+}
+
+.site-footer-social {
+  display: flex;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.site-footer-social-link {
+  display: inline-flex;
+  color: var(--site-footer-muted);
+}
+
+.site-footer-social-link:hover {
+  color: var(--site-footer-foreground);
 }
 
 @container (max-width: 640px) {
   .site-footer-groups {
     grid-template-columns: repeat(2, max-content);
     justify-content: space-evenly;
+  }
+
+  .site-footer-legal {
+    flex-wrap: wrap;
+  }
+
+  .site-footer-social {
+    flex-basis: 100%;
+    order: -1;
+    margin-bottom: 8px;
+    margin-left: 0;
   }
 }
