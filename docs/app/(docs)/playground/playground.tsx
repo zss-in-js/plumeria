@@ -5,7 +5,7 @@ import * as css from '@plumeria/core';
 import { theme } from 'lib/theme';
 import { breakpoints } from 'lib/mediaQuery';
 import { ENTRY, SAMPLE_FILES } from './sample';
-import type { PlaygroundHandle } from './editor';
+import type { OutputKind, PlaygroundHandle } from './editor';
 import { loadEngine, onEngineProgress } from './engine';
 import type { SpellingPolicy } from './engine-types';
 
@@ -13,6 +13,14 @@ const POLICIES: { value: SpellingPolicy; label: string }[] = [
   { value: 'off', label: 'Off' },
   { value: 'logical', label: 'Logical only' },
   { value: 'physical', label: 'Physical only' },
+];
+
+type OutputTab = OutputKind | 'preview';
+
+const OUTPUT_TABS: { value: OutputTab; label: string }[] = [
+  { value: 'jsx', label: 'JSX' },
+  { value: 'css', label: 'CSS' },
+  { value: 'preview', label: 'Preview' },
 ];
 
 const styles = css.create({
@@ -73,6 +81,7 @@ const styles = css.create({
   pane: {
     display: 'flex',
     flexDirection: 'column',
+    gridArea: 'editor',
     minWidth: 0,
     minHeight: 0,
   },
@@ -156,11 +165,62 @@ const styles = css.create({
   split: {
     display: 'grid',
     flex: 1,
+    gridTemplateAreas: '"editor preview" "tabs preview" "output preview"',
+    gridTemplateRows: 'minmax(0, 1fr) auto minmax(0, 0.7fr)',
     gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
     minHeight: 0,
     [breakpoints.lg]: {
-      gridTemplateRows: 'minmax(0, 1fr) minmax(0, 1fr)',
+      gridTemplateAreas: '"editor" "tabs" "output"',
+      gridTemplateRows: 'minmax(0, 1fr) auto minmax(0, 1fr)',
       gridTemplateColumns: 'minmax(0, 1fr)',
+    },
+  },
+  splitCollapsed: {
+    [breakpoints.lgUp]: {
+      gridTemplateRows: 'minmax(0, 1fr) auto 0',
+    },
+  },
+  outputBar: {
+    display: 'flex',
+    gridArea: 'tabs',
+    gap: 4,
+    alignItems: 'center',
+    paddingInline: 12,
+    borderTopColor: theme.cardBorder,
+    borderTopStyle: 'solid',
+    borderTopWidth: '1px',
+    borderBottomColor: theme.cardBorder,
+    borderBottomStyle: 'solid',
+    borderBottomWidth: '1px',
+  },
+  previewTab: {
+    [breakpoints.lgUp]: {
+      display: 'none',
+    },
+  },
+  tabActiveWide: {
+    [breakpoints.lgUp]: {
+      color: theme.textPrimary,
+      borderBottomColor: 'var(--plumeria-accent)',
+    },
+  },
+  collapse: {
+    [breakpoints.lg]: {
+      display: 'none',
+    },
+  },
+  chevronCollapsed: {
+    transform: 'rotate(180deg)',
+  },
+  output: {
+    gridArea: 'output',
+    minWidth: 0,
+    minHeight: 0,
+    overflow: 'hidden',
+  },
+  narrowHidden: {
+    [breakpoints.lg]: {
+      display: 'none',
     },
   },
   editor: {
@@ -169,6 +229,7 @@ const styles = css.create({
     minHeight: 0,
   },
   preview: {
+    gridArea: 'preview',
     width: '100%',
     minWidth: 0,
     height: '100%',
@@ -181,9 +242,7 @@ const styles = css.create({
     borderLeftStyle: 'solid',
     borderLeftWidth: '1px',
     [breakpoints.lg]: {
-      borderTopColor: theme.cardBorder,
-      borderTopStyle: 'solid',
-      borderTopWidth: '1px',
+      gridArea: 'output',
       borderLeftStyle: 'none',
     },
   },
@@ -203,6 +262,7 @@ function isDark() {
 
 export function Playground() {
   const container = useRef<HTMLDivElement>(null);
+  const output = useRef<HTMLDivElement>(null);
   const preview = useRef<HTMLIFrameElement>(null);
   const handle = useRef<PlaygroundHandle | null>(null);
   const [editorReady, setEditorReady] = useState(false);
@@ -213,6 +273,8 @@ export function Playground() {
   const progress = downloaded * 0.85 + (editorReady ? 0.1 : 0) + (previewReady ? 0.05 : 0);
   const [policy, setPolicy] = useState<SpellingPolicy>('off');
   const [file, setFile] = useState(ENTRY);
+  const [outputTab, setOutputTab] = useState<OutputTab>('preview');
+  const [outputOpen, setOutputOpen] = useState(true);
   const [status, setStatus] = useState('Loading TypeScript and the Plumeria rules…');
   const [counts, setCounts] = useState({ errors: 0, warnings: 0 });
 
@@ -223,9 +285,14 @@ export function Playground() {
 
     const load = async () => {
       const [{ mount }] = await Promise.all([import('./editor'), loadEngine()]);
-      if (disposed || !container.current || !preview.current) return;
-      handle.current = await mount(container.current, preview.current, SAMPLE_FILES, ENTRY, (errors, warnings) =>
-        setCounts({ errors, warnings }),
+      if (disposed || !container.current || !output.current || !preview.current) return;
+      handle.current = await mount(
+        container.current,
+        output.current,
+        preview.current,
+        SAMPLE_FILES,
+        ENTRY,
+        (errors, warnings) => setCounts({ errors, warnings }),
       );
       if (disposed) {
         handle.current.dispose();
@@ -269,6 +336,10 @@ export function Playground() {
     handle.current?.setFile(file);
   }, [file]);
 
+  useEffect(() => {
+    if (outputTab !== 'preview') handle.current?.setOutput(outputTab);
+  }, [outputTab, editorReady]);
+
   async function copySource() {
     if (!handle.current) return;
     try {
@@ -302,7 +373,12 @@ export function Playground() {
           <span>{counts.warnings} warnings</span>
         </span>
       </div>
-      <div classStyle={styles.split} data-playground="stage" data-ready={ready || failed} aria-busy={!ready && !failed}>
+      <div
+        classStyle={[styles.split, !outputOpen && styles.splitCollapsed]}
+        data-playground="stage"
+        data-ready={ready || failed}
+        aria-busy={!ready && !failed}
+      >
         <div className="playground-loading" role="status">
           <span className="playground-loading-mark" aria-hidden="true">
             ✳
@@ -387,7 +463,59 @@ export function Playground() {
           </div>
           <div ref={container} classStyle={styles.editor} />
         </div>
-        <iframe ref={preview} classStyle={styles.preview} src="/playground/preview/index.html" title="Preview" />
+        <div classStyle={styles.outputBar}>
+          <div classStyle={styles.tabList} role="tablist" aria-label="Compiled output">
+            {OUTPUT_TABS.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                role="tab"
+                aria-selected={outputTab === item.value}
+                onClick={() => {
+                  setOutputTab(item.value);
+                  setOutputOpen(true);
+                }}
+                classStyle={[
+                  styles.tab,
+                  outputTab === item.value && styles.tabActive,
+                  item.value === 'preview' && styles.previewTab,
+                  item.value === 'jsx' && outputTab === 'preview' && styles.tabActiveWide,
+                ]}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <div classStyle={[styles.actions, styles.collapse]}>
+            <button
+              type="button"
+              classStyle={styles.action}
+              aria-expanded={outputOpen}
+              aria-label={outputOpen ? 'Collapse the compiled output' : 'Expand the compiled output'}
+              onClick={() => setOutputOpen(!outputOpen)}
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                aria-hidden="true"
+                classStyle={!outputOpen && styles.chevronCollapsed}
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div ref={output} classStyle={[styles.output, outputTab === 'preview' && styles.narrowHidden]} />
+        <iframe
+          ref={preview}
+          classStyle={[styles.preview, outputTab !== 'preview' && styles.narrowHidden]}
+          src="/playground/preview/index.html"
+          title="Preview"
+        />
       </div>
       <p role="status" classStyle={styles.status}>
         {status}
