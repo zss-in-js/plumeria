@@ -118,7 +118,11 @@ export const rotating = css.create({
   ring: {
     background: `conic-gradient(from var(${angle}), red, blue)`,
     [angle]: '0deg',
-    ':hover': { [angle]: '90deg' },
+    ':hover': {
+      [angle]: '90deg',
+    },
   },
-  rotate: (value: string) => ({ [angle]: value }),
+  rotate: (value: string) => ({
+    [angle]: value,
+  }),
 });
