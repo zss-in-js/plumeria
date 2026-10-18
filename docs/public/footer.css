@@ -53,6 +53,7 @@
 .site-footer-social-link {
   display: inline-flex;
   color: var(--site-footer-muted);
+  transition-duration: 0.2s;
 }
 
 .site-footer-social-link:hover {
