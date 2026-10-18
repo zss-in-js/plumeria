@@ -132,13 +132,16 @@ button {
 .menu-link {
   font-size: 14px;
   color: var(--muted-foreground);
+  transition-duration: 0.2s;
+}
+
+.site-footer-link {
+  transition-duration: 0.2s;
 }
 
 .menu-link:hover,
 .site-footer-link:hover {
   color: var(--foreground);
-  text-decoration: underline;
-  text-underline-offset: 4px;
 }
 
 .menu-actions {
@@ -153,6 +156,7 @@ button {
   padding: 6px;
   color: var(--muted-foreground);
   border-radius: 6px;
+  transition-duration: 0.2s;
 }
 
 .icon-link:hover {
@@ -264,6 +268,7 @@ button {
   font-weight: 500;
   border-width: 1px;
   border-radius: 6px;
+  transition-duration: 0.2s;
 }
 
 .button:hover {
