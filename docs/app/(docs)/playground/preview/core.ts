@@ -1,4 +1,4 @@
-import { createTheme as themeStyles, getStyleRecords, themeHashOf } from '@plumeria/compiler-wasm32-wasi';
+import { createTheme as themeStyles, getStyleRecords, themeHashOf } from './compiler';
 import { camelToKebabCase, genBase36Hash, transpile } from 'zss-engine';
 import { resolveClassStyle } from './class-style';
 
