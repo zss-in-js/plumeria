@@ -122,8 +122,17 @@ export const adoptStyles: Rule.RuleModule = {
       );
     };
 
+    const lone = (node: any): any[] | undefined =>
+      node?.type === 'LogicalExpression' &&
+      node.operator === '||' &&
+      node.right.type === 'Identifier' &&
+      node.right.name === 'undefined'
+        ? [node.left]
+        : undefined;
+
     // `${a} ${b}` and `[a, cond && b].filter(Boolean).join(' ')` are the two
-    // shapes the export writes a composition as.
+    // shapes the export writes a composition as, and `(cond && a) || undefined`
+    // is how it writes a lone condition.
     const joinedElements = (node: any): any[] | undefined => {
       if (node?.type === 'TemplateLiteral' && node.expressions.length > 1) {
         const spaced = node.quasis.every((quasi: any, index: number) =>
@@ -140,7 +149,7 @@ export const adoptStyles: Rule.RuleModule = {
         node.arguments.length !== 1 ||
         node.arguments[0].value !== ' '
       )
-        return undefined;
+        return lone(node);
       const joined = node.callee.object;
       if (joined?.type === 'ArrayExpression')
         return joined.elements.filter(Boolean);
