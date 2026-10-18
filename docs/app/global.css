@@ -433,7 +433,7 @@ code {
 
 .site-footer-legal {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
   margin-top: 64px;
   font-size: 14px;
   color: var(--color-fd-muted-foreground);
@@ -443,11 +443,5 @@ code {
   .site-footer-groups {
     grid-template-columns: repeat(2, max-content);
     justify-content: space-evenly;
-  }
-
-  .site-footer-legal {
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
   }
 }
