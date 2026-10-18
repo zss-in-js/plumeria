@@ -8,6 +8,7 @@ import type {
   KeyframesObjectTable,
   ViewTransitionHashTable,
   VarTypeHashTable,
+  PositionTryHashTable,
   ViewTransitionObjectTable,
   CreateHashTable,
   CreateObjectTable,
@@ -65,6 +66,7 @@ import {
 import type { CSSProperties } from 'zss-engine';
 import { createViewTransition } from './viewTransition';
 import { checkedVarTypeHash, createVarType } from './varType';
+import { createPositionTry } from './positionTry';
 import { DEFAULT_STYLE_PROP } from './constants';
 import { needsCompile } from './stylePropFilter';
 import { getStyleRecords } from './create';
@@ -344,6 +346,7 @@ export function objectExpressionToObject(
   createStaticObjectTable: CreateStaticObjectTable,
   resolveVariable?: (name: string) => any,
   varTypeHashTable: VarTypeHashTable = {},
+  positionTryHashTable: PositionTryHashTable = {},
 ): CSSObject {
   const obj: CSSObject = Object.create(null);
 
@@ -356,6 +359,7 @@ export function objectExpressionToObject(
         keyframesHashTable,
         viewTransitionHashTable,
         varTypeHashTable,
+        positionTryHashTable,
         createThemeHashTable,
         createThemeObjectTable,
         createStaticHashTable,
@@ -391,6 +395,7 @@ export function objectExpressionToObject(
       keyframesHashTable,
       viewTransitionHashTable,
       varTypeHashTable,
+      positionTryHashTable,
       createThemeHashTable,
       createThemeObjectTable,
       createStaticHashTable,
@@ -462,6 +467,13 @@ export function objectExpressionToObject(
         obj[key] = '--pr-' + varTypeHashTable[val.value];
         return;
       }
+      if (
+        t.isIdentifier(val) &&
+        positionTryHashTable[val.value] !== undefined
+      ) {
+        obj[key] = '--pt-' + positionTryHashTable[val.value];
+        return;
+      }
       const resolvedCreate = resolveCreateTableMemberExpression(
         val,
         createHashTable,
@@ -503,6 +515,7 @@ export function objectExpressionToObject(
         keyframesHashTable,
         viewTransitionHashTable,
         varTypeHashTable,
+        positionTryHashTable,
         createThemeHashTable,
         createThemeObjectTable,
         createStaticHashTable,
@@ -521,6 +534,7 @@ export function objectExpressionToObject(
         createStaticObjectTable,
         resolveVariable,
         varTypeHashTable,
+        positionTryHashTable,
       );
     } else if (t.isBinaryExpression(val) || t.isTemplateLiteral(val)) {
       obj[key] = evaluateExpression(
@@ -529,6 +543,7 @@ export function objectExpressionToObject(
         keyframesHashTable,
         viewTransitionHashTable,
         varTypeHashTable,
+        positionTryHashTable,
         createThemeHashTable,
         createThemeObjectTable,
         createStaticHashTable,
@@ -628,6 +643,7 @@ export function collectLocalConsts(ast: Module): Record<string, any> {
         result = evaluateExpression(
           init,
           localConsts,
+          {},
           {},
           {},
           {},
@@ -884,6 +900,7 @@ function getPropertyKey(
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
   varTypeHashTable: VarTypeHashTable,
+  positionTryHashTable: PositionTryHashTable,
   createThemeHashTable: CreateThemeHashTable,
   createThemeObjectTable: CreateThemeObjectTable,
   createStaticHashTable: CreateStaticHashTable,
@@ -915,6 +932,9 @@ function getPropertyKey(
       if (varTypeHashTable[expr.value] !== undefined) {
         return '--pr-' + varTypeHashTable[expr.value];
       }
+      if (positionTryHashTable[expr.value] !== undefined) {
+        return '--pt-' + positionTryHashTable[expr.value];
+      }
     }
     if (t.isCallExpression(expr)) {
       const result = evaluateExpression(
@@ -923,6 +943,7 @@ function getPropertyKey(
         keyframesHashTable,
         viewTransitionHashTable,
         varTypeHashTable,
+        positionTryHashTable,
         createThemeHashTable,
         createThemeObjectTable,
         createStaticHashTable,
@@ -955,6 +976,7 @@ function getPropertyKey(
         keyframesHashTable,
         viewTransitionHashTable,
         varTypeHashTable,
+        positionTryHashTable,
         createThemeHashTable,
         createThemeObjectTable,
         createStaticHashTable,
@@ -968,6 +990,7 @@ function getPropertyKey(
         keyframesHashTable,
         viewTransitionHashTable,
         varTypeHashTable,
+        positionTryHashTable,
         createThemeHashTable,
         createThemeObjectTable,
         createStaticHashTable,
@@ -984,6 +1007,7 @@ function getPropertyKey(
       keyframesHashTable,
       viewTransitionHashTable,
       varTypeHashTable,
+      positionTryHashTable,
       createThemeHashTable,
       createThemeObjectTable,
       createStaticHashTable,
@@ -998,6 +1022,7 @@ function getPropertyKey(
       keyframesHashTable,
       viewTransitionHashTable,
       varTypeHashTable,
+      positionTryHashTable,
       createThemeHashTable,
       createThemeObjectTable,
       createStaticHashTable,
@@ -1013,6 +1038,7 @@ function evaluateTemplateLiteral(
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
   varTypeHashTable: VarTypeHashTable,
+  positionTryHashTable: PositionTryHashTable,
   createThemeHashTable: CreateThemeHashTable,
   createThemeObjectTable: CreateThemeObjectTable,
   createStaticHashTable: CreateStaticHashTable,
@@ -1031,6 +1057,7 @@ function evaluateTemplateLiteral(
         keyframesHashTable,
         viewTransitionHashTable,
         varTypeHashTable,
+        positionTryHashTable,
         createThemeHashTable,
         createThemeObjectTable,
         createStaticHashTable,
@@ -1054,6 +1081,7 @@ function evaluateBinaryExpression(
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
   varTypeHashTable: VarTypeHashTable,
+  positionTryHashTable: PositionTryHashTable,
   createThemeHashTable: CreateThemeHashTable,
   createThemeObjectTable: CreateThemeObjectTable,
   createStaticHashTable: CreateStaticHashTable,
@@ -1065,6 +1093,7 @@ function evaluateBinaryExpression(
     keyframesHashTable,
     viewTransitionHashTable,
     varTypeHashTable,
+    positionTryHashTable,
     createThemeHashTable,
     createThemeObjectTable,
     createStaticHashTable,
@@ -1079,6 +1108,7 @@ function evaluateBinaryExpression(
     keyframesHashTable,
     viewTransitionHashTable,
     varTypeHashTable,
+    positionTryHashTable,
     createThemeHashTable,
     createThemeObjectTable,
     createStaticHashTable,
@@ -1182,10 +1212,12 @@ function evaluateCallExpression(
         {},
         {},
         {},
+        {},
       );
       const pseudo = evaluateExpression(
         args[1].expression,
         staticTable,
+        {},
         {},
         {},
         {},
@@ -1218,10 +1250,12 @@ function evaluateCallExpression(
         {},
         {},
         {},
+        {},
       );
       const pseudo = evaluateExpression(
         args[1].expression,
         staticTable,
+        {},
         {},
         {},
         {},
@@ -1247,6 +1281,7 @@ function evaluateExpression(
   keyframesHashTable: KeyframesHashTable,
   viewTransitionHashTable: ViewTransitionHashTable,
   varTypeHashTable: VarTypeHashTable,
+  positionTryHashTable: PositionTryHashTable,
   createThemeHashTable: CreateThemeHashTable,
   createThemeObjectTable: CreateThemeObjectTable,
   createStaticHashTable: CreateStaticHashTable,
@@ -1290,6 +1325,10 @@ function evaluateExpression(
 
     if (varTypeHashTable[node.value] !== undefined) {
       return '--pr-' + varTypeHashTable[node.value];
+    }
+
+    if (positionTryHashTable[node.value] !== undefined) {
+      return '--pt-' + positionTryHashTable[node.value];
     }
 
     if (createStaticHashTable[node.value] !== undefined) {
@@ -1339,6 +1378,7 @@ function evaluateExpression(
       keyframesHashTable,
       viewTransitionHashTable,
       varTypeHashTable,
+      positionTryHashTable,
       createThemeHashTable,
       createThemeObjectTable,
       createStaticHashTable,
@@ -1353,6 +1393,7 @@ function evaluateExpression(
       keyframesHashTable,
       viewTransitionHashTable,
       varTypeHashTable,
+      positionTryHashTable,
       createThemeHashTable,
       createThemeObjectTable,
       createStaticHashTable,
@@ -1367,6 +1408,7 @@ function evaluateExpression(
       keyframesHashTable,
       viewTransitionHashTable,
       varTypeHashTable,
+      positionTryHashTable,
       createThemeHashTable,
       createThemeObjectTable,
       createStaticHashTable,
@@ -1390,6 +1432,7 @@ function evaluateExpression(
       keyframesHashTable,
       viewTransitionHashTable,
       varTypeHashTable,
+      positionTryHashTable,
       createThemeHashTable,
       createThemeObjectTable,
       createStaticHashTable,
@@ -1564,6 +1607,7 @@ export function resolveThemeSelector(
       {},
       {},
       {},
+      {},
       createStaticHashTable,
       createStaticObjectTable,
     );
@@ -1614,8 +1658,10 @@ interface CachedData {
   keyframesObjectTable: KeyframesObjectTable;
   viewTransitionHashTable: ViewTransitionHashTable;
   varTypeHashTable: VarTypeHashTable;
+  positionTryHashTable: PositionTryHashTable;
   viewTransitionObjectTable: ViewTransitionObjectTable;
   varTypeObjectTable?: Record<string, CSSObject>;
+  positionTryObjectTable?: Record<string, CSSObject>;
   createThemeHashTable: CreateThemeHashTable;
   createThemeSelectorTable: CreateThemeSelectorTable;
   createThemeObjectTable: CreateThemeObjectTable;
@@ -1665,8 +1711,10 @@ const globalAgregatedTables: Tables = {
   keyframesObjectTable: {},
   viewTransitionHashTable: {},
   varTypeHashTable: {},
+  positionTryHashTable: {},
   viewTransitionObjectTable: {},
   varTypeObjectTable: {},
+  positionTryObjectTable: {},
   createThemeObjectTable: {},
   createThemeSelectorTable: {},
   createHashTable: {},
@@ -1698,6 +1746,7 @@ const detachedTables = new Set([
   'keyframesHashTable',
   'viewTransitionHashTable',
   'varTypeHashTable',
+  'positionTryHashTable',
   'createHashTable',
   'createObjectTable',
   'createFunctionTable',
@@ -2097,6 +2146,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
           keyframesObjectTable: {},
           viewTransitionHashTable: {},
           varTypeHashTable: {},
+          positionTryHashTable: {},
           viewTransitionObjectTable: {},
           createThemeHashTable: {},
           createThemeSelectorTable: {},
@@ -2132,8 +2182,10 @@ function runScan(scanCwd: string, styleProp: string): Tables {
     localKeyframesObjectTable: KeyframesObjectTable;
     localViewTransitionHashTable: ViewTransitionHashTable;
     localVarTypeHashTable: VarTypeHashTable;
+    localPositionTryHashTable: PositionTryHashTable;
     localViewTransitionObjectTable: ViewTransitionObjectTable;
     localVarTypeObjectTable: Record<string, CSSObject>;
+    localPositionTryObjectTable: Record<string, CSSObject>;
     localCreateThemeObjectTable: CreateThemeObjectTable;
     localCreateThemeSelectorTable: CreateThemeSelectorTable;
     localCreateHashTable: CreateHashTable;
@@ -2183,6 +2235,8 @@ function runScan(scanCwd: string, styleProp: string): Tables {
         const localVarTypeHashTable: VarTypeHashTable = {};
         const localViewTransitionObjectTable: ViewTransitionObjectTable = {};
         const localVarTypeObjectTable: Record<string, CSSObject> = {};
+        const localPositionTryHashTable: PositionTryHashTable = {};
+        const localPositionTryObjectTable: Record<string, CSSObject> = {};
         const localCreateThemeObjectTable: CreateThemeObjectTable = {};
         const localCreateThemeSelectorTable: CreateThemeSelectorTable = {};
         const localCreateHashTable: CreateHashTable = {};
@@ -2281,6 +2335,14 @@ function runScan(scanCwd: string, styleProp: string): Tables {
                       if (localTables.varTypeObjectTable?.[hash]) {
                         localVarTypeObjectTable[hash] =
                           localTables.varTypeObjectTable[hash];
+                      }
+                    }
+                    if (localTables.positionTryHashTable?.[uniqueKey]) {
+                      const hash = localTables.positionTryHashTable[uniqueKey];
+                      localPositionTryHashTable[localName] = hash;
+                      if (localTables.positionTryObjectTable?.[hash]) {
+                        localPositionTryObjectTable[hash] =
+                          localTables.positionTryObjectTable[hash];
                       }
                     }
                     if (localTables.viewTransitionHashTable[uniqueKey]) {
@@ -2403,6 +2465,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
                   'createStatic',
                   'keyframes',
                   'viewTransition',
+                  'positionTry',
                   'varType',
                 ].includes(method)
               ) {
@@ -2448,6 +2511,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
                   method === 'createTheme' ||
                   method === 'keyframes' ||
                   method === 'viewTransition' ||
+                  method === 'positionTry' ||
                   method === 'varType';
                 if (isFirstPass && !isPassOneMethod) continue;
 
@@ -2467,6 +2531,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
                   localCreateStaticObjectTable,
                   resolveVariable,
                   localVarTypeHashTable,
+                  localPositionTryHashTable,
                 );
 
                 const uniqueKey = `${filePath}-${name}`;
@@ -2504,6 +2569,14 @@ function runScan(scanCwd: string, styleProp: string): Tables {
                   (localTables.varTypeObjectTable ??= {})[hash] = obj;
                   localVarTypeObjectTable[hash] = obj;
                   registerObjectOwner('varTypeObjectTable', hash, filePath);
+                } else if (method === 'positionTry') {
+                  const hash = genBase36Hash(obj, 1, 8);
+                  localPositionTryHashTable[name] = hash;
+                  localTables.positionTryHashTable![uniqueKey] = hash;
+                  registerFileKey('positionTryHashTable', uniqueKey, filePath);
+                  (localTables.positionTryObjectTable ??= {})[hash] = obj;
+                  localPositionTryObjectTable[hash] = obj;
+                  registerObjectOwner('positionTryObjectTable', hash, filePath);
                 } else if (method === 'viewTransition') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localViewTransitionHashTable[name] = hash;
@@ -2591,6 +2664,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
                           localCreateStaticObjectTable,
                           resolveVariable,
                           localVarTypeHashTable,
+                          localPositionTryHashTable,
                         ),
                       );
                     registerFileKey('createFunctionTable', uniqueKey, filePath);
@@ -2625,8 +2699,10 @@ function runScan(scanCwd: string, styleProp: string): Tables {
           localKeyframesObjectTable,
           localViewTransitionHashTable,
           localVarTypeHashTable,
+          localPositionTryHashTable,
           localViewTransitionObjectTable,
           localVarTypeObjectTable,
+          localPositionTryObjectTable,
           localCreateThemeObjectTable,
           localCreateThemeSelectorTable,
           localCreateHashTable,
@@ -2656,8 +2732,10 @@ function runScan(scanCwd: string, styleProp: string): Tables {
         localKeyframesObjectTable,
         localViewTransitionHashTable,
         localVarTypeHashTable,
+        localPositionTryHashTable,
         localViewTransitionObjectTable,
         localVarTypeObjectTable,
+        localPositionTryObjectTable,
         localCreateThemeObjectTable,
         localCreateThemeSelectorTable,
         localCreateHashTable,
@@ -2692,6 +2770,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
         keyframesHashTable: localKeyframesHashTable,
         viewTransitionHashTable: localViewTransitionHashTable,
         varTypeHashTable: localVarTypeHashTable,
+        positionTryHashTable: localPositionTryHashTable,
         createThemeHashTable: localCreateThemeHashTable,
         createThemeObjectTable: localTables.createThemeObjectTable,
         createHashTable: localCreateHashTable,
@@ -3185,8 +3264,10 @@ function runScan(scanCwd: string, styleProp: string): Tables {
         keyframesObjectTable: localKeyframesObjectTable,
         viewTransitionHashTable: localViewTransitionHashTable,
         varTypeHashTable: localVarTypeHashTable,
+        positionTryHashTable: localPositionTryHashTable,
         viewTransitionObjectTable: localViewTransitionObjectTable,
         varTypeObjectTable: localVarTypeObjectTable,
+        positionTryObjectTable: localPositionTryObjectTable,
         createThemeHashTable: localCreateThemeHashTable,
         createThemeSelectorTable: localCreateThemeSelectorTable,
         createThemeObjectTable: localCreateThemeObjectTable,
@@ -3396,6 +3477,7 @@ function extractAndCacheExports(
       keyframesObjectTable: {},
       viewTransitionHashTable: {},
       varTypeHashTable: {},
+      positionTryHashTable: {},
       viewTransitionObjectTable: {},
       createThemeHashTable: {},
       createThemeSelectorTable: {},
@@ -3486,7 +3568,7 @@ export function resolveExport(
 
 // `kf-`, `vt-`, `cr-` and `pr-` name a rule the sheet has to carry, and a
 // shorthand can hold one in the middle of its value.
-const REFERENCE_MARKER = /(kf|vt|cr|pr)-([0-9a-z]+)/g;
+const REFERENCE_MARKER = /(kf|vt|pt|cr|pr)-([0-9a-z]+)/g;
 
 // The name is what the reference is read for, and it ends where the fallback
 // begins. Reading up to the closing parenthesis instead takes the fallback
@@ -3512,6 +3594,7 @@ export function extractOndemandStyles(
   const visited = new Set();
   const keyframesHashes = new Set<string>();
   const viewTransitionHashes = new Set<string>();
+  const positionTryHashes = new Set<string>();
   const varTypeHashes = new Set<string>();
   const createHashes = new Set<string>();
   const usedVariables = new Set<string>();
@@ -3535,7 +3618,12 @@ export function extractOndemandStyles(
         // so the marker is looked for anywhere in the string. A hash no table
         // knows is some other text that happens to read like one.
         if (val.includes('pr-')) findVarTypes(val);
-        if (val.includes('kf-') || val.includes('vt-') || val.includes('cr-')) {
+        if (
+          val.includes('kf-') ||
+          val.includes('vt-') ||
+          val.includes('pt-') ||
+          val.includes('cr-')
+        ) {
           for (const [, kind, hash] of val.matchAll(REFERENCE_MARKER)) {
             if (kind === 'pr') continue;
             if (kind === 'kf') {
@@ -3550,6 +3638,14 @@ export function extractOndemandStyles(
               ) {
                 viewTransitionHashes.add(hash);
                 walk(t.viewTransitionObjectTable[hash]);
+              }
+            } else if (kind === 'pt') {
+              if (
+                !positionTryHashes.has(hash) &&
+                t.positionTryObjectTable?.[hash]
+              ) {
+                positionTryHashes.add(hash);
+                walk(t.positionTryObjectTable[hash]);
               }
             } else if (!createHashes.has(hash) && t.createObjectTable[hash]) {
               createHashes.add(hash);
@@ -3605,6 +3701,15 @@ export function extractOndemandStyles(
         addSheet(styleSheet);
       }
     }
+  }
+
+  for (const hash of positionTryHashes) {
+    const { styleSheet } = transpile(
+      createPositionTry(t.positionTryObjectTable![hash], hash),
+      undefined,
+      '--global',
+    );
+    addSheet(styleSheet);
   }
 
   if (createHashes.size > 0) {
