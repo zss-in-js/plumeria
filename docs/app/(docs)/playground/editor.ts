@@ -83,6 +83,71 @@ function setupHighlighting() {
   return highlighter;
 }
 
+const RELATIVE_IMPORT = /^import\s+([^;'"]+?)\s+from\s+(['"])(\.[^'"]+)\2;?[ \t]*$/gm;
+const EXPORT_CONST = /^export const ([\w$]+) = [^\n]*;[ \t]*$/gm;
+const UNUSED_MESSAGE = 'Unused after compilation, so the bundler removes it.';
+
+type Range = { start: number; end: number };
+
+function moduleKey(specifier: string, paths: string[]): string | undefined {
+  const name = specifier.replace(/^\.\//, '').replace(/\.[jt]sx?$/, '');
+  return paths.find((path) => path.replace(/^\//, '').replace(/\.[jt]sx?$/, '') === name);
+}
+
+function mentions(text: string, name: string, except: Range): boolean {
+  const pattern = new RegExp(`(?<![\\w$])${name.replace(/\$/g, '\\$')}(?![\\w$])`, 'g');
+  for (const match of text.matchAll(pattern)) {
+    if (match.index < except.start || match.index >= except.end) return true;
+  }
+  return false;
+}
+
+function unusedRanges(outputs: Record<string, string>): Record<string, Range[]> {
+  const paths = Object.keys(outputs);
+  const ranges: Record<string, Range[]> = Object.fromEntries(paths.map((path) => [path, []]));
+  const opaque = new Set<string>();
+  const readers = new Map<string, Set<string>>();
+
+  for (const [path, text] of Object.entries(outputs)) {
+    for (const match of text.matchAll(RELATIVE_IMPORT)) {
+      const target = moduleKey(match[3], paths);
+      if (!target) continue;
+      const statement = { start: match.index, end: match.index + match[0].length };
+      const named = /^\{([^}]*)\}$/.exec(match[1].trim());
+      if (!named) {
+        opaque.add(target);
+        continue;
+      }
+      const specifiers = named[1]
+        .split(',')
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .map((part) => {
+          const [imported, local = imported] = part.replace(/^type\s+/, '').split(/\s+as\s+/);
+          return { imported, local, used: mentions(text, local, statement) };
+        });
+      for (const { imported, used } of specifiers) {
+        if (!used) continue;
+        if (!readers.has(target)) readers.set(target, new Set());
+        readers.get(target)?.add(imported);
+      }
+      if (specifiers.length > 0 && specifiers.every(({ used }) => !used)) ranges[path].push(statement);
+    }
+  }
+
+  for (const [path, text] of Object.entries(outputs)) {
+    if (opaque.has(path)) continue;
+    for (const match of text.matchAll(EXPORT_CONST)) {
+      const name = match[1];
+      const declaration = { start: match.index, end: match.index + match[0].length };
+      if (readers.get(path)?.has(name) || mentions(text, name, declaration)) continue;
+      ranges[path].push(declaration);
+    }
+  }
+
+  return ranges;
+}
+
 function colorOf(core: HighlighterCore, themeName: string, scope: string) {
   const theme = core.getTheme(themeName);
   let color = theme.fg;
@@ -365,10 +430,20 @@ export async function mount(
     renderValidationDecorations: 'off',
   });
   let compiledJsx: Record<string, string> = {};
+  let unused: Record<string, Range[]> = {};
+  let unusedDecorations: string[] = [];
 
   function showJsx() {
-    const next = compiledJsx[pathOf.get(model) as string] ?? '';
+    const path = pathOf.get(model) as string;
+    const next = compiledJsx[path] ?? '';
     if (outputModels.jsx.getValue() !== next) outputModels.jsx.setValue(next);
+    unusedDecorations = outputModels.jsx.deltaDecorations(
+      unusedDecorations,
+      (unused[path] ?? []).map(({ start, end }) => ({
+        range: monaco.Range.fromPositions(outputModels.jsx.getPositionAt(start), outputModels.jsx.getPositionAt(end)),
+        options: { inlineClassName: 'plumeria-unused', hoverMessage: { value: UNUSED_MESSAGE } },
+      })),
+    );
   }
 
   // Decorations retain semantic colors while Monaco retokenizes after a theme change.
@@ -382,6 +457,7 @@ export async function mount(
         )
         .join('\n'),
     )
+    .concat('.plumeria-unused { opacity: 0.45; }')
     .join('\n');
   document.head.append(semanticStyles);
   const semanticDecorations = editor.createDecorationsCollection();
@@ -428,6 +504,7 @@ export async function mount(
     if (event.source !== preview.contentWindow) return;
     if (event.data?.type === 'playground:output') {
       compiledJsx = event.data.jsx ?? {};
+      unused = unusedRanges(compiledJsx);
       showJsx();
       if (outputModels.css.getValue() !== event.data.css) outputModels.css.setValue(event.data.css ?? '');
       return;
