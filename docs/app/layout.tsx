@@ -12,6 +12,10 @@ const inter = Inter({
   fallback: ['-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
 });
 
+const speculationRules = JSON.stringify({
+  prefetch: [{ urls: ['/'], eagerness: 'immediate' }],
+});
+
 export const dynamicParams = false;
 export const dynamic = 'force-static';
 
@@ -20,6 +24,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${inter.className} ${inter.variable}`} suppressHydrationWarning>
       <body>
         <Provider>{children}</Provider>
+        <script type="speculationrules" dangerouslySetInnerHTML={{ __html: speculationRules }} />
         <Analytics mode="production" />
         <SpeedInsights />
       </body>
