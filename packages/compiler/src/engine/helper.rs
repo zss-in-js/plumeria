@@ -234,6 +234,5 @@ pub fn is_at_rule(prop: &str) -> bool {
     prop.starts_with("@media")
         || prop.starts_with("@container")
         || prop.starts_with("@supports")
-        || prop.starts_with("@layer")
-        || prop.starts_with("@scope")
+        || prop.starts_with("@starting-style")
 }
