@@ -46,7 +46,7 @@ describe('mergeRules', () => {
     );
   });
 
-  it.each(['media', 'container', 'supports', 'layer', 'scope'])(
+  it.each(['media', 'container', 'supports', 'starting-style'])(
     'moves @%s after ordinary rules while preserving at-rule order',
     async (name) => {
       const root = await merge(
@@ -78,16 +78,16 @@ describe('mergeRules', () => {
       '@media foo{.m{color:red}}' +
         '@supports foo{.s{color:blue}}' +
         '@container foo{.c{color:green}}' +
-        '@layer foo{.l{color:black}}',
+        '@starting-style foo{.l{color:black}}',
     );
 
     expect(root.nodes).toHaveLength(4);
     expect(
       root.nodes.map((node) => node.type === 'atrule' && node.name),
-    ).toEqual(['media', 'supports', 'container', 'layer']);
+    ).toEqual(['media', 'supports', 'container', 'starting-style']);
   });
 
-  it.each(['media', 'container', 'supports', 'layer', 'scope'])(
+  it.each(['media', 'container', 'supports', 'starting-style'])(
     'merges identical @%s rules',
     async (name) => {
       const root = await merge(
