@@ -11,6 +11,7 @@ const STYLE_APIS = new Set([
   'createTheme',
   'keyframes',
   'viewTransition',
+  'positionTry',
   'varType',
 ]);
 
