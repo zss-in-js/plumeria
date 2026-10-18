@@ -41,8 +41,9 @@ export function SiteFooter() {
       </nav>
       <div className="site-footer-legal">
         <span>{copyright}</span>
+        <span aria-hidden="true">·</span>
         <Link href="/privacy" className="site-footer-link">
-          Privacy
+          privacy
         </Link>
       </div>
     </footer>
