@@ -210,6 +210,9 @@ impl<'e, 'r> Evaluator<'e, 'r> {
                 if let Some(hash) = self.view_transition_member(val) {
                     return Ok(Some(Value::Str(format!("vt-{hash}"))));
                 }
+                if let Some(hash) = self.var_type_member(val) {
+                    return Ok(Some(Value::Str(format!("--pr-{hash}"))));
+                }
                 if let Some(name) = val.ident_name()
                     && let Some(hash) = self.env.create_hashes.lookup(name)
                 {
@@ -273,6 +276,9 @@ impl<'e, 'r> Evaluator<'e, 'r> {
                     && !text.is_empty()
                 {
                     return Ok(Value::Str(text));
+                }
+                if let Some(hash) = self.env.var_types.lookup(ident.name.as_str()) {
+                    return Ok(Value::Str(format!("--pr-{hash}")));
                 }
             }
             _ => {}
@@ -472,6 +478,9 @@ impl<'e, 'r> Evaluator<'e, 'r> {
                 if let Some(hash) = self.env.view_transitions.lookup(name) {
                     return Ok(Value::Str(format!("vt-{hash}")));
                 }
+                if let Some(hash) = self.env.var_types.lookup(name) {
+                    return Ok(Value::Str(format!("--pr-{hash}")));
+                }
                 if let Some(hash) = self.env.static_hashes.lookup(name)
                     && let Some(object) = self.env.static_objects.lookup(&hash)
                 {
@@ -536,6 +545,10 @@ impl<'e, 'r> Evaluator<'e, 'r> {
                 .and_then(|name| self.env.keyframes.lookup(name)),
             _ => None,
         }
+    }
+
+    fn var_type_member(&self, node: E) -> Option<String> {
+        self.env.var_types.lookup(node.ident_name()?)
     }
 
     fn view_transition_member(&self, node: E) -> Option<String> {
@@ -635,6 +648,7 @@ pub fn resolve_theme_selector(node: E, env: Env) -> String {
         statics: env.statics,
         keyframes: &NOTHING,
         view_transitions: &NOTHING,
+        var_types: &NOTHING,
         theme_hashes: &NOTHING,
         theme_objects: &NOTHING,
         create_hashes: &NOTHING,
