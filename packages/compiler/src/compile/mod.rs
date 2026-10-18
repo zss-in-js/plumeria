@@ -95,6 +95,7 @@ pub fn compile_css(project: &mut Project, options: &CompileOptions) -> Result<St
         theme_selector: tables.theme_selector.clone(),
         keyframes_obj: tables.keyframes_obj.clone(),
         view_transition_obj: tables.view_transition_obj.clone(),
+        position_try_obj: tables.position_try_obj.clone(),
         var_type_obj: tables.var_type_obj.clone(),
         ..Writes::default()
     };
@@ -262,6 +263,7 @@ struct Extractor<'t, 'p, 'w, 'b, 'a> {
     merged_static: Object,
     merged_keyframes: Map<String>,
     merged_view_transitions: Map<String>,
+    merged_position_tries: Map<String>,
     merged_var_types: Map<String>,
     merged_create: Map<String>,
     merged_theme: Map<String>,
@@ -312,6 +314,7 @@ fn process_file(
         merged_static: Object::new(),
         merged_keyframes: Map::default(),
         merged_view_transitions: Map::default(),
+        merged_position_tries: Map::default(),
         merged_var_types: Map::default(),
         merged_create: Map::default(),
         merged_theme: Map::default(),
@@ -374,6 +377,7 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
         let mut import_map = Object::new();
         let mut keyframes_imports: Map<String> = Map::default();
         let mut view_transition_imports: Map<String> = Map::default();
+        let mut position_try_imports: Map<String> = Map::default();
         let mut var_type_imports: Map<String> = Map::default();
         let mut create_imports: Map<String> = Map::default();
         let mut theme_imports: Map<String> = Map::default();
@@ -434,6 +438,13 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                     .filter(|h| !h.is_empty())
                 {
                     view_transition_imports.insert(local_name.clone(), hash.clone());
+                }
+                if let Some(hash) = tables
+                    .position_try_hash
+                    .get(&unique_key)
+                    .filter(|h| !h.is_empty())
+                {
+                    position_try_imports.insert(local_name.clone(), hash.clone());
                 }
                 if let Some(hash) = tables
                     .var_type_hash
@@ -497,6 +508,12 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
             &mut self.merged_view_transitions,
         );
         self.merged_view_transitions.extend(view_transition_imports);
+        own(
+            KeyTable::PositionTryHash,
+            &self.tables.position_try_hash,
+            &mut self.merged_position_tries,
+        );
+        self.merged_position_tries.extend(position_try_imports);
         own(
             KeyTable::VarTypeHash,
             &self.tables.var_type_hash,
@@ -600,6 +617,7 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                 &self.merged_view_transitions,
                 &self.tables.view_transition_hash,
             ),
+            position_tries: Chain::two(&self.merged_position_tries, &self.tables.position_try_hash),
             var_types: Chain::two(&self.merged_var_types, &self.tables.var_type_hash),
             theme_hashes: Chain::three(
                 &self.merged_theme,
@@ -1396,7 +1414,7 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                 let args: Vec<E<'b, 'a>> = call.arguments.iter().map(argument_expr).collect();
                 self.extract_and_process(args, false)?;
             }
-            "keyframes" | "viewTransition" => {
+            "keyframes" | "viewTransition" | "positionTry" => {
                 let Some(K::Object(object)) = first.map(|e| e.kind()) else {
                     return Ok(());
                 };
@@ -1404,6 +1422,8 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                 let hash = hash_object(&obj);
                 if prop_name == "keyframes" {
                     self.writes.keyframes_obj.insert(hash, Value::obj(obj));
+                } else if prop_name == "positionTry" {
+                    self.writes.position_try_obj.insert(hash, Value::obj(obj));
                 } else {
                     self.writes
                         .view_transition_obj
