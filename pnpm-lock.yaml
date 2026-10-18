@@ -193,8 +193,8 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.4.1(jiti@2.7.0))
       '@plumeria/compiler-wasm32-wasi':
-        specifier: ^19.15.0
-        version: 19.15.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
+        specifier: ^20.0.0
+        version: 20.0.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
       '@plumeria/core':
         specifier: workspace:^
         version: link:../packages/core
@@ -3813,8 +3813,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@plumeria/compiler-wasm32-wasi@19.15.0':
-    resolution: {integrity: sha512-dLcEhojfAVlc0ABzZZgy7fNvr+anVJHz8NNfPQm2c22a2VYapEGR+saKPnjE6k4Gcqre11i/F0wtPXc3g4YJdg==}
+  '@plumeria/compiler-wasm32-wasi@20.0.0':
+    resolution: {integrity: sha512-mFPVRAq0DA/41B+UCCQ4v4wYZBH079wjAGRsTmzmbxAY6MfP7NL9ErF+JuoGnnW4iaMFOicHFTcXPFPkI6sntQ==}
     engines: {node: '>=14.0.0'}
     cpu: [wasm32]
 
@@ -14426,7 +14426,7 @@ snapshots:
     dependencies:
       playwright: 1.60.0
 
-  '@plumeria/compiler-wasm32-wasi@19.15.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
+  '@plumeria/compiler-wasm32-wasi@20.0.0(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
     dependencies:
       '@napi-rs/wasm-runtime': 1.2.4(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
     transitivePeerDependencies:
