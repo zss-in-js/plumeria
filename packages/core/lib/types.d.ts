@@ -24,8 +24,11 @@ type ColonSelector = {
   [key in ColonString]: CommonProperties | CSSVariableProperty;
 };
 
-type AtKeyword = '@media' | '@container' | '@supports' | '@layer' | '@scope';
-type AtRule = `${AtKeyword} ${string}` | `${AtKeyword}(${string}`;
+type AtKeyword = '@media' | '@container' | '@supports';
+type AtRule =
+  | `${AtKeyword} ${string}`
+  | `${AtKeyword}(${string}`
+  | '@starting-style';
 
 type StyleKey = keyof CSSTypes;
 type NestedKey = ColonString | ArrayString | AtRule;
