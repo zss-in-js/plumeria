@@ -43,7 +43,7 @@ import {
   collectLocalConstNodes,
 } from './parser';
 import { assertNoDroppedValues } from './unresolvableValue';
-import { varTypeHashOf } from './varType';
+import { checkedVarTypeHash } from './varType';
 
 const spreadValues = (
   tables: Parameters<typeof objectExpressionToObject> extends [
@@ -1076,7 +1076,12 @@ export const transformSource = async (
             getSource,
           ),
         );
-        const hash = varTypeHashOf(node.id.value, obj);
+        let hash = '';
+        try {
+          hash = checkedVarTypeHash(node.id.value, obj);
+        } catch (error) {
+          throwCompilationError((error as Error).message, init);
+        }
         mergedVarTypeTable[node.id.value] = hash;
         (scannedTables.varTypeObjectTable ??= {})[hash] = obj;
         replacements.push({
