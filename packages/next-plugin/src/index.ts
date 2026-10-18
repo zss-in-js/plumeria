@@ -4,6 +4,7 @@ import type { TurbopackLoaderItem } from 'next/dist/server/config-shared';
 import type { Configuration } from 'webpack';
 import type { WebpackConfigContext } from 'next/dist/server/config-shared';
 import * as fs from 'fs';
+import * as path from 'path';
 import { devGenerationsPath } from '@plumeria/turbopack-loader';
 import { lintOverrides } from '@plumeria/eslint-plugin/guard';
 import { startNextLintGuard } from './lint';
@@ -24,6 +25,18 @@ type PlumeriaTurbopackRules = Record<
 
 export type PlumeriaOptions = LoaderOptions & { lint?: boolean };
 
+const loaderVersion = (): string =>
+  JSON.parse(
+    fs.readFileSync(
+      path.join(
+        path.dirname(require.resolve('@plumeria/turbopack-loader')),
+        '..',
+        'package.json',
+      ),
+      'utf8',
+    ),
+  ).version;
+
 export function withPlumeria(
   nextConfig: NextConfig = {},
   { lint = true, ...options }: PlumeriaOptions = {},
@@ -42,11 +55,15 @@ export function withPlumeria(
   }
 
   const originalWebpack = nextConfig.webpack;
+  const turbopackOptions: Record<string, unknown> = {
+    ...options,
+    version: loaderVersion(),
+  };
 
   const turbopackLoaders: TurbopackLoaderItem[] = [
     {
       loader: '@plumeria/turbopack-loader',
-      options: options as Record<string, never>,
+      options: turbopackOptions as Record<string, never>,
     },
   ];
 
@@ -67,7 +84,7 @@ export function withPlumeria(
 
   const cssLoader = {
     loader: '@plumeria/turbopack-loader/css',
-    options: options as Record<string, never>,
+    options: turbopackOptions as Record<string, never>,
   };
 
   const plumeriaRules: PlumeriaTurbopackRules = {
