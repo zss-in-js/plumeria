@@ -64,6 +64,7 @@ import type {
   CreateStaticHashTable,
   ViewTransitionHashTable,
   VarTypeHashTable,
+  PositionTryHashTable,
   KeyframesHashTable,
   StaticTable,
 } from './index';
@@ -202,6 +203,7 @@ interface TraversalContext {
   mergedKeyframesTable: KeyframesHashTable;
   mergedViewTransitionTable: ViewTransitionHashTable;
   mergedVarTypeTable: VarTypeHashTable;
+  mergedPositionTryTable: PositionTryHashTable;
   mergedCreateThemeHashTable: CreateThemeHashTable;
   mergedCreateStaticHashTable: CreateStaticHashTable;
   mergedCreateTable: CreateHashTable;
@@ -232,6 +234,7 @@ const dynamicTablesOf = (ctx: TraversalContext): DynamicStyleTables => ({
   keyframesHashTable: ctx.mergedKeyframesTable,
   viewTransitionHashTable: ctx.mergedViewTransitionTable,
   varTypeHashTable: ctx.mergedVarTypeTable,
+  positionTryHashTable: ctx.mergedPositionTryTable,
   createThemeHashTable: ctx.mergedCreateThemeHashTable,
   createThemeObjectTable: ctx.scannedTables.createThemeObjectTable,
   createHashTable: ctx.mergedCreateTable,
@@ -506,6 +509,7 @@ export function compileCSS(options: CompilerOptions) {
     const keyframesImportMap: KeyframesHashTable = {};
     const viewTransitionImportMap: ViewTransitionHashTable = {};
     const varTypeImportMap: VarTypeHashTable = {};
+    const positionTryImportMap: PositionTryHashTable = {};
     const createImportMap: CreateHashTable = {};
     const createFunctionImportMap: Record<string, StyleFunctions> = {};
     const createThemeImportMap: CreateThemeHashTable = {};
@@ -579,6 +583,9 @@ export function compileCSS(options: CompilerOptions) {
               if (scannedTables.varTypeHashTable?.[uniqueKey])
                 varTypeImportMap[localName] =
                   scannedTables.varTypeHashTable[uniqueKey];
+              if (scannedTables.positionTryHashTable?.[uniqueKey])
+                positionTryImportMap[localName] =
+                  scannedTables.positionTryHashTable[uniqueKey];
               if (scannedTables.createHashTable[uniqueKey])
                 createImportMap[localName] =
                   scannedTables.createHashTable[uniqueKey];
@@ -642,6 +649,18 @@ export function compileCSS(options: CompilerOptions) {
       mergedVarTypeTable[key] = varTypeImportMap[key];
     }
 
+    const positionTryHashTable = scannedTables.positionTryHashTable ?? {};
+    const mergedPositionTryTable: PositionTryHashTable =
+      Object.create(positionTryHashTable);
+    for (const key of fileTableKeys(resourcePath, 'positionTryHashTable') ??
+      []) {
+      mergedPositionTryTable[key.slice(resourcePath.length + 1)] =
+        positionTryHashTable[key];
+    }
+    for (const key of Object.keys(positionTryImportMap)) {
+      mergedPositionTryTable[key] = positionTryImportMap[key];
+    }
+
     const mergedCreateThemeHashTable: CreateThemeHashTable = Object.create(
       scannedTables.createThemeHashTable,
     );
@@ -683,6 +702,7 @@ export function compileCSS(options: CompilerOptions) {
       mergedKeyframesTable,
       mergedViewTransitionTable,
       mergedVarTypeTable,
+      mergedPositionTryTable,
       mergedCreateThemeHashTable,
       mergedCreateStaticHashTable,
       mergedCreateTable,
@@ -839,6 +859,7 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
             undefined,
             ctx.mergedVarTypeTable,
+            ctx.mergedPositionTryTable,
           );
         } else if (
           t.isMemberExpression(expr) &&
@@ -987,6 +1008,7 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
             undefined,
             ctx.mergedVarTypeTable,
+            ctx.mergedPositionTryTable,
           );
 
         if (func.named) {
@@ -1363,6 +1385,7 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
             undefined,
             ctx.mergedVarTypeTable,
+            ctx.mergedPositionTryTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
           writes.keyframesObjectTable[hash] = obj;
@@ -1383,6 +1406,7 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
             undefined,
             ctx.mergedVarTypeTable,
+            ctx.mergedPositionTryTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
           writes.viewTransitionObjectTable[hash] = obj;
@@ -1422,6 +1446,7 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
             undefined,
             ctx.mergedVarTypeTable,
+            ctx.mergedPositionTryTable,
           );
           const hash = themeHashOf(selector, obj);
           writes.createThemeObjectTable[hash] = obj;
@@ -1445,6 +1470,7 @@ export function compileCSS(options: CompilerOptions) {
             ctx.scannedTables.createStaticObjectTable,
             undefined,
             ctx.mergedVarTypeTable,
+            ctx.mergedPositionTryTable,
           );
           const hash = genBase36Hash(obj, 1, 8);
           writes.createStaticObjectTable[hash] = obj;
@@ -1520,6 +1546,7 @@ export function compileCSS(options: CompilerOptions) {
                   ctx.scannedTables.createStaticObjectTable,
                   resolveVariable,
                   ctx.mergedVarTypeTable,
+                  ctx.mergedPositionTryTable,
                 );
 
                 if (obj) {
@@ -1563,6 +1590,7 @@ export function compileCSS(options: CompilerOptions) {
                   ctx.scannedTables.createStaticObjectTable,
                   undefined,
                   ctx.mergedVarTypeTable,
+                  ctx.mergedPositionTryTable,
                 );
                 const hash = themeHashOf(selector, obj);
                 const uKey = `${resourcePath}-${node.id.value}`;
@@ -1599,6 +1627,7 @@ export function compileCSS(options: CompilerOptions) {
                   ctx.scannedTables.createStaticObjectTable,
                   undefined,
                   ctx.mergedVarTypeTable,
+                  ctx.mergedPositionTryTable,
                 );
                 ctx.mergedVarTypeTable[node.id.value] = checkedVarTypeHash(
                   node.id.value,
@@ -1617,6 +1646,7 @@ export function compileCSS(options: CompilerOptions) {
                   ctx.scannedTables.createStaticObjectTable,
                   undefined,
                   ctx.mergedVarTypeTable,
+                  ctx.mergedPositionTryTable,
                 );
                 if (obj) {
                   const hash = genBase36Hash(obj, 1, 8);
