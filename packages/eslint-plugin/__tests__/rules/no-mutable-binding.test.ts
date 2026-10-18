@@ -56,6 +56,14 @@ ruleTester.run('no-mutable-binding', noMutableBinding, {
     },
     {
       code: `
+        import * as css from '@plumeria/core';
+        let start = '0deg';
+        css.varType({ syntax: '<angle>', initialValue: start });
+      `,
+      errors: [{ messageId: 'mutable', data: { name: 'start', kind: 'let' } }],
+    },
+    {
+      code: `
         import { createStatic, keyframes } from '@plumeria/core';
         let query = '@media (min-width: 600px)';
         let opacity = 0.5;
