@@ -1,5 +1,9 @@
 # Release Notes
 
+## 19.14.4 (Oct 18, 2026)
+
+- Fix: `next dev` no longer fails with Module not found after Plumeria is upgraded or downgraded while `.next` is kept, because the Turbopack loaders receive the installed loader version and discard transforms cached by another version
+
 ## 19.14.3 (Oct 15, 2026)
 
 - Fix: `next dev` no longer shows a frame without styles when a client component or a style module it imports is edited, because the edited module carries the stylesheet until the updated one arrives

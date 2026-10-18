@@ -1,5 +1,14 @@
 # @plumeria/next-plugin
 
+## 19.14.4
+
+### Patch Changes
+
+- 1e59337: - Fix: `next dev` no longer fails with Module not found after Plumeria is upgraded or downgraded while `.next` is kept, because the Turbopack loaders receive the installed loader version and discard transforms cached by another version
+- Updated dependencies [1e59337]
+  - @plumeria/eslint-plugin@19.14.4
+  - @plumeria/turbopack-loader@19.14.4
+
 ## 19.14.3
 
 ### Patch Changes
