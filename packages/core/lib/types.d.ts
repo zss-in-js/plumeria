@@ -152,6 +152,36 @@ type ViewTransition = {
   old?: CSSProperties;
 };
 
+type VarTypeSyntax =
+  | '<angle>'
+  | '<color>'
+  | '<custom-ident>'
+  | '<image>'
+  | '<integer>'
+  | '<length>'
+  | '<length-percentage>'
+  | '<number>'
+  | '<percentage>'
+  | '<resolution>'
+  | '<string>'
+  | '<time>'
+  | '<transform-function>'
+  | '<transform-list>'
+  | '<url>'
+  | (string & {});
+
+type VarType =
+  | {
+      syntax: '*';
+      inherits?: boolean;
+      initialValue?: string;
+    }
+  | {
+      syntax: VarTypeSyntax;
+      inherits?: boolean;
+      initialValue: string;
+    };
+
 type StripColon<T extends string> = T extends `:${infer R}` ? StripColon<R> : T;
 
 type Extended<
@@ -179,6 +209,8 @@ export type {
   CreateStatic,
   Keyframes,
   ViewTransition,
+  VarType,
+  CSSVariableKey,
   Marker,
   Extended,
 };
