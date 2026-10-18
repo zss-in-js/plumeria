@@ -64,6 +64,14 @@ ruleTester.run('no-mutable-binding', noMutableBinding, {
     },
     {
       code: `
+        import * as css from '@plumeria/core';
+        let gap = 8;
+        css.positionTry({ positionArea: 'top', marginBottom: gap });
+      `,
+      errors: [{ messageId: 'mutable', data: { name: 'gap', kind: 'let' } }],
+    },
+    {
+      code: `
         import { createStatic, keyframes } from '@plumeria/core';
         let query = '@media (min-width: 600px)';
         let opacity = 0.5;
