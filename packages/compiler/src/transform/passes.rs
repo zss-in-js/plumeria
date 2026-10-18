@@ -337,6 +337,22 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                     content: quote(&format!("kf-{hash}")),
                 });
             }
+            "positionTry" => {
+                let Some(K::Object(object)) = first.map(|e| e.kind()) else {
+                    return Ok(());
+                };
+                let obj = self.evaluate_object(object)?;
+                self.assert_no_dropped(object, &obj)?;
+                let hash = crate::engine::hash_object(&obj);
+                self.writes
+                    .position_try_obj
+                    .insert(hash.clone(), Value::obj(obj));
+                self.replacements.push(Replacement {
+                    start: call.span.start,
+                    end: call.span.end,
+                    content: quote(&format!("--pt-{hash}")),
+                });
+            }
             "viewTransition" => {
                 let Some(K::Object(object)) = first.map(|e| e.kind()) else {
                     return Ok(());
