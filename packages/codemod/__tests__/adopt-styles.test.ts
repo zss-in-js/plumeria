@@ -104,6 +104,13 @@ tester.run('adopt-styles', adoptStyles, {
       errors: 5,
     },
     {
+      // a lone condition the export wrote as `|| undefined` comes back as a list
+      code: `import s from './Card.module.css';\n<div className={(on && s['card-title']) || undefined} />;`,
+      options,
+      output: `import '@plumeria/core';\nimport { styles } from './Card.styles';\n<div classStyle={[on && styles.cardTitle]} />;`,
+      errors: 4,
+    },
+    {
       // an element carrying a class name of its own keeps it on className
       code: `import s from './Card.module.css';\n<div className={[props.className, s.base].filter(Boolean).join(' ')} />;`,
       options,
