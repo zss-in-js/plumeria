@@ -960,6 +960,30 @@ function getFoldedValues(key: string): Set<string> {
   return folded;
 }
 
+const transformFunctionString = [
+  `matrix\\(${mathContentsString}\\)`,
+  `matrix3d\\(${mathContentsString}\\)`,
+  `perspective\\(${mathContentsString}\\)`,
+  `rotate\\(${mathContentsString}\\)`,
+  `rotate3d\\(${mathContentsString}\\)`,
+  `rotateX\\(${mathContentsString}\\)`,
+  `rotateY\\(${mathContentsString}\\)`,
+  `rotateZ\\(${mathContentsString}\\)`,
+  `scale\\(${mathContentsString}\\)`,
+  `scale3d\\(${mathContentsString}\\)`,
+  `scaleX\\(${mathContentsString}\\)`,
+  `scaleY\\(${mathContentsString}\\)`,
+  `scaleZ\\(${mathContentsString}\\)`,
+  `skew\\(${mathContentsString}\\)`,
+  `skewX\\(${mathContentsString}\\)`,
+  `skewY\\(${mathContentsString}\\)`,
+  `translate\\(${mathContentsString}\\)`,
+  `translate3d\\(${mathContentsString}\\)`,
+  `translateX\\(${mathContentsString}\\)`,
+  `translateY\\(${mathContentsString}\\)`,
+  `translateZ\\(${mathContentsString}\\)`,
+].join('|');
+
 function getValidator(key: string): ValidatorFn | null {
   if (validatorCache.has(key)) return validatorCache.get(key)!;
 
@@ -967,30 +991,7 @@ function getValidator(key: string): ValidatorFn | null {
   const lvp = getLengthValuePattern(key);
 
   // Helper functions for static string blocks
-  const getTransformFunctions = () =>
-    [
-      `matrix\\(${mathContentsString}\\)`,
-      `matrix3d\\(${mathContentsString}\\)`,
-      `perspective\\(${mathContentsString}\\)`,
-      `rotate\\(${mathContentsString}\\)`,
-      `rotate3d\\(${mathContentsString}\\)`,
-      `rotateX\\(${mathContentsString}\\)`,
-      `rotateY\\(${mathContentsString}\\)`,
-      `rotateZ\\(${mathContentsString}\\)`,
-      `scale\\(${mathContentsString}\\)`,
-      `scale3d\\(${mathContentsString}\\)`,
-      `scaleX\\(${mathContentsString}\\)`,
-      `scaleY\\(${mathContentsString}\\)`,
-      `scaleZ\\(${mathContentsString}\\)`,
-      `skew\\(${mathContentsString}\\)`,
-      `skewX\\(${mathContentsString}\\)`,
-      `skewY\\(${mathContentsString}\\)`,
-      `translate\\(${mathContentsString}\\)`,
-      `translate3d\\(${mathContentsString}\\)`,
-      `translateX\\(${mathContentsString}\\)`,
-      `translateY\\(${mathContentsString}\\)`,
-      `translateZ\\(${mathContentsString}\\)`,
-    ].join('|');
+  const getTransformFunctions = () => transformFunctionString;
 
   const getGeometryBaseSet = () =>
     'content-box|padding-box|border-box|fill-box|stroke-box|view-box';
@@ -1960,6 +1961,119 @@ function getValidator(key: string): ValidatorFn | null {
   return validator;
 }
 
+const contextDependentUnits = [
+  'cap',
+  'ch',
+  'em',
+  'ex',
+  'ic',
+  'lh',
+  'rcap',
+  'rch',
+  'rem',
+  'rex',
+  'ric',
+  'rlh',
+  'cqw',
+  'cqh',
+  'cqi',
+  'cqb',
+  'cqmin',
+  'cqmax',
+];
+const contextDependentRegex = new RegExp(
+  `(?:var\\(|[\\d.](?:${contextDependentUnits.join('|')})(?![a-zA-Z0-9_-]))`,
+  'i',
+);
+const quotedStringRegex = new RegExp(stringString, 'g');
+const timeString = `${pureNumber}(?:ms|s)`;
+const resolutionString = `${pureNumber}(?:dpi|dpcm|dppx|x)`;
+const customIdentRegex = /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/;
+
+const exactly = (pattern: string): ValidatorFn => {
+  const r = new RegExp(`^(?:${pattern})$`);
+  return (v) => r.test(v);
+};
+
+const varTypeValidators: Record<string, ValidatorFn> = {
+  '<length>': exactly(`${lengthPattern}|${calcString}`),
+  '<number>': exactly(`${pureNumber}|${calcString}`),
+  '<integer>': exactly(`${pureInteger}|${calcString}`),
+  '<percentage>': exactly(`${percentagePattern}|${calcString}`),
+  '<length-percentage>': exactly(
+    `${lengthPattern}|${percentagePattern}|${calcString}`,
+  ),
+  '<angle>': exactly(`${pureAngle}|${calcString}`),
+  '<time>': exactly(`${timeString}|${calcString}`),
+  '<resolution>': exactly(`${resolutionString}|${calcString}`),
+  '<color>': isColor,
+  '<image>': exactly(`${urlString}|${gradientString}|${imageSetString}`),
+  '<url>': exactly(urlString),
+  '<string>': exactly(stringString),
+  '<custom-ident>': (v) =>
+    customIdentRegex.test(v) &&
+    !globalValues.includes(v.toLowerCase()) &&
+    v.toLowerCase() !== 'default',
+  '<transform-function>': exactly(transformFunctionString),
+  '<transform-list>': exactly(
+    `(?:${transformFunctionString})(?:\\s+(?:${transformFunctionString}))*`,
+  ),
+};
+
+function splitTopLevelSpaces(value: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const char of value) {
+    if (char === '(') depth++;
+    else if (char === ')') depth--;
+    if (depth === 0 && /\s/.test(char)) {
+      if (current) parts.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  if (current) parts.push(current);
+  return parts;
+}
+
+function matchesSyntaxComponent(
+  component: string,
+  value: string,
+): boolean | null {
+  const multiplier = /[+#]$/.test(component) ? component.slice(-1) : '';
+  const name = multiplier ? component.slice(0, -1) : component;
+  if (!name.startsWith('<')) return multiplier ? null : value === name;
+  const validator = varTypeValidators[name];
+  if (!validator) return null;
+  if (!multiplier) return validator(value);
+  const items =
+    multiplier === '+'
+      ? splitTopLevelSpaces(value)
+      : splitTopLevelCommas(value);
+  return items.every((item) => item !== '' && validator(item));
+}
+
+function checkInitialValue(
+  syntax: string,
+  value: string,
+): 'varTypeDependent' | 'varTypeMismatch' | null {
+  const trimmedSyntax = syntax.trim();
+  if (trimmedSyntax === '*') return null;
+  if (contextDependentRegex.test(value.replace(quotedStringRegex, ''))) {
+    return 'varTypeDependent';
+  }
+  const trimmedValue = value.trim();
+  let unknown = false;
+  for (const component of trimmedSyntax.split('|')) {
+    const result = matchesSyntaxComponent(component.trim(), trimmedValue);
+    if (result) return null;
+    if (result === null) unknown = true;
+  }
+  return unknown ? null : 'varTypeMismatch';
+}
+
 // --- Rule Export ---
 export const validateValues: Rule.RuleModule = {
   meta: {
@@ -1975,6 +2089,10 @@ export const validateValues: Rule.RuleModule = {
         "'{{key}}' cannot be assigned a {{type}} value ({{value}}). CSS properties require string or number values.",
       invalidNumber:
         "'{{key}}' does not accept numeric values. Expected a string value.",
+      varTypeMismatch:
+        "css.varType initialValue '{{value}}' does not match the syntax '{{syntax}}'.",
+      varTypeDependent:
+        "css.varType initialValue '{{value}}' depends on the font, a container or var(), so the browser drops the @property. Use a value that does not depend on where it is used.",
     },
     schema: [],
   },
@@ -2085,6 +2203,40 @@ export const validateValues: Rule.RuleModule = {
       });
     }
 
+    function checkVarType(arg: Rule.Node | undefined) {
+      if (!arg || arg.type !== 'ObjectExpression') return;
+      let syntax = '*';
+      let initialValue: Property['value'] | null = null;
+      for (const prop of arg.properties) {
+        if (
+          prop.type !== 'Property' ||
+          prop.computed ||
+          prop.key.type !== 'Identifier'
+        ) {
+          continue;
+        }
+        if (prop.key.name === 'syntax') {
+          if (prop.value.type !== 'Literal') return;
+          if (typeof prop.value.value !== 'string') return;
+          syntax = prop.value.value;
+        } else if (prop.key.name === 'initialValue') {
+          initialValue = prop.value;
+        }
+      }
+      if (!initialValue || initialValue.type !== 'Literal') return;
+      const raw = initialValue.value;
+      if (typeof raw !== 'string' && typeof raw !== 'number') return;
+      const value = String(raw);
+      const messageId = checkInitialValue(syntax, value);
+      if (messageId) {
+        context.report({
+          node: initialValue,
+          messageId,
+          data: { value, syntax },
+        });
+      }
+    }
+
     return {
       ImportDeclaration(node) {
         if (node.source.value === '@plumeria/core') {
@@ -2106,6 +2258,21 @@ export const validateValues: Rule.RuleModule = {
         }
       },
       CallExpression(node) {
+        const calleeName =
+          node.callee.type === 'MemberExpression'
+            ? node.callee.object.type === 'Identifier' &&
+              plumeriaAliases[node.callee.object.name] === 'NAMESPACE' &&
+              node.callee.property.type === 'Identifier'
+              ? node.callee.property.name
+              : null
+            : node.callee.type === 'Identifier'
+              ? plumeriaAliases[node.callee.name]
+              : null;
+        if (calleeName === 'varType') {
+          checkVarType(node.arguments[0] as Rule.Node | undefined);
+          return;
+        }
+
         let isCssProperties = false;
         if (node.callee.type === 'MemberExpression') {
           if (
