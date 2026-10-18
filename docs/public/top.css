@@ -283,6 +283,7 @@ button {
 
 .site-footer {
   --site-footer-border: var(--border);
+  --site-footer-foreground: var(--foreground);
   --site-footer-muted: var(--muted-foreground);
 
   padding-bottom: 40px;
