@@ -390,6 +390,29 @@ export const transition = css.create({
 // <ViewTransition name={css.use(transition.name)}>...</ViewTransition>
 ```
 
+### `css.varType()`
+
+Registers a typed custom property with `@property` and returns its name. Use it as a key to set the value and inside `var()` to read it. `initialValue` is required for every `syntax` but `'*'`, and must not depend on where it is used (no `em`, `rem`, container units or `var()`):
+
+```tsx
+import * as css from '@plumeria/core';
+
+const angle = css.varType({
+  syntax: '<angle>',
+  initialValue: '0deg',
+});
+
+export const styles = css.create({
+  ring: {
+    background: `conic-gradient(from var(${angle}), red, blue)`,
+    transition: `${angle} 0.6s ease`,
+    ':hover': {
+      [angle]: '180deg',
+    },
+  },
+});
+```
+
 ## Styling Custom Components
 
 There are exactly **3 patterns** for applying Plumeria styles to custom components. In all of them, compilation happens at the `classStyle` / `css.use()` call sites; the component itself just passes the compiled `className` / `style` through to the DOM.
