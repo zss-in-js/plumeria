@@ -2,13 +2,16 @@ use indexmap::IndexSet;
 use rustc_hash::{FxBuildHasher, FxHashSet};
 
 use super::records::style_records;
-use super::theme::{create_theme, create_var_type, create_view_transition, theme_var_name};
+use super::theme::{
+    create_position_try, create_theme, create_var_type, create_view_transition, theme_var_name,
+};
 use crate::engine::transpile_global;
 use crate::js::{Object, Value, entries_object};
 
 pub trait SheetTables {
     fn keyframes_obj(&self, hash: &str) -> Option<Value>;
     fn view_transition_obj(&self, hash: &str) -> Option<Value>;
+    fn position_try_obj(&self, hash: &str) -> Option<Value>;
     fn var_type_obj(&self, hash: &str) -> Option<Value>;
     fn create_obj(&self, hash: &str) -> Option<Value>;
     fn theme_names_sorted(&self) -> Vec<(String, String)>;
@@ -24,6 +27,7 @@ fn find_markers(text: &str, mut found: impl FnMut(&str, &str)) {
         let kind = match prefix {
             b"kf-" => "kf",
             b"vt-" => "vt",
+            b"pt-" => "pt",
             b"pr-" => "pr",
             b"cr-" => "cr",
             _ => {
@@ -69,6 +73,7 @@ struct Walker<'t> {
     tables: &'t dyn SheetTables,
     keyframes: IndexSet<String, FxBuildHasher>,
     view_transitions: IndexSet<String, FxBuildHasher>,
+    position_tries: IndexSet<String, FxBuildHasher>,
     var_types: IndexSet<String, FxBuildHasher>,
     creates: IndexSet<String, FxBuildHasher>,
     variables: FxHashSet<String>,
@@ -101,7 +106,11 @@ impl Walker<'_> {
                     if text.contains("pr-") {
                         self.find_var_types(text);
                     }
-                    if text.contains("kf-") || text.contains("vt-") || text.contains("cr-") {
+                    if text.contains("kf-")
+                        || text.contains("vt-")
+                        || text.contains("pt-")
+                        || text.contains("cr-")
+                    {
                         let mut hits: Vec<(String, String)> = Vec::new();
                         find_markers(text, |kind, hash| {
                             hits.push((kind.to_string(), hash.to_string()))
@@ -123,6 +132,16 @@ impl Walker<'_> {
                                         && let Some(found) = self.tables.view_transition_obj(&hash)
                                     {
                                         self.view_transitions.insert(hash);
+                                        if let Value::Obj(found) = found {
+                                            self.walk(&found);
+                                        }
+                                    }
+                                }
+                                "pt" => {
+                                    if !self.position_tries.contains(&hash)
+                                        && let Some(found) = self.tables.position_try_obj(&hash)
+                                    {
+                                        self.position_tries.insert(hash);
                                         if let Value::Obj(found) = found {
                                             self.walk(&found);
                                         }
@@ -164,6 +183,7 @@ pub fn extract_ondemand_styles(
         tables,
         keyframes: IndexSet::default(),
         view_transitions: IndexSet::default(),
+        position_tries: IndexSet::default(),
         var_types: IndexSet::default(),
         creates: IndexSet::default(),
         variables: FxHashSet::default(),
@@ -180,6 +200,11 @@ pub fn extract_ondemand_styles(
     for hash in &walker.view_transitions {
         if let Some(Value::Obj(object)) = tables.view_transition_obj(hash) {
             add_sheet(transpile_global(&create_view_transition(&object, hash)));
+        }
+    }
+    for hash in &walker.position_tries {
+        if let Some(Value::Obj(object)) = tables.position_try_obj(hash) {
+            add_sheet(transpile_global(&create_position_try(&object, hash)));
         }
     }
     for hash in &walker.var_types {
