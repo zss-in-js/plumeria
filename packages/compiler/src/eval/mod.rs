@@ -210,6 +210,9 @@ impl<'e, 'r> Evaluator<'e, 'r> {
                 if let Some(hash) = self.view_transition_member(val) {
                     return Ok(Some(Value::Str(format!("vt-{hash}"))));
                 }
+                if let Some(hash) = self.position_try_member(val) {
+                    return Ok(Some(Value::Str(format!("--pt-{hash}"))));
+                }
                 if let Some(hash) = self.var_type_member(val) {
                     return Ok(Some(Value::Str(format!("--pr-{hash}"))));
                 }
@@ -478,6 +481,9 @@ impl<'e, 'r> Evaluator<'e, 'r> {
                 if let Some(hash) = self.env.view_transitions.lookup(name) {
                     return Ok(Value::Str(format!("vt-{hash}")));
                 }
+                if let Some(hash) = self.env.position_tries.lookup(name) {
+                    return Ok(Value::Str(format!("--pt-{hash}")));
+                }
                 if let Some(hash) = self.env.var_types.lookup(name) {
                     return Ok(Value::Str(format!("--pr-{hash}")));
                 }
@@ -545,6 +551,10 @@ impl<'e, 'r> Evaluator<'e, 'r> {
                 .and_then(|name| self.env.keyframes.lookup(name)),
             _ => None,
         }
+    }
+
+    fn position_try_member(&self, node: E) -> Option<String> {
+        self.env.position_tries.lookup(node.ident_name()?)
     }
 
     fn var_type_member(&self, node: E) -> Option<String> {
@@ -648,6 +658,7 @@ pub fn resolve_theme_selector(node: E, env: Env) -> String {
         statics: env.statics,
         keyframes: &NOTHING,
         view_transitions: &NOTHING,
+        position_tries: &NOTHING,
         var_types: &NOTHING,
         theme_hashes: &NOTHING,
         theme_objects: &NOTHING,
