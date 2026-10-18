@@ -381,6 +381,13 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
     },
     {
       code: `
+        import * as css from '@plumeria/core';
+        css.positionTry({ minInlineSize: 10, minWidth: 20 });
+      `,
+      errors: [{ messageId: 'alias', suggestions: 2 }],
+    },
+    {
+      code: `
         import css from '@plumeria/core';
         css.viewTransition({
           old: { minInlineSize: 10, minWidth: 20 },
