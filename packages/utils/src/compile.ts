@@ -69,7 +69,7 @@ import type {
 } from './index';
 import { getLeadingCommentLength } from './index';
 import { isDefinedArgument } from './dynamicKey';
-import { varTypeHashOf } from './varType';
+import { checkedVarTypeHash } from './varType';
 
 interface CompilerOptions extends PropertyPolicyOptions {
   include: string[];
@@ -1600,7 +1600,7 @@ export function compileCSS(options: CompilerOptions) {
                   undefined,
                   ctx.mergedVarTypeTable,
                 );
-                ctx.mergedVarTypeTable[node.id.value] = varTypeHashOf(
+                ctx.mergedVarTypeTable[node.id.value] = checkedVarTypeHash(
                   node.id.value,
                   obj,
                 );
