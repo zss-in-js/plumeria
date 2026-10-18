@@ -101,6 +101,13 @@ ruleTester.run('no-physical-properties', noPhysicalProperties, {
     {
       code: `
         import * as css from '@plumeria/core';
+        css.positionTry({ marginTop: 8 });
+      `,
+      errors: [{ messageId: 'rejected', suggestions: 1 }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
         const styles = css.create({
           main: {
             paddingLeft: 16
