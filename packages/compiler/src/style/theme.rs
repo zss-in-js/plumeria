@@ -8,6 +8,33 @@ pub fn theme_hash_of(selector: &str, rule: &Object) -> String {
     hash_object(&source)
 }
 
+pub fn var_type_hash(name: &str, rule: &Object) -> String {
+    let mut source = Object::new();
+    source.insert("_varTypeName", Value::str(name));
+    source.assign(rule);
+    hash_object(&source)
+}
+
+pub fn create_var_type(rule: &Object, hash: &str) -> Object {
+    let syntax = match rule.get("syntax") {
+        Some(Value::Str(syntax)) => syntax.to_string(),
+        _ => "*".to_string(),
+    };
+    let inherits = matches!(rule.get("inherits"), Some(Value::Bool(true)));
+    let mut descriptor = Object::new();
+    descriptor.insert("syntax", Value::Str(format!("\"{syntax}\"")));
+    descriptor.insert(
+        "inherits",
+        Value::str(if inherits { "true" } else { "false" }),
+    );
+    if let Some(value) = rule.get("initialValue") {
+        descriptor.insert("initialValue", value.clone());
+    }
+    let mut result = Object::new();
+    result.insert(format!("@property --pr-{hash}"), Value::obj(descriptor));
+    result
+}
+
 pub fn theme_var_hash(theme_hash: &str, key: &str, value: &Value) -> String {
     let mut source = Object::new();
     source.insert("_theme", Value::str(theme_hash));
