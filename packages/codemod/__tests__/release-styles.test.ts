@@ -226,7 +226,7 @@ const { card } = styles;
     },
     {
       filename: ANIMATION,
-      code: `import * as css from '@plumeria/core';\nexport const fade = css.keyframes({ from: { opacity: 0 } });\nexport const transition = css.viewTransition({ old: { animationName: fade } });`,
+      code: `import * as css from '@plumeria/core';\nexport const fade = css.keyframes({ from: { opacity: 0 } });\nexport const transition = css.viewTransitionClass({ old: { animationName: fade } });`,
       options: [
         {
           modules: {},
