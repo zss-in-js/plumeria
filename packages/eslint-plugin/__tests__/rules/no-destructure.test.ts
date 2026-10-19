@@ -24,7 +24,7 @@ ruleTester.run('no-destructure', noDestructure, {
       code: `import * as css from '@plumeria/core'; const animate = css.keyframes({})`,
     },
     {
-      code: `import * as css from '@plumeria/core'; const transitionName = css.viewTransition({})`,
+      code: `import * as css from '@plumeria/core'; const transitionName = css.viewTransitionClass({})`,
     },
     {
       code: `import * as css from '@plumeria/core'; const breakpoints = css.createStatic({})`,
@@ -88,11 +88,11 @@ ruleTester.run('no-destructure', noDestructure, {
       ],
     },
     {
-      code: `import * as css from '@plumeria/core'; const { viewTransition } = css;`,
+      code: `import * as css from '@plumeria/core'; const { viewTransitionClass } = css;`,
       errors: [
         {
           message:
-            'Do not destructure "viewTransition" from "css". Use dot notation instead.',
+            'Do not destructure "viewTransitionClass" from "css". Use dot notation instead.',
         },
       ],
     },
