@@ -193,6 +193,11 @@ const styles = css.create({
     borderBottomStyle: 'solid',
     borderBottomWidth: '1px',
   },
+  outputTab: {
+    [breakpoints.lg]: {
+      paddingBlock: 26,
+    },
+  },
   previewTab: {
     [breakpoints.lgUp]: {
       display: 'none',
@@ -477,6 +482,7 @@ export function Playground() {
                 }}
                 classStyle={[
                   styles.tab,
+                  styles.outputTab,
                   outputTab === item.value && styles.tabActive,
                   item.value === 'preview' && styles.previewTab,
                   item.value === 'jsx' && outputTab === 'preview' && styles.tabActiveWide,
