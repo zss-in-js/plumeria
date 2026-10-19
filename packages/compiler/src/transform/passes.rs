@@ -1,6 +1,7 @@
 use oxc_ast::ast::*;
 use oxc_ast_visit::{Visit, walk};
 use oxc_span::{GetSpan, Span};
+use rustc_hash::FxHashSet;
 
 use super::context::extend;
 use super::dropped::Context;
@@ -34,6 +35,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
         let mut visitor = SecondPass {
             t: self,
             error: None,
+            namespace_reads: FxHashSet::default(),
         };
         visitor.visit_program(extend(visitor.t.program));
         match visitor.error {
@@ -489,6 +491,171 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
         hash_map
     }
 
+    fn namespace_member(&mut self, member: Member<'b, 'a>) -> TResult<bool> {
+        let node = E::from_member(member);
+        if !self.visibility().expr(node) {
+            return Ok(false);
+        }
+        let Some(var_name) = node.object().and_then(|object| object.ident_name()) else {
+            return Ok(false);
+        };
+        let prop_name = match node.prop() {
+            Some(Prop::Name(name)) => name,
+            Some(Prop::Computed(key)) => match static_key(key) {
+                Some(key) => key,
+                None => return Ok(false),
+            },
+            _ => return Ok(false),
+        };
+        let Some(actual) = self.namespace_path(var_name) else {
+            return Ok(false);
+        };
+        self.namespace_keys(var_name, &actual, &[(Some(prop_name), node.span())], None)?;
+        Ok(true)
+    }
+
+    fn namespace_pattern(&mut self, node: &'b VariableDeclarator<'a>) -> TResult<bool> {
+        let (BindingPattern::ObjectPattern(pattern), Some(Expression::Identifier(ident))) =
+            (&node.id, &node.init)
+        else {
+            return Ok(false);
+        };
+        let keys: Vec<_> = pattern
+            .properties
+            .iter()
+            .map(|prop| (pattern_key(&prop.key, prop.computed), prop.span))
+            .collect();
+        self.namespace_destructure(ident, &keys, pattern.rest.as_ref().map(|rest| rest.span))
+    }
+
+    fn namespace_assignment(&mut self, node: &'b AssignmentExpression<'a>) -> TResult<bool> {
+        let (AssignmentTarget::ObjectAssignmentTarget(target), Expression::Identifier(ident)) =
+            (&node.left, &node.right)
+        else {
+            return Ok(false);
+        };
+        let keys: Vec<_> = target
+            .properties
+            .iter()
+            .map(|prop| match prop {
+                AssignmentTargetProperty::AssignmentTargetPropertyIdentifier(prop) => {
+                    (Some(prop.binding.name.as_str()), prop.span)
+                }
+                AssignmentTargetProperty::AssignmentTargetPropertyProperty(prop) => {
+                    (pattern_key(&prop.name, prop.computed), prop.span)
+                }
+            })
+            .collect();
+        self.namespace_destructure(ident, &keys, target.rest.as_ref().map(|rest| rest.span))
+    }
+
+    fn namespace_destructure(
+        &mut self,
+        ident: &'b IdentifierReference<'a>,
+        keys: &[(Option<&str>, Span)],
+        rest: Option<Span>,
+    ) -> TResult<bool> {
+        if !self.visibility().ident(ident) {
+            return Ok(false);
+        }
+        let var_name = ident.name.as_str();
+        let Some(actual) = self.namespace_path(var_name) else {
+            return Ok(false);
+        };
+        self.namespace_keys(var_name, &actual, keys, rest)?;
+        Ok(true)
+    }
+
+    fn namespace_keys(
+        &mut self,
+        var_name: &str,
+        actual: &str,
+        keys: &[(Option<&str>, Span)],
+        rest: Option<Span>,
+    ) -> TResult<()> {
+        let mut unknown = rest;
+        for (key, span) in keys {
+            let Some(key) = key else {
+                unknown = unknown.or(Some(*span));
+                continue;
+            };
+            let unique_key = self.definition_key(actual, key);
+            if self.is_definition_key(&unique_key) {
+                return Err(self.namespace_read_error(var_name, key, *span));
+            }
+        }
+        if let Some(span) = unknown
+            && let Some(name) = self.exported_definition(actual)
+        {
+            return Err(self.namespace_read_error(var_name, &name, span));
+        }
+        Ok(())
+    }
+
+    fn namespace_escape(&mut self, ident: &'b IdentifierReference<'a>) -> TResult<()> {
+        if !self.visibility().ident(ident) {
+            return Ok(());
+        }
+        let var_name = ident.name.as_str();
+        let Some(actual) = self.namespace_path(var_name) else {
+            return Ok(());
+        };
+        if let Some(name) = self.exported_definition(&actual) {
+            return Err(self.fail(
+                format!(
+                    "[plumeria] {var_name} is used as a whole, but it holds {var_name}.{name}, a Plumeria definition that cannot be compiled through a namespace import. Import the names it needs instead: import {{ {name} }} from '...'."
+                ),
+                Some(ident.span),
+            ));
+        }
+        Ok(())
+    }
+
+    fn exported_definition(&mut self, actual: &str) -> Option<String> {
+        self.project.export_names(actual).into_iter().find(|name| {
+            let unique_key = self.definition_key(actual, name);
+            self.is_definition_key(&unique_key)
+        })
+    }
+
+    fn namespace_path(&self, var_name: &str) -> Option<String> {
+        self.local_imports
+            .get(var_name)
+            .filter(|import| import.imported_name == "*")
+            .map(|import| import.actual_path.clone())
+    }
+
+    fn definition_key(&mut self, actual: &str, prop_name: &str) -> String {
+        match self.project.resolve_export(actual, prop_name) {
+            Some(site) => format!("{}-{}", site.file, site.local_name),
+            None => format!("{actual}-{prop_name}"),
+        }
+    }
+
+    fn is_definition_key(&self, unique_key: &str) -> bool {
+        let tables = self.tables;
+        [
+            &tables.keyframes_hash,
+            &tables.view_transition_hash,
+            &tables.position_try_hash,
+            &tables.var_type_hash,
+            &tables.theme_hash,
+            &tables.create_hash,
+            &tables.static_hash,
+        ]
+        .iter()
+        .any(|table| table.get(unique_key).is_some_and(|hash| !hash.is_empty()))
+    }
+
+    fn namespace_read_error(&self, var_name: &str, prop_name: &str, span: Span) -> String {
+        self.fail(
+            format!(
+                "[plumeria] {var_name}.{prop_name} reads a Plumeria definition through a namespace import, which cannot be compiled. Import it by name: import {{ {prop_name} }} from '...'."
+            ),
+            Some(span),
+        )
+    }
+
     fn member_expression(&mut self, member: Member<'b, 'a>) {
         let node = E::from_member(member);
         if !self.visibility().expr(node) {
@@ -893,12 +1060,78 @@ impl<'x, 't, 'p, 'b, 'a> Visit<'a> for FirstPass<'x, 't, 'p, 'b, 'a> {
     }
 }
 
+fn static_key<'b, 'a>(key: E<'b, 'a>) -> Option<&'b str> {
+    match key.kind() {
+        K::Str(value) => Some(value.value.as_str()),
+        K::Template(value) if value.expressions.is_empty() => value
+            .quasis
+            .first()?
+            .value
+            .cooked
+            .as_ref()
+            .map(|cooked| cooked.as_str()),
+        _ => None,
+    }
+}
+
+fn pattern_key<'b, 'a>(key: &'b PropertyKey<'a>, computed: bool) -> Option<&'b str> {
+    match key {
+        PropertyKey::StaticIdentifier(key) if !computed => Some(key.name.as_str()),
+        _ => key.as_expression().and_then(|key| static_key(E::new(key))),
+    }
+}
+
 struct SecondPass<'x, 't, 'p, 'b, 'a> {
     t: &'x mut Transformer<'t, 'p, 'b, 'a>,
     error: Option<String>,
+    namespace_reads: FxHashSet<u32>,
+}
+
+impl<'a> SecondPass<'_, '_, '_, '_, 'a> {
+    fn mark_namespace_read(
+        &mut self,
+        read: TResult<bool>,
+        object: Option<&Expression<'a>>,
+    ) -> bool {
+        match read {
+            Ok(true) => {
+                if let Some(Expression::Identifier(ident)) = object {
+                    self.namespace_reads.insert(ident.span.start);
+                }
+                true
+            }
+            Ok(false) => true,
+            Err(error) => {
+                self.error = Some(error);
+                false
+            }
+        }
+    }
 }
 
 impl<'x, 't, 'p, 'b, 'a> Visit<'a> for SecondPass<'x, 't, 'p, 'b, 'a> {
+    fn visit_variable_declarator(&mut self, it: &VariableDeclarator<'a>) {
+        if self.error.is_some() {
+            return;
+        }
+        let read = self.t.namespace_pattern(extend(it));
+        if !self.mark_namespace_read(read, it.init.as_ref()) {
+            return;
+        }
+        walk::walk_variable_declarator(self, it);
+    }
+
+    fn visit_assignment_expression(&mut self, it: &AssignmentExpression<'a>) {
+        if self.error.is_some() {
+            return;
+        }
+        let read = self.t.namespace_assignment(extend(it));
+        if !self.mark_namespace_read(read, Some(&it.right)) {
+            return;
+        }
+        walk::walk_assignment_expression(self, it);
+    }
+
     fn visit_jsx_opening_element(&mut self, it: &JSXOpeningElement<'a>) {
         if self.error.is_some() {
             return;
@@ -930,6 +1163,10 @@ impl<'x, 't, 'p, 'b, 'a> Visit<'a> for SecondPass<'x, 't, 'p, 'b, 'a> {
         if self.error.is_some() {
             return;
         }
+        let read = self.t.namespace_member(Member::Static(extend(it)));
+        if !self.mark_namespace_read(read, Some(&it.object)) {
+            return;
+        }
         self.t.member_expression(Member::Static(extend(it)));
         walk::walk_static_member_expression(self, it);
     }
@@ -938,12 +1175,22 @@ impl<'x, 't, 'p, 'b, 'a> Visit<'a> for SecondPass<'x, 't, 'p, 'b, 'a> {
         if self.error.is_some() {
             return;
         }
+        let read = self.t.namespace_member(Member::Computed(extend(it)));
+        if !self.mark_namespace_read(read, Some(&it.object)) {
+            return;
+        }
         self.t.member_expression(Member::Computed(extend(it)));
         walk::walk_computed_member_expression(self, it);
     }
 
     fn visit_identifier_reference(&mut self, it: &IdentifierReference<'a>) {
         if self.error.is_some() {
+            return;
+        }
+        if !self.namespace_reads.contains(&it.span.start)
+            && let Err(error) = self.t.namespace_escape(extend(it))
+        {
+            self.error = Some(error);
             return;
         }
         self.t.identifier(extend(it));
