@@ -83,7 +83,7 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
     {
       code: `
         import * as css from '@plumeria/core';
-        const transition = css.viewTransition({
+        const transition = css.viewTransitionClass({
           group: { opacity: 0 },
           new: { opacity: 1 }
         });
@@ -120,7 +120,7 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
     },
     {
       code: `
-        import { viewTransition as vt } from '@plumeria/core';
+        import { viewTransitionClass as vt } from '@plumeria/core';
         const transition = vt({
           new: { opacity: 1 }
         });
@@ -375,7 +375,7 @@ ruleTester.run('no-unknown-css-properties', noUnknownCssProperties, {
     {
       code: `
         import * as css from '@plumeria/core';
-        const transition = css.viewTransition({
+        const transition = css.viewTransitionClass({
           new: { unkownProp: '0' }
         });
       `,
