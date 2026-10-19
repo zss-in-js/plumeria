@@ -149,7 +149,7 @@ pub fn create_view_transition(rule: &Object, hash: &str) -> Object {
         ("new", "::view-transition-new"),
     ] {
         if let Some(value) = rule.get(key) {
-            result.insert(format!("{pseudo}(vt-{hash})"), value.clone());
+            result.insert(format!("{pseudo}(*.vt-{hash})"), value.clone());
         }
     }
     result
