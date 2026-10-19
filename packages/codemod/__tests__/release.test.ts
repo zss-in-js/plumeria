@@ -105,7 +105,7 @@ export const styles = css.create({ card: { color: theme.text } });`,
     fs.writeFileSync(
       source,
       `import * as css from '@plumeria/core';
-const transition = css.viewTransition({});
+const transition = css.viewTransitionClass({});
 export const styles = css.create({ page: { viewTransitionName: transition } });`,
     );
 
@@ -142,7 +142,7 @@ export const styles = css.create({ card: { color: theme.text } });`,
     expect(plan.global?.css).toContain('.dark');
   });
 
-  it('resolves imported keyframes in viewTransition and css.create', () => {
+  it('resolves imported keyframes in viewTransitionClass and css.create', () => {
     const sourceDir = path.join(dir, 'src');
     fs.mkdirSync(sourceDir);
     const animationSource = path.join(sourceDir, 'animation.ts');
@@ -151,7 +151,7 @@ export const styles = css.create({ card: { color: theme.text } });`,
       animationSource,
       `import * as css from '@plumeria/core';
 export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-export const crossFade = css.viewTransition({ old: { animationName: fade } });`,
+export const crossFade = css.viewTransitionClass({ old: { animationName: fade } });`,
     );
     fs.writeFileSync(
       cardSource,
@@ -170,7 +170,9 @@ export const styles = css.create({ card: {
       /view-transition-name: vt-[a-z\d]+;/,
     );
     expect(plan.global?.css).toMatch(/@keyframes kf-[a-z\d]+/);
-    expect(plan.global?.css).toMatch(/::view-transition-old\(vt-[a-z\d]+\)/);
+    expect(plan.global?.css).toMatch(
+      /::view-transition-old\(\*\.vt-[a-z\d]+\)/,
+    );
   });
 
   it('leaves a createTheme nothing reads in the file that declares it', () => {
@@ -256,7 +258,7 @@ export const styles = css.create({ card: { animationName: fade } });`,
       source,
       `import * as css from '@plumeria/core';
 const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-export const crossFade = css.viewTransition({ old: { animationName: fade } });`,
+export const crossFade = css.viewTransitionClass({ old: { animationName: fade } });`,
     );
 
     const plan = planRelease([dir]);
