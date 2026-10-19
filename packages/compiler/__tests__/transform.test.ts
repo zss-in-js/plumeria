@@ -125,7 +125,7 @@ describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
       const result = await run(`
       import * as css from '@plumeria/core';
       const frames = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-      const transition = css.viewTransition({ old: { opacity: 0 } });
+      const transition = css.viewTransitionClass({ old: { opacity: 0 } });
       const theme = css.createTheme('.dark', { color: 'blue' });
       const statics = css.createStatic({ gap: 4 });
       const s = css.create({ a: { animationName: frames, color: theme.color } });
@@ -234,7 +234,7 @@ describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
       import * as css from '@plumeria/core';
       export const constant = 'red';
       export const frames = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-      export const transition = css.viewTransition({ old: { opacity: 0 } });
+      export const transition = css.viewTransitionClass({ old: { opacity: 0 } });
       export const styles = css.create({ a: { color: constant, animationName: frames } });
       export const theme = css.createTheme('.dark', { color: 'blue' });
       export const statics = css.createStatic({ gap: 4 });
