@@ -57,10 +57,10 @@ ruleTester.run('expand-border-shorthands', expandBorderShorthands, {
     },
     {
       code: `
-        import { create, keyframes as frames, viewTransition } from '@plumeria/core';
+        import { create, keyframes as frames, viewTransitionClass } from '@plumeria/core';
         create({ box: { borderWidth: 1 } });
         frames({ from: { borderStyle: 'solid' } });
-        viewTransition({ old: { borderColor: 'red' } });
+        viewTransitionClass({ old: { borderColor: 'red' } });
       `,
     },
   ],
@@ -80,7 +80,7 @@ ruleTester.run('expand-border-shorthands', expandBorderShorthands, {
     },
     {
       code: `
-        import { 'viewTransition' as transition } from '@plumeria/core';
+        import { 'viewTransitionClass' as transition } from '@plumeria/core';
         transition({ old: { ['borderInlineEnd']: value } });
       `,
       errors: [{ messageId: 'opaque', data: { name: 'borderInlineEnd' } }],
