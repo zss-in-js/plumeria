@@ -7,6 +7,7 @@ use super::dropped::Context;
 use super::{CreateStyle, Replacement, StyleKind, TResult, Transformer};
 use crate::engine::{camel_to_kebab_case, is_at_rule};
 use crate::eval::consts::binding_name;
+use crate::eval::env::Lookup;
 use crate::eval::functions::style_functions_of;
 use crate::eval::{argument_expr, resolve_theme_selector};
 use crate::js::json::{quote, stringify, stringify_object};
@@ -240,12 +241,14 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 self.writes
                     .var_type_obj
                     .insert(hash.clone(), Value::obj(obj));
-                self.merged_var_types.insert(name.to_string(), hash.clone());
-                self.replacements.push(Replacement {
-                    start: call.span.start,
-                    end: call.span.end,
-                    content: quote(&format!("--pr-{hash}")),
-                });
+                self.merged_var_types.insert(name.to_string(), hash);
+                self.drop_definition(is_exported, init_span, decl_span);
+            }
+            "keyframes" | "viewTransition" | "positionTry"
+                if matches!(argument_expr(&call.arguments[0]).kind(), K::Object(_)) =>
+            {
+                self.registered_style_calls.insert(call.span.start);
+                self.drop_definition(is_exported, init_span, decl_span);
             }
             "createStatic" => {
                 let Some(object) = first_object else {
@@ -277,6 +280,19 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
             _ => {}
         }
         Ok(())
+    }
+
+    fn drop_definition(&mut self, is_exported: bool, init_span: Span, decl_span: Span) {
+        let (span, content) = if is_exported {
+            (init_span, "\"\"")
+        } else {
+            (decl_span, "")
+        };
+        self.replacements.push(Replacement {
+            start: span.start,
+            end: span.end,
+            content: content.to_string(),
+        });
     }
 
     fn check_style_alias(&mut self, node: &'b VariableDeclarator<'a>) {
@@ -331,11 +347,13 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 self.writes
                     .keyframes_obj
                     .insert(hash.clone(), Value::obj(obj));
-                self.replacements.push(Replacement {
-                    start: call.span.start,
-                    end: call.span.end,
-                    content: quote(&format!("kf-{hash}")),
-                });
+                if !self.registered_style_calls.contains(&call.span.start) {
+                    self.replacements.push(Replacement {
+                        start: call.span.start,
+                        end: call.span.end,
+                        content: quote(&format!("kf-{hash}")),
+                    });
+                }
             }
             "positionTry" => {
                 let Some(K::Object(object)) = first.map(|e| e.kind()) else {
@@ -347,11 +365,13 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 self.writes
                     .position_try_obj
                     .insert(hash.clone(), Value::obj(obj));
-                self.replacements.push(Replacement {
-                    start: call.span.start,
-                    end: call.span.end,
-                    content: quote(&format!("--pt-{hash}")),
-                });
+                if !self.registered_style_calls.contains(&call.span.start) {
+                    self.replacements.push(Replacement {
+                        start: call.span.start,
+                        end: call.span.end,
+                        content: quote(&format!("--pt-{hash}")),
+                    });
+                }
             }
             "viewTransition" => {
                 let Some(K::Object(object)) = first.map(|e| e.kind()) else {
@@ -363,11 +383,13 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 self.writes
                     .view_transition_obj
                     .insert(hash.clone(), Value::obj(obj));
-                self.replacements.push(Replacement {
-                    start: call.span.start,
-                    end: call.span.end,
-                    content: quote(&format!("vt-{hash}")),
-                });
+                if !self.registered_style_calls.contains(&call.span.start) {
+                    self.replacements.push(Replacement {
+                        start: call.span.start,
+                        end: call.span.end,
+                        content: quote(&format!("vt-{hash}")),
+                    });
+                }
             }
             "createTheme" => {
                 if call.arguments.len() < 2 {
@@ -626,6 +648,33 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
             });
         };
 
+        let parts = self.env_parts();
+        let definition = parts
+            .keyframes
+            .lookup(name)
+            .map(|hash| format!("kf-{hash}"))
+            .or_else(|| {
+                parts
+                    .view_transitions
+                    .lookup(name)
+                    .map(|hash| format!("vt-{hash}"))
+            })
+            .or_else(|| {
+                parts
+                    .position_tries
+                    .lookup(name)
+                    .map(|hash| format!("--pt-{hash}"))
+            })
+            .or_else(|| {
+                parts
+                    .var_types
+                    .lookup(name)
+                    .map(|hash| format!("--pr-{hash}"))
+            });
+        if let Some(definition) = definition {
+            push(self, quote(&definition));
+            return;
+        }
         if let Some(style) = self.local_create_styles.get(name) {
             let content = format!("({})", stringify_object(&style.hash_map));
             push(self, content);
