@@ -15,6 +15,9 @@ import type {
   ExportDeclaration,
   JSXOpeningElement,
   MemberExpression,
+  AssignmentExpression,
+  ObjectPattern,
+  PropertyName,
 } from '@swc/core';
 import * as path from 'path';
 import {
@@ -36,6 +39,7 @@ import {
   resolveFileError,
   getFileDependencies,
   resolveExport,
+  exportNames,
   resolveComponentKey,
   resolveThemeSelector,
   objectExpressionToObject,
@@ -2797,6 +2801,105 @@ export const transformSource = async (
     };
   };
 
+  const definitionTables = [
+    'keyframesHashTable',
+    'viewTransitionHashTable',
+    'positionTryHashTable',
+    'varTypeHashTable',
+    'createThemeHashTable',
+    'createHashTable',
+    'createStaticHashTable',
+  ] as const;
+
+  const namespacePath = (name: string) => {
+    const namespaceImport = localImports[name];
+    return namespaceImport?.importedName === '*'
+      ? namespaceImport.actualPath
+      : undefined;
+  };
+
+  const definitionKey = (actualPath: string, propName: string) => {
+    const resolved = resolveExport(actualPath, propName);
+    return resolved
+      ? `${resolved.filePath}-${resolved.localName}`
+      : `${actualPath}-${propName}`;
+  };
+
+  const isDefinitionKey = (uniqueKey: string) =>
+    definitionTables.some((table) =>
+      Boolean(scannedTables[table]?.[uniqueKey]),
+    );
+
+  const namespaceReads = new Set<number>();
+
+  const staticKey = (expr: Expression) =>
+    expr.type === 'StringLiteral'
+      ? expr.value
+      : expr.type === 'TemplateLiteral' && expr.expressions.length === 0
+        ? (expr.quasis[0]?.cooked ?? undefined)
+        : undefined;
+
+  const patternKey = (key: PropertyName) =>
+    key.type === 'Identifier' || key.type === 'StringLiteral'
+      ? key.value
+      : key.type === 'Computed'
+        ? staticKey(key.expression)
+        : undefined;
+
+  const exportedDefinition = (actualPath: string) =>
+    exportNames(actualPath).find((exportName) =>
+      isDefinitionKey(definitionKey(actualPath, exportName)),
+    );
+
+  const namespaceKeys = (
+    namespace: string,
+    actualPath: string,
+    keys: [string | undefined, HasSpan][],
+  ) => {
+    for (const [key, node] of keys) {
+      if (key !== undefined) {
+        if (isDefinitionKey(definitionKey(actualPath, key)))
+          throwNamespaceRead(namespace, key, node);
+        continue;
+      }
+      const name = exportedDefinition(actualPath);
+      if (name) throwNamespaceRead(namespace, name, node);
+    }
+  };
+
+  const namespacePattern = (pattern: ObjectPattern, init: Expression) => {
+    if (
+      !t.isIdentifier(init) ||
+      !referenceIdents.references.has(init.span.start)
+    )
+      return;
+    const actualPath = namespacePath(init.value);
+    if (!actualPath) return;
+    namespaceKeys(
+      init.value,
+      actualPath,
+      pattern.properties.map((prop): [string | undefined, HasSpan] => [
+        prop.type === 'RestElement'
+          ? undefined
+          : prop.type === 'AssignmentPatternProperty'
+            ? prop.key.value
+            : patternKey(prop.key),
+        prop.type === 'KeyValuePatternProperty' ? prop.key : prop,
+      ]),
+    );
+    namespaceReads.add(init.span.start);
+  };
+
+  const throwNamespaceRead = (
+    namespace: string,
+    propName: string,
+    node: HasSpan,
+  ) =>
+    throwCompilationError(
+      `[plumeria] ${namespace}.${propName} reads a Plumeria definition through a namespace import, which cannot be compiled. Import it by name: import { ${propName} } from '...'.`,
+      node,
+    );
+
   traverse(ast, {
     JSXOpeningElement({ node }: { node: JSXOpeningElement }) {
       const owner = {
@@ -2807,8 +2910,28 @@ export const transformSource = async (
         if (attribute.type === 'JSXAttribute')
           jsxAttributeOwnerMap.set(attribute.span.start, owner);
     },
+    VariableDeclarator({ node }: { node: VariableDeclarator }) {
+      if (node.id.type === 'ObjectPattern' && node.init)
+        namespacePattern(node.id, node.init);
+    },
+    AssignmentExpression({ node }: { node: AssignmentExpression }) {
+      if (node.left.type === 'ObjectPattern')
+        namespacePattern(node.left, node.right);
+    },
     MemberExpression({ node }: { node: MemberExpression }) {
       if (!isVisibleReference(node)) return;
+      if (t.isIdentifier(node.object)) {
+        const actualPath = namespacePath(node.object.value);
+        const propName = t.isIdentifier(node.property)
+          ? node.property.value
+          : node.property.type === 'Computed'
+            ? staticKey(node.property.expression)
+            : undefined;
+        if (actualPath && propName !== undefined) {
+          namespaceKeys(node.object.value, actualPath, [[propName, node]]);
+          namespaceReads.add(node.object.span.start);
+        }
+      }
       if (
         t.isIdentifier(node.object) &&
         (t.isIdentifier(node.property) || node.property.type === 'Computed')
@@ -2933,6 +3056,16 @@ export const transformSource = async (
       if (excludedSpans.has(node.span.start)) return;
       if (idSpans.has(node.span.start)) return;
       if (!referenceIdents.references.has(node.span.start)) return;
+      if (!namespaceReads.has(node.span.start)) {
+        const actualPath = namespacePath(node.value);
+        const name = actualPath && exportedDefinition(actualPath);
+        if (name) {
+          throwCompilationError(
+            `[plumeria] ${node.value} is used as a whole, but it holds ${node.value}.${name}, a Plumeria definition that cannot be compiled through a namespace import. Import the names it needs instead: import { ${name} } from '...'.`,
+            node,
+          );
+        }
+      }
 
       const prefix = referenceIdents.shorthands.has(node.span.start)
         ? `${node.value}: `
