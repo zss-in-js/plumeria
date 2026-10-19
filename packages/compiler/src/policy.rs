@@ -141,7 +141,7 @@ impl<'a> Visit<'a> for Check<'_> {
         }
         let api = plumeria_method(&it.callee, &self.aliases).map(str::to_string);
         if let Some(api) = api
-            && ["create", "keyframes", "viewTransition", "positionTry"].contains(&api.as_str())
+            && ["create", "keyframes", "viewTransitionClass", "positionTry"].contains(&api.as_str())
         {
             for argument in &it.arguments {
                 let expr = match argument {
