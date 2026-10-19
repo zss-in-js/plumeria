@@ -920,20 +920,48 @@ impl Project {
         entry.exports_mtime = Some(stamp);
     }
 
-    pub fn resolve_export(&mut self, file: &str, export_name: &str) -> Option<Site> {
+    pub fn export_names(&mut self, file: &str) -> Vec<String> {
         let mut visited: FxHashSet<String> = FxHashSet::default();
-        self.resolve_export_inner(file, export_name, &mut visited)
+        let mut names = Vec::new();
+        self.collect_export_names(file, true, &mut visited, &mut names);
+        names
     }
 
-    fn resolve_export_inner(
+    fn collect_export_names(
         &mut self,
         file: &str,
-        export_name: &str,
+        with_default: bool,
         visited: &mut FxHashSet<String>,
-    ) -> Option<Site> {
-        if !visited.insert(format!("{file}-{export_name}")) {
-            return None;
+        names: &mut Vec<String>,
+    ) {
+        if !visited.insert(file.to_string()) {
+            return;
         }
+        self.refresh_exports(file);
+        let Some(exports) = self
+            .files
+            .get(file)
+            .and_then(|cached| cached.exports.as_ref())
+        else {
+            return;
+        };
+        names.extend(
+            exports
+                .local_exports
+                .iter()
+                .chain(exports.re_exports.keys())
+                .filter(|name| with_default || *name != "default")
+                .cloned(),
+        );
+        let star_exports = exports.star_exports.clone();
+        for source in &star_exports {
+            if let Some(actual) = self.resolve_import_path(source, file) {
+                self.collect_export_names(&actual, false, visited, names);
+            }
+        }
+    }
+
+    fn refresh_exports(&mut self, file: &str) {
         if let Some(stat) = self.stat_file(file) {
             let stale = match self.files.get(file) {
                 Some(cached) => {
@@ -951,6 +979,23 @@ impl Project {
                 }
             }
         }
+    }
+
+    pub fn resolve_export(&mut self, file: &str, export_name: &str) -> Option<Site> {
+        let mut visited: FxHashSet<String> = FxHashSet::default();
+        self.resolve_export_inner(file, export_name, &mut visited)
+    }
+
+    fn resolve_export_inner(
+        &mut self,
+        file: &str,
+        export_name: &str,
+        visited: &mut FxHashSet<String>,
+    ) -> Option<Site> {
+        if !visited.insert(format!("{file}-{export_name}")) {
+            return None;
+        }
+        self.refresh_exports(file);
         let re_export = self
             .files
             .get(file)?
