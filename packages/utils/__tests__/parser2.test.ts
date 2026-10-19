@@ -111,14 +111,14 @@ describe('parser2 coverage completion tests', () => {
     scanAll();
   });
 
-  test('Cross-file imports for createStatic, createTheme, keyframes, viewTransition & static bracket access (covering 1018, 1022, 1466, 1474, 1482, 1491)', () => {
+  test('Cross-file imports for createStatic, createTheme, keyframes, viewTransitionClass & static bracket access (covering 1018, 1022, 1466, 1474, 1482, 1491)', () => {
     const providerFile = path.join(tmpDir, 'styleProvider.ts');
     const consumerFile = path.join(tmpDir, 'styleConsumer.ts');
 
     fs.writeFileSync(
       providerFile,
       `
-      import { css, keyframes, createTheme, viewTransition } from '@plumeria/core';
+      import { css, keyframes, createTheme, viewTransitionClass } from '@plumeria/core';
 
       export const myStatic = css.createStatic({
         card: { padding: '16px' },
@@ -133,7 +133,7 @@ describe('parser2 coverage completion tests', () => {
         to: { opacity: 1 },
       });
 
-      export const myVT = viewTransition({
+      export const myVT = viewTransitionClass({
         old: { opacity: 1 },
         new: { opacity: 0 },
       });
