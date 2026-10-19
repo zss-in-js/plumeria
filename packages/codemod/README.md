@@ -7,6 +7,7 @@ No install needed — run it with `npx`.
 npx @plumeria/codemod migrate --from css-modules
 npx @plumeria/codemod migrate --from plumeria
 npx @plumeria/codemod rename-prop classStyle sx
+npx @plumeria/codemod rename-api viewTransition viewTransitionClass
 ```
 
 Commit before running, so the rewrite can be reverted with `git checkout`.
@@ -360,4 +361,41 @@ withPlumeria(nextConfig, { styleProp: 'sx' });
 ```js
 // eslint.config.js
 settings: { plumeria: { styleProp: 'sx' } }
+```
+
+## `rename-api`
+
+Renames a Plumeria API after it has changed its name in a release:
+
+```sh
+npx @plumeria/codemod rename-api <from> <to> [paths...]
+```
+
+| Option          | Effect                                   |
+| --------------- | ---------------------------------------- |
+| `-d, --dry-run` | report what would change without writing |
+
+`<to>` has to be an API `@plumeria/core` exports, so a typo is reported instead
+of written. Paths default to the current directory, with the same directories
+skipped as `rename-prop`.
+
+### What it rewrites
+
+Calls through the namespace or default import of `@plumeria/core`:
+
+```diff
+  import * as css from '@plumeria/core';
+- const fade = css.viewTransition({ old: { opacity: 0 } });
++ const fade = css.viewTransitionClass({ old: { opacity: 0 } });
+```
+
+And named imports, together with every reference to them. An alias keeps its
+local name, so only the import changes:
+
+```diff
+- import { viewTransition, viewTransition as vt } from '@plumeria/core';
+- const fade = viewTransition({ old: { opacity: 0 } });
++ import { viewTransitionClass, viewTransitionClass as vt } from '@plumeria/core';
++ const fade = viewTransitionClass({ old: { opacity: 0 } });
+  const slide = vt({ new: { opacity: 1 } });
 ```
