@@ -24,7 +24,12 @@ export interface PropertyPolicy {
   includeAxes: boolean;
 }
 
-const STYLE_APIS = ['create', 'keyframes', 'viewTransition', 'positionTry'];
+const STYLE_APIS = [
+  'create',
+  'keyframes',
+  'viewTransitionClass',
+  'positionTry',
+];
 
 const MESSAGES: Record<PropertySpelling, (n: string, c: string) => string> = {
   physical: (name, counterpart) =>
