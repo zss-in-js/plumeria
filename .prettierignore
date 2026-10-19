@@ -3,6 +3,7 @@ next-env.d.ts
 build
 coverage
 dist
+out
 node_modules
 *.mdx
 *.md
