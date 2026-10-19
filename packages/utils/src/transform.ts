@@ -813,6 +813,19 @@ export const transformSource = async (
   };
   const registeredStyleCalls = new Set<number>();
 
+  const dropDefinition = (
+    init: Expression,
+    declSpan: { start: number; end: number },
+    isExported: boolean,
+  ) => {
+    const span = isExported ? (init as HasSpan).span : declSpan;
+    replacements.push({
+      start: span.start - baseByteOffset,
+      end: span.end - baseByteOffset,
+      content: isExported ? '""' : '',
+    });
+  };
+
   const registerStyle = (
     node: VariableDeclarator,
     declSpan: { start: number; end: number },
@@ -1108,11 +1121,13 @@ export const transformSource = async (
         }
         mergedVarTypeTable[node.id.value] = hash;
         (scannedTables.varTypeObjectTable ??= {})[hash] = obj;
-        replacements.push({
-          start: init.span.start - baseByteOffset,
-          end: init.span.end - baseByteOffset,
-          content: JSON.stringify(`--pr-${hash}`),
-        });
+        dropDefinition(init, declSpan, isExported);
+      } else if (
+        ['keyframes', 'viewTransition', 'positionTry'].includes(propName) &&
+        t.isObjectExpression(init.arguments[0].expression)
+      ) {
+        registeredStyleCalls.add(init.span.start);
+        dropDefinition(init, declSpan, isExported);
       } else if (
         propName === 'createStatic' &&
         t.isObjectExpression(init.arguments[0].expression)
@@ -1325,11 +1340,13 @@ export const transformSource = async (
             );
             const hash = genBase36Hash(obj, 1, 8);
             scannedTables.keyframesObjectTable[hash] = obj;
-            replacements.push({
-              start: node.span.start - baseByteOffset,
-              end: node.span.end - baseByteOffset,
-              content: JSON.stringify(`kf-${hash}`),
-            });
+            if (!registeredStyleCalls.has(node.span.start)) {
+              replacements.push({
+                start: node.span.start - baseByteOffset,
+                end: node.span.end - baseByteOffset,
+                content: JSON.stringify(`kf-${hash}`),
+              });
+            }
           }
         } else if (
           propName === 'viewTransition' &&
@@ -1373,11 +1390,13 @@ export const transformSource = async (
           );
           const hash = genBase36Hash(obj, 1, 8);
           scannedTables.viewTransitionObjectTable[hash] = obj;
-          replacements.push({
-            start: node.span.start - baseByteOffset,
-            end: node.span.end - baseByteOffset,
-            content: JSON.stringify(`vt-${hash}`),
-          });
+          if (!registeredStyleCalls.has(node.span.start)) {
+            replacements.push({
+              start: node.span.start - baseByteOffset,
+              end: node.span.end - baseByteOffset,
+              content: JSON.stringify(`vt-${hash}`),
+            });
+          }
         } else if (
           propName === 'positionTry' &&
           args.length > 0 &&
@@ -1420,11 +1439,13 @@ export const transformSource = async (
           );
           const hash = genBase36Hash(obj, 1, 8);
           (scannedTables.positionTryObjectTable ??= {})[hash] = obj;
-          replacements.push({
-            start: node.span.start - baseByteOffset,
-            end: node.span.end - baseByteOffset,
-            content: JSON.stringify(`--pt-${hash}`),
-          });
+          if (!registeredStyleCalls.has(node.span.start)) {
+            replacements.push({
+              start: node.span.start - baseByteOffset,
+              end: node.span.end - baseByteOffset,
+              content: JSON.stringify(`--pt-${hash}`),
+            });
+          }
         } else if (
           propName === 'createTheme' &&
           args.length >= 2 &&
@@ -2923,6 +2944,17 @@ export const transformSource = async (
           content: `${prefix}${content}`,
         });
       };
+
+      const definition = [
+        ['kf-', mergedKeyframesTable[node.value]],
+        ['vt-', mergedViewTransitionTable[node.value]],
+        ['--pt-', mergedPositionTryTable[node.value]],
+        ['--pr-', mergedVarTypeTable[node.value]],
+      ].find(([, hash]) => typeof hash === 'string' && hash);
+      if (definition) {
+        pushReplacement(JSON.stringify(`${definition[0]}${definition[1]}`));
+        return;
+      }
 
       const styleInfo = localCreateStyles[node.value];
       if (styleInfo) {
