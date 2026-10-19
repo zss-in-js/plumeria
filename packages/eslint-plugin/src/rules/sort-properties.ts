@@ -256,7 +256,7 @@ export const sortProperties: Rule.RuleModule = {
             if (
               propertyName === 'create' ||
               propertyName === 'keyframes' ||
-              propertyName === 'viewTransition' ||
+              propertyName === 'viewTransitionClass' ||
               propertyName === 'positionTry'
             ) {
               isCssProperties = true;
@@ -268,7 +268,7 @@ export const sortProperties: Rule.RuleModule = {
           if (
             alias === 'create' ||
             alias === 'keyframes' ||
-            alias === 'viewTransition' ||
+            alias === 'viewTransitionClass' ||
             alias === 'positionTry'
           ) {
             isCssProperties = true;
