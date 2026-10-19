@@ -23,7 +23,7 @@ describe('assertPropertyPolicy', () => {
     `import css from '@plumeria/core'; css.create({ a: { marginBlockStart: 0 } });`,
     `import { create } from '@plumeria/core'; create({ a: { marginBlockStart: 0 } });`,
     `import { create as make } from '@plumeria/core'; make({ a: { marginBlockStart: 0 } });`,
-    `import { viewTransition as transition } from '@plumeria/core'; transition({ a: () => ({ marginBlockStart: 0 }) });`,
+    `import { viewTransitionClass as transition } from '@plumeria/core'; transition({ a: () => ({ marginBlockStart: 0 }) });`,
   ])('checks supported import and call form %#', (source) => {
     expect(() => assertSource(source)).toThrow(/marginBlockStart/);
   });
