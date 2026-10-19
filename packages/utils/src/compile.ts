@@ -10,6 +10,7 @@ import type {
   FunctionDeclaration,
   HasSpan,
   JSXAttributeOrSpread,
+  JSXOpeningElement,
 } from '@swc/core';
 import {
   type CSSProperties,
@@ -71,6 +72,7 @@ import type {
 import { getLeadingCommentLength } from './index';
 import { isDefinedArgument } from './dynamicKey';
 import { checkedVarTypeHash } from './varType';
+import { collectReferenceIdentifiers } from './references';
 
 interface CompilerOptions extends PropertyPolicyOptions {
   include: string[];
@@ -403,10 +405,13 @@ type SheetCacheEntry = {
 const sheetCache = new Map<string, SheetCacheEntry>();
 let sheetCacheContext = '';
 let sheetGlobals = '';
+const VIEW_TRANSITION_ELEMENTS = ['ViewTransition', 'unstable_ViewTransition'];
+const VIEW_TRANSITION_PROPS = ['default', 'enter', 'exit', 'update', 'share'];
 
 // ===========================================
 // Main compiler function
 // ===========================================
+
 export function compileCSS(options: CompilerOptions) {
   const {
     include,
@@ -521,10 +526,32 @@ export function compileCSS(options: CompilerOptions) {
     > = {};
     const localStyleAliases: Record<string, LocalStyleAlias[]> = {};
     const registeredStyleCalls = new Set<number>();
+    const viewTransitionElements = new Set<string>();
+    const reactNamespaces = new Set<string>();
 
     traverse(ast, {
       ImportDeclaration({ node }) {
         const sourcePath = node.source.value;
+
+        if (sourcePath === 'react') {
+          if (node.typeOnly) return;
+          node.specifiers.forEach((specifier: ImportSpecifier) => {
+            if (specifier.type === 'ImportSpecifier') {
+              const importedName = specifier.imported
+                ? specifier.imported.value
+                : specifier.local.value;
+              if (
+                !specifier.isTypeOnly &&
+                VIEW_TRANSITION_ELEMENTS.includes(importedName)
+              ) {
+                viewTransitionElements.add(specifier.local.value);
+              }
+            } else {
+              reactNamespaces.add(specifier.local.value);
+            }
+          });
+          return;
+        }
 
         if (sourcePath === '@plumeria/core') {
           node.specifiers.forEach((specifier: ImportSpecifier) => {
@@ -797,6 +824,60 @@ export function compileCSS(options: CompilerOptions) {
           at.span.start >= c.node.span.start &&
           at.span.start <= c.node.span.end,
       )?.name;
+
+    const isViewTransition = (name: JSXOpeningElement['name']) =>
+      name.type === 'Identifier'
+        ? viewTransitionElements.has(name.value)
+        : name.type === 'JSXMemberExpression' &&
+          name.object.type === 'Identifier' &&
+          reactNamespaces.has(name.object.value) &&
+          VIEW_TRANSITION_ELEMENTS.includes(name.property.value);
+
+    let viewTransitionReferences: Set<number> | undefined;
+
+    const processViewTransitionClass = (expr: Expression): void => {
+      switch (expr.type) {
+        case 'ParenthesisExpression':
+        case 'TsAsExpression':
+        case 'TsSatisfiesExpression':
+        case 'TsNonNullExpression':
+          return processViewTransitionClass(expr.expression);
+        case 'ConditionalExpression':
+          processViewTransitionClass(expr.consequent);
+          return processViewTransitionClass(expr.alternate);
+        case 'TemplateLiteral':
+          return expr.expressions.forEach(processViewTransitionClass);
+        case 'BinaryExpression':
+          if (['&&', '||', '??'].includes(expr.operator)) {
+            processViewTransitionClass(expr.left);
+            processViewTransitionClass(expr.right);
+          }
+          return;
+        case 'ObjectExpression':
+          expr.properties.forEach((property) => {
+            if (property.type === 'KeyValueProperty') {
+              processViewTransitionClass(property.value);
+            } else if (property.type === 'Identifier') {
+              processViewTransitionClass(property);
+            }
+          });
+          return;
+        case 'Identifier': {
+          viewTransitionReferences ??=
+            collectReferenceIdentifiers(ast).references;
+          if (!viewTransitionReferences.has(expr.span.start)) return;
+          const hash = mergedViewTransitionTable[expr.value];
+          if (typeof hash === 'string' && hash) {
+            extractOndemandStyles(
+              { viewTransitionClass: `vt-${hash}` },
+              appendSheet(extractedSheets),
+              scannedTables,
+            );
+          }
+          return;
+        }
+      }
+    };
 
     const processStyle = (style: CSSObject) => {
       extractOndemandStyles(style, appendSheet(extractedSheets), scannedTables);
@@ -1390,7 +1471,7 @@ export function compileCSS(options: CompilerOptions) {
           const hash = genBase36Hash(obj, 1, 8);
           writes.keyframesObjectTable[hash] = obj;
         } else if (
-          propName === 'viewTransition' &&
+          propName === 'viewTransitionClass' &&
           args.length > 0 &&
           t.isObjectExpression(args[0].expression)
         ) {
@@ -1485,7 +1566,7 @@ export function compileCSS(options: CompilerOptions) {
         if (k !== 'span' && k !== 'loc') traverseInternal(node[k]);
     };
 
-    // Pass 1: Register all style definitions (create/createTheme/keyframes/viewTransition)
+    // Pass 1: Register all style definitions (create/createTheme/keyframes/viewTransitionClass)
     traverse(ast, {
       VariableDeclarator({ node }: { node: VariableDeclarator }) {
         if (t.isIdentifier(node.id) && node.init) {
@@ -1690,6 +1771,19 @@ export function compileCSS(options: CompilerOptions) {
         if (!processedNodes.has(path.node)) processCall(path.node);
       },
       JSXOpeningElement({ node }) {
+        if (isViewTransition(node.name)) {
+          node.attributes.forEach((attr: JSXAttributeOrSpread) => {
+            if (
+              attr.type === 'JSXAttribute' &&
+              attr.name.type === 'Identifier' &&
+              VIEW_TRANSITION_PROPS.includes(attr.name.value) &&
+              attr.value?.type === 'JSXExpressionContainer' &&
+              attr.value.expression.type !== 'JSXEmptyExpression'
+            ) {
+              processViewTransitionClass(attr.value.expression);
+            }
+          });
+        }
         if (node.name.type === 'Identifier') {
           const tagName = node.name.value;
           if (tagName[0] !== tagName[0].toUpperCase()) return;
