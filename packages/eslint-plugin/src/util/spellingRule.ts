@@ -84,7 +84,7 @@ export const createSpellingRule = (
             if (
               propertyName === 'create' ||
               propertyName === 'keyframes' ||
-              propertyName === 'viewTransition' ||
+              propertyName === 'viewTransitionClass' ||
               propertyName === 'positionTry'
             ) {
               isCssProperties = true;
@@ -96,7 +96,7 @@ export const createSpellingRule = (
           if (
             aliasName === 'create' ||
             aliasName === 'keyframes' ||
-            aliasName === 'viewTransition' ||
+            aliasName === 'viewTransitionClass' ||
             aliasName === 'positionTry'
           ) {
             isCssProperties = true;
