@@ -125,7 +125,7 @@ Disallow calling APIs inside functions.
 
 ### no-invalid-selector
 
-Disallow invalid selector inside `css.create()` and `css.keyframes()` and `css.viewTransition()`.  
+Disallow invalid selector inside `css.create()` and `css.keyframes()` and `css.viewTransitionClass()`.  
 `create()` example: (Pseudo -> Query, Query -> Query)  
 Also reports a functional pseudo-class nested inside one of the same name, such as `:where(:where(.a), .b)`, and flattens it with a fix when the nested call is a whole argument. `:not()` may nest inside `:not()`. Reports a key nested deeper than 16 levels or holding a stray quote.
 
@@ -162,7 +162,7 @@ Accepts `{ styleProp }`; see [Configuring the styling prop](#configuring-the-sty
 
 ### no-unknown-css-properties
 
-Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, `css.viewTransition`, and `css.positionTry`. Inside `css.positionTry`, it also reports properties that `@position-try` does not accept.
+Disallow unknown CSS properties in camelCase within `css.create`, `css.keyframes`, `css.viewTransitionClass`, and `css.positionTry`. Inside `css.positionTry`, it also reports properties that `@position-try` does not accept.
 
 In `css.create`, a key that holds an object is reported with a hint that nested selectors start with `:`, `[` or `@`.
 
