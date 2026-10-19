@@ -13,9 +13,9 @@ const APIS = [
     definition: `css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } })`,
   },
   {
-    api: 'viewTransition',
+    api: 'viewTransitionClass',
     prefix: 'vt-',
-    definition: `css.viewTransition({ old: { opacity: 0 }, new: { opacity: 1 } })`,
+    definition: `css.viewTransitionClass({ old: { opacity: 0 }, new: { opacity: 1 } })`,
   },
   {
     api: 'positionTry',
