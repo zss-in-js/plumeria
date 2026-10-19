@@ -7,6 +7,7 @@ import { implementations } from '../compiler-implementations';
 const VARS = `import * as css from '@plumeria/core';
 export const angle = css.varType({ syntax: '<angle>', initialValue: '0deg' });
 export const rotation = css.varType({ syntax: '<angle>', initialValue: '0deg' });
+export const names = [angle, rotation];
 `;
 
 const PAGE = `import * as css from '@plumeria/core';
@@ -22,6 +23,7 @@ const s = css.create({
   rotate: (a: string) => ({ [angle]: a }),
 });
 export const P = (p: any) => <div classStyle={[s.ring, s.rotate(p.a)]} />;
+export const names = [tint];
 `;
 
 const setup = () => {
@@ -48,8 +50,11 @@ const env = (dir: string, name: string) => {
   };
 };
 
-const nameOf = (code: string, binding: string) =>
-  new RegExp(`const ${binding} = "(--pr-[0-9a-z]+)"`).exec(code)?.[1];
+const namesOf = (code: string): string[] => {
+  const head = 'export const names = ';
+  const start = code.indexOf(head) + head.length;
+  return JSON.parse(code.slice(start, code.indexOf(';', start)));
+};
 
 describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
   const DIR = setup();
@@ -59,20 +64,19 @@ describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
   const css = () =>
     compileCSS({ include: ['*.ts', '*.tsx'], exclude: [], cwd: DIR });
 
-  it('replaces each definition with its own name, even when two read the same', async () => {
+  it('gives each definition its own name, even when two read the same', async () => {
     const { code } = await transformSource(env(DIR, 'vars.ts'));
-    const angle = nameOf(code, 'angle');
-    const rotation = nameOf(code, 'rotation');
-    expect(angle).toBeDefined();
-    expect(rotation).toBeDefined();
+    const [angle, rotation] = namesOf(code);
+    expect(angle).toContain('--pr-');
+    expect(rotation).toContain('--pr-');
     expect(angle).not.toBe(rotation);
   });
 
   it('registers a used variable with @property, and inherits only when asked', async () => {
     const { code: vars } = await transformSource(env(DIR, 'vars.ts'));
     const { code: page } = await transformSource(env(DIR, 'page.tsx'));
-    const angle = nameOf(vars, 'angle')!;
-    const tint = nameOf(page, 'tint')!;
+    const [angle] = namesOf(vars);
+    const [tint] = namesOf(page);
     const sheet = css();
     expect(sheet).toContain(
       `@property ${angle} {\n  syntax: "<angle>";\n  inherits: false;\n  initial-value: 0deg;\n}`,
@@ -84,13 +88,13 @@ describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
 
   it('leaves out the @property of a variable nothing uses', async () => {
     const { code } = await transformSource(env(DIR, 'vars.ts'));
-    const rotation = nameOf(code, 'rotation')!;
+    const [, rotation] = namesOf(code);
     expect(css()).not.toContain(`@property ${rotation}`);
   });
 
   it('reads the name as a key, inside var(), in a condition and in a function key', async () => {
     const { code } = await transformSource(env(DIR, 'vars.ts'));
-    const angle = nameOf(code, 'angle')!;
+    const [angle] = namesOf(code);
     const sheet = css();
     expect(sheet).toContain(`from var(${angle})`);
     expect(sheet).toContain(`transition: ${angle} 0.3s;`);
@@ -139,10 +143,10 @@ describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
     const file = path.join(DIR, 'valid.ts');
     fs.writeFileSync(
       file,
-      `import * as css from '@plumeria/core';\nexport const fine = css.varType({ syntax: ${syntax}, initialValue: ${initialValue} });\n`,
+      `import * as css from '@plumeria/core';\nexport const fine = css.varType({ syntax: ${syntax}, initialValue: ${initialValue} });\nexport const names = [fine];\n`,
     );
     const { code } = await transformSource(env(DIR, 'valid.ts'));
-    expect(nameOf(code, 'fine')).toBeDefined();
+    expect(namesOf(code)[0]).toContain('--pr-');
     fs.rmSync(file);
   });
 });
@@ -153,7 +157,7 @@ it('gives the same name in both implementations', async () => {
       const dir = setup();
       try {
         const { code } = await transformSource(env(dir, 'vars.ts'));
-        return [nameOf(code, 'angle'), nameOf(code, 'rotation')];
+        return namesOf(code);
       } finally {
         fs.rmSync(dir, { recursive: true, force: true });
       }
