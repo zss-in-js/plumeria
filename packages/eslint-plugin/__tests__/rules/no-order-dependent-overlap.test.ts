@@ -154,10 +154,10 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
     },
     {
       code: `
-        import { create, keyframes as frames, viewTransition } from '@plumeria/core';
+        import { create, keyframes as frames, viewTransitionClass } from '@plumeria/core';
         create({ main: { marginBlock: 8, marginInline: 16 } });
         frames({ from: { padding: 4, paddingTop: 8 } });
-        viewTransition({ old: { borderWidth: 2, borderTop: 'solid' } });
+        viewTransitionClass({ old: { borderWidth: 2, borderTop: 'solid' } });
       `,
     },
     {
@@ -389,7 +389,7 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
     {
       code: `
         import css from '@plumeria/core';
-        css.viewTransition({
+        css.viewTransitionClass({
           old: { minInlineSize: 10, minWidth: 20 },
           new: { overscrollBehaviorInline: 'auto', overscrollBehaviorX: 'none' }
         });
