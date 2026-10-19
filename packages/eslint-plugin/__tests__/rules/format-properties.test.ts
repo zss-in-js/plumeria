@@ -233,11 +233,11 @@ ruleTester.run('format-properties', formatProperties, {
 });`,
     },
     {
-      code: `import { viewTransition } from '@plumeria/core'; const vt = viewTransition({
+      code: `import { viewTransitionClass } from '@plumeria/core'; const vt = viewTransitionClass({
   testKey: { fontSize: 24 }
 });`,
       errors: [{ messageId: 'mustBeMultiline' }],
-      output: `import { viewTransition } from '@plumeria/core'; const vt = viewTransition({
+      output: `import { viewTransitionClass } from '@plumeria/core'; const vt = viewTransitionClass({
   testKey: {
     fontSize: 24
   }
