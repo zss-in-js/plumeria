@@ -110,7 +110,7 @@ describe.each(implementations)('$name', ({ compileCSS }) => {
         'styles.ts': `
         import * as css from '@plumeria/core';
         export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-        export const swap = css.viewTransition({ old: { opacity: 0 }, new: { opacity: 1 } });
+        export const swap = css.viewTransitionClass({ old: { opacity: 0 }, new: { opacity: 1 } });
       `,
         'App.tsx': `
         import * as css from '@plumeria/core';
