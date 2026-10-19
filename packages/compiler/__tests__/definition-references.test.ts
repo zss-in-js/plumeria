@@ -82,5 +82,125 @@ describe.each(implementations)('$name', ({ transformSource }) => {
       expect(reader).toContain(`console.log("${prefix}`);
       expect(definitions).not.toContain(`export const name = "${prefix}`);
     });
+
+    it.each([
+      ['a member', `console.log(defs.name);`],
+      ['a string key', `console.log(defs['name']);`],
+      ['a destructured key', `const { name } = defs;\nconsole.log(name);`],
+      ['a rest element', `const { ...rest } = defs;\nconsole.log(rest);`],
+      ['a template key', 'console.log(defs[`name`]);'],
+      ['an assigned key', `let name;\n({ name } = defs);\nconsole.log(name);`],
+      [
+        'an assigned rest element',
+        `let rest;\n({ ...rest } = defs);\nconsole.log(rest);`,
+      ],
+      [
+        'a computed key',
+        `const key = 'name';\nconst { [key]: value } = defs;\nconsole.log(value);`,
+      ],
+    ])(
+      'rejects a definition read through a namespace import as %s',
+      async (_, read) => {
+        fs.writeFileSync(
+          path.join(dir, 'definitions.ts'),
+          `import * as css from '@plumeria/core';\nexport const name = ${definition};\n`,
+        );
+        fs.writeFileSync(
+          path.join(dir, 'reader.ts'),
+          `import * as css from '@plumeria/core';\nimport * as defs from './definitions';\n${read}\n`,
+        );
+        await transformSource(env(dir, 'definitions.ts'));
+        await expect(transformSource(env(dir, 'reader.ts'))).rejects.toThrow(
+          'defs.name reads a Plumeria definition through a namespace import',
+        );
+      },
+    );
+
+    it('rejects a definition reached through a barrel as a rest element', async () => {
+      fs.writeFileSync(
+        path.join(dir, 'a.ts'),
+        `import * as css from '@plumeria/core';\nexport const name = ${definition};\n`,
+      );
+      fs.writeFileSync(
+        path.join(dir, 'definitions.ts'),
+        `export * from './a';\n`,
+      );
+      fs.writeFileSync(
+        path.join(dir, 'reader.ts'),
+        `import * as css from '@plumeria/core';\nimport * as defs from './definitions';\nconst { ...rest } = defs;\nconsole.log(rest);\n`,
+      );
+      await transformSource(env(dir, 'a.ts'));
+      await expect(transformSource(env(dir, 'reader.ts'))).rejects.toThrow(
+        'defs.name reads a Plumeria definition through a namespace import',
+      );
+    });
+
+    it('reads a rest element when the definition is not exported', async () => {
+      fs.writeFileSync(
+        path.join(dir, 'definitions.ts'),
+        `import * as css from '@plumeria/core';\nconst name = ${definition};\nexport const plain = 1;\nconsole.log(name);\n`,
+      );
+      fs.writeFileSync(
+        path.join(dir, 'reader.ts'),
+        `import * as css from '@plumeria/core';\nimport * as defs from './definitions';\nconst { ...rest } = defs;\nconsole.log(rest);\n`,
+      );
+      await transformSource(env(dir, 'definitions.ts'));
+      const { code } = await transformSource(env(dir, 'reader.ts'));
+      expect(code).toContain(`const { ...rest } = defs;`);
+    });
+
+    it.each([
+      ['an argument', `console.log(defs);`],
+      ['a spread', `console.log({ ...defs });`],
+      [
+        'a nested pattern',
+        `const { inner: { name } } = { inner: defs };\nconsole.log(name);`,
+      ],
+      ['a dynamic key', `const key = 'name';\nconsole.log(defs[key]);`],
+      ['an alias', `const alias = defs;\nconsole.log(alias.name);`],
+    ])('rejects a namespace import used as a whole as %s', async (_, read) => {
+      fs.writeFileSync(
+        path.join(dir, 'definitions.ts'),
+        `import * as css from '@plumeria/core';\nexport const name = ${definition};\n`,
+      );
+      fs.writeFileSync(
+        path.join(dir, 'reader.ts'),
+        `import * as css from '@plumeria/core';\nimport * as defs from './definitions';\n${read}\n`,
+      );
+      await transformSource(env(dir, 'definitions.ts'));
+      await expect(transformSource(env(dir, 'reader.ts'))).rejects.toThrow(
+        'defs is used as a whole, but it holds defs.name',
+      );
+    });
+
+    it('passes a namespace import that holds no definition as a whole', async () => {
+      fs.writeFileSync(
+        path.join(dir, 'definitions.ts'),
+        `export const plain = 1;\n`,
+      );
+      fs.writeFileSync(
+        path.join(dir, 'reader.ts'),
+        `import * as css from '@plumeria/core';\nimport * as defs from './definitions';\nconsole.log(defs);\n`,
+      );
+      await transformSource(env(dir, 'definitions.ts'));
+      const { code } = await transformSource(env(dir, 'reader.ts'));
+      expect(code).toContain(`console.log(defs);`);
+    });
+
+    it('reads other exports through a namespace import', async () => {
+      fs.writeFileSync(
+        path.join(dir, 'definitions.ts'),
+        `import * as css from '@plumeria/core';\nexport const name = ${definition};\nexport const plain = 1;\n`,
+      );
+      fs.writeFileSync(
+        path.join(dir, 'reader.ts'),
+        `import * as css from '@plumeria/core';\nimport * as defs from './definitions';\nconst { plain } = defs;\nlet other;\n({ plain: other } = defs);\nconsole.log(defs.plain, defs['plain'], defs[\`plain\`], plain, other);\n`,
+      );
+      await transformSource(env(dir, 'definitions.ts'));
+      const { code } = await transformSource(env(dir, 'reader.ts'));
+      expect(code).toContain(
+        "console.log(defs.plain, defs['plain'], defs[`plain`], plain, other);",
+      );
+    });
   });
 });
