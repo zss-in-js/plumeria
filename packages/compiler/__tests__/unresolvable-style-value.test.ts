@@ -185,10 +185,10 @@ describe.each(implementations)('$name', ({ transformSource }) => {
       ).rejects.toThrow(UNRESOLVABLE);
     });
 
-    it('rejects it in viewTransition', async () => {
+    it('rejects it in viewTransitionClass', async () => {
       await expect(
         run(
-          `const s = css.viewTransition({ old: { letterSpacing: read() } });`,
+          `const s = css.viewTransitionClass({ old: { letterSpacing: read() } });`,
         ),
       ).rejects.toThrow(UNRESOLVABLE);
     });
