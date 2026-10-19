@@ -584,7 +584,7 @@ export function extractPlumeriaAnimations(
   for (const declaration of declarations) {
     if (
       declaration.id.type !== 'Identifier' ||
-      !isCall(declaration.init, 'viewTransition')
+      !isCall(declaration.init, 'viewTransitionClass')
     )
       continue;
     const object = evaluate(declaration.init.arguments[0], values);
@@ -592,7 +592,7 @@ export function extractPlumeriaAnimations(
       report(
         declaration.init,
         'dynamic-view-transition',
-        '`viewTransition` needs a statically resolvable object.',
+        '`viewTransitionClass` needs a statically resolvable object.',
       );
       continue;
     }
@@ -608,7 +608,7 @@ export function extractPlumeriaAnimations(
         const pseudoPart = part === 'imagePair' ? 'image-pair' : part;
         parts.push(
           emitGlobalObject(
-            `::view-transition-${pseudoPart}(${name})`,
+            `::view-transition-${pseudoPart}(*.${name})`,
             style as Record<string, unknown>,
           ),
         );
