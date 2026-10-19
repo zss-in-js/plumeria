@@ -95,7 +95,7 @@ export const releaseStyles: Rule.RuleModule = {
       theme: '`createTheme` was written to the global stylesheet.',
       themeImport:
         'Remove the createTheme import after inlining its CSS variables.',
-      animation: '`keyframes` or `viewTransition` was written globally.',
+      animation: '`keyframes` or `viewTransitionClass` was written globally.',
       animationImport:
         'Remove the animation import after replacing it with its generated name.',
       staticImport:
@@ -183,7 +183,7 @@ export const releaseStyles: Rule.RuleModule = {
       if (called[1] === 'createStatic') return Boolean(entry);
       if (called[1] === 'createTheme')
         return themeBindings.includes(only.id.name);
-      if (called[1] === 'keyframes' || called[1] === 'viewTransition')
+      if (called[1] === 'keyframes' || called[1] === 'viewTransitionClass')
         return animationBindings.includes(only.id.name);
       if (called[1] === 'create')
         return Boolean(
@@ -473,7 +473,7 @@ export const releaseStyles: Rule.RuleModule = {
         ? Boolean(entry)
         : method === 'createTheme'
           ? themeBindings.length > 0
-          : method === 'keyframes' || method === 'viewTransition'
+          : method === 'keyframes' || method === 'viewTransitionClass'
             ? animationBindings.length > 0
             : false;
 
@@ -767,7 +767,7 @@ export const releaseStyles: Rule.RuleModule = {
           ((entry && path[1] === 'createStatic') ||
             (path[1] === 'createTheme' &&
               themeBindings.includes(declaration.id.name)) ||
-            ((path[1] === 'keyframes' || path[1] === 'viewTransition') &&
+            ((path[1] === 'keyframes' || path[1] === 'viewTransitionClass') &&
               animationBindings.includes(declaration.id.name)))
         ) {
           const target =
@@ -777,7 +777,7 @@ export const releaseStyles: Rule.RuleModule = {
             messageId:
               path[1] === 'createTheme'
                 ? 'theme'
-                : path[1] === 'keyframes' || path[1] === 'viewTransition'
+                : path[1] === 'keyframes' || path[1] === 'viewTransitionClass'
                   ? 'animation'
                   : 'static',
             fix: (fixer) => removeStatement(fixer, target),
