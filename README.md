@@ -88,16 +88,18 @@ Plumeria publishes frequently. To make that legible, every public API is rated f
 
 ### Core API — `@plumeria/core`
 
-| API                  | Stability |        |
-| -------------------- | --------- | ------ |
-| `css.create`         | ★★★★★     | Frozen |
-| `css.createTheme`    | ★★★★★     | Frozen |
-| `css.createStatic`   | ★★★★★     | Frozen |
-| `css.keyframes`      | ★★★★★     | Frozen |
-| `css.viewTransition` | ★★★★★     | Frozen |
-| `css.marker`         | ★★★★☆     | Stable |
-| `css.extended`       | ★★★★☆     | Stable |
-| `css.use`/`classStyle`| ★★★★★    | Frozen | 
+| API                       | Stability |        |
+| ------------------------- | --------- | ------ |
+| `css.create`              | ★★★★★     | Frozen |
+| `css.createTheme`         | ★★★★★     | Frozen |
+| `css.createStatic`        | ★★★★★     | Frozen |
+| `css.keyframes`           | ★★★★★     | Frozen |
+| `css.viewTransitionClass` | ★★★★★     | Frozen |
+| `css.positionTry`         | ★★★★☆     | Stable |
+| `css.varType`             | ★★★★☆     | Stable |
+| `css.marker`              | ★★★★☆     | Stable |
+| `css.extended`            | ★★★★☆     | Stable |
+| `css.use`/`classStyle`    | ★★★★★     | Frozen |
 
 > The **`classStyle`** can be renamed via configuration
 
