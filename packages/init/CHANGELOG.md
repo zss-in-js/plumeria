@@ -1,5 +1,11 @@
 # @plumeria/init
 
+## 21.0.0
+
+### Major Changes
+
+- f462d48: Bump version to 21.0.0
+
 ## 20.0.0
 
 ### Major Changes
