@@ -493,13 +493,14 @@ export const noInvalidSelector: Rule.RuleModule = {
                 : null;
             if (propertyName === 'create') isCssCreate = true;
             if (propertyName === 'keyframes') isCssKeyframes = true;
-            if (propertyName === 'viewTransition') isCssViewTransition = true;
+            if (propertyName === 'viewTransitionClass')
+              isCssViewTransition = true;
           }
         } else if (node.callee.type === 'Identifier') {
           const alias = plumeriaAliases[node.callee.name];
           if (alias === 'create') isCssCreate = true;
           if (alias === 'keyframes') isCssKeyframes = true;
-          if (alias === 'viewTransition') isCssViewTransition = true;
+          if (alias === 'viewTransitionClass') isCssViewTransition = true;
         }
 
         if (isCssCreate && node.arguments[0]?.type === 'ObjectExpression') {
