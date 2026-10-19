@@ -6,76 +6,97 @@ description: 'Named @position-try fallbacks for anchor positioning.'
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
 ```ts
-export type positionTry = (rule: PositionTry) => CSSVariableKey;
+export type positionTry = <const T extends PositionTry>(rule: T) => CSSVariableKey;
 export const positionTry: positionTry;
 ```
 
-The `positionTry()` method defines an `@position-try` rule and returns its name (a unique hash that is inlined during build time). An anchor-positioned element lists the name in `positionTryFallbacks`, and the browser moves it to that position when it does not fit where it is.
+`positionTry()` creates an `@position-try` rule and returns its name. The rule describes a fallback position for an anchor-positioned element, and the element uses it through the `positionTryFallbacks` property when it does not fit where it is. The rule is defined next to the styles that use it and referenced by name, instead of being written in a global stylesheet.
+
+Only properties that place the element are allowed:
+
+- `positionAnchor` and `positionArea`
+- Insets: `inset`, `top`, `left`, `insetInline` and the other inset properties
+- Margins: `margin` and its longhands
+- Sizing: `width`, `height`, `inlineSize`, `blockSize` and their `min` and `max` forms
+- Self-alignment: `alignSelf`, `justifySelf` and `placeSelf`
+
+Any other property is a type error, and `no-unknown-css-properties` reports it in the editor.
 
 ## Example
+
+A menu opens below its trigger. When there is no room below, it moves to the right of the trigger with a shorter height:
 
 <Tabs items={["ts", "css"]}>
   <Tab>
     ```ts title="TypeScript"
     import * as css from '@plumeria/core'
 
-    const above = css.positionTry({
-      positionArea: 'top',
-      marginBottom: 8,
+    const right = css.positionTry({
+      positionArea: 'right',
+      maxHeight: 200,
+      marginTop: 0,
+      marginLeft: 8,
     });
 
     const styles = css.create({
-      tooltip: {
+      menu: {
         position: 'absolute',
         positionAnchor: '--trigger',
         positionArea: 'bottom',
+        maxHeight: 320,
         marginTop: 8,
-        positionTryFallbacks: `${above}, flip-inline`,
+        overflow: 'auto',
+        positionTryFallbacks: right,
       },
     });
     ```
   </Tab>
   <Tab>
     ```css title="CSS"
-    @position-try --pt-xndu7ecb {
-      position-area: top;
-      margin-bottom: 8px;
+    @position-try --pt-xucneogw {
+      position-area: right;
+      max-height: 200px;
+      margin-top: 0px;
+      margin-left: 8px;
     }
 
     .xobmrwib { position: absolute; }
     .x54fk64s { position-anchor: --trigger; }
     .xa1mxswp { position-area: bottom; }
+    .xit236su { max-height: 320px; }
     .xxb8i1k0:not(#\#):not(#\#) { margin-top: 8px; }
-    .xpww34nj:not(#\#) { position-try-fallbacks: --pt-xndu7ecb, flip-inline; }
+    .x87fkz9f { overflow: auto; }
+    .xlst8ed0:not(#\#) { position-try-fallbacks: --pt-xucneogw; }
     ```
   </Tab>
 </Tabs>
 
-## Properties
+Moving to the opposite side is already covered by keywords: `positionTryFallbacks: 'flip-block'` moves the menu above its trigger and swaps its margins as well. Use `positionTry()` when the fallback changes more than the side, such as the size or the alignment. Names and keywords can be listed together, and the browser tries them in order.
 
-`@position-try` only accepts the properties that place the element:
+## Usage in another file
 
-- `positionAnchor` and `positionArea`
-- Insets: `inset`, `top`, `right`, `bottom`, `left` and their logical forms
-- Margins: `margin` and its longhands
-- Sizing: `width`, `height`, `inlineSize`, `blockSize` and their `min` and `max` forms
-- Self-alignment: `placeSelf`, `alignSelf` and `justifySelf`
+A definition can be exported and imported like any other value:
 
-Other properties, nested selectors and at-rules are a type error, and `no-unknown-css-properties` reports them in the editor.
+```ts title="fallbacks.ts"
+import * as css from '@plumeria/core'
 
-## Usage
+export const right = css.positionTry({
+  positionArea: 'right',
+  maxHeight: 200,
+  marginTop: 0,
+  marginLeft: 8,
+});
+```
 
-The returned name is used in a value, alone or in a list with other names and keywords such as `flip-inline`:
+```ts title="Menu.tsx"
+import * as css from '@plumeria/core'
+import { right } from './fallbacks'
 
-```ts
 const styles = css.create({
   menu: {
-    positionTryFallbacks: above,
-  },
-  tooltip: {
-    positionTryFallbacks: `${above}, flip-block`,
+    positionTryFallbacks: right,
   },
 });
 ```
 
-`@position-try` is emitted only for a name that is used in a style, so a definition nothing uses adds nothing to the stylesheet. A definition can be exported and imported from another module like `keyframes`.
+An `@position-try` rule is emitted only when its name is used in a style, so a definition nothing uses adds nothing to the stylesheet.
