@@ -92,5 +92,5 @@ function unsupported(name: string): never {
   throw new Error(`${name} is not available in the playground preview`);
 }
 
-export const viewTransition = () => unsupported('css.viewTransition');
+export const viewTransitionClass = () => unsupported('css.viewTransitionClass');
 export const global = () => unsupported('css.global');
