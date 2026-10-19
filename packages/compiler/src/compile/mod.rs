@@ -10,6 +10,7 @@ use rustc_hash::{FxBuildHasher, FxHashMap, FxHashSet};
 
 use crate::engine::{camel_to_kebab_case, hash_object, is_at_rule};
 use crate::eval::consts::collect_local_consts;
+use crate::eval::env::Lookup;
 use crate::eval::functions::{
     StyleFunction, StyleFunctions, is_defined_argument, resolve_dynamic_style, style_functions_of,
 };
@@ -22,17 +23,21 @@ use crate::project::{KeyTable, LocalImport, LocalImports, Project, Tables};
 use crate::style::ondemand::extract_ondemand_styles;
 use crate::style::records::style_records;
 use crate::style::theme::{checked_var_type_hash, theme_hash_of};
-use crate::syntax::expr::{E, K, Prop, root_identifier, unwrap};
+use crate::syntax::expr::{BinOp, E, K, Prop, root_identifier, unwrap};
 use crate::syntax::module::{
     Aliases, CORE, SpecKind, add_core_aliases, import_specs, plumeria_method,
 };
 use crate::syntax::parse::{parse_object_text, parse_program};
-use crate::transform::context::{EnvParts, StaticStack, extend, span_text};
+use crate::transform::context::{EnvParts, StaticStack, Visibility, extend, span_text};
 use crate::transform::overlay::{Chain, Map, Writes};
 use crate::transform::{
     OverlayView, component_functions, first_param_pattern, is_static_arg_value,
     unwrap_pattern_default,
 };
+
+const REACT: &str = "react";
+const VIEW_TRANSITION_ELEMENTS: [&str; 2] = ["ViewTransition", "unstable_ViewTransition"];
+const VIEW_TRANSITION_PROPS: [&str; 5] = ["default", "enter", "exit", "update", "share"];
 
 pub struct CompileOptions {
     pub include: Vec<String>,
@@ -280,6 +285,8 @@ struct Extractor<'t, 'p, 'w, 'b, 'a> {
     declared_props: FxHashMap<String, FxHashSet<String>>,
     sheets: IndexSet<String, FxBuildHasher>,
     default_functions: FxHashSet<u32>,
+    view_transition_elements: FxHashSet<String>,
+    react_namespaces: FxHashSet<String>,
 }
 
 type R<T> = Result<T, String>;
@@ -331,6 +338,8 @@ fn process_file(
         declared_props: FxHashMap::default(),
         sheets: IndexSet::default(),
         default_functions: FxHashSet::default(),
+        view_transition_elements: FxHashSet::default(),
+        react_namespaces: FxHashSet::default(),
     };
     extractor.prepare(program);
     let mut first = FirstPass {
@@ -390,6 +399,25 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
             let source_path = decl.source.value.as_str();
             if source_path == CORE {
                 add_core_aliases(decl, &mut self.aliases);
+            }
+            if source_path == REACT {
+                for spec in import_specs(decl)
+                    .into_iter()
+                    .filter(|spec| !spec.type_only)
+                {
+                    match spec.kind {
+                        SpecKind::Named
+                            if VIEW_TRANSITION_ELEMENTS.contains(&spec.imported.as_str()) =>
+                        {
+                            self.view_transition_elements.insert(spec.local.to_string());
+                        }
+                        SpecKind::Default | SpecKind::Namespace => {
+                            self.react_namespaces.insert(spec.local.to_string());
+                        }
+                        SpecKind::Named => {}
+                    }
+                }
+                continue;
             }
             let Some(actual) = self
                 .project
@@ -1414,7 +1442,7 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
                 let args: Vec<E<'b, 'a>> = call.arguments.iter().map(argument_expr).collect();
                 self.extract_and_process(args, false)?;
             }
-            "keyframes" | "viewTransition" | "positionTry" => {
+            "keyframes" | "viewTransitionClass" | "positionTry" => {
                 let Some(K::Object(object)) = first.map(|e| e.kind()) else {
                     return Ok(());
                 };
@@ -1606,7 +1634,106 @@ impl<'t, 'p, 'w, 'b, 'a> Extractor<'t, 'p, 'w, 'b, 'a> {
         Ok(())
     }
 
+    fn is_view_transition(&self, name: &JSXElementName) -> bool {
+        match name {
+            JSXElementName::Identifier(ident) => {
+                self.view_transition_elements.contains(ident.name.as_str())
+            }
+            JSXElementName::IdentifierReference(ident) => {
+                self.view_transition_elements.contains(ident.name.as_str())
+            }
+            JSXElementName::MemberExpression(member) => {
+                VIEW_TRANSITION_ELEMENTS.contains(&member.property.name.as_str())
+                    && matches!(
+                        &member.object,
+                        JSXMemberExpressionObject::IdentifierReference(object)
+                            if self.react_namespaces.contains(object.name.as_str())
+                    )
+            }
+            _ => false,
+        }
+    }
+
+    fn view_transition_props(&mut self, opening: &'b JSXOpeningElement<'a>) {
+        for attribute in &opening.attributes {
+            let JSXAttributeItem::Attribute(attribute) = attribute else {
+                continue;
+            };
+            let JSXAttributeName::Identifier(name) = &attribute.name else {
+                continue;
+            };
+            if !VIEW_TRANSITION_PROPS.contains(&name.name.as_str()) {
+                continue;
+            }
+            let Some(JSXAttributeValue::ExpressionContainer(container)) = &attribute.value else {
+                continue;
+            };
+            if let Some(expr) = container.expression.as_expression() {
+                self.view_transition_class(E::new(expr));
+            }
+        }
+    }
+
+    fn view_transition_class(&mut self, node: E<'b, 'a>) {
+        let node = unwrap(node);
+        match node.kind() {
+            K::Conditional(cond) => {
+                self.view_transition_class(E::new(&cond.consequent));
+                self.view_transition_class(E::new(&cond.alternate));
+            }
+            K::Binary(left, BinOp::Logical(_), right) => {
+                self.view_transition_class(left);
+                self.view_transition_class(right);
+            }
+            K::Template(template) => {
+                for expression in &template.expressions {
+                    self.view_transition_class(E::new(expression));
+                }
+            }
+            K::Object(object) => {
+                for property in &object.properties {
+                    if let ObjectPropertyKind::ObjectProperty(property) = property {
+                        self.view_transition_class(E::new(&property.value));
+                    }
+                }
+            }
+            K::Ident(ident) => {
+                let visibility = Visibility {
+                    scoping: self.scoping,
+                };
+                if !visibility.ident(ident) {
+                    return;
+                }
+                let Some(hash) = self
+                    .env_parts()
+                    .view_transitions
+                    .lookup(ident.name.as_str())
+                else {
+                    return;
+                };
+                let mut style = Object::new();
+                style.insert("viewTransitionClass", Value::Str(format!("vt-{hash}")));
+                let overlay = OverlayView {
+                    writes: self.writes,
+                    tables: self.tables,
+                };
+                let sheets = &mut self.sheets;
+                extract_ondemand_styles(
+                    &style,
+                    &mut |sheet| {
+                        sheets.insert(sheet);
+                    },
+                    &overlay,
+                );
+            }
+            _ => {}
+        }
+    }
+
     fn opening_element(&mut self, opening: &'b JSXOpeningElement<'a>) -> R<()> {
+        if self.is_view_transition(&opening.name) {
+            self.view_transition_props(opening);
+        }
         match &opening.name {
             JSXElementName::Identifier(ident) => {
                 if !capitalized(ident.name.as_str()) {
