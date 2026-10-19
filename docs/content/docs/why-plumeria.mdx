@@ -48,7 +48,7 @@ The declarations move to a generated stylesheet:
 
 The style still renders, yet `import * as css from '@plumeria/core'` and the entire `css.create` declaration have vanished. This is not dead-code elimination — nothing in this file is unused, and no bundler could remove a live call for you. The compiler resolves the class names statically and rewrites the call site, so the library never has a runtime form to eliminate in the first place. That disappearing import is the most concise illustration of a **Zero-Trace Runtime** — anything that shouldn't exist at runtime leaves no trace, not even an import statement. This isn't a best practice; it's a compiler contract.
 
-The definition APIs — `createTheme`, `createStatic`, `keyframes`, `viewTransition`, `positionTry` and `varType` — are compiled the same way. A definition exported from its own module stays behind as a plain value, such as its generated name string, so other modules can still import it, but its tie to `@plumeria/core` is gone. Every use is already inlined, so the bundler drops it as unused; the Playground shows these lines dimmed.
+The definition APIs — `createTheme`, `createStatic`, `keyframes`, `viewTransitionClass`, `positionTry` and `varType` — are compiled the same way. Every use of a definition, in its own module or in one that imports it, is written in place, so nothing reads the definition at runtime. A definition exported from its own module stays behind only as an empty value with no tie to `@plumeria/core`, and the bundler drops it as unused; the Playground shows these lines dimmed.
 
 Nothing of the library reaches the component, so a React Server Component keeps its styles with no `'use client'` boundary to add.
 
