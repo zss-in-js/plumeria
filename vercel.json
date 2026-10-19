@@ -5,6 +5,11 @@
       "source": "/blog/eating-up-the-libraries",
       "destination": "https://refirst11.vercel.app/posts/2026-05-10",
       "permanent": true
+    },
+    {
+      "source": "/docs/api-reference/javascript/viewTransition",
+      "destination": "/docs/api-reference/javascript/viewTransitionClass",
+      "permanent": true
     }
   ],
   "rewrites": [
