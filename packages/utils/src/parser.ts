@@ -3502,6 +3502,48 @@ function extractAndCacheExports(
   fileCache[filePath].exportsMtimeMs = mtimeMs;
 }
 
+function refreshExports(filePath: string): void {
+  try {
+    const stats = statFile(filePath);
+    if (
+      (!fileCache[filePath]?.exports ||
+        fileCache[filePath].exportsMtimeMs !== stats.mtimeMs) &&
+      stats.isFile()
+    ) {
+      const source = readSource(filePath);
+      const ast = parseSync(source, {
+        syntax: 'typescript',
+        tsx: true,
+        target: 'es2022',
+      });
+      extractAndCacheExports(filePath, ast, stats.mtimeMs);
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+export function exportNames(
+  filePath: string,
+  withDefault = true,
+  visited: Set<string> = new Set(),
+): string[] {
+  if (visited.has(filePath)) return [];
+  visited.add(filePath);
+  refreshExports(filePath);
+  const exports = fileCache[filePath]?.exports;
+  if (!exports) return [];
+  const names = [
+    ...exports.localExports,
+    ...Object.keys(exports.reExports),
+  ].filter((name) => withDefault || name !== 'default');
+  for (const source of exports.starExports) {
+    const actualPath = resolveImportPath(source, filePath);
+    if (actualPath) names.push(...exportNames(actualPath, false, visited));
+  }
+  return names;
+}
+
 export function resolveExport(
   filePath: string,
   exportName: string,
@@ -3511,26 +3553,7 @@ export function resolveExport(
   if (visited.has(key)) return null;
   visited.add(key);
 
-  {
-    try {
-      const stats = statFile(filePath);
-      if (
-        (!fileCache[filePath]?.exports ||
-          fileCache[filePath].exportsMtimeMs !== stats.mtimeMs) &&
-        stats.isFile()
-      ) {
-        const source = readSource(filePath);
-        const ast = parseSync(source, {
-          syntax: 'typescript',
-          tsx: true,
-          target: 'es2022',
-        });
-        extractAndCacheExports(filePath, ast, stats.mtimeMs);
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
+  refreshExports(filePath);
 
   const cached = fileCache[filePath];
   if (!cached || !cached.exports) return null;
