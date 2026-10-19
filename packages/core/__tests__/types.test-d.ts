@@ -67,7 +67,7 @@ export const frames: string = css.keyframes({
   },
 });
 
-export const transition: string = css.viewTransition({
+export const transition: string = css.viewTransitionClass({
   old: {
     opacity: 0,
   },
