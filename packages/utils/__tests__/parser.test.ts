@@ -289,7 +289,7 @@ describe('parser', () => {
       expect(result.animation).toBe('kf-abc123');
     });
 
-    it('should handle viewTransition resolution', () => {
+    it('should handle viewTransitionClass resolution', () => {
       const source = `const obj = { viewTransitionName: slide }`;
       const ast = parseSync(source, { syntax: 'typescript' });
       const varDecl = ast.body[0] as any;
@@ -1262,7 +1262,7 @@ describe('parser', () => {
       expect(createObj.animate.animationName).toBe(`kf-${kfHash}`);
     });
 
-    it('should resolve exported viewTransition in other files', () => {
+    it('should resolve exported viewTransitionClass in other files', () => {
       const libFile = path.resolve(process.cwd(), 'lib/vt.ts');
       const appFile = path.resolve(process.cwd(), 'app/page-vt.ts');
 
@@ -1279,7 +1279,7 @@ describe('parser', () => {
 
       const fileContents: Record<string, string> = {
         [libFile]:
-          'import * as css from "@plumeria/core"; export const slide = css.viewTransition({ group: { animationDuration: "300ms" } });',
+          'import * as css from "@plumeria/core"; export const slide = css.viewTransitionClass({ group: { animationDuration: "300ms" } });',
         [appFile]:
           'import { slide } from "../lib/vt"; import * as css from "@plumeria/core"; export const style = css.create({ transition: { viewTransitionName: slide } });',
       };
@@ -1289,7 +1289,7 @@ describe('parser', () => {
 
       const result = scanAll();
 
-      // Verify viewTransition hash is resolved in usage file
+      // Verify viewTransitionClass hash is resolved in usage file
       const libKey = Object.keys(result.viewTransitionHashTable).find((k) =>
         k.startsWith(libFile),
       );
@@ -1331,10 +1331,10 @@ describe('parser', () => {
       expect(keys.some((key) => key.endsWith('-T'))).toBe(true);
     });
 
-    it('should scan for viewTransition', () => {
+    it('should scan for viewTransitionClass', () => {
       mockedRs.globSync.mockReturnValue(['/test/vt.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'import * as css from "@plumeria/core"; export const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
+        'import * as css from "@plumeria/core"; export const slide = css.viewTransitionClass({ group: { animationDuration: "0.3s" } });',
       );
 
       const result = scanAll();
@@ -1381,10 +1381,10 @@ describe('parser', () => {
       expect(keys.some((key) => key.endsWith('-T'))).toBe(true);
     });
 
-    it('should handle non-exported viewTransition declarations', () => {
+    it('should handle non-exported viewTransitionClass declarations', () => {
       mockedRs.globSync.mockReturnValue(['/test/local-vt.ts'] as any);
       mockedFs.readFileSync.mockReturnValue(
-        'import * as css from "@plumeria/core"; const slide = css.viewTransition({ group: { animationDuration: "0.3s" } });',
+        'import * as css from "@plumeria/core"; const slide = css.viewTransitionClass({ group: { animationDuration: "0.3s" } });',
       );
 
       const result = scanAll();
@@ -1582,7 +1582,7 @@ describe('parser', () => {
          export const S = css.create({ c: "blue" });
          export const V = css.create({ sm: { padding: 4 }, lg: { padding: 8 } });
          export const K = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-         export const VT = css.viewTransition({ group: { name: "none" } });
+         export const VT = css.viewTransitionClass({ group: { name: "none" } });
         `,
       );
 
@@ -2377,7 +2377,7 @@ describe('extractOndemandStyles (integration)', () => {
     };
   });
 
-  it('should extract keyframes, viewTransition, create and theme styles', () => {
+  it('should extract keyframes, viewTransitionClass, create and theme styles', () => {
     const extracted: string[] = [];
 
     // Setup matching theme table
