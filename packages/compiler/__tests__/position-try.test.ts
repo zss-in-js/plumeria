@@ -7,6 +7,7 @@ import { implementations } from '../compiler-implementations';
 const TRIES = `import * as css from '@plumeria/core';
 export const above = css.positionTry({ positionArea: 'top', marginBottom: 8 });
 export const unused = css.positionTry({ positionArea: 'left' });
+export const names = [above, unused];
 `;
 
 const PAGE = `import * as css from '@plumeria/core';
@@ -21,6 +22,7 @@ const s = css.create({
 });
 export const P = () => <div classStyle={s.tooltip} />;
 export const Q = () => <div classStyle={s.single} />;
+export const names = [below];
 `;
 
 const setup = () => {
@@ -47,8 +49,11 @@ const env = (dir: string, name: string) => {
   };
 };
 
-const nameOf = (code: string, binding: string) =>
-  new RegExp(`const ${binding} = "(--pt-[0-9a-z]+)"`).exec(code)?.[1];
+const namesOf = (code: string): string[] => {
+  const head = 'export const names = ';
+  const start = code.indexOf(head) + head.length;
+  return JSON.parse(code.slice(start, code.indexOf(';', start)));
+};
 
 describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
   const DIR = setup();
@@ -58,20 +63,19 @@ describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
   const css = () =>
     compileCSS({ include: ['*.ts', '*.tsx'], exclude: [], cwd: DIR });
 
-  it('replaces each definition with a dashed name', async () => {
+  it('gives each definition a dashed name', async () => {
     const { code } = await transformSource(env(DIR, 'tries.ts'));
-    const above = nameOf(code, 'above');
-    const unused = nameOf(code, 'unused');
-    expect(above).toBeDefined();
-    expect(unused).toBeDefined();
+    const [above, unused] = namesOf(code);
+    expect(above).toContain('--pt-');
+    expect(unused).toContain('--pt-');
     expect(above).not.toBe(unused);
   });
 
   it('emits @position-try for an imported and a local name used in a fallback list', async () => {
     const { code: tries } = await transformSource(env(DIR, 'tries.ts'));
     const { code: page } = await transformSource(env(DIR, 'page.tsx'));
-    const above = nameOf(tries, 'above')!;
-    const below = nameOf(page, 'below')!;
+    const [above] = namesOf(tries);
+    const [below] = namesOf(page);
     const sheet = css();
     expect(sheet).toContain(
       `@position-try ${above} {\n  position-area: top;\n  margin-bottom: 8px;\n}`,
@@ -87,7 +91,7 @@ describe.each(implementations)('$name', ({ transformSource, compileCSS }) => {
 
   it('leaves out the @position-try of a name nothing uses', async () => {
     const { code } = await transformSource(env(DIR, 'tries.ts'));
-    const unused = nameOf(code, 'unused')!;
+    const [, unused] = namesOf(code);
     expect(css()).not.toContain(`@position-try ${unused}`);
   });
 });
@@ -98,7 +102,7 @@ it('gives the same name in both implementations', async () => {
       const dir = setup();
       try {
         const { code } = await transformSource(env(dir, 'tries.ts'));
-        return [nameOf(code, 'above'), nameOf(code, 'unused')];
+        return namesOf(code);
       } finally {
         fs.rmSync(dir, { recursive: true, force: true });
       }
