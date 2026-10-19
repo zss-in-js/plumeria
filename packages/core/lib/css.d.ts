@@ -6,7 +6,7 @@
  * type createTheme = <const T extends CreateTheme>(themeSelector: CreateThemeSelector, rule: T) => CreateThemeReturnType<T>;
  * type createStatic = <const T extends CreateStatic>(rule: T)=> T;
  * type keyframes = <const T extends Keyframes>(rule: T) => string;
- * type viewTransition = <const T extends ViewTransition>(rule: T) => string;
+ * type viewTransitionClass = <const T extends ViewTransition>(rule: T) => string;
  * type positionTry = <const T extends PositionTry>(rule: T) => CSSVariableKey;
  * type varType = <const T extends VarType>(rule: T) => CSSVariableKey;
  * type marker = (id: string, pseudo: string) => Marker;
@@ -69,8 +69,8 @@ declare module '@plumeria/core' {
   export const keyframes: keyframes;
   export type keyframes = <const T extends Keyframes>(rule: T) => string;
 
-  export const viewTransition: viewTransition;
-  export type viewTransition = <const T extends ViewTransition>(
+  export const viewTransitionClass: viewTransitionClass;
+  export type viewTransitionClass = <const T extends ViewTransition>(
     rule: T,
   ) => string;
 
