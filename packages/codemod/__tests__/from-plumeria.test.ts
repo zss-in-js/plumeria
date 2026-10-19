@@ -602,7 +602,7 @@ describe('convertPlumeriaModule', () => {
     const result = convertPlumeriaModule(`
       import * as css from '@plumeria/core';
       const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-      const crossFade = css.viewTransition({
+      const crossFade = css.viewTransitionClass({
         old: { animationName: fade, animationDuration: '1s' },
         new: { animationName: fade },
       });
@@ -612,7 +612,9 @@ describe('convertPlumeriaModule', () => {
     `);
 
     expect(result?.globalCss).toMatch(/@keyframes kf-[a-z\d]+/);
-    expect(result?.globalCss).toMatch(/::view-transition-old\(vt-[a-z\d]+\)/);
+    expect(result?.globalCss).toMatch(
+      /::view-transition-old\(\*\.vt-[a-z\d]+\)/,
+    );
     expect(result?.globalCss).toMatch(/animation-name: kf-[a-z\d]+;/);
     expect(result?.css).toMatch(/animation-name: kf-[a-z\d]+;/);
     expect(result?.css).toMatch(/view-transition-name: vt-[a-z\d]+;/);
@@ -630,7 +632,7 @@ describe('convertPlumeriaModule', () => {
     const animations = extractPlumeriaAnimations(`
       import * as css from '@plumeria/core';
       const fade = css.keyframes(getFrames());
-      const transition = css.viewTransition({ old: { animationName: fade } });
+      const transition = css.viewTransitionClass({ old: { animationName: fade } });
     `);
 
     expect(themes.bindings).toEqual({});
@@ -657,7 +659,7 @@ describe('convertPlumeriaModule', () => {
       const byPseudo = css.createTheme(':root.dark', { gap: { default: 2, theme: 4 } });
       const byAttribute = css.createTheme('[data-dark]', { radius: { default: 3, theme: 6 } });
       const fade = css.keyframes({ '0%': { opacity: 0 }, '100%': { opacity: 1 } });
-      const transition = css.viewTransition({
+      const transition = css.viewTransitionClass({
         group: { animationDuration: '1s', disabled: false },
         imagePair: { isolation: 'isolate' },
         old: { animationName: fade },
