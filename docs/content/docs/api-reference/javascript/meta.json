@@ -6,7 +6,7 @@
     "createTheme",
     "createStatic",
     "keyframes",
-    "viewTransition",
+    "viewTransitionClass",
     "positionTry",
     "varType",
     "marker",
