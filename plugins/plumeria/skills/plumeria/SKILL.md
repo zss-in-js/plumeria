@@ -119,6 +119,16 @@ export const Box = ({ className }: { className?: string }) => (
 
 Strings from separate calls are not merged, so which rule wins depends on stylesheet order. Receive a `css.Style` prop and pass it to the same call instead, e.g. `css.use(styles.base, style)`. (→ Styling Custom Components)
 
+❌ **Reading a definition through a namespace import:**
+
+```tsx
+import * as tokens from './tokens';
+
+<div classStyle={tokens.styles.card} />
+```
+
+Every use of a definition is written in place at build time, so the compiler has to see which one is read. Import it by name instead: `import { styles } from './tokens'`. Reading it as `tokens.styles`, `tokens['styles']`, by destructuring or a rest element, or passing `tokens` as a whole, stops the build.
+
 ❌ **Complex JS expressions in style values.** Only simple ternary operators are allowed, and only when necessary. Never put complex logic or function calls inside style values.
 
 ## Selector Rules
@@ -356,9 +366,9 @@ const styles = css.create({
 });
 ```
 
-### `css.viewTransition()`
+### `css.viewTransitionClass()`
 
-Generates a unique `view-transition-name`, accepting animation definitions (`group`, `imagePair`, `new`, `old`) to customize View Transitions:
+Generates a unique `view-transition-class`, accepting animation definitions (`group`, `imagePair`, `new`, `old`) to customize View Transitions. Pass it to the `default`, `enter`, `exit`, `update` or `share` prop of React's `<ViewTransition>`, or set it with `viewTransitionClass` in `css.create`. The rules are emitted only for those two uses, so pass it to `<ViewTransition>` directly rather than through a wrapper component:
 
 ```tsx
 import * as css from '@plumeria/core';
@@ -373,7 +383,7 @@ const fadeOut = css.keyframes({
   to: { opacity: 0 },
 });
 
-const longCrossFade = css.viewTransition({
+const longCrossFade = css.viewTransitionClass({
   old: {
     animationName: fadeOut,
     animationDuration: '1.2s',
@@ -384,14 +394,9 @@ const longCrossFade = css.viewTransition({
   },
 });
 
-export const transition = css.create({
-  name: {
-    viewTransitionName: longCrossFade,
-  },
-});
-
 // React usage:
-// <ViewTransition name={css.use(transition.name)}>...</ViewTransition>
+// <ViewTransition default={longCrossFade}>...</ViewTransition>
+// <ViewTransition name={`photo-${id}`} share={longCrossFade}>...</ViewTransition>
 ```
 
 ### `css.varType()`
