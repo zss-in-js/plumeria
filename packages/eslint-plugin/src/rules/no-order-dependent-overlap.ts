@@ -165,7 +165,7 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
             if (
               propertyName === 'create' ||
               propertyName === 'keyframes' ||
-              propertyName === 'viewTransition' ||
+              propertyName === 'viewTransitionClass' ||
               propertyName === 'positionTry'
             ) {
               isCssProperties = true;
@@ -177,7 +177,7 @@ export const noOrderDependentOverlap: Rule.RuleModule = {
           if (
             aliasName === 'create' ||
             aliasName === 'keyframes' ||
-            aliasName === 'viewTransition' ||
+            aliasName === 'viewTransitionClass' ||
             aliasName === 'positionTry'
           ) {
             isCssProperties = true;
