@@ -83,7 +83,7 @@ ${body}
     });
 
     // A malformed call is TypeScript's to reject. The compiler skips it, the way
-    // it already skips create(), viewTransition(), createStatic() and createTheme().
+    // it already skips create(), viewTransitionClass(), createStatic() and createTheme().
     it('skips a keyframes call with no argument that is never applied', async () => {
       await expect(
         run('const spin = css.keyframes();\nexport const name = String(spin);'),
