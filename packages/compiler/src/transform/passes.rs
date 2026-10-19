@@ -246,7 +246,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                 self.merged_var_types.insert(name.to_string(), hash);
                 self.drop_definition(is_exported, init_span, decl_span);
             }
-            "keyframes" | "viewTransition" | "positionTry"
+            "keyframes" | "viewTransitionClass" | "positionTry"
                 if matches!(argument_expr(&call.arguments[0]).kind(), K::Object(_)) =>
             {
                 self.registered_style_calls.insert(call.span.start);
@@ -375,7 +375,7 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
                     });
                 }
             }
-            "viewTransition" => {
+            "viewTransitionClass" => {
                 let Some(K::Object(object)) = first.map(|e| e.kind()) else {
                     return Ok(());
                 };
