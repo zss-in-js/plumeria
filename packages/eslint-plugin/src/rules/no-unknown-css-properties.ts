@@ -57,7 +57,7 @@ export const noUnknownCssProperties: Rule.RuleModule = {
     type: 'problem',
     docs: {
       description:
-        'Disallow unknown CSS properties in camelCase within css.create, css.keyframes, css.viewTransition, and css.positionTry',
+        'Disallow unknown CSS properties in camelCase within css.create, css.keyframes, css.viewTransitionClass, and css.positionTry',
     },
     messages: {
       unknownProperty: "Unknown CSS property '{{ name }}'.",
@@ -108,7 +108,7 @@ export const noUnknownCssProperties: Rule.RuleModule = {
             if (
               propertyName === 'create' ||
               propertyName === 'keyframes' ||
-              propertyName === 'viewTransition' ||
+              propertyName === 'viewTransitionClass' ||
               propertyName === 'positionTry'
             ) {
               isCssProperties = true;
@@ -121,7 +121,7 @@ export const noUnknownCssProperties: Rule.RuleModule = {
           if (
             alias === 'create' ||
             alias === 'keyframes' ||
-            alias === 'viewTransition' ||
+            alias === 'viewTransitionClass' ||
             alias === 'positionTry'
           ) {
             isCssProperties = true;
