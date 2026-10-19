@@ -370,10 +370,11 @@ const vt = css.viewTransition({ old: { opacity: 0 } });
       expect(code).toContain(`export const value = ${written};`);
     });
 
-    it('names a keyframes and a viewTransition by their hashes', async () => {
+    it('writes out a keyframes and a viewTransition by their hashes', async () => {
       const { code } = await app(DEFINITIONS + `export const all = [k, vt];`);
-      expect(code).toMatch(/const k = "kf-x[a-z0-9]+";/);
-      expect(code).toMatch(/const vt = "vt-x[a-z0-9]+";/);
+      expect(code).toMatch(
+        /export const all = \["kf-x[a-z0-9]+", "vt-x[a-z0-9]+"\];/,
+      );
     });
 
     it('writes out definitions imported from another file', async () => {
