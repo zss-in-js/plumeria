@@ -58,7 +58,7 @@ export const noDestructure: Rule.RuleModule = {
                   keyName === 'createStatic' ||
                   keyName === 'createTheme' ||
                   keyName === 'keyframes' ||
-                  keyName === 'viewTransition' ||
+                  keyName === 'viewTransitionClass' ||
                   keyName === 'positionTry' ||
                   keyName === 'varType' ||
                   keyName === 'use'
