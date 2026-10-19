@@ -77,7 +77,7 @@ const STYLE_METHODS: &[&str] = &[
     "createTheme",
     "createStatic",
     "keyframes",
-    "viewTransition",
+    "viewTransitionClass",
     "positionTry",
     "varType",
 ];
@@ -324,7 +324,7 @@ pub fn scan_file_pass<'b, 'a>(
                 "createStatic"
                     | "createTheme"
                     | "keyframes"
-                    | "viewTransition"
+                    | "viewTransitionClass"
                     | "positionTry"
                     | "varType"
             );
@@ -397,7 +397,7 @@ pub fn scan_file_pass<'b, 'a>(
                     local.keyframes_obj.insert(hash.clone(), value);
                     project.register_object_owner(ObjectTable::KeyframesObject, &hash, file);
                 }
-                "viewTransition" => {
+                "viewTransitionClass" => {
                     let value = Value::obj(obj.clone());
                     let hash = hash_object(&obj);
                     local
