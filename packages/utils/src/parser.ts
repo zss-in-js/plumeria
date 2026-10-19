@@ -2464,7 +2464,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
                   'createTheme',
                   'createStatic',
                   'keyframes',
-                  'viewTransition',
+                  'viewTransitionClass',
                   'positionTry',
                   'varType',
                 ].includes(method)
@@ -2504,13 +2504,13 @@ function runScan(scanCwd: string, styleProp: string): Tables {
                 };
 
                 // Two-pass scanning:
-                // Pass 1: Collect all createStatic, createTheme, keyframes, and viewTransition definitions for global resolution
+                // Pass 1: Collect all createStatic, createTheme, keyframes, and viewTransitionClass definitions for global resolution
                 // Pass 2: Process css.create (with all global definitions available)
                 const isPassOneMethod =
                   method === 'createStatic' ||
                   method === 'createTheme' ||
                   method === 'keyframes' ||
-                  method === 'viewTransition' ||
+                  method === 'viewTransitionClass' ||
                   method === 'positionTry' ||
                   method === 'varType';
                 if (isFirstPass && !isPassOneMethod) continue;
@@ -2577,7 +2577,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
                   (localTables.positionTryObjectTable ??= {})[hash] = obj;
                   localPositionTryObjectTable[hash] = obj;
                   registerObjectOwner('positionTryObjectTable', hash, filePath);
-                } else if (method === 'viewTransition') {
+                } else if (method === 'viewTransitionClass') {
                   const hash = genBase36Hash(obj, 1, 8);
                   localViewTransitionHashTable[name] = hash;
                   localTables.viewTransitionHashTable[uniqueKey] = hash;
