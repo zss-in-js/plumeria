@@ -1,0 +1,122 @@
+---
+title: 'Plumeria 21.0'
+description: 'Update: css.viewTransition is renamed to css.viewTransitionClass and works with React ViewTransition; Feat: the rename-api codemod'
+date: '2026-10-19'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v21.0 renames `css.viewTransition` to `css.viewTransitionClass` and makes it work with React's `<ViewTransition>`. A public API changes its name, which is why this is a major release, and the new `rename-api` codemod moves your code to the new name in one command.
+
+## 1. `css.viewTransitionClass`
+
+`css.viewTransition` returned a `view-transition-name`. A name can be on only one element at a time, so one definition could not animate a list of cards, and React's `<ViewTransition>` keeps `name` for linking the elements of a shared transition. Passing the definition there put a class name where a name belongs, and its rules never matched.
+
+`css.viewTransitionClass` returns a `view-transition-class` instead, and its rules select the class:
+
+```tsx
+import * as css from '@plumeria/core';
+import { ViewTransition } from 'react';
+
+const fadeIn = css.keyframes({
+  from: { opacity: 0 },
+  to: { opacity: 1 },
+});
+
+const fadeOut = css.keyframes({
+  from: { opacity: 1 },
+  to: { opacity: 0 },
+});
+
+const longCrossFade = css.viewTransitionClass({
+  old: { animationName: fadeOut, animationDuration: '1.2s' },
+  new: { animationName: fadeIn, animationDuration: '1.2s' },
+});
+
+export const Page = ({ children }: { children: React.ReactNode }) => (
+  <ViewTransition default={longCrossFade}>{children}</ViewTransition>
+);
+```
+
+```css
+::view-transition-old(*.vt-xsq18f68) {
+  animation-name: kf-xmzotw7h;
+  animation-duration: 1.2s;
+}
+::view-transition-new(*.vt-xsq18f68) {
+  animation-name: kf-x34h9adh;
+  animation-duration: 1.2s;
+}
+```
+
+The rules are emitted when the class is used in the `default`, `enter`, `exit`, `update` or `share` prop of `<ViewTransition>` imported from `react`, including both sides of a condition and the values of an object keyed by transition type, or with `viewTransitionClass` in `css.create`. Which elements are linked stays with you through `name`.
+
+## 2. Migrating the API name
+
+The `rename-api` codemod rewrites the calls and imports for you:
+
+```bash
+npx @plumeria/codemod rename-api viewTransition viewTransitionClass
+```
+
+It covers `css.viewTransition(...)` through a namespace or default import, and `import { viewTransition }` together with every reference to it. Run it with `--dry-run` first to see the files it would change. A definition you gave to `viewTransitionName` in `css.create` keeps compiling, but its rules now select a class, so set it with `viewTransitionClass` instead.
+
+## 3. Definitions are written where they are read
+
+A name from `css.keyframes`, `css.viewTransitionClass`, `css.positionTry` or `css.varType` was written into its declaration, and any read outside `css.create`, such as `console.log(fade)`, went back to that declaration at runtime. Now every read is replaced with the name itself, the same way `css.createTheme` already worked:
+
+```ts
+const fade = css.keyframes({ from: { opacity: 0 } });
+console.log(fade);
+```
+
+```ts
+console.log("kf-xfqa07u7");
+```
+
+The declaration is dropped, or left as an empty export when it is exported, and the bundler removes it. No definition is left in the bundle.
+
+## 4. Namespace imports of definitions stop the build
+
+Because every read is written in place, the compiler has to see which definition is read. Reading one through a namespace import is now a compile error that asks for a named import:
+
+```ts
+import * as tokens from './tokens';
+
+console.log(tokens.fade);
+// [plumeria] tokens.fade reads a Plumeria definition through a namespace import,
+// which cannot be compiled. Import it by name: import { fade } from '...'.
+```
+
+This covers `tokens.fade`, `tokens['fade']`, destructuring, a rest element and passing `tokens` as a whole. With the declaration emptied, such a read would get an empty value without a word, so the build stops instead. A namespace import of a module that holds no definitions is left as it is.
+
+## 5. Lint
+
+The ESLint rules that read the styles in `css.viewTransition` read `css.viewTransitionClass`.
+
+## Upgrading
+
+The `@plumeria` packages share one version number, so upgrade them together, then rename the API:
+
+```bash
+pnpm up "@plumeria/*" --latest
+npx @plumeria/codemod rename-api viewTransition viewTransitionClass
+```
+
+---
+
+## Release notes
+
+## 21.0.0 (Oct 19, 2026)
+
+- Update: `css.viewTransition` is renamed to `css.viewTransitionClass`, and its rules select the returned class, as in `::view-transition-old(*.vt-…)`, so it can be given to the `default`, `enter`, `exit`, `update` and `share` props of React's `<ViewTransition>` or set with `viewTransitionClass` in `css.create`
+- Feat: a `css.viewTransitionClass` is emitted when it is used in one of those `<ViewTransition>` props, including both sides of a condition and the values of a type map, as well as when it is used in `css.create`
+- Update: a name from `css.keyframes`, `css.viewTransitionClass`, `css.positionTry` or `css.varType` is written where it is read, and its declaration is dropped as with `css.createTheme`, so no definition is left in the bundle
+- Feat: reading a Plumeria definition through a namespace import, by member, string key, destructuring, a rest element or the namespace as a whole, is a compile error that asks for a named import
+- Feat: the `rename-api` codemod renames an API across a codebase, as in `npx @plumeria/codemod rename-api viewTransition viewTransitionClass`
+- Update: the ESLint rules that read `css.viewTransition` read `css.viewTransitionClass`
