@@ -3,6 +3,7 @@ import path from 'node:path';
 import { ESLint } from 'eslint';
 import * as tsParser from '@typescript-eslint/parser';
 import { renameProp } from './transforms/rename-prop';
+import { renameApi } from './transforms/rename-api';
 import { adoptStyles } from './transforms/adopt-styles';
 import { releaseStyles } from './transforms/release-styles';
 import { plan, write, formatReports } from './migrate';
@@ -13,7 +14,20 @@ import type { Linter } from 'eslint';
 
 const { version } = require('../package.json') as { version: string };
 
-const TRANSFORMS = ['rename-prop', 'migrate'] as const;
+const TRANSFORMS = ['rename-prop', 'rename-api', 'migrate'] as const;
+
+const APIS = [
+  'create',
+  'createTheme',
+  'createStatic',
+  'keyframes',
+  'viewTransitionClass',
+  'positionTry',
+  'varType',
+  'marker',
+  'extended',
+  'use',
+];
 
 const SOURCES = ['css-modules', 'plumeria'] as const;
 
@@ -36,6 +50,7 @@ const USAGE = `plumeria-codemod — codemods for migrating Plumeria APIs
 
 Usage
   npx @plumeria/codemod rename-prop <from> <to> [paths...]
+  npx @plumeria/codemod rename-api <from> <to> [paths...]
   npx @plumeria/codemod migrate --from css-modules [paths...]
   npx @plumeria/codemod migrate --from plumeria [paths...]
 
@@ -49,6 +64,7 @@ Options
 Examples
   npx @plumeria/codemod rename-prop classStyle sx
   npx @plumeria/codemod rename-prop classStyle sx src app --dry-run
+  npx @plumeria/codemod rename-api viewTransition viewTransitionClass
   npx @plumeria/codemod migrate --from css-modules
   npx @plumeria/codemod migrate --from plumeria --dry-run
 
@@ -59,7 +75,7 @@ at the new name with \`styleProp\` on your bundler plugin, and with
 class UsageError extends Error {}
 
 interface RenameOptions {
-  transform: 'rename-prop';
+  transform: 'rename-prop' | 'rename-api';
   from: string;
   to: string;
   targets: string[];
@@ -142,13 +158,28 @@ function parseArgs(argv: string[]): Options | null {
     };
   }
   if (!from || !to) {
-    throw new UsageError('rename-prop needs both <from> and <to>');
-  }
-  if (!IDENTIFIER.test(to)) {
-    throw new UsageError(`"${to}" is not a valid identifier`);
+    throw new UsageError(`${transform} needs both <from> and <to>`);
   }
   if (from === to) {
     throw new UsageError(`<from> and <to> are both "${from}"`);
+  }
+  if (transform === 'rename-api') {
+    if (!APIS.includes(to)) {
+      throw new UsageError(
+        `"${to}" is not a Plumeria API. Available: ${APIS.join(', ')}`,
+      );
+    }
+    return {
+      transform: 'rename-api',
+      from,
+      to,
+      targets: targets.length > 0 ? targets : ['.'],
+      dryRun,
+      includeTypes,
+    };
+  }
+  if (!IDENTIFIER.test(to)) {
+    throw new UsageError(`"${to}" is not a valid identifier`);
   }
   if (RESERVED.has(to)) {
     throw new UsageError(`"${to}" is already used by React`);
@@ -165,7 +196,19 @@ function parseArgs(argv: string[]): Options | null {
 }
 
 function buildConfig(options: RenameOptions): Linter.Config[] {
-  const { from, to, includeTypes } = options;
+  const { transform, from, to, includeTypes } = options;
+  const rule =
+    transform === 'rename-api'
+      ? {
+          plugins: { codemod: { rules: { 'rename-api': renameApi } } },
+          rules: { 'codemod/rename-api': ['error', { from, to }] },
+        }
+      : {
+          plugins: { codemod: { rules: { 'rename-prop': renameProp } } },
+          rules: {
+            'codemod/rename-prop': ['error', { from, to, includeTypes }],
+          },
+        };
 
   return [
     { ignores: IGNORES },
@@ -178,10 +221,9 @@ function buildConfig(options: RenameOptions): Linter.Config[] {
           ecmaFeatures: { jsx: true },
         },
       },
-      plugins: { codemod: { rules: { 'rename-prop': renameProp } } },
-      rules: { 'codemod/rename-prop': ['error', { from, to, includeTypes }] },
+      ...rule,
     },
-  ];
+  ] as Linter.Config[];
 }
 
 function warnIfDirty(): void {
