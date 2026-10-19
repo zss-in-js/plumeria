@@ -54,7 +54,7 @@ ruleTester.run('sort-properties', sortProperties, {
       },
     },
     {
-      code: "import { viewTransition } from '@plumeria/core'; const vt = viewTransition({ key1: { position: 'absolute', color: 'red'} });",
+      code: "import { viewTransitionClass } from '@plumeria/core'; const vt = viewTransitionClass({ key1: { position: 'absolute', color: 'red'} });",
       settings: {
         ecmaVersion: 2021,
       },
