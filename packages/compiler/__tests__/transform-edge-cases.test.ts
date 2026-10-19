@@ -355,7 +355,7 @@ export const A = () => <Card cardStyle={s.a} />;`,
     const DEFINITIONS = `const statics = css.createStatic({ gap: 4 });
 const theme = css.createTheme('.dark', { color: { default: 'black', theme: 'white' } });
 const k = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-const vt = css.viewTransition({ old: { opacity: 0 } });
+const vt = css.viewTransitionClass({ old: { opacity: 0 } });
 `;
 
     it.each([
@@ -370,7 +370,7 @@ const vt = css.viewTransition({ old: { opacity: 0 } });
       expect(code).toContain(`export const value = ${written};`);
     });
 
-    it('writes out a keyframes and a viewTransition by their hashes', async () => {
+    it('writes out a keyframes and a viewTransitionClass by their hashes', async () => {
       const { code } = await app(DEFINITIONS + `export const all = [k, vt];`);
       expect(code).toMatch(
         /export const all = \["kf-x[a-z0-9]+", "vt-x[a-z0-9]+"\];/,
@@ -581,16 +581,16 @@ export const A = (p: any) => <div classStyle={${call}} />;`,
   });
 
   describe('transform: values read through other definitions', () => {
-    it('names a keyframes and a viewTransition inside a style', async () => {
+    it('names a keyframes and a viewTransitionClass inside a style', async () => {
       const { css } = await transform({
         'app.tsx': `import * as css from '@plumeria/core';
 const k = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-const vt = css.viewTransition({ old: { opacity: 0 } });
+const vt = css.viewTransitionClass({ old: { opacity: 0 } });
 const st = css.create({ a: { animationName: k, viewTransitionName: vt } });
 export const A = () => <div classStyle={st.a} />;`,
       });
       expect(css).toMatch(/@keyframes kf-x[a-z0-9]+ \{/);
-      expect(css).toMatch(/::view-transition-old\(vt-x[a-z0-9]+\) \{/);
+      expect(css).toMatch(/::view-transition-old\(\*\.vt-x[a-z0-9]+\) \{/);
     });
 
     it.each([
