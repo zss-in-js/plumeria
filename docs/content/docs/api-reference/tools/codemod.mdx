@@ -1,6 +1,6 @@
 ---
 title: '@plumeria/codemod'
-description: 'Migrate between CSS Modules and Plumeria, or rename the styling prop, in one pass.'
+description: 'Migrate between CSS Modules and Plumeria, or rename the styling prop or an API, in one pass.'
 ---
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
@@ -11,6 +11,7 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 | `migrate --from css-modules` | turns a CSS Modules stylesheet into `css.create` and points its consumers at it |
 | `migrate --from plumeria` | exports `css.create` styles into CSS Modules, writes global styles, and updates JSX to use `className` |
 | `rename-prop` | changes the styling prop everywhere it appears |
+| `rename-api` | changes a Plumeria API that was renamed in a release |
 
 Every transform has a `--dry-run` and reports what it cannot convert instead of guessing. Before `--from css-modules`, read **What each selector becomes** and **What it reports instead of converting**; the other sections cover edge cases.
 
@@ -324,14 +325,14 @@ export function Card({ width }: { width: number }) {
 
 ### Global styles: themes and animations
 
-Definitions created with `css.createTheme` and `css.viewTransition` are extracted and appended to the stylesheet the project already loads — `app/global.css` or `styles/global.css`, under `src` or not, spelled `global` or `globals` — and to a new `src/styles/global.css` (or `styles/global.css`) when it finds none:
+Definitions created with `css.createTheme` and `css.viewTransitionClass` are extracted and appended to the stylesheet the project already loads — `app/global.css` or `styles/global.css`, under `src` or not, spelled `global` or `globals` — and to a new `src/styles/global.css` (or `styles/global.css`) when it finds none:
 
 - **`css.createTheme`**: Emits root CSS variables (`:where(:root)`) and selector/at-rule scoped variables (e.g. `.dark`, `@media (prefers-color-scheme: dark)`). References across modules become `var(--hash-tokenName)`.
-- **`css.keyframes`**: Emits `@keyframes kf-xxxx` at the top of each CSS Module that reads it, not in global CSS — a CSS Module renames the value of `animation-name` the way it renames a class, so a global definition never matches the renamed reference. One a `css.viewTransition` names is written globally as well, since a `::view-transition-*` rule is not scoped.
-- **`css.viewTransition`**: Emits `::view-transition-*` pseudo-element rules in global CSS and assigns `view-transition-name: vt-xxxx`.
+- **`css.keyframes`**: Emits `@keyframes kf-xxxx` at the top of each CSS Module that reads it, not in global CSS — a CSS Module renames the value of `animation-name` the way it renames a class, so a global definition never matches the renamed reference. One a `css.viewTransitionClass` names is written globally as well, since a `::view-transition-*` rule is not scoped.
+- **`css.viewTransitionClass`**: Emits `::view-transition-*(*.vt-xxxx)` pseudo-element rules in global CSS, and every reference becomes the class name `vt-xxxx`.
 - **`css.createStatic`**: Constant values are statically evaluated and inlined directly into generated CSS rules.
 
-Only the `css.keyframes` and `css.viewTransition` definitions an exported style reaches are written out. One that nothing reads, or that only a file the migration held back reads, stays in the TypeScript file that declares it.
+Only the `css.keyframes` and `css.viewTransitionClass` definitions an exported style reaches are written out. One that nothing reads, or that only a file the migration held back reads, stays in the TypeScript file that declares it.
 
 ### Where definitions may live
 
@@ -651,3 +652,28 @@ The names are arguments, so the transform is not tied to any particular release.
 npx @plumeria/codemod rename-prop styleName classStyle
 npx @plumeria/codemod rename-prop classStyle sx
 ```
+
+## Renaming an API
+
+When a release renames a Plumeria API, `rename-api` moves your code to the new name:
+
+```sh title="Terminal"
+npx @plumeria/codemod rename-api <from> <to> [paths...]
+npx @plumeria/codemod rename-api viewTransition viewTransitionClass
+```
+
+It rewrites calls through the namespace or default import of `@plumeria/core`, and named imports together with every reference to them. An alias keeps its local name, so only the import changes:
+
+```diff
+  import * as css from '@plumeria/core';
+- const fade = css.viewTransition({ old: { opacity: 0 } });
++ const fade = css.viewTransitionClass({ old: { opacity: 0 } });
+```
+
+```diff
+- import { viewTransition as vt } from '@plumeria/core';
++ import { viewTransitionClass as vt } from '@plumeria/core';
+  const slide = vt({ new: { opacity: 1 } });
+```
+
+`<to>` has to be an API `@plumeria/core` exports, so a typo is reported instead of written. `--dry-run` lists the files it would change.
