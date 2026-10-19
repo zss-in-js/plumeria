@@ -35,7 +35,7 @@ ruleTester.run('no-inner-call', noInnerCall, {
       settings,
     },
     {
-      code: `import * as css from '@plumeria/core'; css.viewTransition();`,
+      code: `import * as css from '@plumeria/core'; css.viewTransitionClass();`,
       settings,
     },
     {
@@ -95,8 +95,10 @@ ruleTester.run('no-inner-call', noInnerCall, {
       settings,
     },
     {
-      code: `import * as css from '@plumeria/core'; (() => { css.viewTransition(); })();`,
-      errors: [{ message: 'Do not use css.viewTransition inside functions' }],
+      code: `import * as css from '@plumeria/core'; (() => { css.viewTransitionClass(); })();`,
+      errors: [
+        { message: 'Do not use css.viewTransitionClass inside functions' },
+      ],
       settings,
     },
     {
