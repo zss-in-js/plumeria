@@ -93,7 +93,7 @@ ruleTester.run('no-invalid-selector', noInvalidSelector, {
           to: { opacity: 1 },
         });
 
-        css.viewTransition({
+        css.viewTransitionClass({
           group: {},
           imagePair: {},
           new: {},
@@ -118,7 +118,7 @@ ruleTester.run('no-invalid-selector', noInvalidSelector, {
         import * as css from '@plumeria/core';
 
         css.keyframes({ ...base, from: { ...base, opacity: 0 } });
-        css.viewTransition({ ...base, old: { ...base, opacity: 0 } });
+        css.viewTransitionClass({ ...base, old: { ...base, opacity: 0 } });
       `,
     },
     {
@@ -126,12 +126,12 @@ ruleTester.run('no-invalid-selector', noInvalidSelector, {
         import * as css from '@plumeria/core';
 
         css.keyframes({ from: shared });
-        css.viewTransition({ old: shared });
+        css.viewTransitionClass({ old: shared });
       `,
     },
     {
       code: `
-        import { keyframes as kf, viewTransition as vt } from '@plumeria/core';
+        import { keyframes as kf, viewTransitionClass as vt } from '@plumeria/core';
 
         kf({ from: { opacity: 0 } });
         vt({ old: { opacity: 0 } });
@@ -202,7 +202,7 @@ ruleTester.run('no-invalid-selector', noInvalidSelector, {
       code: `
         import * as css from '@plumeria/core';
 
-        css.viewTransition({
+        css.viewTransitionClass({
           invalid: {},
         });
       `,
@@ -212,7 +212,7 @@ ruleTester.run('no-invalid-selector', noInvalidSelector, {
       code: `
         import * as css from '@plumeria/core';
 
-        css.viewTransition({
+        css.viewTransitionClass({
           [1 + 1]: {},
         });
       `,
