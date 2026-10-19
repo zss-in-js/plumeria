@@ -195,10 +195,9 @@ export const A = () => <div classStyle={s.a} data-b={barrel} />;`,
       expect(code).toContain(`<div className={"${RED}"} data-b={barrel} />`);
     });
 
-    it('leaves a namespace import of a style file as written', async () => {
+    it('leaves a namespace import of a file without definitions as written', async () => {
       const { code } = await transform({
-        'styles.ts': `import * as css from '@plumeria/core';
-export const styles = css.create({ a: { color: 'teal' } });`,
+        'styles.ts': `export const colors = { a: 'teal' };`,
         'app.tsx': `import * as css from '@plumeria/core';
 import * as ns from './styles';
 const s = css.create({ a: { color: 'red' } });
