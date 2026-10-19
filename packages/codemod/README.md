@@ -220,7 +220,7 @@ reported as `dynamic-style-access` and its definitions stay in Plumeria.
 
 ### Global styles
 
-`css.createTheme` and `css.viewTransition` produce rules that belong in a global
+`css.createTheme` and `css.viewTransitionClass` produce rules that belong in a global
 stylesheet, not in a CSS Module. The codemod extracts them and appends them to
 the stylesheet the project already loads — `app/global.css` or
 `styles/global.css`, under `src` or not, spelled `global` or `globals` — and
@@ -228,7 +228,7 @@ writes `src/styles/global.css` (or `styles/global.css` when `src` does not
 exist) when it finds none. Theme tokens become CSS custom properties under
 `:where(:root)` and the theme selector; view transitions become
 `::view-transition-*` pseudo-element rules. References in style objects are
-replaced by their generated names. A `keyframes` or `viewTransition` nothing the
+replaced by their generated names. A `keyframes` or `viewTransitionClass` nothing the
 migration exports reaches is left where it is.
 
 A CSS Module renames the value of `animation-name` the way it renames a class,
