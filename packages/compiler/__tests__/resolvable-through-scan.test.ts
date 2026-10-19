@@ -18,7 +18,7 @@ describe.each(implementations)('$name', ({ transformSource, scanAll }) => {
   const local = path.join(dir, 'local.tsx');
   const localSource = `import * as css from '@plumeria/core';
 const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
-const swap = css.viewTransition({ old: { opacity: 0 } });
+const swap = css.viewTransitionClass({ old: { opacity: 0 } });
 const styles = css.create({
   box: { animationName: fade, viewTransitionName: swap, animationDuration: '1s' },
 });
@@ -56,7 +56,7 @@ const styles = css.create({ box: { animationName: spin, animationDuration: '1s' 
       scanAll(dir);
     });
 
-    it('accepts a keyframes and a viewTransition declared in the same file', async () => {
+    it('accepts a keyframes and a viewTransitionClass declared in the same file', async () => {
       await expect(compile(local, localSource)).resolves.toBeDefined();
     });
 
