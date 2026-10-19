@@ -24,15 +24,15 @@ import * as css from '@plumeria/core';
 export const fade = css.keyframes({ from: { opacity: 0 }, to: { opacity: 1 } });
 `;
 
-  const viewTransition = `
+  const viewTransitionClass = `
 import * as css from '@plumeria/core';
-export const vt = css.viewTransition({ old: { animationDuration: '1s' }, new: { animationDuration: '2s' } });
+export const vt = css.viewTransitionClass({ old: { animationDuration: '1s' }, new: { animationDuration: '2s' } });
 `;
 
   // A binding read through a template or a concatenation is the same value as
   // the binding read on its own, so it has to compile to the same name and pull
   // the same rule into the sheet.
-  describe('compiler: a keyframes or viewTransition binding read inside a value', () => {
+  describe('compiler: a keyframes or viewTransitionClass binding read inside a value', () => {
     it('names the animation and emits its keyframes from a shorthand', () => {
       const css = compile(
         keyframes +
@@ -67,15 +67,15 @@ export const A = () => <div classStyle={s.a} />;
 
     it('emits the view transition rules for a name read through a template', () => {
       const css = compile(
-        viewTransition +
+        viewTransitionClass +
           `
-export const s = css.create({ a: { viewTransitionName: \`\${vt}\` } });
+export const s = css.create({ a: { viewTransitionClass: \`\${vt}\` } });
 export const A = () => <div classStyle={s.a} />;
 `,
       );
-      expect(css).toMatch(/view-transition-name: vt-\w+;/);
-      expect(css).toContain('::view-transition-old(vt-');
-      expect(css).toContain('::view-transition-new(vt-');
+      expect(css).toMatch(/view-transition-class: vt-\w+;/);
+      expect(css).toContain('::view-transition-old(*.vt-');
+      expect(css).toContain('::view-transition-new(*.vt-');
     });
 
     it('emits the keyframes for a binding concatenated onto a string', () => {
