@@ -10,7 +10,7 @@ const STYLE_APIS = new Set([
   'createStatic',
   'createTheme',
   'keyframes',
-  'viewTransition',
+  'viewTransitionClass',
   'positionTry',
   'varType',
 ]);
