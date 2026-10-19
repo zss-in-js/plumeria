@@ -1,0 +1,138 @@
+---
+title: 'css.viewTransitionClass'
+description: 'Animate elements across page and state changes with the View Transitions API.'
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+```ts
+export type viewTransitionClass = <const T extends ViewTransition>(rule: T) => string;
+export const viewTransitionClass: viewTransitionClass;
+```
+
+`viewTransitionClass()` customizes how a View Transition animates. It returns a `view-transition-class`, and the rules it defines select every transition that carries that class, so one definition can be shared by any number of elements.
+
+```ts
+type ViewTransitionOptions = {
+  group?: CSSProperties;
+  imagePair?: CSSProperties;
+  new?: CSSProperties;
+  old?: CSSProperties;
+};
+```
+
+## Usage with React
+
+Pass the class to the `default`, `enter`, `exit`, `update` or `share` prop of `<ViewTransition>`:
+
+<Tabs items={["tsx", "css"]}>
+  <Tab>
+    ```tsx title="TypeScript"
+    import * as css from '@plumeria/core';
+    import { ViewTransition } from 'react';
+
+    const fadeIn = css.keyframes({
+      from: { opacity: 0 },
+      to: { opacity: 1 },
+    });
+
+    const fadeOut = css.keyframes({
+      from: { opacity: 1 },
+      to: { opacity: 0 },
+    });
+
+    const longCrossFade = css.viewTransitionClass({
+      old: {
+        animationName: fadeOut,
+        animationDuration: '1.2s',
+      },
+      new: {
+        animationName: fadeIn,
+        animationDuration: '1.2s',
+      },
+    });
+
+    export const Page = ({ children }: { children: React.ReactNode }) => (
+      <ViewTransition default={longCrossFade}>{children}</ViewTransition>
+    );
+    ```
+  </Tab>
+  <Tab>
+    ```css title="CSS"
+    @keyframes kf-xmzotw7h {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes kf-x34h9adh {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    ::view-transition-old(*.vt-xsq18f68) {
+      animation-name: kf-xmzotw7h;
+      animation-duration: 1.2s;
+    }
+    ::view-transition-new(*.vt-xsq18f68) {
+      animation-name: kf-x34h9adh;
+      animation-duration: 1.2s;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+The props accept the forms React does, such as a condition or an object keyed by transition type:
+
+```tsx
+<ViewTransition
+  enter={forward ? slideIn : fadeIn}
+  update={{ 'nav-back': slideOut, default: 'none' }}
+>
+```
+
+Which elements are linked across the transition is decided by `name` alone. Give it your own string, such as ``name={`photo-${id}`}``, and let the class decide how they animate.
+
+## Usage in `css.create`
+
+Set it with `viewTransitionClass`, next to the `viewTransitionName` that takes part in the transition:
+
+<Tabs items={["tsx", "css"]}>
+  <Tab>
+    ```tsx title="TypeScript"
+    import * as css from '@plumeria/core';
+
+    const slide = css.viewTransitionClass({
+      group: { animationDuration: '0.4s' },
+    });
+
+    const styles = css.create({
+      card: {
+        viewTransitionName: 'card',
+        viewTransitionClass: slide,
+      },
+    });
+    ```
+  </Tab>
+  <Tab>
+    ```css title="CSS"
+    ::view-transition-group(*.vt-xsko7jjz) {
+      animation-duration: 0.4s;
+    }
+
+    .xga8f3th { view-transition-name: card; }
+    .xl2q8e2d { view-transition-class: vt-xsko7jjz; }
+    ```
+  </Tab>
+</Tabs>
+
+## When the rules are emitted
+
+The rules are emitted when the class is used in `css.create` or in a prop of `<ViewTransition>` imported from `react`. The compiler finds it through that import, so a class passed through your own wrapper component is not seen. Write it on `<ViewTransition>` directly, or set it with `viewTransitionClass` in `css.create`.
