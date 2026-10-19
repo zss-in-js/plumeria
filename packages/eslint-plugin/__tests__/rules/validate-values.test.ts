@@ -192,7 +192,7 @@ ruleTester.run('validate-values', validateValues, {
       code: `import { keyframes } from '@plumeria/core'; const anim = keyframes({ s: { color: 'red' } });`,
     },
     {
-      code: `import { viewTransition } from '@plumeria/core'; const vt = viewTransition({ s: { color: 'red' } });`,
+      code: `import { viewTransitionClass } from '@plumeria/core'; const vt = viewTransitionClass({ s: { color: 'red' } });`,
     },
     {
       code: `import * as css from '@plumeria/core'; const above = css.positionTry({ positionArea: 'top', marginBottom: '8px' });`,
