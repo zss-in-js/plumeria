@@ -44,7 +44,7 @@ export interface ReleasePlan {
 // The generated block is fenced so a re-run replaces it. Appending would grow
 // the file every time a report is cleared and the migration is run again.
 const GLOBAL_OPEN =
-  '/* Generated from css.createTheme, css.keyframes, and css.viewTransition by @plumeria/codemod */';
+  '/* Generated from css.createTheme, css.keyframes, and css.viewTransitionClass by @plumeria/codemod */';
 const GLOBAL_CLOSE = '/* End of @plumeria/codemod generated styles */';
 
 const EXTENSION = /\.(?:[cm]?[jt]sx?)$/;
