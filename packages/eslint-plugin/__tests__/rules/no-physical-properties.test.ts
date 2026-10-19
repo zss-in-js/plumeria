@@ -83,7 +83,7 @@ ruleTester.run('no-physical-properties', noPhysicalProperties, {
     {
       code: `
         import css from '@plumeria/core';
-        css.viewTransition({ old: { ['right']: 0 } });
+        css.viewTransitionClass({ old: { ['right']: 0 } });
         css.keyframes({ from: { bottom: 0 } });
       `,
       errors: [
@@ -93,7 +93,7 @@ ruleTester.run('no-physical-properties', noPhysicalProperties, {
     },
     {
       code: `
-        import { 'viewTransition' as transition } from '@plumeria/core';
+        import { 'viewTransitionClass' as transition } from '@plumeria/core';
         transition({ old: { borderLeftColor: 'red' } });
       `,
       errors: [{ messageId: 'rejected', suggestions: 1 }],
