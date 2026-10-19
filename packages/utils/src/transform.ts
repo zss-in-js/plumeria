@@ -1127,7 +1127,9 @@ export const transformSource = async (
         (scannedTables.varTypeObjectTable ??= {})[hash] = obj;
         dropDefinition(init, declSpan, isExported);
       } else if (
-        ['keyframes', 'viewTransition', 'positionTry'].includes(propName) &&
+        ['keyframes', 'viewTransitionClass', 'positionTry'].includes(
+          propName,
+        ) &&
         t.isObjectExpression(init.arguments[0].expression)
       ) {
         registeredStyleCalls.add(init.span.start);
@@ -1353,7 +1355,7 @@ export const transformSource = async (
             }
           }
         } else if (
-          propName === 'viewTransition' &&
+          propName === 'viewTransitionClass' &&
           args.length > 0 &&
           t.isObjectExpression(args[0].expression)
         ) {
