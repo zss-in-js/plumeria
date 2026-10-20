@@ -1,10 +1,30 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { RuleTester } from 'eslint';
 import { sortProperties } from '../../src/rules/sort-properties';
+
+const DIR = fs.mkdtempSync(path.join(__dirname, 'fixture-'));
+afterAll(() => fs.rmSync(DIR, { recursive: true, force: true }));
+fs.writeFileSync(
+  path.join(DIR, 'tokens.ts'),
+  `import * as css from '@plumeria/core';
+export const media = css.createStatic({
+  desktop: '@media (min-width: 992px)',
+});`,
+);
+const APP = path.join(DIR, 'app.ts');
 
 const ruleTester = new RuleTester();
 
 ruleTester.run('sort-properties', sortProperties, {
   valid: [
+    {
+      // a createStatic key sorts with the at-rules and keeps its written order
+      code: `import * as css from '@plumeria/core';
+import { media } from './tokens';
+const styles = css.create({ grid: { display: 'grid', '@media (min-width: 640px)': { gap: 8 }, [media.desktop]: { gap: 16 } } });`,
+      filename: APP,
+    },
     {
       code: 'import * as css from "@plumeria/core"; const styles = css.create({ key1: { position: "absolute", top: "0", right: "0", bottom: "0", left: "0", display: "block" } });',
       settings: {
@@ -137,6 +157,21 @@ ruleTester.run('sort-properties', sortProperties, {
     },
   ],
   invalid: [
+    {
+      code: `import * as css from '@plumeria/core';
+import { media } from './tokens';
+const styles = css.create({ grid: { [media.desktop]: { gap: 16 }, display: 'grid', gap: 8 } });`,
+      output: `import * as css from '@plumeria/core';
+import { media } from './tokens';
+const styles = css.create({ grid: { display: 'grid', gap: 8, [media.desktop]: { gap: 16 } } });`,
+      filename: APP,
+      errors: [
+        {
+          messageId: 'sortProperties',
+          data: { property: '@media (min-width: 992px)', position: 3 },
+        },
+      ],
+    },
     {
       code: "import * as css from '@plumeria/core'; const styles = css.create({ tip: { top: 0, positionTryFallbacks: 'flip-block', positionArea: 'top', position: 'absolute', anchorName: '--a' } });",
       errors: 3,
