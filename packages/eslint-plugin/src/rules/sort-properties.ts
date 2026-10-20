@@ -10,11 +10,12 @@ import type {
 } from 'estree';
 import type { Rule } from 'eslint';
 import { styleObjectFromValue } from '../util/styleObject';
+import { staticValueResolver } from '../util/staticValue';
 
 import { propertyGroups } from '../util/propertyGroups';
 
 function getPropertyName(property: Property): string {
-  if (property.key.type === 'Identifier') {
+  if (property.key.type === 'Identifier' && !property.computed) {
     return property.key.name;
   }
   if (property.key.type === 'Literal') {
@@ -42,9 +43,7 @@ const pseudoGroupOffset2 = (propertyGroups.length + 2) * 1000;
 const pseudoGroupOffset3 = (propertyGroups.length + 3) * 1000;
 const defaultOffset = globalLastGroupIndex * 1000 + globalMaxPropIndex + 1;
 
-function getPropertyIndex(property: Property): number {
-  const name = getPropertyName(property);
-
+function getPropertyIndex(name: string): number {
   // キャッシュがあれば爆速で返す
   const cachedIndex = propertyIndexMap.get(name);
   if (cachedIndex !== undefined) {
@@ -111,6 +110,14 @@ export const sortProperties: Rule.RuleModule = {
 
   create(context) {
     const plumeriaAliases: Record<string, string> = {};
+    const staticValue = staticValueResolver(context);
+
+    function keyNameOf(property: Property): string {
+      if (!property.computed || property.key.type === 'Literal')
+        return getPropertyName(property);
+      const value = staticValue(property.key);
+      return typeof value === 'string' ? value : '';
+    }
 
     function checkStyleObject(node: ObjectExpression) {
       const sourceCode = context.sourceCode;
@@ -141,8 +148,8 @@ export const sortProperties: Rule.RuleModule = {
             return chunk;
           }
           return [...chunk].sort((a, b) => {
-            const indexA = getPropertyIndex(a as Property)!;
-            const indexB = getPropertyIndex(b as Property)!;
+            const indexA = getPropertyIndex(keyNameOf(a as Property));
+            const indexB = getPropertyIndex(keyNameOf(b as Property));
             return indexA - indexB;
           });
         })
@@ -190,7 +197,7 @@ export const sortProperties: Rule.RuleModule = {
           messageId: 'sortProperties',
           data: {
             position: propertyToIndexInSorted.get(prop)! + 1,
-            property: getPropertyName(prop),
+            property: keyNameOf(prop),
           },
           fix(fixer) {
             const newText = sorted
