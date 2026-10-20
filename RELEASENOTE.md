@@ -1,5 +1,9 @@
 # Release Notes
 
+## 21.1.0 (Oct 20, 2026)
+
+- Update: `sort-properties` reads a computed key from `css.createStatic`, such as `[media.desktop]`, as the at-rule it holds and sorts it with the other at-rules, after the pseudo-classes, so it no longer conflicts with `no-order-dependent-overlap`; `plumeria-lint --fix` moves the keys already written
+
 ## 21.0.0 (Oct 19, 2026)
 
 - Update: `css.viewTransition` is renamed to `css.viewTransitionClass`, and its rules select the returned class, as in `::view-transition-old(*.vt-…)`, so it can be given to the `default`, `enter`, `exit`, `update` and `share` props of React's `<ViewTransition>` or set with `viewTransitionClass` in `css.create`

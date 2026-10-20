@@ -1,5 +1,16 @@
 # @plumeria/swc-jest
 
+## 21.1.0
+
+### Minor Changes
+
+- 8dba130: Bump version to 21.1.0
+
+### Patch Changes
+
+- Updated dependencies [8dba130]
+  - @plumeria/compiler@21.1.0
+
 ## 21.0.0
 
 ### Major Changes
