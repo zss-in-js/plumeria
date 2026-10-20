@@ -1,0 +1,58 @@
+---
+title: 'Plumeria 21.1'
+description: 'Update: sort-properties reads createStatic keys and sorts them with the other at-rules'
+date: '2026-10-20'
+---
+
+import { GitHubUser } from 'component/GitHubUser'
+
+<div style={{ display: 'flex', gap: 16, margin: '24px 0' }}>
+  <GitHubUser username="refirst11" subtext="Plumeria Core" />
+  <GitHubUser username="Anionix" subtext="Plumeria Core" />
+</div>
+
+Plumeria v21.1 makes `sort-properties` read keys from `createStatic`, so it agrees with `no-order-dependent-overlap` on where a breakpoint goes.
+
+## 1. `createStatic` keys in `sort-properties`
+
+`sort-properties` did not read a computed key such as `[media.desktop]`. It treated the key as one without a name and placed it after the properties but before the pseudo-classes and the `@media` keys. `no-order-dependent-overlap` reads the same key as the query it holds, so the two rules could ask for opposite orders:
+
+```ts
+// tokens.ts
+export const media = css.createStatic({
+  desktop: '@media (min-width: 992px)',
+});
+```
+
+```ts
+const styles = css.create({
+  grid: {
+    display: 'grid',
+    '@media (min-width: 640px)': { gap: 8 },
+    [media.desktop]: { gap: 16 },
+  },
+});
+```
+
+Written this way, `sort-properties` asked for `[media.desktop]` before the 640px query and reported it as `Property ""`. Written the other way, `no-order-dependent-overlap` reported the 992px query for coming before the broader one. Neither order passed, and the lint that runs in the build stopped either way.
+
+`sort-properties` now resolves the key, including one imported from another module, and sorts `[media.desktop]` as `@media (min-width: 992px)`. It goes with the other at-rules after the pseudo-classes, in the order it is written, so the example above passes both rules.
+
+## Upgrading
+
+A `createStatic` key written before a pseudo-class, such as `[media.desktop]` before `':hover'`, is now reported. The lint that runs in the build stops on warnings, so run the fix once after upgrading:
+
+```bash
+pnpm up "@plumeria/*" --latest
+npx -p @plumeria/eslint-plugin plumeria-lint --fix
+```
+
+The fix only moves keys inside a style object, and the generated CSS stays the same.
+
+---
+
+## Release notes
+
+## 21.1.0 (Oct 20, 2026)
+
+- Update: `sort-properties` reads a computed key from `css.createStatic`, such as `[media.desktop]`, as the at-rule it holds and sorts it with the other at-rules, after the pseudo-classes, so it no longer conflicts with `no-order-dependent-overlap`; `plumeria-lint --fix` moves the keys already written
