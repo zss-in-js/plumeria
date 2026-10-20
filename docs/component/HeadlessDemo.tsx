@@ -253,10 +253,6 @@ const styles = css.create({
     borderBottomStyle: 'solid',
     borderBottomWidth: '2px',
     transition: 'all 0.2s',
-    [pseudos.hover]: {
-      color: theme.textPrimary,
-      backgroundColor: 'rgba(100, 100, 100, 0.05)',
-    },
     ['[data-state="active"]']: {
       color: theme.plumeAccent,
       borderBottomColor: theme.plumeAccent,
@@ -265,6 +261,10 @@ const styles = css.create({
     },
     ['[data-state="active"]:hover']: {
       color: theme.plumeAccent,
+    },
+    [pseudos.hover]: {
+      color: theme.textPrimary,
+      backgroundColor: 'rgba(100, 100, 100, 0.05)',
     },
   },
   tabsContent: {
@@ -336,14 +336,14 @@ const styles = css.create({
     borderWidth: '1.5px',
     borderRadius: '4px',
     transition: 'border-color 0.2s',
-    [pseudos.hover]: {
-      borderColor: theme.plumeAccent,
-    },
     ['[data-state="checked"]']: {
       backgroundColor: theme.plumeAccent,
       borderColor: theme.plumeAccent,
     },
     ['[data-state="checked"]:hover']: {
+      borderColor: theme.plumeAccent,
+    },
+    [pseudos.hover]: {
       borderColor: theme.plumeAccent,
     },
   },
@@ -419,13 +419,13 @@ const styles = css.create({
     borderWidth: '1.5px',
     borderRadius: '50%',
     transition: 'border-color 0.2s',
-    [pseudos.hover]: {
-      borderColor: theme.plumeAccent,
-    },
     ['[data-state="checked"]']: {
       borderColor: theme.plumeAccent,
     },
     ['[data-state="checked"]:hover']: {
+      borderColor: theme.plumeAccent,
+    },
+    [pseudos.hover]: {
       borderColor: theme.plumeAccent,
     },
   },
@@ -732,9 +732,6 @@ const styles = css.create({
     borderWidth: '1.5px',
     borderRadius: '6px',
     transition: 'all 0.2s',
-    [pseudos.hover]: {
-      backgroundColor: 'rgba(100, 100, 100, 0.05)',
-    },
     ['[data-state="on"]']: {
       color: '#fff',
       backgroundColor: theme.plumeAccent,
@@ -742,6 +739,9 @@ const styles = css.create({
     },
     ['[data-state="on"]:hover']: {
       backgroundColor: theme.plumeAccent,
+    },
+    [pseudos.hover]: {
+      backgroundColor: 'rgba(100, 100, 100, 0.05)',
     },
   },
   toggleGroupRoot: {
@@ -771,15 +771,15 @@ const styles = css.create({
     borderRightStyle: 'solid',
     borderRightWidth: '1px',
     transition: 'all 0.2s',
-    [pseudos.hover]: {
-      backgroundColor: 'rgba(100, 100, 100, 0.05)',
-    },
     ['[data-state="on"]']: {
       color: '#fff',
       backgroundColor: theme.plumeAccent,
     },
     ['[data-state="on"]:hover']: {
       backgroundColor: theme.plumeAccent,
+    },
+    [pseudos.hover]: {
+      backgroundColor: 'rgba(100, 100, 100, 0.05)',
     },
     [':last-child']: {
       borderRightColor: 'currentColor',
@@ -807,11 +807,11 @@ const styles = css.create({
     touchAction: 'none',
     userSelect: 'none',
     transition: 'background 160ms ease-out',
-    [pseudos.hover]: {
-      backgroundColor: 'rgba(100, 100, 100, 0.08)',
-    },
     ['[data-orientation="vertical"]']: {
       width: '10px',
+    },
+    [pseudos.hover]: {
+      backgroundColor: 'rgba(100, 100, 100, 0.08)',
     },
   },
   scrollAreaThumb: {
