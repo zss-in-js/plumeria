@@ -79,12 +79,12 @@ const styles = css.create({
     color: 'var(--color-fd-muted-foreground)',
     textDecoration: 'none',
     transitionDuration: '0.2s',
+    ':hover': {
+      color: 'var(--color-fd-foreground)',
+    },
     [breakpoints.md]: {
       paddingBlock: 6,
       fontSize: 16,
-      color: 'var(--color-fd-foreground)',
-    },
-    ':hover': {
       color: 'var(--color-fd-foreground)',
     },
   },
@@ -110,15 +110,15 @@ const styles = css.create({
     background: 'none',
     borderWidth: 0,
     borderRadius: 6,
+    ':hover': {
+      background: 'var(--color-fd-accent)',
+    },
     [breakpoints.md]: {
       display: 'inline-flex',
       ':has(+ :popover-open)': {
         background: 'color-mix(in oklab, var(--color-fd-accent) 50%, transparent)',
         transform: 'rotate(180deg)',
       },
-    },
-    ':hover': {
-      background: 'var(--color-fd-accent)',
     },
   },
   main: {
