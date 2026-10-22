@@ -284,6 +284,13 @@ export function Playground() {
   const [counts, setCounts] = useState({ errors: 0, warnings: 0 });
 
   useEffect(() => {
+    const [navigation] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+    const reloadedHere = navigation?.type === 'reload' && new URL(navigation.name).pathname === location.pathname;
+    if (!self.crossOriginIsolated && !reloadedHere) {
+      location.reload();
+      return;
+    }
+
     let disposed = false;
 
     const stopProgress = onEngineProgress(setDownloaded);
