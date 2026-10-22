@@ -1,5 +1,11 @@
 # @plumeria/init
 
+## 21.1.1
+
+### Patch Changes
+
+- bc7f0f9: Bump version to 21.1.1
+
 ## 21.1.0
 
 ### Minor Changes

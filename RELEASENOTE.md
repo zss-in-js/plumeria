@@ -1,5 +1,9 @@
 # Release Notes
 
+## 21.1.1 (Oct 22, 2026)
+
+- Fix: the transform scans the project from the bundler root (Jest `rootDir` in swc-jest) instead of the process working directory, so a build started from a monorepo root no longer rescans every workspace on each file
+
 ## 21.1.0 (Oct 20, 2026)
 
 - Update: `sort-properties` reads a computed key from `css.createStatic`, such as `[media.desktop]`, as the at-rule it holds and sorts it with the other at-rules, after the pseudo-classes, so it no longer conflicts with `no-order-dependent-overlap`; `plumeria-lint --fix` moves the keys already written
