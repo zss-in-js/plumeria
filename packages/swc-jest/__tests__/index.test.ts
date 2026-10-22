@@ -1,6 +1,15 @@
 import * as path from 'path';
 import swcJest, { createTransformer } from '../src';
 
+jest.mock('@plumeria/compiler', () => {
+  const actual = jest.requireActual('@plumeria/compiler');
+  return { ...actual, transformSource: jest.fn(actual.transformSource) };
+});
+
+const { transformSource: mockTransformSource } = jest.requireMock<{
+  transformSource: jest.Mock;
+}>('@plumeria/compiler');
+
 const rootDir = path.resolve(__dirname, '..');
 const filename = path.join(rootDir, 'fixture.tsx');
 const jestOptions = {
@@ -108,4 +117,12 @@ it('leaves Plumeria styling in node_modules for swc to process', () => {
   expect(code).toMatch(/classStyle: styles.box/);
   expect(code).not.toMatch(/className:/);
   expect(code).not.toMatch(/^import /m);
+});
+
+it('scopes the transform scan to rootDir rather than the process cwd', () => {
+  run(source);
+
+  expect(mockTransformSource).toHaveBeenCalledWith(
+    expect.objectContaining({ root: rootDir, cwd: rootDir }),
+  );
 });
