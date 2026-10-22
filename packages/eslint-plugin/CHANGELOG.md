@@ -1,3 +1,11 @@
+## 21.1.1
+
+### Patch Changes
+
+- bc7f0f9: Bump version to 21.1.1
+- Updated dependencies [bc7f0f9]
+  - @plumeria/compiler@21.1.1
+
 ## 21.1.0
 
 ### Minor Changes
