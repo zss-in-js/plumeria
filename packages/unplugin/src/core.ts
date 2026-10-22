@@ -158,6 +158,11 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           }
         };
 
+        const relative = path.relative(viteRoot, baseId).replace(/\\/g, '/');
+        const insideRoot =
+          !relative.startsWith('..') && !path.isAbsolute(relative);
+        const cwd = insideRoot ? viteRoot : path.dirname(baseId);
+
         const { code: transformedSource } = transformSource({
           source,
           moduleId: id,
@@ -167,18 +172,16 @@ export const unpluginFactory: UnpluginFactory<PluginOptions | undefined> = (
           classProp,
           propertyPolicy,
           isDev,
+          cwd,
           addDependency,
         });
 
-        const relative = path.relative(viteRoot, baseId).replace(/\\/g, '/');
-        const insideRoot =
-          !relative.startsWith('..') && !path.isAbsolute(relative);
         const filePath = path.resolve(baseId);
         const fileCss = compileCSS({
           include: [],
           exclude: [],
           files: [filePath],
-          cwd: insideRoot ? viteRoot : path.dirname(baseId),
+          cwd,
           styleProp,
           withoutLogicalProperties: options.withoutLogicalProperties,
           withoutPhysicalProperties: options.withoutPhysicalProperties,
