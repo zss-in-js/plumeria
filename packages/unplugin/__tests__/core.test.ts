@@ -184,6 +184,23 @@ it('compiles the stylesheet of the transformed file alone', async () => {
   );
 });
 
+it('scopes the transform scan to the root rather than the process cwd', async () => {
+  const plugin = createPlugin();
+  plugin.__plumeriaInternal.setRoot('/project');
+
+  await plugin.transform.handler(SOURCE, '/project/Card.tsx');
+  await plugin.transform.handler(SOURCE, '/outside/Card.tsx');
+
+  expect(mockTransformSource).toHaveBeenNthCalledWith(
+    1,
+    expect.objectContaining({ root: '/project', cwd: '/project' }),
+  );
+  expect(mockTransformSource).toHaveBeenNthCalledWith(
+    2,
+    expect.objectContaining({ root: '/project', cwd: '/outside' }),
+  );
+});
+
 it('uses a custom CSS import formatter and permits omitting the import', async () => {
   const plugin = createPlugin();
   const formatter = jest.fn(() => null);
