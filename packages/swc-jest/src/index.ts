@@ -49,6 +49,7 @@ export function createTransformer(
       moduleId: filename,
       filePath: filename,
       root: jestOptions.config.rootDir,
+      cwd: jestOptions.config.rootDir,
       styleProp,
       propertyPolicy,
       isDev: process.env.NODE_ENV !== 'production',
