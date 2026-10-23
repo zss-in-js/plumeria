@@ -369,8 +369,20 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
         import * as css from '@plumeria/core';
         css.create({
           main: {
-            '[data-state="open" i]': { color: 'red' },
-            '[data-state="OPEN"]': { color: 'blue' }
+            '[type="checkbox"]': { color: 'red' },
+            '[type="CHECKBOX"]': { color: 'blue' }
+          }
+        });
+      `,
+      errors: [{ messageId: 'state' }],
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '[viewBox="0 0 24 24"]': { color: 'red' },
+            '[viewbox="0 0 16 16"]': { color: 'blue' }
           }
         });
       `,
