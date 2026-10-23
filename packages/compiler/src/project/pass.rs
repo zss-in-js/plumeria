@@ -597,6 +597,7 @@ struct JsxContext<'p, 'b, 'a> {
     dynamic_statics: Object,
     theme_objects: &'p Map<Value>,
     static_objects: &'p Map<Value>,
+    style_prop: &'p str,
 }
 
 impl<'p, 'b, 'a> JsxContext<'p, 'b, 'a> {
@@ -996,6 +997,9 @@ impl<'p, 'b, 'a> JsxContext<'p, 'b, 'a> {
                     {
                         return Err("[plumeria] Spread elements in a style array are not supported. List each style explicitly.".to_string());
                     }
+                    if prop_name == self.style_prop {
+                        return Ok(());
+                    }
                     return Err("[plumeria] A style prop array contains an unsupported style expression. Use defined styles, null, false, undefined, or conditional branches of defined styles.".to_string());
                 };
                 if !self.contains_style_reference(expr) {
@@ -1206,6 +1210,7 @@ pub fn jsx_phase<'b, 'a>(
         }
     }
 
+    let style_prop = project.scanned_style_prop.clone().unwrap_or_default();
     let tables = std::mem::take(&mut project.tables);
     let mut local_props = PropsTable::default();
     let outcome = (|| -> Result<(), String> {
@@ -1219,6 +1224,7 @@ pub fn jsx_phase<'b, 'a>(
             dynamic_statics,
             theme_objects: &tables.theme_obj,
             static_objects: &tables.static_obj,
+            style_prop: &style_prop,
         };
         for opening in jsx_openings(program) {
             let Some(comp_key) = project.resolve_component_key(&opening.name, file, &local_imports)
