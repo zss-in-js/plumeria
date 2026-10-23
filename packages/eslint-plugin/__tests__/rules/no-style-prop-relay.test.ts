@@ -143,6 +143,13 @@ const reportsFor = (source: string, filename = paths.Forward) =>
     filename,
   );
 
+test('reports a file linted under a path that is not its real one', () => {
+  const linked = path.join(DIR, 'linked-Forward.jsx');
+  fs.symlinkSync(paths.Forward, linked);
+  const reports = reportsFor(fs.readFileSync(paths.Forward, 'utf8'), linked);
+  expect(reports).toHaveLength(1);
+});
+
 test.each([
   [
     'function declaration',
