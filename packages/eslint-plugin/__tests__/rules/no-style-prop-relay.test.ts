@@ -37,6 +37,7 @@ const components: Record<string, string> = {
   Used: `export const Used = ({ headerStyle }) => <header className={css.use(headerStyle)} />;`,
   Both: `export const Both = ({ headerStyle }) => <header classStyle={headerStyle}><Title titleStyle={headerStyle} /></header>;`,
   Custom: `export const Custom = ({ headerStyle }) => <header sx={headerStyle} />;`,
+  Module: `export const Module = ({ headerStyle }) => <header classStyle={headerStyle}><Header headerStyle={styles.base} /></header>;`,
   Forward: `export const Forward = ({ headerStyle }) => <Header headerStyle={headerStyle} />;`,
   Rename: `export const Rename = ({ headerStyle }) => <Header rootStyle={headerStyle} />;`,
   Merge: `export const Merge = ({ headerStyle }) => <Header headerStyle={[styles.base, headerStyle]} />;`,
@@ -99,6 +100,7 @@ ruleTester.run('no-style-prop-relay', noStylePropRelay, {
     valid('Member'),
     valid('Used'),
     valid('Both'),
+    valid('Module'),
   ],
   invalid: [
     invalid('Forward'),
