@@ -2,6 +2,7 @@
  * @fileoverview Disallow passing a received style prop on without applying it
  */
 
+import * as fs from 'fs';
 import type { Rule } from 'eslint';
 import type { Node, Pattern } from 'estree';
 import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
@@ -26,6 +27,14 @@ const componentFunctionOf = (
     }
   }
   return undefined;
+};
+
+const realPathOf = (filename: string) => {
+  try {
+    return fs.realpathSync.native(filename);
+  } catch {
+    return filename;
+  }
 };
 
 const unwrapDefault = (pattern: Pattern | undefined) =>
@@ -169,8 +178,9 @@ export const noStylePropRelay: Rule.RuleModule = {
       Program(program) {
         const tables = scanTables(context.cwd, styleProp);
         const table = tables.componentPropsTable ?? {};
+        const filename = realPathOf(context.filename);
         for (const { name, fn } of components(program as Node)) {
-          const props = table[`${context.filename}-${name}`];
+          const props = table[`${filename}-${name}`];
           if (!props) continue;
 
           const param = unwrapDefault(fn.params[0]);
