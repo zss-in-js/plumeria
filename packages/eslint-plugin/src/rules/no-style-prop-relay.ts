@@ -162,17 +162,15 @@ export const noStylePropRelay: Rule.RuleModule = {
         const current = node as Node & { type: string };
         if (typeof current.type !== 'string') return;
         if (
-          (current as { type: string }).type === 'JSXAttribute' &&
+          current.type === 'JSXAttribute' &&
           (current as any).name?.name === styleProp &&
           (current as any).value?.type === 'JSXExpressionContainer'
         ) {
+          const expression = (current as any).value.expression;
           if (owner !== undefined && receives(owner)) {
-            passed.push({
-              attribute: current,
-              roots: roots((current as any).value.expression, []),
-            });
+            passed.push({ attribute: current, roots: roots(expression, []) });
           } else {
-            roots((current as any).value.expression, found);
+            roots(expression, found);
           }
         }
         if (isUse(current) && current.type === 'CallExpression') {
@@ -181,7 +179,7 @@ export const noStylePropRelay: Rule.RuleModule = {
           );
         }
         const next =
-          (current as { type: string }).type === 'JSXOpeningElement'
+          current.type === 'JSXOpeningElement'
             ? (current as any).name?.type === 'JSXIdentifier'
               ? ((current as any).name.name as string)
               : undefined
