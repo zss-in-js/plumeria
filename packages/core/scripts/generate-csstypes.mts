@@ -76,6 +76,30 @@ for (const [name, feature] of Object.entries(bcd.css.properties)) {
   }
   propertySyntaxes[name] = webrefProperties.get(name) ?? '<any-value>';
 }
+for (const [name, feature] of Object.entries(bcd.css.properties)) {
+  const browsers = ['chrome', 'firefox', 'safari'];
+  if (
+    browsers.some((browser) =>
+      [feature.__compat?.support[browser] ?? null].flat().some(ships),
+    )
+  ) {
+    continue;
+  }
+  for (const browser of browsers) {
+    for (const entry of [feature.__compat?.support[browser] ?? null].flat()) {
+      const alias = entry?.alternative_name;
+      if (!alias || alias.startsWith('-') || alias in propertySyntaxes) {
+        continue;
+      }
+      if (!ships({ ...entry, alternative_name: undefined })) continue;
+      propertySyntaxes[alias] =
+        webrefProperties.get(alias) ??
+        propertySyntaxes[name] ??
+        webrefProperties.get(name) ??
+        '<any-value>';
+    }
+  }
+}
 
 const output = path.join(import.meta.dirname, '..', 'lib', 'csstypes.d.ts');
 
