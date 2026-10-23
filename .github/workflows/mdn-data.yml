@@ -39,6 +39,7 @@ jobs:
       - name: Type-check and test
         if: steps.diff.outputs.changed == 'true'
         run: |
+          pnpm build
           pnpm exec tsc --noEmit --project tsconfig.test.json
           pnpm exec jest packages/eslint-plugin packages/core
 
