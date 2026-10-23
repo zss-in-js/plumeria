@@ -268,6 +268,16 @@ pub fn scan_all(cwd: Option<String>, style_prop: Option<String>) -> Result<ScanS
     })
 }
 
+#[napi(js_name = "styleReceivers")]
+pub fn style_receivers() -> std::collections::HashMap<String, Vec<String>> {
+    lock_project()
+        .tables
+        .style_receiver
+        .iter()
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect()
+}
+
 #[napi(js_name = "resolveImportPath")]
 pub fn resolve_import_path(import_path: String, importer: String) -> Option<String> {
     lock_project().resolve_import_path(&import_path, &importer)
