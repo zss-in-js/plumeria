@@ -1694,7 +1694,31 @@ impl<'t, 'p, 'b, 'a> Transformer<'t, 'p, 'b, 'a> {
             other => vec![(E::new(other), None)],
         };
         let attributes = owner.as_ref().map(|(_, attributes)| *attributes);
-        self.apply_style_attribute(node, E::new(expr), args, attributes)
+        if !receives_style_prop {
+            return self.apply_style_attribute(node, E::new(expr), args, attributes);
+        }
+        let applied = std::mem::take(&mut self.applied_style_props);
+        let result = self.apply_style_attribute(node, E::new(expr), args, attributes);
+        let referenced = std::mem::replace(&mut self.applied_style_props, applied);
+        result?;
+        let received = referenced.iter().find_map(|key| {
+            let (owner, prop_name) = key.split_once(':')?;
+            self.tables
+                .component_props
+                .get(&format!("{}-{owner}", self.resource))
+                .is_some_and(|props| props.contains_key(prop_name))
+                .then_some(prop_name)
+        });
+        if let Some(prop_name) = received {
+            return Err(self.fail(
+                format!(
+                    "[plumeria] \"{prop_name}\" is a style received through a prop and cannot be passed on to a component that declares {style_prop}. Apply it on an element this component renders."
+                ),
+                Some(node.span),
+            ));
+        }
+        self.applied_style_props.extend(referenced);
+        Ok(())
     }
 
     fn apply_style_attribute(
