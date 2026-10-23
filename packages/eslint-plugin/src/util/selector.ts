@@ -14,6 +14,13 @@ const EXCLUSIVE_PAIRS = [
   [':valid', ':invalid'],
   [':in-range', ':out-of-range'],
   [':required', ':optional'],
+  [':user-valid', ':user-invalid'],
+  [':playing', ':paused'],
+  [':dir(ltr)', ':dir(rtl)'],
+  [':nth-child(odd)', ':nth-child(even)'],
+  [':nth-last-child(odd)', ':nth-last-child(even)'],
+  [':nth-of-type(odd)', ':nth-of-type(even)'],
+  [':nth-last-of-type(odd)', ':nth-last-of-type(even)'],
 ].map((pair) => pair.slice().sort().join('\0'));
 
 const isNameChar = (char: string) => /[\w-]/.test(char);
@@ -169,6 +176,37 @@ const negationOf = (state: string): string | null => {
   return state.slice(5, -1).trim();
 };
 
+const exactAttributeOf = (state: string) => {
+  const match =
+    /^\[\s*([\w-]+)\s*=\s*(?:"([^"\\]*)"|'([^'\\]*)'|([\w-]+))\s*([is])?\s*\]$/i.exec(
+      state,
+    );
+  if (!match) return null;
+  return {
+    name: match[1].toLowerCase(),
+    value: match[2] ?? match[3] ?? match[4],
+    insensitive: match[5]?.toLowerCase() === 'i',
+  };
+};
+
+const attributeNameOf = (state: string) =>
+  /^\[\s*([\w-]+)/.exec(state)?.[1].toLowerCase() ?? null;
+
+const absentAttribute = (negated: string | null, other: string) =>
+  negated !== null &&
+  /^\[\s*[\w-]+\s*\]$/.test(negated) &&
+  attributeNameOf(negated) === attributeNameOf(other);
+
+const differentAttributeValues = (first: string, second: string) => {
+  const a = exactAttributeOf(first);
+  const b = exactAttributeOf(second);
+  if (!a || !b || a.name !== b.name) return false;
+  if (a.insensitive || b.insensitive) {
+    return a.value.toLowerCase() !== b.value.toLowerCase();
+  }
+  return a.value !== b.value;
+};
+
 export function areExclusive(first: string, second: string): boolean {
   const left = new Set(statesOf(first));
   const right = new Set(statesOf(second));
@@ -178,6 +216,12 @@ export function areExclusive(first: string, second: string): boolean {
       if (a === b) continue;
       if (negationOf(a) === b || negationOf(b) === a) return true;
       if (EXCLUSIVE_PAIRS.includes([a, b].sort().join('\0'))) return true;
+      if (differentAttributeValues(a, b)) return true;
+      if (
+        absentAttribute(negationOf(a), b) ||
+        absentAttribute(negationOf(b), a)
+      )
+        return true;
     }
   }
   return false;
