@@ -3088,6 +3088,7 @@ function runScan(scanCwd: string, styleProp: string): Tables {
               throw new Error(
                 '[plumeria] Spread elements in a style array are not supported. List each style explicitly.',
               );
+            if (propName === styleProp) return;
             throw new Error(
               '[plumeria] A style prop array contains an unsupported style expression. Use defined styles, null, false, undefined, or conditional branches of defined styles.',
             );
