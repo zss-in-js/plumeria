@@ -5,10 +5,22 @@
 import * as fs from 'fs';
 import type { Rule } from 'eslint';
 import type { Node, Pattern } from 'estree';
+import { resolveExport, resolveImportPath } from '@plumeria/compiler';
 import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
 import { scanTables } from '../util/scan';
 
 type Component = { name: string; fn: Node & { params: Pattern[] } };
+type Receivers = Map<string, string[]>;
+type Parser = {
+  parse?: (text: string, options: unknown) => Node;
+  parseForESLint?: (text: string, options: unknown) => { ast: Node };
+};
+type Passed = { attribute: Node; roots: Node[] };
+
+const fileReceivers = new Map<
+  string,
+  { mtimeMs: number; receivers: Receivers }
+>();
 
 const isFunction = (node: Node | null | undefined) =>
   node?.type === 'FunctionDeclaration' ||
@@ -47,6 +59,45 @@ const keyName = (key: Node) =>
       ? key.value
       : null;
 
+const receiversOf = (program: Node | undefined): Receivers => {
+  const receivers: Receivers = new Map();
+  if (program?.type !== 'Program') return receivers;
+  const register = (name: string, params: Pattern[]) => {
+    if (name[0].toUpperCase() !== name[0]) return;
+    const param = unwrapDefault(params[0]);
+    if (param?.type !== 'ObjectPattern') return;
+    receivers.set(
+      name,
+      param.properties.flatMap((property) =>
+        property.type === 'Property' &&
+        !property.computed &&
+        property.key.type === 'Identifier'
+          ? [property.key.name]
+          : [],
+      ),
+    );
+  };
+  for (const node of program.body) {
+    const statement =
+      node.type === 'ExportNamedDeclaration' ? node.declaration : node;
+    if (statement?.type === 'FunctionDeclaration' && statement.id) {
+      register(statement.id.name, statement.params);
+    } else if (statement?.type === 'VariableDeclaration') {
+      for (const declarator of statement.declarations) {
+        const init = declarator.init;
+        if (
+          declarator.id.type === 'Identifier' &&
+          (init?.type === 'ArrowFunctionExpression' ||
+            init?.type === 'FunctionExpression')
+        ) {
+          register(declarator.id.name, init.params);
+        }
+      }
+    }
+  }
+  return receivers;
+};
+
 export const noStylePropRelay: Rule.RuleModule = {
   meta: {
     type: 'problem',
@@ -58,6 +109,8 @@ export const noStylePropRelay: Rule.RuleModule = {
     messages: {
       relay:
         "'{{prop}}' is never applied here. Apply it to {{styleProp}} or css.use() on an element this component renders.",
+      receiver:
+        "'{{prop}}' is a style received through a prop and cannot be passed on to a component that declares {{styleProp}}. Apply it on an element this component renders.",
     },
   },
   create(context) {
@@ -143,12 +196,49 @@ export const noStylePropRelay: Rule.RuleModule = {
       return into;
     }
 
-    function applied(fn: Component['fn']): Node[] {
+    function receiversIn(filePath: string): Receivers {
+      const languageOptions = context.languageOptions as
+        | { parser?: Parser; parserOptions?: Record<string, unknown> }
+        | undefined;
+      const parser = languageOptions?.parser;
+      try {
+        const { mtimeMs } = fs.statSync(filePath);
+        const cached = fileReceivers.get(filePath);
+        if (cached?.mtimeMs === mtimeMs) return cached.receivers;
+        const text = fs.readFileSync(filePath, 'utf8');
+        const options = {
+          ...languageOptions?.parserOptions,
+          ecmaVersion: 'latest',
+          sourceType: 'module',
+          range: true,
+          loc: true,
+          tokens: true,
+          comment: true,
+          filePath,
+          project: undefined,
+          projectService: undefined,
+        };
+        const program = parser?.parseForESLint
+          ? parser.parseForESLint(text, options).ast
+          : parser?.parse?.(text, options);
+        const receivers = receiversOf(program);
+        fileReceivers.set(filePath, { mtimeMs, receivers });
+        return receivers;
+      } catch {
+        return new Map();
+      }
+    }
+
+    function applied(
+      fn: Component['fn'],
+      receives: (name: string) => boolean,
+    ): { found: Node[]; passed: Passed[] } {
       const found: Node[] = [];
-      const visit = (node: unknown) => {
+      const passed: Passed[] = [];
+      const visit = (node: unknown, owner?: string) => {
         if (!node || typeof node !== 'object') return;
         if (Array.isArray(node)) {
-          node.forEach(visit);
+          node.forEach((item) => visit(item, owner));
           return;
         }
         const current = node as Node & { type: string };
@@ -158,20 +248,33 @@ export const noStylePropRelay: Rule.RuleModule = {
           (current as any).name?.name === styleProp &&
           (current as any).value?.type === 'JSXExpressionContainer'
         ) {
-          roots((current as any).value.expression, found);
+          if (owner !== undefined && receives(owner)) {
+            passed.push({
+              attribute: current,
+              roots: roots((current as any).value.expression, []),
+            });
+          } else {
+            roots((current as any).value.expression, found);
+          }
         }
         if (isUse(current) && current.type === 'CallExpression') {
           current.arguments.forEach((argument) =>
             roots(argument as Node, found),
           );
         }
+        const next =
+          (current as { type: string }).type === 'JSXOpeningElement'
+            ? (current as any).name?.type === 'JSXIdentifier'
+              ? ((current as any).name.name as string)
+              : undefined
+            : owner;
         for (const key of Object.keys(current)) {
           if (key === 'parent') continue;
-          visit((current as any)[key]);
+          visit((current as any)[key], next);
         }
       };
       visit((fn as { body?: Node }).body);
-      return found;
+      return { found, passed };
     }
 
     return {
@@ -179,6 +282,42 @@ export const noStylePropRelay: Rule.RuleModule = {
         const tables = scanTables(context.cwd, styleProp);
         const table = tables.componentPropsTable ?? {};
         const filename = realPathOf(context.filename);
+        const imports = new Map<string, { source: string; name: string }>();
+        for (const node of (program as Node & { body?: Node[] }).body ?? []) {
+          if (node.type !== 'ImportDeclaration') continue;
+          for (const specifier of node.specifiers) {
+            const name =
+              specifier.type === 'ImportDefaultSpecifier'
+                ? 'default'
+                : specifier.type === 'ImportSpecifier'
+                  ? keyName(specifier.imported as Node)
+                  : null;
+            if (name === null) continue;
+            imports.set(specifier.local.name, {
+              source: node.source.value as string,
+              name,
+            });
+          }
+        }
+        const local = receiversOf(program as Node);
+        const known = new Map<string, boolean>();
+        const receives = (name: string) => {
+          if (known.has(name)) return known.get(name)!;
+          const binding = imports.get(name);
+          let props = local.get(name);
+          if (binding) {
+            const actualPath = resolveImportPath(binding.source, filename);
+            const site = actualPath
+              ? resolveExport(actualPath, binding.name)
+              : null;
+            props = site
+              ? receiversIn(site.filePath).get(site.localName)
+              : undefined;
+          }
+          const result = props?.includes(styleProp) ?? false;
+          known.set(name, result);
+          return result;
+        };
         for (const { name, fn } of components(program as Node)) {
           const props = table[`${filename}-${name}`];
           if (!props) continue;
@@ -198,19 +337,34 @@ export const noStylePropRelay: Rule.RuleModule = {
             }
           }
 
+          const propOf = (root: Node) =>
+            root.type === 'Identifier'
+              ? (locals.get(root.name) ?? root.name)
+              : root.type === 'MemberExpression' &&
+                  root.object.type === 'Identifier' &&
+                  root.object.name === paramName &&
+                  !root.computed &&
+                  root.property.type === 'Identifier'
+                ? root.property.name
+                : null;
+
           const done = new Set<string>();
-          for (const root of applied(fn)) {
-            if (root.type === 'Identifier') {
-              done.add(locals.get(root.name) ?? root.name);
-            } else if (
-              root.type === 'MemberExpression' &&
-              root.object.type === 'Identifier' &&
-              root.object.name === paramName &&
-              !root.computed &&
-              root.property.type === 'Identifier'
-            ) {
-              done.add(root.property.name);
-            }
+          const { found, passed } = applied(fn, receives);
+          for (const root of found) {
+            const prop = propOf(root);
+            if (prop !== null) done.add(prop);
+          }
+          for (const { attribute, roots: passedRoots } of passed) {
+            const prop = passedRoots
+              .map(propOf)
+              .find((name) => name !== null && name in props);
+            if (!prop) continue;
+            done.add(prop);
+            context.report({
+              node: attribute,
+              messageId: 'receiver',
+              data: { prop, styleProp },
+            });
           }
 
           for (const prop of Object.keys(props)) {
