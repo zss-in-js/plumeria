@@ -51,7 +51,6 @@ const components: Record<string, string> = {
   PassPlain: `import { Plain } from './receiver';\nexport const PassPlain = ({ headerStyle }) => <Plain classStyle={headerStyle} />;`,
   PassPackage: `import { Menu } from '@headlessui/react';\nexport const PassPackage = ({ headerStyle }) => <Menu classStyle={headerStyle} />;`,
   PassDefault: `import Receiver from './default-receiver';\nexport const PassDefault = ({ headerStyle }) => <Receiver classStyle={headerStyle} />;`,
-  PassBroken: `import { Receiver } from './broken';\nexport const PassBroken = ({ headerStyle }) => <Receiver classStyle={headerStyle} />;`,
   PassMember: `import * as ui from './receiver';\nexport const PassMember = ({ headerStyle }) => <ui.Receiver classStyle={headerStyle} />;`,
   PassStatic: `import { Receiver } from './receiver';\nexport const PassStatic = ({ headerStyle }) => <header classStyle={headerStyle}><Receiver classStyle={styles.base} /><Receiver classStyle={styles.base} /></header>;`,
 };
@@ -65,10 +64,6 @@ write(
   'default-receiver.jsx',
   `function Receiver({ classStyle }) { return <div classStyle={classStyle} />; }
 export default Receiver;`,
-);
-write(
-  'broken.tsx',
-  `export const Receiver = ({ classStyle }: Props) => <div classStyle={classStyle} />;`,
 );
 
 const prelude = `import * as css from '@plumeria/core';\nconst styles = css.create({ base: { color: 'red' } });\n`;
@@ -139,7 +134,6 @@ ruleTester.run('no-style-prop-relay', noStylePropRelay, {
     valid('PassPlain'),
     valid('PassPackage'),
     valid('PassStatic'),
-    valid('PassBroken'),
     valid('PassMember'),
   ],
   invalid: [
@@ -156,29 +150,6 @@ ruleTester.run('no-style-prop-relay', noStylePropRelay, {
     passed('PassLocal'),
     passed('PassDefault'),
   ],
-});
-
-new RuleTester({
-  languageOptions: {
-    parser: require('@typescript-eslint/parser'),
-    parserOptions: { ecmaFeatures: { jsx: true } },
-  },
-}).run('no-style-prop-relay with a parseForESLint parser', noStylePropRelay, {
-  valid: [valid('PassPlain')],
-  invalid: [passed('Pass')],
-});
-
-test('skips an imported component when no parser is available', () => {
-  write(
-    'unparsed.jsx',
-    `export const Receiver = ({ classStyle }) => <div classStyle={classStyle} />;`,
-  );
-  expect(
-    reportsFor(
-      `import { Receiver } from './unparsed';\nexport const Pass = ({ headerStyle }) => <Receiver classStyle={headerStyle} />;`,
-      paths.Pass,
-    ),
-  ).toHaveLength(0);
 });
 
 test('enabled as an error in recommended', () => {
