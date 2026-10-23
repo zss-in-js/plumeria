@@ -10,17 +10,7 @@ import { resolveStyleProp, stylePropSchema } from '../util/style-prop';
 import { scanTables } from '../util/scan';
 
 type Component = { name: string; fn: Node & { params: Pattern[] } };
-type Receivers = Map<string, string[]>;
-type Parser = {
-  parse?: (text: string, options: unknown) => Node;
-  parseForESLint?: (text: string, options: unknown) => { ast: Node };
-};
 type Passed = { attribute: Node; roots: Node[] };
-
-const fileReceivers = new Map<
-  string,
-  { mtimeMs: number; receivers: Receivers }
->();
 
 const isFunction = (node: Node | null | undefined) =>
   node?.type === 'FunctionDeclaration' ||
@@ -58,45 +48,6 @@ const keyName = (key: Node) =>
     : key.type === 'Literal' && typeof key.value === 'string'
       ? key.value
       : null;
-
-const receiversOf = (program: Node | undefined): Receivers => {
-  const receivers: Receivers = new Map();
-  if (program?.type !== 'Program') return receivers;
-  const register = (name: string, params: Pattern[]) => {
-    if (name[0].toUpperCase() !== name[0]) return;
-    const param = unwrapDefault(params[0]);
-    if (param?.type !== 'ObjectPattern') return;
-    receivers.set(
-      name,
-      param.properties.flatMap((property) =>
-        property.type === 'Property' &&
-        !property.computed &&
-        property.key.type === 'Identifier'
-          ? [property.key.name]
-          : [],
-      ),
-    );
-  };
-  for (const node of program.body) {
-    const statement =
-      node.type === 'ExportNamedDeclaration' ? node.declaration : node;
-    if (statement?.type === 'FunctionDeclaration' && statement.id) {
-      register(statement.id.name, statement.params);
-    } else if (statement?.type === 'VariableDeclaration') {
-      for (const declarator of statement.declarations) {
-        const init = declarator.init;
-        if (
-          declarator.id.type === 'Identifier' &&
-          (init?.type === 'ArrowFunctionExpression' ||
-            init?.type === 'FunctionExpression')
-        ) {
-          register(declarator.id.name, init.params);
-        }
-      }
-    }
-  }
-  return receivers;
-};
 
 export const noStylePropRelay: Rule.RuleModule = {
   meta: {
@@ -196,39 +147,6 @@ export const noStylePropRelay: Rule.RuleModule = {
       return into;
     }
 
-    function receiversIn(filePath: string): Receivers {
-      const languageOptions = context.languageOptions as
-        | { parser?: Parser; parserOptions?: Record<string, unknown> }
-        | undefined;
-      const parser = languageOptions?.parser;
-      try {
-        const { mtimeMs } = fs.statSync(filePath);
-        const cached = fileReceivers.get(filePath);
-        if (cached?.mtimeMs === mtimeMs) return cached.receivers;
-        const text = fs.readFileSync(filePath, 'utf8');
-        const options = {
-          ...languageOptions?.parserOptions,
-          ecmaVersion: 'latest',
-          sourceType: 'module',
-          range: true,
-          loc: true,
-          tokens: true,
-          comment: true,
-          filePath,
-          project: undefined,
-          projectService: undefined,
-        };
-        const program = parser?.parseForESLint
-          ? parser.parseForESLint(text, options).ast
-          : parser?.parse?.(text, options);
-        const receivers = receiversOf(program);
-        fileReceivers.set(filePath, { mtimeMs, receivers });
-        return receivers;
-      } catch {
-        return new Map();
-      }
-    }
-
     function applied(
       fn: Component['fn'],
       receives: (name: string) => boolean,
@@ -299,22 +217,21 @@ export const noStylePropRelay: Rule.RuleModule = {
             });
           }
         }
-        const local = receiversOf(program as Node);
+        const receivers = tables.styleReceiverTable ?? {};
         const known = new Map<string, boolean>();
         const receives = (name: string) => {
           if (known.has(name)) return known.get(name)!;
           const binding = imports.get(name);
-          let props = local.get(name);
+          let key: string | null = `${filename}-${name}`;
           if (binding) {
             const actualPath = resolveImportPath(binding.source, filename);
             const site = actualPath
               ? resolveExport(actualPath, binding.name)
               : null;
-            props = site
-              ? receiversIn(site.filePath).get(site.localName)
-              : undefined;
+            key = site ? `${site.filePath}-${site.localName}` : null;
           }
-          const result = props?.includes(styleProp) ?? false;
+          const result =
+            key !== null && (receivers[key]?.includes(styleProp) ?? false);
           known.set(name, result);
           return result;
         };
