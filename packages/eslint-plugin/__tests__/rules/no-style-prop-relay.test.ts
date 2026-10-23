@@ -45,7 +45,31 @@ const components: Record<string, string> = {
   Local: `export const Local = ({ headerStyle }) => { const s = headerStyle; return <Header headerStyle={s} />; };`,
   Props: `export const Props = (props) => <Header headerStyle={props.headerStyle} />;`,
   Default: `export default function ({ headerStyle }) { return <Header headerStyle={headerStyle} />; }`,
+  Pass: `import { Receiver } from './receiver';\nexport const Pass = ({ headerStyle }) => <Receiver classStyle={headerStyle} />;`,
+  PassBoth: `import { Receiver } from './receiver';\nexport const PassBoth = ({ headerStyle }) => <header classStyle={headerStyle}><Receiver classStyle={headerStyle} /></header>;`,
+  PassLocal: `const Inner = ({ classStyle } = {}) => <i classStyle={classStyle} />;\nexport const PassLocal = ({ headerStyle }) => <Inner classStyle={headerStyle} />;`,
+  PassPlain: `import { Plain } from './receiver';\nexport const PassPlain = ({ headerStyle }) => <Plain classStyle={headerStyle} />;`,
+  PassPackage: `import { Menu } from '@headlessui/react';\nexport const PassPackage = ({ headerStyle }) => <Menu classStyle={headerStyle} />;`,
+  PassDefault: `import Receiver from './default-receiver';\nexport const PassDefault = ({ headerStyle }) => <Receiver classStyle={headerStyle} />;`,
+  PassBroken: `import { Receiver } from './broken';\nexport const PassBroken = ({ headerStyle }) => <Receiver classStyle={headerStyle} />;`,
+  PassMember: `import * as ui from './receiver';\nexport const PassMember = ({ headerStyle }) => <ui.Receiver classStyle={headerStyle} />;`,
+  PassStatic: `import { Receiver } from './receiver';\nexport const PassStatic = ({ headerStyle }) => <header classStyle={headerStyle}><Receiver classStyle={styles.base} /><Receiver classStyle={styles.base} /></header>;`,
 };
+
+write(
+  'receiver.jsx',
+  `export function Receiver({ classStyle }) { return <div classStyle={classStyle} />; }
+export const Plain = (props) => <div classStyle={props.classStyle} />;`,
+);
+write(
+  'default-receiver.jsx',
+  `function Receiver({ classStyle }) { return <div classStyle={classStyle} />; }
+export default Receiver;`,
+);
+write(
+  'broken.tsx',
+  `export const Receiver = ({ classStyle }: Props) => <div classStyle={classStyle} />;`,
+);
 
 const prelude = `import * as css from '@plumeria/core';\nconst styles = css.create({ base: { color: 'red' } });\n`;
 const paths: Record<string, string> = {};
@@ -93,6 +117,17 @@ const invalid = (name: string) => ({
   ],
 });
 
+const passed = (name: string) => ({
+  code: fs.readFileSync(paths[name], 'utf8'),
+  filename: paths[name],
+  errors: [
+    {
+      messageId: 'receiver',
+      data: { prop: 'headerStyle', styleProp: 'classStyle' },
+    },
+  ],
+});
+
 ruleTester.run('no-style-prop-relay', noStylePropRelay, {
   valid: [
     valid('Applied'),
@@ -101,6 +136,11 @@ ruleTester.run('no-style-prop-relay', noStylePropRelay, {
     valid('Used'),
     valid('Both'),
     valid('Module'),
+    valid('PassPlain'),
+    valid('PassPackage'),
+    valid('PassStatic'),
+    valid('PassBroken'),
+    valid('PassMember'),
   ],
   invalid: [
     invalid('Forward'),
@@ -111,7 +151,34 @@ ruleTester.run('no-style-prop-relay', noStylePropRelay, {
     invalid('Props'),
     invalid('Default'),
     invalid('Custom'),
+    passed('Pass'),
+    passed('PassBoth'),
+    passed('PassLocal'),
+    passed('PassDefault'),
   ],
+});
+
+new RuleTester({
+  languageOptions: {
+    parser: require('@typescript-eslint/parser'),
+    parserOptions: { ecmaFeatures: { jsx: true } },
+  },
+}).run('no-style-prop-relay with a parseForESLint parser', noStylePropRelay, {
+  valid: [valid('PassPlain')],
+  invalid: [passed('Pass')],
+});
+
+test('skips an imported component when no parser is available', () => {
+  write(
+    'unparsed.jsx',
+    `export const Receiver = ({ classStyle }) => <div classStyle={classStyle} />;`,
+  );
+  expect(
+    reportsFor(
+      `import { Receiver } from './unparsed';\nexport const Pass = ({ headerStyle }) => <Receiver classStyle={headerStyle} />;`,
+      paths.Pass,
+    ),
+  ).toHaveLength(0);
 });
 
 test('enabled as an error in recommended', () => {
@@ -220,6 +287,10 @@ test.each([
   [
     'direct use',
     'const Forward = ({ headerStyle }) => <div className={use(headerStyle)} />;',
+  ],
+  [
+    'lowercase local function',
+    'const inner = ({ classStyle }) => <i classStyle={classStyle} />; const Forward = ({ headerStyle }) => <inner classStyle={headerStyle} />;',
   ],
   [
     'identifier without destructuring',
