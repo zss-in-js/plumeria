@@ -3251,6 +3251,10 @@ export const transformSource = async (
 
       if (!node.value || node.value.type !== 'JSXExpressionContainer') return;
 
+      const appliedBefore = receivesStyleProp
+        ? new Set(appliedStyleProps)
+        : null;
+      if (appliedBefore) appliedStyleProps.clear();
       const expr = node.value.expression;
       const args: Array<{ expression: Expression; order?: number }> =
         expr.type === 'ArrayExpression'
@@ -3369,6 +3373,25 @@ export const transformSource = async (
           end: node.span.end - baseByteOffset,
           content: `${keptClass}${styleAttr}`,
         });
+      }
+      if (appliedBefore) {
+        const referenced = new Set(appliedStyleProps);
+        for (const key of referenced) {
+          const [owner, propName] = key.split(':');
+          if (
+            scannedTables.componentPropsTable?.[`${resourcePath}-${owner}`]?.[
+              propName
+            ]
+          ) {
+            throwCompilationError(
+              `[plumeria] "${propName}" is a style received through a prop and cannot be passed on ` +
+                `to a component that declares ${styleProp}. Apply it on an element this component renders.`,
+              node,
+            );
+          }
+        }
+        for (const applied of appliedBefore) appliedStyleProps.add(applied);
+        for (const applied of referenced) appliedStyleProps.add(applied);
       }
     },
     CallExpression({ node }: { node: CallExpression }) {
