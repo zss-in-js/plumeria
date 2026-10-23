@@ -1,8 +1,14 @@
-import { scanAll } from '@plumeria/compiler';
+import { scanAll, styleReceivers } from '@plumeria/compiler';
 
 const SCAN_REUSE_MS = 1000;
 let recentScan:
-  | { key: string; at: number; tables: ReturnType<typeof scanAll> }
+  | {
+      key: string;
+      at: number;
+      tables: ReturnType<typeof scanAll> & {
+        styleReceiverTable: ReturnType<typeof styleReceivers>;
+      };
+    }
   | undefined;
 
 export const scanTables = (cwd: string, styleProp: string) => {
@@ -13,7 +19,12 @@ export const scanTables = (cwd: string, styleProp: string) => {
     recentScan.key !== key ||
     now - recentScan.at > SCAN_REUSE_MS
   ) {
-    recentScan = { key, at: now, tables: scanAll(cwd, styleProp) };
+    const summary = scanAll(cwd, styleProp);
+    recentScan = {
+      key,
+      at: now,
+      tables: { ...summary, styleReceiverTable: styleReceivers() },
+    };
   }
   return recentScan.tables;
 };
