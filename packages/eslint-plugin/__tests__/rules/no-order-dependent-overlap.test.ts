@@ -296,8 +296,86 @@ ruleTester.run('no-order-dependent-overlap', noOrderDependentOverlap, {
         });
       `,
     },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '[data-state="checked"]': { color: 'red' },
+            "[data-state='unchecked']": { color: 'blue' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':user-valid': { color: 'red' },
+            ':user-invalid': { color: 'blue' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':dir(ltr)': { color: 'red' },
+            ':dir(rtl)': { color: 'blue' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':nth-child(odd)': { color: 'red' },
+            ':nth-child(even)': { color: 'blue' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':playing': { color: 'red' },
+            ':paused': { color: 'blue' }
+          }
+        });
+      `,
+    },
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            ':not([data-state])': { color: 'red' },
+            '[data-state="open"]': { color: 'blue' }
+          }
+        });
+      `,
+    },
   ],
   invalid: [
+    {
+      code: `
+        import * as css from '@plumeria/core';
+        css.create({
+          main: {
+            '[data-state="open" i]': { color: 'red' },
+            '[data-state="OPEN"]': { color: 'blue' }
+          }
+        });
+      `,
+      errors: [{ messageId: 'state' }],
+    },
     {
       code: `
         import * as css from '@plumeria/core';
