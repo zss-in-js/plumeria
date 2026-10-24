@@ -110,7 +110,7 @@ const html = `<!doctype html>
           <h1 class="title">Plumeria</h1>
           <p class="description">Type-safe styling for <span class="emphasis">React</span>.<br><span class="emphasis">Rust-compiled</span> zero-runtime atomic CSS.</p>
           <div class="actions">
-            <a href="/docs" class="button primary">Get started</a>
+            <a href="/docs" class="button primary">Get started<svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
             <a href="/docs/why-plumeria" class="button">Why Plumeria?</a>
           </div>
         </div>
