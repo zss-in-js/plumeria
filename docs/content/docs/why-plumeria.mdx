@@ -66,6 +66,8 @@ Plumeria's strength doesn't come from flashy, single-purpose features. It comes 
 
 Split, organize, and refactor styles across files without fear. Where traditional approaches let bundling order and import hierarchies decide which rule wins — silently breaking layouts — Plumeria never leaves that to stylesheet order. Styles merge property by property and the one written last wins, whether it comes from the same file, another module, or a parent through a prop. Your layouts look identical no matter how files are structured or in what order they are bundled.
 
+[Playground · Last style wins](/playground?example=merge)
+
 ## Never Executes Your Application Code
 
 Plumeria's compiler never executes your application code. It relies purely on fast static analysis with the oxc parser and direct AST rewrites, and the hand-written type definitions of `@plumeria/core` resolve without any evaluation. The build pipeline stays fast and lightweight, and your styles never depend on runtime evaluation. A value the compiler cannot resolve is reported at build time.
