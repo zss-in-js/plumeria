@@ -84,6 +84,19 @@ export function createTheme(
   return variables;
 }
 
+function markerVariable(id: string, pseudo: string): string {
+  const ident = (value: string) => value.replace(/[^A-Za-z0-9-]/g, '');
+  return `--${genBase36Hash({ [id]: pseudo }, 1, 8)}-${ident(id)}-${ident(pseudo.split('(')[0])}`;
+}
+
+export function marker(id: string, pseudo: string): Record<string, Record<string, number>> {
+  return { [pseudo]: { [markerVariable(id, pseudo)]: 1 } };
+}
+
+export function extended(id: string, pseudo: string): string {
+  return `@container style(${markerVariable(id, pseudo)}: 1)`;
+}
+
 export function createStatic<T extends Record<string, unknown>>(rule: T): T {
   return rule;
 }
