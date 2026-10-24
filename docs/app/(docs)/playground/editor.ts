@@ -231,6 +231,7 @@ export async function mount(
   files: SampleFile[],
   entry: string,
   onCount: (errors: number, warnings: number) => void,
+  onFile: (path: string) => void,
 ): Promise<PlaygroundHandle> {
   setupEnvironment();
   const core = await setupHighlighting();
@@ -312,6 +313,24 @@ export async function mount(
         tokens: hoverLines.get(line) ?? [{ startIndex: 0, scopes: '' }],
         endState: hoverState,
       }),
+    }),
+    monaco.languages.registerDefinitionProvider('typescript', {
+      provideDefinition(target, position) {
+        const path = pathOf.get(target);
+        if (!path) return null;
+        return session.definitions(path, target.getOffsetAt(position)).flatMap(({ file, start, length }) => {
+          const destination = models.get(file);
+          if (!destination) return [];
+          const from = destination.getPositionAt(start);
+          const to = destination.getPositionAt(start + length);
+          return [
+            {
+              uri: destination.uri,
+              range: new monaco.Range(from.lineNumber, from.column, to.lineNumber, to.column),
+            },
+          ];
+        });
+      },
     }),
     monaco.languages.registerHoverProvider('typescript', {
       provideHover(target: monaco.editor.ITextModel, position: monaco.Position) {
@@ -574,6 +593,35 @@ export async function mount(
     }),
   );
 
+  function open(path: string) {
+    const next = models.get(path);
+    if (!next || next === model) return;
+    model = next;
+    editor.setModel(model);
+    showJsx();
+    updateSemanticColors();
+  }
+
+  subscriptions.push(
+    monaco.editor.registerEditorOpener({
+      openCodeEditor(_source, resource, selection) {
+        const path = pathOf.get(monaco.editor.getModel(resource) as monaco.editor.ITextModel);
+        if (!path) return false;
+        open(path);
+        if (selection && 'startLineNumber' in selection) {
+          editor.setSelection(selection);
+          editor.revealRangeInCenterIfOutsideViewport(selection);
+        } else if (selection) {
+          editor.setPosition(selection);
+          editor.revealPositionInCenterIfOutsideViewport(selection);
+        }
+        editor.focus();
+        onFile(path);
+        return true;
+      },
+    }),
+  );
+
   function fixOnSave(event: KeyboardEvent) {
     if (!editor.hasTextFocus() || event.isComposing || event.shiftKey || event.getModifierState('AltGraph')) return;
     if (event.code !== 'KeyS' || !(event.metaKey || event.ctrlKey || event.altKey)) return;
@@ -613,12 +661,8 @@ export async function mount(
   return {
     getSource: () => model.getValue(),
     setFile(path) {
-      const next = models.get(path);
-      if (!next || next === model) return;
-      model = next;
-      editor.setModel(model);
-      showJsx();
-      updateSemanticColors();
+      if (models.get(path) === model) return;
+      open(path);
       editor.focus();
     },
     reset() {
