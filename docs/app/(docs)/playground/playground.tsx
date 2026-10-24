@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import * as css from '@plumeria/core';
 import { theme } from 'lib/theme';
 import { breakpoints } from 'lib/mediaQuery';
-import { ENTRY, SAMPLE_FILES } from './sample';
+import { ENTRY, EXAMPLES, exampleFromSearch } from './sample';
+import type { ExampleName } from './sample';
 import type { OutputKind, PlaygroundHandle } from './editor';
 import { loadEngine, onEngineProgress } from './engine';
 import type { SpellingPolicy } from './engine-types';
@@ -13,6 +14,11 @@ const POLICIES: { value: SpellingPolicy; label: string }[] = [
   { value: 'off', label: 'Off' },
   { value: 'logical', label: 'Logical only' },
   { value: 'physical', label: 'Physical only' },
+];
+
+const EXAMPLE_LINKS: { value: ExampleName; label: string }[] = [
+  { value: 'card', label: 'Card' },
+  { value: 'merge', label: 'Last style wins' },
 ];
 
 type OutputTab = OutputKind | 'preview';
@@ -107,6 +113,7 @@ const styles = css.create({
     padding: '4px 10px',
     fontSize: 12,
     color: theme.textSecondary,
+    textDecoration: 'none',
     cursor: 'pointer',
     background: 'transparent',
     borderColor: 'currentColor',
@@ -276,6 +283,7 @@ export function Playground() {
   const [downloaded, setDownloaded] = useState(0);
   const ready = editorReady && previewReady;
   const progress = downloaded * 0.85 + (editorReady ? 0.1 : 0) + (previewReady ? 0.05 : 0);
+  const [example, setExample] = useState<ExampleName>('card');
   const [policy, setPolicy] = useState<SpellingPolicy>('off');
   const [file, setFile] = useState(ENTRY);
   const [outputTab, setOutputTab] = useState<OutputTab>('preview');
@@ -292,6 +300,8 @@ export function Playground() {
     }
 
     let disposed = false;
+    const name = exampleFromSearch(location.search);
+    setExample(name);
 
     const stopProgress = onEngineProgress(setDownloaded);
 
@@ -302,9 +312,10 @@ export function Playground() {
         container.current,
         output.current,
         preview.current,
-        SAMPLE_FILES,
+        EXAMPLES[name],
         ENTRY,
         (errors, warnings) => setCounts({ errors, warnings }),
+        setFile,
       );
       if (disposed) {
         handle.current.dispose();
@@ -366,6 +377,19 @@ export function Playground() {
     <div classStyle={styles.root}>
       <div classStyle={styles.bar}>
         <div classStyle={styles.editorBar}>
+          <span classStyle={styles.label}>Example</span>
+          <div classStyle={styles.group}>
+            {EXAMPLE_LINKS.map((item) => (
+              <a
+                key={item.value}
+                href={item.value === 'card' ? '/playground' : `/playground?example=${item.value}`}
+                aria-current={example === item.value ? 'page' : undefined}
+                classStyle={[styles.option, example === item.value && styles.optionActive]}
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
           <span classStyle={styles.label}>Property spelling</span>
           <div classStyle={styles.group}>
             {POLICIES.map((item) => (
@@ -410,7 +434,7 @@ export function Playground() {
         <div classStyle={styles.pane}>
           <div classStyle={styles.tabs}>
             <div classStyle={styles.tabList} role="tablist" aria-label="Playground files">
-              {SAMPLE_FILES.map((item) => (
+              {EXAMPLES[example].map((item) => (
                 <button
                   key={item.path}
                   type="button"
