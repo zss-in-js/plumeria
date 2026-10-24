@@ -32,6 +32,12 @@ export type Completion = {
   length?: number;
 };
 
+export type Definition = {
+  file: string;
+  start: number;
+  length: number;
+};
+
 export type Diagnostic = {
   message: string;
   start: number;
@@ -42,6 +48,7 @@ export type Session = {
   update: (file: string, source: string) => void;
   quickInfo: (file: string, offset: number) => QuickInfo | null;
   completions: (file: string, offset: number, trigger?: string) => Completion[];
+  definitions: (file: string, offset: number) => Definition[];
   classifications: (file: string, start: number, length: number) => readonly number[];
   diagnostics: (file: string) => Diagnostic[];
   lint: (file: string, source: string, policy: SpellingPolicy) => LintMessage[];
