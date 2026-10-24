@@ -255,20 +255,29 @@ button {
   flex-wrap: wrap;
   gap: 16px;
   justify-content: center;
-  margin-top: 36px;
+  margin-top: 44px;
 }
 
 .button {
   display: inline-flex;
+  gap: 8px;
   align-items: center;
   justify-content: center;
-  min-height: 46px;
-  padding: 12px 24px;
-  font-size: 15px;
+  min-height: 48px;
+  padding: 12px 26px;
+  font-size: 16px;
   font-weight: 500;
   border-width: 1px;
-  border-radius: 6px;
+  border-radius: 8px;
   transition-duration: 0.2s;
+}
+
+.arrow {
+  transition: translate 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.primary:hover .arrow {
+  translate: 3px 0;
 }
 
 .button:hover {
