@@ -62,9 +62,9 @@ Plumeria's strength doesn't come from flashy, single-purpose features. It comes 
 
 ---
 
-## Deterministic Cross-File Module Graph
+## The Last Style Written Wins
 
-Split, organize, and refactor styles across files without fear. Where traditional approaches let bundling order and import hierarchies alter CSS injection sequences — silently breaking layouts — Plumeria's output is determined strictly by the compiler's module graph. Your layouts look identical no matter how files are structured or in what order they are bundled.
+Split, organize, and refactor styles across files without fear. Where traditional approaches let bundling order and import hierarchies decide which rule wins — silently breaking layouts — Plumeria never leaves that to stylesheet order. Styles merge property by property and the one written last wins, whether it comes from the same file, another module, or a parent through a prop. Your layouts look identical no matter how files are structured or in what order they are bundled.
 
 ## Never Executes Your Application Code
 
