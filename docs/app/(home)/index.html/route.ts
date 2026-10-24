@@ -30,7 +30,6 @@ const moonIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 const heroHeightScript = `(()=>{var w=0,e=document.documentElement;function s(){if(innerWidth!==w){w=innerWidth;e.style.setProperty('--hero-height',innerHeight+'px')}}s();addEventListener('resize',s)})()`;
 
 const speculationRules = JSON.stringify({
-  prerender: [{ urls: ['/docs'], eagerness: 'immediate' }],
   prefetch: [{ where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/' } }] }, eagerness: 'immediate' }],
 });
 
