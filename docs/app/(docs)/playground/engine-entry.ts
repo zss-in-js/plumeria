@@ -4,7 +4,15 @@ import * as tsParser from '@typescript-eslint/parser';
 import plumeria from '@plumeria/eslint-plugin';
 import * as ts from 'typescript';
 import { setPlaygroundFiles } from './utils-shim';
-import type { Completion, Diagnostic, LintMessage, QuickInfo, Session, SpellingPolicy } from './engine-types';
+import type {
+  Completion,
+  Definition,
+  Diagnostic,
+  LintMessage,
+  QuickInfo,
+  Session,
+  SpellingPolicy,
+} from './engine-types';
 
 const CORE_DIR = '/node_modules/@plumeria/core';
 
@@ -98,6 +106,14 @@ export async function createSession(files: Record<string, string>, libs: Record<
           length: span?.length,
         };
       });
+    },
+
+    definitions(file: string, offset: number): Definition[] {
+      return (service.getDefinitionAtPosition(file, offset) ?? []).map((definition) => ({
+        file: definition.fileName,
+        start: definition.textSpan.start,
+        length: definition.textSpan.length,
+      }));
     },
 
     quickInfo(file: string, offset: number): QuickInfo | null {
